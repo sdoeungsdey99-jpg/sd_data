@@ -1,7 +1,7 @@
 /**
  * dataService.js
  * Universal Client & Cloud Live Data Pipeline for SD Data ERP
- * Supports both local server /api/data and direct Google Sheets Live GViz API
+ * Accurately parses Google Sheets GViz API with exact schema indices
  */
 
 const SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
@@ -37,7 +37,7 @@ function cleanNumber(val) {
 }
 
 async function fetchGoogleSheetGViz(gid) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}&_t=${Date.now()}`;
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}&headers=0&_t=${Date.now()}`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`Google Sheets GViz HTTP ${resp.status}`);
   const text = await resp.text();
@@ -75,133 +75,123 @@ const DataService = {
     this.notify();
 
     try {
-      // 1. Try local or custom server API first
-      let loaded = false;
-      try {
-        const localResp = await fetch(`/api/data${forceRefresh ? '?refresh=true' : ''}`, { signal: AbortSignal.timeout(3000) });
-        if (localResp.ok) {
-          const json = await localResp.json();
-          if (json.status === 'success' && json.sales) {
-            this.data = json;
-            loaded = true;
+      // 1. Fetch Master data (gid=0)
+      const masterData = await fetchGoogleSheetGViz('0');
+      const mRows = masterData.table.rows;
+
+      const sales = [];
+      // Row 0 is sum header, Row 1 is header, data starts from index 2 (Row 4 in Sheet)
+      for (let i = 2; i < mRows.length; i++) {
+        const cells = mRows[i].c;
+        if (!cells) continue;
+        
+        const getCell = (idx) => {
+          if (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) {
+            return cells[idx].v;
+          }
+          return '';
+        };
+
+        const dVal = getCell(0);  // Column A: Date
+        const moVal = getCell(1); // Column B: Month
+        const yrVal = getCell(2); // Column C: Year
+        if (!dVal || !moVal || !yrVal) continue;
+
+        const moNum = parseMonthName(moVal);
+        if (!moNum) continue;
+
+        const dInt = parseInt(parseFloat(dVal));
+        const yrInt = parseInt(parseFloat(yrVal));
+        const isoDate = `${yrInt}-${moNum}-${String(dInt).padStart(2, '0')}`;
+
+        const status = String(getCell(16) || '').trim(); // Column Q: Status
+        if (status === 'សុំ Canceled') continue;
+
+        const qty = cleanNumber(getCell(10));         // Column K: Sale QTY
+        const revenue = cleanNumber(getCell(19));     // Column T: Total Cost (Sales Revenue)
+        const comCost = cleanNumber(getCell(21));     // Column V: Total Com.Cost (COGS)
+        const grossProfit = cleanNumber(getCell(22)); // Column W: Gross Profit
+        const team = String(getCell(8) || 'ទូទៅ').trim();       // Column I: Team
+        const member = String(getCell(9) || team).trim();       // Column J: Member
+        const product = String(getCell(7) || 'មិនបានបញ្ជាក់').trim(); // Column H: Product Name
+
+        sales.push({
+          date: isoDate,
+          year: yrInt,
+          month: moNum,
+          day: dInt,
+          team: team,
+          member: member,
+          product: product,
+          qty: qty,
+          revenue: revenue,
+          cogs: comCost,
+          grossProfit: grossProfit,
+          status: status
+        });
+      }
+
+      // 2. Fetch Daily Expenses (gid=1413782774)
+      const expData = await fetchGoogleSheetGViz('1413782774');
+      const eRows = expData.table.rows;
+
+      const expenses = [];
+      for (let i = 0; i < eRows.length; i++) {
+        const cells = eRows[i].c;
+        if (!cells) continue;
+
+        const getCell = (idx) => {
+          if (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) {
+            return cells[idx].v;
+          }
+          return '';
+        };
+
+        const dateRaw = String(getCell(0) || '').trim();
+        if (!dateRaw || dateRaw.toLowerCase() === 'date') continue;
+
+        let isoDate = '';
+        // Check GViz Date format: Date(YYYY,M,D) where month is 0-indexed
+        const dateMatch = dateRaw.match(/Date\((\d+),(\d+),(\d+)\)/);
+        if (dateMatch) {
+          const yr = parseInt(dateMatch[1]);
+          const mo = parseInt(dateMatch[2]) + 1; // 0-indexed in GViz
+          const dy = parseInt(dateMatch[3]);
+          isoDate = `${String(yr).padStart(4, '0')}-${String(mo).padStart(2, '0')}-${String(dy).padStart(2, '0')}`;
+        } else {
+          // Standard DD/MM/YYYY
+          const parts = dateRaw.split('/');
+          if (parts.length === 3) {
+            const dInt = parseInt(parts[0]);
+            const mInt = parseInt(parts[1]);
+            const yInt = parseInt(parts[2]);
+            isoDate = `${yInt}-${String(mInt).padStart(2, '0')}-${String(dInt).padStart(2, '0')}`;
           }
         }
-      } catch (e) {
-        // Fallback to direct client-side Google Sheet GViz API
+
+        if (!isoDate) continue;
+
+        const desc = String(getCell(1) || '').trim();
+        const cat = String(getCell(2) || 'ផ្សេងៗ').trim();
+        const amt = cleanNumber(getCell(3));
+
+        expenses.push({
+          date: isoDate,
+          description: desc,
+          category: cat,
+          amount: amt
+        });
       }
 
-      // 2. Direct Cloud Fetch from Google Sheets
-      if (!loaded) {
-        // Fetch Master data (gid=0)
-        const masterData = await fetchGoogleSheetGViz('0');
-        const mRows = masterData.table.rows;
-        
-        // Header is row index 0 in GViz (Row 2 in Sheet)
-        const headerRow = mRows[0].c.map(c => c && c.v !== null ? String(c.v).trim() : '');
-        const hmap = {};
-        headerRow.forEach((h, idx) => { if (h) hmap[h] = idx; });
-
-        const sales = [];
-        // Data starts from index 2 in GViz (Row 4 in Sheet)
-        for (let i = 2; i < mRows.length; i++) {
-          const cells = mRows[i].c;
-          if (!cells) continue;
-          const getVal = (colName) => {
-            const idx = hmap[colName];
-            if (idx === undefined || !cells[idx] || cells[idx].v === null) return '';
-            return String(cells[idx].v).trim();
-          };
-
-          const dVal = getVal('Date');
-          const moVal = getVal('Month');
-          const yrVal = getVal('Year');
-          if (!dVal || !moVal || !yrVal) continue;
-
-          const moNum = parseMonthName(moVal);
-          if (!moNum) continue;
-
-          const dInt = parseInt(parseFloat(dVal));
-          const yrInt = parseInt(parseFloat(yrVal));
-          const isoDate = `${yrInt}-${moNum}-${String(dInt).padStart(2, '0')}`;
-
-          const status = getVal('Status');
-          if (status === 'សុំ Canceled') continue;
-
-          const qty = cleanNumber(getVal('Sale QTY'));
-          const revenue = cleanNumber(getVal('Total Cost'));
-          const comCost = cleanNumber(getVal('Total Com.Cost'));
-          const grossProfit = cleanNumber(getVal('Gross Profit'));
-          const team = getVal('Team') || 'ទូទៅ';
-          const member = getVal('Member') || team;
-          const product = getVal('Product Name') || 'មិនបានបញ្ជាក់';
-
-          sales.push({
-            date: isoDate,
-            year: yrInt,
-            month: moNum,
-            day: dInt,
-            team: team,
-            member: member,
-            product: product,
-            qty: qty,
-            revenue: revenue,
-            cogs: comCost,
-            grossProfit: grossProfit,
-            status: status
-          });
-        }
-
-        // Fetch Daily Expenses (gid=1413782774)
-        const expData = await fetchGoogleSheetGViz('1413782774');
-        const eRows = expData.table.rows;
-        const eHeader = eRows[0].c.map(c => c && c.v !== null ? String(c.v).trim() : '');
-        const ehmap = {};
-        eHeader.forEach((h, idx) => { if (h) ehmap[h] = idx; });
-
-        const expenses = [];
-        for (let i = 1; i < eRows.length; i++) {
-          const cells = eRows[i].c;
-          if (!cells) continue;
-          const getVal = (colName) => {
-            const idx = ehmap[colName];
-            if (idx === undefined || !cells[idx] || cells[idx].v === null) return '';
-            return String(cells[idx].v).trim();
-          };
-
-          const dateRaw = getVal('Date');
-          const parts = dateRaw.split('/');
-          if (parts.length !== 3) continue;
-
-          const dInt = parseInt(parts[0]);
-          const mInt = parseInt(parts[1]);
-          const yInt = parseInt(parts[2]);
-          const isoDate = `${yInt}-${String(mInt).padStart(2, '0')}-${String(dInt).padStart(2, '0')}`;
-
-          const desc = getVal('Description');
-          const cat = getVal('Category') || 'ផ្សេងៗ';
-          const amt = cleanNumber(getVal('Amount ($)'));
-
-          expenses.push({
-            date: isoDate,
-            year: yInt,
-            month: String(mInt).padStart(2, '0'),
-            day: dInt,
-            description: desc,
-            category: cat,
-            amount: amt
-          });
-        }
-
-        this.data = {
-          status: 'success',
-          spreadsheetId: SHEET_ID,
-          fetchedAt: new Date().toISOString(),
-          totalSalesRecords: sales.length,
-          totalExpenseRecords: expenses.length,
-          sales: sales,
-          expenses: expenses
-        };
-      }
+      this.data = {
+        status: 'success',
+        spreadsheetId: SHEET_ID,
+        fetchedAt: new Date().toISOString(),
+        totalSalesRecords: sales.length,
+        totalExpenseRecords: expenses.length,
+        sales: sales,
+        expenses: expenses
+      };
 
       this.lastFetched = new Date();
       this.isLoading = false;
