@@ -648,12 +648,13 @@ function getSettingsViewHTML() {
                class="w-20 h-20 rounded-full object-cover border-3 border-orange-500 shadow-xl">
         </div>
         <div class="flex items-center gap-1.5">
-          <h2 class="text-lg font-bold text-white">Sdoeung SDEY</h2>
+          <h2 class="text-lg font-bold text-white">ស្តី ស្តើង</h2>
           <svg class="w-5 h-5 text-[#0088CC] shrink-0" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L11 14.17l7.59-7.59L20 8l-9 9z"/>
           </svg>
         </div>
-        <p class="text-xs text-slate-400 font-mono">087 513 666 | 090 513 666</p>
+        <p class="text-xs text-orange-400 font-semibold tracking-wider">SDEY SDOEUNG</p>
+        <p class="text-xs text-slate-400 font-mono mt-0.5">087 513 666 | 090 513 666</p>
       </div>
 
       <!-- Security Card (Blue Banner as seen in ABA iPhone photo) -->
