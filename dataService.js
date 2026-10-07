@@ -5,26 +5,6 @@
 
 const SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
 
-function parseMonthName(name) {
-  if (!name) return null;
-  const m = String(name).trim().toLowerCase();
-  const map = {
-    'jan': '01', 'january': '01', 'មករា': '01', '1': '01', '01': '01',
-    'feb': '02', 'february': '02', 'កុម្ភៈ': '02', '2': '02', '02': '02',
-    'mar': '03', 'march': '03', 'មីនា': '03', '3': '03', '03': '03',
-    'apr': '04', 'april': '04', 'មេសា': '04', '4': '04', '04': '04',
-    'may': '05', 'ឧសភា': '05', '5': '05', '05': '05',
-    'jun': '06', 'june': '06', 'មិថុនា': '06', '6': '06', '06': '06',
-    'jul': '07', 'july': '07', 'កក្កដា': '07', '7': '07', '07': '07',
-    'aug': '08', 'august': '08', 'សីហា': '08', '8': '08', '08': '08',
-    'sep': '09', 'september': '09', 'កញ្ញា': '09', '9': '09', '09': '09',
-    'oct': '10', 'october': '10', 'តុលា': '10', '10': '10',
-    'nov': '11', 'november': '11', 'វិច្ឆិកា': '11', '11': '11',
-    'dec': '12', 'december': '12', 'ធ្នូ': '12', '12': '12'
-  };
-  return map[m] || null;
-}
-
 function cleanNumber(val) {
   if (val === null || val === undefined || val === '') return 0;
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
@@ -54,7 +34,7 @@ window.DataService = {
   lastFetched: null,
   listeners: [],
   pollTimer: null,
-  newRecordsCount: 0,
+  unreadUpdates: [],
 
   subscribe(listener) {
     if (typeof listener === 'function') {
@@ -77,24 +57,22 @@ window.DataService = {
       // 1. Fetch Personal Sales (gid=1802751802)
       // 2. Fetch Daily Expenses (gid=1413782774)
       // 3. Fetch Bank & Cash Balance (gid=1381982614)
-      // 4. Fetch Product List (gid=205669274)
-      const [psGviz, expGviz, bankGviz, prodGviz] = await Promise.all([
+      // 4. Fetch Team Monthly View (gid=30391871)
+      const [psGviz, expGviz, bankGviz, teamGviz] = await Promise.all([
         fetchGoogleSheetGViz('1802751802'),
         fetchGoogleSheetGViz('1413782774'),
         fetchGoogleSheetGViz('1381982614'),
-        fetchGoogleSheetGViz('205669274')
+        fetchGoogleSheetGViz('30391871')
       ]);
 
       // --- Process Personal Sales ---
       const psRows = psGviz.table.rows;
       const personalSales = [];
-      const unpaidCustomers = [];
 
       for (let i = 1; i < psRows.length; i++) {
         const cells = psRows[i].c;
         if (!cells) continue;
         const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
-        const getFormatted = (idx) => (idx < cells.length && cells[idx] && cells[idx].f) ? cells[idx].f : getCell(idx);
 
         const dateRaw = String(getCell(0) || '').trim();
         if (!dateRaw || dateRaw.toLowerCase() === 'order date') continue;
@@ -135,13 +113,11 @@ window.DataService = {
         const shipFee = cleanNumber(getCell(14));
         const deliveryMethod = String(getCell(15) || 'មិនបញ្ជាក់').trim();
         const codStatus = String(getCell(16) || 'មិនទាន់ទូទាត់').trim();
-        const stock = String(getCell(17) || '').trim();
-        const paymentDate = String(getCell(18) || '').trim();
         const profit = cleanNumber(getCell(19));
         const note = String(getCell(20) || '').trim();
         const recordId = String(getCell(23) || `REC-${i}`).trim();
 
-        const item = {
+        personalSales.push({
           date: isoDate,
           orderId,
           recordId,
@@ -160,22 +136,12 @@ window.DataService = {
           shipFee,
           deliveryMethod,
           codStatus,
-          stock,
-          paymentDate,
           profit,
           note
-        };
-
-        personalSales.push(item);
-
-        // Track unpaid customers (where COD Status is not paid/done)
-        const isPaid = codStatus.includes('បានទូទាត់') || codStatus.toLowerCase().includes('paid');
-        if (!isPaid && totalAmount > 0) {
-          unpaidCustomers.push(item);
-        }
+        });
       }
 
-      // --- Process Daily Expenses ---
+      // --- Process Daily Expenses with accurate Dates ---
       const expRows = expGviz.table.rows;
       const expenses = [];
       for (let i = 1; i < expRows.length; i++) {
@@ -216,14 +182,15 @@ window.DataService = {
         });
       }
 
-      // --- Process Bank & Cash Balance ---
+      // --- Process Bank & Cash Balance directly ---
       const bankRows = bankGviz.table.rows;
       const accounts = [];
+      const unpaidCustomersFromBank = [];
       const payables = [];
       let pureUsdTotal = 0;
       let pureKhrTotal = 0;
 
-      // Extract specific accounts as instructed
+      // Pure USD & KHR Accounts (Rows 3 to 12)
       for (let i = 3; i <= 12 && i < bankRows.length; i++) {
         const cells = bankRows[i].c;
         if (!cells) continue;
@@ -234,7 +201,6 @@ window.DataService = {
 
         const usdVal = cleanNumber(getCell(2));
         const khrVal = cleanNumber(getCell(3));
-
         accounts.push({ name, usd: usdVal, khr: khrVal });
 
         // Pure USD accounts (exclude converted KHR)
@@ -248,46 +214,97 @@ window.DataService = {
           pureUsdTotal += usdVal;
         }
 
-        // Pure KHR accounts
         if (name.includes('(KHR)')) {
           pureKhrTotal += khrVal;
         }
       }
 
-      // Extract payables list (Rows 17 to 26 in Bank & Cash Balance)
-      for (let i = 17; i < bankRows.length; i++) {
+      // Exact 10 Unpaid COD Customers from Bank & Cash Balance (Rows 17 to 26, Columns B to G)
+      for (let i = 17; i <= 26 && i < bankRows.length; i++) {
         const cells = bankRows[i].c;
         if (!cells) continue;
         const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
-        const date = String(getCell(1) || '').trim();
-        const amount = cleanNumber(getCell(5));
-        const status = String(getCell(6) || '').trim();
-        const title = String(getCell(8) || '').trim();
 
-        if (title || amount > 0) {
-          payables.push({ date, title, amount, status });
+        const date = String(getCell(1) || '').trim();
+        const boxes = String(getCell(4) || '').trim();
+        const amount = cleanNumber(getCell(5));
+        const customerNote = String(getCell(6) || '').trim();
+
+        if (amount > 0 || customerNote) {
+          unpaidCustomersFromBank.push({
+            no: i - 16,
+            date,
+            boxes,
+            amount,
+            customerNote: customerNote || `អតិថិជន ${i - 16}`
+          });
         }
       }
 
-      // --- Process Active Product List ---
-      const prodRows = prodGviz.table.rows;
-      const activeProducts = [];
-      for (let i = 1; i < prodRows.length; i++) {
-        const cells = prodRows[i].c;
+      // Exact Payables from Bank & Cash Balance (Rows 17 to 24, Columns H to K)
+      for (let i = 17; i <= 24 && i < bankRows.length; i++) {
+        const cells = bankRows[i].c;
         if (!cells) continue;
         const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
-        const name = String(getCell(1) || '').trim();
-        const cost = cleanNumber(getCell(2));
-        if (name && name !== '-' && name.toLowerCase() !== 'product name') {
-          activeProducts.push({ name, cost: cost || 24.0 });
+
+        const title = String(getCell(8) || '').trim();
+        const amount = cleanNumber(getCell(10));
+
+        if (title && amount > 0) {
+          payables.push({ title, amount });
         }
       }
 
-      // Check notification badge
+      // --- Process 3 Key Team Leaders (Team Monthly View gid=30391871) ---
+      const teamRows = teamGviz.table.rows;
+      const teamLeaders = [];
+      const leaderNames = ['ស្តី ស្តើង', 'ឆេង សុធី', 'ឆេង រ៉ាស៊ុង'];
+
+      for (let i = 7; i <= 9 && i < teamRows.length; i++) {
+        const cells = teamRows[i].c;
+        if (!cells) continue;
+        const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
+        const nameRaw = String(getCell(0) || '').trim();
+        const orders = cleanNumber(getCell(2));
+        const set1 = cleanNumber(getCell(3));
+        const set2 = cleanNumber(getCell(4));
+        const set3 = cleanNumber(getCell(5));
+        const set4 = cleanNumber(getCell(6));
+        const totalBoxes = cleanNumber(getCell(8));
+
+        // Get target achieved percentage from row 18-20 or compute (target is 100 boxes)
+        const targetPercent = Math.min(100, (totalBoxes / 100) * 100).toFixed(1);
+
+        teamLeaders.push({
+          rawName: nameRaw,
+          name: leaderNames[i - 7],
+          orders,
+          set1,
+          set2,
+          set3,
+          set4,
+          totalBoxes,
+          targetPercent
+        });
+      }
+
+      // --- 4 Active Core Products Only ---
+      const activeProducts = [
+        { name: 'Yong Liang', cost: 24.0 },
+        { name: 'Yong Liang Plus', cost: 24.0 },
+        { name: 'Kidney Pro', cost: 24.0 },
+        { name: 'Pro D.O', cost: 24.0 }
+      ];
+
+      // Track unread updates for Notifications
       if (this.data && this.data.personalSales) {
         const diff = personalSales.length - this.data.personalSales.length;
         if (diff > 0) {
-          this.newRecordsCount += diff;
+          this.unreadUpdates.unshift({
+            tab: 'Personal Sales',
+            msg: `មានការកុម្ម៉ង់ថ្មីចំនួន ${diff} ចូលក្នុងសន្លឹក Personal Sales`,
+            time: new Date().toLocaleTimeString('km-KH')
+          });
         }
       }
 
@@ -298,10 +315,11 @@ window.DataService = {
           pureUsdTotal,
           pureKhrTotal,
           accounts,
+          unpaidCustomers: unpaidCustomersFromBank,
           payables
         },
+        teamLeaders,
         activeProducts,
-        unpaidCustomers,
         meta: {
           totalSalesCount: personalSales.length,
           totalExpensesCount: expenses.length
@@ -321,7 +339,6 @@ window.DataService = {
     }
   },
 
-  // 5 Minutes Standard Auto-Reload
   startAutoReload(intervalMinutes = 5) {
     if (this.pollTimer) clearInterval(this.pollTimer);
     const ms = intervalMinutes * 60 * 1000;
@@ -332,12 +349,5 @@ window.DataService = {
 
   stopAutoReload() {
     if (this.pollTimer) clearInterval(this.pollTimer);
-  },
-
-  filterByRange(startDateStr, endDateStr) {
-    if (!this.data) return { sales: [], expenses: [] };
-    const sales = this.data.personalSales.filter(item => item.date >= startDateStr && item.date <= endDateStr);
-    const expenses = this.data.expenses.filter(item => item.date >= startDateStr && item.date <= endDateStr);
-    return { sales, expenses };
   }
 };
