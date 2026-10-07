@@ -230,6 +230,30 @@ function onCustomDateSelected(val) {
   setPeriodFilter('custom');
 }
 
+function renderCurrentView() {
+  const container = document.getElementById('main-content');
+  if (!container) return;
+
+  switch (appState.currentView) {
+    case 'dashboard':
+      container.innerHTML = getDashboardViewHTML();
+      break;
+    case 'analytics':
+      container.innerHTML = getAnalyticsViewHTML();
+      break;
+    case 'learning':
+      container.innerHTML = getLearningViewHTML();
+      break;
+    case 'settings':
+      container.innerHTML = getSettingsViewHTML();
+      break;
+  }
+
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+}
+
 // ==========================================
 // 4. View: Dashboard
 // ==========================================
