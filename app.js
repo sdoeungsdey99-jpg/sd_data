@@ -1,931 +1,737 @@
 /**
- * SD Data - ERP Dashboard Stage 3
- * Connected Real Data: Live Google Sheet pipeline, Filter controls, 4 KPI Cards,
- * SVG Trend Charts, Team/Product Breakdown Table, and Validation.
+ * SD Data - iOS Liquid Fintech ERP Application
+ * Full implementation of iOS App Library, Hero Balance, Personal Sales Drill-down,
+ * 5 Daily English words, Passcode Lock, and Financial Analytics.
  */
 
-// 1. Definition of Modules in Sidebar
-const MODULES = [
-  { id: 'dashboard', name: 'ផ្ទាំងសង្ខេប', icon: 'layout-dashboard' },
-  { id: 'sales-team', name: 'ការលក់ និងក្រុម', icon: 'users-round' },
-  { id: 'comparison', name: 'ការប្រៀបធៀប', icon: 'arrow-left-right' },
-  { id: 'inventory', name: 'ស្តុកទំនិញ', icon: 'package' },
-  { id: 'orders', name: 'ការបញ្ជាទិញ', icon: 'shopping-cart' },
-  { id: 'income-expense', name: 'ចំណូល/ចំណាយ', icon: 'wallet' },
-  { id: 'invoices', name: 'វិក្កយបត្រ', icon: 'file-text' },
-  { id: 'profit-loss', name: 'ចំណេញ/ខាត', icon: 'trending-up' },
-  { id: 'delivery', name: 'ការដឹកជញ្ជូន', icon: 'truck' },
-  { id: 'staff', name: 'បុគ្គលិក', icon: 'user-check' },
-  { id: 'reports', name: 'របាយការណ៍', icon: 'bar-chart-3' },
-  { id: 'settings', name: 'ការកំណត់', icon: 'settings' }
-];
-
-// App State
-const state = {
-  activeModule: 'dashboard',
-  comparisonTab: 'team',
-  comparisonMetric: 'quantity',
-  comparisonMonth1: '2026-09',
-  comparisonMonth2: '2026-10',
-  
-  // Dashboard Period Filters
-  dashboardPeriodMode: 'month', // 'day', 'month', 'year', 'custom'
-  selectedDay: '2026-08-12', // default to an active day in dataset for immediate verification
+// Application State
+const appState = {
+  currentView: 'dashboard', // 'dashboard', 'analytics', 'learning', 'settings'
+  hideBalance: false,
   selectedMonth: '2026-08',
-  selectedYear: '2026',
-  customStartDate: '2026-08-01',
-  customEndDate: '2026-08-31',
-
-  // Breakdown sub-tab in Dashboard
-  breakdownView: 'team', // 'team' or 'product'
+  selectedFilterType: 'month', // 'month', 'year', 'all'
+  searchQuery: '',
+  language: localStorage.getItem('sd_lang') || 'km', // 'km' or 'en'
+  isLocked: !sessionStorage.getItem('sd_unlocked'),
+  enteredPin: '',
+  correctPin: '1234',
+  notifEnabled: {
+    sales: true,
+    expenses: true,
+    payables: true
+  }
 };
 
-// Formatting helpers
+// 5 English Words Database (Daily Life & Business for Khmer Speakers)
+const DAILY_ENGLISH_WORDS = [
+  { en: 'Revenue', pron: 'រេវីនញូ', pos: 'Noun', km: 'ចំណូលសរុប', ex: 'Our monthly revenue increased significantly.' },
+  { en: 'Expense', pron: 'អ៊ិចស្ពែនស៍', pos: 'Noun', km: 'ការចំណាយ', ex: 'Track daily expenses to save money.' },
+  { en: 'Profit', pron: 'ប្រូហ្វីត', pos: 'Noun', km: 'ប្រាក់ចំណេញ', ex: 'Gross profit equals revenue minus factory cost.' },
+  { en: 'Customer', pron: 'ខាសស្ទឺមើ', pos: 'Noun', km: 'អតិថិជន', ex: 'Satisfied customers always return to buy again.' },
+  { en: 'Delivery', pron: 'ដេលីវើរី', pos: 'Noun', km: 'ការដឹកជញ្ជូន', ex: 'Fast delivery creates trust with clients.' }
+];
+
+// Helper: Formatter
 function formatUSD(num) {
-  if (num === null || num === undefined || isNaN(num)) return '—';
+  if (num === null || num === undefined || isNaN(num)) return '$0.00';
   return '$' + Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function formatKHR(num) {
+  if (num === null || num === undefined || isNaN(num)) return '0 ៛';
+  return Number(Math.round(num)).toLocaleString('en-US') + ' ៛';
+}
+
 function formatInt(num) {
-  if (num === null || num === undefined || isNaN(num)) return '—';
+  if (num === null || num === undefined || isNaN(num)) return '0';
   return Number(num).toLocaleString('en-US');
 }
 
-// Convert period mode to [startDateStr, endDateStr] (Asia/Phnom_Penh friendly)
-function getEffectiveDashboardRange() {
-  const mode = state.dashboardPeriodMode;
-  if (mode === 'day') {
-    return { start: state.selectedDay, end: state.selectedDay, label: `ថ្ងៃទី ${state.selectedDay}` };
-  } else if (mode === 'month') {
-    const parts = state.selectedMonth.split('-');
-    const yr = parseInt(parts[0]);
-    const mo = parseInt(parts[1]);
-    const lastDay = new Date(yr, mo, 0).getDate();
-    const start = `${parts[0]}-${parts[1].padStart(2, '0')}-01`;
-    const end = `${parts[0]}-${parts[1].padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-    return { start, end, label: `ខែ ${state.selectedMonth}` };
-  } else if (mode === 'year') {
-    const yr = state.selectedYear;
-    return { start: `${yr}-01-01`, end: `${yr}-12-31`, label: `ឆ្នាំ ${yr}` };
-  } else {
-    let start = state.customStartDate;
-    let end = state.customEndDate;
-    if (start > end) {
-      // Guard: do not allow start > end
-      end = start;
-      state.customEndDate = start;
+// ==========================================
+// 1. Passcode & Lock Screen Logic
+// ==========================================
+function updateLockClock() {
+  const timeEl = document.getElementById('lock-time');
+  const calEl = document.getElementById('lock-calendar');
+  if (!timeEl || !calEl) return;
+
+  const now = new Date();
+  timeEl.textContent = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+  
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  calEl.textContent = now.toLocaleDateString(appState.language === 'km' ? 'km-KH' : 'en-US', options);
+}
+
+function pressPin(num) {
+  if (appState.enteredPin.length < 4) {
+    appState.enteredPin += num;
+    updatePinDots();
+
+    if (appState.enteredPin.length === 4) {
+      setTimeout(() => verifyPin(), 100);
     }
-    return { start, end, label: `${start} ដល់ ${end}` };
   }
 }
 
+function deletePin() {
+  appState.enteredPin = appState.enteredPin.slice(0, -1);
+  updatePinDots();
+}
+
+function clearPin() {
+  appState.enteredPin = '';
+  updatePinDots();
+}
+
+function updatePinDots() {
+  const dots = document.querySelectorAll('#pin-dots div');
+  dots.forEach((dot, idx) => {
+    if (idx < appState.enteredPin.length) {
+      dot.className = 'w-3.5 h-3.5 rounded-full bg-orange-400 border border-orange-400 scale-110 transition-all duration-200';
+    } else {
+      dot.className = 'w-3.5 h-3.5 rounded-full border border-slate-500 transition-all duration-200';
+    }
+  });
+}
+
+function verifyPin() {
+  const prompt = document.getElementById('lock-prompt');
+  if (appState.enteredPin === appState.correctPin) {
+    sessionStorage.setItem('sd_unlocked', 'true');
+    appState.isLocked = false;
+    const lockScreen = document.getElementById('lock-screen');
+    lockScreen.classList.add('opacity-0', 'pointer-events-none', '-translate-y-full');
+    setTimeout(() => {
+      lockScreen.classList.add('hidden');
+    }, 500);
+  } else {
+    prompt.textContent = 'លេខកូដមិនត្រឹមត្រូវទេ! សូមសាកល្បងម្តងទៀត';
+    prompt.classList.add('text-rose-400');
+    setTimeout(() => {
+      appState.enteredPin = '';
+      updatePinDots();
+      prompt.textContent = 'សូមវាយលេខកូដសម្ងាត់ ៤ ខ្ទង់';
+      prompt.classList.remove('text-rose-400');
+    }, 800);
+  }
+}
+
+function lockApp() {
+  sessionStorage.removeItem('sd_unlocked');
+  appState.isLocked = true;
+  appState.enteredPin = '';
+  updatePinDots();
+  const lockScreen = document.getElementById('lock-screen');
+  lockScreen.classList.remove('hidden', '-translate-y-full');
+  setTimeout(() => {
+    lockScreen.classList.remove('opacity-0', 'pointer-events-none');
+  }, 10);
+}
+
 // ==========================================
-// Initialization
+// 2. Initialization & Data Subscriptions
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-  renderSidebarNav();
-  setupDateBadge();
+  setInterval(updateLockClock, 1000);
+  updateLockClock();
 
-  // Listen to DataService updates
-  DataService.subscribe(onDataUpdate);
+  if (sessionStorage.getItem('sd_unlocked') === 'true') {
+    const lockScreen = document.getElementById('lock-screen');
+    if (lockScreen) lockScreen.classList.add('hidden');
+  }
 
-  // Initial load
+  // Setup search input listener
+  const searchInput = document.getElementById('global-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      appState.searchQuery = e.target.value.toLowerCase().trim();
+      renderCurrentView();
+    });
+  }
+
+  // Listen to DataService
+  DataService.subscribe(onDataUpdated);
   DataService.fetchData();
+  DataService.startAutoReload(5); // 5 Minutes Auto Reload
 
-  // Start continuous Live Sync with Google Sheet every 15 seconds
-  DataService.startLiveSync(15000);
+  renderCurrentView();
 });
 
-function onDataUpdate(serviceState) {
-  renderActiveModule();
-  updateHeaderDataStatus(serviceState);
+function onDataUpdated(service) {
+  updateReloadBadge(service);
+  renderCurrentView();
 }
 
-function setupDateBadge() {
-  const dateEl = document.getElementById('current-date-badge');
-  if (dateEl) {
-    const today = new Date();
-    const options = { timeZone: 'Asia/Phnom_Penh', year: 'numeric', month: 'long', day: 'numeric' };
-    dateEl.textContent = today.toLocaleDateString('km-KH', options);
+function updateReloadBadge(service) {
+  const timeText = document.getElementById('reload-time-text');
+  const icon = document.getElementById('reload-icon');
+  const notifBadge = document.getElementById('notif-badge');
+
+  if (service.isLoading) {
+    if (icon) icon.classList.add('animate-spin');
+    if (timeText) timeText.textContent = 'កំពុងទាញ...';
+  } else {
+    if (icon) icon.classList.remove('animate-spin');
+    if (service.lastFetched && timeText) {
+      const t = service.lastFetched.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
+      timeText.textContent = t;
+    }
+  }
+
+  if (notifBadge) {
+    if (service.newRecordsCount > 0) {
+      notifBadge.textContent = service.newRecordsCount;
+      notifBadge.classList.remove('hidden');
+    } else {
+      notifBadge.classList.add('hidden');
+    }
   }
 }
 
-function updateHeaderDataStatus(s) {
-  const badge = document.getElementById('header-status-badge');
-  if (!badge) return;
+function manualReload() {
+  DataService.fetchData(false);
+}
 
-  if (s.isLoading) {
-    badge.innerHTML = `
-      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs">
-        <i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>
-        <span>កំពុងទាញទិន្នន័យ...</span>
-      </div>
-    `;
-  } else if (s.error) {
-    badge.innerHTML = `
-      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-xs">
-        <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
-        <span>កំហុសតភ្ជាប់</span>
-        <button onclick="DataService.fetchData(true)" class="underline ml-1 font-bold">សាកល្បងម្ដងទៀត</button>
-      </div>
-    `;
-  } else if (s.lastFetched) {
-    const timeStr = s.lastFetched.toLocaleTimeString('km-KH', { timeZone: 'Asia/Phnom_Penh', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    badge.innerHTML = `
-      <div class="flex items-center gap-2">
-        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs shadow-xs">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-          <span class="font-bold">LIVE Sheet</span>
-          <span class="text-emerald-600 font-normal">(${timeStr})</span>
-        </div>
-        <button onclick="DataService.fetchData(true)" title="ទាញទិន្នន័យឡើងវិញភ្លាមៗ (Sync Now)"
-                class="p-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-[#B91C1C] hover:bg-slate-50 transition-colors">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-        </button>
-      </div>
-    `;
+function toggleHideBalance() {
+  appState.hideBalance = !appState.hideBalance;
+  renderCurrentView();
+}
+
+// ==========================================
+// 3. Navigation View Switcher
+// ==========================================
+function switchView(viewName) {
+  appState.currentView = viewName;
+  
+  // Highlight Dock Buttons
+  ['dashboard', 'analytics', 'learning', 'settings'].forEach(v => {
+    const btn = document.getElementById(`nav-btn-${v}`);
+    if (btn) {
+      if (v === viewName) {
+        btn.className = 'flex flex-col items-center gap-0.5 text-orange-400 py-1 px-3 rounded-xl transition';
+      } else {
+        btn.className = 'flex flex-col items-center gap-0.5 text-slate-400 hover:text-white py-1 px-3 rounded-xl transition';
+      }
+    }
+  });
+
+  renderCurrentView();
+}
+
+function renderCurrentView() {
+  const container = document.getElementById('main-content');
+  if (!container) return;
+
+  switch (appState.currentView) {
+    case 'dashboard':
+      container.innerHTML = getDashboardViewHTML();
+      break;
+    case 'analytics':
+      container.innerHTML = getAnalyticsViewHTML();
+      break;
+    case 'learning':
+      container.innerHTML = getLearningViewHTML();
+      break;
+    case 'settings':
+      container.innerHTML = getSettingsViewHTML();
+      break;
   }
+
   if (window.lucide) window.lucide.createIcons();
 }
 
-// Render Sidebar Items
-function renderSidebarNav() {
-  const navContainer = document.getElementById('nav-list');
-  navContainer.innerHTML = MODULES.map(mod => {
-    const isActive = mod.id === state.activeModule;
-    const baseClasses = "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs md:text-sm font-medium transition-all duration-150 cursor-pointer w-full text-left";
-    const activeClasses = isActive 
-      ? "bg-white text-[#B91C1C] shadow-md font-bold scale-[1.01]" 
-      : "text-white hover:bg-white/15 hover:text-white";
-
-    return `
-      <button onclick="switchModule('${mod.id}')" 
-              class="${baseClasses} ${activeClasses}"
-              data-module="${mod.id}">
-        <i data-lucide="${mod.icon}" class="w-4 h-4 shrink-0 ${isActive ? 'text-[#B91C1C]' : 'text-white'}"></i>
-        <span class="truncate">${mod.name}</span>
-      </button>
-    `;
-  }).join('');
-
-  if (window.lucide) {
-    window.lucide.createIcons();
-  }
-}
-
-// Switch Module
-function switchModule(moduleId) {
-  state.activeModule = moduleId;
-  renderSidebarNav();
-  renderActiveModule();
-  
-  const currentMod = MODULES.find(m => m.id === moduleId);
-  if (currentMod) {
-    document.getElementById('header-title').textContent = currentMod.name;
-    const iconContainer = document.getElementById('header-icon-container');
-    if (iconContainer) {
-      iconContainer.innerHTML = `<i data-lucide="${currentMod.icon}" class="w-4 h-4 text-[#B91C1C]"></i>`;
-    }
-  }
-
-  closeSidebar();
-  if (window.lucide) {
-    window.lucide.createIcons();
-  }
-}
-
-// Mobile Sidebar Controls
-function openSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('mobile-overlay');
-  sidebar.classList.remove('-translate-x-full');
-  overlay.classList.remove('hidden');
-  setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-}
-
-function closeSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('mobile-overlay');
-  sidebar.classList.add('-translate-x-full');
-  overlay.classList.add('opacity-0');
-  setTimeout(() => overlay.classList.add('hidden'), 300);
-}
-
-// Main Module Router
-function renderActiveModule() {
-  const main = document.getElementById('main-content');
-  
-  switch (state.activeModule) {
-    case 'dashboard':
-      main.innerHTML = getDashboardHTML();
-      break;
-    case 'sales-team':
-      main.innerHTML = getSalesTeamHTML();
-      break;
-    case 'comparison':
-      main.innerHTML = getComparisonHTML();
-      break;
-    default:
-      main.innerHTML = getGenericModuleHTML(state.activeModule);
-      break;
-  }
-
-  if (window.lucide) {
-    window.lucide.createIcons();
-  }
-}
-
 // ==========================================
-// 1. Module: ផ្ទាំងសង្ខេប (Dashboard) - FULL IMPLEMENTATION
+// 4. View: Dashboard (iOS Liquid & App Library)
 // ==========================================
-function getDashboardHTML() {
-  const isLoaded = !DataService.isLoading && !DataService.error && DataService.data;
-  const range = getEffectiveDashboardRange();
-
-  // If still loading and has no cached data
-  if (DataService.isLoading && !DataService.data) {
+function getDashboardViewHTML() {
+  const d = DataService.data;
+  if (!d) {
     return `
-      <div class="max-w-7xl mx-auto py-20 flex flex-col items-center justify-center text-center">
-        <div class="w-12 h-12 rounded-full border-4 border-[#B91C1C]/20 border-t-[#B91C1C] animate-spin mb-4"></div>
-        <h3 class="text-base font-bold text-slate-700">កំពុងទាញទិន្នន័យពី Google Sheet...</h3>
-        <p class="text-xs text-slate-400 mt-1">សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងដំណើរការទិន្នន័យផ្សារភ្ជាប់ផ្ទាល់</p>
+      <div class="py-24 flex flex-col items-center justify-center text-center">
+        <div class="w-12 h-12 rounded-full border-4 border-orange-500/20 border-t-orange-500 animate-spin mb-4"></div>
+        <p class="text-xs text-slate-400">កំពុងភ្ជាប់ទៅកាន់ Google Sheet...</p>
       </div>
     `;
   }
 
-  // If error and no cached data
-  if (DataService.error && !DataService.data) {
-    return `
-      <div class="max-w-7xl mx-auto py-16 flex flex-col items-center justify-center text-center bg-white p-6 rounded-2xl border border-rose-200 shadow-sm">
-        <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-3">
-          <i data-lucide="alert-circle" class="w-6 h-6"></i>
+  // Selected Month Sales & Expenses
+  const selectedMo = appState.selectedMonth; // e.g. '2026-08'
+  const monthSales = d.personalSales.filter(s => s.date.startsWith(selectedMo));
+  const monthExpenses = d.expenses.filter(e => e.date.startsWith(selectedMo));
+
+  // Calculated Metrics from Personal Sales & Daily Expenses
+  const totalBoxQty = monthSales.reduce((acc, cur) => acc + (cur.totalBoxQty || 0), 0);
+  const totalRevenue = monthSales.reduce((acc, cur) => acc + (cur.totalAmount || 0), 0);
+  const totalGrossProfit = monthSales.reduce((acc, cur) => acc + (cur.profit || 0), 0);
+  const totalExpenseAmt = monthExpenses.reduce((acc, cur) => acc + (cur.amount || 0), 0);
+
+  // Pure Bank Balances
+  const pureUsd = d.bank.pureUsdTotal;
+  const pureKhr = d.bank.pureKhrTotal;
+
+  return `
+    <!-- Top Filter Pill Bar -->
+    <div class="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-1">
+      <div class="flex items-center gap-1.5 bg-[#0F1B2E]/90 p-1 rounded-2xl border border-white/5">
+        <button onclick="setMonthFilter('2026-08')" class="px-3 py-1 rounded-xl text-xs font-semibold ${selectedMo === '2026-08' ? 'bg-orange-500 text-white shadow' : 'text-slate-400 hover:text-white'}">សីហា</button>
+        <button onclick="setMonthFilter('2026-09')" class="px-3 py-1 rounded-xl text-xs font-semibold ${selectedMo === '2026-09' ? 'bg-orange-500 text-white shadow' : 'text-slate-400 hover:text-white'}">កញ្ញា</button>
+        <button onclick="setMonthFilter('2026-10')" class="px-3 py-1 rounded-xl text-xs font-semibold ${selectedMo === '2026-10' ? 'bg-orange-500 text-white shadow' : 'text-slate-400 hover:text-white'}">តុលា</button>
+      </div>
+      <input type="month" 
+             value="${selectedMo}" 
+             onchange="setMonthFilter(this.value)"
+             class="bg-[#0F1B2E]/90 border border-white/10 text-xs text-orange-400 rounded-xl px-2.5 py-1 focus:outline-none">
+    </div>
+
+    <!-- HERO BALANCE CARD (ABA/ACLEDA Fintech Glassmorphism Card) -->
+    <div class="ios-glass-card rounded-3xl p-5 relative overflow-hidden liquid-orange-glow">
+      <div class="absolute -top-12 -right-12 w-44 h-44 bg-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400 border border-orange-500/30">
+            <i data-lucide="wallet" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <p class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">សាច់ប្រាក់សុទ្ធពិត (Pure Cash)</p>
+            <p class="text-[10px] text-amber-200/80">កុងធនាគារ ABA + ACLEDA + កាបូប</p>
+          </div>
         </div>
-        <h3 class="text-base font-bold text-slate-800">បរាជ័យក្នុងការតភ្ជាប់ទិន្នន័យ</h3>
-        <p class="text-xs text-rose-600 mt-1 max-w-md">${DataService.error}</p>
-        <button onclick="DataService.fetchData(true)" 
-                class="mt-4 px-4 py-2 bg-[#B91C1C] text-white rounded-lg text-xs font-semibold hover:bg-red-800 transition-colors flex items-center gap-1.5">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> សាកល្បងទាញម្ដងទៀត
+        <button onclick="toggleHideBalance()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
+          <i data-lucide="${appState.hideBalance ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>
         </button>
       </div>
-    `;
-  }
 
-  // Filter dataset by current active range
-  const { sales, expenses } = DataService.filterByRange(range.start, range.end);
+      <!-- Currency Balances (Pure USD & KHR Separate) -->
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="bg-black/20 rounded-2xl p-3 border border-white/5">
+          <p class="text-[10px] text-slate-400 mb-0.5">ដុល្លារសុទ្ធ (USD)</p>
+          <p class="text-xl sm:text-2xl font-bold font-mono text-white tracking-tight">
+            ${appState.hideBalance ? '•••••• $' : formatUSD(pureUsd)}
+          </p>
+        </div>
+        <div class="bg-black/20 rounded-2xl p-3 border border-white/5">
+          <p class="text-[10px] text-slate-400 mb-0.5">រៀលសុទ្ធ (KHR)</p>
+          <p class="text-xl sm:text-2xl font-bold font-mono text-emerald-400 tracking-tight">
+            ${appState.hideBalance ? '•••••• ៛' : formatKHR(pureKhr)}
+          </p>
+        </div>
+      </div>
 
-  // Calculate 4 KPI Metrics
-  const totalSalesQty = sales.reduce((acc, s) => acc + s.qty, 0);
-  const totalRevenue = sales.reduce((acc, s) => acc + s.revenue, 0);
-  const totalGrossProfit = sales.reduce((acc, s) => acc + s.grossProfit, 0);
-  const totalExpenses = expenses.reduce((acc, e) => acc + e.amount, 0);
+      <!-- Quick Action Pills -->
+      <div class="flex items-center gap-2 pt-2 border-t border-white/10">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSd_hP30dqB-F5gCV44AuxcftgmoDjo5zzkN-NSMiK-1rDEqPQ/viewform?usp=header" 
+           target="_blank" 
+           class="flex-1 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-orange-500/20 transition">
+          <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
+          <span>Order ក្រុមហ៊ុន</span>
+        </a>
+        <button onclick="switchView('analytics')" 
+                class="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-slate-200 font-semibold text-xs flex items-center justify-center gap-1.5 border border-white/10 transition">
+          <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span>វិភាគខែ/ឆ្នាំ</span>
+        </button>
+      </div>
+    </div>
 
-  const hasSales = sales.length > 0;
-  const hasExpenses = expenses.length > 0;
-
-  // Breakdown Aggregation (by team or product)
-  const breakdownMap = {};
-  sales.forEach(item => {
-    const key = state.breakdownView === 'team' ? item.team : item.product;
-    if (!breakdownMap[key]) {
-      breakdownMap[key] = { name: key, qty: 0, revenue: 0, grossProfit: 0 };
-    }
-    breakdownMap[key].qty += item.qty;
-    breakdownMap[key].revenue += item.revenue;
-    breakdownMap[key].grossProfit += item.grossProfit;
-  });
-
-  const breakdownList = Object.values(breakdownMap).sort((a, b) => b.qty - a.qty);
-
-  // Group for Chart (Timeline by day or month)
-  const chartData = prepareChartData(sales, range);
-
-  return `
-    <div class="space-y-3.5 max-w-7xl mx-auto w-full">
+    <!-- 4 MAIN KPI CARDS (Personal Sales Engine) -->
+    <div class="grid grid-cols-2 gap-3">
       
-      <!-- Top Bar: Data Source Info & Date Filter -->
-      <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm space-y-2.5">
-        
-        <!-- Controls Row -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div class="flex items-center gap-2">
-            <div class="p-1.5 bg-red-50 text-[#B91C1C] rounded-lg shrink-0">
-              <i data-lucide="calendar" class="w-4 h-4"></i>
-            </div>
-            <span class="font-bold text-slate-700 text-xs sm:text-sm">តម្រងរយៈពេល៖</span>
+      <!-- 1. Total Box Qty (Clickable to open Personal Sales Drill-down) -->
+      <div onclick="openSalesModal('${selectedMo}')" 
+           class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer hover:border-orange-500/50 active:scale-98 transition group relative">
+        <div class="flex items-center justify-between mb-2">
+          <div class="w-8 h-8 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center">
+            <i data-lucide="package" class="w-4 h-4"></i>
           </div>
-
-          <!-- Period Mode Buttons -->
-          <div class="grid grid-cols-4 sm:flex sm:items-center gap-1 w-full sm:w-auto">
-            <button onclick="setDashboardPeriodMode('day')"
-                    class="py-1.5 px-2 text-center text-xs rounded-lg border transition-colors ${
-                      state.dashboardPeriodMode === 'day' 
-                        ? 'bg-[#B91C1C] text-white border-[#B91C1C] font-bold shadow-xs' 
-                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
-                    }">
-              តាមថ្ងៃ
-            </button>
-            <button onclick="setDashboardPeriodMode('month')"
-                    class="py-1.5 px-2 text-center text-xs rounded-lg border transition-colors ${
-                      state.dashboardPeriodMode === 'month' 
-                        ? 'bg-[#B91C1C] text-white border-[#B91C1C] font-bold shadow-xs' 
-                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
-                    }">
-              តាមខែ
-            </button>
-            <button onclick="setDashboardPeriodMode('year')"
-                    class="py-1.5 px-2 text-center text-xs rounded-lg border transition-colors ${
-                      state.dashboardPeriodMode === 'year' 
-                        ? 'bg-[#B91C1C] text-white border-[#B91C1C] font-bold shadow-xs' 
-                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
-                    }">
-              តាមឆ្នាំ
-            </button>
-            <button onclick="setDashboardPeriodMode('custom')"
-                    class="py-1.5 px-2 text-center text-xs rounded-lg border transition-colors ${
-                      state.dashboardPeriodMode === 'custom' 
-                        ? 'bg-[#B91C1C] text-white border-[#B91C1C] font-bold shadow-xs' 
-                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
-                    }">
-              កំណត់
-            </button>
-          </div>
+          <span class="text-[10px] text-orange-400 font-semibold group-hover:underline flex items-center gap-0.5">
+            មើល <i data-lucide="chevron-right" class="w-3 h-3"></i>
+          </span>
         </div>
-
-        <!-- Dynamic Inputs for Selected Mode -->
-        <div class="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-          
-          <div class="flex flex-wrap items-center gap-2">
-            ${renderPeriodInputs()}
-          </div>
-
-          <!-- Active Range Summary & Source Badges -->
-          <div class="flex items-center gap-2 text-slate-500 text-[11px]">
-            <span class="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-md font-medium text-slate-700">
-              <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600 shrink-0"></i>
-              វិសាលភាព៖ <span class="font-bold text-[#B91C1C]">${range.label}</span>
-            </span>
-          </div>
-
-        </div>
-
+        <p class="text-[11px] text-slate-400">ចំនួនលក់សរុប (ចុចមើល)</p>
+        <p class="text-xl font-bold text-white font-mono mt-0.5">${formatInt(totalBoxQty)} <span class="text-xs text-slate-400 font-sans font-normal">ប្រអប់</span></p>
       </div>
 
-      <!-- 4 KPI Summary Cards (REAL DATA) -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+      <!-- 2. Revenue -->
+      <div class="ios-glass-card rounded-2xl p-3.5 border border-white/10">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-2">
+          <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+        </div>
+        <p class="text-[11px] text-slate-400">ចំណូលលក់សរុប</p>
+        <p class="text-xl font-bold text-emerald-400 font-mono mt-0.5">${formatUSD(totalRevenue)}</p>
+      </div>
+
+      <!-- 3. Gross Profit -->
+      <div class="ios-glass-card rounded-2xl p-3.5 border border-white/10">
+        <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center mb-2">
+          <i data-lucide="trending-up" class="w-4 h-4"></i>
+        </div>
+        <p class="text-[11px] text-slate-400">ចំណេញដុល (Profit)</p>
+        <p class="text-xl font-bold text-blue-400 font-mono mt-0.5">${formatUSD(totalGrossProfit)}</p>
+      </div>
+
+      <!-- 4. Total Expenses -->
+      <div class="ios-glass-card rounded-2xl p-3.5 border border-white/10">
+        <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center mb-2">
+          <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
+        </div>
+        <p class="text-[11px] text-slate-400">ចំណាយប្រចាំថ្ងៃសរុប</p>
+        <p class="text-xl font-bold text-rose-400 font-mono mt-0.5">${formatUSD(totalExpenseAmt)}</p>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- iOS APP LIBRARY FOLDERS (Customizable & Swipeable)       -->
+    <!-- ======================================================== -->
+
+    <!-- Folder 1: បញ្ជីតាមដានបន្ទាន់ (Payables & Unpaid Customers) -->
+    <div class="ios-glass-folder rounded-3xl p-4 border border-white/10">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-orange-400"></i>
+          <span>បញ្ជីតាមដានបន្ទាន់ (Action Lists)</span>
+        </h3>
+        <span class="text-[10px] text-slate-400">អូសទៅស្តាំ ➔</span>
+      </div>
+
+      <!-- Horizontal Swipe Cards Container -->
+      <div class="flex gap-3 overflow-x-auto no-scrollbar pb-1">
         
-        <!-- Card 1: ចំនួនលក់ -->
-        <div class="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-500 mb-1.5">
-            <span class="text-[11px] sm:text-xs font-semibold">ចំនួនលក់សរុប</span>
-            <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-              <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
-            </div>
+        <!-- Card A: Unpaid COD Customers -->
+        <div class="min-w-[260px] max-w-[280px] bg-black/30 rounded-2xl p-3.5 border border-white/5 shrink-0">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-amber-300">អតិថិជនមិនទាន់ទូទាត់</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-mono">${d.unpaidCustomers.length} នាក់</span>
           </div>
-          <div class="flex items-baseline justify-between">
-            <span class="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">
-              ${isLoaded ? formatInt(totalSalesQty) : '—'}
-            </span>
-            <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ប្រអប់</span>
-          </div>
-          <div class="mt-2 pt-1.5 border-t border-slate-100 text-[10px] sm:text-[11px] text-slate-400 flex items-center justify-between">
-            <span>ប្រតិបត្តិការ៖ ${sales.length}</span>
-            <span class="text-emerald-600 font-medium">${hasSales ? 'មានទិន្នន័យ' : 'គ្មាន'}</span>
+          <div class="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar">
+            ${d.unpaidCustomers.slice(0, 5).map(c => `
+              <div class="text-[11px] flex items-center justify-between py-1 border-b border-white/5">
+                <span class="text-white truncate max-w-[130px]">${c.customer}</span>
+                <span class="font-mono text-orange-400 font-semibold">${formatUSD(c.totalAmount)}</span>
+              </div>
+            `).join('') || '<p class="text-[11px] text-slate-500 py-2">គ្មានអតិថិជនជំពាក់</p>'}
           </div>
         </div>
 
-        <!-- Card 2: ចំណូល -->
-        <div class="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-500 mb-1.5">
-            <span class="text-[11px] sm:text-xs font-semibold">ចំណូលសរុប</span>
-            <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <i data-lucide="dollar-sign" class="w-3.5 h-3.5"></i>
-            </div>
+        <!-- Card B: Accounts Payable (បំណុលត្រូវទូទាត់) -->
+        <div class="min-w-[260px] max-w-[280px] bg-black/30 rounded-2xl p-3.5 border border-white/5 shrink-0">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-rose-300">បំណុលត្រូវទូទាត់</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-mono">${d.bank.payables.length} មុខ</span>
           </div>
-          <div class="flex items-baseline justify-between">
-            <span class="text-xl sm:text-2xl md:text-3xl font-extrabold text-emerald-700 tracking-tight">
-              ${isLoaded ? formatUSD(totalRevenue) : '—'}
-            </span>
-            <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">USD</span>
-          </div>
-          <div class="mt-2 pt-1.5 border-t border-slate-100 text-[10px] sm:text-[11px] text-slate-400 flex items-center justify-between">
-            <span>លក់ចេញសរុប</span>
-            <span class="text-emerald-600 font-medium">Gross Rev</span>
-          </div>
-        </div>
-
-        <!-- Card 3: ចំណេញដុល -->
-        <div class="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-500 mb-1.5">
-            <span class="text-[11px] sm:text-xs font-semibold">ចំណេញដុល</span>
-            <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-              <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-            </div>
-          </div>
-          <div class="flex items-baseline justify-between">
-            <span class="text-xl sm:text-2xl md:text-3xl font-extrabold text-amber-700 tracking-tight">
-              ${isLoaded ? formatUSD(totalGrossProfit) : '—'}
-            </span>
-            <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">USD</span>
-          </div>
-          <div class="mt-2 pt-1.5 border-t border-slate-100 text-[10px] sm:text-[11px] text-slate-400 flex items-center justify-between">
-            <span>($24/box)</span>
-            <span class="text-amber-600 font-medium">
-              ${totalRevenue > 0 ? ((totalGrossProfit / totalRevenue) * 100).toFixed(1) + '%' : '0%'}
-            </span>
-          </div>
-        </div>
-
-        <!-- Card 4: ចំណាយ -->
-        <div class="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-500 mb-1.5">
-            <span class="text-[11px] sm:text-xs font-semibold">ចំណាយសរុប</span>
-            <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-              <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
-            </div>
-          </div>
-          <div class="flex items-baseline justify-between">
-            <span class="text-xl sm:text-2xl md:text-3xl font-extrabold text-rose-700 tracking-tight">
-              ${isLoaded ? formatUSD(totalExpenses) : '—'}
-            </span>
-            <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">USD</span>
-          </div>
-          <div class="mt-2 pt-1.5 border-t border-slate-100 text-[10px] sm:text-[11px] text-slate-400 flex items-center justify-between">
-            <span>ចំណាយប្រតិបត្តិការ</span>
-            <span class="text-rose-600 font-medium">${expenses.length} មុខ</span>
+          <div class="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar">
+            ${d.bank.payables.slice(0, 5).map(p => `
+              <div class="text-[11px] flex items-center justify-between py-1 border-b border-white/5">
+                <span class="text-white truncate max-w-[130px]">${p.title}</span>
+                <span class="font-mono text-rose-400 font-semibold">${formatUSD(p.amount)}</span>
+              </div>
+            `).join('') || '<p class="text-[11px] text-slate-500 py-2">គ្មានបំណុល</p>'}
           </div>
         </div>
 
       </div>
+    </div>
 
-      <!-- Charts & Breakdown Section (REAL DATA) -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <!-- Folder 2: ផលិតផលកំពុងលក់ & ប្រភេទចំណាយ (Products & Daily Expenses) -->
+    <div class="ios-glass-folder rounded-3xl p-4 border border-white/10">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
+          <i data-lucide="tag" class="w-4 h-4 text-emerald-400"></i>
+          <span>ផលិតផល & ចំណាយប្រចាំថ្ងៃ (Expenses)</span>
+        </h3>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         
-        <!-- Left 2 Cols: Sales Graph Area (Connected Real Timeline) -->
-        <div class="lg:col-span-2 bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <!-- Active Products Showcase -->
+        <div class="bg-black/20 rounded-2xl p-3 border border-white/5">
+          <p class="text-xs font-semibold text-slate-300 mb-2">ឈ្មោះផលិតផលកំពុងលក់</p>
+          <div class="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar">
+            ${d.activeProducts.slice(0, 5).map(p => `
+              <div class="flex items-center justify-between text-xs py-1 border-b border-white/5">
+                <span class="text-white truncate max-w-[140px]">${p.name}</span>
+                <span class="text-[10px] font-mono text-slate-400">ថ្លៃដើម ${formatUSD(p.cost)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Recent Expenses with Description -->
+        <div class="bg-black/20 rounded-2xl p-3 border border-white/5">
+          <p class="text-xs font-semibold text-slate-300 mb-2">ចំណាយចុងក្រោយ (Description)</p>
+          <div class="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar">
+            ${monthExpenses.slice(0, 5).map(e => `
+              <div class="flex items-center justify-between text-xs py-1 border-b border-white/5">
+                <div class="truncate max-w-[130px]">
+                  <p class="text-white truncate text-[11px]">${e.description || e.category}</p>
+                  <p class="text-[9px] text-slate-400">${e.date}</p>
+                </div>
+                <span class="font-mono text-rose-400 text-xs font-semibold">${formatUSD(e.amount)}</span>
+              </div>
+            `).join('') || '<p class="text-[11px] text-slate-500 py-2">គ្មានចំណាយក្នុងខែនេះ</p>'}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Folder 3: ជំនួយការ AI & Smart Links (Gemini & ChatGPT) -->
+    <div class="ios-glass-folder rounded-3xl p-4 border border-white/10">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+          <span>ជំនួយការ AI & ឧបករណ៍ឆ្លាតវៃ</span>
+        </h3>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <a href="https://gemini.google.com" target="_blank" 
+           class="p-3 rounded-2xl bg-gradient-to-tr from-blue-900/40 to-indigo-900/40 border border-blue-500/20 flex items-center gap-3 hover:border-blue-400/50 active:scale-95 transition">
+          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">
+            ✨
+          </div>
           <div>
-            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-              <div class="flex items-center gap-2">
-                <i data-lucide="activity" class="w-4 h-4 text-[#B91C1C]"></i>
-                <h3 class="font-bold text-slate-800 text-xs sm:text-sm">និន្នាការនៃការលក់ (Sales Timeline)</h3>
-              </div>
-              <span class="text-[11px] bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded font-medium">
-                ${chartData.timelineType === 'month' ? 'បែងចែកតាមខែ' : 'បែងចែកតាមថ្ងៃ'}
-              </span>
-            </div>
-
-            <!-- SVG Visual Trend Graph -->
-            <div class="h-64 rounded-xl bg-slate-50/70 p-3 border border-slate-200/60 flex flex-col justify-between">
-              ${renderSalesChartSVG(chartData)}
-            </div>
+            <p class="font-bold text-xs text-white leading-tight">Google Gemini</p>
+            <p class="text-[10px] text-blue-300/80">ជំនួយការ AI ឆ្លាតវៃ</p>
           </div>
+        </a>
 
-          <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-            <span>ឯកតា៖ ប្រអប់ (Sale QTY)</span>
-            <span>ចំណូលសរុបក្នុងក្រាហ្វ៖ <strong class="text-slate-700">${formatUSD(chartData.totalRev)}</strong></span>
+        <a href="https://chatgpt.com" target="_blank" 
+           class="p-3 rounded-2xl bg-gradient-to-tr from-emerald-900/40 to-teal-900/40 border border-emerald-500/20 flex items-center gap-3 hover:border-emerald-400/50 active:scale-95 transition">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+            🤖
           </div>
-        </div>
-
-        <!-- Right 1 Col: Summary by Group/Product Area (CONNECTED TABLE) -->
-        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
-              <div class="flex items-center gap-1.5">
-                <i data-lucide="layers" class="w-4 h-4 text-[#B91C1C]"></i>
-                <h3 class="font-bold text-slate-800 text-xs sm:text-sm">សង្ខេបលទ្ធផល</h3>
-              </div>
-              
-              <!-- Tab Toggle: Team vs Product -->
-              <div class="flex items-center p-0.5 bg-slate-100 rounded-lg border border-slate-200 text-[11px]">
-                <button onclick="setBreakdownView('team')" 
-                        class="px-2 py-1 rounded-md transition-colors ${
-                          state.breakdownView === 'team' ? 'bg-white text-[#B91C1C] font-bold shadow-xs' : 'text-slate-600'
-                        }">
-                  ក្រុម
-                </button>
-                <button onclick="setBreakdownView('product')" 
-                        class="px-2 py-1 rounded-md transition-colors ${
-                          state.breakdownView === 'product' ? 'bg-white text-[#B91C1C] font-bold shadow-xs' : 'text-slate-600'
-                        }">
-                  ផលិតផល
-                </button>
-              </div>
-            </div>
-
-            <!-- Breakdown Table Content -->
-            <div class="overflow-y-auto max-h-60 pr-1">
-              ${renderBreakdownTable(breakdownList)}
-            </div>
+            <p class="font-bold text-xs text-white leading-tight">ChatGPT</p>
+            <p class="text-[10px] text-emerald-300/80">សួរនាំ & វិភាគគំនិត</p>
           </div>
-
-          <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>សរុបធាតុ៖ ${breakdownList.length}</span>
-            <span>ផលបូកចំនួនលក់៖ <strong class="text-[#B91C1C]">${formatInt(totalSalesQty)}</strong></span>
-          </div>
-        </div>
-
+        </a>
       </div>
-
     </div>
   `;
 }
 
-// Render dynamic inputs based on selected period mode
-function renderPeriodInputs() {
-  const mode = state.dashboardPeriodMode;
-  if (mode === 'day') {
-    return `
-      <span class="text-slate-600 font-medium">ជ្រើសរើសថ្ងៃ៖</span>
-      <input type="date" value="${state.selectedDay}" 
-             onchange="setDashboardDay(this.value)"
-             class="border border-slate-200 rounded-lg px-2.5 py-1 text-xs bg-slate-50 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-      <span class="text-slate-400 text-[11px]">(ឧទាហរណ៍៖ 2026-08-12 មានទិន្នន័យ 5 ប្រតិបត្តិការ)</span>
-    `;
-  } else if (mode === 'month') {
-    return `
-      <span class="text-slate-600 font-medium">ជ្រើសរើសខែ៖</span>
-      <input type="month" value="${state.selectedMonth}" 
-             onchange="setDashboardMonth(this.value)"
-             class="border border-slate-200 rounded-lg px-2.5 py-1 text-xs bg-slate-50 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-      <span class="text-slate-400 text-[11px]">(2026-08, 2026-09, 2026-10)</span>
-    `;
-  } else if (mode === 'year') {
-    return `
-      <span class="text-slate-600 font-medium">ជ្រើសរើសឆ្នាំ៖</span>
-      <select onchange="setDashboardYear(this.value)"
-              class="border border-slate-200 rounded-lg px-2.5 py-1 text-xs bg-slate-50 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-        <option value="2026" ${state.selectedYear === '2026' ? 'selected' : ''}>ឆ្នាំ ២០២៦</option>
-        <option value="2025" ${state.selectedYear === '2025' ? 'selected' : ''}>ឆ្នាំ ២០២៥</option>
-      </select>
-    `;
-  } else {
-    return `
-      <span class="text-slate-600 font-medium">ពីថ្ងៃ៖</span>
-      <input type="date" value="${state.customStartDate}" 
-             onchange="setCustomStartDate(this.value)"
-             class="border border-slate-200 rounded-lg px-2.5 py-1 text-xs bg-slate-50 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-      <span class="text-slate-400">ដល់៖</span>
-      <input type="date" value="${state.customEndDate}" 
-             onchange="setCustomEndDate(this.value)"
-             class="border border-slate-200 rounded-lg px-2.5 py-1 text-xs bg-slate-50 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-    `;
-  }
-}
+// ==========================================
+// 5. View: Analytics & Diagrams (Month / Year)
+// ==========================================
+function getAnalyticsViewHTML() {
+  const d = DataService.data;
+  if (!d) return '<p class="text-xs text-slate-400 text-center py-20">កំពុងរៀបចំដ្យាក្រាម...</p>';
 
-// Event Handlers for Period Filter
-function setDashboardPeriodMode(mode) {
-  state.dashboardPeriodMode = mode;
-  renderActiveModule();
-}
-
-function setDashboardDay(val) {
-  state.selectedDay = val;
-  renderActiveModule();
-}
-
-function setDashboardMonth(val) {
-  state.selectedMonth = val;
-  renderActiveModule();
-}
-
-function setDashboardYear(val) {
-  state.selectedYear = val;
-  renderActiveModule();
-}
-
-function setCustomStartDate(val) {
-  state.customStartDate = val;
-  if (state.customEndDate < val) {
-    state.customEndDate = val;
-  }
-  renderActiveModule();
-}
-
-function setCustomEndDate(val) {
-  if (val < state.customStartDate) {
-    alert('ថ្ងៃបញ្ចប់មិនអាចនៅមុនថ្ងៃចាប់ផ្ដើមបានឡើយ!');
-    return;
-  }
-  state.customEndDate = val;
-  renderActiveModule();
-}
-
-function setBreakdownView(view) {
-  state.breakdownView = view;
-  renderActiveModule();
-}
-
-// Breakdown Table Renderer
-function renderBreakdownTable(list) {
-  if (!list || list.length === 0) {
-    return `
-      <div class="py-12 text-center text-slate-400 flex flex-col items-center justify-center">
-        <i data-lucide="inbox" class="w-8 h-8 text-slate-300 mb-1.5"></i>
-        <p class="text-xs font-medium text-slate-500">គ្មានទិន្នន័យក្នុងរយៈពេលនេះ</p>
-      </div>
-    `;
-  }
-
-  return `
-    <table class="w-full text-left text-xs">
-      <thead class="bg-slate-100 text-slate-600 font-semibold text-[11px] sticky top-0">
-        <tr>
-          <th class="py-1.5 px-2 rounded-l">ឈ្មោះ (${state.breakdownView === 'team' ? 'ក្រុម' : 'ផលិតផល'})</th>
-          <th class="py-1.5 px-2 text-right">លក់</th>
-          <th class="py-1.5 px-2 text-right rounded-r">ចំណេញដុល</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-slate-100">
-        ${list.map((row, idx) => `
-          <tr class="hover:bg-slate-50 transition-colors">
-            <td class="py-2 px-2 text-slate-800 font-medium truncate max-w-[140px]" title="${row.name}">
-              <span class="inline-block w-4 text-[10px] text-slate-400 font-mono">${idx + 1}.</span>
-              ${row.name}
-            </td>
-            <td class="py-2 px-2 text-right font-bold text-slate-700">${formatInt(row.qty)}</td>
-            <td class="py-2 px-2 text-right font-bold text-amber-700">${formatUSD(row.grossProfit)}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
-}
-
-// Prepare Data & Timeline Points for SVG Chart
-function prepareChartData(sales, range) {
-  const isYearMode = state.dashboardPeriodMode === 'year';
-  const groupMap = {};
-  let totalRev = 0;
-
-  sales.forEach(s => {
-    totalRev += s.revenue;
-    const key = isYearMode ? `${s.year}-${s.month}` : s.date;
-    if (!groupMap[key]) {
-      groupMap[key] = { label: key, qty: 0, revenue: 0 };
-    }
-    groupMap[key].qty += s.qty;
-    groupMap[key].revenue += s.revenue;
+  // Group by Month across all Personal Sales
+  const monthlyStats = {};
+  d.personalSales.forEach(s => {
+    const mo = s.date.substring(0, 7); // YYYY-MM
+    if (!monthlyStats[mo]) monthlyStats[mo] = { revenue: 0, profit: 0, qty: 0 };
+    monthlyStats[mo].revenue += s.totalAmount || 0;
+    monthlyStats[mo].profit += s.profit || 0;
+    monthlyStats[mo].qty += s.totalBoxQty || 0;
   });
 
-  const points = Object.keys(groupMap).sort().map(k => groupMap[k]);
-  return {
-    timelineType: isYearMode ? 'month' : 'day',
-    points: points,
-    totalRev: totalRev
-  };
-}
-
-// Generate pure Responsive SVG Bar Chart for Sales Timeline
-function renderSalesChartSVG(chartData) {
-  const pts = chartData.points;
-  if (!pts || pts.length === 0) {
-    return `
-      <div class="h-full flex flex-col items-center justify-center text-center text-slate-400">
-        <i data-lucide="bar-chart" class="w-8 h-8 text-slate-300 mb-1"></i>
-        <p class="text-xs font-medium text-slate-500">គ្មានទិន្នន័យលក់សម្រាប់បង្ហាញក្រាហ្វក្នុងរយៈពេលនេះ</p>
-      </div>
-    `;
-  }
-
-  const maxQty = Math.max(...pts.map(p => p.qty), 5);
-  const chartHeight = 160;
+  const months = Object.keys(monthlyStats).sort();
+  const maxRevenue = Math.max(...months.map(m => monthlyStats[m].revenue), 100);
 
   return `
-    <div class="h-full flex flex-col justify-between">
-      <!-- Bars area -->
-      <div class="flex-1 flex items-end gap-1.5 sm:gap-2 pt-4 px-1 overflow-x-auto scrollbar-none">
-        ${pts.map(p => {
-          const heightPct = Math.max(8, Math.round((p.qty / maxQty) * 100));
-          return `
-            <div class="flex-1 min-w-[28px] max-w-[48px] flex flex-col items-center gap-1 group relative">
-              <!-- Tooltip on hover -->
-              <div class="absolute -top-8 bg-slate-800 text-white text-[10px] py-0.5 px-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow">
-                ${p.label}: ${p.qty} ប្រអប់ (${formatUSD(p.revenue)})
-              </div>
-
-              <span class="text-[10px] font-bold text-slate-700">${p.qty}</span>
-              <div class="w-full bg-[#B91C1C] hover:bg-red-700 rounded-t-md transition-all duration-300 shadow-sm"
-                   style="height: ${heightPct}%;"></div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-
-      <!-- X-Axis Labels -->
-      <div class="flex items-center gap-1.5 sm:gap-2 px-1 border-t border-slate-200/80 pt-1.5 overflow-x-auto scrollbar-none text-[10px] text-slate-500">
-        ${pts.map(p => `
-          <div class="flex-1 min-w-[28px] max-w-[48px] text-center truncate" title="${p.label}">
-            ${p.label.length > 5 ? p.label.slice(-5) : p.label}
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-}
-
-// ==========================================
-// 2. Module: ការលក់ និងក្រុម (Sales & Team) - Wireframe
-// ==========================================
-function getSalesTeamHTML() {
-  return `
-    <div class="space-y-4 max-w-7xl mx-auto">
-      <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
-        <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
-          <i data-lucide="filter" class="w-4 h-4 text-[#B91C1C]"></i>
-          <span>តម្រងទិន្នន័យ (Filters)</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+    <div class="space-y-4">
+      <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
+        <div class="flex items-center justify-between mb-4">
           <div>
-            <label class="block text-[11px] font-medium text-slate-500 mb-1">រយៈពេល</label>
-            <select class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-              <option>ខែនេះ (តុលា ២០២៦)</option>
-              <option>ខែមុន (កញ្ញា ២០២៦)</option>
-            </select>
+            <h3 class="font-bold text-sm text-white">ដ្យាក្រាមការលក់ & ប្រាក់ចំណេញ (Diagram)</h3>
+            <p class="text-[11px] text-slate-400">ប្រៀបធៀបតាមខែនីមួយៗក្នុងឆ្នាំ ២០២៦</p>
           </div>
-          <div>
-            <label class="block text-[11px] font-medium text-slate-500 mb-1">ក្រុមលក់</label>
-            <select class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-              <option value="">— ទាំងអស់ —</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-medium text-slate-500 mb-1">សមាជិក/បុគ្គលិក</label>
-            <select class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-              <option value="">— ទាំងអស់ —</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-medium text-slate-500 mb-1">ផលិតផល</label>
-            <select class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-              <option value="">— ទាំងអស់ —</option>
-            </select>
-          </div>
+          <span class="px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold">2026 Trend</span>
         </div>
-      </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm">
-          <p class="text-[11px] text-slate-500">ការលក់សរុប</p>
-          <p class="text-xl font-bold text-slate-700 mt-1">—</p>
-        </div>
-        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm">
-          <p class="text-[11px] text-slate-500">ចំណូលសរុប</p>
-          <p class="text-xl font-bold text-slate-700 mt-1">—</p>
-        </div>
-        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm">
-          <p class="text-[11px] text-slate-500">ចំណេញដុល</p>
-          <p class="text-xl font-bold text-slate-700 mt-1">—</p>
-        </div>
-        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm">
-          <p class="text-[11px] text-slate-500">ចំនួនវិក្កយបត្រ</p>
-          <p class="text-xl font-bold text-slate-700 mt-1">—</p>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="p-3.5 border-b border-slate-200 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <i data-lucide="table" class="w-4 h-4 text-[#B91C1C]"></i>
-            <h3 class="font-bold text-slate-800 text-xs sm:text-sm">តារាងលទ្ធផលលក់តាមក្រុម និងសមាជិក</h3>
-          </div>
-          <span class="text-[11px] text-slate-400">ដំណាក់កាលបន្ទាប់</span>
-        </div>
-        <div class="py-12 text-center text-slate-400">
-          <p class="font-medium text-xs text-slate-500">នឹងភ្ជាប់ទិន្នន័យនៅដំណាក់កាលបន្ទាប់</p>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// ==========================================
-// 3. Module: ការប្រៀបធៀប (Comparison) - Wireframe
-// ==========================================
-function getComparisonHTML() {
-  const tabs = [
-    { id: 'team', label: 'ក្រុម', hasMetrics: true },
-    { id: 'member', label: 'សមាជិក', hasMetrics: true },
-    { id: 'product', label: 'ផលិតផល', hasMetrics: true },
-    { id: 'income', label: 'ចំណូល', hasMetrics: false },
-    { id: 'expense', label: 'ចំណាយ', hasMetrics: false },
-    { id: 'profit', label: 'ចំណេញ', hasMetrics: false }
-  ];
-
-  const currentTabObj = tabs.find(t => t.id === state.comparisonTab) || tabs[0];
-  const showMetricToggle = currentTabObj.hasMetrics;
-
-  return `
-    <div class="space-y-4 max-w-7xl mx-auto">
-      <div class="bg-white p-2 rounded-xl border border-slate-200/80 shadow-sm">
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-          ${tabs.map(tab => {
-            const isActive = tab.id === state.comparisonTab;
+        <!-- SVG Timeline Bar Chart -->
+        <div class="h-48 w-full flex items-end gap-2 pt-6 pb-2 px-1">
+          ${months.map(m => {
+            const stat = monthlyStats[m];
+            const revHeight = Math.max(12, Math.round((stat.revenue / maxRevenue) * 140));
+            const moName = m.split('-')[1];
             return `
-              <button onclick="setComparisonTab('${tab.id}')"
-                      class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                        isActive ? 'bg-[#B91C1C] text-white shadow-sm font-semibold' : 'text-slate-600 hover:bg-slate-100'
-                      }">
-                ${tab.label}
-              </button>
+              <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer" title="${m}: $${stat.revenue.toFixed(2)}">
+                <span class="text-[9px] font-mono text-orange-400 opacity-0 group-hover:opacity-100 transition">$${Math.round(stat.revenue)}</span>
+                <div class="w-full max-w-[28px] rounded-t-lg bg-gradient-to-t from-orange-600 to-amber-400 shadow-md transition-all group-hover:brightness-125" style="height: ${revHeight}px"></div>
+                <span class="text-[10px] text-slate-400 font-mono">ខែ${moName}</span>
+              </div>
             `;
           }).join('')}
         </div>
       </div>
 
-      <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-2 text-xs">
-          <div class="flex items-center gap-1.5">
-            <span class="text-slate-500 font-medium">ខែទី១:</span>
-            <input type="month" value="${state.comparisonMonth1}" 
-                   onchange="state.comparisonMonth1 = this.value"
-                   class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-          </div>
-          <span class="text-slate-400 font-medium px-1">ប្រៀបធៀបនឹង</span>
-          <div class="flex items-center gap-1.5">
-            <span class="text-slate-500 font-medium">ខែទី២:</span>
-            <input type="month" value="${state.comparisonMonth2}" 
-                   onchange="state.comparisonMonth2 = this.value"
-                   class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#B91C1C]">
-          </div>
-        </div>
-
-        ${showMetricToggle ? `
-          <div class="flex items-center p-1 bg-slate-100 rounded-lg border border-slate-200 text-xs">
-            <button onclick="setComparisonMetric('quantity')"
-                    class="px-3 py-1 rounded-md transition-colors ${
-                      state.comparisonMetric === 'quantity' ? 'bg-white text-[#B91C1C] font-bold shadow-xs' : 'text-slate-600'
-                    }">
-              ចំនួនលក់
-            </button>
-            <button onclick="setComparisonMetric('gross_profit')"
-                    class="px-3 py-1 rounded-md transition-colors ${
-                      state.comparisonMetric === 'gross_profit' ? 'bg-white text-[#B91C1C] font-bold shadow-xs' : 'text-slate-600'
-                    }">
-              ចំណេញដុល
-            </button>
-          </div>
-        ` : ''}
-      </div>
-
-      <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="p-3.5 border-b border-slate-200 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <i data-lucide="scale" class="w-4 h-4 text-[#B91C1C]"></i>
-            <h3 class="font-bold text-slate-800 text-xs sm:text-sm">
-              តារាងប្រៀបធៀបតាម${currentTabObj.label} 
-              ${showMetricToggle ? `(${state.comparisonMetric === 'quantity' ? 'ចំនួនលក់' : 'ចំណេញដុល'})` : ''}
-            </h3>
-          </div>
-          <span class="text-[11px] text-slate-400">ដំណាក់កាលបន្ទាប់</span>
-        </div>
-        <div class="py-12 text-center text-slate-400">
-          <p class="font-medium text-xs text-slate-500">នឹងភ្ជាប់ទិន្នន័យនៅដំណាក់កាលបន្ទាប់</p>
+      <!-- Financial Summary Table -->
+      <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
+        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300 mb-3">តារាងសង្ខេបចំណូល-ចំណេញ</h4>
+        <div class="space-y-2">
+          ${months.slice(-5).map(m => `
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/5">
+              <span class="text-xs font-semibold text-white">ខែ ${m}</span>
+              <div class="text-right">
+                <span class="font-mono text-xs text-emerald-400 font-bold">${formatUSD(monthlyStats[m].revenue)}</span>
+                <span class="text-[10px] text-slate-400 block font-mono">ចំណេញ: ${formatUSD(monthlyStats[m].profit)}</span>
+              </div>
+            </div>
+          `).join('')}
         </div>
       </div>
     </div>
   `;
 }
 
-function setComparisonTab(tabId) {
-  state.comparisonTab = tabId;
-  renderActiveModule();
-}
-
-function setComparisonMetric(metricId) {
-  state.comparisonMetric = metricId;
-  renderActiveModule();
-}
-
 // ==========================================
-// 4. Other Modules Layout (Generic Structure)
+// 6. View: Daily English Learning (5 Words)
 // ==========================================
-function getGenericModuleHTML(moduleId) {
-  const currentMod = MODULES.find(m => m.id === moduleId);
+function getLearningViewHTML() {
   return `
-    <div class="space-y-4 max-w-7xl mx-auto">
-      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-        <div>
-          <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
-            <i data-lucide="${currentMod.icon}" class="w-4 h-4 text-[#B91C1C]"></i>
-            ${currentMod.name}
-          </h3>
-          <p class="text-xs text-slate-500 mt-1">មុខងារសម្រាប់គ្រប់គ្រង និងតាមដានព័ត៌មាន ${currentMod.name}។</p>
+    <div class="space-y-4">
+      <div class="ios-glass-card rounded-3xl p-5 border border-white/10 text-center relative overflow-hidden">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center mx-auto mb-2 shadow-lg shadow-orange-500/20">
+          <i data-lucide="book-open" class="w-6 h-6"></i>
         </div>
-        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
-          <i data-lucide="clock" class="w-3 h-3"></i> គ្រោង UI
-        </span>
+        <h3 class="font-bold text-base text-white">រៀនភាសាអង់គ្លេស ១ ថ្ងៃ ៥ ពាក្យ</h3>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1">ពាក្យគន្លឹះសម្រាប់ការរស់នៅប្រចាំថ្ងៃ និងការធ្វើអាជីវកម្ម</p>
       </div>
 
-      <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="py-14 text-center text-slate-400 flex flex-col items-center justify-center p-4">
-          <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2.5">
-            <i data-lucide="database" class="w-6 h-6 text-slate-300"></i>
+      <div class="space-y-3">
+        ${DAILY_ENGLISH_WORDS.map((w, idx) => `
+          <div class="ios-glass-card rounded-2xl p-4 border border-white/10 flex items-start gap-3.5">
+            <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 font-bold text-sm flex items-center justify-center shrink-0">
+              ${idx + 1}
+            </div>
+            <div class="flex-1">
+              <div class="flex items-baseline gap-2 mb-0.5">
+                <h4 class="font-bold text-base text-white tracking-wide">${w.en}</h4>
+                <span class="text-xs text-orange-400 font-medium">(${w.pron})</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded bg-white/10 text-slate-400">${w.pos}</span>
+              </div>
+              <p class="text-xs text-emerald-300 font-semibold mb-1.5">👉 ${w.km}</p>
+              <div class="p-2 rounded-xl bg-black/30 border border-white/5">
+                <p class="text-[11px] text-slate-300 italic font-sans">“${w.ex}”</p>
+              </div>
+            </div>
           </div>
-          <p class="text-sm font-semibold text-slate-600">មិនទាន់ភ្ជាប់ទិន្នន័យ</p>
-          <p class="text-xs text-slate-400 max-w-sm mt-1">
-            គ្រោងនៃទំព័រ ${currentMod.name} ត្រូវបានរៀបចំរួចរាល់ មុខងារលម្អិតនឹងត្រូវភ្ជាប់នៅដំណាក់កាលបន្តបន្ទាប់។
-          </p>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ==========================================
+// 7. View: Settings & Language Customization
+// ==========================================
+function getSettingsViewHTML() {
+  return `
+    <div class="space-y-4">
+      <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
+        <h3 class="font-bold text-sm text-white mb-3">ការកំណត់ភាសា (Language Settings)</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="setLanguage('km')" class="p-3.5 rounded-2xl border text-center transition ${appState.language === 'km' ? 'bg-orange-500/20 border-orange-500 text-white' : 'bg-white/5 border-white/10 text-slate-400'}">
+            <span class="text-xl block mb-1">🇰🇭</span>
+            <span class="text-xs font-bold">ភាសាខ្មែរ (Default)</span>
+          </button>
+          <button onclick="setLanguage('en')" class="p-3.5 rounded-2xl border text-center transition ${appState.language === 'en' ? 'bg-orange-500/20 border-orange-500 text-white' : 'bg-white/5 border-white/10 text-slate-400'}">
+            <span class="text-xl block mb-1">🇬🇧</span>
+            <span class="text-xs font-bold">English (UK/US)</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="ios-glass-card rounded-3xl p-5 border border-white/10 space-y-3">
+        <h3 class="font-bold text-sm text-white mb-2">សុវត្ថិភាព & ការគ្រប់គ្រង</h3>
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="lock" class="w-4 h-4 text-orange-400"></i>
+            <div>
+              <p class="text-xs font-semibold text-white">ចាក់សោអេក្រង់ឥឡូវនេះ</p>
+              <p class="text-[10px] text-slate-400">Lock Passcode Screen</p>
+            </div>
+          </div>
+          <button onclick="lockApp()" class="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold">
+            ចាក់សោ
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="user" class="w-4 h-4 text-blue-400"></i>
+            <div>
+              <p class="text-xs font-semibold text-white">ព័ត៌មានផ្ទាល់ខ្លួន (About Me)</p>
+              <p class="text-[10px] text-slate-400">ស្តី ស្តើង (SDEY SDOEUNG)</p>
+            </div>
+          </div>
+          <button onclick="openAboutModal()" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold">
+            ពិនិត្យ
+          </button>
         </div>
       </div>
     </div>
   `;
+}
+
+// ==========================================
+// 8. Drill-Down Modals Logic
+// ==========================================
+function openSalesModal(monthStr) {
+  const d = DataService.data;
+  if (!d) return;
+
+  const modal = document.getElementById('sales-modal');
+  const listEl = document.getElementById('sales-modal-list');
+  const subtitle = document.getElementById('sales-modal-subtitle');
+
+  subtitle.textContent = `តារាងកុម្ម៉ង់ខែ ${monthStr} (${d.personalSales.filter(s => s.date.startsWith(monthStr)).length} នាក់)`;
+
+  const filtered = d.personalSales.filter(s => s.date.startsWith(monthStr));
+
+  listEl.innerHTML = filtered.map(item => `
+    <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="font-bold text-xs text-white">${item.customer}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 font-mono">${item.orderId}</span>
+        </div>
+        <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.totalAmount)}</span>
+      </div>
+      <div class="text-[11px] text-slate-400 flex items-center justify-between">
+        <span>📍 ${item.location || 'មិនបញ្ជាក់'}</span>
+        <span>📞 ${item.phone || '—'}</span>
+      </div>
+      <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
+        <span>ប្រអប់សរុប: <strong class="text-white">${item.totalBoxQty}</strong></span>
+        <span>ចំណេញ: <strong class="text-blue-400">${formatUSD(item.profit)}</strong></span>
+        <span class="${item.codStatus.includes('បានទូទាត់') ? 'text-emerald-400' : 'text-amber-400'}">${item.codStatus}</span>
+      </div>
+    </div>
+  `).join('') || '<p class="text-xs text-slate-500 text-center py-8">គ្មានការលក់ក្នុងខែនេះ</p>';
+
+  modal.classList.remove('hidden');
+}
+
+function closeSalesModal() {
+  document.getElementById('sales-modal').classList.add('hidden');
+}
+
+function openAboutModal() {
+  document.getElementById('about-modal').classList.remove('hidden');
+}
+
+function closeAboutModal() {
+  document.getElementById('about-modal').classList.add('hidden');
+}
+
+function toggleNotificationsModal() {
+  const modal = document.getElementById('notif-modal');
+  modal.classList.toggle('hidden');
+}
+
+function setMonthFilter(month) {
+  appState.selectedMonth = month;
+  renderCurrentView();
+}
+
+function setLanguage(lang) {
+  appState.language = lang;
+  localStorage.setItem('sd_lang', lang);
+  renderCurrentView();
 }
