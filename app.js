@@ -337,7 +337,18 @@ function toggleHideBalance() {
 // 3. Navigation & Dock Switcher
 // ==========================================
 function switchView(viewName) {
+  const isAlreadyDashboard = (appState.currentView === 'dashboard' && viewName === 'dashboard');
   appState.currentView = viewName;
+
+  const main = document.getElementById('main-content');
+  if (viewName === 'dashboard') {
+    // Scroll to the very top smoothly
+    if (main) {
+      main.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    // Refresh latest data from Google Sheet
+    manualReload();
+  }
 
   const filterBar = document.getElementById('sticky-filter-bar');
   if (filterBar) {
@@ -360,6 +371,13 @@ function switchView(viewName) {
   });
 
   renderCurrentView();
+
+  // Ensure scroll is at top after view render if switched/clicked home
+  if (viewName === 'dashboard' && main) {
+    setTimeout(() => {
+      main.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+  }
 }
 
 function setPeriodFilter(mode) {
