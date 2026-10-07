@@ -640,18 +640,20 @@ function getDashboardViewHTML() {
     </div>
 
     <!-- ======================================================== -->
-    <!-- CARD B: 📈 NET CASH POSITION (With Center Cash Health)  -->
+    <!-- CARD B: 📈 NET CASH POSITION (Khmer top, English bottom, badge on right)  -->
     <!-- ======================================================== -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       
-      <!-- Top Title and CENTERED Cash Health Badge -->
-      <div class="flex flex-col items-center justify-center text-center mb-3">
-        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center justify-center gap-2 mb-2">
-          <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
-          <span>${t('netCashTitle')}</span>
-        </h3>
-        <!-- CENTERED សុវត្ថិភាពខ្ពស់ Badge -->
-        <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-xs shadow-sm">
+      <!-- Top Title (2 lines) and Right-Aligned Cash Health Badge -->
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
+            <span>📈 សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ</span>
+          </h3>
+          <p class="text-[10px] text-slate-400 font-mono ml-5">Net Cash Position</p>
+        </div>
+        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-xs shadow-sm">
           ${netCash.healthStatus}
         </span>
       </div>
@@ -700,47 +702,65 @@ function getDashboardViewHTML() {
       </div>
     </div>
 
-    <!-- CARD D: 💳 PAYABLES & TODAY'S EXPENSES -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <!-- CARD D: 💳 PAYABLES & EXPENSES (Side-by-side with View buttons & scrollable lists) -->
+    <div class="grid grid-cols-2 gap-3">
       
-      <!-- Accounts Payable -->
-      <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="font-bold text-xs text-rose-300 flex items-center gap-1.5">
-            <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
-            <span>${t('payablesTitle')}</span>
-          </h4>
-          <span class="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 font-mono">${d.bank.payables.length}</span>
+      <!-- Accounts Payable (បំណុលត្រូវទូទាត់) -->
+      <div class="ios-glass-card rounded-3xl p-3.5 border border-white/10 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-bold text-[11px] text-rose-300 flex items-center gap-1 truncate">
+              <i data-lucide="credit-card" class="w-3.5 h-3.5 shrink-0"></i>
+              <span class="truncate">${t('payablesTitle')}</span>
+            </h4>
+            <button onclick="openPayablesModal()" 
+                    class="text-[10px] text-rose-400 font-semibold hover:underline flex items-center gap-0.5 shrink-0 bg-rose-500/10 px-1.5 py-0.5 rounded-md border border-rose-500/20 active:scale-95 transition">
+              ${appState.language === 'en' ? 'View' : 'មើល'} <i data-lucide="chevron-right" class="w-2.5 h-2.5"></i>
+            </button>
+          </div>
+          <div class="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pr-0.5">
+            ${d.bank.payables.map((p, idx) => `
+              <div class="flex items-center justify-between text-[11px] py-1 border-b border-white/5">
+                <span class="text-white truncate max-w-[85px] sm:max-w-[120px]" title="${p.title}">${idx + 1}. ${p.title}</span>
+                <span class="font-mono text-rose-400 font-semibold shrink-0">${formatUSD(p.amount)}</span>
+              </div>
+            `).join('') || `<p class="text-[10px] text-slate-500 py-2 text-center">${t('noData')}</p>`}
+          </div>
         </div>
-        <div class="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
-          ${d.bank.payables.map((p, idx) => `
-            <div class="flex items-center justify-between text-xs py-1 border-b border-white/5">
-              <span class="text-white truncate max-w-[130px]">${idx + 1}. ${p.title}</span>
-              <span class="font-mono text-rose-400 font-semibold">${formatUSD(p.amount)}</span>
-            </div>
-          `).join('') || `<p class="text-xs text-slate-500 py-3">${t('noData')}</p>`}
+        <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400 mt-2">
+          <span>សរុប ${d.bank.payables.length} មុខ</span>
+          <span class="font-mono text-rose-400 font-bold">${formatUSD(netCash.totalAccountsPayable)}</span>
         </div>
       </div>
 
-      <!-- Today's Expenses -->
-      <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="font-bold text-xs text-slate-300 flex items-center gap-1.5">
-            <i data-lucide="receipt" class="w-3.5 h-3.5 text-orange-400"></i>
-            <span>${t('todayExpTitle')}</span>
-          </h4>
-          <span class="text-[10px] text-slate-400 font-mono">${filteredExpenses.length}</span>
-        </div>
-        <div class="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
-          ${filteredExpenses.slice(0, 5).map(e => `
-            <div class="flex items-center justify-between text-xs py-1 border-b border-white/5">
-              <div class="truncate max-w-[120px]">
-                <p class="text-white truncate text-[11px]">${e.description || e.category}</p>
-                <p class="text-[9px] text-slate-400 font-mono">${e.date}</p>
+      <!-- Expenses (ការចំណាយរត់តាមថ្ងៃ/Filter) -->
+      <div class="ios-glass-card rounded-3xl p-3.5 border border-white/10 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-bold text-[11px] text-slate-300 flex items-center gap-1 truncate">
+              <i data-lucide="receipt" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+              <span class="truncate">${t('todayExpTitle')}</span>
+            </h4>
+            <button onclick="openExpensesModal()" 
+                    class="text-[10px] text-orange-400 font-semibold hover:underline flex items-center gap-0.5 shrink-0 bg-orange-500/10 px-1.5 py-0.5 rounded-md border border-orange-500/20 active:scale-95 transition">
+              ${appState.language === 'en' ? 'View' : 'មើល'} <i data-lucide="chevron-right" class="w-2.5 h-2.5"></i>
+            </button>
+          </div>
+          <div class="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pr-0.5">
+            ${filteredExpenses.map((e, idx) => `
+              <div class="flex items-center justify-between text-[11px] py-1 border-b border-white/5">
+                <div class="truncate max-w-[80px] sm:max-w-[110px]" title="${e.description || e.category}">
+                  <p class="text-white truncate text-[10px] leading-tight">${e.description || e.category}</p>
+                  <p class="text-[9px] text-slate-400 font-mono leading-tight">${e.date}</p>
+                </div>
+                <span class="font-mono text-rose-400 font-semibold shrink-0">${formatUSD(e.amount)}</span>
               </div>
-              <span class="font-mono text-rose-400 font-semibold">${formatUSD(e.amount)}</span>
-            </div>
-          `).join('') || `<p class="text-xs text-slate-500 py-3">${t('noData')}</p>`}
+            `).join('') || `<p class="text-[10px] text-slate-500 py-2 text-center">${t('noData')}</p>`}
+          </div>
+        </div>
+        <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400 mt-2">
+          <span>សរុប ${filteredExpenses.length} មុខ</span>
+          <span class="font-mono text-rose-400 font-bold">${formatUSD(totalExpenseAmt)}</span>
         </div>
       </div>
 
@@ -1027,6 +1047,112 @@ function openPersonalSalesModal() {
 
 function closeSalesModal() {
   document.getElementById('sales-modal').classList.add('hidden');
+}
+
+function openPayablesModal() {
+  const d = DataService.data;
+  if (!d) return;
+
+  const modal = document.getElementById('payables-modal');
+  const listEl = document.getElementById('payables-modal-list');
+  const subtitle = document.getElementById('payables-modal-subtitle');
+
+  if (subtitle) {
+    subtitle.textContent = `ទិន្នន័យជាក់ស្តែងពី Bank & Cash Balance (${d.bank.payables.length} មុខ) - សរុប ${formatUSD(d.bank.netCashPosition.totalAccountsPayable)}`;
+  }
+
+  if (listEl) {
+    listEl.innerHTML = d.bank.payables.map((item, idx) => `
+      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+            ${idx + 1}
+          </span>
+          <div>
+            <span class="font-bold text-xs text-white block">${item.title}</span>
+            <span class="text-[10px] text-slate-400 font-mono">Accounts Payable</span>
+          </div>
+        </div>
+        <span class="font-mono text-rose-400 font-bold text-xs shrink-0">${formatUSD(item.amount)}</span>
+      </div>
+    `).join('') || `<p class="text-xs text-slate-400 text-center py-6">គ្មានបញ្ជីបំណុលត្រូវទូទាត់ទេ</p>`;
+  }
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closePayablesModal() {
+  document.getElementById('payables-modal').classList.add('hidden');
+}
+
+function openExpensesModal() {
+  const d = DataService.data;
+  if (!d) return;
+
+  const modal = document.getElementById('expenses-modal');
+  const listEl = document.getElementById('expenses-modal-list');
+  const subtitle = document.getElementById('expenses-modal-subtitle');
+
+  const now = new Date();
+  const currentIsoDay = now.toISOString().slice(0, 10);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  const currentIsoYear = currentIsoDay.slice(0, 4);
+
+  let filteredExpenses = d.expenses;
+  let periodLabel = 'ទាំងអស់';
+
+  if (appState.periodFilter === 'today') {
+    const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
+    const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
+    filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
+    periodLabel = `ថ្ងៃនេះ (${displayDDMMYYYY(targetIsoDay)})`;
+  } else if (appState.periodFilter === 'month') {
+    const hasMonth = d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth));
+    const targetMonth = hasMonth ? currentIsoMonth : '2026-08';
+    filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonth));
+    periodLabel = `ខែនេះ (${targetMonth})`;
+  } else if (appState.periodFilter === 'year') {
+    filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(currentIsoYear));
+    periodLabel = `ឆ្នាំនេះ (${currentIsoYear})`;
+  } else if (appState.periodFilter === 'custom' && appState.customStartDate && appState.customEndDate) {
+    filteredExpenses = d.expenses.filter(e => e.isoDate >= appState.customStartDate && e.isoDate <= appState.customEndDate);
+    periodLabel = `${displayDDMMYYYY(appState.customStartDate)} ➔ ${displayDDMMYYYY(appState.customEndDate)}`;
+  }
+
+  const sortedExpenses = [...filteredExpenses].sort((a, b) => b.isoDate.localeCompare(a.isoDate));
+  const totalAmount = sortedExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+  if (subtitle) {
+    subtitle.textContent = `ការចំណាយតាម ${periodLabel} (${sortedExpenses.length} មុខ) - សរុប ${formatUSD(totalAmount)}`;
+  }
+
+  if (listEl) {
+    listEl.innerHTML = sortedExpenses.map((item, idx) => `
+      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+              ${idx + 1}
+            </span>
+            <span class="font-bold text-xs text-white">${item.description || item.category}</span>
+          </div>
+          <span class="font-mono text-rose-400 font-bold text-xs">${formatUSD(item.amount)}</span>
+        </div>
+        <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
+          <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
+          <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
+        </div>
+      </div>
+    `).join('') || `<p class="text-xs text-slate-400 text-center py-6">គ្មានទិន្នន័យចំណាយសម្រាប់ពេលនេះទេ</p>`;
+  }
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeExpensesModal() {
+  document.getElementById('expenses-modal').classList.add('hidden');
 }
 
 function openAboutModal() {
