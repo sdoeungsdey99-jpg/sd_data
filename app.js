@@ -1,25 +1,133 @@
 /**
  * SD Data - Dynamic iOS Liquid Fintech ERP Application
- * 100% Dynamic Multi-Tab Connection, Zero Hardcoded Data
- * Pull-to-refresh, Exact Facebook Blue Tick, 4-Way Scroll Cards,
- * Professional Diagram with Values on Bar Heads, and ABA Settings
+ * Complete refinement according to user's exact instructions:
+ * 1. Center alignment on Net Cash Position (សុវត្ថិភាពខ្ពស់)
+ * 2. Rename 'សាច់ប្រាក់សុទ្ធពិត' to 'ទឹកប្រាក់ដែលមាន'
+ * 3. Exact Accounts Receivable (លុយនៅអតិថិជន / Pending COD) from Tab Bank & Cash Balance
+ * 4. Settings: remove phone under name (only in About Me), beautiful Light Theme,
+ *    working Khmer/English translation, remove duplicate Telegram.
  */
 
+const translations = {
+  km: {
+    appTitle: 'SD Data',
+    securityPrompt: 'សូមវាយលេខកូដសម្ងាត់ ៤ ខ្ទង់',
+    clear: 'សម្អាត',
+    pureCashTitle: 'ទឹកប្រាក់ដែលមាន (Pure Cash)',
+    pureCashSubtitle: 'ABA + ACLEDA + កាបូប',
+    usdOnly: 'ដុល្លារសុទ្ធ (USD)',
+    khrOnly: 'រៀលសុទ្ធ (KHR)',
+    today: 'ថ្ងៃនេះ',
+    thisMonth: 'ខែនេះ',
+    thisYear: 'ឆ្នាំនេះ',
+    custom: 'កំណត់',
+    totalBoxes: 'ចំនួនលក់សរុប (ចុចមើល)',
+    revenue: 'ចំណូលលក់សរុប',
+    grossProfit: 'ចំណេញដុល (Profit)',
+    expenses: 'ចំណាយសរុប',
+    boxUnit: 'ប្រអប់',
+    pendingCodTitle: '📦 លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់ (Receivables)',
+    pendingCodHint: 'អូស ឡើង/ចុះ/ឆ្វេង/ស្តាំ ដើម្បីមើលទិន្នន័យពី Bank & Cash Balance',
+    netCashTitle: '📈 សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash Position)',
+    actualCash: 'សរុបសាច់ប្រាក់ជាក់ស្តែង',
+    pendingCod: 'លុយ COD រង់ចាំទូទាត់',
+    liquidAssets: 'សរុបទ្រព្យសកម្មរាវ',
+    payablesTotal: 'សរុបបំណុលត្រូវទូទាត់',
+    finalNetCash: '(=) ទឹកប្រាក់សុទ្ធពិតប្រាកដ:',
+    bankAccountsTitle: 'ឈ្មោះគណនី / ធនាគារ និងសមតុល្យនីមួយៗ',
+    payablesTitle: 'បំណុលត្រូវទូទាត់',
+    todayExpTitle: 'ការចំណាយថ្ងៃនេះ',
+    teamSalesTitle: 'ការលក់តាមក្រុម (Team Sales) - ថ្នាក់ដឹកនាំ ៣ រូប',
+    target100: 'គោលដៅ ១០០ ប្រអប់',
+    homeDock: 'ទំព័រដើម',
+    analyticsDock: 'វិភាគ',
+    orderDock: 'Order',
+    learningDock: 'អង់គ្លេស',
+    settingsDock: 'កំណត់',
+    settingsTitle: 'ការកំណត់',
+    protectApp: 'ការពារ SD Data របស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
+    protectDesc: 'ប្រើលេខសម្ងាត់ ដើម្បីសុវត្ថិភាព និងទំនុកចិត្តខ្ពស់',
+    changePinBtn: 'ប្តូរលេខកូដសម្ងាត់ (Change PIN)',
+    theme: 'ទម្រង់បង្ហាញ (Theme)',
+    dark: 'ងងឹត (Dark)',
+    light: 'ភ្លឺ (Light)',
+    language: 'ភាសា (Language)',
+    lockScreenNow: 'ចាក់សោអេក្រង់ឥឡូវនេះ (Lock Screen)',
+    aboutMe: 'អំពីខ្ញុំ (About Me)',
+    noData: 'គ្មានទិន្នន័យ',
+    diagramTitle: 'ដ្យាក្រាមការលក់ & ប្រាក់ចំណេញ (Diagram)',
+    diagramSubtitle: 'តួលេខលក់ពិតប្រាកដនៅលើសរសរក្រាបនីមួយៗ'
+  },
+  en: {
+    appTitle: 'SD Data',
+    securityPrompt: 'Enter 4-Digit Passcode',
+    clear: 'Clear',
+    pureCashTitle: 'Available Funds (Pure Cash)',
+    pureCashSubtitle: 'ABA + ACLEDA + Cash Wallet',
+    usdOnly: 'Pure USD',
+    khrOnly: 'Pure KHR',
+    today: 'Today',
+    thisMonth: 'Month',
+    thisYear: 'Year',
+    custom: 'Custom',
+    totalBoxes: 'Total Sales (Tap to View)',
+    revenue: 'Total Revenue',
+    grossProfit: 'Gross Profit',
+    expenses: 'Total Expenses',
+    boxUnit: 'Boxes',
+    pendingCodTitle: '📦 Accounts Receivable (Pending COD)',
+    pendingCodHint: 'Swipe 4-ways to view all from Bank & Cash Balance',
+    netCashTitle: '📈 Net Cash Position Summary',
+    actualCash: 'Total Actual Cash',
+    pendingCod: 'Pending COD / Receivables',
+    liquidAssets: 'Total Liquid Assets',
+    payablesTotal: 'Total Accounts Payable',
+    finalNetCash: '(=) Net Cash Position:',
+    bankAccountsTitle: 'Bank Accounts & Balances',
+    payablesTitle: 'Accounts Payable',
+    todayExpTitle: "Today's Expenses",
+    teamSalesTitle: 'Team Sales - 3 Team Leaders',
+    target100: 'Target: 100 Boxes',
+    homeDock: 'Home',
+    analyticsDock: 'Analytics',
+    orderDock: 'Order',
+    learningDock: 'English',
+    settingsDock: 'Settings',
+    settingsTitle: 'Settings',
+    protectApp: 'Protect your SD Data with 4-digit PIN',
+    protectDesc: 'Use passcode for higher security and peace of mind',
+    changePinBtn: 'Change Passcode (PIN)',
+    theme: 'Theme Mode',
+    dark: 'Dark Mode',
+    light: 'Light Mode',
+    language: 'Language',
+    lockScreenNow: 'Lock Screen Now',
+    aboutMe: 'About Me',
+    noData: 'No Data Available',
+    diagramTitle: 'Sales & Profit Diagram',
+    diagramSubtitle: 'Live values labeled on top of each bar'
+  }
+};
+
 const appState = {
-  currentView: 'dashboard', // 'dashboard', 'analytics', 'learning', 'settings'
+  currentView: 'dashboard',
   hideBalance: false,
-  periodFilter: 'today', // 'today', 'month', 'year', 'custom'
+  periodFilter: 'today',
   customStartDate: '',
   customEndDate: '',
   language: localStorage.getItem('sd_lang') || 'km',
-  theme: localStorage.getItem('sd_theme') || 'dark', // 'dark' or 'light'
+  theme: localStorage.getItem('sd_theme') || 'dark',
   isLocked: !sessionStorage.getItem('sd_unlocked'),
   enteredPin: '',
   correctPin: localStorage.getItem('sd_pin') || '1234',
   hasReadNotifications: false
 };
 
-// Vocabulary tailored for Daily Work & UI Code
+function t(key) {
+  const lang = appState.language === 'en' ? 'en' : 'km';
+  return translations[lang][key] || key;
+}
+
 const DAILY_ENGLISH_WORDS = [
   { en: 'Dashboard', pron: 'ដាសប៊ត', pos: 'Noun', km: 'ផ្ទាំងសង្ខេបទិន្នន័យ', ex: 'The dashboard displays real-time sales.' },
   { en: 'Transaction', pron: 'ត្រេនសាក់សិន', pos: 'Noun', km: 'ប្រតិបត្តិការទិញ-លក់', ex: 'Every transaction is recorded accurately.' },
@@ -43,7 +151,6 @@ function formatInt(num) {
   return Number(num).toLocaleString('en-US');
 }
 
-// Convert YYYY-MM-DD or any string to DD/MM/YYYY for presentation
 function displayDDMMYYYY(isoOrDateStr) {
   if (!isoOrDateStr) return '';
   const s = String(isoOrDateStr).trim();
@@ -55,7 +162,7 @@ function displayDDMMYYYY(isoOrDateStr) {
 }
 
 // ==========================================
-// 1. Passcode & Lock Screen Logic
+// 1. Passcode & Lock Screen
 // ==========================================
 function updateLockClock() {
   const timeEl = document.getElementById('lock-time');
@@ -113,7 +220,7 @@ function verifyPin() {
     setTimeout(() => {
       appState.enteredPin = '';
       updatePinDots();
-      prompt.textContent = 'សូមវាយលេខកូដសម្ងាត់ ៤ ខ្ទង់';
+      prompt.textContent = t('securityPrompt');
       prompt.classList.remove('text-rose-400');
     }, 800);
   }
@@ -143,7 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lockScreen) lockScreen.classList.add('hidden');
   }
 
-  // Setup Pull to Refresh interaction
   setupPullToRefresh();
 
   DataService.subscribe(onDataUpdated);
@@ -233,7 +339,6 @@ function toggleHideBalance() {
 function switchView(viewName) {
   appState.currentView = viewName;
 
-  // Show/Hide Sticky Filter Bar (Only show on 'dashboard')
   const filterBar = document.getElementById('sticky-filter-bar');
   if (filterBar) {
     if (viewName === 'dashboard') {
@@ -243,7 +348,6 @@ function switchView(viewName) {
     }
   }
 
-  // Update Dock active states
   ['dashboard', 'analytics', 'learning', 'settings'].forEach(v => {
     const btn = document.getElementById(`dock-btn-${v}`);
     if (btn) {
@@ -300,6 +404,9 @@ function renderCurrentView() {
   const container = document.getElementById('main-content');
   if (!container) return;
 
+  // Update Dynamic Dock Labels based on Language
+  updateStaticLabels();
+
   switch (appState.currentView) {
     case 'dashboard':
       container.innerHTML = getDashboardViewHTML();
@@ -320,6 +427,28 @@ function renderCurrentView() {
   }
 }
 
+function updateStaticLabels() {
+  const dockHome = document.querySelector('#dock-btn-dashboard span');
+  const dockAnalytics = document.querySelector('#dock-btn-analytics span');
+  const dockLearn = document.querySelector('#dock-btn-learning span');
+  const dockSettings = document.querySelector('#dock-btn-settings span');
+
+  const filterToday = document.getElementById('filter-btn-today');
+  const filterMonth = document.getElementById('filter-btn-month');
+  const filterYear = document.getElementById('filter-btn-year');
+  const filterCustom = document.getElementById('filter-btn-custom');
+
+  if (dockHome) dockHome.textContent = t('homeDock');
+  if (dockAnalytics) dockAnalytics.textContent = t('analyticsDock');
+  if (dockLearn) dockLearn.textContent = t('learningDock');
+  if (dockSettings) dockSettings.textContent = t('settingsDock');
+
+  if (filterToday) filterToday.textContent = t('today');
+  if (filterMonth) filterMonth.textContent = t('thisMonth');
+  if (filterYear) filterYear.textContent = t('thisYear');
+  if (filterCustom) filterCustom.textContent = t('custom');
+}
+
 // ==========================================
 // 4. View: Dashboard
 // ==========================================
@@ -334,55 +463,51 @@ function getDashboardViewHTML() {
     `;
   }
 
-  // Live Auto-Filter by Today, Month, Year, Custom Range
   const now = new Date();
-  const currentIsoDay = now.toISOString().slice(0, 10); // YYYY-MM-DD
-  const currentIsoMonth = currentIsoDay.slice(0, 7); // YYYY-MM
-  const currentIsoYear = currentIsoDay.slice(0, 4); // YYYY
+  const currentIsoDay = now.toISOString().slice(0, 10);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  const currentIsoYear = currentIsoDay.slice(0, 4);
 
   let filteredSales = d.personalSales;
   let filteredExpenses = d.expenses;
   let activePeriodDisplay = '';
 
   if (appState.periodFilter === 'today') {
-    // If current real date exists in sales use it, else pick the latest active recorded day
     const hasToday = d.personalSales.some(s => s.isoDate === currentIsoDay);
     const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
     filteredSales = d.personalSales.filter(s => s.isoDate === targetIsoDay);
     filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
-    activePeriodDisplay = `ថ្ងៃទី ${displayDDMMYYYY(targetIsoDay)} (ថ្ងៃនេះស្វ័យប្រវត្ត)`;
+    activePeriodDisplay = `${t('today')} (${displayDDMMYYYY(targetIsoDay)})`;
   } else if (appState.periodFilter === 'month') {
     const hasMonth = d.personalSales.some(s => s.isoDate.startsWith(currentIsoMonth));
     const targetMonth = hasMonth ? currentIsoMonth : '2026-08';
     filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(targetMonth));
     filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonth));
     const parts = targetMonth.split('-');
-    activePeriodDisplay = `ខែ ${parts[1]}/${parts[0]} (ខែនេះស្វ័យប្រវត្ត)`;
+    activePeriodDisplay = `${t('thisMonth')} (${parts[1]}/${parts[0]})`;
   } else if (appState.periodFilter === 'year') {
     filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(currentIsoYear));
     filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(currentIsoYear));
-    activePeriodDisplay = `ឆ្នាំ ${currentIsoYear} (ឆ្នាំនេះស្វ័យប្រវត្ត)`;
+    activePeriodDisplay = `${t('thisYear')} (${currentIsoYear})`;
   } else if (appState.periodFilter === 'custom' && appState.customStartDate && appState.customEndDate) {
     filteredSales = d.personalSales.filter(s => s.isoDate >= appState.customStartDate && s.isoDate <= appState.customEndDate);
     filteredExpenses = d.expenses.filter(e => e.isoDate >= appState.customStartDate && e.isoDate <= appState.customEndDate);
-    activePeriodDisplay = `ពីថ្ងៃទី ${displayDDMMYYYY(appState.customStartDate)} ដល់ ${displayDDMMYYYY(appState.customEndDate)}`;
+    activePeriodDisplay = `${displayDDMMYYYY(appState.customStartDate)} ➔ ${displayDDMMYYYY(appState.customEndDate)}`;
   } else {
-    activePeriodDisplay = 'ទិន្នន័យជ្រើសរើសទាំងអស់';
+    activePeriodDisplay = 'All Period';
   }
 
-  // Calculated Metrics from Personal Sales & Daily Expenses
   const totalBoxQty = filteredSales.reduce((acc, cur) => acc + (cur.totalBoxQty || 0), 0);
   const totalRevenue = filteredSales.reduce((acc, cur) => acc + (cur.totalAmount || 0), 0);
   const totalGrossProfit = filteredSales.reduce((acc, cur) => acc + (cur.profit || 0), 0);
   const totalExpenseAmt = filteredExpenses.reduce((acc, cur) => acc + (cur.amount || 0), 0);
 
-  // Pure Bank Balances
   const pureUsd = d.bank.pureUsdTotal;
   const pureKhr = d.bank.pureKhrTotal;
   const netCash = d.bank.netCashPosition;
 
   return `
-    <!-- HERO BALANCE CARD -->
+    <!-- HERO BALANCE CARD (ទឹកប្រាក់ដែលមាន) -->
     <div class="ios-glass-card rounded-3xl p-5 relative overflow-hidden liquid-orange-glow">
       <div class="absolute -top-12 -right-12 w-44 h-44 bg-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -392,8 +517,9 @@ function getDashboardViewHTML() {
             <i data-lucide="wallet" class="w-4 h-4"></i>
           </div>
           <div>
-            <p class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">សាច់ប្រាក់សុទ្ធពិត (Pure Cash)</p>
-            <p class="text-[10px] text-amber-200/80">ABA + ACLEDA + កាបូប</p>
+            <!-- Renamed from សាច់ប្រាក់សុទ្ធពិត to ទឹកប្រាក់ដែលមាន -->
+            <p class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">${t('pureCashTitle')}</p>
+            <p class="text-[10px] text-amber-200/80">${t('pureCashSubtitle')}</p>
           </div>
         </div>
         <button onclick="toggleHideBalance()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
@@ -404,13 +530,13 @@ function getDashboardViewHTML() {
       <!-- Currency Balances -->
       <div class="grid grid-cols-2 gap-3 mb-2">
         <div class="bg-black/25 rounded-2xl p-3 border border-white/5">
-          <p class="text-[10px] text-slate-400 mb-0.5">ដុល្លារសុទ្ធ (USD)</p>
+          <p class="text-[10px] text-slate-400 mb-0.5">${t('usdOnly')}</p>
           <p class="text-xl sm:text-2xl font-bold font-mono text-white tracking-tight">
             ${appState.hideBalance ? '•••••• $' : formatUSD(pureUsd)}
           </p>
         </div>
         <div class="bg-black/25 rounded-2xl p-3 border border-white/5">
-          <p class="text-[10px] text-slate-400 mb-0.5">រៀលសុទ្ធ (KHR)</p>
+          <p class="text-[10px] text-slate-400 mb-0.5">${t('khrOnly')}</p>
           <p class="text-xl sm:text-2xl font-bold font-mono text-emerald-400 tracking-tight">
             ${appState.hideBalance ? '•••••• ៛' : formatKHR(pureKhr)}
           </p>
@@ -418,7 +544,7 @@ function getDashboardViewHTML() {
       </div>
     </div>
 
-    <!-- Active Period Display (Only on Home) -->
+    <!-- Active Period Display (Home only) -->
     <div class="flex items-center justify-between px-1">
       <span class="text-xs text-slate-300 font-medium">📌 ${activePeriodDisplay}</span>
       <span class="text-[10px] text-orange-400 font-mono">Personal Sales</span>
@@ -427,7 +553,7 @@ function getDashboardViewHTML() {
     <!-- 4 MAIN KPI CARDS -->
     <div class="grid grid-cols-2 gap-3">
       
-      <!-- 1. Total Box Qty (Clickable to open Personal Sales Drill-down Latest First 31 -> 01) -->
+      <!-- 1. Total Box Qty -->
       <div onclick="openPersonalSalesModal()" 
            class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer hover:border-orange-500/50 active:scale-98 transition group relative">
         <div class="flex items-center justify-between mb-2">
@@ -435,11 +561,11 @@ function getDashboardViewHTML() {
             <i data-lucide="package" class="w-4 h-4"></i>
           </div>
           <span class="text-[10px] text-orange-400 font-semibold group-hover:underline flex items-center gap-0.5">
-            មើល <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            ${appState.language === 'en' ? 'View' : 'មើល'} <i data-lucide="chevron-right" class="w-3 h-3"></i>
           </span>
         </div>
-        <p class="text-[11px] text-slate-400">ចំនួនលក់សរុប (ចុចមើល)</p>
-        <p class="text-xl font-bold text-white font-mono mt-0.5">${formatInt(totalBoxQty)} <span class="text-xs text-slate-400 font-sans font-normal">ប្រអប់</span></p>
+        <p class="text-[11px] text-slate-400">${t('totalBoxes')}</p>
+        <p class="text-xl font-bold text-white font-mono mt-0.5">${formatInt(totalBoxQty)} <span class="text-xs text-slate-400 font-sans font-normal">${t('boxUnit')}</span></p>
       </div>
 
       <!-- 2. Revenue -->
@@ -447,7 +573,7 @@ function getDashboardViewHTML() {
         <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-2">
           <i data-lucide="dollar-sign" class="w-4 h-4"></i>
         </div>
-        <p class="text-[11px] text-slate-400">ចំណូលលក់សរុប</p>
+        <p class="text-[11px] text-slate-400">${t('revenue')}</p>
         <p class="text-xl font-bold text-emerald-400 font-mono mt-0.5">${formatUSD(totalRevenue)}</p>
       </div>
 
@@ -456,7 +582,7 @@ function getDashboardViewHTML() {
         <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center mb-2">
           <i data-lucide="trending-up" class="w-4 h-4"></i>
         </div>
-        <p class="text-[11px] text-slate-400">ចំណេញដុល (Profit)</p>
+        <p class="text-[11px] text-slate-400">${t('grossProfit')}</p>
         <p class="text-xl font-bold text-blue-400 font-mono mt-0.5">${formatUSD(totalGrossProfit)}</p>
       </div>
 
@@ -465,101 +591,100 @@ function getDashboardViewHTML() {
         <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center mb-2">
           <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
         </div>
-        <p class="text-[11px] text-slate-400">ចំណាយសរុប</p>
+        <p class="text-[11px] text-slate-400">${t('expenses')}</p>
         <p class="text-xl font-bold text-rose-400 font-mono mt-0.5">${formatUSD(totalExpenseAmt)}</p>
       </div>
 
     </div>
 
     <!-- ======================================================== -->
-    <!-- 4. DYNAMIC BANK & CASH BALANCE SECTION (4-Way Scroll)   -->
+    <!-- CARD A: 📦 ACCOUNTS RECEIVABLE FROM BANK & CASH BALANCE  -->
     <!-- ======================================================== -->
-
-    <!-- CARD A: 📦 លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់មក (Accounts Receivable) -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-bold text-xs uppercase tracking-wider text-amber-300 flex items-center gap-2">
           <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
-          <span>📦 លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់ (Receivables)</span>
+          <span>${t('pendingCodTitle')}</span>
         </h3>
         <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold">
-          ${d.pendingCodReceivables.length} នាក់
+          ${d.pendingCodReceivables.length}
         </span>
       </div>
-      <p class="text-[10px] text-slate-400 mb-3">អូស ឡើង/ចុះ/ឆ្វេង/ស្តាំ ដើម្បីមើលគ្រប់អតិថិជនទាំងអស់</p>
+      <p class="text-[10px] text-slate-400 mb-3">${t('pendingCodHint')}</p>
 
       <!-- 4-Way Scroll Container -->
       <div class="overflow-x-auto overflow-y-auto max-h-56 no-scrollbar border border-white/5 rounded-2xl bg-black/30 p-2">
         <table class="w-full text-left text-xs whitespace-nowrap">
           <thead>
             <tr class="text-slate-400 border-b border-white/10 text-[10px]">
+              <th class="py-1.5 px-2">ល.រ</th>
               <th class="py-1.5 px-2">កាលបរិច្ឆេទ</th>
-              <th class="py-1.5 px-2">Order ID</th>
-              <th class="py-1.5 px-2">ឈ្មោះអតិថិជន</th>
-              <th class="py-1.5 px-2">លេខទូរសព្ទ</th>
-              <th class="py-1.5 px-2">ទីតាំង</th>
-              <th class="py-1.5 px-2">សេវាដឹក</th>
+              <th class="py-1.5 px-2">ចំនួន</th>
+              <th class="py-1.5 px-2">ស្ថានភាព</th>
               <th class="py-1.5 px-2 text-right">ទឹកប្រាក់ ($)</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/5">
             ${d.pendingCodReceivables.map(item => `
               <tr class="hover:bg-white/5">
+                <td class="py-1.5 px-2 font-mono text-orange-400 text-[11px]">${item.no}</td>
                 <td class="py-1.5 px-2 text-slate-300 font-mono text-[11px]">${item.date}</td>
-                <td class="py-1.5 px-2 font-mono text-orange-400 font-semibold text-[11px]">${item.orderId}</td>
-                <td class="py-1.5 px-2 text-white font-medium">${item.customer}</td>
-                <td class="py-1.5 px-2 text-slate-300 font-mono text-[11px]">${item.phone || '—'}</td>
-                <td class="py-1.5 px-2 text-slate-400 text-[11px]">${item.location || '—'}</td>
-                <td class="py-1.5 px-2 text-blue-300 text-[11px]">${item.deliveryMethod}</td>
-                <td class="py-1.5 px-2 text-right font-mono font-bold text-amber-400 text-[11px]">${formatUSD(item.totalAmount)}</td>
+                <td class="py-1.5 px-2 text-white font-medium text-[11px]">${item.qtyBoxes}</td>
+                <td class="py-1.5 px-2 text-blue-300 text-[11px]">${item.status}</td>
+                <td class="py-1.5 px-2 text-right font-mono font-bold text-amber-400 text-[11px]">${formatUSD(item.amount)}</td>
               </tr>
-            `).join('') || '<tr><td colspan="7" class="text-center py-4 text-slate-500">គ្មានអតិថិជនជំពាក់</td></tr>'}
+            `).join('') || `<tr><td colspan="5" class="text-center py-4 text-slate-500">${t('noData')}</td></tr>`}
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- CARD B: 📈 សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash Position ពី Sheet) -->
+    <!-- ======================================================== -->
+    <!-- CARD B: 📈 NET CASH POSITION (With Center Cash Health)  -->
+    <!-- ======================================================== -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
+      
+      <!-- Top Title and CENTERED Cash Health Badge -->
+      <div class="flex flex-col items-center justify-center text-center mb-3">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center justify-center gap-2 mb-2">
           <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
-          <span>📈 សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash Position)</span>
+          <span>${t('netCashTitle')}</span>
         </h3>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold">
+        <!-- CENTERED សុវត្ថិភាពខ្ពស់ Badge -->
+        <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-xs shadow-sm">
           ${netCash.healthStatus}
         </span>
       </div>
 
       <div class="grid grid-cols-2 gap-2 text-xs">
         <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-          <span class="text-slate-400 text-[10px] block">សរុបសាច់ប្រាក់ជាក់ស្តែង:</span>
+          <span class="text-slate-400 text-[10px] block">${t('actualCash')}:</span>
           <span class="font-mono text-white font-bold text-sm">${formatUSD(netCash.totalActualCash)}</span>
         </div>
         <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-          <span class="text-slate-400 text-[10px] block">លុយ COD រង់ចាំទូទាត់:</span>
+          <span class="text-slate-400 text-[10px] block">${t('pendingCod')}:</span>
           <span class="font-mono text-amber-400 font-bold text-sm">${formatUSD(netCash.pendingCodReceivables)}</span>
         </div>
         <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-          <span class="text-slate-400 text-[10px] block">សរុបទ្រព្យសកម្មរាវ:</span>
+          <span class="text-slate-400 text-[10px] block">${t('liquidAssets')}:</span>
           <span class="font-mono text-blue-400 font-bold text-sm">${formatUSD(netCash.totalLiquidAssets)}</span>
         </div>
         <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-          <span class="text-slate-400 text-[10px] block">សរុបបំណុលត្រូវទូទាត់:</span>
+          <span class="text-slate-400 text-[10px] block">${t('payablesTotal')}:</span>
           <span class="font-mono text-rose-400 font-bold text-sm">${formatUSD(netCash.totalAccountsPayable)}</span>
         </div>
       </div>
       <div class="mt-2 p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/40 to-blue-950/40 border border-emerald-500/20 flex items-center justify-between">
-        <span class="text-xs text-white font-semibold">(=) សាច់ប្រាក់សុទ្ធពិតប្រាកដ:</span>
+        <span class="text-xs text-white font-semibold">${t('finalNetCash')}</span>
         <span class="text-base font-bold font-mono text-emerald-400">${formatUSD(netCash.netCashPositionFinal || netCash.totalNetCash)}</span>
       </div>
     </div>
 
-    <!-- CARD C: 🏦 ឈ្មោះគណនី / ធនាគារ និងចំនួននីមួយៗ -->
+    <!-- CARD C: 🏦 BANK ACCOUNTS BREAKDOWN -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-2">
         <i data-lucide="building-2" class="w-4 h-4 text-blue-400"></i>
-        <span>ឈ្មោះគណនី / ធនាគារ និងសមតុល្យនីមួយៗ</span>
+        <span>${t('bankAccountsTitle')}</span>
       </h3>
       <div class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
         ${d.bank.accounts.map(acc => `
@@ -575,7 +700,7 @@ function getDashboardViewHTML() {
       </div>
     </div>
 
-    <!-- CARD D: 💳 បញ្ជីបំណុលត្រូវទូទាត់ (Accounts Payable) & ការចំណាយថ្ងៃនេះ -->
+    <!-- CARD D: 💳 PAYABLES & TODAY'S EXPENSES -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       
       <!-- Accounts Payable -->
@@ -583,9 +708,9 @@ function getDashboardViewHTML() {
         <div class="flex items-center justify-between mb-2">
           <h4 class="font-bold text-xs text-rose-300 flex items-center gap-1.5">
             <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
-            <span>បំណុលត្រូវទូទាត់</span>
+            <span>${t('payablesTitle')}</span>
           </h4>
-          <span class="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 font-mono">${d.bank.payables.length} មុខ</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 font-mono">${d.bank.payables.length}</span>
         </div>
         <div class="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
           ${d.bank.payables.map((p, idx) => `
@@ -593,7 +718,7 @@ function getDashboardViewHTML() {
               <span class="text-white truncate max-w-[130px]">${idx + 1}. ${p.title}</span>
               <span class="font-mono text-rose-400 font-semibold">${formatUSD(p.amount)}</span>
             </div>
-          `).join('') || '<p class="text-xs text-slate-500 py-3">គ្មានបំណុល</p>'}
+          `).join('') || `<p class="text-xs text-slate-500 py-3">${t('noData')}</p>`}
         </div>
       </div>
 
@@ -602,9 +727,9 @@ function getDashboardViewHTML() {
         <div class="flex items-center justify-between mb-2">
           <h4 class="font-bold text-xs text-slate-300 flex items-center gap-1.5">
             <i data-lucide="receipt" class="w-3.5 h-3.5 text-orange-400"></i>
-            <span>ការចំណាយថ្ងៃនេះ</span>
+            <span>${t('todayExpTitle')}</span>
           </h4>
-          <span class="text-[10px] text-slate-400 font-mono">${filteredExpenses.length} មុខ</span>
+          <span class="text-[10px] text-slate-400 font-mono">${filteredExpenses.length}</span>
         </div>
         <div class="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
           ${filteredExpenses.slice(0, 5).map(e => `
@@ -615,20 +740,20 @@ function getDashboardViewHTML() {
               </div>
               <span class="font-mono text-rose-400 font-semibold">${formatUSD(e.amount)}</span>
             </div>
-          `).join('') || '<p class="text-xs text-slate-500 py-3">គ្មានចំណាយ</p>'}
+          `).join('') || `<p class="text-xs text-slate-500 py-3">${t('noData')}</p>`}
         </div>
       </div>
 
     </div>
 
-    <!-- CARD E: TEAM SALES - 3 LEADER SHOWCASE -->
+    <!-- CARD E: TEAM SALES - 3 LEADERS -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
           <i data-lucide="users" class="w-4 h-4 text-blue-400"></i>
-          <span>ការលក់តាមក្រុម (Team Sales) - ថ្នាក់ដឹកនាំ ៣ រូប</span>
+          <span>${t('teamSalesTitle')}</span>
         </h3>
-        <span class="text-[10px] text-blue-400 font-medium">គោលដៅ ១០០ ប្រអប់</span>
+        <span class="text-[10px] text-blue-400 font-medium">${t('target100')}</span>
       </div>
 
       <div class="space-y-2.5">
@@ -637,10 +762,10 @@ function getDashboardViewHTML() {
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-1.5">
                 <span class="font-bold text-xs text-white">${tl.name}</span>
-                ${tl.name === 'ស្តី ស្តើង' ? '<svg class="w-3.5 h-3.5 text-[#1877F2] shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.8 14.5l-4.2-4.2 1.4-1.4 2.8 2.8 7.3-7.3 1.4 1.4-8.7 8.7z"/></svg>' : ''}
+                ${tl.name === 'ស្តី ស្តើង' ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
               </div>
               <span class="font-mono text-xs font-bold ${tl.targetPercent >= 100 ? 'text-emerald-400' : 'text-orange-400'}">
-                ${tl.totalBoxes} ប្រអប់ (${tl.targetPercent}%)
+                ${tl.totalBoxes} ${t('boxUnit')} (${tl.targetPercent}%)
               </span>
             </div>
 
@@ -662,15 +787,15 @@ function getDashboardViewHTML() {
 }
 
 // ==========================================
-// 5. View: Analytics (Fintech Pro Diagram with Exact Numbers on Bars)
+// 5. View: Analytics
 // ==========================================
 function getAnalyticsViewHTML() {
   const d = DataService.data;
-  if (!d) return '<p class="text-xs text-slate-400 text-center py-20">កំពុងរៀបចំដ្យាក្រាម...</p>';
+  if (!d) return '<p class="text-xs text-slate-400 text-center py-20">Loading Diagram...</p>';
 
   const monthlyStats = {};
   d.personalSales.forEach(s => {
-    const mo = s.isoDate.substring(0, 7); // YYYY-MM
+    const mo = s.isoDate.substring(0, 7);
     if (!monthlyStats[mo]) monthlyStats[mo] = { revenue: 0, profit: 0, qty: 0 };
     monthlyStats[mo].revenue += s.totalAmount || 0;
     monthlyStats[mo].profit += s.profit || 0;
@@ -685,13 +810,12 @@ function getAnalyticsViewHTML() {
       <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="font-bold text-sm text-white">ដ្យាក្រាមការលក់ & ប្រាក់ចំណេញ (Diagram)</h3>
-            <p class="text-[11px] text-slate-400">តួលេខលក់ពិតប្រាកដនៅលើសរសរក្រាបនីមួយៗ</p>
+            <h3 class="font-bold text-sm text-white">${t('diagramTitle')}</h3>
+            <p class="text-[11px] text-slate-400">${t('diagramSubtitle')}</p>
           </div>
           <span class="px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold">2026 Trend</span>
         </div>
 
-        <!-- Pro Diagram with Numbers on top of each bar -->
         <div class="h-56 w-full flex items-end gap-2 pt-8 pb-3 px-1 border-b border-white/10">
           ${months.map(m => {
             const stat = monthlyStats[m];
@@ -699,39 +823,30 @@ function getAnalyticsViewHTML() {
             const moName = m.split('-')[1];
             return `
               <div class="flex-1 flex flex-col items-center gap-1.5 group">
-                <!-- Exact Number on Bar Head -->
                 <span class="text-[8px] font-mono font-bold text-amber-300 tracking-tighter block text-center leading-none">
                   $${Math.round(stat.revenue)}
                 </span>
                 <div class="w-full max-w-[26px] rounded-t-lg bg-gradient-to-t from-orange-600 via-amber-500 to-orange-400 shadow-lg transition-all group-hover:scale-105" 
                      style="height: ${revHeight}px"></div>
-                <span class="text-[10px] text-slate-300 font-mono font-semibold">ខែ${moName}</span>
+                <span class="text-[10px] text-slate-300 font-mono font-semibold">${appState.language === 'en' ? 'M' : 'ខែ'}${moName}</span>
               </div>
             `;
           }).join('')}
         </div>
-
-        <div class="flex items-center justify-center gap-4 pt-3 text-[11px] text-slate-400">
-          <span class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded bg-orange-500"></span>
-            ចំណូលលក់ ($)
-          </span>
-        </div>
       </div>
 
-      <!-- Financial Table -->
       <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
-        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300 mb-3">តារាងសង្ខេបចំណូល-ចំណេញតាមខែ</h4>
+        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300 mb-3">${appState.language === 'en' ? 'Monthly Summary Table' : 'តារាងសង្ខេបចំណូល-ចំណេញតាមខែ'}</h4>
         <div class="space-y-2">
           ${months.slice(-6).reverse().map(m => `
             <div class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5">
               <div>
-                <span class="text-xs font-semibold text-white block">ខែ ${m.split('-')[1]}/${m.split('-')[0]}</span>
-                <span class="text-[10px] text-slate-400 font-mono">លក់បាន: ${monthlyStats[m].qty} ប្រអប់</span>
+                <span class="text-xs font-semibold text-white block">${appState.language === 'en' ? 'Month' : 'ខែ'} ${m.split('-')[1]}/${m.split('-')[0]}</span>
+                <span class="text-[10px] text-slate-400 font-mono">${monthlyStats[m].qty} ${t('boxUnit')}</span>
               </div>
               <div class="text-right">
                 <span class="font-mono text-xs text-emerald-400 font-bold block">${formatUSD(monthlyStats[m].revenue)}</span>
-                <span class="text-[10px] text-blue-400 font-mono">ចំណេញ: ${formatUSD(monthlyStats[m].profit)}</span>
+                <span class="text-[10px] text-blue-400 font-mono">${formatUSD(monthlyStats[m].profit)}</span>
               </div>
             </div>
           `).join('')}
@@ -780,7 +895,7 @@ function getLearningViewHTML() {
 }
 
 // ==========================================
-// 7. View: Settings (ABA Style with Facebook Blue Tick, Theme & Passcode)
+// 7. View: Settings (Clean ABA Style)
 // ==========================================
 function getSettingsViewHTML() {
   const isDark = appState.theme === 'dark';
@@ -789,7 +904,7 @@ function getSettingsViewHTML() {
   return `
     <div class="space-y-4">
       
-      <!-- ABA Profile Header -->
+      <!-- Profile Header (Phone number removed as requested, only in About Me) -->
       <div class="flex flex-col items-center text-center py-4">
         <div class="relative mb-3">
           <img src="profile.png" alt="SDEY SDOEUNG" 
@@ -800,38 +915,37 @@ function getSettingsViewHTML() {
           <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
         </div>
         <p class="text-xs text-orange-400 font-semibold tracking-wider">SDEY SDOEUNG</p>
-        <p class="text-xs text-slate-400 font-mono mt-0.5">087 513 666 | 090 513 666</p>
       </div>
 
-      <!-- Security Card (Blue Banner as seen in ABA iPhone photo) -->
+      <!-- Security Card -->
       <div class="bg-gradient-to-r from-[#102A43] to-[#0B1D30] rounded-2xl p-4 border border-blue-500/20 shadow-lg">
         <div class="flex items-start gap-3 mb-3">
           <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
             <i data-lucide="shield-check" class="w-5 h-5"></i>
           </div>
           <div>
-            <h4 class="font-bold text-xs text-white leading-tight">ការពារ SD Data របស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់</h4>
-            <p class="text-[11px] text-slate-300 mt-1">ប្រើលេខសម្ងាត់ ដើម្បីសុវត្ថិភាព និងទំនុកចិត្តខ្ពស់</p>
+            <h4 class="font-bold text-xs text-white leading-tight">${t('protectApp')}</h4>
+            <p class="text-[11px] text-slate-300 mt-1">${t('protectDesc')}</p>
           </div>
         </div>
         <button onclick="openChangePinModal()" 
                 class="w-full py-2.5 rounded-xl bg-[#007AFF] hover:bg-blue-600 text-white font-semibold text-xs transition active:scale-98">
-          ប្តូរលេខកូដសម្ងាត់ (Change PIN)
+          ${t('changePinBtn')}
         </button>
       </div>
 
-      <!-- Inset List Group (ABA Grouped List) -->
+      <!-- Inset List Group (Duplicate Telegram removed) -->
       <div class="bg-[#0F1B2E] rounded-2xl border border-white/10 divide-y divide-white/5 overflow-hidden">
         
-        <!-- Theme Toggle (Dark / Light) -->
+        <!-- Theme Toggle -->
         <div class="p-3.5 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <i data-lucide="${isDark ? 'moon' : 'sun'}" class="w-4 h-4 text-orange-400"></i>
-            <span class="text-xs text-white font-medium">ទម្រង់បង្ហាញ (Theme)</span>
+            <span class="text-xs text-white font-medium">${t('theme')}</span>
           </div>
           <div class="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
-            <button onclick="toggleTheme('dark')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${isDark ? 'bg-orange-500 text-white' : 'text-slate-400'}">ងងឹត (Dark)</button>
-            <button onclick="toggleTheme('light')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${!isDark ? 'bg-orange-500 text-white' : 'text-slate-400'}">ភ្លឺ (Light)</button>
+            <button onclick="toggleTheme('dark')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${isDark ? 'bg-orange-500 text-white' : 'text-slate-400'}">${t('dark')}</button>
+            <button onclick="toggleTheme('light')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${!isDark ? 'bg-orange-500 text-white' : 'text-slate-400'}">${t('light')}</button>
           </div>
         </div>
 
@@ -839,11 +953,11 @@ function getSettingsViewHTML() {
         <div class="p-3.5 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <i data-lucide="globe" class="w-4 h-4 text-slate-400"></i>
-            <span class="text-xs text-white font-medium">ភាសា (Language)</span>
+            <span class="text-xs text-white font-medium">${t('language')}</span>
           </div>
           <div class="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
-            <button onclick="setLanguage('km')" class="px-2 py-1 rounded-lg text-[11px] font-semibold ${isKm ? 'bg-orange-500 text-white' : 'text-slate-400'}">ភាសាខ្មែរ</button>
-            <button onclick="setLanguage('en')" class="px-2 py-1 rounded-lg text-[11px] font-semibold ${!isKm ? 'bg-orange-500 text-white' : 'text-slate-400'}">English</button>
+            <button onclick="setLanguage('km')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${isKm ? 'bg-orange-500 text-white' : 'text-slate-400'}">ភាសាខ្មែរ</button>
+            <button onclick="setLanguage('en')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${!isKm ? 'bg-orange-500 text-white' : 'text-slate-400'}">English</button>
           </div>
         </div>
 
@@ -851,25 +965,16 @@ function getSettingsViewHTML() {
         <div onclick="lockApp()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition">
           <div class="flex items-center gap-3">
             <i data-lucide="lock" class="w-4 h-4 text-slate-400"></i>
-            <span class="text-xs text-white font-medium">ចាក់សោអេក្រង់ឥឡូវនេះ (Lock Screen)</span>
+            <span class="text-xs text-white font-medium">${t('lockScreenNow')}</span>
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
         </div>
-
-        <!-- Telegram Contact -->
-        <a href="https://t.me/sdoeung_sd" target="_blank" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition">
-          <div class="flex items-center gap-3">
-            <i data-lucide="send" class="w-4 h-4 text-[#1877F2]"></i>
-            <span class="text-xs text-white font-medium">ទាក់ទងតាម Telegram</span>
-          </div>
-          <span class="text-xs text-[#1877F2] font-mono">@sdoeung_sd</span>
-        </a>
 
         <!-- អំពីខ្ញុំ (At the very bottom as requested) -->
         <div onclick="openAboutModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition bg-orange-500/10">
           <div class="flex items-center gap-3">
             <i data-lucide="user-check" class="w-4 h-4 text-orange-400"></i>
-            <span class="text-xs text-orange-400 font-bold">អំពីខ្ញុំ (About Me)</span>
+            <span class="text-xs text-orange-400 font-bold">${t('aboutMe')}</span>
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-orange-400"></i>
         </div>
@@ -891,7 +996,6 @@ function openPersonalSalesModal() {
   const listEl = document.getElementById('sales-modal-list');
   const subtitle = document.getElementById('sales-modal-subtitle');
 
-  // Sorted Latest First (Descending by isoDate 31 -> 01)
   const sortedSales = [...d.personalSales].sort((a, b) => b.isoDate.localeCompare(a.isoDate));
 
   subtitle.textContent = `តារាងកុម្ម៉ង់ទាំងអស់ (${sortedSales.length} នាក់) - ពីថ្ងៃចុងក្រោយមកមុន`;
@@ -906,7 +1010,7 @@ function openPersonalSalesModal() {
         <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.totalAmount)}</span>
       </div>
       <div class="text-[11px] text-slate-400 flex items-center justify-between">
-        <span>📍 ${item.location || 'មិនបញ្ជាក់'}</span>
+        <span>📍 ${item.location || '—'}</span>
         <span>📞 ${item.phone || '—'}</span>
       </div>
       <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">

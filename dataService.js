@@ -99,7 +99,6 @@ window.DataService = {
     }
 
     try {
-      // Fetch 4 live tabs concurrently
       const [psGviz, expGviz, bankGviz, teamGviz] = await Promise.all([
         fetchGoogleSheetGViz('1802751802'), // Personal Sales
         fetchGoogleSheetGViz('1413782774'), // Daily Expenses
@@ -108,11 +107,10 @@ window.DataService = {
       ]);
 
       // ==========================================
-      // 1. Process Personal Sales (All Dynamic)
+      // 1. Process Personal Sales
       // ==========================================
       const psRows = psGviz.table.rows;
       const personalSales = [];
-      const pendingCodReceivables = []; // Dynamic All Unpaid COD from Personal Sales
 
       for (let i = 1; i < psRows.length; i++) {
         const cells = psRows[i].c;
@@ -148,9 +146,9 @@ window.DataService = {
         const note = String(getCell(20) || '').trim();
         const recordId = String(getCell(23) || `REC-${i}`).trim();
 
-        const saleItem = {
-          date: ddmmyyyy, // Display as DD/MM/YYYY
-          isoDate: isoDate, // For accurate sorting/filtering
+        personalSales.push({
+          date: ddmmyyyy,
+          isoDate: isoDate,
           orderId,
           recordId,
           customer,
@@ -170,19 +168,11 @@ window.DataService = {
           codStatus,
           profit,
           note
-        };
-
-        personalSales.push(saleItem);
-
-        // Capture Dynamic Pending COD (Accounts Receivable)
-        const isPaid = codStatus.includes('បានទូទាត់') || codStatus.toLowerCase().includes('paid');
-        if (!isPaid && totalAmount > 0) {
-          pendingCodReceivables.push(saleItem);
-        }
+        });
       }
 
       // ==========================================
-      // 2. Process Daily Expenses (All Dynamic)
+      // 2. Process Daily Expenses
       // ==========================================
       const expRows = expGviz.table.rows;
       const expenses = [];
@@ -203,7 +193,7 @@ window.DataService = {
         const amt = cleanNumber(getCell(3));
 
         expenses.push({
-          date: ddmmyyyy, // Display as DD/MM/YYYY
+          date: ddmmyyyy,
           isoDate: isoDate,
           description: desc,
           category: cat,
@@ -212,11 +202,12 @@ window.DataService = {
       }
 
       // ==========================================
-      // 3. Process Bank & Cash Balance (Live Dynamic)
+      // 3. Process Bank & Cash Balance
       // ==========================================
       const bankRows = bankGviz.table.rows;
       const accounts = [];
       const payables = [];
+      const pendingCodReceivables = []; // Exact Pending COD from Bank & Cash Balance table (Rows 17 to end)
       let pureUsdTotal = 0;
       let pureKhrTotal = 0;
 
@@ -233,7 +224,6 @@ window.DataService = {
         const khrVal = cleanNumber(getCell(3));
         accounts.push({ name, usd: usdVal, khr: khrVal });
 
-        // Sum Pure USD (Exclude converted KHR)
         const isPureUsd = [
           'ABA Main (USD)', 'ABA Boosting', 'ABA Stock',
           'ABA Saving កូនរៀន', 'ABA Reserve / Safety',
@@ -249,7 +239,7 @@ window.DataService = {
         }
       }
 
-      // Extract Net Cash Position Summary (Rows 1 to 10 in Column E to I)
+      // Net Cash Position Summary
       const netCashPosition = {
         totalNetCash: cleanNumber(bankRows[1]?.c[4]?.v),
         totalActualCash: cleanNumber(bankRows[3]?.c[8]?.v),
@@ -258,27 +248,49 @@ window.DataService = {
         totalAccountsPayable: cleanNumber(bankRows[6]?.c[8]?.v),
         netCashPositionFinal: cleanNumber(bankRows[7]?.c[8]?.v),
         healthStatus: String(bankRows[8]?.c[8]?.v || 'សុវត្ថិភាពខ្ពស់'),
-        coverageRatio: String(bankRows[9]?.c[8]?.v || '12.7x')
+        coverageRatio: String(bankRows[9]?.c[8]?.v || '12.76x')
       };
 
-      // Extract Payables List (Rows 17 to 26)
+      // Extract Accounts Receivable / Pending COD table directly from Bank & Cash Balance (Rows 17 to end, Columns A to G)
+      for (let i = 17; i < bankRows.length; i++) {
+        const cells = bankRows[i].c;
+        if (!cells) continue;
+        const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
+        const getFormatted = (idx) => (idx < cells.length && cells[idx] && cells[idx].f) ? cells[idx].f : getCell(idx);
+
+        const no = String(getCell(0) || '').trim();
+        const dateRaw = String(getCell(1) || '').trim();
+        const qtyBoxes = String(getCell(4) || '').trim();
+        const amt = cleanNumber(getCell(5));
+        const status = String(getCell(6) || '').trim();
+
+        if (dateRaw && (amt > 0 || status)) {
+          pendingCodReceivables.push({
+            no: no || `${i - 16}`,
+            date: formatToDDMMYYYY(dateRaw),
+            qtyBoxes: qtyBoxes ? `${qtyBoxes} ប្រអប់` : '—',
+            amount: amt,
+            status: status || 'រង់ចាំទូទាត់'
+          });
+        }
+      }
+
+      // Extract Payables List (Rows 17 to 26, Columns H to K)
       for (let i = 17; i < bankRows.length; i++) {
         const cells = bankRows[i].c;
         if (!cells) continue;
         const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
 
-        const dateRaw = String(getCell(1) || '').trim();
-        const dateFormatted = formatToDDMMYYYY(dateRaw);
         const title = String(getCell(8) || '').trim();
         const amount = cleanNumber(getCell(10));
 
         if (title && amount > 0) {
-          payables.push({ date: dateFormatted, title, amount });
+          payables.push({ title, amount });
         }
       }
 
       // ==========================================
-      // 4. Process Team Leaders (Team Monthly View)
+      // 4. Process Team Leaders
       // ==========================================
       const teamRows = teamGviz.table.rows;
       const teamLeaders = [];
@@ -340,7 +352,7 @@ window.DataService = {
       this.data = {
         personalSales,
         expenses,
-        pendingCodReceivables, // Dynamic Live Accounts Receivable
+        pendingCodReceivables, // Exact live Accounts Receivable table from Bank & Cash Balance
         bank: {
           pureUsdTotal,
           pureKhrTotal,
