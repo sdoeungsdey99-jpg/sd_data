@@ -17,9 +17,9 @@ const translations = {
     pureCashSubtitle: 'ABA + ACLEDA + កាបូប',
     usdOnly: 'ដុល្លារសុទ្ធ (USD)',
     khrOnly: 'រៀលសុទ្ធ (KHR)',
-    today: 'ថ្ងៃនេះ',
-    thisMonth: 'ខែនេះ',
-    thisYear: 'ឆ្នាំនេះ',
+    today: 'ថ្ងៃ',
+    thisMonth: 'ខែ',
+    thisYear: 'ឆ្នាំ',
     custom: 'កំណត់',
     totalBoxes: 'ចំនួនលក់សរុប (ចុចមើល)',
     revenue: 'ចំណូលលក់សរុប',
@@ -66,7 +66,7 @@ const translations = {
     pureCashSubtitle: 'ABA + ACLEDA + Cash Wallet',
     usdOnly: 'Pure USD',
     khrOnly: 'Pure KHR',
-    today: 'Today',
+    today: 'Day',
     thisMonth: 'Month',
     thisYear: 'Year',
     custom: 'Custom',
@@ -415,6 +415,7 @@ function switchView(viewName) {
 
 function toggleDayDropdown(event) {
   if (event) event.stopPropagation();
+  closeAllFilterDropdowns('day');
   const menu = document.getElementById('day-dropdown-menu');
   if (menu) {
     menu.classList.toggle('hidden');
@@ -427,11 +428,12 @@ function selectDayFilter(subMode, event) {
   if (menu) menu.classList.add('hidden');
 
   appState.daySubFilter = subMode; // 'today' or 'yesterday'
+  appState.specificDate = null;
   
   // Update Day Pill Label
   const labelEl = document.getElementById('day-pill-label');
   if (labelEl) {
-    labelEl.textContent = subMode === 'yesterday' ? 'ម្សិលមិញ' : 'ថ្ងៃនេះ';
+    labelEl.textContent = subMode === 'yesterday' ? 'ម្សិលមិញ' : 'ថ្ងៃ';
   }
 
   // Update Check icons
@@ -450,12 +452,79 @@ function selectDayFilter(subMode, event) {
   setPeriodFilter('today');
 }
 
+function selectSpecificDate(dateValue, event) {
+  if (event) event.stopPropagation();
+  if (!dateValue) return;
+
+  const menu = document.getElementById('day-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+
+  appState.daySubFilter = 'specific';
+  appState.specificDate = dateValue; // 'YYYY-MM-DD'
+
+  // Update Day Pill Label to DD/MM
+  const parts = dateValue.split('-');
+  const labelEl = document.getElementById('day-pill-label');
+  if (labelEl) {
+    labelEl.textContent = `${parts[2]}/${parts[1]}`;
+  }
+
+  // Hide both check icons
+  const checkToday = document.getElementById('check-today');
+  const checkYesterday = document.getElementById('check-yesterday');
+  if (checkToday) checkToday.classList.add('hidden');
+  if (checkYesterday) checkYesterday.classList.add('hidden');
+
+  setPeriodFilter('today');
+}
+
 function toggleMonthDropdown(event) {
   if (event) event.stopPropagation();
+  closeAllFilterDropdowns('month');
+  renderMonthDropdownMenu();
   const menu = document.getElementById('month-dropdown-menu');
   if (menu) {
     menu.classList.toggle('hidden');
   }
+}
+
+function renderMonthDropdownMenu() {
+  const menu = document.getElementById('month-dropdown-menu');
+  if (!menu) return;
+
+  const monthsList = [
+    { num: 1, name: 'មករា', en: 'Jan' },
+    { num: 2, name: 'កុម្ភៈ', en: 'Feb' },
+    { num: 3, name: 'មីនា', en: 'Mar' },
+    { num: 4, name: 'មេសា', en: 'Apr' },
+    { num: 5, name: 'ឧសភា', en: 'May' },
+    { num: 6, name: 'មិថុនា', en: 'Jun' },
+    { num: 7, name: 'កក្កដា', en: 'Jul' },
+    { num: 8, name: 'សីហា', en: 'Aug' },
+    { num: 9, name: 'កញ្ញា', en: 'Sep' },
+    { num: 10, name: 'តុលា', en: 'Oct' },
+    { num: 11, name: 'វិច្ឆិកា', en: 'Nov' },
+    { num: 12, name: 'ធ្នូ', en: 'Dec' }
+  ];
+
+  const now = new Date();
+  const currentMonthNum = now.getMonth() + 1;
+  const activeMonthNum = appState.selectedMonthKey 
+    ? parseInt(appState.selectedMonthKey.split('-')[1], 10) 
+    : currentMonthNum;
+
+  menu.innerHTML = monthsList.map(m => {
+    const isSelected = m.num === activeMonthNum;
+    return `
+      <button onclick="selectMonthFilter(${m.num}, '${m.name}', event)" 
+              class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-white bg-orange-500/20 border border-orange-500/30' : 'text-slate-300 hover:bg-white/10'}">
+        <span>${String(m.num).padStart(2, '0')} ${m.name} (${m.en})</span>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function selectMonthFilter(mNum, mKhmer, event) {
@@ -463,7 +532,7 @@ function selectMonthFilter(mNum, mKhmer, event) {
   const menu = document.getElementById('month-dropdown-menu');
   if (menu) menu.classList.add('hidden');
 
-  const yr = (new Date()).getFullYear();
+  const yr = appState.selectedYear || (new Date()).getFullYear();
   const paddedMonth = String(mNum).padStart(2, '0');
   appState.selectedMonthKey = `${yr}-${paddedMonth}`;
   
@@ -475,22 +544,86 @@ function selectMonthFilter(mNum, mKhmer, event) {
   setPeriodFilter('month');
 }
 
+function toggleYearDropdown(event) {
+  if (event) event.stopPropagation();
+  closeAllFilterDropdowns('year');
+  renderYearDropdownMenu();
+  const menu = document.getElementById('year-dropdown-menu');
+  if (menu) {
+    menu.classList.toggle('hidden');
+  }
+}
+
+function renderYearDropdownMenu() {
+  const menu = document.getElementById('year-dropdown-menu');
+  if (!menu) return;
+
+  const currentYear = (new Date()).getFullYear();
+  const years = [currentYear, currentYear - 1, currentYear - 2];
+  const activeYear = appState.selectedYear || currentYear;
+
+  menu.innerHTML = years.map(y => {
+    const isSelected = y === activeYear;
+    return `
+      <button onclick="selectYearFilter(${y}, event)" 
+              class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-white bg-orange-500/20 border border-orange-500/30' : 'text-slate-300 hover:bg-white/10'}">
+        <span>ឆ្នាំ ${y}</span>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function selectYearFilter(y, event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('year-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+
+  appState.selectedYear = y;
+  
+  const labelEl = document.getElementById('year-pill-label');
+  if (labelEl) {
+    labelEl.textContent = `${y}`;
+  }
+
+  setPeriodFilter('year');
+}
+
+function closeAllFilterDropdowns(except = '') {
+  if (except !== 'day') {
+    const dayMenu = document.getElementById('day-dropdown-menu');
+    if (dayMenu) dayMenu.classList.add('hidden');
+  }
+  if (except !== 'month') {
+    const monthMenu = document.getElementById('month-dropdown-menu');
+    if (monthMenu) monthMenu.classList.add('hidden');
+  }
+  if (except !== 'year') {
+    const yearMenu = document.getElementById('year-dropdown-menu');
+    if (yearMenu) yearMenu.classList.add('hidden');
+  }
+}
+
 // Close dropdowns if clicked outside
 document.addEventListener('click', (e) => {
   const dayMenu = document.getElementById('day-dropdown-menu');
   const dayBtn = document.getElementById('filter-btn-today');
-  if (dayMenu && !dayMenu.classList.contains('hidden')) {
-    if (!dayMenu.contains(e.target) && !dayBtn.contains(e.target)) {
-      dayMenu.classList.add('hidden');
-    }
-  }
-
   const monthMenu = document.getElementById('month-dropdown-menu');
   const monthBtn = document.getElementById('filter-btn-month');
-  if (monthMenu && !monthMenu.classList.contains('hidden')) {
-    if (!monthMenu.contains(e.target) && !monthBtn.contains(e.target)) {
-      monthMenu.classList.add('hidden');
-    }
+  const yearMenu = document.getElementById('year-dropdown-menu');
+  const yearBtn = document.getElementById('filter-btn-year');
+
+  const clickedInside = (dayMenu && dayMenu.contains(e.target)) ||
+                        (dayBtn && dayBtn.contains(e.target)) ||
+                        (monthMenu && monthMenu.contains(e.target)) ||
+                        (monthBtn && monthBtn.contains(e.target)) ||
+                        (yearMenu && yearMenu.contains(e.target)) ||
+                        (yearBtn && yearBtn.contains(e.target));
+
+  if (!clickedInside) {
+    closeAllFilterDropdowns();
   }
 });
 
@@ -516,16 +649,23 @@ function setPeriodFilter(mode) {
     }
   }
 
-  ['year', 'custom'].forEach(m => {
-    const btn = document.getElementById(`filter-btn-${m}`);
-    if (btn) {
-      if (m === mode) {
-        btn.className = 'flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn bg-orange-500 text-white shadow-md';
-      } else {
-        btn.className = 'flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white';
-      }
+  const yearBtn = document.getElementById('filter-btn-year');
+  if (yearBtn) {
+    if (mode === 'year') {
+      yearBtn.className = 'w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn bg-orange-500 text-white shadow-md flex items-center justify-center gap-0.5';
+    } else {
+      yearBtn.className = 'w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white flex items-center justify-center gap-0.5';
     }
-  });
+  }
+
+  const customBtn = document.getElementById('filter-btn-custom');
+  if (customBtn) {
+    if (mode === 'custom') {
+      customBtn.className = 'flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn bg-orange-500 text-white shadow-md';
+    } else {
+      customBtn.className = 'flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white';
+    }
+  }
 
   const customContainer = document.getElementById('custom-date-container');
   if (customContainer) {
@@ -584,9 +724,9 @@ function updateStaticLabels() {
   const dockLearn = document.querySelector('#dock-btn-learning span');
   const dockSettings = document.querySelector('#dock-btn-settings span');
 
-  const filterToday = document.getElementById('filter-btn-today');
-  const filterMonth = document.getElementById('filter-btn-month');
-  const filterYear = document.getElementById('filter-btn-year');
+  const dayLabel = document.getElementById('day-pill-label');
+  const monthLabel = document.getElementById('month-pill-label');
+  const yearLabel = document.getElementById('year-pill-label');
   const filterCustom = document.getElementById('filter-btn-custom');
 
   if (dockHome) dockHome.textContent = t('homeDock');
@@ -594,9 +734,9 @@ function updateStaticLabels() {
   if (dockLearn) dockLearn.textContent = t('learningDock');
   if (dockSettings) dockSettings.textContent = t('settingsDock');
 
-  if (filterToday) filterToday.textContent = t('today');
-  if (filterMonth) filterMonth.textContent = t('thisMonth');
-  if (filterYear) filterYear.textContent = t('thisYear');
+  if (dayLabel && !appState.daySubFilter) dayLabel.textContent = t('today');
+  if (monthLabel && !appState.selectedMonthKey) monthLabel.textContent = t('thisMonth');
+  if (yearLabel && !appState.selectedYear) yearLabel.textContent = t('thisYear');
   if (filterCustom) filterCustom.textContent = t('custom');
 }
 
@@ -624,7 +764,12 @@ function getDashboardViewHTML() {
   let activePeriodDisplay = '';
 
   if (appState.periodFilter === 'today') {
-    if (appState.daySubFilter === 'yesterday') {
+    if (appState.daySubFilter === 'specific' && appState.specificDate) {
+      const targetIsoDay = appState.specificDate;
+      filteredSales = d.personalSales.filter(s => s.isoDate === targetIsoDay);
+      filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
+      activePeriodDisplay = `${displayDDMMYYYY(targetIsoDay)}`;
+    } else if (appState.daySubFilter === 'yesterday') {
       const yDate = new Date();
       yDate.setDate(yDate.getDate() - 1);
       const yesterdayIsoDay = yDate.toISOString().slice(0, 10);
@@ -638,7 +783,7 @@ function getDashboardViewHTML() {
       const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
       filteredSales = d.personalSales.filter(s => s.isoDate === targetIsoDay);
       filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
-      activePeriodDisplay = `${t('today')} (${displayDDMMYYYY(targetIsoDay)})`;
+      activePeriodDisplay = `ថ្ងៃនេះ (${displayDDMMYYYY(targetIsoDay)})`;
     }
   } else if (appState.periodFilter === 'month') {
     const targetMonth = appState.selectedMonthKey || (d.personalSales.some(s => s.isoDate.startsWith(currentIsoMonth)) ? currentIsoMonth : '2026-10');
@@ -647,9 +792,10 @@ function getDashboardViewHTML() {
     const parts = targetMonth.split('-');
     activePeriodDisplay = `ខែ ${parts[1]}/${parts[0]}`;
   } else if (appState.periodFilter === 'year') {
-    filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(currentIsoYear));
-    filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(currentIsoYear));
-    activePeriodDisplay = `${t('thisYear')} (${currentIsoYear})`;
+    const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
+    filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(targetYear));
+    filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetYear));
+    activePeriodDisplay = `ឆ្នាំ ${targetYear}`;
   } else if (appState.periodFilter === 'custom' && appState.customStartDate && appState.customEndDate) {
     filteredSales = d.personalSales.filter(s => s.isoDate >= appState.customStartDate && s.isoDate <= appState.customEndDate);
     filteredExpenses = d.expenses.filter(e => e.isoDate >= appState.customStartDate && e.isoDate <= appState.customEndDate);
@@ -663,7 +809,9 @@ function getDashboardViewHTML() {
   if (appState.periodFilter === 'month') {
     targetMonthKey = appState.selectedMonthKey || (d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth)) ? currentIsoMonth : '2026-10');
   } else if (appState.periodFilter === 'today') {
-    if (appState.daySubFilter === 'yesterday') {
+    if (appState.daySubFilter === 'specific' && appState.specificDate) {
+      targetMonthKey = appState.specificDate.slice(0, 7);
+    } else if (appState.daySubFilter === 'yesterday') {
       const yDate = new Date();
       yDate.setDate(yDate.getDate() - 1);
       targetMonthKey = yDate.toISOString().slice(0, 7);
