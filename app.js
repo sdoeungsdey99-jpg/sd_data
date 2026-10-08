@@ -164,6 +164,15 @@ function displayDDMMYYYY(isoOrDateStr) {
 // ==========================================
 // 1. Passcode & Lock Screen
 // ==========================================
+function getKhmerDateText(date) {
+  const khDays = ['ថ្ងៃអាទិត្យ', 'ថ្ងៃចន្ទ', 'ថ្ងៃអង្គារ', 'ថ្ងៃពុធ', 'ថ្ងៃព្រហស្បតិ៍', 'ថ្ងៃសុក្រ', 'ថ្ងៃសៅរ៍'];
+  const khMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const dayName = khDays[date.getDay()];
+  const day = date.getDate();
+  const month = khMonths[date.getMonth()];
+  return `${dayName} ទី ${day} ${month}`;
+}
+
 function updateLockClock() {
   const statusTime = document.getElementById('status-time');
   const now = new Date();
@@ -177,8 +186,7 @@ function updateLockClock() {
   const calEl = document.getElementById('lock-calendar');
   if (timeEl) timeEl.textContent = timeStr;
   if (calEl) {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    calEl.textContent = now.toLocaleDateString(appState.language === 'km' ? 'km-KH' : 'en-US', options);
+    calEl.textContent = getKhmerDateText(now);
   }
 }
 

@@ -112,28 +112,50 @@
       background: rgba(255, 255, 255, 0.95) !important;
       border-color: #E2E8F0 !important;
     }
+    /* iOS Glass Lock Clock Glow (Matching Image 2 Reference) */
+    .ios-lock-clock {
+      color: rgba(210, 235, 255, 0.92);
+      text-shadow: 
+        0 0 20px rgba(147, 197, 253, 0.6),
+        0 0 45px rgba(59, 130, 246, 0.4),
+        0 2px 10px rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      letter-spacing: -0.04em;
+    }
   </style>
 </head>
 
 <body class="bg-[#070D18] text-slate-100 font-sans h-full overflow-hidden flex flex-col select-none relative transition-colors duration-300">
 
   <!-- ======================================================== -->
-  <!-- 0. 100% CLEAN iOS PASSCODE LOCK SCREEN (Exact Image 2)    -->
+  <!-- 0. 100% CLEAN iOS PASSCODE LOCK SCREEN (Full-Bleed + Clock) -->
   <!-- ======================================================== -->
-  <div id="lock-screen" class="fixed inset-y-0 inset-x-0 z-[100] bg-gradient-to-b from-[#0a1828] via-[#092232] to-[#04101c] flex flex-col justify-between items-center pt-16 pb-10 px-8 transition-all duration-500 overflow-hidden select-none">
+  <div id="lock-screen" class="fixed inset-0 z-[100] bg-gradient-to-b from-[#0a1828] via-[#092232] to-[#04101c] flex flex-col justify-between items-center pt-10 pb-8 px-6 transition-all duration-500 overflow-hidden select-none">
     
-    <!-- Ambient iOS Wallpaper Mesh Circles (Matching User Wallpaper Image 1 & 2) -->
-    <div class="absolute -top-32 -right-24 w-[360px] h-[480px] bg-gradient-to-b from-blue-600/30 to-indigo-800/20 rounded-[100%] blur-3xl pointer-events-none transform -rotate-12"></div>
-    <div class="absolute bottom-10 -left-28 w-[380px] h-[480px] bg-gradient-to-t from-teal-500/25 to-emerald-600/20 rounded-[100%] blur-3xl pointer-events-none transform rotate-12"></div>
+    <!-- Ambient iOS Wallpaper Mesh Circles (Full Bleed Across Entire Screen) -->
+    <div class="absolute -top-36 -right-24 w-[420px] h-[520px] bg-gradient-to-b from-blue-600/35 to-indigo-800/25 rounded-[100%] blur-3xl pointer-events-none transform -rotate-12"></div>
+    <div class="absolute bottom-4 -left-32 w-[440px] h-[540px] bg-gradient-to-t from-teal-500/30 to-emerald-600/25 rounded-[100%] blur-3xl pointer-events-none transform rotate-12"></div>
 
-    <!-- Top Section: Enter Passcode & 4 Hollow Circles (Spacious & Clean like Image 2) -->
-    <div class="flex flex-col items-center text-center mt-6 z-10">
-      <h2 class="text-[17px] font-normal text-white/90 mb-5 tracking-wide" id="lock-prompt">
+    <!-- Top Section: Khmer Date + Big iOS Glowing Clock (Matching Reference Image) -->
+    <div class="flex flex-col items-center text-center mt-2 z-10 w-full shrink-0">
+      <!-- Khmer Date -->
+      <div id="lock-calendar" class="text-sm sm:text-base font-normal text-white/80 tracking-wide mb-1">
+        <!-- Live Khmer Date -->
+      </div>
+      
+      <!-- iOS Lock Glow Clock (Like 5:20 in user reference image) -->
+      <div id="lock-time" class="ios-lock-clock text-6xl sm:text-7xl font-extralight leading-none my-1 select-none font-sans">
+        <!-- Live Clock -->
+      </div>
+
+      <!-- Enter Passcode Prompt -->
+      <h2 class="text-sm sm:text-[15px] font-normal text-white/80 mt-4 mb-3 tracking-wide" id="lock-prompt">
         Enter Passcode
       </h2>
 
       <!-- 4 iOS Hollow Rings / Filled Circles -->
-      <div class="flex gap-4 mb-4" id="pin-dots">
+      <div class="flex gap-4" id="pin-dots">
         <div class="w-3.5 h-3.5 rounded-full border-2 border-white/60 transition-all duration-150"></div>
         <div class="w-3.5 h-3.5 rounded-full border-2 border-white/60 transition-all duration-150"></div>
         <div class="w-3.5 h-3.5 rounded-full border-2 border-white/60 transition-all duration-150"></div>
