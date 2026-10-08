@@ -413,13 +413,155 @@ function switchView(viewName) {
   }
 }
 
+let calendarViewYear = (new Date()).getFullYear();
+let calendarViewMonth = (new Date()).getMonth() + 1; // 1-12
+
 function toggleDayDropdown(event) {
   if (event) event.stopPropagation();
   closeAllFilterDropdowns('day');
+  renderMiniCalendar();
   const menu = document.getElementById('day-dropdown-menu');
   if (menu) {
     menu.classList.toggle('hidden');
   }
+}
+
+function renderMiniCalendar() {
+  const menu = document.getElementById('day-dropdown-menu');
+  if (!menu) return;
+
+  const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const monthTitle = `${khmerMonths[calendarViewMonth - 1]} ${calendarViewYear}`;
+
+  const now = new Date();
+  const realTodayIso = now.toISOString().slice(0, 10);
+  
+  // Selected date ISO
+  let selectedIso = '';
+  if (appState.daySubFilter === 'specific' && appState.specificDate) {
+    selectedIso = appState.specificDate;
+  } else if (appState.daySubFilter === 'yesterday') {
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    selectedIso = y.toISOString().slice(0, 10);
+  } else {
+    selectedIso = realTodayIso;
+  }
+
+  // Days in month calculation
+  const firstDayOfWeek = new Date(calendarViewYear, calendarViewMonth - 1, 1).getDay(); // 0 (Sun) to 6 (Sat)
+  const daysInMonth = new Date(calendarViewYear, calendarViewMonth, 0).getDate();
+
+  let daysGridHtml = '';
+  // Empty slots before 1st of month
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    daysGridHtml += `<div class="h-8"></div>`;
+  }
+
+  // Day slots
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayStr = String(day).padStart(2, '0');
+    const monthStr = String(calendarViewMonth).padStart(2, '0');
+    const thisDateIso = `${calendarViewYear}-${monthStr}-${dayStr}`;
+
+    const isSelected = thisDateIso === selectedIso;
+    const isToday = thisDateIso === realTodayIso;
+
+    let cellClasses = 'h-8 rounded-full flex items-center justify-center text-xs font-semibold cursor-pointer active:scale-95 transition ';
+    if (isSelected) {
+      cellClasses += 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30';
+    } else if (isToday) {
+      cellClasses += 'border border-orange-500/60 text-orange-400 hover:bg-orange-500/20';
+    } else {
+      cellClasses += 'text-slate-200 hover:bg-white/10';
+    }
+
+    daysGridHtml += `
+      <button onclick="selectSpecificCalendarDay('${thisDateIso}', event)" 
+              class="${cellClasses}">
+        ${day}
+      </button>
+    `;
+  }
+
+  menu.innerHTML = `
+    <!-- iPhone Header: Month Year + Prev/Next Arrow Buttons -->
+    <div class="flex items-center justify-between pb-2 border-b border-white/10">
+      <button onclick="navigateCalendarMonth(-1, event)" 
+              class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-90">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
+
+      <span class="text-xs font-bold text-white tracking-wide font-sans">
+        ${monthTitle}
+      </span>
+
+      <button onclick="navigateCalendarMonth(1, event)" 
+              class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-90">
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Quick Pick Shortcuts (Today / Yesterday) -->
+    <div class="grid grid-cols-2 gap-1.5 pb-2 border-b border-white/10">
+      <button onclick="selectDayFilter('today', event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${appState.daySubFilter !== 'yesterday' && appState.daySubFilter !== 'specific' ? 'bg-orange-500 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        ☀️ ថ្ងៃនេះ
+      </button>
+      <button onclick="selectDayFilter('yesterday', event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${appState.daySubFilter === 'yesterday' ? 'bg-orange-500 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        🌙 ម្សិលមិញ
+      </button>
+    </div>
+
+    <!-- Weekday Headers (Su, Mo, Tu, We, Th, Fr, Sa) -->
+    <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+      <span>អា</span>
+      <span>ច</span>
+      <span>អ</span>
+      <span>ព</span>
+      <span>ព្រ</span>
+      <span>សុ</span>
+      <span>ស</span>
+    </div>
+
+    <!-- Calendar Days Grid (7 cols) -->
+    <div class="grid grid-cols-7 gap-1 text-center">
+      ${daysGridHtml}
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function navigateCalendarMonth(delta, event) {
+  if (event) event.stopPropagation();
+  calendarViewMonth += delta;
+  if (calendarViewMonth < 1) {
+    calendarViewMonth = 12;
+    calendarViewYear--;
+  } else if (calendarViewMonth > 12) {
+    calendarViewMonth = 1;
+    calendarViewYear++;
+  }
+  renderMiniCalendar();
+}
+
+function selectSpecificCalendarDay(dateIso, event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('day-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+
+  appState.daySubFilter = 'specific';
+  appState.specificDate = dateIso;
+
+  const parts = dateIso.split('-');
+  const labelEl = document.getElementById('day-pill-label');
+  if (labelEl) {
+    labelEl.textContent = `${parts[2]}/${parts[1]}`;
+  }
+
+  setPeriodFilter('today');
 }
 
 function selectDayFilter(subMode, event) {
@@ -435,45 +577,6 @@ function selectDayFilter(subMode, event) {
   if (labelEl) {
     labelEl.textContent = subMode === 'yesterday' ? 'ម្សិលមិញ' : 'ថ្ងៃ';
   }
-
-  // Update Check icons
-  const checkToday = document.getElementById('check-today');
-  const checkYesterday = document.getElementById('check-yesterday');
-  if (checkToday && checkYesterday) {
-    if (subMode === 'yesterday') {
-      checkToday.classList.add('hidden');
-      checkYesterday.classList.remove('hidden');
-    } else {
-      checkToday.classList.remove('hidden');
-      checkYesterday.classList.add('hidden');
-    }
-  }
-
-  setPeriodFilter('today');
-}
-
-function selectSpecificDate(dateValue, event) {
-  if (event) event.stopPropagation();
-  if (!dateValue) return;
-
-  const menu = document.getElementById('day-dropdown-menu');
-  if (menu) menu.classList.add('hidden');
-
-  appState.daySubFilter = 'specific';
-  appState.specificDate = dateValue; // 'YYYY-MM-DD'
-
-  // Update Day Pill Label to DD/MM
-  const parts = dateValue.split('-');
-  const labelEl = document.getElementById('day-pill-label');
-  if (labelEl) {
-    labelEl.textContent = `${parts[2]}/${parts[1]}`;
-  }
-
-  // Hide both check icons
-  const checkToday = document.getElementById('check-today');
-  const checkYesterday = document.getElementById('check-yesterday');
-  if (checkToday) checkToday.classList.add('hidden');
-  if (checkYesterday) checkYesterday.classList.add('hidden');
 
   setPeriodFilter('today');
 }
