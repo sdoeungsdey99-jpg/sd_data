@@ -450,13 +450,46 @@ function selectDayFilter(subMode, event) {
   setPeriodFilter('today');
 }
 
-// Close day dropdown if clicked outside
+function toggleMonthDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('month-dropdown-menu');
+  if (menu) {
+    menu.classList.toggle('hidden');
+  }
+}
+
+function selectMonthFilter(mNum, mKhmer, event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('month-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+
+  const yr = (new Date()).getFullYear();
+  const paddedMonth = String(mNum).padStart(2, '0');
+  appState.selectedMonthKey = `${yr}-${paddedMonth}`;
+  
+  const labelEl = document.getElementById('month-pill-label');
+  if (labelEl) {
+    labelEl.textContent = `ខែ ${mNum}`;
+  }
+
+  setPeriodFilter('month');
+}
+
+// Close dropdowns if clicked outside
 document.addEventListener('click', (e) => {
-  const menu = document.getElementById('day-dropdown-menu');
-  const btn = document.getElementById('filter-btn-today');
-  if (menu && !menu.classList.contains('hidden')) {
-    if (!menu.contains(e.target) && !btn.contains(e.target)) {
-      menu.classList.add('hidden');
+  const dayMenu = document.getElementById('day-dropdown-menu');
+  const dayBtn = document.getElementById('filter-btn-today');
+  if (dayMenu && !dayMenu.classList.contains('hidden')) {
+    if (!dayMenu.contains(e.target) && !dayBtn.contains(e.target)) {
+      dayMenu.classList.add('hidden');
+    }
+  }
+
+  const monthMenu = document.getElementById('month-dropdown-menu');
+  const monthBtn = document.getElementById('filter-btn-month');
+  if (monthMenu && !monthMenu.classList.contains('hidden')) {
+    if (!monthMenu.contains(e.target) && !monthBtn.contains(e.target)) {
+      monthMenu.classList.add('hidden');
     }
   }
 });
@@ -474,7 +507,16 @@ function setPeriodFilter(mode) {
     }
   }
 
-  ['month', 'year', 'custom'].forEach(m => {
+  const monthBtn = document.getElementById('filter-btn-month');
+  if (monthBtn) {
+    if (mode === 'month') {
+      monthBtn.className = 'w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn bg-orange-500 text-white shadow-md flex items-center justify-center gap-0.5';
+    } else {
+      monthBtn.className = 'w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white flex items-center justify-center gap-0.5';
+    }
+  }
+
+  ['year', 'custom'].forEach(m => {
     const btn = document.getElementById(`filter-btn-${m}`);
     if (btn) {
       if (m === mode) {
@@ -599,12 +641,11 @@ function getDashboardViewHTML() {
       activePeriodDisplay = `${t('today')} (${displayDDMMYYYY(targetIsoDay)})`;
     }
   } else if (appState.periodFilter === 'month') {
-    const hasMonth = d.personalSales.some(s => s.isoDate.startsWith(currentIsoMonth));
-    const targetMonth = hasMonth ? currentIsoMonth : '2026-08';
+    const targetMonth = appState.selectedMonthKey || (d.personalSales.some(s => s.isoDate.startsWith(currentIsoMonth)) ? currentIsoMonth : '2026-10');
     filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(targetMonth));
     filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonth));
     const parts = targetMonth.split('-');
-    activePeriodDisplay = `${t('thisMonth')} (${parts[1]}/${parts[0]})`;
+    activePeriodDisplay = `ខែ ${parts[1]}/${parts[0]}`;
   } else if (appState.periodFilter === 'year') {
     filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(currentIsoYear));
     filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(currentIsoYear));
@@ -620,17 +661,26 @@ function getDashboardViewHTML() {
   // Monthly Expense & Budget ($450/mo target) Calculation based on selected period
   let targetMonthKey = currentIsoMonth; // 'YYYY-MM'
   if (appState.periodFilter === 'month') {
-    const hasMonth = d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth));
-    targetMonthKey = hasMonth ? currentIsoMonth : '2026-08';
+    targetMonthKey = appState.selectedMonthKey || (d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth)) ? currentIsoMonth : '2026-10');
   } else if (appState.periodFilter === 'today') {
-    const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
-    const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
-    targetMonthKey = targetIsoDay.slice(0, 7);
+    if (appState.daySubFilter === 'yesterday') {
+      const yDate = new Date();
+      yDate.setDate(yDate.getDate() - 1);
+      targetMonthKey = yDate.toISOString().slice(0, 7);
+    } else {
+      const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
+      const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
+      targetMonthKey = targetIsoDay.slice(0, 7);
+    }
   } else if (appState.periodFilter === 'custom' && appState.customStartDate) {
     targetMonthKey = appState.customStartDate.slice(0, 7);
   }
 
   const selectedMonthNum = targetMonthKey.split('-')[1] || '10';
+  const selectedMonthInt = parseInt(selectedMonthNum, 10) || 10;
+  
+  // Pick live dynamic team leaders for the selected month (targets + boxes sold + sets)
+  const currentTeamLeaders = (d.teamLeadersByMonth && d.teamLeadersByMonth[selectedMonthInt]) || d.teamLeaders;
   const monthlyExpensesList = d.expenses.filter(e => e.isoDate.startsWith(targetMonthKey));
   const monthlyTotalExpenseAmt = monthlyExpensesList.reduce((sum, e) => sum + (e.amount || 0), 0);
   const monthlyBudgetGoal = 450.0;
@@ -967,13 +1017,13 @@ function getDashboardViewHTML() {
         <div class="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1 shadow-sm">
           <span class="text-[10px] text-blue-300 font-semibold">🎯 គោលដៅខែ ${selectedMonthNum}:</span>
           <span class="text-xs text-blue-400 font-bold font-mono">
-            ${(d.teamLeaders.reduce((acc, cur) => acc + (cur.targetGoal || 100), 0))} ប្រអប់
+            ${(currentTeamLeaders.reduce((acc, cur) => acc + (cur.targetGoal || 100), 0))} ប្រអប់
           </span>
         </div>
       </div>
 
       <div class="space-y-2.5">
-        ${d.teamLeaders.map(tl => `
+        ${currentTeamLeaders.map(tl => `
           <div class="p-3 rounded-2xl bg-black/25 border border-white/5 flex flex-col gap-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-1.5">

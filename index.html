@@ -255,10 +255,31 @@
           </div>
         </div>
 
-        <button onclick="setPeriodFilter('month')" id="filter-btn-month" 
-                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white">
-          ខែនេះ
-        </button>
+        <!-- Month Dropdown Pill (ខែនេះ^) -->
+        <div class="relative flex-1">
+          <button onclick="toggleMonthDropdown(event)" id="filter-btn-month" 
+                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white flex items-center justify-center gap-0.5">
+            <span id="month-pill-label">ខែនេះ</span>
+            <span class="text-[10px] opacity-80">^</span>
+          </button>
+
+          <!-- Month Selector Submenu (Jan to Dec) -->
+          <div id="month-dropdown-menu" 
+               class="hidden absolute top-full left-0 mt-1.5 w-36 max-h-56 overflow-y-auto no-scrollbar bg-[#0B1528]/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 flex flex-col gap-0.5">
+            <button onclick="selectMonthFilter(1, 'មករា', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">01 មករា (Jan)</button>
+            <button onclick="selectMonthFilter(2, 'កុម្ភៈ', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">02 កុម្ភៈ (Feb)</button>
+            <button onclick="selectMonthFilter(3, 'មីនា', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">03 មីនា (Mar)</button>
+            <button onclick="selectMonthFilter(4, 'មេសា', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">04 មេសា (Apr)</button>
+            <button onclick="selectMonthFilter(5, 'ឧសភា', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">05 ឧសភា (May)</button>
+            <button onclick="selectMonthFilter(6, 'មិថុនា', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">06 មិថុនា (Jun)</button>
+            <button onclick="selectMonthFilter(7, 'កក្កដា', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">07 កក្កដា (Jul)</button>
+            <button onclick="selectMonthFilter(8, 'សីហា', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">08 សីហា (Aug)</button>
+            <button onclick="selectMonthFilter(9, 'កញ្ញា', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">09 កញ្ញា (Sep)</button>
+            <button onclick="selectMonthFilter(10, 'តុលា', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">10 តុលា (Oct)</button>
+            <button onclick="selectMonthFilter(11, 'វិច្ឆិកា', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">11 វិច្ឆិកា (Nov)</button>
+            <button onclick="selectMonthFilter(12, 'ធ្នូ', event)" class="w-full px-2.5 py-1 rounded-xl text-left text-xs text-slate-300 hover:bg-white/10">12 ធ្នូ (Dec)</button>
+          </div>
+        </div>
         <button onclick="setPeriodFilter('year')" id="filter-btn-year" 
                 class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white">
           ឆ្នាំនេះ

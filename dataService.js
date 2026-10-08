@@ -328,75 +328,103 @@ window.DataService = {
       // ==========================================
       // 4. Process Team Leaders & Dynamic Monthly Targets (From Team Sales sheet)
       // ==========================================
-      // Extract targets per month from teamSalesCsvRows
-      // Month indices: 1 -> Jan, 2 -> Feb, ... 10 -> Oct, 11 -> Nov, 12 -> Dec
-      const targetsByMonth = {};
-      if (Array.isArray(teamSalesCsvRows)) {
-        for (const row of teamSalesCsvRows) {
-          if (row && row.length > 20 && String(row[1] || '').includes('🎯 គោលដៅ')) {
-            const monthHeader = String(row[0] || '').trim().toLowerCase();
-            let monthNum = null;
-            if (monthHeader.includes('jan') || monthHeader.includes('មករា')) monthNum = 1;
-            else if (monthHeader.includes('feb') || monthHeader.includes('កុម្ភៈ')) monthNum = 2;
-            else if (monthHeader.includes('mar') || monthHeader.includes('មីនា')) monthNum = 3;
-            else if (monthHeader.includes('apr') || monthHeader.includes('មេសា')) monthNum = 4;
-            else if (monthHeader.includes('may') || monthHeader.includes('ឧសភា')) monthNum = 5;
-            else if (monthHeader.includes('jun') || monthHeader.includes('មិថុនា')) monthNum = 6;
-            else if (monthHeader.includes('jul') || monthHeader.includes('កក្កដា')) monthNum = 7;
-            else if (monthHeader.includes('aug') || monthHeader.includes('សីហា')) monthNum = 8;
-            else if (monthHeader.includes('sep') || monthHeader.includes('កញ្ញា')) monthNum = 9;
-            else if (monthHeader.includes('oct') || monthHeader.includes('តុលា')) monthNum = 10;
-            else if (monthHeader.includes('nov') || monthHeader.includes('វិច្ឆិកា')) monthNum = 11;
-            else if (monthHeader.includes('dec') || monthHeader.includes('ធ្នូ')) monthNum = 12;
+      // Month indices rows in Team Sales:
+      // Jan: 3, Feb: 35, Mar: 64, Apr: 96, May: 127, Jun: 159, Jul: 190, Aug: 222, Sep: 254, Oct: 285, Nov: 317, Dec: 348
+      const monthIndices = [
+        { month: 1, targetRow: 3, startDayRow: 4, endDayRow: 34 },
+        { month: 2, targetRow: 35, startDayRow: 36, endDayRow: 63 },
+        { month: 3, targetRow: 64, startDayRow: 65, endDayRow: 95 },
+        { month: 4, targetRow: 96, startDayRow: 97, endDayRow: 126 },
+        { month: 5, targetRow: 127, startDayRow: 128, endDayRow: 158 },
+        { month: 6, targetRow: 159, startDayRow: 160, endDayRow: 189 },
+        { month: 7, targetRow: 190, startDayRow: 191, endDayRow: 221 },
+        { month: 8, targetRow: 222, startDayRow: 223, endDayRow: 253 },
+        { month: 9, targetRow: 254, startDayRow: 255, endDayRow: 284 },
+        { month: 10, targetRow: 285, startDayRow: 286, endDayRow: 316 },
+        { month: 11, targetRow: 317, startDayRow: 318, endDayRow: 347 },
+        { month: 12, targetRow: 348, startDayRow: 349, endDayRow: 379 }
+      ];
 
-            if (monthNum) {
-              targetsByMonth[monthNum] = {
-                sdey: cleanNumber(row[3]) || 150,
-                sothey: cleanNumber(row[11]) || 100,
-                rasung: cleanNumber(row[19]) || 50
-              };
+      const targetsByMonth = {};
+      const teamLeadersByMonth = {};
+      const leaderNames = ['ស្តី ស្តើង', 'ឆេង សុធី', 'ឆេង រ៉ាស៊ុង'];
+
+      if (Array.isArray(teamSalesCsvRows) && teamSalesCsvRows.length > 300) {
+        for (const mInfo of monthIndices) {
+          const tRow = teamSalesCsvRows[mInfo.targetRow] || [];
+          const sdeyTarget = cleanNumber(tRow[3]) || 150;
+          const sdeyBoxes = cleanNumber(tRow[7]) || 0;
+          const sotheyTarget = cleanNumber(tRow[11]) || 100;
+          const sotheyBoxes = cleanNumber(tRow[15]) || 0;
+          const rasungTarget = cleanNumber(tRow[19]) || 50;
+          const rasungBoxes = cleanNumber(tRow[23]) || 0;
+
+          targetsByMonth[mInfo.month] = {
+            sdey: sdeyTarget,
+            sothey: sotheyTarget,
+            rasung: rasungTarget
+          };
+
+          // Calculate Sets by summing day rows for that month
+          const sdeySets = [0, 0, 0, 0, 0];
+          const sotheySets = [0, 0, 0, 0, 0];
+          const rasungSets = [0, 0, 0, 0, 0];
+
+          for (let r_i = mInfo.startDayRow; r_i <= mInfo.endDayRow && r_i < teamSalesCsvRows.length; r_i++) {
+            const dayRow = teamSalesCsvRows[r_i];
+            if (!dayRow) continue;
+            for (let s = 0; s < 5; s++) {
+              sdeySets[s] += cleanNumber(dayRow[2 + s]) || 0;
+              sotheySets[s] += cleanNumber(dayRow[10 + s]) || 0;
+              rasungSets[s] += cleanNumber(dayRow[18 + s]) || 0;
             }
           }
+
+          teamLeadersByMonth[mInfo.month] = [
+            {
+              name: 'ស្តី ស្តើង',
+              orders: cleanNumber(tRow[8]) || 0,
+              set1: sdeySets[0],
+              set2: sdeySets[1],
+              set3: sdeySets[2],
+              set4: sdeySets[3],
+              totalBoxes: sdeyBoxes,
+              targetGoal: sdeyTarget,
+              targetPercent: sdeyTarget > 0 ? Math.min(100, (sdeyBoxes / sdeyTarget) * 100).toFixed(1) : '0.0'
+            },
+            {
+              name: 'ឆេង សុធី',
+              orders: cleanNumber(tRow[16]) || 0,
+              set1: sotheySets[0],
+              set2: sotheySets[1],
+              set3: sotheySets[2],
+              set4: sotheySets[3],
+              totalBoxes: sotheyBoxes,
+              targetGoal: sotheyTarget,
+              targetPercent: sotheyTarget > 0 ? Math.min(100, (sotheyBoxes / sotheyTarget) * 100).toFixed(1) : '0.0'
+            },
+            {
+              name: 'ឆេង រ៉ាស៊ុង',
+              orders: cleanNumber(tRow[24]) || 0,
+              set1: rasungSets[0],
+              set2: rasungSets[1],
+              set3: rasungSets[2],
+              set4: rasungSets[3],
+              totalBoxes: rasungBoxes,
+              targetGoal: rasungTarget,
+              targetPercent: rasungTarget > 0 ? Math.min(100, (rasungBoxes / rasungTarget) * 100).toFixed(1) : '0.0'
+            }
+          ];
         }
       }
 
-      // Default to current month (e.g. month 10 = Oct, or month 11 = Nov)
+      // Default current month leaders
       const currentMonthNum = (new Date()).getMonth() + 1;
-      const currentMonthTargets = targetsByMonth[currentMonthNum] || { sdey: 150, sothey: 100, rasung: 50 };
-
-      const teamRows = teamGviz.table.rows;
-      const teamLeaders = [];
-      const leaderNames = ['ស្តី ស្តើង', 'ឆេង សុធី', 'ឆេង រ៉ាស៊ុង'];
-      const leaderTargetKeys = ['sdey', 'sothey', 'rasung'];
-
-      for (let i = 7; i <= 9 && i < teamRows.length; i++) {
-        const cells = teamRows[i].c;
-        if (!cells) continue;
-        const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
-        const nameRaw = String(getCell(0) || '').trim();
-        const orders = cleanNumber(getCell(2));
-        const set1 = cleanNumber(getCell(3));
-        const set2 = cleanNumber(getCell(4));
-        const set3 = cleanNumber(getCell(5));
-        const set4 = cleanNumber(getCell(6));
-        const totalBoxes = cleanNumber(getCell(8));
-        const leaderKey = leaderTargetKeys[i - 7];
-        const leaderTarget = currentMonthTargets[leaderKey] || 100;
-        const targetPercent = leaderTarget > 0 ? Math.min(100, (totalBoxes / leaderTarget) * 100).toFixed(1) : '0.0';
-
-        teamLeaders.push({
-          rawName: nameRaw,
-          name: leaderNames[i - 7],
-          orders,
-          set1,
-          set2,
-          set3,
-          set4,
-          totalBoxes,
-          targetGoal: leaderTarget,
-          targetPercent
-        });
-      }
+      const teamLeaders = teamLeadersByMonth[currentMonthNum] || teamLeadersByMonth[10] || [
+        { name: 'ស្តី ស្តើង', orders: 13, set1: 1, set2: 8, set3: 4, set4: 0, totalBoxes: 29, targetGoal: 150, targetPercent: '19.3' },
+        { name: 'ឆេង សុធី', orders: 5, set1: 0, set2: 3, set3: 2, set4: 0, totalBoxes: 12, targetGoal: 100, targetPercent: '12.0' },
+        { name: 'ឆេង រ៉ាស៊ុង', orders: 0, set1: 0, set2: 0, set3: 0, set4: 0, totalBoxes: 0, targetGoal: 50, targetPercent: '0.0' }
+      ];
 
       // Detect New/Edited Records from Personal Sales & Daily Expenses
       if (this.data) {
@@ -437,6 +465,7 @@ window.DataService = {
           payables
         },
         teamLeaders,
+        teamLeadersByMonth,
         targetsByMonth,
         meta: {
           totalSalesCount: personalSales.length,
