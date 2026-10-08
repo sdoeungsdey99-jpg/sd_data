@@ -228,11 +228,33 @@
 
     <!-- STICKY FLOATING FILTER PILLS BAR (Shown ONLY on Home / Dashboard) -->
     <div id="sticky-filter-bar" class="sticky top-0 z-20 px-3 py-2 bg-[#070D18]/90 backdrop-blur-md border-b border-white/5 flex flex-col gap-1.5">
-      <div class="flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/5 w-full">
-        <button onclick="setPeriodFilter('today')" id="filter-btn-today" 
-                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn bg-orange-500 text-white shadow-md">
-          ថ្ងៃនេះ
-        </button>
+      <div class="flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/5 w-full relative">
+        <!-- Today/Yesterday Dropdown Pill -->
+        <div class="relative flex-1">
+          <button onclick="toggleDayDropdown(event)" id="filter-btn-today" 
+                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn bg-orange-500 text-white shadow-md flex items-center justify-center gap-0.5">
+            <span id="day-pill-label">ថ្ងៃនេះ</span>
+            <span class="text-[10px] opacity-80">^</span>
+          </button>
+
+          <!-- Day Submenu Dropdown (Today / Yesterday) -->
+          <div id="day-dropdown-menu" 
+               class="hidden absolute top-full left-0 mt-1.5 w-32 bg-[#0B1528]/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 flex flex-col gap-0.5">
+            <button onclick="selectDayFilter('today', event)" 
+                    id="day-opt-today"
+                    class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between text-white hover:bg-orange-500/20 active:bg-orange-500/30 transition">
+              <span>☀️ ថ្ងៃនេះ</span>
+              <i data-lucide="check" id="check-today" class="w-3.5 h-3.5 text-orange-400"></i>
+            </button>
+            <button onclick="selectDayFilter('yesterday', event)" 
+                    id="day-opt-yesterday"
+                    class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between text-slate-300 hover:bg-white/10 active:bg-white/15 transition">
+              <span>🌙 ម្សិលមិញ</span>
+              <i data-lucide="check" id="check-yesterday" class="w-3.5 h-3.5 text-orange-400 hidden"></i>
+            </button>
+          </div>
+        </div>
+
         <button onclick="setPeriodFilter('month')" id="filter-btn-month" 
                 class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white">
           ខែនេះ

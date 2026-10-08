@@ -413,10 +413,68 @@ function switchView(viewName) {
   }
 }
 
+function toggleDayDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('day-dropdown-menu');
+  if (menu) {
+    menu.classList.toggle('hidden');
+  }
+}
+
+function selectDayFilter(subMode, event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('day-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+
+  appState.daySubFilter = subMode; // 'today' or 'yesterday'
+  
+  // Update Day Pill Label
+  const labelEl = document.getElementById('day-pill-label');
+  if (labelEl) {
+    labelEl.textContent = subMode === 'yesterday' ? 'ម្សិលមិញ' : 'ថ្ងៃនេះ';
+  }
+
+  // Update Check icons
+  const checkToday = document.getElementById('check-today');
+  const checkYesterday = document.getElementById('check-yesterday');
+  if (checkToday && checkYesterday) {
+    if (subMode === 'yesterday') {
+      checkToday.classList.add('hidden');
+      checkYesterday.classList.remove('hidden');
+    } else {
+      checkToday.classList.remove('hidden');
+      checkYesterday.classList.add('hidden');
+    }
+  }
+
+  setPeriodFilter('today');
+}
+
+// Close day dropdown if clicked outside
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('day-dropdown-menu');
+  const btn = document.getElementById('filter-btn-today');
+  if (menu && !menu.classList.contains('hidden')) {
+    if (!menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.add('hidden');
+    }
+  }
+});
+
 function setPeriodFilter(mode) {
   appState.periodFilter = mode;
 
-  ['today', 'month', 'year', 'custom'].forEach(m => {
+  // Update top filter buttons style
+  const todayBtn = document.getElementById('filter-btn-today');
+  if (todayBtn) {
+    if (mode === 'today') {
+      todayBtn.className = 'w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn bg-orange-500 text-white shadow-md flex items-center justify-center gap-0.5';
+    } else {
+      todayBtn.className = 'w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white flex items-center justify-center gap-0.5';
+    }
+  }
+
+  ['month', 'year', 'custom'].forEach(m => {
     const btn = document.getElementById(`filter-btn-${m}`);
     if (btn) {
       if (m === mode) {
@@ -524,11 +582,22 @@ function getDashboardViewHTML() {
   let activePeriodDisplay = '';
 
   if (appState.periodFilter === 'today') {
-    const hasToday = d.personalSales.some(s => s.isoDate === currentIsoDay);
-    const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
-    filteredSales = d.personalSales.filter(s => s.isoDate === targetIsoDay);
-    filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
-    activePeriodDisplay = `${t('today')} (${displayDDMMYYYY(targetIsoDay)})`;
+    if (appState.daySubFilter === 'yesterday') {
+      const yDate = new Date();
+      yDate.setDate(yDate.getDate() - 1);
+      const yesterdayIsoDay = yDate.toISOString().slice(0, 10);
+      const hasYesterday = d.personalSales.some(s => s.isoDate === yesterdayIsoDay);
+      const targetIsoDay = hasYesterday ? yesterdayIsoDay : (d.personalSales[1]?.isoDate || '2026-08-11');
+      filteredSales = d.personalSales.filter(s => s.isoDate === targetIsoDay);
+      filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
+      activePeriodDisplay = `ម្សិលមិញ (${displayDDMMYYYY(targetIsoDay)})`;
+    } else {
+      const hasToday = d.personalSales.some(s => s.isoDate === currentIsoDay);
+      const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
+      filteredSales = d.personalSales.filter(s => s.isoDate === targetIsoDay);
+      filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
+      activePeriodDisplay = `${t('today')} (${displayDDMMYYYY(targetIsoDay)})`;
+    }
   } else if (appState.periodFilter === 'month') {
     const hasMonth = d.personalSales.some(s => s.isoDate.startsWith(currentIsoMonth));
     const targetMonth = hasMonth ? currentIsoMonth : '2026-08';
@@ -1297,10 +1366,20 @@ function openExpensesModal(forceMonthly = false) {
   } else {
     // Normal drill-down from day/period filter
     if (appState.periodFilter === 'today') {
-      const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
-      const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
-      filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
-      periodLabel = `ថ្ងៃនេះ (${displayDDMMYYYY(targetIsoDay)})`;
+      if (appState.daySubFilter === 'yesterday') {
+        const yDate = new Date();
+        yDate.setDate(yDate.getDate() - 1);
+        const yesterdayIsoDay = yDate.toISOString().slice(0, 10);
+        const hasYesterday = d.expenses.some(e => e.isoDate === yesterdayIsoDay);
+        const targetIsoDay = hasYesterday ? yesterdayIsoDay : (d.personalSales[1]?.isoDate || '2026-08-11');
+        filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
+        periodLabel = `ម្សិលមិញ (${displayDDMMYYYY(targetIsoDay)})`;
+      } else {
+        const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
+        const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
+        filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
+        periodLabel = `ថ្ងៃនេះ (${displayDDMMYYYY(targetIsoDay)})`;
+      }
     } else if (appState.periodFilter === 'month') {
       const hasMonth = d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth));
       const targetMonth = hasMonth ? currentIsoMonth : '2026-08';
