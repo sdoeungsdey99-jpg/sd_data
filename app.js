@@ -26,8 +26,8 @@ const translations = {
     grossProfit: 'ចំណេញដុល (Profit)',
     expenses: 'ចំណាយសរុប',
     boxUnit: 'ប្រអប់',
-    pendingCodTitle: '📦 លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់ (Receivables)',
-    pendingCodHint: 'អូស ឡើង/ចុះ/ឆ្វេង/ស្តាំ ដើម្បីមើលទិន្នន័យពី Bank & Cash Balance',
+    pendingCodTitle: '📦 លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់',
+    pendingCodHint: 'Bank & Cash Balance (Receivables)',
     netCashTitle: '📈 សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash Position)',
     actualCash: 'សរុបសាច់ប្រាក់ជាក់ស្តែង',
     pendingCod: 'លុយ COD រង់ចាំទូទាត់',
@@ -1106,16 +1106,22 @@ function getDashboardViewHTML() {
     <!-- CARD A: 📦 ACCOUNTS RECEIVABLE FROM BANK & CASH BALANCE  -->
     <!-- ======================================================== -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="font-bold text-xs uppercase tracking-wider text-amber-300 flex items-center gap-2">
-          <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
-          <span>${t('pendingCodTitle')}</span>
-        </h3>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs uppercase tracking-wider text-amber-300 leading-tight">
+              ${t('pendingCodTitle')}
+            </h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Bank & Cash Balance (Receivables)</p>
+          </div>
+        </div>
+        <span class="text-[10px] px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold border border-amber-500/30 shadow-sm shrink-0">
           ${d.pendingCodReceivables.length}
         </span>
       </div>
-      <p class="text-[10px] text-slate-400 mb-3">${t('pendingCodHint')}</p>
 
       <!-- 4-Way Scroll Container -->
       <div class="overflow-x-auto overflow-y-auto max-h-56 no-scrollbar border border-white/5 rounded-2xl bg-black/30 p-2">
@@ -1274,13 +1280,20 @@ function getDashboardViewHTML() {
     <!-- CARD E: TEAM SALES - DYNAMIC TARGET FROM GOOGLE SHEET (High-Security Style Badge) -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
-          <i data-lucide="users" class="w-4 h-4 text-blue-400"></i>
-          <span class="whitespace-nowrap">${t('teamSalesTitle')}</span>
-        </h3>
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+            <i data-lucide="users" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-200 leading-tight">
+              ${t('teamSalesTitle')}
+            </h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Team Sales Targets</p>
+          </div>
+        </div>
         
         <!-- Target Highlight Badge (ដូចកន្លែង សុវត្ថិភាពខ្ពស់ / High Security Badge) -->
-        <div class="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1 shadow-sm">
+        <div class="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1 shadow-sm shrink-0">
           <span class="text-xs text-blue-400 font-bold font-mono">
             🎯 ${(currentTeamLeaders.reduce((acc, cur) => acc + (cur.targetGoal || 100), 0))} ប្រអប់
           </span>
