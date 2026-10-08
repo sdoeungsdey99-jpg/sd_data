@@ -37,7 +37,7 @@ const translations = {
     bankAccountsTitle: 'ឈ្មោះគណនី / ធនាគារ និងសមតុល្យនីមួយៗ',
     payablesTitle: 'បំណុលត្រូវទូទាត់',
     todayExpTitle: 'ការចំណាយថ្ងៃនេះ',
-    teamSalesTitle: 'ការលក់តាមក្រុម (Team Sales)',
+    teamSalesTitle: 'គោលដៅលក់តាមក្រុម',
     target100: 'គោលដៅ ១០០ ប្រអប់',
     homeDock: 'ទំព័រដើម',
     analyticsDock: 'វិភាគ',
@@ -1281,9 +1281,8 @@ function getDashboardViewHTML() {
         
         <!-- Target Highlight Badge (ដូចកន្លែង សុវត្ថិភាពខ្ពស់ / High Security Badge) -->
         <div class="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1 shadow-sm">
-          <span class="text-[10px] text-blue-300 font-semibold">🎯 គោលដៅខែ ${selectedMonthNum}:</span>
           <span class="text-xs text-blue-400 font-bold font-mono">
-            ${(currentTeamLeaders.reduce((acc, cur) => acc + (cur.targetGoal || 100), 0))} ប្រអប់
+            🎯 ${(currentTeamLeaders.reduce((acc, cur) => acc + (cur.targetGoal || 100), 0))} ប្រអប់
           </span>
         </div>
       </div>
