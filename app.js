@@ -251,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupPullToRefresh();
+  setupSmartDockScroll();
 
   DataService.subscribe(onDataUpdated);
   DataService.fetchData();
@@ -326,6 +327,38 @@ function setupPullToRefresh() {
     }
     isPulling = false;
   });
+}
+
+// Smart Dock Auto-Hide on Fast Scroll Down, Re-appear on Scroll Up or Stop
+function setupSmartDockScroll() {
+  const main = document.getElementById('main-content');
+  const dock = document.getElementById('bottom-dock');
+  if (!main || !dock) return;
+
+  let lastScrollTop = 0;
+  let scrollTimeout = null;
+
+  main.addEventListener('scroll', () => {
+    const currentScrollTop = main.scrollTop;
+    const diff = currentScrollTop - lastScrollTop;
+
+    // Scrolling down strongly
+    if (diff > 15 && currentScrollTop > 80) {
+      dock.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+    } 
+    // Scrolling up even slightly or near top
+    else if (diff < -5 || currentScrollTop <= 30) {
+      dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+    }
+
+    lastScrollTop = currentScrollTop;
+
+    // When scrolling stops, automatically restore dock after 600ms
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+    }, 600);
+  }, { passive: true });
 }
 
 function toggleHideBalance() {
@@ -515,6 +548,25 @@ function getDashboardViewHTML() {
     activePeriodDisplay = 'All Period';
   }
 
+  // Monthly Expense & Budget ($450/mo target) Calculation based on selected period
+  let targetMonthKey = currentIsoMonth; // 'YYYY-MM'
+  if (appState.periodFilter === 'month') {
+    const hasMonth = d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth));
+    targetMonthKey = hasMonth ? currentIsoMonth : '2026-08';
+  } else if (appState.periodFilter === 'today') {
+    const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
+    const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
+    targetMonthKey = targetIsoDay.slice(0, 7);
+  } else if (appState.periodFilter === 'custom' && appState.customStartDate) {
+    targetMonthKey = appState.customStartDate.slice(0, 7);
+  }
+
+  const selectedMonthNum = targetMonthKey.split('-')[1] || '10';
+  const monthlyExpensesList = d.expenses.filter(e => e.isoDate.startsWith(targetMonthKey));
+  const monthlyTotalExpenseAmt = monthlyExpensesList.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const monthlyBudgetGoal = 450.0;
+  const remainingBudget = monthlyBudgetGoal - monthlyTotalExpenseAmt;
+
   const totalBoxQty = filteredSales.reduce((acc, cur) => acc + (cur.totalBoxQty || 0), 0);
   const totalRevenue = filteredSales.reduce((acc, cur) => acc + (cur.totalAmount || 0), 0);
   const totalGrossProfit = filteredSales.reduce((acc, cur) => acc + (cur.profit || 0), 0);
@@ -604,13 +656,43 @@ function getDashboardViewHTML() {
         <p class="text-xl font-bold text-blue-400 font-mono mt-0.5">${formatUSD(totalGrossProfit)}</p>
       </div>
 
-      <!-- 4. Total Expenses -->
-      <div class="ios-glass-card rounded-2xl p-3.5 border border-white/10">
-        <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center mb-2">
-          <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
+      <!-- 4. Monthly Expenses & Budget Card (ចំណាយខែ + គោលដៅ 450$/ខែ + Shortcut + List) -->
+      <div class="ios-glass-card rounded-2xl p-3.5 border border-white/10 flex flex-col justify-between relative group">
+        <div>
+          <!-- Header with Shortcut (+) and Category Icon -->
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center">
+              <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
+            </div>
+            <!-- Top Right: Shortcut (+) button to AppSheet or custom app -->
+            <button onclick="openExpenseShortcut()" 
+                    oncontextmenu="openShortcutModal(event)"
+                    title="ចុចដើម្បីបើក AppSheet (ចុចស្តាំដើម្បីកំណត់ Link)"
+                    class="w-7 h-7 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 flex items-center justify-center active:scale-95 transition shadow-sm">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+          </div>
+          
+          <p class="text-[11px] text-slate-400 font-medium">ចំណាយខែ ${selectedMonthNum}</p>
+          <p class="text-xl font-bold text-rose-400 font-mono mt-0.5">${formatUSD(monthlyTotalExpenseAmt)}</p>
         </div>
-        <p class="text-[11px] text-slate-400">${t('expenses')}</p>
-        <p class="text-xl font-bold text-rose-400 font-mono mt-0.5">${formatUSD(totalExpenseAmt)}</p>
+
+        <!-- Bottom Row: Goal & Remaining Budget + List Icon -->
+        <div class="pt-2 border-t border-white/5 flex items-center justify-between mt-2 text-[10px]">
+          <div>
+            <span class="text-slate-400 block text-[9px]">គោលដៅ 450$/ខែ</span>
+            <span class="font-mono font-bold ${remainingBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+              ${remainingBudget >= 0 ? `សល់ ${formatUSD(remainingBudget)}` : `លើស ${formatUSD(Math.abs(remainingBudget))}`}
+            </span>
+          </div>
+
+          <!-- Bottom Right: List Button to view full expenses modal -->
+          <button onclick="openExpensesModal()" 
+                  title="ពង្រីកមើលចំណាយ"
+                  class="p-1.5 rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white border border-white/10 active:scale-95 transition flex items-center gap-1">
+            <i data-lucide="list" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
       </div>
 
     </div>
@@ -784,14 +866,19 @@ function getDashboardViewHTML() {
 
     </div>
 
-    <!-- CARD E: TEAM SALES - 3 LEADERS -->
+    <!-- CARD E: TEAM SALES - 3 LEADERS (With Target: 100 Boxes Center-Bottom) -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
           <i data-lucide="users" class="w-4 h-4 text-blue-400"></i>
           <span>${t('teamSalesTitle')}</span>
         </h3>
-        <span class="text-[10px] text-blue-400 font-medium">${t('target100')}</span>
+        
+        <!-- Target Center-Bottom: គោលដៅ on top, 100 ប្រអប់ below center -->
+        <div class="flex flex-col items-center justify-center text-center">
+          <span class="text-[10px] text-slate-400 leading-tight">គោលដៅ</span>
+          <span class="text-[11px] text-blue-400 font-bold font-mono leading-tight">១០០ ប្រអប់</span>
+        </div>
       </div>
 
       <div class="space-y-2.5">
@@ -819,6 +906,55 @@ function getDashboardViewHTML() {
             </div>
           </div>
         `).join('')}
+      </div>
+    </div>
+
+    <!-- AI & TOOLS SECTION (ChatGPT, Claude, Gemini, Google Translate) -->
+    <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>
+          <span>ឧបករណ៍ AI & បកប្រែភាសា</span>
+        </h3>
+        <span class="text-[10px] text-purple-400 font-mono font-semibold">Quick Launch</span>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2">
+        <!-- 1. ChatGPT -->
+        <a href="https://chat.openai.com" target="_blank" 
+           class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-black/25 hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/30 active:scale-95 transition group text-center">
+          <div class="w-9 h-9 rounded-xl bg-[#10A37F]/20 text-[#10A37F] flex items-center justify-center mb-1.5 group-hover:scale-110 transition shadow-sm">
+            <i data-lucide="bot" class="w-5 h-5"></i>
+          </div>
+          <span class="text-[10px] text-white font-semibold">ChatGPT</span>
+        </a>
+
+        <!-- 2. Claude -->
+        <a href="https://claude.ai" target="_blank" 
+           class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-black/25 hover:bg-orange-500/10 border border-white/5 hover:border-orange-500/30 active:scale-95 transition group text-center">
+          <div class="w-9 h-9 rounded-xl bg-[#D97706]/20 text-orange-400 flex items-center justify-center mb-1.5 group-hover:scale-110 transition shadow-sm">
+            <i data-lucide="cpu" class="w-5 h-5"></i>
+          </div>
+          <span class="text-[10px] text-white font-semibold">Claude</span>
+        </a>
+
+        <!-- 3. Gemini -->
+        <a href="https://gemini.google.com" target="_blank" 
+           class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-black/25 hover:bg-blue-500/10 border border-white/5 hover:border-blue-500/30 active:scale-95 transition group text-center">
+          <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-1.5 group-hover:scale-110 transition shadow-sm">
+            <i data-lucide="zap" class="w-5 h-5"></i>
+          </div>
+          <span class="text-[10px] text-white font-semibold">Gemini</span>
+        </a>
+
+        <!-- 4. Google Translate -->
+        <a href="https://translate.google.com/?sl=en&tl=km" target="_blank" 
+           class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-black/25 hover:bg-amber-500/10 border border-white/5 hover:border-amber-500/30 active:scale-95 transition group text-center">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mb-1.5 group-hover:scale-110 transition shadow-sm">
+            <i data-lucide="languages" class="w-5 h-5"></i>
+          </div>
+          <span class="text-[10px] text-white font-semibold">Translate</span>
+        </a>
       </div>
     </div>
   `;
@@ -1259,4 +1395,39 @@ function setLanguage(lang) {
   appState.language = lang;
   localStorage.setItem('sd_lang', lang);
   renderCurrentView();
+}
+
+// ==========================================
+// AppSheet / Custom Shortcut Handler
+// ==========================================
+function openExpenseShortcut() {
+  const customUrl = localStorage.getItem('sd_shortcut_url');
+  if (customUrl && customUrl.trim()) {
+    window.open(customUrl.trim(), '_blank');
+  } else {
+    // Default: AppSheet / Quick Expense Logger
+    window.open('https://www.appsheet.com', '_blank');
+  }
+}
+
+function openShortcutModal(e) {
+  if (e) e.stopPropagation();
+  const input = document.getElementById('shortcut-url-input');
+  if (input) {
+    input.value = localStorage.getItem('sd_shortcut_url') || '';
+  }
+  document.getElementById('shortcut-modal')?.classList?.remove('hidden');
+}
+
+function closeShortcutModal() {
+  document.getElementById('shortcut-modal')?.classList?.add('hidden');
+}
+
+function saveShortcutUrl() {
+  const input = document.getElementById('shortcut-url-input');
+  if (input) {
+    localStorage.setItem('sd_shortcut_url', input.value.trim());
+    alert('Shortcut ត្រូវបានរក្សាទុកជោគជ័យ!');
+    closeShortcutModal();
+  }
 }

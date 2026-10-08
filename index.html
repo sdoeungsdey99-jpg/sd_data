@@ -275,7 +275,7 @@
     <!-- ======================================================== -->
     <!-- TELEGRAM FLOATING CAPSULE BOTTOM DOCK                    -->
     <!-- ======================================================== -->
-    <nav class="absolute bottom-4 inset-x-4 max-w-sm mx-auto h-16 rounded-full telegram-dock flex items-center justify-between px-3 z-40">
+    <nav id="bottom-dock" class="absolute bottom-4 inset-x-4 max-w-sm mx-auto h-16 rounded-full telegram-dock flex items-center justify-between px-3 z-40 transition-all duration-300 transform">
       
       <!-- 1. Home -->
       <button onclick="switchView('dashboard')" id="dock-btn-dashboard" 
@@ -473,6 +473,37 @@
       <button onclick="saveNewPin()" 
               class="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 font-semibold text-xs text-white">
         រក្សាទុកលេខកូដថ្មី
+      </button>
+    </div>
+  </div>
+
+  <!-- App Shortcut Customizer Modal -->
+  <div id="shortcut-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 max-w-xs w-full relative shadow-2xl">
+      <button onclick="closeShortcutModal()" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      <div class="flex items-center gap-2 mb-3">
+        <div class="p-2 rounded-xl bg-rose-500/20 text-rose-400">
+          <i data-lucide="external-link" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-sm text-white">Shortcut កត់ត្រាចំណាយ</h3>
+          <p class="text-[10px] text-slate-400">ជ្រើសរើស App សម្រាប់បើកពេលចុច (+)</p>
+        </div>
+      </div>
+      <div class="space-y-2 mb-4">
+        <label class="block text-[11px] text-slate-300">បញ្ចូល Link ឬ AppSheet URL:</label>
+        <input type="url" id="shortcut-url-input" 
+               placeholder="https://www.appsheet.com/start/..." 
+               class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500">
+        <p class="text-[10px] text-slate-400 leading-relaxed">
+          * បើទុកទទេ វានឹងបើក <strong>AppSheet</strong> លំនាំដើម។ លោកគ្រូអាចដាក់ link ទៅកាន់ Telegram, Google Forms ឬ AppSheet ផ្ទាល់ខ្លួនបាន។
+        </p>
+      </div>
+      <button onclick="saveShortcutUrl()" 
+              class="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold text-xs shadow-lg transition active:scale-95">
+        រក្សាទុក Shortcut
       </button>
     </div>
   </div>
