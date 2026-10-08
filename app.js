@@ -47,6 +47,8 @@ const translations = {
     settingsTitle: 'ការកំណត់',
     protectApp: 'ការពារ SD Data របស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
     protectDesc: 'ប្រើលេខសម្ងាត់ ដើម្បីសុវត្ថិភាព និងទំនុកចិត្តខ្ពស់',
+    enablePinTitle: 'បើក/បិទ ការចាក់សោរ (Passcode Lock)',
+    enablePinDesc: 'ទាមទារលេខសម្ងាត់ពេលបើកកម្មវិធី',
     changePinBtn: 'ប្តូរលេខកូដសម្ងាត់ (Change PIN)',
     theme: 'ទម្រង់បង្ហាញ (Theme)',
     dark: 'ងងឹត (Dark)',
@@ -96,6 +98,8 @@ const translations = {
     settingsTitle: 'Settings',
     protectApp: 'Protect your SD Data with 4-digit PIN',
     protectDesc: 'Use passcode for higher security and peace of mind',
+    enablePinTitle: 'Passcode Lock (On/Off)',
+    enablePinDesc: 'Require passcode when opening app',
     changePinBtn: 'Change Passcode (PIN)',
     theme: 'Theme Mode',
     dark: 'Dark Mode',
@@ -117,7 +121,8 @@ const appState = {
   customEndDate: '',
   language: localStorage.getItem('sd_lang') || 'km',
   theme: localStorage.getItem('sd_theme') || 'dark',
-  isLocked: !sessionStorage.getItem('sd_unlocked'),
+  pinEnabled: localStorage.getItem('sd_pin_enabled') !== 'false',
+  isLocked: localStorage.getItem('sd_pin_enabled') !== 'false' && !sessionStorage.getItem('sd_unlocked'),
   enteredPin: '',
   correctPin: localStorage.getItem('sd_pin') || '1234',
   hasReadNotifications: false
@@ -242,13 +247,28 @@ function verifyPin() {
 }
 
 function lockApp() {
+  if (!appState.pinEnabled) return;
   sessionStorage.removeItem('sd_unlocked');
   appState.isLocked = true;
   appState.enteredPin = '';
   updatePinDots();
   const lockScreen = document.getElementById('lock-screen');
-  lockScreen.classList.remove('hidden', '-translate-y-full');
-  setTimeout(() => lockScreen.classList.remove('opacity-0', 'pointer-events-none'), 10);
+  if (lockScreen) {
+    lockScreen.classList.remove('hidden', '-translate-y-full');
+    setTimeout(() => lockScreen.classList.remove('opacity-0', 'pointer-events-none'), 10);
+  }
+}
+
+function togglePinEnabled() {
+  appState.pinEnabled = !appState.pinEnabled;
+  localStorage.setItem('sd_pin_enabled', appState.pinEnabled ? 'true' : 'false');
+  if (!appState.pinEnabled) {
+    sessionStorage.setItem('sd_unlocked', 'true');
+    appState.isLocked = false;
+    const lockScreen = document.getElementById('lock-screen');
+    if (lockScreen) lockScreen.classList.add('hidden');
+  }
+  renderCurrentView();
 }
 
 // ==========================================
@@ -260,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateLockClock, 1000);
   updateLockClock();
 
-  if (sessionStorage.getItem('sd_unlocked') === 'true') {
+  if (!appState.pinEnabled || sessionStorage.getItem('sd_unlocked') === 'true') {
     const lockScreen = document.getElementById('lock-screen');
     if (lockScreen) lockScreen.classList.add('hidden');
   }
@@ -1511,21 +1531,40 @@ function getSettingsViewHTML() {
         <p class="text-xs text-orange-400 font-semibold tracking-wider">SDEY SDOEUNG</p>
       </div>
 
-      <!-- Security Card -->
-      <div class="bg-gradient-to-r from-[#102A43] to-[#0B1D30] rounded-2xl p-4 border border-blue-500/20 shadow-lg">
-        <div class="flex items-start gap-3 mb-3">
-          <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
-            <i data-lucide="shield-check" class="w-5 h-5"></i>
+      <!-- Security Card (With Passcode On/Off Toggle & Change PIN) -->
+      <div class="bg-gradient-to-r from-[#102A43] to-[#0B1D30] rounded-2xl p-4 border border-blue-500/20 shadow-lg flex flex-col gap-3">
+        <!-- Toggle Switch Row -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
+              <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-xs text-white leading-tight">${t('enablePinTitle')}</h4>
+              <p class="text-[10px] text-slate-300 mt-0.5">${t('enablePinDesc')}</p>
+            </div>
           </div>
-          <div>
-            <h4 class="font-bold text-xs text-white leading-tight">${t('protectApp')}</h4>
-            <p class="text-[11px] text-slate-300 mt-1">${t('protectDesc')}</p>
-          </div>
+          <!-- iOS Toggle Switch -->
+          <button onclick="togglePinEnabled()" 
+                  class="w-12 h-7 rounded-full transition-colors duration-200 ease-in-out p-1 relative flex items-center shrink-0 ${appState.pinEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
+                  role="switch" aria-checked="${appState.pinEnabled}">
+            <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+          </button>
         </div>
-        <button onclick="openChangePinModal()" 
-                class="w-full py-2.5 rounded-xl bg-[#007AFF] hover:bg-blue-600 text-white font-semibold text-xs transition active:scale-98">
-          ${t('changePinBtn')}
-        </button>
+
+        ${appState.pinEnabled ? `
+          <div class="pt-2 border-t border-white/10 flex flex-col gap-2">
+            <p class="text-[11px] text-slate-300">${t('protectDesc')}</p>
+            <button onclick="openChangePinModal()" 
+                    class="w-full py-2.5 rounded-xl bg-[#007AFF] hover:bg-blue-600 text-white font-semibold text-xs transition active:scale-98">
+              ${t('changePinBtn')}
+            </button>
+          </div>
+        ` : `
+          <div class="pt-2 border-t border-white/10 text-center">
+            <span class="text-[11px] text-amber-300">⚠️ ការចាក់សោរត្រូវបានបិទ (បើកកម្មវិធីឡើងដោយមិនបាច់វាយលេខកូដ)</span>
+          </div>
+        `}
       </div>
 
       <!-- Inset List Group (Duplicate Telegram removed) -->

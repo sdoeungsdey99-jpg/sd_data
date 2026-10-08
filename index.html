@@ -3,10 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0a1828" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#0a1828">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>SD Data - iOS Liquid Fintech ERP</title>
 
   <!-- Google Fonts: Kantumruy Pro & Plus Jakarta Sans -->
@@ -133,18 +129,18 @@
 <body class="bg-[#070D18] text-slate-100 font-sans h-full overflow-hidden flex flex-col select-none relative transition-colors duration-300">
 
   <!-- ======================================================== -->
-  <!-- 0. 100% CLEAN iOS PASSCODE LOCK SCREEN (Full-Bleed + Clock) -->
+  <!-- 0. 100% CLEAN iOS PASSCODE LOCK SCREEN                      -->
   <!-- ======================================================== -->
-  <div id="lock-screen" class="fixed inset-0 z-[100] bg-gradient-to-b from-[#0a1828] via-[#092232] to-[#04101c] flex flex-col justify-between items-center pt-[max(env(safe-area-inset-top),3.5rem)] pb-[max(env(safe-area-inset-bottom),2.5rem)] px-6 transition-all duration-500 overflow-hidden select-none">
+  <div id="lock-screen" class="fixed inset-0 z-[100] bg-[#0a1828] flex flex-col justify-between items-center pt-12 pb-8 px-6 transition-all duration-500 overflow-hidden select-none">
     
     <!-- Ambient iOS Wallpaper Mesh Circles (Full Bleed Across Entire Screen) -->
-    <div class="absolute -top-40 -right-24 w-[500px] h-[600px] bg-gradient-to-b from-blue-600/40 to-indigo-800/30 rounded-[100%] blur-3xl pointer-events-none transform -rotate-12"></div>
+    <div class="absolute -top-32 -right-24 w-[500px] h-[600px] bg-gradient-to-b from-blue-600/40 to-indigo-800/30 rounded-[100%] blur-3xl pointer-events-none transform -rotate-12"></div>
     <div class="absolute bottom-0 -left-32 w-[500px] h-[600px] bg-gradient-to-t from-teal-500/35 to-emerald-600/30 rounded-[100%] blur-3xl pointer-events-none transform rotate-12"></div>
 
-    <!-- Top Section: Khmer Date + Big iOS Glowing Clock (Lowered slightly for easy reading) -->
-    <div class="flex flex-col items-center text-center mt-4 sm:mt-6 z-10 w-full shrink-0">
+    <!-- Top Section: Khmer Date + Big iOS Glowing Clock -->
+    <div class="flex flex-col items-center text-center mt-2 z-10 w-full shrink-0">
       <!-- Khmer Date -->
-      <div id="lock-calendar" class="text-sm sm:text-base font-normal text-white/80 tracking-wide mb-1.5">
+      <div id="lock-calendar" class="text-sm sm:text-base font-normal text-white/80 tracking-wide mb-1">
         <!-- Live Khmer Date -->
       </div>
       
@@ -154,7 +150,7 @@
       </div>
 
       <!-- Enter Passcode Prompt -->
-      <h2 class="text-sm sm:text-[15px] font-normal text-white/80 mt-5 mb-3.5 tracking-wide" id="lock-prompt">
+      <h2 class="text-sm sm:text-[15px] font-normal text-white/80 mt-3.5 mb-3 tracking-wide" id="lock-prompt">
         Enter Passcode
       </h2>
 
