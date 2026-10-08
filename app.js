@@ -620,76 +620,98 @@ function getDashboardViewHTML() {
       <span class="text-[10px] text-orange-400 font-mono">Personal Sales</span>
     </div>
 
-    <!-- 4 MAIN KPI CARDS -->
-    <div class="grid grid-cols-2 gap-3">
+    <!-- UNIFIED SALES & EXPENSES PERFORMANCE CARD (តូចល្មម និងតែមួយដូចរូបទី ២) -->
+    <div class="ios-glass-card rounded-3xl p-4 border border-white/10 relative overflow-hidden">
       
-      <!-- 1. Total Box Qty -->
-      <div onclick="openPersonalSalesModal()" 
-           class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer hover:border-orange-500/50 active:scale-98 transition group relative">
-        <div class="flex items-center justify-between mb-2">
-          <div class="w-8 h-8 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center">
-            <i data-lucide="package" class="w-4 h-4"></i>
+      <!-- Top Card Header: Title on Left (2 rows), Shortcut (+) & View Sales on Right -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30">
+            <i data-lucide="bar-chart" class="w-4 h-4"></i>
           </div>
-          <span class="text-[10px] text-orange-400 font-semibold group-hover:underline flex items-center gap-0.5">
-            ${appState.language === 'en' ? 'View' : 'មើល'} <i data-lucide="chevron-right" class="w-3 h-3"></i>
-          </span>
-        </div>
-        <p class="text-[11px] text-slate-400">${t('totalBoxes')}</p>
-        <p class="text-xl font-bold text-white font-mono mt-0.5">${formatInt(totalBoxQty)} <span class="text-xs text-slate-400 font-sans font-normal">${t('boxUnit')}</span></p>
-      </div>
-
-      <!-- 2. Revenue -->
-      <div class="ios-glass-card rounded-2xl p-3.5 border border-white/10">
-        <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-2">
-          <i data-lucide="dollar-sign" class="w-4 h-4"></i>
-        </div>
-        <p class="text-[11px] text-slate-400">${t('revenue')}</p>
-        <p class="text-xl font-bold text-emerald-400 font-mono mt-0.5">${formatUSD(totalRevenue)}</p>
-      </div>
-
-      <!-- 3. Gross Profit -->
-      <div class="ios-glass-card rounded-2xl p-3.5 border border-white/10">
-        <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center mb-2">
-          <i data-lucide="trending-up" class="w-4 h-4"></i>
-        </div>
-        <p class="text-[11px] text-slate-400">${t('grossProfit')}</p>
-        <p class="text-xl font-bold text-blue-400 font-mono mt-0.5">${formatUSD(totalGrossProfit)}</p>
-      </div>
-
-      <!-- 4. Monthly Expenses & Budget Card (ចំណាយខែ + គោលដៅ 450$/ខែ + Shortcut + List) -->
-      <div class="ios-glass-card rounded-2xl p-3.5 border border-white/10 flex flex-col justify-between relative group">
-        <div>
-          <!-- Header with Shortcut (+) and Category Icon -->
-          <div class="flex items-center justify-between mb-1.5">
-            <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center">
-              <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
-            </div>
-            <!-- Top Right: Shortcut (+) button to AppSheet or custom app -->
-            <button onclick="openExpenseShortcut()" 
-                    oncontextmenu="openShortcutModal(event)"
-                    title="ចុចដើម្បីបើក AppSheet (ចុចស្តាំដើម្បីកំណត់ Link)"
-                    class="w-7 h-7 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 flex items-center justify-center active:scale-95 transition shadow-sm">
-              <i data-lucide="plus" class="w-4 h-4"></i>
-            </button>
-          </div>
-          
-          <p class="text-[11px] text-slate-400 font-medium">ចំណាយខែ ${selectedMonthNum}</p>
-          <p class="text-xl font-bold text-rose-400 font-mono mt-0.5">${formatUSD(monthlyTotalExpenseAmt)}</p>
-        </div>
-
-        <!-- Bottom Row: Goal & Remaining Budget + List Icon -->
-        <div class="pt-2 border-t border-white/5 flex items-center justify-between mt-2 text-[10px]">
           <div>
-            <span class="text-slate-400 block text-[9px]">គោលដៅ 450$/ខែ</span>
-            <span class="font-mono font-bold ${remainingBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
-              ${remainingBudget >= 0 ? `សល់ ${formatUSD(remainingBudget)}` : `លើស ${formatUSD(Math.abs(remainingBudget))}`}
-            </span>
+            <h3 class="font-bold text-xs uppercase tracking-wider text-white leading-tight">
+              📊 សង្ខេបការលក់ & ចំណាយ
+            </h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight">Sales & Expense Performance</p>
           </div>
+        </div>
 
-          <!-- Bottom Right: List Button to view full expenses modal -->
-          <button onclick="openExpensesModal()" 
-                  title="ពង្រីកមើលចំណាយ"
-                  class="p-1.5 rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white border border-white/10 active:scale-95 transition flex items-center gap-1">
+        <div class="flex items-center gap-1.5">
+          <!-- Shortcut (+) to AppSheet / Custom Form -->
+          <button onclick="openExpenseShortcut()" 
+                  oncontextmenu="openShortcutModal(event)"
+                  title="ចុចដើម្បីបើក AppSheet (ចុចស្តាំដើម្បីកំណត់ Link)"
+                  class="w-7 h-7 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 flex items-center justify-center active:scale-95 transition shadow-sm">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <!-- View Sales Drill-down Button -->
+          <button onclick="openPersonalSalesModal()" 
+                  class="px-2 py-1 rounded-xl bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:text-white font-bold text-[11px] flex items-center gap-0.5 active:scale-95 transition">
+            <span>${appState.language === 'en' ? 'View' : 'មើល'}</span>
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Mini Grid Boxes (2x2 layout matching Image 2) -->
+      <div class="grid grid-cols-2 gap-2 text-xs mb-2.5">
+        
+        <!-- Box 1: Total Box Qty (clickable) -->
+        <div onclick="openPersonalSalesModal()" 
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-orange-500/30 transition group">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">
+            ${t('totalBoxes')}:
+          </span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-mono text-white font-bold text-base tracking-tight">${formatInt(totalBoxQty)}</span>
+            <span class="text-[10px] text-slate-400 font-sans">${t('boxUnit')}</span>
+          </div>
+        </div>
+
+        <!-- Box 2: Total Revenue -->
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">
+            ${t('revenue')}:
+          </span>
+          <span class="font-mono text-emerald-400 font-bold text-base tracking-tight">${formatUSD(totalRevenue)}</span>
+        </div>
+
+        <!-- Box 3: Gross Profit -->
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">
+            ${t('grossProfit')}:
+          </span>
+          <span class="font-mono text-blue-400 font-bold text-base tracking-tight">${formatUSD(totalGrossProfit)}</span>
+        </div>
+
+        <!-- Box 4: Monthly Expense (always according to selected month) -->
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">
+            ចំណាយខែ ${selectedMonthNum}:
+          </span>
+          <span class="font-mono text-rose-400 font-bold text-base tracking-tight">${formatUSD(monthlyTotalExpenseAmt)}</span>
+        </div>
+
+      </div>
+
+      <!-- Bottom Highlight Banner (matching Image 2 bottom row: Goal 450$/mo + Remaining Budget + List Icon) -->
+      <div class="p-2.5 rounded-xl bg-gradient-to-r from-rose-950/40 via-black/30 to-emerald-950/40 border border-white/10 flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs text-slate-300 font-semibold">🎯 គោលដៅ 450$/ខែ</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Remaining Budget text -->
+          <span class="text-sm font-bold font-mono ${remainingBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+            ${remainingBudget >= 0 ? `សល់ ${formatUSD(remainingBudget)}` : `លើស ${formatUSD(Math.abs(remainingBudget))}`}
+          </span>
+
+          <!-- List Icon: Click to open full monthly expenses drill-down -->
+          <button onclick="openExpensesModal(true)" 
+                  title="មើលតារាងចំណាយពេញមួយខែ ${selectedMonthNum}"
+                  class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition flex items-center justify-center">
             <i data-lucide="list" class="w-3.5 h-3.5"></i>
           </button>
         </div>
@@ -1236,7 +1258,7 @@ function closePayablesModal() {
   document.getElementById('payables-modal').classList.add('hidden');
 }
 
-function openExpensesModal() {
+function openExpensesModal(forceMonthly = false) {
   const d = DataService.data;
   if (!d) return;
 
@@ -1252,22 +1274,41 @@ function openExpensesModal() {
   let filteredExpenses = d.expenses;
   let periodLabel = 'ទាំងអស់';
 
-  if (appState.periodFilter === 'today') {
-    const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
-    const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
-    filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
-    periodLabel = `ថ្ងៃនេះ (${displayDDMMYYYY(targetIsoDay)})`;
-  } else if (appState.periodFilter === 'month') {
-    const hasMonth = d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth));
-    const targetMonth = hasMonth ? currentIsoMonth : '2026-08';
-    filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonth));
-    periodLabel = `ខែនេះ (${targetMonth})`;
-  } else if (appState.periodFilter === 'year') {
-    filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(currentIsoYear));
-    periodLabel = `ឆ្នាំនេះ (${currentIsoYear})`;
-  } else if (appState.periodFilter === 'custom' && appState.customStartDate && appState.customEndDate) {
-    filteredExpenses = d.expenses.filter(e => e.isoDate >= appState.customStartDate && e.isoDate <= appState.customEndDate);
-    periodLabel = `${displayDDMMYYYY(appState.customStartDate)} ➔ ${displayDDMMYYYY(appState.customEndDate)}`;
+  // If forceMonthly is true (clicked from monthly summary card List icon)
+  if (forceMonthly) {
+    let targetMonthKey = currentIsoMonth;
+    if (appState.periodFilter === 'month') {
+      const hasMonth = d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth));
+      targetMonthKey = hasMonth ? currentIsoMonth : '2026-08';
+    } else if (appState.periodFilter === 'today') {
+      const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
+      const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
+      targetMonthKey = targetIsoDay.slice(0, 7);
+    } else if (appState.periodFilter === 'custom' && appState.customStartDate) {
+      targetMonthKey = appState.customStartDate.slice(0, 7);
+    }
+    filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonthKey));
+    const parts = targetMonthKey.split('-');
+    periodLabel = `ពេញមួយខែ ${parts[1]}/${parts[0]}`;
+  } else {
+    // Normal drill-down from day/period filter
+    if (appState.periodFilter === 'today') {
+      const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
+      const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
+      filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
+      periodLabel = `ថ្ងៃនេះ (${displayDDMMYYYY(targetIsoDay)})`;
+    } else if (appState.periodFilter === 'month') {
+      const hasMonth = d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth));
+      const targetMonth = hasMonth ? currentIsoMonth : '2026-08';
+      filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonth));
+      periodLabel = `ខែនេះ (${targetMonth})`;
+    } else if (appState.periodFilter === 'year') {
+      filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(currentIsoYear));
+      periodLabel = `ឆ្នាំនេះ (${currentIsoYear})`;
+    } else if (appState.periodFilter === 'custom' && appState.customStartDate && appState.customEndDate) {
+      filteredExpenses = d.expenses.filter(e => e.isoDate >= appState.customStartDate && e.isoDate <= appState.customEndDate);
+      periodLabel = `${displayDDMMYYYY(appState.customStartDate)} ➔ ${displayDDMMYYYY(appState.customEndDate)}`;
+    }
   }
 
   const sortedExpenses = [...filteredExpenses].sort((a, b) => b.isoDate.localeCompare(a.isoDate));
