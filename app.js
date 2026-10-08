@@ -697,7 +697,7 @@ function getDashboardViewHTML() {
       <!-- Bottom Highlight Banner (matching Image 2 bottom row: Goal 450$/mo + Remaining Budget + List Icon) -->
       <div class="p-2.5 rounded-xl bg-gradient-to-r from-rose-950/40 via-black/30 to-emerald-950/40 border border-white/10 flex items-center justify-between">
         <div class="flex items-center gap-1.5">
-          <span class="text-xs text-slate-300 font-semibold">🎯 គោលដៅ 450$/ខែ</span>
+          <span class="text-xs text-slate-300 font-semibold">🎯 កំណត់ចំណាយ 450$/ខែ</span>
         </div>
 
         <div class="flex items-center gap-2">
