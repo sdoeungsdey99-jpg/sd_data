@@ -37,7 +37,7 @@ const translations = {
     bankAccountsTitle: 'ឈ្មោះគណនី / ធនាគារ និងសមតុល្យនីមួយៗ',
     payablesTitle: 'បំណុលត្រូវទូទាត់',
     todayExpTitle: 'ការចំណាយថ្ងៃនេះ',
-    teamSalesTitle: 'ការលក់តាមក្រុម (Team Sales) - ថ្នាក់ដឹកនាំ ៣ រូប',
+    teamSalesTitle: 'ការលក់តាមក្រុម (Team Sales)',
     target100: 'គោលដៅ ១០០ ប្រអប់',
     homeDock: 'ទំព័រដើម',
     analyticsDock: 'វិភាគ',
@@ -86,7 +86,7 @@ const translations = {
     bankAccountsTitle: 'Bank Accounts & Balances',
     payablesTitle: 'Accounts Payable',
     todayExpTitle: "Today's Expenses",
-    teamSalesTitle: 'Team Sales - 3 Team Leaders',
+    teamSalesTitle: 'Team Sales Performance',
     target100: 'Target: 100 Boxes',
     homeDock: 'Home',
     analyticsDock: 'Analytics',
@@ -886,18 +886,20 @@ function getDashboardViewHTML() {
 
     </div>
 
-    <!-- CARD E: TEAM SALES - 3 LEADERS (With Target: 100 Boxes Center-Bottom) -->
+    <!-- CARD E: TEAM SALES - DYNAMIC TARGET FROM GOOGLE SHEET (High-Security Style Badge) -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
           <i data-lucide="users" class="w-4 h-4 text-blue-400"></i>
-          <span>${t('teamSalesTitle')}</span>
+          <span class="whitespace-nowrap">${t('teamSalesTitle')}</span>
         </h3>
         
-        <!-- Target Center-Bottom: គោលដៅ on top, 100 ប្រអប់ below center -->
-        <div class="flex flex-col items-center justify-center text-center">
-          <span class="text-[10px] text-slate-400 leading-tight">គោលដៅ</span>
-          <span class="text-[11px] text-blue-400 font-bold font-mono leading-tight">១០០ ប្រអប់</span>
+        <!-- Target Highlight Badge (ដូចកន្លែង សុវត្ថិភាពខ្ពស់ / High Security Badge) -->
+        <div class="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1 shadow-sm">
+          <span class="text-[10px] text-blue-300 font-semibold">🎯 គោលដៅខែ ${selectedMonthNum}:</span>
+          <span class="text-xs text-blue-400 font-bold font-mono">
+            ${(d.teamLeaders.reduce((acc, cur) => acc + (cur.targetGoal || 100), 0))} ប្រអប់
+          </span>
         </div>
       </div>
 
@@ -906,10 +908,14 @@ function getDashboardViewHTML() {
           <div class="p-3 rounded-2xl bg-black/25 border border-white/5 flex flex-col gap-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-1.5">
-                <span class="font-bold text-xs text-white">${tl.name}</span>
+                <span class="font-bold text-xs text-white whitespace-nowrap">${tl.name}</span>
                 ${tl.name === 'ស្តី ស្តើង' ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                <!-- Leader Target Badge -->
+                <span class="px-1.5 py-0.5 rounded-md bg-white/5 text-[9px] text-slate-400 font-mono border border-white/5">
+                  គោលដៅ: <strong class="text-blue-300">${tl.targetGoal || 100}</strong>
+                </span>
               </div>
-              <span class="font-mono text-xs font-bold ${tl.targetPercent >= 100 ? 'text-emerald-400' : 'text-orange-400'}">
+              <span class="font-mono text-xs font-bold ${tl.targetPercent >= 100 ? 'text-emerald-400' : 'text-orange-400'} whitespace-nowrap">
                 ${tl.totalBoxes} ${t('boxUnit')} (${tl.targetPercent}%)
               </span>
             </div>

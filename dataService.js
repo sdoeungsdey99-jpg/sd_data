@@ -140,11 +140,12 @@ window.DataService = {
     }
 
     try {
-      const [psGviz, expGviz, bankCsvRows, teamGviz] = await Promise.all([
+      const [psGviz, expGviz, bankCsvRows, teamGviz, teamSalesCsvRows] = await Promise.all([
         fetchGoogleSheetGViz('1802751802'), // Personal Sales
         fetchGoogleSheetGViz('1413782774'), // Daily Expenses
         fetchGoogleSheetCSV('1381982614'),  // Bank & Cash Balance (CSV for 100% faithful cell extraction)
-        fetchGoogleSheetGViz('30391871')    // Team Monthly View
+        fetchGoogleSheetGViz('30391871'),   // Team Monthly View
+        fetchGoogleSheetCSV('608899183')    // Team Sales (Sheet containing dynamic monthly targets)
       ]);
 
       // ==========================================
@@ -325,11 +326,48 @@ window.DataService = {
       }
 
       // ==========================================
-      // 4. Process Team Leaders
+      // 4. Process Team Leaders & Dynamic Monthly Targets (From Team Sales sheet)
       // ==========================================
+      // Extract targets per month from teamSalesCsvRows
+      // Month indices: 1 -> Jan, 2 -> Feb, ... 10 -> Oct, 11 -> Nov, 12 -> Dec
+      const targetsByMonth = {};
+      if (Array.isArray(teamSalesCsvRows)) {
+        for (const row of teamSalesCsvRows) {
+          if (row && row.length > 20 && String(row[1] || '').includes('🎯 គោលដៅ')) {
+            const monthHeader = String(row[0] || '').trim().toLowerCase();
+            let monthNum = null;
+            if (monthHeader.includes('jan') || monthHeader.includes('មករា')) monthNum = 1;
+            else if (monthHeader.includes('feb') || monthHeader.includes('កុម្ភៈ')) monthNum = 2;
+            else if (monthHeader.includes('mar') || monthHeader.includes('មីនា')) monthNum = 3;
+            else if (monthHeader.includes('apr') || monthHeader.includes('មេសា')) monthNum = 4;
+            else if (monthHeader.includes('may') || monthHeader.includes('ឧសភា')) monthNum = 5;
+            else if (monthHeader.includes('jun') || monthHeader.includes('មិថុនា')) monthNum = 6;
+            else if (monthHeader.includes('jul') || monthHeader.includes('កក្កដា')) monthNum = 7;
+            else if (monthHeader.includes('aug') || monthHeader.includes('សីហា')) monthNum = 8;
+            else if (monthHeader.includes('sep') || monthHeader.includes('កញ្ញា')) monthNum = 9;
+            else if (monthHeader.includes('oct') || monthHeader.includes('តុលា')) monthNum = 10;
+            else if (monthHeader.includes('nov') || monthHeader.includes('វិច្ឆិកា')) monthNum = 11;
+            else if (monthHeader.includes('dec') || monthHeader.includes('ធ្នូ')) monthNum = 12;
+
+            if (monthNum) {
+              targetsByMonth[monthNum] = {
+                sdey: cleanNumber(row[3]) || 150,
+                sothey: cleanNumber(row[11]) || 100,
+                rasung: cleanNumber(row[19]) || 50
+              };
+            }
+          }
+        }
+      }
+
+      // Default to current month (e.g. month 10 = Oct, or month 11 = Nov)
+      const currentMonthNum = (new Date()).getMonth() + 1;
+      const currentMonthTargets = targetsByMonth[currentMonthNum] || { sdey: 150, sothey: 100, rasung: 50 };
+
       const teamRows = teamGviz.table.rows;
       const teamLeaders = [];
       const leaderNames = ['ស្តី ស្តើង', 'ឆេង សុធី', 'ឆេង រ៉ាស៊ុង'];
+      const leaderTargetKeys = ['sdey', 'sothey', 'rasung'];
 
       for (let i = 7; i <= 9 && i < teamRows.length; i++) {
         const cells = teamRows[i].c;
@@ -342,7 +380,9 @@ window.DataService = {
         const set3 = cleanNumber(getCell(5));
         const set4 = cleanNumber(getCell(6));
         const totalBoxes = cleanNumber(getCell(8));
-        const targetPercent = Math.min(100, (totalBoxes / 100) * 100).toFixed(1);
+        const leaderKey = leaderTargetKeys[i - 7];
+        const leaderTarget = currentMonthTargets[leaderKey] || 100;
+        const targetPercent = leaderTarget > 0 ? Math.min(100, (totalBoxes / leaderTarget) * 100).toFixed(1) : '0.0';
 
         teamLeaders.push({
           rawName: nameRaw,
@@ -353,6 +393,7 @@ window.DataService = {
           set3,
           set4,
           totalBoxes,
+          targetGoal: leaderTarget,
           targetPercent
         });
       }
@@ -396,6 +437,7 @@ window.DataService = {
           payables
         },
         teamLeaders,
+        targetsByMonth,
         meta: {
           totalSalesCount: personalSales.length,
           totalExpensesCount: expenses.length
