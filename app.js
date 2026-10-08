@@ -165,14 +165,21 @@ function displayDDMMYYYY(isoOrDateStr) {
 // 1. Passcode & Lock Screen
 // ==========================================
 function updateLockClock() {
+  const statusTime = document.getElementById('status-time');
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+  
+  if (statusTime) {
+    statusTime.textContent = timeStr;
+  }
+
   const timeEl = document.getElementById('lock-time');
   const calEl = document.getElementById('lock-calendar');
-  if (!timeEl || !calEl) return;
-
-  const now = new Date();
-  timeEl.textContent = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  calEl.textContent = now.toLocaleDateString(appState.language === 'km' ? 'km-KH' : 'en-US', options);
+  if (timeEl) timeEl.textContent = timeStr;
+  if (calEl) {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    calEl.textContent = now.toLocaleDateString(appState.language === 'km' ? 'km-KH' : 'en-US', options);
+  }
 }
 
 function pressPin(num) {
@@ -180,7 +187,7 @@ function pressPin(num) {
     appState.enteredPin += num;
     updatePinDots();
     if (appState.enteredPin.length === 4) {
-      setTimeout(() => verifyPin(), 100);
+      setTimeout(() => verifyPin(), 120);
     }
   }
 }
@@ -199,9 +206,9 @@ function updatePinDots() {
   const dots = document.querySelectorAll('#pin-dots div');
   dots.forEach((dot, idx) => {
     if (idx < appState.enteredPin.length) {
-      dot.className = 'w-3.5 h-3.5 rounded-full bg-orange-400 border border-orange-400 scale-110 transition-all duration-200';
+      dot.className = 'w-3.5 h-3.5 rounded-full bg-white border-2 border-white scale-105 transition-all duration-150 shadow-[0_0_10px_rgba(255,255,255,0.8)]';
     } else {
-      dot.className = 'w-3.5 h-3.5 rounded-full border border-slate-500 transition-all duration-200';
+      dot.className = 'w-3.5 h-3.5 rounded-full border-2 border-white/60 bg-transparent transition-all duration-150';
     }
   });
 }
@@ -1305,47 +1312,48 @@ function getDashboardViewHTML() {
       </div>
     </div>
 
-    <!-- AI & TOOLS SECTION (100% Exact Official iOS App Icons: ChatGPT, Claude, Gemini, Google Translate) -->
+    <!-- AI & TOOLS SECTION (Clean iPhone Home Screen Style - No Inner Box, Pure App Icons) -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
-      <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center justify-between mb-4">
         <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
           <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>
-          <span>ឧបករណ៍ AI & បកប្រែភាសា</span>
+          <span>ឧបករណ៍ AI & បកប្រែ</span>
         </h3>
         <span class="text-[10px] text-purple-400 font-mono font-semibold">Quick Launch</span>
       </div>
 
-      <div class="grid grid-cols-4 gap-2">
-        <!-- 1. ChatGPT (Exact 100% iOS App Store Icon) -->
+      <!-- Pure iPhone Springboard Icon Grid (Spacious & Clean) -->
+      <div class="flex items-center justify-around px-2">
+        <!-- 1. ChatGPT -->
         <a href="https://chatgpt.com" target="_blank" 
-           class="flex flex-col items-center justify-center p-2 rounded-2xl bg-black/25 hover:bg-white/5 border border-white/5 hover:border-white/20 active:scale-95 transition group text-center">
+           class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center">
           <img src="chatgpt-ios.png" alt="ChatGPT" 
-               class="w-11 h-11 rounded-[12px] object-cover shadow-lg shadow-black/40 group-hover:scale-105 transition mb-1.5 border border-white/10">
-          <span class="text-[10px] text-white font-semibold">ChatGPT</span>
+               class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
+          <span class="text-[11px] text-slate-200 font-medium tracking-tight">ChatGPT</span>
         </a>
 
-        <!-- 2. Claude (Exact 100% iOS App Store Icon) -->
+        <!-- 2. Claude -->
         <a href="https://claude.ai" target="_blank" 
-           class="flex flex-col items-center justify-center p-2 rounded-2xl bg-black/25 hover:bg-white/5 border border-white/5 hover:border-white/20 active:scale-95 transition group text-center">
+           class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center">
           <img src="claude-ios.png" alt="Claude" 
-               class="w-11 h-11 rounded-[12px] object-cover shadow-lg shadow-black/40 group-hover:scale-105 transition mb-1.5 border border-white/10">
-          <span class="text-[10px] text-white font-semibold">Claude</span>
+               class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
+          <span class="text-[11px] text-slate-200 font-medium tracking-tight">Claude</span>
         </a>
 
-        <!-- 3. Gemini (Exact 100% iOS App Store Icon) -->
+        <!-- 3. Gemini -->
         <a href="https://gemini.google.com" target="_blank" 
-           class="flex flex-col items-center justify-center p-2 rounded-2xl bg-black/25 hover:bg-white/5 border border-white/5 hover:border-white/20 active:scale-95 transition group text-center">
+           class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center">
           <img src="gemini-ios.png" alt="Gemini" 
-               class="w-11 h-11 rounded-[12px] object-cover shadow-lg shadow-black/40 group-hover:scale-105 transition mb-1.5 border border-white/10">
-          <span class="text-[10px] text-white font-semibold">Gemini</span>
+               class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
+          <span class="text-[11px] text-slate-200 font-medium tracking-tight">Gemini</span>
         </a>
 
-        <!-- 4. Google Translate (Exact 100% iOS App Store Icon) -->
+        <!-- 4. Google Translate -->
         <a href="https://translate.google.com/?sl=en&tl=km" target="_blank" 
-           class="flex flex-col items-center justify-center p-2 rounded-2xl bg-black/25 hover:bg-white/5 border border-white/5 hover:border-white/20 active:scale-95 transition group text-center">
+           class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center">
           <img src="translate-ios.png" alt="Google Translate" 
-               class="w-11 h-11 rounded-[12px] object-cover shadow-lg shadow-black/40 group-hover:scale-105 transition mb-1.5 border border-white/10">
-          <span class="text-[10px] text-white font-semibold">Translate</span>
+               class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
+          <span class="text-[11px] text-slate-200 font-medium tracking-tight">Translate</span>
         </a>
       </div>
     </div>
