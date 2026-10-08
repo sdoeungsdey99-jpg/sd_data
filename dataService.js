@@ -72,6 +72,47 @@ async function fetchGoogleSheetGViz(gid) {
   return JSON.parse(match[1]);
 }
 
+// Fetch Google Sheet tab as raw CSV for 100% faithful cell extraction without GViz header stripping
+async function fetchGoogleSheetCSV(gid) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP Error ${response.status} when fetching CSV gid=${gid}`);
+  }
+  const text = await response.text();
+  return parseCSV(text);
+}
+
+function parseCSV(text) {
+  const lines = text.replace(/\r/g, '').split('\n');
+  const rows = [];
+  for (const line of lines) {
+    if (!line && rows.length > 0) continue;
+    const row = [];
+    let inQuotes = false;
+    let cur = '';
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (c === ',' && !inQuotes) {
+        row.push(cur);
+        cur = '';
+      } else {
+        cur += c;
+      }
+    }
+    row.push(cur);
+    rows.push(row);
+  }
+  return rows;
+}
+
 window.DataService = {
   data: null,
   isLoading: false,
@@ -99,10 +140,10 @@ window.DataService = {
     }
 
     try {
-      const [psGviz, expGviz, bankGviz, teamGviz] = await Promise.all([
+      const [psGviz, expGviz, bankCsvRows, teamGviz] = await Promise.all([
         fetchGoogleSheetGViz('1802751802'), // Personal Sales
         fetchGoogleSheetGViz('1413782774'), // Daily Expenses
-        fetchGoogleSheetGViz('1381982614'), // Bank & Cash Balance
+        fetchGoogleSheetCSV('1381982614'),  // Bank & Cash Balance (CSV for 100% faithful cell extraction)
         fetchGoogleSheetGViz('30391871')    // Team Monthly View
       ]);
 
@@ -202,72 +243,65 @@ window.DataService = {
       }
 
       // ==========================================
-      // 3. Process Bank & Cash Balance
+      // 3. Process Bank & Cash Balance (from CSV)
       // ==========================================
-      const bankRows = bankGviz.table.rows;
       const accounts = [];
       const payables = [];
-      const pendingCodReceivables = []; // Exact Pending COD from Bank & Cash Balance table (Rows 17 to end)
+      const pendingCodReceivables = [];
       let pureUsdTotal = 0;
       let pureKhrTotal = 0;
 
-      // Extract Bank Accounts (Rows 3 to 12)
-      for (let i = 3; i <= 12 && i < bankRows.length; i++) {
-        const cells = bankRows[i].c;
-        if (!cells) continue;
-        const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
+      // Extract 10 Bank Accounts (Rows 4 to 13 in CSV)
+      for (let i = 4; i <= 13 && i < bankCsvRows.length; i++) {
+        const r = bankCsvRows[i];
+        if (!r || r.length < 4) continue;
+        const no = String(r[0] || '').trim();
+        const name = String(r[1] || '').trim();
+        if (!name || isNaN(parseInt(no))) continue;
 
-        const name = String(getCell(1) || '').trim();
-        if (!name) continue;
-
-        const usdVal = cleanNumber(getCell(2));
-        const khrVal = cleanNumber(getCell(3));
+        const usdVal = cleanNumber(r[2]);
+        const khrVal = cleanNumber(r[3]);
         accounts.push({ name, usd: usdVal, khr: khrVal });
 
-        const isPureUsd = [
-          'ABA Main (USD)', 'ABA Boosting', 'ABA Stock',
-          'ABA Saving កូនរៀន', 'ABA Reserve / Safety',
-          'ACLEDA (USD)', 'កាបូបក្រៅ (USD)'
-        ].some(k => name.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(name.toLowerCase()));
-
-        if (isPureUsd && !name.includes('(KHR)')) {
+        if (!name.includes('(KHR)')) {
           pureUsdTotal += usdVal;
-        }
-
-        if (name.includes('(KHR)')) {
+        } else {
           pureKhrTotal += khrVal;
         }
       }
 
       // Net Cash Position Summary
       const netCashPosition = {
-        totalNetCash: cleanNumber(bankRows[1]?.c[4]?.v),
-        totalActualCash: cleanNumber(bankRows[3]?.c[8]?.v),
-        pendingCodReceivables: cleanNumber(bankRows[4]?.c[8]?.v),
-        totalLiquidAssets: cleanNumber(bankRows[5]?.c[8]?.v),
-        totalAccountsPayable: cleanNumber(bankRows[6]?.c[8]?.v),
-        netCashPositionFinal: cleanNumber(bankRows[7]?.c[8]?.v),
-        healthStatus: String(bankRows[8]?.c[8]?.v || 'សុវត្ថិភាពខ្ពស់'),
-        coverageRatio: String(bankRows[9]?.c[8]?.v || '12.76x')
+        totalNetCash: cleanNumber(bankCsvRows[2]?.[4] || bankCsvRows[8]?.[8]),
+        totalActualCash: cleanNumber(bankCsvRows[4]?.[8]),
+        pendingCodReceivables: cleanNumber(bankCsvRows[5]?.[8]),
+        totalLiquidAssets: cleanNumber(bankCsvRows[6]?.[8]),
+        totalAccountsPayable: cleanNumber(bankCsvRows[7]?.[8]),
+        netCashPositionFinal: cleanNumber(bankCsvRows[8]?.[8]),
+        healthStatus: String(bankCsvRows[9]?.[8] || '✅ សុវត្ថិភាពខ្ពស់').trim(),
+        coverageRatio: String(bankCsvRows[10]?.[8] || '10.39x').trim()
       };
 
-      // Extract Accounts Receivable / Pending COD table directly from Bank & Cash Balance (Rows 17 to end, Columns A to G)
-      for (let i = 17; i < bankRows.length; i++) {
-        const cells = bankRows[i].c;
-        if (!cells) continue;
-        const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
-        const getFormatted = (idx) => (idx < cells.length && cells[idx] && cells[idx].f) ? cells[idx].f : getCell(idx);
+      // Extract Accounts Receivable / Pending COD table (Rows 20 to end)
+      for (let i = 20; i < bankCsvRows.length; i++) {
+        const r = bankCsvRows[i];
+        if (!r || r.length < 7) continue;
+        const no = String(r[0] || '').trim();
+        if (!no || isNaN(parseInt(no))) continue;
 
-        const no = String(getCell(0) || '').trim();
-        const dateRaw = String(getCell(1) || '').trim();
-        const qtyBoxes = String(getCell(4) || '').trim();
-        const amt = cleanNumber(getCell(5));
-        const status = String(getCell(6) || '').trim();
+        const dateRaw = String(r[1] || '').trim();
+        const carrier = String(r[2] || '').trim();
+        const customer = String(r[3] || '').trim();
+        const qtyBoxes = String(r[4] || '').trim();
+        const amt = cleanNumber(r[5]);
+        const status = String(r[6] || '').trim();
 
         if (dateRaw && (amt > 0 || status)) {
           pendingCodReceivables.push({
-            no: no || `${i - 16}`,
+            no: no,
             date: formatToDDMMYYYY(dateRaw),
+            carrier,
+            customer,
             qtyBoxes: qtyBoxes ? `${qtyBoxes} ប្រអប់` : '—',
             amount: amt,
             status: status || 'រង់ចាំទូទាត់'
@@ -275,14 +309,15 @@ window.DataService = {
         }
       }
 
-      // Extract Payables List (Rows 17 to 26, Columns H to K)
-      for (let i = 17; i < bankRows.length; i++) {
-        const cells = bankRows[i].c;
-        if (!cells) continue;
-        const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
+      // Extract Accounts Payable List (Rows 20 to end, Columns H to K)
+      for (let i = 20; i < bankCsvRows.length; i++) {
+        const r = bankCsvRows[i];
+        if (!r || r.length < 11) continue;
+        const pNo = String(r[7] || '').trim();
+        if (!pNo || isNaN(parseInt(pNo))) continue;
 
-        const title = String(getCell(8) || '').trim();
-        const amount = cleanNumber(getCell(10));
+        const title = String(r[8] || '').trim();
+        const amount = cleanNumber(r[10]);
 
         if (title && amount > 0) {
           payables.push({ title, amount });
