@@ -909,7 +909,7 @@ function getDashboardViewHTML() {
       </div>
     </div>
 
-    <!-- AI & TOOLS SECTION (100% Exact Official Brand Logos: ChatGPT, Claude, Gemini, Google Translate) -->
+    <!-- AI & TOOLS SECTION (100% Exact Official iOS App Icons: ChatGPT, Claude, Gemini, Google Translate) -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
@@ -920,49 +920,35 @@ function getDashboardViewHTML() {
       </div>
 
       <div class="grid grid-cols-4 gap-2">
-        <!-- 1. ChatGPT (Exact 100% OpenAI Spiral Floral Logo) -->
+        <!-- 1. ChatGPT (Exact 100% iOS App Store Icon) -->
         <a href="https://chatgpt.com" target="_blank" 
-           class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-black/25 hover:bg-[#10A37F]/15 border border-white/5 hover:border-[#10A37F]/40 active:scale-95 transition group text-center">
-          <div class="w-10 h-10 rounded-2xl bg-[#10A37F] flex items-center justify-center mb-1.5 shadow-md shadow-[#10A37F]/20 group-hover:scale-105 transition">
-            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.8956zm16.0993 3.8558L12.5973 8.3829l2.0201-1.1638a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.4021-.686zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.4071 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.6648zm-11.458 4.485L12 11.5337l2.9972 1.7289v3.4578L12 18.4493l-2.9972-1.7289zm-1.8499-4.8553l2.0201-1.1639a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.4021-.686z"/>
-            </svg>
-          </div>
+           class="flex flex-col items-center justify-center p-2 rounded-2xl bg-black/25 hover:bg-white/5 border border-white/5 hover:border-white/20 active:scale-95 transition group text-center">
+          <img src="chatgpt-ios.png" alt="ChatGPT" 
+               class="w-11 h-11 rounded-[12px] object-cover shadow-lg shadow-black/40 group-hover:scale-105 transition mb-1.5 border border-white/10">
           <span class="text-[10px] text-white font-semibold">ChatGPT</span>
         </a>
 
-        <!-- 2. Claude (Exact 100% Anthropic Claude Terracotta Star Logo) -->
+        <!-- 2. Claude (Exact 100% iOS App Store Icon) -->
         <a href="https://claude.ai" target="_blank" 
-           class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-black/25 hover:bg-[#D97706]/15 border border-white/5 hover:border-[#D97706]/40 active:scale-95 transition group text-center">
-          <div class="w-10 h-10 rounded-2xl bg-[#CC785C] flex items-center justify-center mb-1.5 shadow-md shadow-[#CC785C]/20 group-hover:scale-105 transition">
-            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L13.8 8.2L20 10L13.8 11.8L12 18L10.2 11.8L4 10L10.2 8.2L12 2Z"/>
-              <path d="M17.5 15.5L18.4 18.6L21.5 19.5L18.4 20.4L17.5 23.5L16.6 20.4L13.5 19.5L16.6 18.6L17.5 15.5Z"/>
-              <path d="M6.5 2.5L7.4 5.6L10.5 6.5L7.4 7.4L6.5 10.5L5.6 7.4L2.5 6.5L5.6 5.6L6.5 2.5Z"/>
-            </svg>
-          </div>
+           class="flex flex-col items-center justify-center p-2 rounded-2xl bg-black/25 hover:bg-white/5 border border-white/5 hover:border-white/20 active:scale-95 transition group text-center">
+          <img src="claude-ios.png" alt="Claude" 
+               class="w-11 h-11 rounded-[12px] object-cover shadow-lg shadow-black/40 group-hover:scale-105 transition mb-1.5 border border-white/10">
           <span class="text-[10px] text-white font-semibold">Claude</span>
         </a>
 
-        <!-- 3. Gemini (Exact 100% Google Gemini Gradient Sparkle Logo) -->
+        <!-- 3. Gemini (Exact 100% iOS App Store Icon) -->
         <a href="https://gemini.google.com" target="_blank" 
-           class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-black/25 hover:bg-blue-500/15 border border-white/5 hover:border-blue-500/40 active:scale-95 transition group text-center">
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#1E88E5] via-[#7B1FA2] to-[#FF4081] flex items-center justify-center mb-1.5 shadow-md shadow-blue-500/20 group-hover:scale-105 transition">
-            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"/>
-            </svg>
-          </div>
+           class="flex flex-col items-center justify-center p-2 rounded-2xl bg-black/25 hover:bg-white/5 border border-white/5 hover:border-white/20 active:scale-95 transition group text-center">
+          <img src="gemini-ios.png" alt="Gemini" 
+               class="w-11 h-11 rounded-[12px] object-cover shadow-lg shadow-black/40 group-hover:scale-105 transition mb-1.5 border border-white/10">
           <span class="text-[10px] text-white font-semibold">Gemini</span>
         </a>
 
-        <!-- 4. Google Translate (Exact 100% Google Translate G & 文 App Icon) -->
+        <!-- 4. Google Translate (Exact 100% iOS App Store Icon) -->
         <a href="https://translate.google.com/?sl=en&tl=km" target="_blank" 
-           class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-black/25 hover:bg-blue-500/15 border border-white/5 hover:border-blue-500/40 active:scale-95 transition group text-center">
-          <div class="w-10 h-10 rounded-2xl bg-[#1A73E8] flex items-center justify-center mb-1.5 shadow-md shadow-[#1A73E8]/20 group-hover:scale-105 transition">
-            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
-            </svg>
-          </div>
+           class="flex flex-col items-center justify-center p-2 rounded-2xl bg-black/25 hover:bg-white/5 border border-white/5 hover:border-white/20 active:scale-95 transition group text-center">
+          <img src="translate-ios.png" alt="Google Translate" 
+               class="w-11 h-11 rounded-[12px] object-cover shadow-lg shadow-black/40 group-hover:scale-105 transition mb-1.5 border border-white/10">
           <span class="text-[10px] text-white font-semibold">Translate</span>
         </a>
       </div>
