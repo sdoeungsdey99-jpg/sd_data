@@ -623,55 +623,44 @@ function getDashboardViewHTML() {
     <!-- UNIFIED SALES & EXPENSES PERFORMANCE CARD (តូចល្មម និងតែមួយដូចរូបទី ២) -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10 relative overflow-hidden">
       
-      <!-- Top Card Header: Title on Left (2 rows), Shortcut (+) & View Sales on Right -->
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30">
-            <i data-lucide="bar-chart" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-xs uppercase tracking-wider text-white leading-tight">
-              📊 សង្ខេបការលក់ & ចំណាយ
-            </h3>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight">Sales & Expense Performance</p>
-          </div>
+      <!-- Top Card Header: Title (Clean without action buttons) -->
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30">
+          <i data-lucide="bar-chart" class="w-4 h-4"></i>
         </div>
-
-        <div class="flex items-center gap-1.5">
-          <!-- Shortcut (+) to AppSheet / Custom Form -->
-          <button onclick="openExpenseShortcut()" 
-                  oncontextmenu="openShortcutModal(event)"
-                  title="ចុចដើម្បីបើក AppSheet (ចុចស្តាំដើម្បីកំណត់ Link)"
-                  class="w-7 h-7 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 flex items-center justify-center active:scale-95 transition shadow-sm">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-          </button>
-
-          <!-- View Sales Drill-down Button -->
-          <button onclick="openPersonalSalesModal()" 
-                  class="px-2 py-1 rounded-xl bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:text-white font-bold text-[11px] flex items-center gap-0.5 active:scale-95 transition">
-            <span>${appState.language === 'en' ? 'View' : 'មើល'}</span>
-            <i data-lucide="chevron-right" class="w-3 h-3"></i>
-          </button>
+        <div>
+          <h3 class="font-bold text-xs uppercase tracking-wider text-white leading-tight">
+            📊 សង្ខេបការលក់ & ចំណាយ
+          </h3>
+          <p class="text-[10px] text-slate-400 font-mono leading-tight">Sales & Expense Performance</p>
         </div>
       </div>
 
       <!-- 4 Mini Grid Boxes (2x2 layout matching Image 2) -->
       <div class="grid grid-cols-2 gap-2 text-xs mb-2.5">
         
-        <!-- Box 1: Total Box Qty (clickable) -->
+        <!-- Box 1: Total Box Qty (With View / មើល > Button) -->
         <div onclick="openPersonalSalesModal()" 
-             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-orange-500/30 transition group">
-          <span class="text-slate-400 text-[10px] block leading-tight mb-1">
-            ${t('totalBoxes')}:
-          </span>
-          <div class="flex items-baseline gap-1">
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-orange-500/30 transition group flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-slate-400 text-[10px] leading-tight">
+              ${t('totalBoxes')}:
+            </span>
+            <!-- View Sales Drill-down Button inside Grid 1 -->
+            <button onclick="event.stopPropagation(); openPersonalSalesModal()" 
+                    class="px-1.5 py-0.5 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:text-white font-bold text-[10px] flex items-center gap-0.5 active:scale-95 transition">
+              <span>${appState.language === 'en' ? 'View' : 'មើល'}</span>
+              <i data-lucide="chevron-right" class="w-2.5 h-2.5"></i>
+            </button>
+          </div>
+          <div class="flex items-baseline gap-1 mt-0.5">
             <span class="font-mono text-white font-bold text-base tracking-tight">${formatInt(totalBoxQty)}</span>
             <span class="text-[10px] text-slate-400 font-sans">${t('boxUnit')}</span>
           </div>
         </div>
 
         <!-- Box 2: Total Revenue -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">
             ${t('revenue')}:
           </span>
@@ -679,19 +668,28 @@ function getDashboardViewHTML() {
         </div>
 
         <!-- Box 3: Gross Profit -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">
             ${t('grossProfit')}:
           </span>
           <span class="font-mono text-blue-400 font-bold text-base tracking-tight">${formatUSD(totalGrossProfit)}</span>
         </div>
 
-        <!-- Box 4: Monthly Expense (always according to selected month) -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-          <span class="text-slate-400 text-[10px] block leading-tight mb-1">
-            ចំណាយខែ ${selectedMonthNum}:
-          </span>
-          <span class="font-mono text-rose-400 font-bold text-base tracking-tight">${formatUSD(monthlyTotalExpenseAmt)}</span>
+        <!-- Box 4: Monthly Expense (With Shortcut (+) Button) -->
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-slate-400 text-[10px] leading-tight">
+              ចំណាយខែ ${selectedMonthNum}:
+            </span>
+            <!-- Shortcut (+) to AppSheet / Custom Form inside Grid 4 -->
+            <button onclick="openExpenseShortcut()" 
+                    oncontextmenu="openShortcutModal(event)"
+                    title="ចុចដើម្បីបើក AppSheet (ចុចស្តាំដើម្បីកំណត់ Link)"
+                    class="w-5 h-5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 flex items-center justify-center active:scale-95 transition shadow-sm">
+              <i data-lucide="plus" class="w-3 h-3"></i>
+            </button>
+          </div>
+          <span class="font-mono text-rose-400 font-bold text-base tracking-tight mt-0.5">${formatUSD(monthlyTotalExpenseAmt)}</span>
         </div>
 
       </div>
