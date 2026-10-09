@@ -416,26 +416,32 @@ function setupPullToRefresh() {
   });
 }
 
-// Keep Bottom Dock Permanently Stable, allow sticky filter bar to auto-collapse on scroll down
+// Smart Dock & Sticky Filter Bar iOS Auto-Hide:
+// - Scrolling content up (finger moving up) -> Dock & Filter Bar hide smoothly
+// - Scrolling content down (finger moving down) or screen stops/still -> Dock restores smoothly
 function setupSmartDockScroll() {
   const main = document.getElementById('main-content');
   const dock = document.getElementById('bottom-dock');
   const filterBar = document.getElementById('sticky-filter-bar');
   if (!main || !dock) return;
 
-  // Ensure dock is always visible and stable
-  dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+  dock.classList.remove('dock-hidden');
 
   let lastScrollTop = 0;
+  let scrollIdleTimer = null;
 
   main.addEventListener('scroll', () => {
     const currentScrollTop = main.scrollTop;
     const diff = currentScrollTop - lastScrollTop;
 
-    // Filter bar auto-collapses when scrolling down, restores when scrolling up
-    if (diff > 10 && currentScrollTop > 50) {
+    // 1. Scrolling content up (finger moving up, going deeper into content) -> Smoothly hide Dock & Filter Bar
+    if (diff > 8 && currentScrollTop > 40) {
+      dock.classList.add('dock-hidden');
       if (filterBar) filterBar.classList.add('filter-hidden');
-    } else if (diff < -6 || currentScrollTop <= 15) {
+    }
+    // 2. Scrolling content down (finger moving down, going towards top) -> Immediately restore Dock & Filter Bar
+    else if (diff < -6 || currentScrollTop <= 15) {
+      dock.classList.remove('dock-hidden');
       if (filterBar && appState.currentView === 'dashboard') {
         filterBar.classList.remove('filter-hidden');
       }
@@ -443,13 +449,19 @@ function setupSmartDockScroll() {
 
     lastScrollTop = currentScrollTop;
 
-    // Auto-load 5 more words when near bottom in Study / Learning view
+    // 3. Auto-load 5 more words when near bottom in Study / Learning view
     if (appState.currentView === 'learning') {
       const scrollBottom = main.scrollHeight - main.scrollTop - main.clientHeight;
       if (scrollBottom < 120) {
         loadMoreStudyWords();
       }
     }
+
+    // 4. When scrolling stops / screen is still -> Smoothly restore Dock!
+    clearTimeout(scrollIdleTimer);
+    scrollIdleTimer = setTimeout(() => {
+      dock.classList.remove('dock-hidden');
+    }, 450);
   }, { passive: true });
 }
 
@@ -672,6 +684,11 @@ function switchView(viewName) {
     } else {
       main.classList.remove('settings-view-active');
     }
+  }
+
+  const dock = document.getElementById('bottom-dock');
+  if (dock) {
+    dock.classList.remove('dock-hidden');
   }
 
   if (viewName === 'dashboard') {

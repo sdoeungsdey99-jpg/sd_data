@@ -379,6 +379,16 @@
       pointer-events: none !important;
       overflow: hidden !important;
     }
+    /* Bottom Dock iOS Auto-Hide & Smooth Slide/Spring */
+    #bottom-dock {
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease !important;
+      will-change: transform, opacity;
+    }
+    #bottom-dock.dock-hidden {
+      transform: translateY(6.5rem) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
     /* Search Result Highlight */
     mark.search-highlight {
       background: #F59E0B;
@@ -992,6 +1002,6 @@
   </div>
 
   <script src="dataService.js"></script>
-  <script src="app.js?v=2.5"></script>
+  <script src="app.js?v=2.6"></script>
 </body>
 </html>
