@@ -179,6 +179,40 @@
       animation: starTwinkleMoon 3.2s infinite ease-in-out;
     }
 
+    /* Strict Anti-Drift Lock: Prevent any horizontal swaying/rubberbanding on iPhone Safari */
+    html, body {
+      overflow-x: hidden !important;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      overscroll-behavior-x: none !important;
+    }
+    #app-container {
+      overflow-x: hidden !important;
+      width: 100%;
+      position: relative;
+    }
+
+    /* Prevent Safari Callout & Enable 120Hz ProMotion Native Scroll strictly vertical */
+    * {
+      -webkit-touch-callout: none !important;
+      box-sizing: border-box;
+    }
+    .ios-glass-card {
+      touch-action: pan-y !important;
+      -webkit-user-select: none !important;
+      user-select: none !important;
+    }
+    #main-content {
+      -webkit-overflow-scrolling: touch !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      overscroll-behavior-y: contain !important;
+      overscroll-behavior-x: none !important;
+      touch-action: pan-y !important;
+      scroll-behavior: auto !important;
+    }
+
     /* Long Press Card Scale & Slim Capsule */
     .card-pressing {
       transform: scale(0.98) !important;
@@ -603,7 +637,7 @@
 
           <!-- iPhone UI Mini Calendar Popover Container -->
           <div id="day-dropdown-menu" 
-               class="hidden absolute top-full left-0 mt-2 w-72 bg-[#0C1425]/95 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl p-3.5 z-50 flex flex-col gap-2.5">
+               class="hidden absolute top-full left-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-[#0C1425]/95 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl p-3.5 z-50 flex flex-col gap-2.5">
             <!-- Rendered dynamically by renderMiniCalendar() in app.js -->
           </div>
         </div>
@@ -951,6 +985,6 @@
   </div>
 
   <script src="dataService.js"></script>
-  <script src="app.js?v=2.3"></script>
+  <script src="app.js?v=2.4"></script>
 </body>
 </html>
