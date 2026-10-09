@@ -20,14 +20,14 @@ const translations = {
     today: 'ថ្ងៃ',
     thisMonth: 'ខែ',
     thisYear: 'ឆ្នាំ',
-    custom: 'កំណត់',
+    custom: 'ជ្រើសរើស',
     totalBoxes: 'ចំនួនលក់សរុប (ចុចមើល)',
     revenue: 'ចំណូលលក់សរុប',
     grossProfit: 'ចំណេញដុល (Profit)',
     expenses: 'ចំណាយសរុប',
     boxUnit: 'ប្រអប់',
     pendingCodTitle: '📦 លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់',
-    pendingCodHint: 'Bank & Cash Balance (Receivables)',
+    pendingCodHint: 'Accounts Receivable (Pending COD)',
     netCashTitle: '📈 សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash Position)',
     actualCash: 'សរុបសាច់ប្រាក់ជាក់ស្តែង',
     pendingCod: 'លុយ COD រង់ចាំទូទាត់',
@@ -125,8 +125,17 @@ const appState = {
   isLocked: localStorage.getItem('sd_pin_enabled') !== 'false' && !sessionStorage.getItem('sd_unlocked'),
   enteredPin: '',
   correctPin: localStorage.getItem('sd_pin') || '1234',
+  lockWallpaper: localStorage.getItem('sd_lock_wallpaper') || 'wp-deep-mesh',
+  analyticsMonthKey: 'all', // 'all' or 'YYYY-MM'
   hasReadNotifications: false
 };
+
+function getLocalIsoDate(d = new Date()) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 function t(key) {
   const lang = appState.language === 'en' ? 'en' : 'km';
@@ -176,6 +185,20 @@ function getKhmerDateText(date) {
   const day = date.getDate();
   const month = khMonths[date.getMonth()];
   return `${dayName} ទី ${day} ${month}`;
+}
+
+function applyLockWallpaper(wpClass) {
+  const lockScreen = document.getElementById('lock-screen');
+  if (!lockScreen) return;
+  lockScreen.classList.remove('wp-deep-mesh', 'wp-midnight-purple', 'wp-pure-oled', 'wp-emerald-aurora');
+  lockScreen.classList.add(wpClass || 'wp-deep-mesh');
+}
+
+function setLockWallpaper(wpClass) {
+  appState.lockWallpaper = wpClass;
+  localStorage.setItem('sd_lock_wallpaper', wpClass);
+  applyLockWallpaper(wpClass);
+  renderCurrentView();
 }
 
 function updateLockClock() {
@@ -276,6 +299,7 @@ function togglePinEnabled() {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   applyTheme(appState.theme);
+  applyLockWallpaper(appState.lockWallpaper);
 
   setInterval(updateLockClock, 1000);
   updateLockClock();
@@ -364,10 +388,11 @@ function setupPullToRefresh() {
   });
 }
 
-// Smart Dock Auto-Hide on Fast Scroll Down, Re-appear on Scroll Up or Stop
+// Smart Dock & Filter Bar Auto-Hide on Scroll Down, Re-appear on Scroll Up or Stop
 function setupSmartDockScroll() {
   const main = document.getElementById('main-content');
   const dock = document.getElementById('bottom-dock');
+  const filterBar = document.getElementById('sticky-filter-bar');
   if (!main || !dock) return;
 
   let lastScrollTop = 0;
@@ -378,20 +403,23 @@ function setupSmartDockScroll() {
     const diff = currentScrollTop - lastScrollTop;
 
     // Scrolling down strongly
-    if (diff > 15 && currentScrollTop > 80) {
+    if (diff > 12 && currentScrollTop > 60) {
       dock.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+      if (filterBar) filterBar.classList.add('filter-hidden');
     } 
     // Scrolling up even slightly or near top
-    else if (diff < -5 || currentScrollTop <= 30) {
+    else if (diff < -5 || currentScrollTop <= 20) {
       dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+      if (filterBar) filterBar.classList.remove('filter-hidden');
     }
 
     lastScrollTop = currentScrollTop;
 
-    // When scrolling stops, automatically restore dock after 600ms
+    // When scrolling stops, automatically restore dock and filter bar after 600ms
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
       dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+      if (filterBar) filterBar.classList.remove('filter-hidden');
     }, 600);
   }, { passive: true });
 }
@@ -399,6 +427,209 @@ function setupSmartDockScroll() {
 function toggleHideBalance() {
   appState.hideBalance = !appState.hideBalance;
   renderCurrentView();
+}
+
+// ==========================================
+// Native App Launcher & iOS Search Engine
+// ==========================================
+function launchNativeOrWeb(nativeScheme, webUrl) {
+  const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isIos && nativeScheme) {
+    const start = Date.now();
+    window.location.href = nativeScheme;
+    setTimeout(() => {
+      // If user did not leave the browser (native app not installed), fallback to web
+      if (Date.now() - start < 1600 && document.visibilityState === 'visible') {
+        window.open(webUrl, '_blank');
+      }
+    }, 1100);
+  } else {
+    window.open(webUrl, '_blank');
+  }
+}
+
+function openSearchBar() {
+  const bar = document.getElementById('header-search-bar');
+  const modal = document.getElementById('search-results-modal');
+  const input = document.getElementById('global-search-input');
+  if (bar) bar.classList.remove('hidden');
+  if (modal) modal.classList.remove('hidden');
+  if (input) {
+    input.focus();
+    handleGlobalSearch(input.value);
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeSearchBar() {
+  const bar = document.getElementById('header-search-bar');
+  const modal = document.getElementById('search-results-modal');
+  const input = document.getElementById('global-search-input');
+  if (input) input.value = '';
+  if (bar) bar.classList.add('hidden');
+  if (modal) modal.classList.add('hidden');
+  const container = document.getElementById('search-results-container');
+  if (container) container.innerHTML = '';
+}
+
+function highlightSearchText(text, query) {
+  if (!text) return '';
+  const str = String(text);
+  if (!query || !query.trim()) return str;
+  const q = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${q})`, 'gi');
+  return str.replace(regex, '<mark class="search-highlight bg-amber-400 text-slate-950 font-bold px-1 rounded-sm">$1</mark>');
+}
+
+function handleGlobalSearch(query) {
+  const container = document.getElementById('search-results-container');
+  if (!container) return;
+
+  const q = (query || '').trim().toLowerCase();
+  if (!q) {
+    container.innerHTML = `
+      <div class="py-16 text-center text-slate-400">
+        <i data-lucide="search" class="w-8 h-8 mx-auto mb-2 opacity-40 text-orange-400"></i>
+        <p class="text-xs">វាយបញ្ចូលពាក្យដើម្បីស្វែងរកទិន្នន័យ...</p>
+        <p class="text-[10px] text-slate-500 mt-1">ស្វែងរកអតិថិជន, លេខទូរស័ព្ទ, ទីតាំង, Order, ឬការចំណាយពី Google Sheet</p>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  const d = DataService.data;
+  if (!d) {
+    container.innerHTML = '<p class="text-xs text-slate-400 text-center py-10">មិនទាន់មានទិន្នន័យពី Google Sheet...</p>';
+    return;
+  }
+
+  // 1. Search in Personal Sales (Customer, OrderID, Phone, Location, Date)
+  const matchedSales = (d.personalSales || []).filter(s => {
+    return (s.customer && s.customer.toLowerCase().includes(q)) ||
+           (s.orderId && s.orderId.toLowerCase().includes(q)) ||
+           (s.phone && s.phone.toLowerCase().includes(q)) ||
+           (s.location && s.location.toLowerCase().includes(q)) ||
+           (s.product && s.product.toLowerCase().includes(q)) ||
+           (s.date && s.date.toLowerCase().includes(q));
+  });
+
+  // 2. Search in Expenses (Description, Category, Date)
+  const matchedExpenses = (d.expenses || []).filter(e => {
+    return (e.description && e.description.toLowerCase().includes(q)) ||
+           (e.category && e.category.toLowerCase().includes(q)) ||
+           (e.date && e.date.toLowerCase().includes(q));
+  });
+
+  // 3. Search in Bank Accounts
+  const matchedBank = (d.bank?.accounts || []).filter(b => {
+    return (b.bank && b.bank.toLowerCase().includes(q)) ||
+           (b.accountName && b.accountName.toLowerCase().includes(q));
+  });
+
+  const totalMatches = matchedSales.length + matchedExpenses.length + matchedBank.length;
+
+  if (totalMatches === 0) {
+    container.innerHTML = `
+      <div class="py-16 text-center text-slate-400">
+        <i data-lucide="alert-circle" class="w-8 h-8 mx-auto mb-2 opacity-40 text-rose-400"></i>
+        <p class="text-xs">រកមិនឃើញទិន្នន័យដែលត្រូវនឹង “${query}” ទេ</p>
+        <p class="text-[10px] text-slate-500 mt-1">សូមសាកល្បងវាយឈ្មោះអតិថិជន ឬលេខទូរស័ព្ទផ្សេងទៀត</p>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  let html = `
+    <div class="text-[11px] text-slate-400 pb-1 border-b border-white/10 flex items-center justify-between">
+      <span>លទ្ធផលស្វែងរក: <strong class="text-white">${totalMatches}</strong> ជួរ</span>
+      <span class="text-[10px] text-orange-400">Google Sheet Live</span>
+    </div>
+  `;
+
+  if (matchedSales.length > 0) {
+    html += `
+      <div class="pt-2">
+        <div class="flex items-center gap-1.5 text-xs font-bold text-orange-400 mb-2">
+          <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+          <span>អតិថិជន & ការលក់ (${matchedSales.length})</span>
+        </div>
+        <div class="space-y-2">
+          ${matchedSales.slice(0, 30).map(item => `
+            <div class="p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-orange-500/30 transition flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-bold text-xs text-white">${highlightSearchText(item.customer, q)}</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 font-mono">${highlightSearchText(item.orderId, q)}</span>
+                </div>
+                <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.totalAmount)}</span>
+              </div>
+              <div class="text-[11px] text-slate-400 flex items-center justify-between">
+                <span>📍 ${highlightSearchText(item.location || '—', q)}</span>
+                <span>📞 ${highlightSearchText(item.phone || '—', q)}</span>
+              </div>
+              <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
+                <span>កាលបរិច្ឆេទ: <strong class="text-white">${highlightSearchText(item.date, q)}</strong></span>
+                <span>ប្រអប់: <strong class="text-white">${item.totalBoxQty}</strong></span>
+                <span>ចំណេញ: <strong class="text-blue-400">${formatUSD(item.profit)}</strong></span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  if (matchedExpenses.length > 0) {
+    html += `
+      <div class="pt-4">
+        <div class="flex items-center gap-1.5 text-xs font-bold text-rose-400 mb-2">
+          <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
+          <span>ការចំណាយ (${matchedExpenses.length})</span>
+        </div>
+        <div class="space-y-2">
+          ${matchedExpenses.slice(0, 20).map(item => `
+            <div class="p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-rose-500/30 transition flex flex-col gap-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-white">${highlightSearchText(item.description || item.category, q)}</span>
+                <span class="font-mono text-rose-400 font-bold text-xs">${formatUSD(item.amount)}</span>
+              </div>
+              <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                <span>កាលបរិច្ឆេទ: <strong class="text-white">${highlightSearchText(item.date, q)}</strong></span>
+                <span>ប្រភេទ: <strong class="text-slate-300">${highlightSearchText(item.category || 'ទូទៅ', q)}</strong></span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  if (matchedBank.length > 0) {
+    html += `
+      <div class="pt-4">
+        <div class="flex items-center gap-1.5 text-xs font-bold text-blue-400 mb-2">
+          <i data-lucide="landmark" class="w-3.5 h-3.5"></i>
+          <span>គណនីធនាគារ (${matchedBank.length})</span>
+        </div>
+        <div class="space-y-2">
+          ${matchedBank.map(item => `
+            <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
+              <div>
+                <span class="font-bold text-xs text-white">${highlightSearchText(item.bank, q)}</span>
+                <p class="text-[10px] text-slate-400">${highlightSearchText(item.accountName, q)}</p>
+              </div>
+              <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.usdBalance || 0)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+  if (window.lucide) window.lucide.createIcons();
 }
 
 // ==========================================
@@ -424,6 +655,16 @@ function switchView(viewName) {
       filterBar.classList.remove('hidden');
     } else {
       filterBar.classList.add('hidden');
+    }
+  }
+
+  // Profile block in Header: visible always EXCEPT when in 'settings' (or clicking profile itself)
+  const headerProfile = document.getElementById('header-profile-block');
+  if (headerProfile) {
+    if (viewName === 'settings') {
+      headerProfile.classList.add('invisible', 'pointer-events-none');
+    } else {
+      headerProfile.classList.remove('invisible', 'pointer-events-none');
     }
   }
 
@@ -469,7 +710,7 @@ function renderMiniCalendar() {
   const monthTitle = `${khmerMonths[calendarViewMonth - 1]} ${calendarViewYear}`;
 
   const now = new Date();
-  const realTodayIso = now.toISOString().slice(0, 10);
+  const realTodayIso = getLocalIsoDate(now);
   
   // Selected date ISO
   let selectedIso = '';
@@ -478,7 +719,7 @@ function renderMiniCalendar() {
   } else if (appState.daySubFilter === 'yesterday') {
     const y = new Date();
     y.setDate(y.getDate() - 1);
-    selectedIso = y.toISOString().slice(0, 10);
+    selectedIso = getLocalIsoDate(y);
   } else {
     selectedIso = realTodayIso;
   }
@@ -607,10 +848,29 @@ function selectDayFilter(subMode, event) {
   appState.daySubFilter = subMode; // 'today' or 'yesterday'
   appState.specificDate = null;
   
-  // Update Day Pill Label
-  const labelEl = document.getElementById('day-pill-label');
-  if (labelEl) {
-    labelEl.textContent = subMode === 'yesterday' ? 'ម្សិលមិញ' : 'ថ្ងៃ';
+  if (subMode === 'today') {
+    // When clicking "Today", reset Month and Year to current phone date
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonthNum = now.getMonth() + 1;
+    const curMonthKey = `${curYear}-${String(curMonthNum).padStart(2, '0')}`;
+    
+    appState.selectedYear = curYear;
+    appState.selectedMonthKey = curMonthKey;
+    calendarViewYear = curYear;
+    calendarViewMonth = curMonthNum;
+
+    // Reset pill labels to defaults
+    const labelEl = document.getElementById('day-pill-label');
+    if (labelEl) labelEl.textContent = 'ថ្ងៃ';
+    const monthLabelEl = document.getElementById('month-pill-label');
+    if (monthLabelEl) monthLabelEl.textContent = 'ខែ';
+    const yearLabelEl = document.getElementById('year-pill-label');
+    if (yearLabelEl) yearLabelEl.textContent = 'ឆ្នាំ';
+  } else {
+    // Update Day Pill Label for yesterday
+    const labelEl = document.getElementById('day-pill-label');
+    if (labelEl) labelEl.textContent = 'ម្សិលមិញ';
   }
 
   setPeriodFilter('today');
@@ -697,7 +957,8 @@ function renderYearDropdownMenu() {
   if (!menu) return;
 
   const currentYear = (new Date()).getFullYear();
-  const years = [currentYear, currentYear - 1, currentYear - 2];
+  // Include 2028, 2027, 2026, 2025 as requested
+  const years = [2028, 2027, 2026, 2025];
   const activeYear = appState.selectedYear || currentYear;
 
   menu.innerHTML = years.map(y => {
@@ -893,7 +1154,7 @@ function getDashboardViewHTML() {
   }
 
   const now = new Date();
-  const currentIsoDay = now.toISOString().slice(0, 10);
+  const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
 
@@ -910,21 +1171,18 @@ function getDashboardViewHTML() {
     } else if (appState.daySubFilter === 'yesterday') {
       const yDate = new Date();
       yDate.setDate(yDate.getDate() - 1);
-      const yesterdayIsoDay = yDate.toISOString().slice(0, 10);
-      const hasYesterday = d.personalSales.some(s => s.isoDate === yesterdayIsoDay);
-      const targetIsoDay = hasYesterday ? yesterdayIsoDay : (d.personalSales[1]?.isoDate || '2026-08-11');
-      filteredSales = d.personalSales.filter(s => s.isoDate === targetIsoDay);
-      filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
-      activePeriodDisplay = `ម្សិលមិញ (${displayDDMMYYYY(targetIsoDay)})`;
+      const yesterdayIsoDay = getLocalIsoDate(yDate);
+      filteredSales = d.personalSales.filter(s => s.isoDate === yesterdayIsoDay);
+      filteredExpenses = d.expenses.filter(e => e.isoDate === yesterdayIsoDay);
+      activePeriodDisplay = `ម្សិលមិញ (${displayDDMMYYYY(yesterdayIsoDay)})`;
     } else {
-      const hasToday = d.personalSales.some(s => s.isoDate === currentIsoDay);
-      const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
-      filteredSales = d.personalSales.filter(s => s.isoDate === targetIsoDay);
-      filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
-      activePeriodDisplay = `ថ្ងៃនេះ (${displayDDMMYYYY(targetIsoDay)})`;
+      // Live device today date - always sync with phone date
+      filteredSales = d.personalSales.filter(s => s.isoDate === currentIsoDay);
+      filteredExpenses = d.expenses.filter(e => e.isoDate === currentIsoDay);
+      activePeriodDisplay = `ថ្ងៃនេះ (${displayDDMMYYYY(currentIsoDay)})`;
     }
   } else if (appState.periodFilter === 'month') {
-    const targetMonth = appState.selectedMonthKey || (d.personalSales.some(s => s.isoDate.startsWith(currentIsoMonth)) ? currentIsoMonth : '2026-10');
+    const targetMonth = appState.selectedMonthKey || currentIsoMonth;
     filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(targetMonth));
     filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonth));
     const parts = targetMonth.split('-');
@@ -945,18 +1203,16 @@ function getDashboardViewHTML() {
   // Monthly Expense & Budget ($450/mo target) Calculation based on selected period
   let targetMonthKey = currentIsoMonth; // 'YYYY-MM'
   if (appState.periodFilter === 'month') {
-    targetMonthKey = appState.selectedMonthKey || (d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth)) ? currentIsoMonth : '2026-10');
+    targetMonthKey = appState.selectedMonthKey || currentIsoMonth;
   } else if (appState.periodFilter === 'today') {
     if (appState.daySubFilter === 'specific' && appState.specificDate) {
       targetMonthKey = appState.specificDate.slice(0, 7);
     } else if (appState.daySubFilter === 'yesterday') {
       const yDate = new Date();
       yDate.setDate(yDate.getDate() - 1);
-      targetMonthKey = yDate.toISOString().slice(0, 7);
+      targetMonthKey = getLocalIsoDate(yDate).slice(0, 7);
     } else {
-      const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
-      const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
-      targetMonthKey = targetIsoDay.slice(0, 7);
+      targetMonthKey = currentIsoMonth;
     }
   } else if (appState.periodFilter === 'custom' && appState.customStartDate) {
     targetMonthKey = appState.customStartDate.slice(0, 7);
@@ -1362,39 +1618,39 @@ function getDashboardViewHTML() {
         <span class="text-[10px] text-purple-400 font-mono font-semibold">Quick Launch</span>
       </div>
 
-      <!-- Pure iPhone Springboard Icon Grid (Spacious & Clean) -->
+      <!-- Pure iPhone Springboard Icon Grid (Spacious & Clean with Native App Schemes) -->
       <div class="flex items-center justify-around px-2">
         <!-- 1. ChatGPT -->
-        <a href="https://chatgpt.com" target="_blank" 
-           class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center">
+        <button onclick="launchNativeOrWeb('chatgpt://', 'https://chatgpt.com')" 
+                class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center cursor-pointer">
           <img src="chatgpt-ios.png" alt="ChatGPT" 
                class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
           <span class="text-[11px] text-slate-200 font-medium tracking-tight">ChatGPT</span>
-        </a>
+        </button>
 
         <!-- 2. Claude -->
-        <a href="https://claude.ai" target="_blank" 
-           class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center">
+        <button onclick="launchNativeOrWeb('claude://', 'https://claude.ai')" 
+                class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center cursor-pointer">
           <img src="claude-ios.png" alt="Claude" 
                class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
           <span class="text-[11px] text-slate-200 font-medium tracking-tight">Claude</span>
-        </a>
+        </button>
 
         <!-- 3. Gemini -->
-        <a href="https://gemini.google.com" target="_blank" 
-           class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center">
+        <button onclick="launchNativeOrWeb('googleapp://', 'https://gemini.google.com')" 
+                class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center cursor-pointer">
           <img src="gemini-ios.png" alt="Gemini" 
                class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
           <span class="text-[11px] text-slate-200 font-medium tracking-tight">Gemini</span>
-        </a>
+        </button>
 
         <!-- 4. Google Translate -->
-        <a href="https://translate.google.com/?sl=en&tl=km" target="_blank" 
-           class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center">
+        <button onclick="launchNativeOrWeb('googletranslate://', 'https://translate.google.com/?sl=en&tl=km')" 
+                class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center cursor-pointer">
           <img src="translate-ios.png" alt="Google Translate" 
                class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
           <span class="text-[11px] text-slate-200 font-medium tracking-tight">Translate</span>
-        </a>
+        </button>
       </div>
     </div>
   `;
@@ -1403,6 +1659,11 @@ function getDashboardViewHTML() {
 // ==========================================
 // 5. View: Analytics
 // ==========================================
+function setAnalyticsMonth(monthKey) {
+  appState.analyticsMonthKey = monthKey;
+  renderCurrentView();
+}
+
 function getAnalyticsViewHTML() {
   const d = DataService.data;
   if (!d) return '<p class="text-xs text-slate-400 text-center py-20">Loading Diagram...</p>';
@@ -1419,8 +1680,171 @@ function getAnalyticsViewHTML() {
   const months = Object.keys(monthlyStats).sort();
   const maxRevenue = Math.max(...months.map(m => monthlyStats[m].revenue), 100);
 
+  // Month selector buttons
+  const isAll = appState.analyticsMonthKey === 'all' || !appState.analyticsMonthKey;
+  const activeMonth = isAll ? 'all' : appState.analyticsMonthKey;
+
+  const monthTabsHtml = `
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
+      <button onclick="setAnalyticsMonth('all')" 
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        ✨ ពេញមួយឆ្នាំ
+      </button>
+      ${months.map(m => {
+        const parts = m.split('-');
+        const isSelected = activeMonth === m;
+        return `
+          <button onclick="setAnalyticsMonth('${m}')" 
+                  class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+            ខែ ${parts[1]}
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  // Render Daily Drill-down if a specific month is selected
+  if (!isAll) {
+    const monthSales = d.personalSales.filter(s => s.isoDate.startsWith(activeMonth));
+    const parts = activeMonth.split('-');
+    const monthTitle = `ខែ ${parts[1]}/${parts[0]}`;
+
+    // Group by day
+    const dailyMap = {};
+    monthSales.forEach(s => {
+      const dayIso = s.isoDate;
+      if (!dailyMap[dayIso]) {
+        dailyMap[dayIso] = { date: s.date, isoDate: dayIso, revenue: 0, profit: 0, qty: 0, count: 0 };
+      }
+      dailyMap[dayIso].revenue += s.totalAmount || 0;
+      dailyMap[dayIso].profit += s.profit || 0;
+      dailyMap[dayIso].qty += s.totalBoxQty || 0;
+      dailyMap[dayIso].count += 1;
+    });
+
+    const daysSorted = Object.keys(dailyMap).sort(); // chronological
+    const maxDailyRevenue = Math.max(...daysSorted.map(day => dailyMap[day].revenue), 10);
+    const monthTotalRevenue = daysSorted.reduce((sum, day) => sum + dailyMap[day].revenue, 0);
+    const monthTotalProfit = daysSorted.reduce((sum, day) => sum + dailyMap[day].profit, 0);
+    const monthTotalBoxes = daysSorted.reduce((sum, day) => sum + dailyMap[day].qty, 0);
+
+    return `
+      <div class="space-y-4">
+        <!-- Month Selector Pills -->
+        ${monthTabsHtml}
+
+        <!-- Month Hero Card -->
+        <div class="ios-glass-card rounded-3xl p-5 border border-white/10 relative overflow-hidden">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-sm text-white">${monthTitle} - ការវិភាគតាមថ្ងៃ</h3>
+                <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">Daily Trend</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-0.5">តាមដានកំណើនឡើងចុះនៃការលក់ប្រចាំថ្ងៃ</p>
+            </div>
+            <button onclick="setAnalyticsMonth('all')" class="text-xs text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1">
+              <span>ពេញមួយឆ្នាំ</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Quick Month Stats Grid -->
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <div class="p-2.5 rounded-2xl bg-black/30 border border-white/5 text-center">
+              <span class="text-[10px] text-slate-400 block mb-0.5">ចំណូលសរុប</span>
+              <span class="font-mono text-xs font-bold text-emerald-400">${formatUSD(monthTotalRevenue)}</span>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-black/30 border border-white/5 text-center">
+              <span class="text-[10px] text-slate-400 block mb-0.5">ចំណេញដុល</span>
+              <span class="font-mono text-xs font-bold text-blue-400">${formatUSD(monthTotalProfit)}</span>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-black/30 border border-white/5 text-center">
+              <span class="text-[10px] text-slate-400 block mb-0.5">លក់បាន</span>
+              <span class="font-mono text-xs font-bold text-amber-300">${monthTotalBoxes} ប្រអប់</span>
+            </div>
+          </div>
+
+          <!-- Daily Bar Chart (Horizontal Scrolling if many days) -->
+          <div class="overflow-x-auto pb-2 scrollbar-none">
+            <div class="h-48 min-w-[280px] flex items-end gap-2 pt-6 pb-2 px-1 border-b border-white/10">
+              ${daysSorted.map((dayIso, idx) => {
+                const item = dailyMap[dayIso];
+                const dayNum = dayIso.split('-')[2];
+                const barHeight = Math.max(14, Math.round((item.revenue / maxDailyRevenue) * 120));
+                const prevItem = idx > 0 ? dailyMap[daysSorted[idx - 1]] : null;
+                const isUp = prevItem ? item.revenue >= prevItem.revenue : true;
+                return `
+                  <div class="flex-1 min-w-[28px] flex flex-col items-center gap-1 group">
+                    <span class="text-[7.5px] font-mono font-bold text-amber-300 block text-center leading-none">
+                      $${Math.round(item.revenue)}
+                    </span>
+                    <div class="w-full max-w-[20px] rounded-t-md ${isUp ? 'bg-gradient-to-t from-emerald-600 to-teal-400' : 'bg-gradient-to-t from-rose-600 to-amber-500'} shadow-md transition-all group-hover:scale-110" 
+                         style="height: ${barHeight}px"></div>
+                    <span class="text-[9px] text-slate-300 font-mono font-semibold">${dayNum}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Trend Ups & Downs List (Reverse: Latest Day First) -->
+        <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300 mb-3">
+            📈 ការប្រែប្រួលឡើង-ចុះប្រចាំថ្ងៃ (${daysSorted.length} ថ្ងៃ)
+          </h4>
+          <div class="space-y-2">
+            ${[...daysSorted].reverse().map(dayIso => {
+              const item = dailyMap[dayIso];
+              const curIdx = daysSorted.indexOf(dayIso);
+              const prevIso = curIdx > 0 ? daysSorted[curIdx - 1] : null;
+              const prevItem = prevIso ? dailyMap[prevIso] : null;
+              let trendBadge = '<span class="text-slate-400 text-[10px]">—</span>';
+              if (prevItem) {
+                const diff = item.revenue - prevItem.revenue;
+                if (diff > 0) {
+                  trendBadge = `<span class="text-emerald-400 text-[10px] font-mono font-bold">▲ +${formatUSD(diff)}</span>`;
+                } else if (diff < 0) {
+                  trendBadge = `<span class="text-rose-400 text-[10px] font-mono font-bold">▼ -${formatUSD(Math.abs(diff))}</span>`;
+                } else {
+                  trendBadge = `<span class="text-slate-400 text-[10px] font-mono">■ ស្មើ</span>`;
+                }
+              }
+
+              return `
+                <div class="flex items-center justify-between p-3 rounded-2xl bg-black/25 border border-white/5">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-7 h-7 rounded-xl bg-orange-500/20 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                      ${dayIso.split('-')[2]}
+                    </span>
+                    <div>
+                      <span class="text-xs font-semibold text-white block">${item.date || dayIso}</span>
+                      <span class="text-[10px] text-slate-400 font-mono">${item.qty} ប្រអប់ (${item.count} orders)</span>
+                    </div>
+                  </div>
+                  <div class="text-right flex flex-col items-end">
+                    <span class="font-mono text-xs text-emerald-400 font-bold">${formatUSD(item.revenue)}</span>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                      <span class="text-[10px] text-blue-400 font-mono">ចំណេញ ${formatUSD(item.profit)}</span>
+                      ${trendBadge}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Otherwise, render full year 2026 Overview
   return `
     <div class="space-y-4">
+      <!-- Month Selector Pills -->
+      ${monthTabsHtml}
+
       <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
         <div class="flex items-center justify-between mb-4">
           <div>
@@ -1436,7 +1860,7 @@ function getAnalyticsViewHTML() {
             const revHeight = Math.max(16, Math.round((stat.revenue / maxRevenue) * 140));
             const moName = m.split('-')[1];
             return `
-              <div class="flex-1 flex flex-col items-center gap-1.5 group">
+              <div onclick="setAnalyticsMonth('${m}')" class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                 <span class="text-[8px] font-mono font-bold text-amber-300 tracking-tighter block text-center leading-none">
                   $${Math.round(stat.revenue)}
                 </span>
@@ -1453,7 +1877,7 @@ function getAnalyticsViewHTML() {
         <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300 mb-3">${appState.language === 'en' ? 'Monthly Summary Table' : 'តារាងសង្ខេបចំណូល-ចំណេញតាមខែ'}</h4>
         <div class="space-y-2">
           ${months.slice(-6).reverse().map(m => `
-            <div class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5">
+            <div onclick="setAnalyticsMonth('${m}')" class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5 hover:border-orange-500/30 cursor-pointer transition">
               <div>
                 <span class="text-xs font-semibold text-white block">${appState.language === 'en' ? 'Month' : 'ខែ'} ${m.split('-')[1]}/${m.split('-')[0]}</span>
                 <span class="text-[10px] text-slate-400 font-mono">${monthlyStats[m].qty} ${t('boxUnit')}</span>
@@ -1518,17 +1942,71 @@ function getSettingsViewHTML() {
   return `
     <div class="space-y-4">
       
-      <!-- Profile Header (Phone number removed as requested, only in About Me) -->
+      <!-- Profile Header (Slightly larger with centered Blue Tick as requested) -->
       <div class="flex flex-col items-center text-center py-4">
         <div class="relative mb-3">
           <img src="profile.png" alt="SDEY SDOEUNG" 
-               class="w-20 h-20 rounded-full object-cover border-3 border-orange-500 shadow-xl">
+               class="w-24 h-24 rounded-full object-cover border-4 border-orange-500 shadow-2xl">
+          <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
         </div>
-        <div class="flex items-center gap-1.5">
-          <h2 class="text-lg font-bold text-white">ស្តី ស្តើង</h2>
+        <div class="flex items-center justify-center gap-1.5 mt-1">
+          <h2 class="text-xl font-bold text-white tracking-wide">ស្តី ស្តើង</h2>
           <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
         </div>
-        <p class="text-xs text-orange-400 font-semibold tracking-wider">SDEY SDOEUNG</p>
+        <p class="text-xs text-orange-400 font-semibold tracking-wider uppercase mt-0.5">SDEY SDOEUNG</p>
+      </div>
+
+      <!-- Lock Screen Wallpaper Selector -->
+      <div class="bg-[#0F1B2E] rounded-2xl p-4 border border-white/10 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="image" class="w-4 h-4 text-orange-400"></i>
+            <h4 class="text-xs font-bold text-white">ផ្ទាំងរូបភាពអេក្រង់ចាក់សោរ (Wallpaper)</h4>
+          </div>
+          <span class="text-[10px] text-slate-400 font-mono">4 ម៉ូដ</span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- 1. Deep Mesh -->
+          <button onclick="setLockWallpaper('wp-deep-mesh')" 
+                  class="p-2.5 rounded-xl border flex items-center gap-2.5 transition active:scale-95 ${appState.lockWallpaper === 'wp-deep-mesh' ? 'bg-orange-500/20 border-orange-500 text-white' : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'}">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-900 via-blue-950 to-slate-900 border border-white/20 shrink-0"></div>
+            <div class="text-left">
+              <p class="text-xs font-semibold leading-tight">Deep Mesh</p>
+              <span class="text-[9px] text-slate-400">ស្តង់ដារ iOS</span>
+            </div>
+          </button>
+
+          <!-- 2. Midnight Purple -->
+          <button onclick="setLockWallpaper('wp-midnight-purple')" 
+                  class="p-2.5 rounded-xl border flex items-center gap-2.5 transition active:scale-95 ${appState.lockWallpaper === 'wp-midnight-purple' ? 'bg-orange-500/20 border-orange-500 text-white' : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'}">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-950 via-slate-950 to-indigo-950 border border-white/20 shrink-0"></div>
+            <div class="text-left">
+              <p class="text-xs font-semibold leading-tight">Midnight</p>
+              <span class="text-[9px] text-slate-400">ស្វាយរាត្រី</span>
+            </div>
+          </button>
+
+          <!-- 3. Pure OLED -->
+          <button onclick="setLockWallpaper('wp-pure-oled')" 
+                  class="p-2.5 rounded-xl border flex items-center gap-2.5 transition active:scale-95 ${appState.lockWallpaper === 'wp-pure-oled' ? 'bg-orange-500/20 border-orange-500 text-white' : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'}">
+            <div class="w-8 h-8 rounded-lg bg-black border border-white/30 shrink-0"></div>
+            <div class="text-left">
+              <p class="text-xs font-semibold leading-tight">Pure OLED</p>
+              <span class="text-[9px] text-slate-400">ខ្មៅសុទ្ធសន្សំថ្ម</span>
+            </div>
+          </button>
+
+          <!-- 4. Emerald Aurora -->
+          <button onclick="setLockWallpaper('wp-emerald-aurora')" 
+                  class="p-2.5 rounded-xl border flex items-center gap-2.5 transition active:scale-95 ${appState.lockWallpaper === 'wp-emerald-aurora' ? 'bg-orange-500/20 border-orange-500 text-white' : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'}">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-950 via-teal-950 to-black border border-white/20 shrink-0"></div>
+            <div class="text-left">
+              <p class="text-xs font-semibold leading-tight">Aurora</p>
+              <span class="text-[9px] text-slate-400">បៃតងរស្មី</span>
+            </div>
+          </button>
+        </div>
       </div>
 
       <!-- Security Card (With Passcode On/Off Toggle & Change PIN) -->
@@ -1891,10 +2369,10 @@ function setLanguage(lang) {
 function openExpenseShortcut() {
   const customUrl = localStorage.getItem('sd_shortcut_url');
   if (customUrl && customUrl.trim()) {
-    window.open(customUrl.trim(), '_blank');
+    launchNativeOrWeb('appsheet://', customUrl.trim());
   } else {
     // Default: AppSheet / Quick Expense Logger
-    window.open('https://www.appsheet.com', '_blank');
+    launchNativeOrWeb('appsheet://', 'https://www.appsheet.com');
   }
 }
 
