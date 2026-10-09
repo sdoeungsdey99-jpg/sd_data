@@ -27,7 +27,7 @@ const translations = {
     expenses: 'ចំណាយសរុប',
     boxUnit: 'ប្រអប់',
     pendingCodTitle: '📦 លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់',
-    pendingCodHint: 'Accounts Receivable (Pending COD)',
+    pendingCodHint: 'Outstanding customer payment',
     netCashTitle: '📈 សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash Position)',
     actualCash: 'សរុបសាច់ប្រាក់ជាក់ស្តែង',
     pendingCod: 'លុយ COD រង់ចាំទូទាត់',
@@ -42,7 +42,7 @@ const translations = {
     homeDock: 'ទំព័រដើម',
     analyticsDock: 'វិភាគ',
     orderDock: 'Order',
-    learningDock: 'អង់គ្លេស',
+    learningDock: 'សិក្សា',
     settingsDock: 'កំណត់',
     settingsTitle: 'ការកំណត់',
     protectApp: 'ការពារ SD Data របស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
@@ -77,8 +77,8 @@ const translations = {
     grossProfit: 'Gross Profit',
     expenses: 'Total Expenses',
     boxUnit: 'Boxes',
-    pendingCodTitle: '📦 Accounts Receivable (Pending COD)',
-    pendingCodHint: 'Swipe 4-ways to view all from Bank & Cash Balance',
+    pendingCodTitle: '📦 Outstanding customer payment',
+    pendingCodHint: 'Outstanding customer payment',
     netCashTitle: '📈 Net Cash Position Summary',
     actualCash: 'Total Actual Cash',
     pendingCod: 'Pending COD / Receivables',
@@ -93,7 +93,7 @@ const translations = {
     homeDock: 'Home',
     analyticsDock: 'Analytics',
     orderDock: 'Order',
-    learningDock: 'English',
+    learningDock: 'Study',
     settingsDock: 'Settings',
     settingsTitle: 'Settings',
     protectApp: 'Protect your SD Data with 4-digit PIN',
@@ -1391,7 +1391,7 @@ function getDashboardViewHTML() {
             <h3 class="font-bold text-xs uppercase tracking-wider text-amber-300 leading-tight">
               ${t('pendingCodTitle')}
             </h3>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Bank & Cash Balance (Receivables)</p>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">${t('pendingCodHint')}</p>
           </div>
         </div>
         <span class="text-[10px] px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold border border-amber-500/30 shadow-sm shrink-0">
