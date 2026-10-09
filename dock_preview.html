@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Preview: បា ថ្ងៃទី & Dock សិក្សា</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Dock Base Styling */
+    .telegram-dock {
+      background: rgba(14, 24, 38, 0.94);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.18);
+      transition: all 0.3s ease;
+    }
+    .dock-btn {
+      transition: color 0.2s ease;
+    }
+    .dock-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* ⚙️ Settings Gear Spin */
+    .gear-spin {
+      transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dock-btn:hover .gear-spin {
+      transform: rotate(60deg);
+    }
+
+    /* 📈 វិភាគ (ANALYTICS): Arrow Loop */
+    @keyframes arrowGlideContinuousLoop {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(3px, -3px); }
+    }
+    .chart-arrow-loop {
+      animation: arrowGlideContinuousLoop 1.8s infinite ease-in-out;
+    }
+
+    /* 🔄 សិក្សា (STUDY): A ⇄ 文 Position Swap */
+    @keyframes diagonalSwapA {
+      0%, 40% { transform: translate(4px, 3px) scale(1.05); opacity: 1; }
+      50%, 90% { transform: translate(-4px, -3px) scale(0.92); opacity: 0.95; }
+      100% { transform: translate(4px, 3px) scale(1.05); opacity: 1; }
+    }
+
+    @keyframes diagonalSwapWen {
+      0%, 40% { transform: translate(-4px, -3px) scale(0.92); opacity: 0.95; }
+      50%, 90% { transform: translate(4px, 3px) scale(1.05); opacity: 1; }
+      100% { transform: translate(-4px, -3px) scale(0.92); opacity: 0.95; }
+    }
+
+    .diag-a { animation: diagonalSwapA 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
+    .diag-wen { animation: diagonalSwapWen 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /* Sticky Bar Transitions */
+    #preview-filter-bar {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Light Mode Overrides */
+    .preview-light-mode {
+      background-color: #F8FAFC !important;
+      color: #0F172A !important;
+    }
+    .preview-light-mode .card-box {
+      background: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.05) !important;
+      color: #0F172A !important;
+    }
+    .preview-light-mode .telegram-dock {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12) !important;
+    }
+    .preview-light-mode #preview-filter-bar {
+      background: rgba(255, 255, 255, 0.96) !important;
+      border-color: #E2E8F0 !important;
+    }
+    .preview-light-mode .filter-pill-bg {
+      background: #F1F5F9 !important;
+      border-color: #E2E8F0 !important;
+    }
+    .preview-light-mode .text-main-title {
+      color: #0F172A !important;
+    }
+    .preview-light-mode .text-muted-desc {
+      color: #64748B !important;
+    }
+    .preview-light-mode .border-subtle {
+      border-color: #E2E8F0 !important;
+    }
+    .preview-light-mode .calendar-popover {
+      background: rgba(255, 255, 255, 0.98) !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15) !important;
+      color: #0F172A !important;
+    }
+  </style>
+</head>
+<body id="preview-body" class="bg-[#070D18] text-white p-3 font-sans antialiased select-none transition-colors duration-300 min-h-screen">
+
+  <div class="max-w-md mx-auto space-y-4">
+    
+    <!-- Top Mode Toggle Bar -->
+    <div class="card-box bg-[#0F1B2E] border border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-xl">
+      <div>
+        <h3 class="text-xs font-bold text-main-title flex items-center gap-1.5">
+          <span>✨ Live Preview: បា ថ្ងៃទី & Dock សិក្សា</span>
+        </h3>
+        <p class="text-[10px] text-muted-desc mt-0.5">ដំណោះស្រាយបញ្ហាចន្លោះទទេរ និងប៊ូតុង</p>
+      </div>
+
+      <!-- Mode Switcher Pill -->
+      <div class="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10 filter-pill-bg">
+        <button onclick="setPreviewMode('dark')" id="mode-dark-btn" 
+                class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-orange-500 text-white shadow">
+          🌙 Dark
+        </button>
+        <button onclick="setPreviewMode('light')" id="mode-light-btn" 
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition text-slate-400 hover:text-white">
+          ☀️ Light
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 1. BAR ថ្ងៃទី (DATE FILTER BAR) PREVIEW                  -->
+    <!-- ======================================================== -->
+    <div class="card-box bg-[#0F1B2E] border border-white/10 rounded-3xl p-4 shadow-xl space-y-3">
+      <div class="flex items-center justify-between border-b border-subtle pb-2">
+        <div class="flex items-center gap-1.5">
+          <span class="text-orange-400">📅</span>
+          <span class="text-xs font-bold text-main-title">១. បា ថ្ងៃទី (ទម្រង់ថ្មី៖ ថ្ងៃទី + កាលបរិច្ឆេទ)</span>
+        </div>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-bold border border-orange-500/30">
+          Auto Height (គ្មានចន្លោះទទេ)
+        </span>
+      </div>
+
+      <!-- Interactive Pills Bar -->
+      <div id="preview-filter-bar" class="p-2 rounded-2xl bg-black/40 border border-white/5 filter-pill-bg flex flex-col gap-1.5">
+        <div class="flex items-center gap-1 w-full">
+          
+          <!-- 1. Day Pill (ថ្ងៃទី ០៩ ⌄) -->
+          <div class="relative flex-1">
+            <button onclick="toggleDayCalendar()" id="pill-day-btn" 
+                    class="w-full py-1.5 px-2 rounded-xl text-xs font-bold text-center transition bg-orange-500 text-white shadow-md flex items-center justify-center gap-1">
+              <span id="demo-day-label">ថ្ងៃទី ០៩</span>
+              <svg class="w-3 h-3 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+
+            <!-- Mini Calendar Dropdown Popover Demo -->
+            <div id="preview-calendar-popover" 
+                 class="hidden absolute top-full left-0 mt-2 w-72 bg-[#0C1425]/98 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl p-3 z-50 calendar-popover">
+              <div class="flex items-center justify-between pb-2 border-b border-subtle">
+                <span class="text-xs font-bold">តុលា ២០២៦</span>
+                <span class="text-[10px] text-orange-400 font-mono">ថ្ងៃនេះ</span>
+              </div>
+              <div class="grid grid-cols-7 gap-1 text-center py-2 text-[10px] font-semibold text-muted-desc">
+                <span>អា</span><span>ច</span><span>អ</span><span>ព</span><span>ព្រ</span><span>សុ</span><span>ស</span>
+              </div>
+              <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                <span class="p-1 opacity-20">28</span><span class="p-1 opacity-20">29</span><span class="p-1 opacity-20">30</span>
+                <button onclick="pickDate('01')" class="p-1 rounded-full hover:bg-orange-500/20">1</button>
+                <button onclick="pickDate('02')" class="p-1 rounded-full hover:bg-orange-500/20">2</button>
+                <button onclick="pickDate('03')" class="p-1 rounded-full hover:bg-orange-500/20">3</button>
+                <button onclick="pickDate('04')" class="p-1 rounded-full hover:bg-orange-500/20">4</button>
+                <button onclick="pickDate('05')" class="p-1 rounded-full hover:bg-orange-500/20">5</button>
+                <button onclick="pickDate('06')" class="p-1 rounded-full hover:bg-orange-500/20">6</button>
+                <button onclick="pickDate('07')" class="p-1 rounded-full hover:bg-orange-500/20">7</button>
+                <button onclick="pickDate('08')" class="p-1 rounded-full hover:bg-orange-500/20">8</button>
+                <button onclick="pickDate('09')" class="p-1 rounded-full bg-orange-500 text-white font-bold shadow">9</button>
+                <button onclick="pickDate('10')" class="p-1 rounded-full hover:bg-orange-500/20">10</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Month Pill -->
+          <button onclick="selectPeriod('month')" id="pill-month-btn" 
+                  class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition text-slate-400 hover:text-white flex items-center justify-center gap-1">
+            <span>ខែ ១០</span>
+            <svg class="w-3 h-3 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <!-- 3. Year Pill -->
+          <button onclick="selectPeriod('year')" id="pill-year-btn" 
+                  class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition text-slate-400 hover:text-white flex items-center justify-center gap-1">
+            <span>២០២៦</span>
+            <svg class="w-3 h-3 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <!-- 4. Custom Filter Pill -->
+          <button onclick="toggleCustomFilter()" id="pill-custom-btn" 
+                  class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition text-slate-400 hover:text-white flex items-center justify-center gap-0.5">
+            <span>ជ្រើសរើស</span>
+            <svg class="w-3 h-3 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </button>
+        </div>
+
+        <!-- Custom Date Range Row (Hidden until 'ជ្រើសរើស' is clicked - NO empty gap when hidden) -->
+        <div id="demo-custom-container" class="hidden flex items-center justify-between gap-2 p-2 bg-black/50 rounded-xl border border-white/10 text-xs">
+          <div class="flex items-center gap-1 flex-1">
+            <span class="text-slate-400 text-[10px]">ពី:</span>
+            <input type="date" value="2026-10-01" class="bg-white/10 rounded px-1.5 py-1 text-white text-[11px] w-full focus:outline-none">
+          </div>
+          <div class="flex items-center gap-1 flex-1">
+            <span class="text-slate-400 text-[10px]">ដល់:</span>
+            <input type="date" value="2026-10-09" class="bg-white/10 rounded px-1.5 py-1 text-white text-[11px] w-full focus:outline-none">
+          </div>
+          <button class="px-2.5 py-1 rounded bg-orange-500 text-white font-semibold text-[11px]">យល់ព្រម</button>
+        </div>
+      </div>
+
+      <!-- Test Scroll Simulation -->
+      <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
+        <span class="text-muted-desc">តេស្តលាក់បារពេល Scroll៖</span>
+        <button onclick="simulateFilterHide()" id="btn-toggle-filter" class="px-3 py-1 rounded-lg bg-orange-500/20 text-orange-400 font-bold border border-orange-500/30">
+          លាក់បា ថ្ងៃទី (Scroll Down)
+        </button>
+      </div>
+
+      <!-- Mock Content underneath to prove NO empty space is left -->
+      <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-1">
+        <div class="flex items-center justify-between font-bold text-emerald-400">
+          <span>✓ ផ្ទាំងទិន្នន័យខាងក្រោមរត់ឡើងភ្លាមៗ</span>
+          <span>$12,450.00</span>
+        </div>
+        <p class="text-[11px] text-muted-desc">
+          នៅពេលបា ថ្ងៃទី លាក់ខ្លួន កាតខាងក្រោមនេះនឹងរត់ឡើងមកជំនួសកន្លែងដោយគ្មានសល់ផ្ទៃទទេរឡើយ!
+        </p>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 2. DOCK «សិក្សា» PREVIEW                                  -->
+    <!-- ======================================================== -->
+    <div class="card-box bg-[#0F1B2E] border border-white/10 rounded-3xl p-4 shadow-xl space-y-3">
+      <div class="flex items-center justify-between border-b border-subtle pb-2">
+        <div class="flex items-center gap-1.5">
+          <span class="text-orange-400">📚</span>
+          <span class="text-xs font-bold text-main-title">២. Dock «សិក្សា» (ស្លាកអក្សរស្ងៀម ១០០% + Icon A ⇄ 文 រត់)</span>
+        </div>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+          Label Static
+        </span>
+      </div>
+
+      <!-- Telegram Floating Dock Mockup -->
+      <nav class="w-full h-16 rounded-full telegram-dock flex items-center justify-between px-3 z-20">
+        
+        <!-- 1. Home -->
+        <button class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition">
+          <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 7.5V3.5h3v2.2" />
+            <path d="M2.5 10.5L12 3l9.5 7.5" />
+            <path d="M4.8 9.5V21h4.8v-6h4.8v6h4.8V9.5" />
+          </svg>
+          <span class="text-[10px] font-bold">ទំព័រដើម</span>
+        </button>
+
+        <!-- 2. Analytics -->
+        <button class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition">
+          <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2.5 2.5v16.5a2 2 0 0 0 2 2h17" stroke-width="2.3" />
+            <rect x="5.5" y="12" width="2.4" height="6.5" rx="1.2" fill="currentColor" />
+            <rect x="9.5" y="9" width="2.4" height="9.5" rx="1.2" fill="currentColor" />
+            <rect x="13.5" y="11" width="2.4" height="7.5" rx="1.2" fill="currentColor" />
+            <rect x="17.5" y="7.5" width="2.4" height="11" rx="1.2" fill="currentColor" />
+            <g class="chart-arrow-loop text-amber-300">
+              <path d="M5.5 10l5-4.5 3 3 5.5-5.5" stroke-width="2.3" />
+              <path d="M15.5 3h4V7" stroke-width="2.3" />
+            </g>
+          </svg>
+          <span class="text-[10px] font-bold">វិភាគ</span>
+        </button>
+
+        <!-- 3. Center Order Button -->
+        <div class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-orange-400 cursor-pointer">
+          <div class="w-9 h-9 rounded-full bg-orange-500/20 flex items-center justify-center border border-orange-500/40 shadow-md">
+            <svg class="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="21" r="1"></circle>
+              <circle cx="19" cy="21" r="1"></circle>
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+            </svg>
+          </div>
+          <span class="text-[10px] font-bold text-orange-400 mt-0.5">Order</span>
+        </div>
+
+        <!-- 4. Study / Learning (HIGHLIGHTED: ONLY ICON MOVES, LABEL STAYS PERFECTLY STATIC) -->
+        <button class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-orange-400 transition"
+                title="ស្លាកអក្សរ «សិក្សា» នៅស្ងៀម ១០០%">
+          <!-- Micro-Animation Icon (A ⇄ 文 only) -->
+          <div class="w-6 h-6 mb-0.5 relative flex items-center justify-center overflow-visible">
+            <span class="diag-a absolute text-[12px] font-black font-sans leading-none text-current">A</span>
+            <span class="diag-wen absolute text-[11px] font-bold leading-none text-current">文</span>
+          </div>
+          <!-- Label strictly fixed, no animation or translation -->
+          <span id="preview-study-label" class="text-[10px] font-bold text-orange-400 select-none pointer-events-none">សិក្សា</span>
+        </button>
+
+        <!-- 5. Settings -->
+        <button class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition">
+          <svg class="w-5 h-5 mb-0.5 gear-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          <span class="text-[10px] font-bold">កំណត់</span>
+        </button>
+
+      </nav>
+
+      <div class="text-[11px] text-muted-desc p-3 rounded-2xl bg-white/5 border border-white/5">
+        🔍 <strong>ការបញ្ជាក់៖</strong> ស្លាកពាក្យ <strong>«សិក្សា»</strong> ស្ថិតនៅដាច់ដោយឡែកពី Icon Container និងគ្មាន Animation អ្វីប៉ះពាល់ឡើយ គឺនៅស្ងៀម ១០០% ច្បាស់ល្អ!
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function setPreviewMode(mode) {
+      const body = document.getElementById('preview-body');
+      const darkBtn = document.getElementById('mode-dark-btn');
+      const lightBtn = document.getElementById('mode-light-btn');
+
+      if (mode === 'light') {
+        body.classList.add('preview-light-mode');
+        lightBtn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-orange-500 text-white shadow';
+        darkBtn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold transition text-slate-500 hover:text-slate-800';
+      } else {
+        body.classList.remove('preview-light-mode');
+        darkBtn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold transition bg-orange-500 text-white shadow';
+        lightBtn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold transition text-slate-400 hover:text-white';
+      }
+    }
+
+    function toggleDayCalendar() {
+      const cal = document.getElementById('preview-calendar-popover');
+      cal.classList.toggle('hidden');
+    }
+
+    function pickDate(day) {
+      document.getElementById('demo-day-label').textContent = 'ថ្ងៃទី ' + day;
+      document.getElementById('preview-calendar-popover').classList.add('hidden');
+    }
+
+    function toggleCustomFilter() {
+      const c = document.getElementById('demo-custom-container');
+      c.classList.toggle('hidden');
+    }
+
+    function selectPeriod(period) {
+      alert('បានជ្រើសរើសរបៀប៖ ' + period);
+    }
+
+    let isFilterHidden = false;
+    function simulateFilterHide() {
+      const bar = document.getElementById('preview-filter-bar');
+      const btn = document.getElementById('btn-toggle-filter');
+      isFilterHidden = !isFilterHidden;
+      if (isFilterHidden) {
+        bar.style.maxHeight = '0px';
+        bar.style.opacity = '0';
+        bar.style.padding = '0px';
+        bar.style.margin = '0px';
+        bar.style.overflow = 'hidden';
+        btn.textContent = 'បង្ហាញបា ថ្ងៃទី វិញ (Scroll Up)';
+      } else {
+        bar.style.maxHeight = '200px';
+        bar.style.opacity = '1';
+        bar.style.padding = '8px';
+        bar.style.margin = '';
+        bar.style.overflow = 'visible';
+        btn.textContent = 'លាក់បា ថ្ងៃទី (Scroll Down)';
+      }
+    }
+  </script>
+</body>
+</html>

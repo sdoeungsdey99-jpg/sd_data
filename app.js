@@ -17,7 +17,7 @@ const translations = {
     pureCashSubtitle: 'ABA + ACLEDA + កាបូប',
     usdOnly: 'ដុល្លារសុទ្ធ (USD)',
     khrOnly: 'រៀលសុទ្ធ (KHR)',
-    today: 'ថ្ងៃ',
+    today: 'ថ្ងៃទី',
     thisMonth: 'ខែ',
     thisYear: 'ឆ្នាំ',
     custom: 'ជ្រើសរើស',
@@ -431,7 +431,9 @@ function setupSmartDockScroll() {
     // Scrolling up even slightly or near top
     else if (diff < -5 || currentScrollTop <= 20) {
       dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
-      if (filterBar) filterBar.classList.remove('filter-hidden');
+      if (filterBar && appState.currentView === 'dashboard') {
+        filterBar.classList.remove('filter-hidden');
+      }
     }
 
     lastScrollTop = currentScrollTop;
@@ -448,7 +450,9 @@ function setupSmartDockScroll() {
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
       dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
-      if (filterBar) filterBar.classList.remove('filter-hidden');
+      if (filterBar && appState.currentView === 'dashboard') {
+        filterBar.classList.remove('filter-hidden');
+      }
     }, 600);
   }, { passive: true });
 }
@@ -869,7 +873,7 @@ function selectSpecificCalendarDay(dateIso, event) {
   const parts = dateIso.split('-');
   const labelEl = document.getElementById('day-pill-label');
   if (labelEl) {
-    labelEl.textContent = `${parts[2]}/${parts[1]}`;
+    labelEl.textContent = `ថ្ងៃទី ${parts[2]}`;
   }
 
   setPeriodFilter('today');
@@ -888,6 +892,7 @@ function selectDayFilter(subMode, event) {
     const now = new Date();
     const curYear = now.getFullYear();
     const curMonthNum = now.getMonth() + 1;
+    const curDay = String(now.getDate()).padStart(2, '0');
     const curMonthKey = `${curYear}-${String(curMonthNum).padStart(2, '0')}`;
     
     appState.selectedYear = curYear;
@@ -895,17 +900,20 @@ function selectDayFilter(subMode, event) {
     calendarViewYear = curYear;
     calendarViewMonth = curMonthNum;
 
-    // Reset pill labels to defaults
+    // Reset pill labels to defaults (ថ្ងៃទី + ទីលេខ គ្មានខែ)
     const labelEl = document.getElementById('day-pill-label');
-    if (labelEl) labelEl.textContent = 'ថ្ងៃ';
+    if (labelEl) labelEl.textContent = `ថ្ងៃទី ${curDay}`;
     const monthLabelEl = document.getElementById('month-pill-label');
     if (monthLabelEl) monthLabelEl.textContent = 'ខែ';
     const yearLabelEl = document.getElementById('year-pill-label');
     if (yearLabelEl) yearLabelEl.textContent = 'ឆ្នាំ';
   } else {
     // Update Day Pill Label for yesterday
+    const now = new Date();
+    now.setDate(now.getDate() - 1);
+    const yDay = String(now.getDate()).padStart(2, '0');
     const labelEl = document.getElementById('day-pill-label');
-    if (labelEl) labelEl.textContent = 'ម្សិលមិញ';
+    if (labelEl) labelEl.textContent = `ថ្ងៃទី ${yDay}`;
   }
 
   setPeriodFilter('today');
@@ -1168,7 +1176,10 @@ function updateStaticLabels() {
   if (dockLearn) dockLearn.textContent = t('learningDock');
   if (dockSettings) dockSettings.textContent = t('settingsDock');
 
-  if (dayLabel && !appState.daySubFilter) dayLabel.textContent = t('today');
+  if (dayLabel && !appState.daySubFilter) {
+    const curDay = String((new Date()).getDate()).padStart(2, '0');
+    dayLabel.textContent = `${t('today')} ${curDay}`;
+  }
   if (monthLabel && !appState.selectedMonthKey) monthLabel.textContent = t('thisMonth');
   if (yearLabel && !appState.selectedYear) yearLabel.textContent = t('thisYear');
   if (filterCustom) filterCustom.textContent = t('custom');
