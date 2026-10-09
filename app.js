@@ -1153,10 +1153,10 @@ function renderCurrentView() {
 }
 
 function updateStaticLabels() {
-  const dockHome = document.querySelector('#dock-btn-dashboard span');
-  const dockAnalytics = document.querySelector('#dock-btn-analytics span');
-  const dockLearn = document.querySelector('#dock-btn-learning span');
-  const dockSettings = document.querySelector('#dock-btn-settings span');
+  const dockHome = document.getElementById('dock-label-dashboard');
+  const dockAnalytics = document.getElementById('dock-label-analytics');
+  const dockLearn = document.getElementById('dock-label-learning');
+  const dockSettings = document.getElementById('dock-label-settings');
 
   const dayLabel = document.getElementById('day-pill-label');
   const monthLabel = document.getElementById('month-pill-label');
