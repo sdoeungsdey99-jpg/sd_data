@@ -148,6 +148,56 @@
     .diag-a { animation: diagonalSwapA 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
     .diag-wen { animation: diagonalSwapWen 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
 
+    /* ✨ Micro Celestial Glow (✨ Sparkle, ☀️ Ray, 🌙 Moon) */
+    @keyframes sparkleTwinkle {
+      0%, 100% {
+        transform: scale(0.7) rotate(0deg);
+        opacity: 0.35;
+      }
+      50% {
+        transform: scale(1.15) rotate(45deg);
+        opacity: 0.95;
+        filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.85));
+      }
+    }
+    .sparkle-sun-micro {
+      animation: sparkleTwinkle 2.8s infinite ease-in-out;
+    }
+
+    @keyframes starTwinkleMoon {
+      0%, 100% {
+        transform: scale(0.65) rotate(0deg);
+        opacity: 0.3;
+      }
+      50% {
+        transform: scale(1.1) rotate(35deg);
+        opacity: 0.9;
+        filter: drop-shadow(0 0 3px rgba(186, 230, 253, 0.85));
+      }
+    }
+    .sparkle-moon-micro {
+      animation: starTwinkleMoon 3.2s infinite ease-in-out;
+    }
+
+    /* Long Press Card Scale & Slim Capsule */
+    .card-pressing {
+      transform: scale(0.98) !important;
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .ios-slim-capsule {
+      animation: slimCapsuleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes slimCapsuleIn {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 6px) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+    }
+
     /* Light Mode Overrides (Crisp, High-Contrast iOS Style - Specially Refined for Settings & Dashboard) */
     .light-theme {
       background-color: #F8FAFC !important;
@@ -226,6 +276,18 @@
       background: rgba(255, 255, 255, 0.95) !important;
       border-color: #CBD5E1 !important;
       box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12) !important;
+    }
+    .light-theme .ios-slim-capsule {
+      background: rgba(255, 255, 255, 0.96) !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.18) !important;
+      color: #0F172A !important;
+    }
+    .light-theme .ios-slim-capsule button {
+      color: #0F172A !important;
+    }
+    .light-theme .ios-slim-capsule button:hover {
+      background-color: #F1F5F9 !important;
     }
     .light-theme header,
     .light-theme #sticky-filter-bar {
@@ -614,17 +676,30 @@
     <!-- ======================================================== -->
     <nav id="bottom-dock" class="absolute bottom-4 inset-x-4 max-w-sm mx-auto h-16 rounded-full telegram-dock flex items-center justify-between px-3 z-40 transition-all duration-300 transform">
       
-      <!-- 1. Home (Classic House with Chimney & Door - Image 3) -->
-      <button onclick="switchView('dashboard')" id="dock-btn-dashboard" 
-              class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-orange-400 transition">
-        <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <!-- Chimney on left -->
-          <path d="M6 7.5V3.5h3v2.2" />
-          <!-- Triangular Gable Roof -->
-          <path d="M2.5 10.5L12 3l9.5 7.5" />
-          <!-- Walls & Centered Door -->
-          <path d="M4.8 9.5V21h4.8v-6h4.8v6h4.8V9.5" />
-        </svg>
+      <!-- 1. Home (Classic House with Micro Celestial Sparkle/Sun/Moon Glow) -->
+      <button onclick="handleHomeClick(event)" id="dock-btn-dashboard" 
+              class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-orange-400 transition relative">
+        <div class="w-6 h-6 mb-0.5 relative flex items-center justify-center">
+          <!-- Mode 1: ✨ Micro Diamond Sparkle (Default) -->
+          <svg id="home-celestial-sparkle" class="absolute -top-1 right-0 w-2.5 h-2.5 text-amber-300 sparkle-sun-micro pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"/>
+          </svg>
+
+          <!-- Mode 2: ☀️ Micro Sun Ray -->
+          <div id="home-celestial-ray" class="hidden absolute -top-0.5 right-0.5 w-2 h-2 rounded-full bg-amber-400/80 shadow-[0_0_6px_rgba(251,191,36,0.9)] sparkle-sun-micro pointer-events-none"></div>
+
+          <!-- Mode 3: 🌙 Micro Crescent Moon -->
+          <svg id="home-celestial-moon" class="hidden absolute -top-1 right-0 w-2.5 h-2.5 text-sky-200 sparkle-moon-micro pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+
+          <!-- Clean House SVG -->
+          <svg class="w-5 h-5 relative z-10 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 7.5V3.5h3v2.2" />
+            <path d="M2.5 10.5L12 3l9.5 7.5" />
+            <path d="M4.8 9.5V21h4.8v-6h4.8v6h4.8V9.5" />
+          </svg>
+        </div>
         <span id="dock-label-dashboard" class="text-[10px] font-bold">ទំព័រដើម</span>
       </button>
 
@@ -876,6 +951,6 @@
   </div>
 
   <script src="dataService.js"></script>
-  <script src="app.js?v=2.2"></script>
+  <script src="app.js?v=2.3"></script>
 </body>
 </html>

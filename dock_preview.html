@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Preview: បា ថ្ងៃទី & Dock សិក្សា</title>
+  <title>Live Preview: Micro Sparkle/Ray Glow & Single-Tier Slim Capsule</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     /* Dock Base Styling */
@@ -55,9 +55,60 @@
     .diag-a { animation: diagonalSwapA 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
     .diag-wen { animation: diagonalSwapWen 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
 
-    /* Sticky Bar Transitions */
-    #preview-filter-bar {
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    /* ============================================================= */
+    /* ✨ MICRO SPARKLE / RAY GLOW (ផ្កាយតូច ឬ រស្មីចាំងស្រាលៗ លើដំបូល) */
+    /* ============================================================= */
+    @keyframes sparkleTwinkle {
+      0%, 100% {
+        transform: scale(0.7) rotate(0deg);
+        opacity: 0.35;
+      }
+      50% {
+        transform: scale(1.1) rotate(45deg);
+        opacity: 0.9;
+        filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.8));
+      }
+    }
+    .sparkle-sun-micro {
+      animation: sparkleTwinkle 2.8s infinite ease-in-out;
+    }
+
+    @keyframes starTwinkleMoon {
+      0%, 100% {
+        transform: scale(0.65) rotate(0deg);
+        opacity: 0.3;
+      }
+      50% {
+        transform: scale(1.05) rotate(35deg);
+        opacity: 0.85;
+        filter: drop-shadow(0 0 3px rgba(186, 230, 253, 0.8));
+      }
+    }
+    .sparkle-moon-micro {
+      animation: starTwinkleMoon 3.2s infinite ease-in-out;
+    }
+
+    /* Long Press Active Card Scale */
+    .card-pressing {
+      transform: scale(0.98) !important;
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ============================================================= */
+    /* 💊 SINGLE-TIER ULTRA SLIM CAPSULE POP-UP ANIMATION            */
+    /* ============================================================= */
+    .ios-slim-capsule {
+      animation: slimCapsuleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes slimCapsuleIn {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 6px) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
     }
 
     /* Light Mode Overrides */
@@ -76,10 +127,6 @@
       border-color: #CBD5E1 !important;
       box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12) !important;
     }
-    .preview-light-mode #preview-filter-bar {
-      background: rgba(255, 255, 255, 0.96) !important;
-      border-color: #E2E8F0 !important;
-    }
     .preview-light-mode .filter-pill-bg {
       background: #F1F5F9 !important;
       border-color: #E2E8F0 !important;
@@ -93,11 +140,10 @@
     .preview-light-mode .border-subtle {
       border-color: #E2E8F0 !important;
     }
-    .preview-light-mode .calendar-popover {
-      background: rgba(255, 255, 255, 0.98) !important;
+    .preview-light-mode .ios-slim-capsule {
+      background: rgba(255, 255, 255, 0.96) !important;
       border-color: #CBD5E1 !important;
-      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15) !important;
-      color: #0F172A !important;
+      box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.18) !important;
     }
   </style>
 </head>
@@ -109,9 +155,9 @@
     <div class="card-box bg-[#0F1B2E] border border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-xl">
       <div>
         <h3 class="text-xs font-bold text-main-title flex items-center gap-1.5">
-          <span>✨ Live Preview: បា ថ្ងៃទី & Dock សិក្សា</span>
+          <span>✨ Live Preview: រស្មីចាំងតូច & Slim Capsule មួយជាន់</span>
         </h3>
-        <p class="text-[10px] text-muted-desc mt-0.5">ដំណោះស្រាយបញ្ហាចន្លោះទទេរ និងប៊ូតុង</p>
+        <p class="text-[10px] text-muted-desc mt-0.5">ផ្កាយ/រស្មីតូចស្រាល + Capsule ចែករំលែក | ចម្លង</p>
       </div>
 
       <!-- Mode Switcher Pill -->
@@ -128,137 +174,52 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- 1. BAR ថ្ងៃទី (DATE FILTER BAR) PREVIEW                  -->
+    <!-- 1. LIVE FLOATING DOCK: HOME WITH MICRO SPARKLE / RAY GLOW-->
     <!-- ======================================================== -->
     <div class="card-box bg-[#0F1B2E] border border-white/10 rounded-3xl p-4 shadow-xl space-y-3">
       <div class="flex items-center justify-between border-b border-subtle pb-2">
         <div class="flex items-center gap-1.5">
-          <span class="text-orange-400">📅</span>
-          <span class="text-xs font-bold text-main-title">១. បា ថ្ងៃទី (ទម្រង់ថ្មី៖ ថ្ងៃទី + កាលបរិច្ឆេទ)</span>
+          <span class="text-orange-400">✨</span>
+          <span class="text-xs font-bold text-main-title">១. ផ្កាយតូច ឬ រស្មីចាំងស្រាលៗ លើដំបូល Home (Micro Glow)</span>
         </div>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-bold border border-orange-500/30">
-          Auto Height (គ្មានចន្លោះទទេ)
-        </span>
-      </div>
-
-      <!-- Interactive Pills Bar -->
-      <div id="preview-filter-bar" class="p-2 rounded-2xl bg-black/40 border border-white/5 filter-pill-bg flex flex-col gap-1.5">
-        <div class="flex items-center gap-1 w-full">
-          
-          <!-- 1. Day Pill (ថ្ងៃទី ០៩ ⌄) -->
-          <div class="relative flex-1">
-            <button onclick="toggleDayCalendar()" id="pill-day-btn" 
-                    class="w-full py-1.5 px-2 rounded-xl text-xs font-bold text-center transition bg-orange-500 text-white shadow-md flex items-center justify-center gap-1">
-              <span id="demo-day-label">ថ្ងៃទី ០៩</span>
-              <svg class="w-3 h-3 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-
-            <!-- Mini Calendar Dropdown Popover Demo -->
-            <div id="preview-calendar-popover" 
-                 class="hidden absolute top-full left-0 mt-2 w-72 bg-[#0C1425]/98 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl p-3 z-50 calendar-popover">
-              <div class="flex items-center justify-between pb-2 border-b border-subtle">
-                <span class="text-xs font-bold">តុលា ២០២៦</span>
-                <span class="text-[10px] text-orange-400 font-mono">ថ្ងៃនេះ</span>
-              </div>
-              <div class="grid grid-cols-7 gap-1 text-center py-2 text-[10px] font-semibold text-muted-desc">
-                <span>អា</span><span>ច</span><span>អ</span><span>ព</span><span>ព្រ</span><span>សុ</span><span>ស</span>
-              </div>
-              <div class="grid grid-cols-7 gap-1 text-center text-xs">
-                <span class="p-1 opacity-20">28</span><span class="p-1 opacity-20">29</span><span class="p-1 opacity-20">30</span>
-                <button onclick="pickDate('01')" class="p-1 rounded-full hover:bg-orange-500/20">1</button>
-                <button onclick="pickDate('02')" class="p-1 rounded-full hover:bg-orange-500/20">2</button>
-                <button onclick="pickDate('03')" class="p-1 rounded-full hover:bg-orange-500/20">3</button>
-                <button onclick="pickDate('04')" class="p-1 rounded-full hover:bg-orange-500/20">4</button>
-                <button onclick="pickDate('05')" class="p-1 rounded-full hover:bg-orange-500/20">5</button>
-                <button onclick="pickDate('06')" class="p-1 rounded-full hover:bg-orange-500/20">6</button>
-                <button onclick="pickDate('07')" class="p-1 rounded-full hover:bg-orange-500/20">7</button>
-                <button onclick="pickDate('08')" class="p-1 rounded-full hover:bg-orange-500/20">8</button>
-                <button onclick="pickDate('09')" class="p-1 rounded-full bg-orange-500 text-white font-bold shadow">9</button>
-                <button onclick="pickDate('10')" class="p-1 rounded-full hover:bg-orange-500/20">10</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 2. Month Pill -->
-          <button onclick="selectPeriod('month')" id="pill-month-btn" 
-                  class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition text-slate-400 hover:text-white flex items-center justify-center gap-1">
-            <span>ខែ ១០</span>
-            <svg class="w-3 h-3 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-
-          <!-- 3. Year Pill -->
-          <button onclick="selectPeriod('year')" id="pill-year-btn" 
-                  class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition text-slate-400 hover:text-white flex items-center justify-center gap-1">
-            <span>២០២៦</span>
-            <svg class="w-3 h-3 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-
-          <!-- 4. Custom Filter Pill -->
-          <button onclick="toggleCustomFilter()" id="pill-custom-btn" 
-                  class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition text-slate-400 hover:text-white flex items-center justify-center gap-0.5">
-            <span>ជ្រើសរើស</span>
-            <svg class="w-3 h-3 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </button>
+        <!-- Style Switcher -->
+        <div class="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-white/10 text-[10px]">
+          <button onclick="switchSparkle('sparkle')" id="spk-star-btn" class="px-2 py-0.5 rounded bg-amber-500 text-white font-bold">✨ ផ្កាយរស្មី</button>
+          <button onclick="switchSparkle('ray')" id="spk-ray-btn" class="px-2 py-0.5 rounded text-slate-400">☀️ រស្មីថ្ងៃ</button>
+          <button onclick="switchSparkle('moon')" id="spk-moon-btn" class="px-2 py-0.5 rounded text-slate-400">🌙 លោកខែ</button>
         </div>
-
-        <!-- Custom Date Range Row (Hidden until 'ជ្រើសរើស' is clicked - NO empty gap when hidden) -->
-        <div id="demo-custom-container" class="hidden flex items-center justify-between gap-2 p-2 bg-black/50 rounded-xl border border-white/10 text-xs">
-          <div class="flex items-center gap-1 flex-1">
-            <span class="text-slate-400 text-[10px]">ពី:</span>
-            <input type="date" value="2026-10-01" class="bg-white/10 rounded px-1.5 py-1 text-white text-[11px] w-full focus:outline-none">
-          </div>
-          <div class="flex items-center gap-1 flex-1">
-            <span class="text-slate-400 text-[10px]">ដល់:</span>
-            <input type="date" value="2026-10-09" class="bg-white/10 rounded px-1.5 py-1 text-white text-[11px] w-full focus:outline-none">
-          </div>
-          <button class="px-2.5 py-1 rounded bg-orange-500 text-white font-semibold text-[11px]">យល់ព្រម</button>
-        </div>
-      </div>
-
-      <!-- Test Scroll Simulation -->
-      <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
-        <span class="text-muted-desc">តេស្តលាក់បារពេល Scroll៖</span>
-        <button onclick="simulateFilterHide()" id="btn-toggle-filter" class="px-3 py-1 rounded-lg bg-orange-500/20 text-orange-400 font-bold border border-orange-500/30">
-          លាក់បា ថ្ងៃទី (Scroll Down)
-        </button>
-      </div>
-
-      <!-- Mock Content underneath to prove NO empty space is left -->
-      <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-1">
-        <div class="flex items-center justify-between font-bold text-emerald-400">
-          <span>✓ ផ្ទាំងទិន្នន័យខាងក្រោមរត់ឡើងភ្លាមៗ</span>
-          <span>$12,450.00</span>
-        </div>
-        <p class="text-[11px] text-muted-desc">
-          នៅពេលបា ថ្ងៃទី លាក់ខ្លួន កាតខាងក្រោមនេះនឹងរត់ឡើងមកជំនួសកន្លែងដោយគ្មានសល់ផ្ទៃទទេរឡើយ!
-        </p>
-      </div>
-    </div>
-
-    <!-- ======================================================== -->
-    <!-- 2. DOCK «សិក្សា» PREVIEW                                  -->
-    <!-- ======================================================== -->
-    <div class="card-box bg-[#0F1B2E] border border-white/10 rounded-3xl p-4 shadow-xl space-y-3">
-      <div class="flex items-center justify-between border-b border-subtle pb-2">
-        <div class="flex items-center gap-1.5">
-          <span class="text-orange-400">📚</span>
-          <span class="text-xs font-bold text-main-title">២. Dock «សិក្សា» (ស្លាកអក្សរស្ងៀម ១០០% + Icon A ⇄ 文 រត់)</span>
-        </div>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
-          Label Static
-        </span>
       </div>
 
       <!-- Telegram Floating Dock Mockup -->
       <nav class="w-full h-16 rounded-full telegram-dock flex items-center justify-between px-3 z-20">
         
-        <!-- 1. Home -->
-        <button class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition">
-          <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 7.5V3.5h3v2.2" />
-            <path d="M2.5 10.5L12 3l9.5 7.5" />
-            <path d="M4.8 9.5V21h4.8v-6h4.8v6h4.8V9.5" />
-          </svg>
+        <!-- 1. Home (WITH MICRO 4-POINT SPARKLE / SUBTLE RAY) -->
+        <button class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-orange-400 transition relative">
+          
+          <!-- Relative Icon Container -->
+          <div class="w-6 h-6 mb-0.5 relative flex items-center justify-center">
+            
+            <!-- OPTION A: 4-Point Micro Diamond Sparkle (✨ Very Subtle ~8px, placed near chimney) -->
+            <svg id="sparkle-star" class="absolute -top-1 right-0 w-2.5 h-2.5 text-amber-300 sparkle-sun-micro pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"/>
+            </svg>
+
+            <!-- OPTION B: Subtle Sun Ray Ring (☀️ Micro 6px) -->
+            <div id="sparkle-ray" class="hidden absolute -top-0.5 right-0.5 w-2 h-2 rounded-full bg-amber-400/80 shadow-[0_0_6px_rgba(251,191,36,0.9)] sparkle-sun-micro pointer-events-none"></div>
+
+            <!-- OPTION C: Micro Crescent Moon (🌙 Micro 8px) -->
+            <svg id="sparkle-moon" class="hidden absolute -top-1 right-0 w-2.5 h-2.5 text-sky-200 sparkle-moon-micro pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+
+            <!-- Crisp Clean SVG House in front -->
+            <svg class="w-5 h-5 relative z-10 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 7.5V3.5h3v2.2" />
+              <path d="M2.5 10.5L12 3l9.5 7.5" />
+              <path d="M4.8 9.5V21h4.8v-6h4.8v6h4.8V9.5" />
+            </svg>
+          </div>
+
           <span class="text-[10px] font-bold">ទំព័រដើម</span>
         </button>
 
@@ -290,16 +251,13 @@
           <span class="text-[10px] font-bold text-orange-400 mt-0.5">Order</span>
         </div>
 
-        <!-- 4. Study / Learning (HIGHLIGHTED: ONLY ICON MOVES, LABEL STAYS PERFECTLY STATIC) -->
-        <button class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-orange-400 transition"
-                title="ស្លាកអក្សរ «សិក្សា» នៅស្ងៀម ១០០%">
-          <!-- Micro-Animation Icon (A ⇄ 文 only) -->
+        <!-- 4. Study -->
+        <button class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition">
           <div class="w-6 h-6 mb-0.5 relative flex items-center justify-center overflow-visible">
             <span class="diag-a absolute text-[12px] font-black font-sans leading-none text-current">A</span>
             <span class="diag-wen absolute text-[11px] font-bold leading-none text-current">文</span>
           </div>
-          <!-- Label strictly fixed, no animation or translation -->
-          <span id="preview-study-label" class="text-[10px] font-bold text-orange-400 select-none pointer-events-none">សិក្សា</span>
+          <span class="text-[10px] font-bold">សិក្សា</span>
         </button>
 
         <!-- 5. Settings -->
@@ -313,14 +271,108 @@
 
       </nav>
 
-      <div class="text-[11px] text-muted-desc p-3 rounded-2xl bg-white/5 border border-white/5">
-        🔍 <strong>ការបញ្ជាក់៖</strong> ស្លាកពាក្យ <strong>«សិក្សា»</strong> ស្ថិតនៅដាច់ដោយឡែកពី Icon Container និងគ្មាន Animation អ្វីប៉ះពាល់ឡើយ គឺនៅស្ងៀម ១០០% ច្បាស់ល្អ!
+      <div class="text-[11px] text-muted-desc p-2.5 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
+        <span>✨ ទំហំតូចល្មម (Micro 2.5px - 8px) ភ្លឺភ្លេចៗរលឹមស្រាលបំផុត ងាយស្រួលដោះដូរតាមចិត្ត!</span>
+        <span class="text-amber-400 font-bold font-mono">Clean & Subtle</span>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 2. SINGLE-TIER ULTRA SLIM CAPSULE MENU (LONG PRESS DEMO) -->
+    <!-- ======================================================== -->
+    <div class="card-box bg-[#0F1B2E] border border-white/10 rounded-3xl p-4 shadow-xl space-y-3">
+      
+      <div class="flex items-center justify-between border-b border-subtle pb-2">
+        <div class="flex items-center gap-1.5">
+          <span class="text-orange-400">👆</span>
+          <span class="text-xs font-bold text-main-title">២. Long Press Capsule (តែមួយជាន់ រាងស្លីមតូចស្អាត)</span>
+        </div>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+          Single Tier Capsule
+        </span>
+      </div>
+
+      <p class="text-xs text-muted-desc">
+        សាកល្បង **សង្កត់ម្រាមដៃជាប់ (Long Press 0.45s)** លើកាតខាងក្រោម ➔ Capsule មួយជាន់ស្លីមតូចនឹងលោតពីលើ។ ប៉ះកន្លែងផ្សេងដើម្បីបំបាត់ទៅវិញ!
+      </p>
+
+      <!-- The Long-Pressable Pure Cash Card -->
+      <div id="target-cash-card" 
+           class="relative rounded-2xl bg-gradient-to-br from-[#102A43] to-[#0B1D30] border border-blue-500/30 p-4 shadow-xl cursor-pointer select-none transition-all duration-200">
+        
+        <!-- ======================================================== -->
+        <!-- SINGLE-TIER ULTRA-SLIM CAPSULE (ONLY SHARE | COPY WITH | )-->
+        <!-- ======================================================== -->
+        <div id="slim-capsule-menu" 
+             class="hidden ios-slim-capsule absolute -top-11 left-1/2 transform -translate-x-1/2 z-30 bg-[#0C1425]/95 backdrop-blur-2xl border border-white/20 rounded-full py-1 px-1.5 shadow-2xl flex items-center gap-1.5 whitespace-nowrap">
+          
+          <!-- Left Button: Telegram Icon + "ចែករំលែក" (or "Share") -->
+          <button onclick="handleShareAction(event)" 
+                  class="flex items-center gap-1.5 px-2.5 py-1 rounded-full hover:bg-white/15 active:bg-[#229ED9] text-white text-[11px] font-semibold transition active:scale-95">
+            <!-- Telegram Airplane Logo -->
+            <svg class="w-3.5 h-3.5 text-[#229ED9] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.37.74-.56 2.92-1.27 4.86-2.11 5.83-2.52 2.77-1.16 3.35-1.36 3.73-1.37.08 0 .27.02.39.12.1.08.13.2.14.28-.01.07-.01.23-.03.38z"/>
+            </svg>
+            <span id="capsule-share-label">ចែករំលែក</span>
+          </button>
+
+          <!-- Divider | (របារបញ្ឈរ) -->
+          <span class="w-[1px] h-3 bg-white/20 shrink-0"></span>
+
+          <!-- Right Button: Copy Icon + "ចម្លង" (or "Copy") -->
+          <button onclick="handleCopyAction(event)" 
+                  class="flex items-center gap-1.5 px-2.5 py-1 rounded-full hover:bg-white/15 active:bg-orange-500 text-slate-200 hover:text-white text-[11px] font-semibold transition active:scale-95">
+            <!-- Copy Clipboard Icon -->
+            <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+            <span id="capsule-copy-label">ចម្លង</span>
+          </button>
+
+        </div>
+
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-white">💰 ទឹកប្រាក់ដែលមាន (Pure Cash)</span>
+          </div>
+          <span class="text-[10px] text-orange-400 font-mono">Long Press 👆</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-center">
+          <div class="p-2 rounded-xl bg-black/40 border border-white/5">
+            <span class="text-[9px] text-slate-400">ដុល្លារសុទ្ធ (USD)</span>
+            <p class="text-base font-bold font-mono text-white">$12,450.00</p>
+          </div>
+          <div class="p-2 rounded-xl bg-black/40 border border-white/5">
+            <span class="text-[9px] text-slate-400">រៀលសុទ្ធ (KHR)</span>
+            <p class="text-base font-bold font-mono text-emerald-400">5,800,000 ៛</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Language Selector for Capsule Demo -->
+      <div class="p-2.5 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
+        <span class="text-muted-desc">តេស្តប្តូរភាសា Capsule៖</span>
+        <div class="flex items-center gap-1">
+          <button onclick="setCapsuleLang('km')" id="btn-lang-km" class="px-2.5 py-1 rounded-lg bg-orange-500 text-white font-bold text-[10px]">
+            ខ្មែរ (ចែករំលែក | ចម្លង)
+          </button>
+          <button onclick="setCapsuleLang('en')" id="btn-lang-en" class="px-2.5 py-1 rounded-lg bg-white/10 text-slate-300 text-[10px]">
+            English (Share | Copy)
+          </button>
+        </div>
+      </div>
+
+      <div class="text-[11px] text-muted-desc p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+        ✓ គ្មានប៊ូតុង ✕ ទៀតឡើយ គ្រាន់តែ **ប៉ះកន្លែងផ្សេង** Capsule នឹងរលាយបាត់ភ្លាមៗ!
       </div>
     </div>
 
   </div>
 
   <script>
+    // 1. Theme Mode Switcher
     function setPreviewMode(mode) {
       const body = document.getElementById('preview-body');
       const darkBtn = document.getElementById('mode-dark-btn');
@@ -337,46 +389,112 @@
       }
     }
 
-    function toggleDayCalendar() {
-      const cal = document.getElementById('preview-calendar-popover');
-      cal.classList.toggle('hidden');
-    }
+    // 2. Switch Sparkle / Ray / Moon Options
+    function switchSparkle(mode) {
+      const spkStar = document.getElementById('sparkle-star');
+      const spkRay = document.getElementById('sparkle-ray');
+      const spkMoon = document.getElementById('sparkle-moon');
 
-    function pickDate(day) {
-      document.getElementById('demo-day-label').textContent = 'ថ្ងៃទី ' + day;
-      document.getElementById('preview-calendar-popover').classList.add('hidden');
-    }
+      const btnStar = document.getElementById('spk-star-btn');
+      const btnRay = document.getElementById('spk-ray-btn');
+      const btnMoon = document.getElementById('spk-moon-btn');
 
-    function toggleCustomFilter() {
-      const c = document.getElementById('demo-custom-container');
-      c.classList.toggle('hidden');
-    }
+      spkStar.classList.add('hidden');
+      spkRay.classList.add('hidden');
+      spkMoon.classList.add('hidden');
 
-    function selectPeriod(period) {
-      alert('បានជ្រើសរើសរបៀប៖ ' + period);
-    }
+      btnStar.className = 'px-2 py-0.5 rounded text-slate-400';
+      btnRay.className = 'px-2 py-0.5 rounded text-slate-400';
+      btnMoon.className = 'px-2 py-0.5 rounded text-slate-400';
 
-    let isFilterHidden = false;
-    function simulateFilterHide() {
-      const bar = document.getElementById('preview-filter-bar');
-      const btn = document.getElementById('btn-toggle-filter');
-      isFilterHidden = !isFilterHidden;
-      if (isFilterHidden) {
-        bar.style.maxHeight = '0px';
-        bar.style.opacity = '0';
-        bar.style.padding = '0px';
-        bar.style.margin = '0px';
-        bar.style.overflow = 'hidden';
-        btn.textContent = 'បង្ហាញបា ថ្ងៃទី វិញ (Scroll Up)';
-      } else {
-        bar.style.maxHeight = '200px';
-        bar.style.opacity = '1';
-        bar.style.padding = '8px';
-        bar.style.margin = '';
-        bar.style.overflow = 'visible';
-        btn.textContent = 'លាក់បា ថ្ងៃទី (Scroll Down)';
+      if (mode === 'sparkle') {
+        spkStar.classList.remove('hidden');
+        btnStar.className = 'px-2 py-0.5 rounded bg-amber-500 text-white font-bold';
+      } else if (mode === 'ray') {
+        spkRay.classList.remove('hidden');
+        btnRay.className = 'px-2 py-0.5 rounded bg-amber-500 text-white font-bold';
+      } else if (mode === 'moon') {
+        spkMoon.classList.remove('hidden');
+        btnMoon.className = 'px-2 py-0.5 rounded bg-sky-500 text-white font-bold';
       }
+      if (navigator.vibrate) navigator.vibrate(15);
     }
+
+    // 3. Capsule Language Switcher
+    function setCapsuleLang(lang) {
+      const shareLabel = document.getElementById('capsule-share-label');
+      const copyLabel = document.getElementById('capsule-copy-label');
+      const btnKm = document.getElementById('btn-lang-km');
+      const btnEn = document.getElementById('btn-lang-en');
+
+      if (lang === 'km') {
+        shareLabel.textContent = 'ចែករំលែក';
+        copyLabel.textContent = 'ចម្លង';
+        btnKm.className = 'px-2.5 py-1 rounded-lg bg-orange-500 text-white font-bold text-[10px]';
+        btnEn.className = 'px-2.5 py-1 rounded-lg bg-white/10 text-slate-300 text-[10px]';
+      } else {
+        shareLabel.textContent = 'Share';
+        copyLabel.textContent = 'Copy';
+        btnEn.className = 'px-2.5 py-1 rounded-lg bg-orange-500 text-white font-bold text-[10px]';
+        btnKm.className = 'px-2.5 py-1 rounded-lg bg-white/10 text-slate-300 text-[10px]';
+      }
+      if (navigator.vibrate) navigator.vibrate(15);
+    }
+
+    // 4. Long Press Handler Implementation
+    const targetCard = document.getElementById('target-cash-card');
+    const slimCapsule = document.getElementById('slim-capsule-menu');
+    let pressTimer = null;
+
+    function startPress(e) {
+      targetCard.classList.add('card-pressing');
+      pressTimer = setTimeout(() => {
+        targetCard.classList.remove('card-pressing');
+        slimCapsule.classList.remove('hidden');
+        if (navigator.vibrate) {
+          navigator.vibrate(30); // Authentic iOS Haptic Buzz
+        }
+      }, 450); // 450ms long press threshold
+    }
+
+    function cancelPress() {
+      clearTimeout(pressTimer);
+      targetCard.classList.remove('card-pressing');
+    }
+
+    targetCard.addEventListener('mousedown', startPress);
+    targetCard.addEventListener('touchstart', startPress, { passive: true });
+
+    targetCard.addEventListener('mouseup', cancelPress);
+    targetCard.addEventListener('mouseleave', cancelPress);
+    targetCard.addEventListener('touchend', cancelPress);
+    targetCard.addEventListener('touchcancel', cancelPress);
+
+    // Share action
+    function handleShareAction(e) {
+      if (e) e.stopPropagation();
+      if (navigator.vibrate) navigator.vibrate(20);
+      const text = encodeURIComponent('📊 SD Report: USD $12,450.00 | KHR 5,800,000 ៛');
+      window.open('https://t.me/share/url?url=' + text, '_blank');
+      slimCapsule.classList.add('hidden');
+    }
+
+    // Copy action
+    function handleCopyAction(e) {
+      if (e) e.stopPropagation();
+      if (navigator.vibrate) navigator.vibrate(20);
+      navigator.clipboard.writeText('USD $12,450.00 | KHR 5,800,000 ៛').then(() => {
+        alert('បានចម្លងទិន្នន័យជោគជ័យ!');
+      });
+      slimCapsule.classList.add('hidden');
+    }
+
+    // Dismiss by tapping outside
+    document.addEventListener('click', (e) => {
+      if (!targetCard.contains(e.target)) {
+        slimCapsule.classList.add('hidden');
+      }
+    });
   </script>
 </body>
 </html>

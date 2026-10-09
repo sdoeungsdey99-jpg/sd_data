@@ -423,13 +423,13 @@ function setupSmartDockScroll() {
     const currentScrollTop = main.scrollTop;
     const diff = currentScrollTop - lastScrollTop;
 
-    // Scrolling down strongly
-    if (diff > 12 && currentScrollTop > 60) {
+    // Scrolling down strongly -> hide dock & filter bar, keep filter bar hidden
+    if (diff > 10 && currentScrollTop > 50) {
       dock.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
       if (filterBar) filterBar.classList.add('filter-hidden');
     } 
-    // Scrolling up even slightly or near top
-    else if (diff < -5 || currentScrollTop <= 20) {
+    // Scrolling up even slightly or reached very top -> restore
+    else if (diff < -6 || currentScrollTop <= 15) {
       dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
       if (filterBar && appState.currentView === 'dashboard') {
         filterBar.classList.remove('filter-hidden');
@@ -446,14 +446,12 @@ function setupSmartDockScroll() {
       }
     }
 
-    // When scrolling stops, automatically restore dock and filter bar after 600ms
+    // Dock can gently restore if idle, but filter bar stays hidden unless scrolling UP
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
       dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
-      if (filterBar && appState.currentView === 'dashboard') {
-        filterBar.classList.remove('filter-hidden');
-      }
-    }, 600);
+      // Notice: Do NOT restore filterBar here, keeping it hidden until user scrolls up!
+    }, 800);
   }, { passive: true });
 }
 
@@ -1155,6 +1153,10 @@ function renderCurrentView() {
       break;
   }
 
+  if (appState.currentView === 'dashboard') {
+    setupHeroCardLongPress();
+  }
+
   if (window.lucide) {
     window.lucide.createIcons();
   }
@@ -1284,9 +1286,38 @@ function getDashboardViewHTML() {
   const netCash = d.bank.netCashPosition;
 
   return `
-    <!-- HERO BALANCE CARD (ទឹកប្រាក់ដែលមាន) -->
-    <div class="ios-glass-card rounded-3xl p-5 relative overflow-hidden liquid-orange-glow">
+    <!-- HERO BALANCE CARD (ទឹកប្រាក់ដែលមាន - Long Press for Slim Capsule) -->
+    <div id="hero-balance-card" class="ios-glass-card rounded-3xl p-5 relative liquid-orange-glow select-none cursor-pointer transition-all duration-200">
       <div class="absolute -top-12 -right-12 w-44 h-44 bg-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+      <!-- ======================================================== -->
+      <!-- SINGLE-TIER ULTRA-SLIM CAPSULE (SHARE | COPY)            -->
+      <!-- ======================================================== -->
+      <div id="slim-capsule-menu" 
+           class="hidden ios-slim-capsule absolute -top-10 left-1/2 transform -translate-x-1/2 z-50 bg-[#0C1425]/95 backdrop-blur-2xl border border-white/20 rounded-full py-1 px-2 shadow-2xl flex items-center gap-1.5 whitespace-nowrap">
+        
+        <!-- Telegram Share Button -->
+        <button onclick="handleShareAction(event)" 
+                class="flex items-center gap-1.5 px-2.5 py-1 rounded-full hover:bg-white/15 active:bg-[#229ED9] text-white text-[11px] font-semibold transition active:scale-95">
+          <svg class="w-3.5 h-3.5 text-[#229ED9] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.37.74-.56 2.92-1.27 4.86-2.11 5.83-2.52 2.77-1.16 3.35-1.36 3.73-1.37.08 0 .27.02.39.12.1.08.13.2.14.28-.01.07-.01.23-.03.38z"/>
+          </svg>
+          <span id="capsule-share-label">${appState.language === 'km' ? 'ចែករំលែក' : 'Share'}</span>
+        </button>
+
+        <!-- Divider | -->
+        <span class="w-[1px] h-3 bg-white/20 shrink-0"></span>
+
+        <!-- Copy Button -->
+        <button onclick="handleCopyAction(event)" 
+                class="flex items-center gap-1.5 px-2.5 py-1 rounded-full hover:bg-white/15 active:bg-orange-500 text-slate-200 hover:text-white text-[11px] font-semibold transition active:scale-95">
+          <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+          </svg>
+          <span id="capsule-copy-label">${appState.language === 'km' ? 'ចម្លង' : 'Copy'}</span>
+        </button>
+      </div>
 
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
@@ -1294,12 +1325,11 @@ function getDashboardViewHTML() {
             <i data-lucide="wallet" class="w-4 h-4"></i>
           </div>
           <div>
-            <!-- Renamed from សាច់ប្រាក់សុទ្ធពិត to ទឹកប្រាក់ដែលមាន -->
             <p class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">${t('pureCashTitle')}</p>
             <p class="text-[10px] text-amber-200/80">${t('pureCashSubtitle')}</p>
           </div>
         </div>
-        <button onclick="toggleHideBalance()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
+        <button onclick="toggleHideBalance(event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
           <i data-lucide="${appState.hideBalance ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>
         </button>
       </div>
@@ -2481,3 +2511,122 @@ function saveShortcutUrl() {
     closeShortcutModal();
   }
 }
+
+// ==========================================
+// Celestial Home Icon Glow Switcher (✨ -> ☀️ -> 🌙 Loop)
+// ==========================================
+let currentCelestialIndex = 0; // 0: ✨ sparkle, 1: ☀️ ray, 2: 🌙 moon
+
+function handleHomeClick(e) {
+  // If already on dashboard, cycle through celestial icons!
+  if (appState.currentView === 'dashboard') {
+    cycleHomeCelestialGlow();
+  } else {
+    switchView('dashboard');
+  }
+}
+
+function cycleHomeCelestialGlow() {
+  const spk = document.getElementById('home-celestial-sparkle');
+  const ray = document.getElementById('home-celestial-ray');
+  const moon = document.getElementById('home-celestial-moon');
+  if (!spk || !ray || !moon) return;
+
+  currentCelestialIndex = (currentCelestialIndex + 1) % 3;
+
+  spk.classList.add('hidden');
+  ray.classList.add('hidden');
+  moon.classList.add('hidden');
+
+  if (currentCelestialIndex === 0) {
+    spk.classList.remove('hidden');
+  } else if (currentCelestialIndex === 1) {
+    ray.classList.remove('hidden');
+  } else {
+    moon.classList.remove('hidden');
+  }
+
+  if (navigator.vibrate) navigator.vibrate(15);
+}
+
+// ==========================================
+// Long Press Context Capsule & Telegram Share
+// ==========================================
+let heroLongPressTimer = null;
+
+function setupHeroCardLongPress() {
+  const card = document.getElementById('hero-balance-card');
+  const capsule = document.getElementById('slim-capsule-menu');
+  if (!card || !capsule) return;
+
+  function onTouchStart() {
+    card.classList.add('card-pressing');
+    heroLongPressTimer = setTimeout(() => {
+      card.classList.remove('card-pressing');
+      capsule.classList.remove('hidden');
+      if (navigator.vibrate) navigator.vibrate(30);
+    }, 450);
+  }
+
+  function onTouchEnd() {
+    clearTimeout(heroLongPressTimer);
+    card.classList.remove('card-pressing');
+  }
+
+  card.addEventListener('mousedown', onTouchStart);
+  card.addEventListener('touchstart', onTouchStart, { passive: true });
+
+  card.addEventListener('mouseup', onTouchEnd);
+  card.addEventListener('mouseleave', onTouchEnd);
+  card.addEventListener('touchend', onTouchEnd);
+  card.addEventListener('touchcancel', onTouchEnd);
+}
+
+function handleShareAction(e) {
+  if (e) e.stopPropagation();
+  if (navigator.vibrate) navigator.vibrate(20);
+  
+  const d = DataService.data;
+  let usd = '$0.00';
+  let khr = '0 ៛';
+  if (d && d.bank) {
+    usd = formatUSD(d.bank.pureUsdTotal);
+    khr = formatKHR(d.bank.pureKhrTotal);
+  }
+
+  const shareText = `📊 SD Dashboard Summary:\n💰 ទឹកប្រាក់ដែលមាន:\n- USD: ${usd}\n- KHR: ${khr}\n📅 ${new Date().toLocaleDateString('km-KH')}`;
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(shareText), '_blank');
+  
+  const capsule = document.getElementById('slim-capsule-menu');
+  if (capsule) capsule.classList.add('hidden');
+}
+
+function handleCopyAction(e) {
+  if (e) e.stopPropagation();
+  if (navigator.vibrate) navigator.vibrate(20);
+
+  const d = DataService.data;
+  let usd = '$0.00';
+  let khr = '0 ៛';
+  if (d && d.bank) {
+    usd = formatUSD(d.bank.pureUsdTotal);
+    khr = formatKHR(d.bank.pureKhrTotal);
+  }
+
+  const copyText = `USD ${usd} | KHR ${khr}`;
+  navigator.clipboard.writeText(copyText).then(() => {
+    alert(appState.language === 'km' ? 'បានចម្លងទិន្នន័យជោគជ័យ!' : 'Copied successfully!');
+  });
+
+  const capsule = document.getElementById('slim-capsule-menu');
+  if (capsule) capsule.classList.add('hidden');
+}
+
+// Dismiss capsule on click outside
+document.addEventListener('click', (e) => {
+  const card = document.getElementById('hero-balance-card');
+  const capsule = document.getElementById('slim-capsule-menu');
+  if (card && capsule && !card.contains(e.target)) {
+    capsule.classList.add('hidden');
+  }
+});
