@@ -101,75 +101,54 @@
       transform: rotate(60deg);
     }
 
-    .chart-arrow {
-      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* 📈 Analytics Growth Arrow Continuous Loop (Only Arrow, Bars Static) */
+    @keyframes arrowGlideContinuousLoop {
+      0%, 100% {
+        transform: translate(0, 0);
+      }
+      50% {
+        transform: translate(2.5px, -2.5px);
+      }
     }
-    .dock-btn:hover .chart-arrow,
-    .dock-btn.active-tab .chart-arrow {
-      transform: translate(2.5px, -2.5px);
+    .chart-arrow-loop {
+      animation: arrowGlideContinuousLoop 1.8s infinite ease-in-out;
     }
-    .chart-bar-1, .chart-bar-2, .chart-bar-3, .chart-bar-4 {
-      transform-box: fill-box;
-      transform-origin: bottom;
-      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .dock-btn:hover .chart-bar-1, .dock-btn.active-tab .chart-bar-1 { transform: scaleY(1.22); }
-    .dock-btn:hover .chart-bar-2, .dock-btn.active-tab .chart-bar-2 { transform: scaleY(1.16); transition-delay: 0.04s; }
-    .dock-btn:hover .chart-bar-3, .dock-btn.active-tab .chart-bar-3 { transform: scaleY(1.28); transition-delay: 0.08s; }
-    .dock-btn:hover .chart-bar-4, .dock-btn.active-tab .chart-bar-4 { transform: scaleY(1.18); transition-delay: 0.12s; }
 
-    /* 🌐 Study A ⇄ 文 Alternating Language Flip Animation */
-    @keyframes flipCharA {
-      0%, 42% {
+    /* 🌐 Study A ⇄ 文 Diagonal Corner Swap Animation (No 'អ', Only A and 文 Swapping Positions) */
+    @keyframes diagonalSwapA {
+      0%, 40% {
+        transform: translate(4px, 3px) scale(1.05);
         opacity: 1;
-        transform: rotateY(0deg) scale(1);
       }
-      48%, 92% {
-        opacity: 0;
-        transform: rotateY(90deg) scale(0.8);
+      50%, 90% {
+        transform: translate(-4px, -3px) scale(0.92);
+        opacity: 0.95;
       }
-      98%, 100% {
+      100% {
+        transform: translate(4px, 3px) scale(1.05);
         opacity: 1;
-        transform: rotateY(0deg) scale(1);
       }
     }
 
-    @keyframes flipCharForeign {
-      0%, 42% {
-        opacity: 0;
-        transform: rotateY(-90deg) scale(0.8);
+    @keyframes diagonalSwapWen {
+      0%, 40% {
+        transform: translate(-4px, -3px) scale(0.92);
+        opacity: 0.95;
       }
-      48%, 92% {
+      50%, 90% {
+        transform: translate(4px, 3px) scale(1.05);
         opacity: 1;
-        transform: rotateY(0deg) scale(1);
       }
-      98%, 100% {
-        opacity: 0;
-        transform: rotateY(90deg) scale(0.8);
+      100% {
+        transform: translate(-4px, -3px) scale(0.92);
+        opacity: 0.95;
       }
     }
 
-    .lang-flip-box {
-      perspective: 600px;
-    }
-    .char-a {
-      animation: flipCharA 3.6s infinite ease-in-out;
-      transform-origin: center;
-    }
-    .char-foreign {
-      animation: flipCharForeign 3.6s infinite ease-in-out;
-      transform-origin: center;
-    }
-    .dock-btn:hover .char-a,
-    .dock-btn.active-tab .char-a {
-      animation-duration: 2s;
-    }
-    .dock-btn:hover .char-foreign,
-    .dock-btn.active-tab .char-foreign {
-      animation-duration: 2s;
-    }
+    .diag-a { animation: diagonalSwapA 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
+    .diag-wen { animation: diagonalSwapWen 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
 
-    /* Light Mode Overrides (Crisp, High-Contrast iOS Style) */
+    /* Light Mode Overrides (Crisp, High-Contrast iOS Style - Specially Refined for Settings & Dashboard) */
     .light-theme {
       background-color: #F8FAFC !important;
       color: #0F172A !important;
@@ -199,6 +178,7 @@
     .light-theme .bg-black\/50 {
       background-color: #F1F5F9 !important;
       border-color: #E2E8F0 !important;
+      color: #0F172A !important;
     }
     .light-theme .bg-white\/5,
     .light-theme .bg-white\/10 {
@@ -210,6 +190,31 @@
     .light-theme .border-white\/15,
     .light-theme .border-white\/20 {
       border-color: #E2E8F0 !important;
+    }
+    /* Settings Cards & Modals: Convert dark navy to bright clean white */
+    .light-theme .bg-\[\#0F1B2E\],
+    .light-theme [class*="bg-[#0F1B2E]"] {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.05) !important;
+      color: #0F172A !important;
+    }
+    /* Security Card in Settings: Soft subtle blue/slate gradient */
+    .light-theme .from-\[\#102A43\] {
+      --tw-gradient-from: #EFF6FF var(--tw-gradient-from-position) !important;
+      --tw-gradient-to: #F8FAFC var(--tw-gradient-to-position) !important;
+      --tw-gradient-stops: var(--tw-gradient-from), #F1F5F9, var(--tw-gradient-to) !important;
+      border-color: #BFDBFE !important;
+      box-shadow: 0 4px 16px -2px rgba(59, 130, 246, 0.08) !important;
+    }
+    .light-theme .to-\[\#0B1D30\] {
+      --tw-gradient-to: #F8FAFC var(--tw-gradient-to-position) !important;
+    }
+    .light-theme .border-blue-500\/20 {
+      border-color: #BFDBFE !important;
+    }
+    .light-theme .divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
+      border-color: #F1F5F9 !important;
     }
     .light-theme .ios-glass-card {
       background: #FFFFFF !important;
@@ -226,6 +231,10 @@
     .light-theme #sticky-filter-bar {
       background: rgba(255, 255, 255, 0.96) !important;
       border-color: #E2E8F0 !important;
+    }
+    .light-theme .liquid-ambient-orange,
+    .light-theme .liquid-ambient-blue {
+      opacity: 0.15;
     }
     .light-theme .liquid-ambient-orange,
     .light-theme .liquid-ambient-blue {
@@ -592,21 +601,21 @@
         <span class="text-[10px] font-bold">ទំព័រដើម</span>
       </button>
 
-      <!-- 2. Analytics (L-axis + 4 Rounded Bars + Upward Growth Arrow) -->
+      <!-- 2. Analytics (L-axis + 4 Static Bars + Upward Growth Arrow Continuous Loop) -->
       <button onclick="switchView('analytics')" id="dock-btn-analytics" 
               class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition">
         <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
           <!-- L-axis (Left vertical & Bottom horizontal) -->
           <path d="M2.5 2.5v16.5a2 2 0 0 0 2 2h17" stroke-width="2.3" />
-          <!-- 4 Rounded Bars (Pill shape) -->
-          <rect class="chart-bar-1" x="5.5" y="12" width="2.4" height="6.5" rx="1.2" fill="currentColor" />
-          <rect class="chart-bar-2" x="9.5" y="9" width="2.4" height="9.5" rx="1.2" fill="currentColor" />
-          <rect class="chart-bar-3" x="13.5" y="11" width="2.4" height="7.5" rx="1.2" fill="currentColor" />
-          <rect class="chart-bar-4" x="17.5" y="7.5" width="2.4" height="11" rx="1.2" fill="currentColor" />
-          <!-- Upward Growth Zigzag Trend Arrow -->
-          <g class="chart-arrow">
-            <path d="M5.5 10l5-4.5 3 3 5.5-5.5" stroke-width="2.2" />
-            <path d="M15.5 3h4V7" stroke-width="2.2" />
+          <!-- 4 Static Bars (Calm, no jitter) -->
+          <rect x="5.5" y="12" width="2.4" height="6.5" rx="1.2" fill="currentColor" />
+          <rect x="9.5" y="9" width="2.4" height="9.5" rx="1.2" fill="currentColor" />
+          <rect x="13.5" y="11" width="2.4" height="7.5" rx="1.2" fill="currentColor" />
+          <rect x="17.5" y="7.5" width="2.4" height="11" rx="1.2" fill="currentColor" />
+          <!-- Upward Growth Zigzag Trend Arrow (Continuous Loop) -->
+          <g class="chart-arrow-loop">
+            <path d="M5.5 10l5-4.5 3 3 5.5-5.5" stroke-width="2.3" />
+            <path d="M15.5 3h4V7" stroke-width="2.3" />
           </g>
         </svg>
         <span class="text-[10px] font-bold">វិភាគ</span>
@@ -626,21 +635,12 @@
         <span class="text-[10px] font-bold text-orange-400 mt-0.5">Order</span>
       </a>
 
-      <!-- 4. Learning 5 Words (Languages A ⇄ 文 3D Flip Micro-Animation) -->
+      <!-- 4. Learning 5 Words (Languages A ⇄ 文 Position Swap Micro-Animation) -->
       <button onclick="switchView('learning')" id="dock-btn-learning" 
               class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition">
-        <div class="w-5 h-5 mb-0.5 relative flex items-center justify-center lang-flip-box">
-          <!-- Background Base Translate Symbol -->
-          <svg class="w-5 h-5 absolute inset-0 text-current opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m5 8 6 6" />
-            <path d="m4 14 6-6 2-3" />
-            <path d="M2 5h12" />
-            <path d="M7 2h1" />
-          </svg>
-          <!-- Animated Alternating Glyph 1: English "A" -->
-          <span class="char-a absolute text-[12px] font-black font-sans leading-none text-current" style="right: 1px; bottom: 0.5px;">A</span>
-          <!-- Animated Alternating Glyph 2: Foreign Character "文" -->
-          <span class="char-foreign absolute text-[11px] font-black leading-none text-current opacity-0" style="right: 1px; bottom: 0.5px;">文</span>
+        <div class="w-6 h-6 mb-0.5 relative flex items-center justify-center">
+          <span class="diag-a absolute text-[12px] font-black font-sans leading-none text-current">A</span>
+          <span class="diag-wen absolute text-[11px] font-bold leading-none text-current">文</span>
         </div>
         <span class="text-[10px] font-bold">សិក្សា</span>
       </button>
