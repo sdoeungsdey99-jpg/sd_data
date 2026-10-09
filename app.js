@@ -372,6 +372,13 @@ function updateReloadBadge(service) {
 }
 
 function manualReload() {
+  const indicator = document.getElementById('pull-refresh-indicator');
+  if (indicator) {
+    indicator.style.height = '35px';
+    setTimeout(() => {
+      indicator.style.height = '0px';
+    }, 800);
+  }
   DataService.fetchData(false);
 }
 
@@ -409,28 +416,26 @@ function setupPullToRefresh() {
   });
 }
 
-// Smart Dock & Filter Bar Auto-Hide on Scroll Down, Re-appear on Scroll Up or Stop
+// Keep Bottom Dock Permanently Stable, allow sticky filter bar to auto-collapse on scroll down
 function setupSmartDockScroll() {
   const main = document.getElementById('main-content');
   const dock = document.getElementById('bottom-dock');
   const filterBar = document.getElementById('sticky-filter-bar');
   if (!main || !dock) return;
 
+  // Ensure dock is always visible and stable
+  dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+
   let lastScrollTop = 0;
-  let scrollTimeout = null;
 
   main.addEventListener('scroll', () => {
     const currentScrollTop = main.scrollTop;
     const diff = currentScrollTop - lastScrollTop;
 
-    // Scrolling down strongly -> hide dock & filter bar, keep filter bar hidden
+    // Filter bar auto-collapses when scrolling down, restores when scrolling up
     if (diff > 10 && currentScrollTop > 50) {
-      dock.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
       if (filterBar) filterBar.classList.add('filter-hidden');
-    } 
-    // Scrolling up even slightly or reached very top -> restore
-    else if (diff < -6 || currentScrollTop <= 15) {
-      dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+    } else if (diff < -6 || currentScrollTop <= 15) {
       if (filterBar && appState.currentView === 'dashboard') {
         filterBar.classList.remove('filter-hidden');
       }
@@ -445,13 +450,6 @@ function setupSmartDockScroll() {
         loadMoreStudyWords();
       }
     }
-
-    // Dock can gently restore if idle, but filter bar stays hidden unless scrolling UP
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      dock.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
-      // Notice: Do NOT restore filterBar here, keeping it hidden until user scrolls up!
-    }, 800);
   }, { passive: true });
 }
 
@@ -667,19 +665,23 @@ function switchView(viewName) {
   appState.currentView = viewName;
 
   const main = document.getElementById('main-content');
-  if (viewName === 'dashboard') {
-    // Scroll to the very top smoothly
-    if (main) {
-      main.scrollTo({ top: 0, behavior: 'smooth' });
+  if (main) {
+    main.scrollTop = 0;
+    if (viewName === 'settings') {
+      main.classList.add('settings-view-active');
+    } else {
+      main.classList.remove('settings-view-active');
     }
-    // Refresh latest data from Google Sheet
+  }
+
+  if (viewName === 'dashboard') {
     manualReload();
   }
 
   const filterBar = document.getElementById('sticky-filter-bar');
   if (filterBar) {
     if (viewName === 'dashboard') {
-      filterBar.classList.remove('hidden');
+      filterBar.classList.remove('hidden', 'filter-hidden');
     } else {
       filterBar.classList.add('hidden');
     }
@@ -718,11 +720,12 @@ function switchView(viewName) {
 
   renderCurrentView();
 
-  // Ensure scroll is at top after view render if switched/clicked home
-  if (viewName === 'dashboard' && main) {
+  // Guarantee scroll is positioned at the very top (0) so top profile is immediately 100% visible
+  if (main) {
+    main.scrollTop = 0;
     setTimeout(() => {
-      main.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 50);
+      main.scrollTop = 0;
+    }, 15);
   }
 }
 
@@ -2518,9 +2521,14 @@ function saveShortcutUrl() {
 let currentCelestialIndex = 0; // 0: ✨ sparkle, 1: ☀️ ray, 2: 🌙 moon
 
 function handleHomeClick(e) {
-  // If already on dashboard, cycle through celestial icons!
+  // Tap Home to cycle celestial icons AND reload/refresh data smoothly to top!
   if (appState.currentView === 'dashboard') {
     cycleHomeCelestialGlow();
+    const main = document.getElementById('main-content');
+    if (main) {
+      main.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    manualReload();
   } else {
     switchView('dashboard');
   }

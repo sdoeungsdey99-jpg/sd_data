@@ -212,6 +212,13 @@
       touch-action: pan-y !important;
       scroll-behavior: auto !important;
     }
+    #top-header {
+      padding-top: env(safe-area-inset-top, 0px) !important;
+      height: calc(4rem + env(safe-area-inset-top, 0px)) !important;
+    }
+    #main-content.settings-view-active {
+      padding-top: calc(1.5rem + env(safe-area-inset-top, 0px)) !important;
+    }
 
     /* Long Press Card Scale & Slim Capsule */
     .card-pressing {
@@ -985,6 +992,6 @@
   </div>
 
   <script src="dataService.js"></script>
-  <script src="app.js?v=2.4"></script>
+  <script src="app.js?v=2.5"></script>
 </body>
 </html>
