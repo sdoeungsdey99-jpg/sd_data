@@ -27,7 +27,7 @@ const translations = {
     expenses: 'ចំណាយសរុប',
     boxUnit: 'ប្រអប់',
     pendingCodTitle: '📦 លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់',
-    pendingCodHint: 'Outstanding customer payment',
+    pendingCodHint: 'Outstanding Customer Payment',
     netCashTitle: '📈 សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash Position)',
     actualCash: 'សរុបសាច់ប្រាក់ជាក់ស្តែង',
     pendingCod: 'លុយ COD រង់ចាំទូទាត់',
@@ -77,8 +77,8 @@ const translations = {
     grossProfit: 'Gross Profit',
     expenses: 'Total Expenses',
     boxUnit: 'Boxes',
-    pendingCodTitle: '📦 Outstanding customer payment',
-    pendingCodHint: 'Outstanding customer payment',
+    pendingCodTitle: '📦 Outstanding Customer Payment',
+    pendingCodHint: 'Outstanding Customer Payment',
     netCashTitle: '📈 Net Cash Position Summary',
     actualCash: 'Total Actual Cash',
     pendingCod: 'Pending COD / Receivables',
@@ -127,7 +127,8 @@ const appState = {
   correctPin: localStorage.getItem('sd_pin') || '1234',
   lockWallpaper: localStorage.getItem('sd_lock_wallpaper') || 'wp-deep-mesh',
   analyticsMonthKey: 'all', // 'all' or 'YYYY-MM'
-  hasReadNotifications: false
+  hasReadNotifications: false,
+  studyWordCount: 5
 };
 
 function getLocalIsoDate(d = new Date()) {
@@ -147,7 +148,27 @@ const DAILY_ENGLISH_WORDS = [
   { en: 'Transaction', pron: 'ត្រេនសាក់សិន', pos: 'Noun', km: 'ប្រតិបត្តិការទិញ-លក់', ex: 'Every transaction is recorded accurately.' },
   { en: 'Receivable', pron: 'រីស៊ីវ៉ាបល', pos: 'Noun', km: 'ប្រាក់ត្រូវប្រមូល (COD/ជំពាក់)', ex: 'Track pending COD in accounts receivable.' },
   { en: 'Payable', pron: 'ផេយ៉ាបល', pos: 'Noun', km: 'បំណុលត្រូវទូទាត់ (ថ្លៃទំនិញ/ដឹក)', ex: 'Pay bills on time under accounts payable.' },
-  { en: 'Balance', pron: 'បាឡានស៍', pos: 'Noun', km: 'សមតុល្យសាច់ប្រាក់សុទ្ធ', ex: 'Check pure cash balance across bank accounts.' }
+  { en: 'Balance', pron: 'បាឡានស៍', pos: 'Noun', km: 'សមតុល្យសាច់ប្រាក់សុទ្ធ', ex: 'Check pure cash balance across bank accounts.' },
+  { en: 'Revenue', pron: 'រេវ៉េញូ', pos: 'Noun', km: 'ចំណូលសរុបពីការលក់', ex: 'Monthly revenue reached our new peak.' },
+  { en: 'Profit', pron: 'ប្រហ្វិត', pos: 'Noun', km: 'ប្រាក់ចំណេញសុទ្ធ', ex: 'Gross profit increased by 15% this week.' },
+  { en: 'Expense', pron: 'អិចស្ពេនស៍', pos: 'Noun', km: 'ការចំណាយប្រចាំថ្ងៃ', ex: 'Keep operational expenses within budget.' },
+  { en: 'Inventory', pron: 'អ៊ីនវេនថូរី', pos: 'Noun', km: 'ស្តុកទំនិញក្នុងឃ្លាំង', ex: 'We must restock our popular products.' },
+  { en: 'Customer', pron: 'ខាសស្ទើម័រ', pos: 'Noun', km: 'អតិថិជន ឬអ្នកទិញ', ex: 'Customer satisfaction is our top priority.' },
+  { en: 'Discount', pron: 'ឌីសខោន', pos: 'Noun/Verb', km: 'ការបញ្ចុះតម្លៃពិសេស', ex: 'Special discount for wholesale orders.' },
+  { en: 'Invoice', pron: 'អ៊ីនវ៉យស៍', pos: 'Noun', km: 'វិក្កយបត្រទូទាត់ប្រាក់', ex: 'Send the official invoice via Telegram.' },
+  { en: 'Delivery', pron: 'ឌីលីវើរី', pos: 'Noun', km: 'ការដឹកជញ្ជូនទំនិញ', ex: 'Same-day delivery is available in city.' },
+  { en: 'Deposit', pron: 'ឌីផូស៊ីត', pos: 'Noun/Verb', km: 'ប្រាក់កក់ ឬដាក់ប្រាក់', ex: 'Customer made a 50% cash deposit.' },
+  { en: 'Withdraw', pron: 'វិដដ្រ', pos: 'Verb', km: 'ដកប្រាក់ពីគណនីធនាគារ', ex: 'Withdraw money from ACLEDA ATM.' },
+  { en: 'Target', pron: 'ថាហ្គឺត', pos: 'Noun', km: 'គោលដៅកំណត់ (ឧ. ១០០ ប្រអប់)', ex: 'The sales team hit the monthly target.' },
+  { en: 'Performance', pron: 'ភើហ្វរមែនស៍', pos: 'Noun', km: 'ប្រសិទ្ធភាពការងារ/ការលក់', ex: 'Track daily performance on the chart.' },
+  { en: 'Supplier', pron: 'សាប់ផ្លាយអឺ', pos: 'Noun', km: 'អ្នកផ្គត់ផ្គង់ទំនិញ/វត្ថុធាតុដើម', ex: 'Negotiate the best price with supplier.' },
+  { en: 'Receipt', pron: 'រីស៊ីត', pos: 'Noun', km: 'បង្កាន់ដៃទទួលប្រាក់', ex: 'Keep the receipt for expense tracking.' },
+  { en: 'Budget', pron: 'បាត់ជិត', pos: 'Noun', km: 'កញ្ចប់ថវិកាដែលបានគ្រោងទុក', ex: 'Marketing budget is planned in advance.' },
+  { en: 'Analytics', pron: 'អេណាលីទិក', pos: 'Noun', km: 'ការវិភាគទិន្នន័យស្ថិតិ', ex: 'Analytics show growth in new regions.' },
+  { en: 'Feedback', pron: 'ហ្វីដបែក', pos: 'Noun', km: 'មតិកែលម្អពីអតិថិជន', ex: 'Positive feedback builds customer trust.' },
+  { en: 'Settlement', pron: 'សេតថលមែន', pos: 'Noun', km: 'ការទូទាត់ផ្តាច់ ឬបិទបញ្ជី', ex: 'Delivery partner completed COD settlement.' },
+  { en: 'Cashflow', pron: 'ខាសហ្វ្លូ', pos: 'Noun', km: 'ចរន្តសាច់ប្រាក់ចេញ-ចូល', ex: 'Healthy cashflow keeps our business strong.' },
+  { en: 'Commission', pron: 'ខមមីសិន', pos: 'Noun', km: 'ប្រាក់កម្រៃជើងសារលើការលក់', ex: 'Sales reps receive weekly commission.' }
 ];
 
 function formatUSD(num) {
@@ -415,6 +436,14 @@ function setupSmartDockScroll() {
 
     lastScrollTop = currentScrollTop;
 
+    // Auto-load 5 more words when near bottom in Study / Learning view
+    if (appState.currentView === 'learning') {
+      const scrollBottom = main.scrollHeight - main.scrollTop - main.clientHeight;
+      if (scrollBottom < 120) {
+        loadMoreStudyWords();
+      }
+    }
+
     // When scrolling stops, automatically restore dock and filter bar after 600ms
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
@@ -449,10 +478,8 @@ function launchNativeOrWeb(nativeScheme, webUrl) {
 }
 
 function openSearchBar() {
-  const bar = document.getElementById('header-search-bar');
-  const modal = document.getElementById('search-results-modal');
+  const modal = document.getElementById('global-search-modal');
   const input = document.getElementById('global-search-input');
-  if (bar) bar.classList.remove('hidden');
   if (modal) modal.classList.remove('hidden');
   if (input) {
     input.focus();
@@ -462,11 +489,9 @@ function openSearchBar() {
 }
 
 function closeSearchBar() {
-  const bar = document.getElementById('header-search-bar');
-  const modal = document.getElementById('search-results-modal');
+  const modal = document.getElementById('global-search-modal');
   const input = document.getElementById('global-search-input');
   if (input) input.value = '';
-  if (bar) bar.classList.add('hidden');
   if (modal) modal.classList.add('hidden');
   const container = document.getElementById('search-results-container');
   if (container) container.innerHTML = '';
@@ -658,7 +683,17 @@ function switchView(viewName) {
     }
   }
 
-  // Profile block in Header: visible always EXCEPT when in 'settings' (or clicking profile itself)
+  // Top Header Bar: Hide completely when in Settings (search, bell, reload hidden)
+  const topHeader = document.getElementById('top-header');
+  if (topHeader) {
+    if (viewName === 'settings') {
+      topHeader.classList.add('hidden');
+    } else {
+      topHeader.classList.remove('hidden');
+    }
+  }
+
+  // Profile block in Header: visible always EXCEPT when in 'settings'
   const headerProfile = document.getElementById('header-profile-block');
   if (headerProfile) {
     if (viewName === 'settings') {
@@ -672,7 +707,7 @@ function switchView(viewName) {
     const btn = document.getElementById(`dock-btn-${v}`);
     if (btn) {
       if (v === viewName) {
-        btn.className = 'dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-orange-400 transition';
+        btn.className = 'dock-btn active-tab flex-1 flex flex-col items-center justify-center py-1 rounded-full text-orange-400 transition';
       } else {
         btn.className = 'dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition';
       }
@@ -1851,7 +1886,7 @@ function getAnalyticsViewHTML() {
             <h3 class="font-bold text-sm text-white">${t('diagramTitle')}</h3>
             <p class="text-[11px] text-slate-400">${t('diagramSubtitle')}</p>
           </div>
-          <span class="px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold">2026 Trend</span>
+          <span class="px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold">${new Date().getFullYear()} Trend</span>
         </div>
 
         <div class="h-56 w-full flex items-end gap-2 pt-8 pb-3 px-1 border-b border-white/10">
@@ -1895,22 +1930,30 @@ function getAnalyticsViewHTML() {
 }
 
 // ==========================================
-// 6. View: Daily English
+// 6. View: Daily English (Auto-load 5 Words Option)
 // ==========================================
 function getLearningViewHTML() {
+  const visibleWords = DAILY_ENGLISH_WORDS.slice(0, appState.studyWordCount || 5);
+  const hasMore = visibleWords.length < DAILY_ENGLISH_WORDS.length;
+
   return `
-    <div class="space-y-4">
+    <div class="space-y-4" id="study-container">
       <div class="ios-glass-card rounded-3xl p-5 border border-white/10 text-center relative overflow-hidden">
         <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center mx-auto mb-2 shadow-lg shadow-orange-500/20">
           <i data-lucide="book-open" class="w-6 h-6"></i>
         </div>
         <h3 class="font-bold text-base text-white">រៀនភាសាអង់គ្លេស ១ ថ្ងៃ ៥ ពាក្យ</h3>
         <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1">ពាក្យគន្លឹះសម្រាប់ការងារប្រចាំថ្ងៃ និងកូដបែប UI</p>
+        <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] text-orange-400 font-medium">
+          <span>បង្ហាញ ${visibleWords.length} នៃ ${DAILY_ENGLISH_WORDS.length} ពាក្យ</span>
+          <span>•</span>
+          <span>អូសចុះក្រោម ឬចុចប៊ូតុងដើម្បីថែម ៥ ទៀត</span>
+        </div>
       </div>
 
-      <div class="space-y-3">
-        ${DAILY_ENGLISH_WORDS.map((w, idx) => `
-          <div class="ios-glass-card rounded-2xl p-4 border border-white/10 flex items-start gap-3.5">
+      <div class="space-y-3" id="study-words-list">
+        ${visibleWords.map((w, idx) => `
+          <div class="ios-glass-card rounded-2xl p-4 border border-white/10 flex items-start gap-3.5 transition-all">
             <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 font-bold text-sm flex items-center justify-center shrink-0">
               ${idx + 1}
             </div>
@@ -1928,8 +1971,38 @@ function getLearningViewHTML() {
           </div>
         `).join('')}
       </div>
+
+      ${hasMore ? `
+        <div class="pt-2 text-center pb-6">
+          <button onclick="loadMoreStudyWords()" 
+                  class="w-full py-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-98 border border-white/10 text-xs font-semibold text-orange-400 flex items-center justify-center gap-2 transition">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>បង្ហាញ ៥ ពាក្យទៀតស្វ័យប្រវត្ត (Load 5 More Words)</span>
+          </button>
+        </div>
+      ` : `
+        <div class="py-4 text-center text-xs text-slate-400 pb-6">
+          🎉 លោកអ្នកបានមើលពាក្យទាំងអស់ហើយ!
+        </div>
+      `}
     </div>
   `;
+}
+
+let isStudyLoading = false;
+function loadMoreStudyWords() {
+  if (isStudyLoading || appState.studyWordCount >= DAILY_ENGLISH_WORDS.length) return;
+  isStudyLoading = true;
+  const container = document.getElementById('main-content');
+  const prevScroll = container ? container.scrollTop : 0;
+  appState.studyWordCount = Math.min(appState.studyWordCount + 5, DAILY_ENGLISH_WORDS.length);
+  renderCurrentView();
+  if (container) {
+    container.scrollTop = prevScroll;
+  }
+  setTimeout(() => {
+    isStudyLoading = false;
+  }, 450);
 }
 
 // ==========================================

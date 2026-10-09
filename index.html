@@ -91,10 +91,125 @@
     .dock-btn:active {
       transform: scale(0.88);
     }
-    /* Light Mode Overrides */
+
+    /* ⚙️ Dock Micro-Animations */
+    .gear-spin {
+      transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dock-btn:hover .gear-spin,
+    .dock-btn.active-tab .gear-spin {
+      transform: rotate(60deg);
+    }
+
+    .chart-arrow {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dock-btn:hover .chart-arrow,
+    .dock-btn.active-tab .chart-arrow {
+      transform: translate(2.5px, -2.5px);
+    }
+    .chart-bar-1, .chart-bar-2, .chart-bar-3, .chart-bar-4 {
+      transform-box: fill-box;
+      transform-origin: bottom;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dock-btn:hover .chart-bar-1, .dock-btn.active-tab .chart-bar-1 { transform: scaleY(1.22); }
+    .dock-btn:hover .chart-bar-2, .dock-btn.active-tab .chart-bar-2 { transform: scaleY(1.16); transition-delay: 0.04s; }
+    .dock-btn:hover .chart-bar-3, .dock-btn.active-tab .chart-bar-3 { transform: scaleY(1.28); transition-delay: 0.08s; }
+    .dock-btn:hover .chart-bar-4, .dock-btn.active-tab .chart-bar-4 { transform: scaleY(1.18); transition-delay: 0.12s; }
+
+    /* 🌐 Study A ⇄ 文 Alternating Language Flip Animation */
+    @keyframes flipCharA {
+      0%, 42% {
+        opacity: 1;
+        transform: rotateY(0deg) scale(1);
+      }
+      48%, 92% {
+        opacity: 0;
+        transform: rotateY(90deg) scale(0.8);
+      }
+      98%, 100% {
+        opacity: 1;
+        transform: rotateY(0deg) scale(1);
+      }
+    }
+
+    @keyframes flipCharForeign {
+      0%, 42% {
+        opacity: 0;
+        transform: rotateY(-90deg) scale(0.8);
+      }
+      48%, 92% {
+        opacity: 1;
+        transform: rotateY(0deg) scale(1);
+      }
+      98%, 100% {
+        opacity: 0;
+        transform: rotateY(90deg) scale(0.8);
+      }
+    }
+
+    .lang-flip-box {
+      perspective: 600px;
+    }
+    .char-a {
+      animation: flipCharA 3.6s infinite ease-in-out;
+      transform-origin: center;
+    }
+    .char-foreign {
+      animation: flipCharForeign 3.6s infinite ease-in-out;
+      transform-origin: center;
+    }
+    .dock-btn:hover .char-a,
+    .dock-btn.active-tab .char-a {
+      animation-duration: 2s;
+    }
+    .dock-btn:hover .char-foreign,
+    .dock-btn.active-tab .char-foreign {
+      animation-duration: 2s;
+    }
+
+    /* Light Mode Overrides (Crisp, High-Contrast iOS Style) */
     .light-theme {
       background-color: #F8FAFC !important;
       color: #0F172A !important;
+    }
+    .light-theme .text-white {
+      color: #0F172A !important;
+    }
+    .light-theme .text-slate-100 {
+      color: #0F172A !important;
+    }
+    .light-theme .text-slate-200 {
+      color: #1E293B !important;
+    }
+    .light-theme .text-slate-300 {
+      color: #334155 !important;
+    }
+    .light-theme .text-slate-400 {
+      color: #64748B !important;
+    }
+    .light-theme .text-slate-500 {
+      color: #475569 !important;
+    }
+    .light-theme .bg-black\/20,
+    .light-theme .bg-black\/25,
+    .light-theme .bg-black\/30,
+    .light-theme .bg-black\/40,
+    .light-theme .bg-black\/50 {
+      background-color: #F1F5F9 !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme .bg-white\/5,
+    .light-theme .bg-white\/10 {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme .border-white\/5,
+    .light-theme .border-white\/10,
+    .light-theme .border-white\/15,
+    .light-theme .border-white\/20 {
+      border-color: #E2E8F0 !important;
     }
     .light-theme .ios-glass-card {
       background: #FFFFFF !important;
@@ -103,14 +218,18 @@
       color: #0F172A !important;
     }
     .light-theme .telegram-dock {
-      background: rgba(255, 255, 255, 0.92) !important;
-      border-color: #E2E8F0 !important;
-      box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.1) !important;
+      background: rgba(255, 255, 255, 0.95) !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12) !important;
     }
     .light-theme header,
     .light-theme #sticky-filter-bar {
-      background: rgba(255, 255, 255, 0.95) !important;
+      background: rgba(255, 255, 255, 0.96) !important;
       border-color: #E2E8F0 !important;
+    }
+    .light-theme .liquid-ambient-orange,
+    .light-theme .liquid-ambient-blue {
+      opacity: 0.15;
     }
     /* Auto-hide Sticky Filter Bar */
     #sticky-filter-bar {
@@ -286,7 +405,7 @@
   <div id="app-container" class="relative z-10 flex flex-col h-full w-full max-w-md mx-auto overflow-hidden">
     
     <!-- Top Header Navigation -->
-    <header class="h-16 px-4 flex items-center justify-between shrink-0 border-b border-white/5 bg-[#070D18]/90 backdrop-blur-md z-30 relative">
+    <header id="top-header" class="h-16 px-4 flex items-center justify-between shrink-0 border-b border-white/5 bg-[#070D18]/90 backdrop-blur-md z-30 relative transition-all duration-300">
       
       <!-- Normal Header Bar -->
       <div id="header-normal" class="w-full flex items-center justify-between">
@@ -326,7 +445,7 @@
             </button>
           </div>
 
-          <!-- Search Button (Replacing Lock Screen button) -->
+          <!-- Search Button -->
           <button onclick="openSearchBar()" 
                   class="p-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white transition"
                   title="ស្វែងរកទិន្នន័យ">
@@ -334,25 +453,42 @@
           </button>
         </div>
       </div>
+    </header>
 
-      <!-- iOS Style Expanding Search Bar Overlay -->
-      <div id="header-search-bar" class="hidden absolute inset-0 px-3 flex items-center gap-2 bg-[#0C1527] z-40">
-        <div class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/10 border border-white/10 text-white">
-          <i data-lucide="search" class="w-4 h-4 text-slate-400 shrink-0"></i>
+    <!-- ======================================================== -->
+    <!-- iOS 17 Pro Fullscreen Heavy Blur Floating Search Modal    -->
+    <!-- Z-Index 50 Floating Overlay blurs everything behind it    -->
+    <!-- ======================================================== -->
+    <div id="global-search-modal" class="fixed inset-0 z-50 bg-[#070D18]/90 backdrop-blur-3xl hidden flex flex-col p-4 pt-6 transition-all duration-300">
+      
+      <!-- Top iOS Capsule Search Bar & Independent Circular ✕ Button -->
+      <div class="w-full max-w-md mx-auto flex items-center gap-3 mb-4 shrink-0">
+        <!-- Elongated iOS Capsule Input (Pill style matching user reference photo) -->
+        <div class="flex-1 flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white/10 border border-white/15 text-white shadow-xl focus-within:border-orange-500/60 focus-within:bg-white/15 transition-all">
+          <svg class="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
           <input type="text" id="global-search-input" 
                  oninput="handleGlobalSearch(this.value)"
                  placeholder="ស្វែងរកអតិថិជន, Order, ចំណាយ..." 
-                 class="w-full bg-transparent text-xs text-white placeholder-slate-400 focus:outline-none">
-          <button onclick="closeSearchBar()" class="p-1 rounded-full text-slate-400 hover:text-white shrink-0">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
+                 class="w-full bg-transparent text-sm text-white placeholder-slate-400 focus:outline-none font-medium">
         </div>
+        <!-- Independent Circular ✕ Button -->
+        <button onclick="closeSearchBar()" 
+                class="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white flex items-center justify-center shrink-0 border border-white/15 shadow-xl transition-all"
+                title="បិទ (Close)">
+          <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
       </div>
-    </header>
 
-    <!-- Global Search Results Flyout Overlay -->
-    <div id="search-results-modal" class="hidden absolute top-16 inset-x-0 bottom-0 bg-[#070D18]/95 backdrop-blur-xl z-25 overflow-y-auto p-4 space-y-2">
-      <div id="search-results-container" class="space-y-2"></div>
+      <!-- Live Search Results (Directly on blurred background) -->
+      <div id="search-results-container" class="w-full max-w-md mx-auto flex-1 overflow-y-auto no-scrollbar space-y-2 pb-16">
+        <!-- Search cards inserted here -->
+      </div>
     </div>
 
     <!-- STICKY FLOATING FILTER PILLS BAR (Shown ONLY on Home / Dashboard) -->
@@ -463,13 +599,15 @@
           <!-- L-axis (Left vertical & Bottom horizontal) -->
           <path d="M2.5 2.5v16.5a2 2 0 0 0 2 2h17" stroke-width="2.3" />
           <!-- 4 Rounded Bars (Pill shape) -->
-          <rect x="5.5" y="12" width="2.4" height="6.5" rx="1.2" fill="currentColor" />
-          <rect x="9.5" y="9" width="2.4" height="9.5" rx="1.2" fill="currentColor" />
-          <rect x="13.5" y="11" width="2.4" height="7.5" rx="1.2" fill="currentColor" />
-          <rect x="17.5" y="7.5" width="2.4" height="11" rx="1.2" fill="currentColor" />
+          <rect class="chart-bar-1" x="5.5" y="12" width="2.4" height="6.5" rx="1.2" fill="currentColor" />
+          <rect class="chart-bar-2" x="9.5" y="9" width="2.4" height="9.5" rx="1.2" fill="currentColor" />
+          <rect class="chart-bar-3" x="13.5" y="11" width="2.4" height="7.5" rx="1.2" fill="currentColor" />
+          <rect class="chart-bar-4" x="17.5" y="7.5" width="2.4" height="11" rx="1.2" fill="currentColor" />
           <!-- Upward Growth Zigzag Trend Arrow -->
-          <path d="M5.5 10l5-4.5 3 3 5.5-5.5" stroke-width="2.2" />
-          <path d="M15.5 3h4V7" stroke-width="2.2" />
+          <g class="chart-arrow">
+            <path d="M5.5 10l5-4.5 3 3 5.5-5.5" stroke-width="2.2" />
+            <path d="M15.5 3h4V7" stroke-width="2.2" />
+          </g>
         </svg>
         <span class="text-[10px] font-bold">វិភាគ</span>
       </button>
@@ -488,24 +626,29 @@
         <span class="text-[10px] font-bold text-orange-400 mt-0.5">Order</span>
       </a>
 
-      <!-- 4. Learning 5 Words (Languages 文A Icon) -->
+      <!-- 4. Learning 5 Words (Languages A ⇄ 文 3D Flip Micro-Animation) -->
       <button onclick="switchView('learning')" id="dock-btn-learning" 
               class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition">
-        <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m5 8 6 6" />
-          <path d="m4 14 6-6 2-3" />
-          <path d="M2 5h12" />
-          <path d="M7 2h1" />
-          <path d="m22 22-5-10-5 10" />
-          <path d="M14 18h6" />
-        </svg>
+        <div class="w-5 h-5 mb-0.5 relative flex items-center justify-center lang-flip-box">
+          <!-- Background Base Translate Symbol -->
+          <svg class="w-5 h-5 absolute inset-0 text-current opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m5 8 6 6" />
+            <path d="m4 14 6-6 2-3" />
+            <path d="M2 5h12" />
+            <path d="M7 2h1" />
+          </svg>
+          <!-- Animated Alternating Glyph 1: English "A" -->
+          <span class="char-a absolute text-[12px] font-black font-sans leading-none text-current" style="right: 1px; bottom: 0.5px;">A</span>
+          <!-- Animated Alternating Glyph 2: Foreign Character "文" -->
+          <span class="char-foreign absolute text-[11px] font-black leading-none text-current opacity-0" style="right: 1px; bottom: 0.5px;">文</span>
+        </div>
         <span class="text-[10px] font-bold">សិក្សា</span>
       </button>
 
-      <!-- 5. Settings (Gear ⚙️) -->
+      <!-- 5. Settings (Gear ⚙️ with Spin Animation) -->
       <button onclick="switchView('settings')" id="dock-btn-settings" 
               class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition">
-        <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="w-5 h-5 mb-0.5 gear-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
