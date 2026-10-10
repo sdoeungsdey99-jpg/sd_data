@@ -1472,56 +1472,6 @@ function getDashboardViewHTML() {
         </div>
       </div>
 
-    </div>
-
-    <!-- ======================================================== -->
-    <!-- CARD A: 📦 ACCOUNTS RECEIVABLE FROM BANK & CASH BALANCE  -->
-    <!-- ======================================================== -->
-    <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-            <i data-lucide="clock" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-xs uppercase tracking-wider text-amber-300 leading-tight">
-              ${t('pendingCodTitle')}
-            </h3>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">${t('pendingCodHint')}</p>
-          </div>
-        </div>
-        <span class="text-[10px] px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold border border-amber-500/30 shadow-sm shrink-0">
-          ${d.pendingCodReceivables.length}
-        </span>
-      </div>
-
-      <!-- 4-Way Scroll Container -->
-      <div class="overflow-x-auto overflow-y-auto max-h-56 no-scrollbar border border-white/5 rounded-2xl bg-black/30 p-2">
-        <table class="w-full text-left text-xs whitespace-nowrap">
-          <thead>
-            <tr class="text-slate-400 border-b border-white/10 text-[10px]">
-              <th class="py-1.5 px-2">ល.រ</th>
-              <th class="py-1.5 px-2">កាលបរិច្ឆេទ</th>
-              <th class="py-1.5 px-2">ចំនួន</th>
-              <th class="py-1.5 px-2">ស្ថានភាព</th>
-              <th class="py-1.5 px-2 text-right">ទឹកប្រាក់ ($)</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-white/5">
-            ${d.pendingCodReceivables.map(item => `
-              <tr class="hover:bg-white/5">
-                <td class="py-1.5 px-2 font-mono text-orange-400 text-[11px]">${item.no}</td>
-                <td class="py-1.5 px-2 text-slate-300 font-mono text-[11px]">${item.date}</td>
-                <td class="py-1.5 px-2 text-white font-medium text-[11px]">${item.qtyBoxes}</td>
-                <td class="py-1.5 px-2 text-blue-300 text-[11px]">${item.status}</td>
-                <td class="py-1.5 px-2 text-right font-mono font-bold text-amber-400 text-[11px]">${formatUSD(item.amount)}</td>
-              </tr>
-            `).join('') || `<tr><td colspan="5" class="text-center py-4 text-slate-500">${t('noData')}</td></tr>`}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
     <!-- ======================================================== -->
     <!-- CARD B: 📈 NET CASH POSITION (Khmer top, English bottom, badge on right)  -->
     <!-- ======================================================== -->
@@ -2422,7 +2372,7 @@ function openBankModal() {
     </div>
   `).join('') || `<p class="text-xs text-slate-500 py-4 text-center">${t('noData')}</p>`;
 
-  const netCash = DataService.getNetCashPosition();
+  const netCash = (d.bank && d.bank.netCashPosition) || {};
   if (footer) {
     footer.innerHTML = `
       <div class="text-slate-300 font-semibold text-xs">
@@ -2430,7 +2380,7 @@ function openBankModal() {
       </div>
       <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-emerald-400">
         <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបជាក់ស្តែង:</span>
-        <span>${formatUSD(netCash.totalActualCash)}</span>
+        <span>${formatUSD(netCash.totalActualCash || 0)}</span>
       </div>
     `;
   }
