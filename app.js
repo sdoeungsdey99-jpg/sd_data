@@ -21,7 +21,7 @@ const translations = {
     thisMonth: 'ខែ',
     thisYear: 'ឆ្នាំ',
     custom: 'ជ្រើសរើស',
-    totalBoxes: 'ចំនួនលក់សរុប (ចុចមើល)',
+    totalBoxes: 'ចំនួនលក់សរុប',
     revenue: 'ចំណូលលក់សរុប',
     grossProfit: 'ចំណេញដុល (Profit)',
     expenses: 'ចំណាយសរុប',
@@ -72,7 +72,7 @@ const translations = {
     thisMonth: 'Month',
     thisYear: 'Year',
     custom: 'Custom',
-    totalBoxes: 'Total Sales (Tap to View)',
+    totalBoxes: 'Total Sales',
     revenue: 'Total Revenue',
     grossProfit: 'Gross Profit',
     expenses: 'Total Expenses',
@@ -1542,21 +1542,42 @@ function getDashboardViewHTML() {
       </div>
 
       <div class="grid grid-cols-2 gap-2 text-xs">
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-          <span class="text-slate-400 text-[10px] block">${t('actualCash')}:</span>
-          <span class="font-mono text-white font-bold text-sm">${formatUSD(netCash.totalActualCash)}</span>
+        <!-- Box 1: Actual Cash (Note 4: List Icon -> Bank Modal) -->
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-slate-400 text-[10px] block leading-tight">${t('actualCash')}:</span>
+            <button onclick="openBankModal()" 
+                    title="មើលកុងធនាគារទាំងអស់"
+                    class="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition flex items-center justify-center shrink-0 shadow-sm">
+              <i data-lucide="list" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <span class="font-mono text-white font-bold text-sm tracking-tight mt-0.5">${formatUSD(netCash.totalActualCash)}</span>
         </div>
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-          <span class="text-slate-400 text-[10px] block">${t('pendingCod')}:</span>
-          <span class="font-mono text-amber-400 font-bold text-sm">${formatUSD(netCash.pendingCodReceivables)}</span>
+
+        <!-- Box 2: Pending COD (Note 2: List Icon -> COD Modal) -->
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-slate-400 text-[10px] block leading-tight">${t('pendingCod')}:</span>
+            <button onclick="openCodModal()" 
+                    title="មើលតារាង COD ទាំងអស់"
+                    class="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition flex items-center justify-center shrink-0 shadow-sm">
+              <i data-lucide="list" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <span class="font-mono text-amber-400 font-bold text-sm tracking-tight mt-0.5">${formatUSD(netCash.pendingCodReceivables)}</span>
         </div>
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-          <span class="text-slate-400 text-[10px] block">${t('liquidAssets')}:</span>
-          <span class="font-mono text-blue-400 font-bold text-sm">${formatUSD(netCash.totalLiquidAssets)}</span>
+
+        <!-- Box 3: Liquid Assets -->
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('liquidAssets')}:</span>
+          <span class="font-mono text-blue-400 font-bold text-sm tracking-tight mt-auto">${formatUSD(netCash.totalLiquidAssets)}</span>
         </div>
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5">
-          <span class="text-slate-400 text-[10px] block">${t('payablesTotal')}:</span>
-          <span class="font-mono text-rose-400 font-bold text-sm">${formatUSD(netCash.totalAccountsPayable)}</span>
+
+        <!-- Box 4: Accounts Payable (Note 3 Excluded) -->
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('payablesTotal')}:</span>
+          <span class="font-mono text-rose-400 font-bold text-sm tracking-tight mt-auto">${formatUSD(netCash.totalAccountsPayable)}</span>
         </div>
       </div>
       <div class="mt-2 p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/40 to-blue-950/40 border border-emerald-500/20 flex items-center justify-between">
@@ -1732,8 +1753,8 @@ function getDashboardViewHTML() {
           <span class="text-[11px] text-slate-200 font-medium tracking-tight">Claude</span>
         </button>
 
-        <!-- 3. Gemini -->
-        <button onclick="launchNativeOrWeb('googleapp://', 'https://gemini.google.com')" 
+        <!-- 3. Gemini (Direct HTTPS link to avoid Safari invalid address error) -->
+        <button onclick="window.open('https://gemini.google.com', '_blank')" 
                 class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center cursor-pointer">
           <img src="gemini-ios.png" alt="Gemini" 
                class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
@@ -2311,6 +2332,118 @@ function closePayablesModal() {
   document.getElementById('payables-modal').classList.add('hidden');
 }
 
+// ==========================================
+// COD Receivables Full Drill-down Modal (Note 2)
+// ==========================================
+function openCodModal() {
+  const d = DataService.data;
+  if (!d) return;
+
+  const modal = document.getElementById('cod-modal');
+  const tbody = document.getElementById('cod-modal-tbody');
+  const countBadge = document.getElementById('cod-modal-count-badge');
+  const footer = document.getElementById('cod-modal-footer');
+  if (!modal || !tbody) return;
+
+  const items = d.pendingCodReceivables || [];
+  if (countBadge) {
+    countBadge.textContent = items.length;
+  }
+
+  tbody.innerHTML = items.map(item => `
+    <tr class="hover:bg-white/5 transition">
+      <td class="py-2 px-2.5 font-mono text-orange-400 font-bold text-[11px]">${item.no}</td>
+      <td class="py-2 px-2.5 text-slate-300 font-mono text-[11px]">${item.date}</td>
+      <td class="py-2 px-2.5 text-white font-medium text-[11px]">${item.qtyBoxes}</td>
+      <td class="py-2 px-2.5 text-blue-300 font-medium text-[11px]">${item.status}</td>
+      <td class="py-2 px-2.5 text-right font-mono font-bold text-amber-400 text-[12px]">${formatUSD(item.amount)}</td>
+    </tr>
+  `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-500">${t('noData')}</td></tr>`;
+
+  // Calculate totals
+  const totalAmount = items.reduce((sum, it) => sum + (it.amount || 0), 0);
+  const totalBoxes = items.reduce((sum, it) => {
+    const q = parseInt(it.qtyBoxes, 10);
+    return sum + (isNaN(q) ? 0 : q);
+  }, 0);
+
+  if (footer) {
+    footer.innerHTML = `
+      <div class="flex items-center gap-2 text-slate-300 text-xs">
+        <span class="font-semibold">សរុប ${items.length} មុខ</span>
+        <span class="text-slate-500">|</span>
+        <span class="text-orange-400 font-mono font-bold">${totalBoxes} ប្រអប់</span>
+      </div>
+      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-amber-400">
+        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
+        <span>${formatUSD(totalAmount)}</span>
+      </div>
+    `;
+  }
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeCodModal() {
+  const modal = document.getElementById('cod-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// ==========================================
+// Bank Accounts & Actual Cash Modal (Note 4)
+// ==========================================
+function openBankModal() {
+  const d = DataService.data;
+  if (!d) return;
+
+  const modal = document.getElementById('bank-modal');
+  const listEl = document.getElementById('bank-modal-list');
+  const footer = document.getElementById('bank-modal-footer');
+  if (!modal || !listEl) return;
+
+  const accounts = (d.bank && d.bank.accounts) || [];
+  listEl.innerHTML = accounts.map(acc => `
+    <div class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5 text-xs">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+          <i data-lucide="building-2" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <span class="text-white font-semibold text-xs block">${acc.name}</span>
+          <span class="text-[10px] text-slate-400 font-mono">Bank Account</span>
+        </div>
+      </div>
+      <div class="text-right font-mono">
+        ${acc.usd > 0 ? `<div class="text-white font-bold text-xs">${formatUSD(acc.usd)}</div>` : ''}
+        ${acc.khr > 0 ? `<div class="text-emerald-400 font-bold text-xs">${formatKHR(acc.khr)}</div>` : ''}
+        ${acc.usd === 0 && acc.khr === 0 ? `<span class="text-slate-500 text-xs">$0.00</span>` : ''}
+      </div>
+    </div>
+  `).join('') || `<p class="text-xs text-slate-500 py-4 text-center">${t('noData')}</p>`;
+
+  const netCash = DataService.getNetCashPosition();
+  if (footer) {
+    footer.innerHTML = `
+      <div class="text-slate-300 font-semibold text-xs">
+        សរុប ${accounts.length} គណនី
+      </div>
+      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-emerald-400">
+        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបជាក់ស្តែង:</span>
+        <span>${formatUSD(netCash.totalActualCash)}</span>
+      </div>
+    `;
+  }
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeBankModal() {
+  const modal = document.getElementById('bank-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
 function openExpensesModal(forceMonthly = false) {
   const d = DataService.data;
   if (!d) return;
@@ -2503,10 +2636,21 @@ function setLanguage(lang) {
 function openExpenseShortcut() {
   const customUrl = localStorage.getItem('sd_shortcut_url');
   if (customUrl && customUrl.trim()) {
-    launchNativeOrWeb('appsheet://', customUrl.trim());
+    const url = customUrl.trim();
+    if (url.startsWith('appsheet://')) {
+      window.location.href = url;
+    } else {
+      launchNativeOrWeb('appsheet://', url);
+    }
   } else {
-    // Default: AppSheet / Quick Expense Logger
-    launchNativeOrWeb('appsheet://', 'https://www.appsheet.com');
+    // Direct launch into AppSheet Native App
+    window.location.href = 'appsheet://';
+    setTimeout(() => {
+      // Fallback only if native app not installed
+      if (document.visibilityState === 'visible') {
+        window.open('https://www.appsheet.com', '_blank');
+      }
+    }, 1500);
   }
 }
 

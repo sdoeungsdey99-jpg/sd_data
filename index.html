@@ -885,6 +885,81 @@
     </div>
   </div>
 
+  <!-- COD Receivables Modal (Note 2 - Exact 100% Image 2) -->
+  <div id="cod-modal" onclick="if(event.target === this) closeCodModal()" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex flex-col justify-end sm:justify-center p-0 sm:p-4">
+    <div class="bg-[#0F1B2E] border border-white/10 rounded-t-3xl sm:rounded-3xl max-h-[88vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl">
+      <!-- Header matching Image 2 -->
+      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-amber-300 leading-tight">📦 លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់</h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Outstanding Customer Payment</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="cod-modal-count-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold border border-amber-500/30 shadow-sm">
+            0
+          </span>
+          <button onclick="closeCodModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table matching Image 2 -->
+      <div class="overflow-x-auto overflow-y-auto flex-1 no-scrollbar p-3" id="cod-modal-table-container">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+          <thead>
+            <tr class="text-slate-400 border-b border-white/10 text-[11px]">
+              <th class="py-2 px-2.5">ល.រ</th>
+              <th class="py-2 px-2.5">កាលបរិច្ឆេទ</th>
+              <th class="py-2 px-2.5">ចំនួន</th>
+              <th class="py-2 px-2.5">ស្ថានភាព</th>
+              <th class="py-2 px-2.5 text-right">ទឹកប្រាក់ ($)</th>
+            </tr>
+          </thead>
+          <tbody id="cod-modal-tbody" class="divide-y divide-white/5">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Total Footer Row (និងដាក់សរុបផង) -->
+      <div id="cod-modal-footer" class="p-3 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Bank Accounts & Actual Cash Breakdown Modal (Note 4) -->
+  <div id="bank-modal" onclick="if(event.target === this) closeBankModal()" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex flex-col justify-end sm:justify-center p-0 sm:p-4">
+    <div class="bg-[#0F1B2E] border border-white/10 rounded-t-3xl sm:rounded-3xl max-h-[88vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl">
+      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+            <i data-lucide="building-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white leading-tight">ឈ្មោះគណនី / ធនាគារ និងសមតុល្យ</h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Bank Accounts & Cash Balance</p>
+          </div>
+        </div>
+        <button onclick="closeBankModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-2" id="bank-modal-list">
+        <!-- Populated dynamically -->
+      </div>
+      <div id="bank-modal-footer" class="p-3 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
   <!-- ACLEDA Style Notification Modal -->
   <div id="notif-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
     <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 max-w-sm w-full relative shadow-2xl">
@@ -1002,6 +1077,6 @@
   </div>
 
   <script src="dataService.js"></script>
-  <script src="app.js?v=2.6"></script>
+  <script src="app.js?v=2.7"></script>
 </body>
 </html>
