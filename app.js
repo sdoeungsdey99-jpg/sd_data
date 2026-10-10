@@ -1579,6 +1579,7 @@ function getDashboardViewHTML() {
                 <p class="text-white font-medium text-xs truncate leading-tight">${e.description || e.category || 'ចំណាយទូទៅ'}</p>
                 <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
                   <span>📅 ${e.date}</span>
+                  ${e.time ? `<span class="text-amber-300">⏰ ${e.time}</span>` : ''}
                   ${e.category ? `<span class="px-1.5 py-0.2 rounded bg-white/5 text-slate-300 font-sans">${e.category}</span>` : ''}
                 </div>
               </div>
@@ -2213,6 +2214,23 @@ function openPersonalSalesModal() {
     </div>
   `).join('');
 
+  const footer = document.getElementById('sales-modal-footer');
+  if (footer) {
+    const totalBoxSum = sortedSales.reduce((acc, cur) => acc + (cur.totalBoxQty || 0), 0);
+    const totalRevSum = sortedSales.reduce((acc, cur) => acc + (cur.totalAmount || 0), 0);
+    footer.innerHTML = `
+      <div class="flex items-center gap-2 text-slate-300 text-xs">
+        <span class="font-semibold">ចំនួនសរុប: ${sortedSales.length} កុម្ម៉ង់</span>
+        <span class="text-slate-500">|</span>
+        <span class="text-orange-400 font-mono font-bold">${formatInt(totalBoxSum)} ប្រអប់</span>
+      </div>
+      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-emerald-400 text-right">
+        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
+        <span>${formatUSD(totalRevSum)}</span>
+      </div>
+    `;
+  }
+
   modal.classList.remove('hidden');
 }
 
@@ -2247,6 +2265,21 @@ function openPayablesModal() {
         <span class="font-mono text-rose-400 font-bold text-xs shrink-0">${formatUSD(item.amount)}</span>
       </div>
     `).join('') || `<p class="text-xs text-slate-400 text-center py-6">គ្មានបញ្ជីបំណុលត្រូវទូទាត់ទេ</p>`;
+  }
+
+  const footer = document.getElementById('payables-modal-footer');
+  if (footer) {
+    const totalPayables = (d.bank && d.bank.netCashPosition && d.bank.netCashPosition.totalAccountsPayable) || 
+      d.bank.payables.reduce((sum, p) => sum + (p.amount || 0), 0);
+    footer.innerHTML = `
+      <div class="text-slate-300 font-semibold text-xs">
+        ចំនួនសរុប: ${d.bank.payables.length} មុខ
+      </div>
+      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right">
+        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
+        <span>${formatUSD(totalPayables)}</span>
+      </div>
+    `;
   }
 
   modal.classList.remove('hidden');
@@ -2295,11 +2328,11 @@ function openCodModal() {
   if (footer) {
     footer.innerHTML = `
       <div class="flex items-center gap-2 text-slate-300 text-xs">
-        <span class="font-semibold">សរុប ${items.length} មុខ</span>
+        <span class="font-semibold">ចំនួនសរុប: ${items.length} មុខ</span>
         <span class="text-slate-500">|</span>
         <span class="text-orange-400 font-mono font-bold">${totalBoxes} ប្រអប់</span>
       </div>
-      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-amber-400">
+      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-amber-400 text-right">
         <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
         <span>${formatUSD(totalAmount)}</span>
       </div>
@@ -2351,9 +2384,9 @@ function openBankModal() {
   if (footer) {
     footer.innerHTML = `
       <div class="text-slate-300 font-semibold text-xs">
-        សរុប ${accounts.length} គណនី
+        ចំនួនសរុប: ${accounts.length} គណនី
       </div>
-      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-emerald-400">
+      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-emerald-400 text-right">
         <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបជាក់ស្តែង:</span>
         <span>${formatUSD(netCash.totalActualCash || 0)}</span>
       </div>
@@ -2455,11 +2488,27 @@ function openExpensesModal(forceMonthly = false) {
           <span class="font-mono text-rose-400 font-bold text-xs">${formatUSD(item.amount)}</span>
         </div>
         <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
-          <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
+          <div class="flex items-center gap-2">
+            <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
+            ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
+          </div>
           <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
         </div>
       </div>
     `).join('') || `<p class="text-xs text-slate-400 text-center py-6">គ្មានទិន្នន័យចំណាយសម្រាប់ពេលនេះទេ</p>`;
+  }
+
+  const footer = document.getElementById('expenses-modal-footer');
+  if (footer) {
+    footer.innerHTML = `
+      <div class="text-slate-300 font-semibold text-xs">
+        ចំនួនសរុប: ${sortedExpenses.length} មុខ
+      </div>
+      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right">
+        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
+        <span>${formatUSD(totalAmount)}</span>
+      </div>
+    `;
   }
 
   modal.classList.remove('hidden');

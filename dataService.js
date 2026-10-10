@@ -18,8 +18,8 @@ function formatToDDMMYYYY(dateStr) {
   if (!dateStr) return '';
   const s = String(dateStr).trim();
 
-  // GViz Date format: Date(YYYY,M,D) where month is 0-indexed
-  const gMatch = s.match(/Date\((\d+),(\d+),(\d+)\)/);
+  // GViz Date or DateTime format: Date(YYYY,M,D,H,M,S)
+  const gMatch = s.match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+))?/);
   if (gMatch) {
     const yr = gMatch[1];
     const mo = String(parseInt(gMatch[2]) + 1).padStart(2, '0');
@@ -234,9 +234,23 @@ window.DataService = {
         const cat = String(getCell(2) || 'ផ្សេងៗ').trim();
         const amt = cleanNumber(getCell(3));
 
+        // Extract time if provided in Date(Y,M,D,H,M) or formatted cell
+        let timeStr = '';
+        const timeMatch = dateRaw.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/);
+        if (timeMatch) {
+          const hh = String(timeMatch[1]).padStart(2, '0');
+          const mm = String(timeMatch[2]).padStart(2, '0');
+          timeStr = `${hh}:${mm}`;
+        } else {
+          const fStr = (cells[0] && cells[0].f) ? String(cells[0].f) : '';
+          const strMatch = fStr.match(/(\d{1,2}:\d{2}(?:\s*[AP]M)?)/i);
+          if (strMatch) timeStr = strMatch[1];
+        }
+
         expenses.push({
           date: ddmmyyyy,
           isoDate: isoDate,
+          time: timeStr,
           description: desc,
           category: cat,
           amount: amt
