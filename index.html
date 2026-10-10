@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>SD Data - iOS Liquid Fintech ERP</title>
 
+  <!-- iOS App Icon (Add to Home Screen) -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="apple-touch-icon-180.png">
+  <link rel="shortcut icon" href="apple-touch-icon-180.png">
+
   <!-- Google Fonts: Kantumruy Pro & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -555,7 +561,7 @@
   <div id="app-container" class="relative z-10 flex flex-col h-full w-full max-w-md mx-auto overflow-hidden">
     
     <!-- Top Header Navigation (Tap empty area/Status Bar to Scroll to Top like Native iOS) -->
-    <header id="top-header" onclick="handleHeaderScrollToTop(event)" class="h-16 px-4 flex items-center justify-between shrink-0 border-b border-white/5 bg-[#070D18]/90 backdrop-blur-md z-30 relative transition-all duration-300 cursor-pointer">
+    <header id="top-header" onclick="handleHeaderScrollToTop(event)" class="h-16 px-4 flex items-center justify-between shrink-0 border-b border-white/5 bg-[#081220]/90 backdrop-blur-md z-30 relative transition-all duration-300 cursor-pointer">
       
       <!-- Normal Header Bar -->
       <div id="header-normal" class="w-full flex items-center justify-between">
@@ -642,8 +648,8 @@
     </div>
 
     <!-- STICKY FLOATING FILTER PILLS BAR (Shown ONLY on Home / Dashboard) -->
-    <div id="sticky-filter-bar" class="sticky top-0 z-20 px-3 py-2 bg-[#070D18]/90 backdrop-blur-md border-b border-white/5 flex flex-col gap-1.5">
-      <div class="flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/5 w-full relative">
+    <div id="sticky-filter-bar" class="sticky top-0 z-20 px-3 py-2 bg-[#081220]/90 backdrop-blur-md border-b border-white/5 flex flex-col gap-1.5">
+      <div class="flex items-center gap-1 bg-[#050B14]/85 p-1 rounded-2xl border border-white/5 w-full relative">
         
         <!-- 1. Day Popover Pill (ថ្ងៃ ⌄) -> iPhone UI Mini Calendar Popover -->
         <div class="relative flex-1">
@@ -1089,7 +1095,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=3.1"></script>
-  <script src="app.js?v=3.1"></script>
+  <script src="dataService.js?v=3.3"></script>
+  <script src="app.js?v=3.3"></script>
 </body>
 </html>
