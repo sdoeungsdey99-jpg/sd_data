@@ -1173,10 +1173,6 @@ function renderCurrentView() {
       break;
   }
 
-  if (appState.currentView === 'dashboard') {
-    setupHeroCardLongPress();
-  }
-
   if (window.lucide) {
     window.lucide.createIcons();
   }
@@ -1306,38 +1302,9 @@ function getDashboardViewHTML() {
   const netCash = d.bank.netCashPosition;
 
   return `
-    <!-- HERO BALANCE CARD (ទឹកប្រាក់ដែលមាន - Long Press for Slim Capsule) -->
+    <!-- HERO BALANCE CARD (ទឹកប្រាក់ដែលមាន) -->
     <div id="hero-balance-card" class="ios-glass-card rounded-3xl p-5 relative liquid-orange-glow select-none cursor-pointer transition-all duration-200">
       <div class="absolute -top-12 -right-12 w-44 h-44 bg-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
-
-      <!-- ======================================================== -->
-      <!-- SINGLE-TIER ULTRA-SLIM CAPSULE (SHARE | COPY)            -->
-      <!-- ======================================================== -->
-      <div id="slim-capsule-menu" 
-           class="hidden ios-slim-capsule absolute -top-10 left-1/2 transform -translate-x-1/2 z-50 bg-[#0C1425]/95 backdrop-blur-2xl border border-white/20 rounded-full py-1 px-2 shadow-2xl flex items-center gap-1.5 whitespace-nowrap">
-        
-        <!-- Telegram Share Button -->
-        <button onclick="handleShareAction(event)" 
-                class="flex items-center gap-1.5 px-2.5 py-1 rounded-full hover:bg-white/15 active:bg-[#229ED9] text-white text-[11px] font-semibold transition active:scale-95">
-          <svg class="w-3.5 h-3.5 text-[#229ED9] shrink-0" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.37.74-.56 2.92-1.27 4.86-2.11 5.83-2.52 2.77-1.16 3.35-1.36 3.73-1.37.08 0 .27.02.39.12.1.08.13.2.14.28-.01.07-.01.23-.03.38z"/>
-          </svg>
-          <span id="capsule-share-label">${appState.language === 'km' ? 'ចែករំលែក' : 'Share'}</span>
-        </button>
-
-        <!-- Divider | -->
-        <span class="w-[1px] h-3 bg-white/20 shrink-0"></span>
-
-        <!-- Copy Button -->
-        <button onclick="handleCopyAction(event)" 
-                class="flex items-center gap-1.5 px-2.5 py-1 rounded-full hover:bg-white/15 active:bg-orange-500 text-slate-200 hover:text-white text-[11px] font-semibold transition active:scale-95">
-          <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-          </svg>
-          <span id="capsule-copy-label">${appState.language === 'km' ? 'ចម្លង' : 'Copy'}</span>
-        </button>
-      </div>
 
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
@@ -1398,7 +1365,7 @@ function getDashboardViewHTML() {
         
         <!-- Box 1: Total Box Qty (With View / មើល > Button) -->
         <div onclick="openPersonalSalesModal()" 
-             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-orange-500/30 transition group flex flex-col justify-between">
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-orange-500/30 transition ios-touch-item group flex flex-col justify-between">
           <div class="flex items-center justify-between mb-1">
             <span class="text-slate-400 text-[10px] leading-tight">
               ${t('totalBoxes')}:
@@ -1493,48 +1460,33 @@ function getDashboardViewHTML() {
       </div>
 
       <div class="grid grid-cols-2 gap-2 text-xs">
-        <!-- Box 1: Actual Cash (Note 4: List Icon -> Bank Modal) -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-slate-400 text-[10px] block leading-tight">${t('actualCash')}:</span>
-            <button onclick="openBankModal()" 
-                    title="មើលកុងធនាគារទាំងអស់"
-                    class="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition flex items-center justify-center shrink-0 shadow-sm">
-              <i data-lucide="list" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
+        <!-- Box 1: Actual Cash (Touch to view Bank Accounts Modal) -->
+        <div onclick="openBankModal()" 
+             title="ចុចដើម្បីមើលកុងធនាគារទាំងអស់"
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-emerald-500/30 transition ios-touch-item flex flex-col justify-between select-none">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('actualCash')}:</span>
           <span class="font-mono text-white font-bold text-sm tracking-tight mt-0.5">${formatUSD(netCash.totalActualCash)}</span>
         </div>
 
-        <!-- Box 2: Pending COD (Note 2: List Icon -> COD Modal) -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-slate-400 text-[10px] block leading-tight">${t('pendingCod')}:</span>
-            <button onclick="openCodModal()" 
-                    title="មើលតារាង COD ទាំងអស់"
-                    class="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition flex items-center justify-center shrink-0 shadow-sm">
-              <i data-lucide="list" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
+        <!-- Box 2: Pending COD (Touch to view Pending COD Modal) -->
+        <div onclick="openCodModal()" 
+             title="ចុចដើម្បីមើលតារាង COD ទាំងអស់"
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-amber-500/30 transition ios-touch-item flex flex-col justify-between select-none">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('pendingCod')}:</span>
           <span class="font-mono text-amber-400 font-bold text-sm tracking-tight mt-0.5">${formatUSD(netCash.pendingCodReceivables)}</span>
         </div>
 
         <!-- Box 3: Liquid Assets -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between select-none">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('liquidAssets')}:</span>
           <span class="font-mono text-blue-400 font-bold text-sm tracking-tight mt-auto">${formatUSD(netCash.totalLiquidAssets)}</span>
         </div>
 
-        <!-- Box 4: Accounts Payable (With List Button -> Payables Modal) -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-slate-400 text-[10px] block leading-tight">${t('payablesTotal')}:</span>
-            <button onclick="openPayablesModal()" 
-                    title="មើលបញ្ជីបំណុលទាំងអស់"
-                    class="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition flex items-center justify-center shrink-0 shadow-sm">
-              <i data-lucide="list" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
+        <!-- Box 4: Accounts Payable (Touch to view Accounts Payable Modal) -->
+        <div onclick="openPayablesModal()" 
+             title="ចុចដើម្បីមើលបញ្ជីបំណុលទាំងអស់"
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-rose-500/30 transition ios-touch-item flex flex-col justify-between select-none">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('payablesTotal')}:</span>
           <span class="font-mono text-rose-400 font-bold text-sm tracking-tight mt-0.5">${formatUSD(netCash.totalAccountsPayable)}</span>
         </div>
       </div>
@@ -2709,83 +2661,5 @@ function cycleHomeCelestialGlow() {
 }
 
 // ==========================================
-// Long Press Context Capsule & Telegram Share
+// Card Touch Interactions & Helpers
 // ==========================================
-let heroLongPressTimer = null;
-
-function setupHeroCardLongPress() {
-  const card = document.getElementById('hero-balance-card');
-  const capsule = document.getElementById('slim-capsule-menu');
-  if (!card || !capsule) return;
-
-  function onTouchStart() {
-    card.classList.add('card-pressing');
-    heroLongPressTimer = setTimeout(() => {
-      card.classList.remove('card-pressing');
-      capsule.classList.remove('hidden');
-      if (navigator.vibrate) navigator.vibrate(30);
-    }, 450);
-  }
-
-  function onTouchEnd() {
-    clearTimeout(heroLongPressTimer);
-    card.classList.remove('card-pressing');
-  }
-
-  card.addEventListener('mousedown', onTouchStart);
-  card.addEventListener('touchstart', onTouchStart, { passive: true });
-
-  card.addEventListener('mouseup', onTouchEnd);
-  card.addEventListener('mouseleave', onTouchEnd);
-  card.addEventListener('touchend', onTouchEnd);
-  card.addEventListener('touchcancel', onTouchEnd);
-}
-
-function handleShareAction(e) {
-  if (e) e.stopPropagation();
-  if (navigator.vibrate) navigator.vibrate(20);
-  
-  const d = DataService.data;
-  let usd = '$0.00';
-  let khr = '0 ៛';
-  if (d && d.bank) {
-    usd = formatUSD(d.bank.pureUsdTotal);
-    khr = formatKHR(d.bank.pureKhrTotal);
-  }
-
-  const shareText = `📊 SD Dashboard Summary:\n💰 ទឹកប្រាក់ដែលមាន:\n- USD: ${usd}\n- KHR: ${khr}\n📅 ${new Date().toLocaleDateString('km-KH')}`;
-  window.open('https://t.me/share/url?url=' + encodeURIComponent(shareText), '_blank');
-  
-  const capsule = document.getElementById('slim-capsule-menu');
-  if (capsule) capsule.classList.add('hidden');
-}
-
-function handleCopyAction(e) {
-  if (e) e.stopPropagation();
-  if (navigator.vibrate) navigator.vibrate(20);
-
-  const d = DataService.data;
-  let usd = '$0.00';
-  let khr = '0 ៛';
-  if (d && d.bank) {
-    usd = formatUSD(d.bank.pureUsdTotal);
-    khr = formatKHR(d.bank.pureKhrTotal);
-  }
-
-  const copyText = `USD ${usd} | KHR ${khr}`;
-  navigator.clipboard.writeText(copyText).then(() => {
-    alert(appState.language === 'km' ? 'បានចម្លងទិន្នន័យជោគជ័យ!' : 'Copied successfully!');
-  });
-
-  const capsule = document.getElementById('slim-capsule-menu');
-  if (capsule) capsule.classList.add('hidden');
-}
-
-// Dismiss capsule on click outside
-document.addEventListener('click', (e) => {
-  const card = document.getElementById('hero-balance-card');
-  const capsule = document.getElementById('slim-capsule-menu');
-  if (card && capsule && !card.contains(e.target)) {
-    capsule.classList.add('hidden');
-  }
-});
