@@ -1525,10 +1525,17 @@ function getDashboardViewHTML() {
           <span class="font-mono text-blue-400 font-bold text-sm tracking-tight mt-auto">${formatUSD(netCash.totalLiquidAssets)}</span>
         </div>
 
-        <!-- Box 4: Accounts Payable (Note 3 Excluded) -->
+        <!-- Box 4: Accounts Payable (With List Button -> Payables Modal) -->
         <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
-          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('payablesTotal')}:</span>
-          <span class="font-mono text-rose-400 font-bold text-sm tracking-tight mt-auto">${formatUSD(netCash.totalAccountsPayable)}</span>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-slate-400 text-[10px] block leading-tight">${t('payablesTotal')}:</span>
+            <button onclick="openPayablesModal()" 
+                    title="មើលបញ្ជីបំណុលទាំងអស់"
+                    class="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition flex items-center justify-center shrink-0 shadow-sm">
+              <i data-lucide="list" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <span class="font-mono text-rose-400 font-bold text-sm tracking-tight mt-0.5">${formatUSD(netCash.totalAccountsPayable)}</span>
         </div>
       </div>
       <div class="mt-2 p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/40 to-blue-950/40 border border-emerald-500/20 flex items-center justify-between">
@@ -1537,68 +1544,55 @@ function getDashboardViewHTML() {
       </div>
     </div>
 
-    <!-- CARD D: 💳 PAYABLES & EXPENSES (Side-by-side with View buttons & scrollable lists) -->
-    <div class="grid grid-cols-2 gap-3">
-      
-      <!-- Accounts Payable (បំណុលត្រូវទូទាត់) -->
-      <div class="ios-glass-card rounded-3xl p-3.5 border border-white/10 flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="font-bold text-[11px] text-rose-300 flex items-center gap-1 truncate">
-              <i data-lucide="credit-card" class="w-3.5 h-3.5 shrink-0"></i>
-              <span class="truncate">${t('payablesTitle')}</span>
-            </h4>
-            <button onclick="openPayablesModal()" 
-                    class="text-[10px] text-rose-400 font-semibold hover:underline flex items-center gap-0.5 shrink-0 bg-rose-500/10 px-1.5 py-0.5 rounded-md border border-rose-500/20 active:scale-95 transition">
-              ${appState.language === 'en' ? 'View' : 'មើល'} <i data-lucide="chevron-right" class="w-2.5 h-2.5"></i>
-            </button>
+    <!-- ======================================================== -->
+    <!-- CARD D: 🧾 FULL-WIDTH EXPENSES CARD (ស្រឡះស្អាត តាម Filter)  -->
+    <!-- ======================================================== -->
+    <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30">
+            <i data-lucide="receipt" class="w-4 h-4"></i>
           </div>
-          <div class="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pr-0.5">
-            ${d.bank.payables.map((p, idx) => `
-              <div class="flex items-center justify-between text-[11px] py-1 border-b border-white/5">
-                <span class="text-white truncate max-w-[85px] sm:max-w-[120px]" title="${p.title}">${idx + 1}. ${p.title}</span>
-                <span class="font-mono text-rose-400 font-semibold shrink-0">${formatUSD(p.amount)}</span>
-              </div>
-            `).join('') || `<p class="text-[10px] text-slate-500 py-2 text-center">${t('noData')}</p>`}
+          <div>
+            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-200 leading-tight">
+              ${t('todayExpTitle')}
+            </h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Expenses (${filteredExpenses.length} មុខ)</p>
           </div>
         </div>
-        <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400 mt-2">
-          <span>សរុប ${d.bank.payables.length} មុខ</span>
-          <span class="font-mono text-rose-400 font-bold">${formatUSD(netCash.totalAccountsPayable)}</span>
-        </div>
+        <button onclick="openExpensesModal()" 
+                class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 hover:text-white text-[11px] font-semibold flex items-center gap-1 active:scale-95 transition shadow-sm">
+          <span>${appState.language === 'en' ? 'View All' : 'មើលទាំងអស់'}</span>
+          <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        </button>
       </div>
 
-      <!-- Expenses (ការចំណាយរត់តាមថ្ងៃ/Filter) -->
-      <div class="ios-glass-card rounded-3xl p-3.5 border border-white/10 flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="font-bold text-[11px] text-slate-300 flex items-center gap-1 truncate">
-              <i data-lucide="receipt" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
-              <span class="truncate">${t('todayExpTitle')}</span>
-            </h4>
-            <button onclick="openExpensesModal()" 
-                    class="text-[10px] text-orange-400 font-semibold hover:underline flex items-center gap-0.5 shrink-0 bg-orange-500/10 px-1.5 py-0.5 rounded-md border border-orange-500/20 active:scale-95 transition">
-              ${appState.language === 'en' ? 'View' : 'មើល'} <i data-lucide="chevron-right" class="w-2.5 h-2.5"></i>
-            </button>
-          </div>
-          <div class="space-y-1.5 max-h-36 overflow-y-auto no-scrollbar pr-0.5">
-            ${filteredExpenses.map((e, idx) => `
-              <div class="flex items-center justify-between text-[11px] py-1 border-b border-white/5">
-                <div class="truncate max-w-[80px] sm:max-w-[110px]" title="${e.description || e.category}">
-                  <p class="text-white truncate text-[10px] leading-tight">${e.description || e.category}</p>
-                  <p class="text-[9px] text-slate-400 font-mono leading-tight">${e.date}</p>
+      <!-- Expenses List -->
+      <div class="space-y-2 max-h-52 overflow-y-auto no-scrollbar">
+        ${filteredExpenses.slice(0, 15).map((e, idx) => `
+          <div class="p-2.5 rounded-2xl bg-black/25 border border-white/5 flex items-center justify-between text-xs hover:border-white/10 transition">
+            <div class="flex items-center gap-2.5 min-w-0 pr-2">
+              <span class="w-5 h-5 rounded-lg bg-white/5 text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                ${idx + 1}
+              </span>
+              <div class="min-w-0">
+                <p class="text-white font-medium text-xs truncate leading-tight">${e.description || e.category || 'ចំណាយទូទៅ'}</p>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
+                  <span>📅 ${e.date}</span>
+                  ${e.category ? `<span class="px-1.5 py-0.2 rounded bg-white/5 text-slate-300 font-sans">${e.category}</span>` : ''}
                 </div>
-                <span class="font-mono text-rose-400 font-semibold shrink-0">${formatUSD(e.amount)}</span>
               </div>
-            `).join('') || `<p class="text-[10px] text-slate-500 py-2 text-center">${t('noData')}</p>`}
+            </div>
+            <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(e.amount)}</span>
           </div>
-        </div>
-        <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400 mt-2">
-          <span>សរុប ${filteredExpenses.length} មុខ</span>
-          <span class="font-mono text-rose-400 font-bold">${formatUSD(totalExpenseAmt)}</span>
-        </div>
+        `).join('') || `<p class="text-xs text-slate-400 py-6 text-center">${t('noData')}</p>`}
       </div>
 
+      <!-- Expenses Footer Summary -->
+      <div class="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
+        <span class="text-slate-400 text-[11px]">ចំណាយសរុប (${filteredExpenses.length} មុខ):</span>
+        <span class="font-mono text-rose-400 font-bold text-sm">${formatUSD(totalExpenseAmt)}</span>
+      </div>
     </div>
 
     <!-- CARD E: TEAM SALES - DYNAMIC TARGET FROM GOOGLE SHEET (High-Security Style Badge) -->
@@ -1684,8 +1678,8 @@ function getDashboardViewHTML() {
           <span class="text-[11px] text-slate-200 font-medium tracking-tight">Claude</span>
         </button>
 
-        <!-- 3. Gemini (Direct HTTPS link to avoid Safari invalid address error) -->
-        <button onclick="window.open('https://gemini.google.com', '_blank')" 
+        <!-- 3. Gemini (Native Google/Gemini App Launcher with Web Fallback) -->
+        <button onclick="launchNativeOrWeb('googleapp://', 'https://gemini.google.com')" 
                 class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center cursor-pointer">
           <img src="gemini-ios.png" alt="Gemini" 
                class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
@@ -2384,61 +2378,64 @@ function openExpensesModal(forceMonthly = false) {
   const subtitle = document.getElementById('expenses-modal-subtitle');
 
   const now = new Date();
-  const currentIsoDay = now.toISOString().slice(0, 10);
+  const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
 
-  let filteredExpenses = d.expenses;
+  let filteredExpenses = d.expenses || [];
   let periodLabel = 'ទាំងអស់';
 
-  // If forceMonthly is true (clicked from monthly summary card List icon)
-  if (forceMonthly) {
-    let targetMonthKey = currentIsoMonth;
-    if (appState.periodFilter === 'month') {
-      const hasMonth = d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth));
-      targetMonthKey = hasMonth ? currentIsoMonth : '2026-08';
-    } else if (appState.periodFilter === 'today') {
-      const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
-      const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
-      targetMonthKey = targetIsoDay.slice(0, 7);
-    } else if (appState.periodFilter === 'custom' && appState.customStartDate) {
-      targetMonthKey = appState.customStartDate.slice(0, 7);
+  // Determine current active target month from selected month pill or date filter
+  let targetMonthKey = currentIsoMonth;
+  if (appState.periodFilter === 'month') {
+    targetMonthKey = appState.selectedMonthKey || currentIsoMonth;
+  } else if (appState.periodFilter === 'today') {
+    if (appState.daySubFilter === 'specific' && appState.specificDate) {
+      targetMonthKey = appState.specificDate.slice(0, 7);
+    } else if (appState.daySubFilter === 'yesterday') {
+      const yDate = new Date();
+      yDate.setDate(yDate.getDate() - 1);
+      targetMonthKey = getLocalIsoDate(yDate).slice(0, 7);
+    } else {
+      targetMonthKey = currentIsoMonth;
     }
-    filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonthKey));
+  } else if (appState.periodFilter === 'custom' && appState.customStartDate) {
+    targetMonthKey = appState.customStartDate.slice(0, 7);
+  }
+
+  // If forceMonthly is true (clicked from monthly summary card List icon) OR periodFilter === 'month'
+  if (forceMonthly || appState.periodFilter === 'month') {
+    filteredExpenses = (d.expenses || []).filter(e => e.isoDate && e.isoDate.startsWith(targetMonthKey));
     const parts = targetMonthKey.split('-');
-    periodLabel = `ពេញមួយខែ ${parts[1]}/${parts[0]}`;
+    periodLabel = `ខែ ${parts[1]}/${parts[0]}`;
   } else {
     // Normal drill-down from day/period filter
     if (appState.periodFilter === 'today') {
-      if (appState.daySubFilter === 'yesterday') {
+      if (appState.daySubFilter === 'specific' && appState.specificDate) {
+        filteredExpenses = (d.expenses || []).filter(e => e.isoDate === appState.specificDate);
+        periodLabel = `ថ្ងៃ ${displayDDMMYYYY(appState.specificDate)}`;
+      } else if (appState.daySubFilter === 'yesterday') {
         const yDate = new Date();
         yDate.setDate(yDate.getDate() - 1);
-        const yesterdayIsoDay = yDate.toISOString().slice(0, 10);
-        const hasYesterday = d.expenses.some(e => e.isoDate === yesterdayIsoDay);
-        const targetIsoDay = hasYesterday ? yesterdayIsoDay : (d.personalSales[1]?.isoDate || '2026-08-11');
-        filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
-        periodLabel = `ម្សិលមិញ (${displayDDMMYYYY(targetIsoDay)})`;
+        const yesterdayIsoDay = getLocalIsoDate(yDate);
+        filteredExpenses = (d.expenses || []).filter(e => e.isoDate === yesterdayIsoDay);
+        periodLabel = `ម្សិលមិញ (${displayDDMMYYYY(yesterdayIsoDay)})`;
       } else {
-        const hasToday = d.expenses.some(e => e.isoDate === currentIsoDay);
-        const targetIsoDay = hasToday ? currentIsoDay : (d.personalSales[0]?.isoDate || '2026-08-12');
-        filteredExpenses = d.expenses.filter(e => e.isoDate === targetIsoDay);
-        periodLabel = `ថ្ងៃនេះ (${displayDDMMYYYY(targetIsoDay)})`;
+        filteredExpenses = (d.expenses || []).filter(e => e.isoDate === currentIsoDay);
+        periodLabel = `ថ្ងៃនេះ (${displayDDMMYYYY(currentIsoDay)})`;
       }
-    } else if (appState.periodFilter === 'month') {
-      const hasMonth = d.expenses.some(e => e.isoDate.startsWith(currentIsoMonth));
-      const targetMonth = hasMonth ? currentIsoMonth : '2026-08';
-      filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonth));
-      periodLabel = `ខែនេះ (${targetMonth})`;
     } else if (appState.periodFilter === 'year') {
-      filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(currentIsoYear));
-      periodLabel = `ឆ្នាំនេះ (${currentIsoYear})`;
+      const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
+      filteredExpenses = (d.expenses || []).filter(e => e.isoDate && e.isoDate.startsWith(targetYear));
+      periodLabel = `ឆ្នាំ ${targetYear}`;
     } else if (appState.periodFilter === 'custom' && appState.customStartDate && appState.customEndDate) {
-      filteredExpenses = d.expenses.filter(e => e.isoDate >= appState.customStartDate && e.isoDate <= appState.customEndDate);
+      filteredExpenses = (d.expenses || []).filter(e => e.isoDate >= appState.customStartDate && e.isoDate <= appState.customEndDate);
       periodLabel = `${displayDDMMYYYY(appState.customStartDate)} ➔ ${displayDDMMYYYY(appState.customEndDate)}`;
     }
   }
 
-  const sortedExpenses = [...filteredExpenses].sort((a, b) => b.isoDate.localeCompare(a.isoDate));
+  // Strict sorting from latest to earliest (31 ➔ 01)
+  const sortedExpenses = [...filteredExpenses].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
   const totalAmount = sortedExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
   if (subtitle) {
@@ -2624,6 +2621,19 @@ function handleHomeClick(e) {
   } else {
     switchView('dashboard');
   }
+}
+
+// Native iOS Tap Status Bar / Header to Scroll To Top
+function handleHeaderScrollToTop(e) {
+  // Only trigger if user didn't tap interactive action buttons inside header
+  if (e && e.target && e.target.closest('button, input, select, a, #header-profile-block')) {
+    return;
+  }
+  const main = document.getElementById('main-content');
+  if (main) {
+    main.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  if (navigator.vibrate) navigator.vibrate(10);
 }
 
 function cycleHomeCelestialGlow() {
