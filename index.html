@@ -53,8 +53,9 @@
       background: linear-gradient(135deg, rgba(20, 36, 61, 0.88) 0%, rgba(10, 20, 36, 0.94) 100%);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     .telegram-dock {
       background: rgba(14, 24, 38, 0.88);
@@ -718,7 +719,7 @@
       <i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1"></i> កំពុង Refresh...
     </div>
 
-    <main class="flex-1 overflow-y-auto px-3.5 pt-2 pb-28 space-y-4 no-scrollbar" id="main-content">
+    <main class="flex-1 overflow-y-auto px-3.5 pt-2.5 pb-28 space-y-3.5 no-scrollbar" id="main-content">
       <!-- Dynamic render by app.js -->
     </main>
 
@@ -1077,6 +1078,6 @@
   </div>
 
   <script src="dataService.js"></script>
-  <script src="app.js?v=2.8"></script>
+  <script src="app.js?v=2.9"></script>
 </body>
 </html>

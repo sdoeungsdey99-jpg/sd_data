@@ -1471,6 +1471,7 @@ function getDashboardViewHTML() {
           </button>
         </div>
       </div>
+    </div>
 
     <!-- ======================================================== -->
     <!-- CARD B: 📈 NET CASH POSITION (Khmer top, English bottom, badge on right)  -->
@@ -1533,26 +1534,6 @@ function getDashboardViewHTML() {
       <div class="mt-2 p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/40 to-blue-950/40 border border-emerald-500/20 flex items-center justify-between">
         <span class="text-xs text-white font-semibold">${t('finalNetCash')}</span>
         <span class="text-base font-bold font-mono text-emerald-400">${formatUSD(netCash.netCashPositionFinal || netCash.totalNetCash)}</span>
-      </div>
-    </div>
-
-    <!-- CARD C: 🏦 BANK ACCOUNTS BREAKDOWN -->
-    <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
-      <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-2">
-        <i data-lucide="building-2" class="w-4 h-4 text-blue-400"></i>
-        <span>${t('bankAccountsTitle')}</span>
-      </h3>
-      <div class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
-        ${d.bank.accounts.map(acc => `
-          <div class="flex items-center justify-between p-2 rounded-xl bg-black/25 border border-white/5 text-xs">
-            <span class="text-white font-medium">${acc.name}</span>
-            <div class="text-right font-mono">
-              ${acc.usd > 0 ? `<span class="text-white font-bold">${formatUSD(acc.usd)}</span>` : ''}
-              ${acc.khr > 0 ? `<span class="text-emerald-400 font-bold ml-1">${formatKHR(acc.khr)}</span>` : ''}
-              ${acc.usd === 0 && acc.khr === 0 ? `<span class="text-slate-500">$0.00</span>` : ''}
-            </div>
-          </div>
-        `).join('')}
       </div>
     </div>
 
