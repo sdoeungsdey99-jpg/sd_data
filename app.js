@@ -79,6 +79,12 @@ const translations = {
     telegramLabel: 'តេឡេក្រាម',
     contactTelegramBtn: 'ទាក់ទងតាមតេឡេក្រាម',
     noData: 'គ្មានទិន្នន័យ',
+    themeAccentTitle: 'ពណ៌ចម្បង',
+    themeAccentDesc: 'ជ្រើសរើសពណ៌សម្រាប់ប៊ូតុង និងផ្លាកសញ្ញា',
+    accentOrange: 'ទឹកក្រូច',
+    accentPink: 'ផ្កាឈូក',
+    accentAmber: 'លឿងទុំ',
+    contrastHint: 'ពណ៌អក្សរផ្លាស់ប្តូរស្វ័យប្រវត្តិតាមពណ៌ផ្ទៃ ដើម្បីច្បាស់ភ្នែក',
     diagramTitle: 'ដ្យាក្រាមការលក់ និងប្រាក់ចំណេញ',
     diagramSubtitle: 'តួលេខលក់ពិតប្រាកដនៅលើសរសរក្រាបនីមួយៗ'
   },
@@ -152,6 +158,12 @@ const translations = {
     telegramLabel: 'Telegram',
     contactTelegramBtn: 'Contact via Telegram',
     noData: 'No Data Available',
+    themeAccentTitle: 'Accent Theme',
+    themeAccentDesc: 'Choose primary color for buttons and badges',
+    accentOrange: 'Orange',
+    accentPink: 'Pink',
+    accentAmber: 'Amber',
+    contrastHint: 'Text color auto-adapts for optimal readability',
     diagramTitle: 'Sales & Profit Diagram',
     diagramSubtitle: 'Live values labeled on top of each bar'
   }
@@ -165,6 +177,7 @@ const appState = {
   customEndDate: '',
   language: localStorage.getItem('sd_lang') || 'km',
   theme: localStorage.getItem('sd_theme') || 'dark',
+  themeAccent: localStorage.getItem('sd_theme_accent') || 'orange', // 'orange' | 'pink' | 'amber'
   pinEnabled: localStorage.getItem('sd_pin_enabled') !== 'false',
   isLocked: localStorage.getItem('sd_pin_enabled') !== 'false' && !sessionStorage.getItem('sd_unlocked'),
   enteredPin: '',
@@ -205,6 +218,18 @@ function setAppTextSize(size) {
 function toggleNotificationsEnabled() {
   appState.notificationsEnabled = !appState.notificationsEnabled;
   localStorage.setItem('sd_notif_enabled', appState.notificationsEnabled ? 'true' : 'false');
+  renderCurrentView();
+}
+
+function applyThemeAccent(accent) {
+  document.body.classList.remove('theme-orange', 'theme-pink', 'theme-amber');
+  document.body.classList.add(`theme-${accent || 'orange'}`);
+}
+
+function setThemeAccent(accent) {
+  appState.themeAccent = accent;
+  localStorage.setItem('sd_theme_accent', accent);
+  applyThemeAccent(accent);
   renderCurrentView();
 }
 
@@ -397,6 +422,7 @@ function togglePinEnabled() {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   applyTheme(appState.theme);
+  applyThemeAccent(appState.themeAccent);
   applyLockWallpaper(appState.lockWallpaper);
   applyAppFont(appState.fontFamily);
   applyAppTextSize(appState.textSize);
@@ -2188,9 +2214,96 @@ function getSettingsViewHTML() {
       </div>
 
       <!-- ======================================================== -->
-      <!-- SECTION 1: APPEARANCE & PREFERENCES                      -->
+      <!-- SECTION 1: ABOUT ME / CENTERED PROFILE (ដូច Version មុន + បន្ថែមពត៌មាន) -->
       <!-- ======================================================== -->
       <div class="space-y-2">
+        <div class="px-1 flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>👤</span>
+              <span>${t('aboutMe')}</span>
+            </h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">${t('aboutDesc')}</p>
+          </div>
+        </div>
+
+        <div class="bg-[#0F1B2E] rounded-3xl border border-white/10 p-5 shadow-xl flex flex-col items-center text-center space-y-3.5 relative overflow-hidden">
+          
+          <!-- Centered Profile Photo with Green Online Dot -->
+          <div class="relative">
+            <img src="profile.png" alt="SDEY SDOEUNG" 
+                 class="w-24 h-24 rounded-full object-cover border-4 border-orange-500 shadow-2xl">
+            <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#070D18] shadow-md"></span>
+          </div>
+
+          <!-- Centered Name with Verified Blue Tick -->
+          <div>
+            <div class="flex items-center justify-center gap-1.5">
+              <h2 class="text-xl font-black text-white tracking-wide">ស្តី ស្តើង</h2>
+              <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
+            </div>
+            <p class="text-xs text-orange-400 font-semibold tracking-widest uppercase mt-0.5">SDEY SDOEUNG</p>
+            
+            <!-- Manager Badge Centered -->
+            <div class="mt-2 flex justify-center">
+              <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/35 text-amber-300 font-extrabold text-xs shadow-sm flex items-center gap-1">
+                <span>🎖️</span>
+                <span>${t('managerTitle')}</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Roles Badges Centered in 3 Columns -->
+          <div class="w-full pt-3 border-t border-white/10">
+            <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider block mb-2">${isKm ? 'តួនាទីទទួលខុសត្រូវ' : 'Core Responsibilities'}</span>
+            <div class="grid grid-cols-3 gap-2 w-full max-w-xs mx-auto">
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+                <span class="text-sm">📈</span>
+                <p class="text-[11px] font-bold text-white mt-0.5">${t('salesRole')}</p>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+                <span class="text-sm">👑</span>
+                <p class="text-[11px] font-bold text-white mt-0.5">${t('leaderRole')}</p>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+                <span class="text-sm">💻</span>
+                <p class="text-[11px] font-bold text-white mt-0.5">${t('developerRole')}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Centered Contacts List -->
+          <div class="w-full pt-3 border-t border-white/10 space-y-2 text-xs max-w-xs mx-auto">
+            <div class="flex items-center justify-between text-slate-300">
+              <span class="text-slate-400">${t('phoneLabel')}:</span>
+              <span class="font-mono font-bold text-white">087 513 666 / 090 513 666</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-300">
+              <span class="text-slate-400">${t('telegramLabel')}:</span>
+              <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline">@sdoeung_sd</a>
+            </div>
+            <div class="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
+              <span class="text-slate-400">${t('versionLabel')}:</span>
+              <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.5</span>
+            </div>
+          </div>
+
+          <!-- Solid Accent Fill Button with Auto-contrast Text -->
+          <div class="w-full max-w-xs mx-auto pt-1">
+            <a href="https://t.me/sdoeung_sd" target="_blank" 
+               class="w-full py-2.5 rounded-2xl accent-solid-btn font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              <span>${t('contactTelegramBtn')}</span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 2: APPEARANCE & THEME ACCENTS                     -->
+      <!-- ======================================================== -->
+      <div class="space-y-2 pt-2">
         <div class="px-1 flex items-center justify-between">
           <div>
             <h3 class="text-xs font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -2203,8 +2316,63 @@ function getSettingsViewHTML() {
 
         <div class="bg-[#0F1B2E] rounded-3xl border border-white/10 p-3.5 space-y-3.5 shadow-lg">
           
-          <!-- 1.1 Typography (Font Selection) -->
-          <div class="space-y-1.5">
+          <!-- 2.1 Theme Accent Color & Contrast Auto-Adaptation -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="palette" class="w-3.5 h-3.5 text-orange-400"></i>
+                  <span>${t('themeAccentTitle')}</span>
+                </span>
+                <p class="text-[10px] text-slate-400 mt-0.5">${t('themeAccentDesc')}</p>
+              </div>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full accent-badge-pill">
+                ${appState.themeAccent === 'pink' ? '🌸 ផ្កាឈូក' : (appState.themeAccent === 'amber' ? '🍯 លឿងទុំ' : '🍊 ទឹកក្រូច')}
+              </span>
+            </div>
+
+            <!-- Solid Accent Swatches (Pink, Orange, Amber with live contrast demo) -->
+            <div class="grid grid-cols-3 gap-2 bg-black/35 p-1.5 rounded-2xl border border-white/5">
+              <!-- Sunset Orange -->
+              <button onclick="setThemeAccent('orange')" 
+                      class="p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'orange' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
+                <div class="w-8 h-8 rounded-lg bg-[#F97316] flex items-center justify-center text-white font-bold text-xs shadow-md">
+                  Aa
+                </div>
+                <span class="text-[11px] font-bold text-white">${t('accentOrange')}</span>
+                <span class="text-[9px] text-slate-400">#F97316 (អក្សរស)</span>
+              </button>
+
+              <!-- Rose Pink -->
+              <button onclick="setThemeAccent('pink')" 
+                      class="p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'pink' ? 'bg-pink-500/20 border-pink-500 ring-2 ring-pink-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
+                <div class="w-8 h-8 rounded-lg bg-[#EC4899] flex items-center justify-center text-white font-bold text-xs shadow-md">
+                  Aa
+                </div>
+                <span class="text-[11px] font-bold text-white">${t('accentPink')}</span>
+                <span class="text-[9px] text-slate-400">#EC4899 (អក្សរស)</span>
+              </button>
+
+              <!-- Golden Amber -->
+              <button onclick="setThemeAccent('amber')" 
+                      class="p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'amber' ? 'bg-amber-500/20 border-amber-500 ring-2 ring-amber-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
+                <div class="w-8 h-8 rounded-lg bg-[#F59E0B] flex items-center justify-center text-[#0F172A] font-black text-xs shadow-md">
+                  Aa
+                </div>
+                <span class="text-[11px] font-bold text-white">${t('accentAmber')}</span>
+                <span class="text-[9px] text-amber-300 font-bold">#F59E0B (អក្សរខ្មៅ)</span>
+              </button>
+            </div>
+
+            <!-- Auto contrast rule note -->
+            <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-start gap-2 text-[10px] text-slate-300">
+              <span class="text-xs">💡</span>
+              <p class="leading-tight">${t('contrastHint')}</p>
+            </div>
+          </div>
+
+          <!-- 2.2 Typography (Font Selection) -->
+          <div class="pt-2.5 border-t border-white/5 space-y-1.5">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
                 <i data-lucide="type" class="w-3.5 h-3.5 text-orange-400"></i>
@@ -2214,21 +2382,21 @@ function getSettingsViewHTML() {
             </div>
             <div class="grid grid-cols-3 gap-1.5 bg-black/35 p-1 rounded-2xl border border-white/5">
               <button onclick="setAppFont('font-kantumruy')" 
-                      class="py-2 px-1.5 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-kantumruy' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white'}">
+                      class="py-2 px-1.5 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-kantumruy' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
                 <span>${isKm ? 'កន្ទុំរុយ' : 'Kantumruy'}</span>
               </button>
               <button onclick="setAppFont('font-koh-santepheap')" 
-                      class="py-2 px-1.5 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white'}">
+                      class="py-2 px-1.5 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
                 <span>${isKm ? 'កោះសន្តិភាព' : 'Santepheap'}</span>
               </button>
               <button onclick="setAppFont('font-jakarta')" 
-                      class="py-2 px-1.5 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-jakarta' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white'}">
+                      class="py-2 px-1.5 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-jakarta' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
                 <span>${isKm ? 'ចាការតា' : 'Jakarta'}</span>
               </button>
             </div>
           </div>
 
-          <!-- 1.2 Text Size (Small / Medium / Large) -->
+          <!-- 2.3 Text Size (Small / Medium / Large) -->
           <div class="pt-2.5 border-t border-white/5 flex items-center justify-between">
             <div>
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -2239,21 +2407,21 @@ function getSettingsViewHTML() {
             </div>
             <div class="flex items-center gap-1 bg-black/35 p-1 rounded-2xl border border-white/5">
               <button onclick="setAppTextSize('sm')" 
-                      class="w-8 h-8 rounded-xl font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'sm' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white text-xs'}">
+                      class="w-8 h-8 rounded-xl font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'sm' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-xs'}">
                 <span>A-</span>
               </button>
               <button onclick="setAppTextSize('md')" 
-                      class="w-8 h-8 rounded-xl font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'md' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white text-sm'}">
+                      class="w-8 h-8 rounded-xl font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'md' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-sm'}">
                 <span>A</span>
               </button>
               <button onclick="setAppTextSize('lg')" 
-                      class="w-8 h-8 rounded-xl font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'lg' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white text-base'}">
+                      class="w-8 h-8 rounded-xl font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'lg' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-base'}">
                 <span>A+</span>
               </button>
             </div>
           </div>
 
-          <!-- 1.3 Lock Screen Wallpaper Carousel & Mockup Preview -->
+          <!-- 2.4 Lock Screen Wallpaper Carousel & Mockup Preview -->
           <div class="pt-2.5 border-t border-white/5 space-y-2">
             <div class="flex items-center justify-between">
               <div>
@@ -2265,7 +2433,7 @@ function getSettingsViewHTML() {
               </div>
               <button onclick="lockApp()" 
                       class="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold border border-white/10 flex items-center gap-1 active:scale-95 transition">
-                <i data-lucide="eye" class="w-3 h-3 text-orange-400"></i>
+                <i data-lucide="eye" class="w-3.5 h-3.5 text-orange-400"></i>
                 <span>${t('lockScreenNow')}</span>
               </button>
             </div>
@@ -2317,7 +2485,7 @@ function getSettingsViewHTML() {
             </div>
           </div>
 
-          <!-- 1.4 Language & Color Mode Row -->
+          <!-- 2.5 Language & Color Mode Row -->
           <div class="pt-2.5 border-t border-white/5 grid grid-cols-2 gap-2.5">
             <!-- Language -->
             <div class="bg-black/35 p-2.5 rounded-2xl border border-white/5 flex flex-col justify-between">
@@ -2326,8 +2494,8 @@ function getSettingsViewHTML() {
                 <span>${t('language')}</span>
               </span>
               <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5">
-                <button onclick="setLanguage('km')" class="py-1 rounded-lg text-[10px] font-bold transition ${isKm ? 'bg-orange-500 text-white' : 'text-slate-400'}">ខ្មែរ</button>
-                <button onclick="setLanguage('en')" class="py-1 rounded-lg text-[10px] font-bold transition ${!isKm ? 'bg-orange-500 text-white' : 'text-slate-400'}">EN</button>
+                <button onclick="setLanguage('km')" class="py-1 rounded-lg text-[10px] font-bold transition ${isKm ? 'accent-solid-btn' : 'text-slate-400'}">ខ្មែរ</button>
+                <button onclick="setLanguage('en')" class="py-1 rounded-lg text-[10px] font-bold transition ${!isKm ? 'accent-solid-btn' : 'text-slate-400'}">EN</button>
               </div>
             </div>
 
@@ -2338,13 +2506,13 @@ function getSettingsViewHTML() {
                 <span>${t('theme')}</span>
               </span>
               <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5">
-                <button onclick="toggleTheme('dark')" class="py-1 rounded-lg text-[10px] font-bold transition ${isDark ? 'bg-orange-500 text-white' : 'text-slate-400'}">${t('dark')}</button>
-                <button onclick="toggleTheme('light')" class="py-1 rounded-lg text-[10px] font-bold transition ${!isDark ? 'bg-orange-500 text-white' : 'text-slate-400'}">${t('light')}</button>
+                <button onclick="toggleTheme('dark')" class="py-1 rounded-lg text-[10px] font-bold transition ${isDark ? 'accent-solid-btn' : 'text-slate-400'}">${t('dark')}</button>
+                <button onclick="toggleTheme('light')" class="py-1 rounded-lg text-[10px] font-bold transition ${!isDark ? 'accent-solid-btn' : 'text-slate-400'}">${t('light')}</button>
               </div>
             </div>
           </div>
 
-          <!-- 1.5 Notifications Toggle -->
+          <!-- 2.6 Notifications Toggle -->
           <div class="pt-2.5 border-t border-white/5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="p-2 rounded-xl bg-orange-500/20 text-orange-400">
@@ -2366,13 +2534,13 @@ function getSettingsViewHTML() {
       </div>
 
       <!-- ======================================================== -->
-      <!-- SECTION 2: ACCOUNT & SYSTEM (Security + Profile inside About) -->
+      <!-- SECTION 3: PASSCODE & SECURITY                            -->
       <!-- ======================================================== -->
       <div class="space-y-2 pt-2">
         <div class="px-1 flex items-center justify-between">
           <div>
             <h3 class="text-xs font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>👤</span>
+              <span>🔒</span>
               <span>${t('accountSection')}</span>
             </h3>
             <p class="text-[10px] text-slate-400 mt-0.5">${t('accountDesc')}</p>
@@ -2381,7 +2549,7 @@ function getSettingsViewHTML() {
 
         <div class="bg-[#0F1B2E] rounded-3xl border border-white/10 p-3.5 space-y-3.5 shadow-lg">
           
-          <!-- 2.1 Passcode Security Toggle -->
+          <!-- Passcode Toggle -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400">
@@ -2408,76 +2576,6 @@ function getSettingsViewHTML() {
               </button>
             </div>
           ` : ''}
-
-          <!-- 2.2 About / Profile Card (Full Details: Manager, Sales, Leader, Developer) -->
-          <div class="pt-2.5 border-t border-white/5">
-            <div class="rounded-2xl bg-black/35 border border-white/5 p-3.5 space-y-3">
-              
-              <!-- Profile Header Row inside About -->
-              <div class="flex items-center gap-3">
-                <div class="relative shrink-0">
-                  <img src="profile.png" alt="SDEY SDOEUNG" 
-                       class="w-14 h-14 rounded-full object-cover border-2 border-orange-500 shadow-md">
-                  <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-1.5">
-                    <h4 class="font-bold text-sm text-white truncate">ស្តី ស្តើង</h4>
-                    <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
-                  </div>
-                  <p class="text-[11px] text-orange-400 font-semibold tracking-wider uppercase mt-0.5">SDEY SDOEUNG</p>
-                  <div class="mt-1 flex items-center gap-1.5">
-                    <span class="px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/30 text-amber-300 font-extrabold text-[10px]">
-                      🎖️ ${t('managerTitle')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Roles & Responsibilities Badges -->
-              <div class="pt-2 border-t border-white/5">
-                <span class="text-[10px] text-slate-400 block mb-1.5 font-bold uppercase tracking-wider">${isKm ? 'តួនាទីទទួលខុសត្រូវ' : 'Core Responsibilities'}:</span>
-                <div class="grid grid-cols-3 gap-1.5 text-center">
-                  <div class="p-1.5 rounded-xl bg-white/5 border border-white/5">
-                    <span class="text-xs">📈</span>
-                    <p class="text-[10px] font-bold text-white mt-0.5">${t('salesRole')}</p>
-                  </div>
-                  <div class="p-1.5 rounded-xl bg-white/5 border border-white/5">
-                    <span class="text-xs">👑</span>
-                    <p class="text-[10px] font-bold text-white mt-0.5">${t('leaderRole')}</p>
-                  </div>
-                  <div class="p-1.5 rounded-xl bg-white/5 border border-white/5">
-                    <span class="text-xs">💻</span>
-                    <p class="text-[10px] font-bold text-white mt-0.5">${t('developerRole')}</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Contact & System Version -->
-              <div class="pt-2 border-t border-white/5 space-y-1.5 text-[11px]">
-                <div class="flex items-center justify-between text-slate-300">
-                  <span class="text-slate-400">${t('phoneLabel')}:</span>
-                  <span class="font-mono font-bold text-white">087 513 666 / 090 513 666</span>
-                </div>
-                <div class="flex items-center justify-between text-slate-300">
-                  <span class="text-slate-400">${t('telegramLabel')}:</span>
-                  <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline">@sdoeung_sd</a>
-                </div>
-                <div class="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
-                  <span class="text-slate-400">${t('versionLabel')}:</span>
-                  <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.5</span>
-                </div>
-              </div>
-
-              <!-- Telegram Contact Button -->
-              <a href="https://t.me/sdoeung_sd" target="_blank" 
-                 class="w-full py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition">
-                <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                <span>${t('contactTelegramBtn')}</span>
-              </a>
-
-            </div>
-          </div>
 
         </div>
       </div>
