@@ -45,7 +45,7 @@ const translations = {
     learningDock: 'សិក្សា',
     settingsDock: 'កំណត់',
     settingsTitle: 'ការកំណត់',
-    settingsSubtitle: 'គ្រប់គ្រងរចនាប័ទ្ម ភាសា និងព័ត៌មានប្រព័ន្ធ',
+    settingsSubtitle: 'កំណត់ការរចនា ភាសា និងសុវត្ថិភាព',
     appearanceSection: 'រចនាប័ទ្ម និងចំណូលចិត្ត',
     appearanceDesc: 'កំណត់ពុម្ពអក្សរ ទំហំអក្សរ ផ្ទាំងរូបភាព និងភាសា',
     accountSection: 'គណនី និងអំពីប្រព័ន្ធ',
@@ -329,7 +329,7 @@ function getKhmerDateText(date) {
 function applyLockWallpaper(wpClass) {
   const lockScreen = document.getElementById('lock-screen');
   if (!lockScreen) return;
-  lockScreen.classList.remove('wp-deep-mesh', 'wp-midnight-purple', 'wp-pure-oled', 'wp-emerald-aurora');
+  lockScreen.classList.remove('wp-deep-mesh', 'wp-midnight-purple', 'wp-pure-oled', 'wp-emerald-aurora', 'wp-velvet-crimson', 'wp-royal-gold', 'wp-cyber-cyan');
   lockScreen.classList.add(wpClass || 'wp-deep-mesh');
 }
 
@@ -2204,7 +2204,7 @@ function getSettingsViewHTML() {
   const isKm = appState.language === 'km';
   const active = appState.activeSettingsItem;
 
-  // Accent metadata for labels and swatches
+  // Accent metadata with Khmer / English text names (No HEX code display)
   const accentMeta = {
     blue: { name: isKm ? 'ខៀវចាស់' : 'Deep Blue', dot: '#2563EB', textColor: '#FFFFFF', darkText: false },
     coral: { name: isKm ? 'ក្រហមផ្កាថ្ម' : 'Coral Red', dot: '#F43F5E', textColor: '#FFFFFF', darkText: false },
@@ -2216,467 +2216,484 @@ function getSettingsViewHTML() {
   const curAccent = accentMeta[appState.themeAccent] || accentMeta.orange;
 
   return `
-    <div class="space-y-3.5 pb-8">
+    <div class="space-y-4 pb-8">
       
-      <!-- Top Settings Header (Title & Summary Description + Back Button) -->
-      <div class="pt-2 pb-1 px-1 flex items-center justify-between">
+      <!-- Top Settings Profile (រូប និង ឈ្មោះ ដូច Version មុន - មិនទាន់ដាក់តួនាទី) -->
+      <div class="pt-2 px-1 flex items-center gap-3.5">
+        <div class="relative">
+          <img src="profile.png" alt="SDEY SDOEUNG" 
+               class="w-13 h-13 rounded-full object-cover border-2 border-[var(--accent-solid)] shadow-lg"
+               style="width: 52px; height: 52px;">
+          <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5">
+            <h1 class="font-black text-base text-white leading-tight truncate">ស្តី ស្តើង</h1>
+            <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
+          </div>
+          <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">SDEY SDOEUNG</p>
+        </div>
+      </div>
+
+      <!-- Settings Title & Subtitle (គ្មាន Button Back) -->
+      <div class="px-1 pt-1">
+        <h2 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+          <span>⚙️</span>
+          <span>${t('settingsTitle')}</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">${t('settingsSubtitle')}</p>
+      </div>
+
+      <!-- Swipe Gesture Hint Banner (អូសមកពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់) -->
+      <div onclick="switchView('dashboard')" 
+           class="mx-1 px-3 py-2 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-between text-xs text-orange-300 cursor-pointer active:scale-98 transition">
+        <div class="flex items-center gap-2">
+          <i data-lucide="move-right" class="w-4 h-4 text-orange-400 shrink-0"></i>
+          <span class="text-[11px] font-medium">${isKm ? 'អូសមកពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់' : 'Swipe left to right to return'}</span>
+        </div>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 font-bold">${isKm ? 'តេស្ត' : 'Test'}</span>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- UNIFIED INSET GROUPED LIST (ដកកាតចេញ រក្សា Icon បែប iPhone) -->
+      <!-- ======================================================== -->
+      <div class="bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
+        
+        <!-- 1. ភាសា (Language) -->
+        <div class="p-3.5 flex items-center justify-between select-none">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="globe" class="w-4 h-4 text-sky-400"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('language')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${isKm ? 'ខ្មែរ / English' : 'Khmer / English'}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
+            <button onclick="setLanguage('km')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${isKm ? 'accent-solid-btn' : 'text-slate-400'}">ខ្មែរ</button>
+            <button onclick="setLanguage('en')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${!isKm ? 'accent-solid-btn' : 'text-slate-400'}">EN</button>
+          </div>
+        </div>
+
+        <!-- 2. ពណ៌ចម្បង (Theme Accent - ដកកូដពណ៌ចេញ ជំនួសដោយអក្សរ) -->
         <div>
-          <h2 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
-            <span>⚙️</span>
-            <span>${t('settingsTitle')}</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">${t('settingsSubtitle')}</p>
-        </div>
-        <button onclick="switchView('dashboard')" 
-                title="${isKm ? 'ត្រឡប់ទៅទំព័រដើម' : 'Back to Home'}"
-                class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-sm shrink-0">
-          <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
-          <span>${isKm ? 'ត្រឡប់' : 'Back'}</span>
-        </button>
-      </div>
-
-      <!-- Swipe Gesture Hint Pill -->
-      <div class="mx-1 px-3 py-1.5 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center gap-2 text-[11px] text-orange-300">
-        <i data-lucide="move-right" class="w-3.5 h-3.5 shrink-0 text-orange-400"></i>
-        <span>${isKm ? 'អូសមកពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់' : 'Swipe left to right to return'}</span>
-      </div>
-
-      <!-- ======================================================== -->
-      <!-- GROUP 1: គណនី & រូបរាង (Profile & Appearance iOS List)     -->
-      <!-- ======================================================== -->
-      <div class="space-y-1.5">
-        <div class="px-1.5">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">${isKm ? 'គណនី និងរូបរាង' : 'Profile & Appearance'}</span>
-        </div>
-
-        <div class="bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
-          
-          <!-- 1.1 អំពីខ្ញុំ (About Me List Row) -->
-          <div>
-            <div onclick="toggleSettingsItem('about')" 
-                 class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0">
-                  <i data-lucide="user" class="w-4 h-4 text-orange-400"></i>
-                </div>
-                <div class="min-w-0">
-                  <h4 class="text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
-                  <p class="text-[10px] text-slate-400 mt-0.5 truncate">ស្តី ស្តើង • 🎖️ ${t('managerTitle')}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-orange-300 font-bold border border-white/5">
-                  ${active === 'about' ? (isKm ? 'បិទកាត' : 'Collapse') : (isKm ? 'មើលកាត' : 'View Card')}
-                </span>
-                <i data-lucide="${active === 'about' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
-              </div>
-            </div>
-
-            <!-- EXPANDED CARD: Centered Profile Card (ដូច Version មុន + បន្ថែមពត៌មាន) -->
-            ${active === 'about' ? `
-              <div class="p-4 bg-black/40 border-t border-white/5 animate-fade-in">
-                <div class="rounded-3xl bg-[#09111D] border border-white/10 p-5 shadow-2xl flex flex-col items-center text-center space-y-3.5 relative overflow-hidden">
-                  
-                  <!-- Ambient Top Glow -->
-                  <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full bg-orange-500/15 blur-3xl pointer-events-none"></div>
-
-                  <!-- Centered Profile Photo with Green Status Dot (Like Version មុន) -->
-                  <div class="relative">
-                    <img src="profile.png" alt="SDEY SDOEUNG" 
-                         class="w-24 h-24 rounded-full object-cover border-4 border-[var(--accent-solid)] shadow-2xl">
-                    <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#070D18] shadow-md"></span>
-                  </div>
-
-                  <!-- Centered Name with Verified Blue Tick -->
-                  <div>
-                    <div class="flex items-center justify-center gap-1.5">
-                      <h2 class="text-xl font-black text-white tracking-wide">ស្តី ស្តើង</h2>
-                      <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
-                    </div>
-                    <p class="text-xs text-orange-400 font-semibold tracking-widest uppercase mt-0.5">SDEY SDOEUNG</p>
-                    
-                    <!-- Manager Badge Centered -->
-                    <div class="mt-2 flex justify-center">
-                      <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/35 text-amber-300 font-extrabold text-xs shadow-sm flex items-center gap-1">
-                        <span>🎖️</span>
-                        <span>${t('managerTitle')}</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Roles Badges Centered in 3 Columns -->
-                  <div class="w-full pt-3 border-t border-white/10">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">${isKm ? 'តួនាទីទទួលខុសត្រូវ' : 'Core Responsibilities'}</span>
-                    <div class="grid grid-cols-3 gap-1.5 w-full max-w-xs mx-auto">
-                      <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
-                        <span class="text-xs">📈</span>
-                        <p class="text-[10px] font-bold text-white mt-0.5">${t('salesRole')}</p>
-                      </div>
-                      <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
-                        <span class="text-xs">👑</span>
-                        <p class="text-[10px] font-bold text-white mt-0.5">${t('leaderRole')}</p>
-                      </div>
-                      <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
-                        <span class="text-xs">💻</span>
-                        <p class="text-[10px] font-bold text-white mt-0.5">${t('developerRole')}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Centered Contacts List -->
-                  <div class="w-full pt-2.5 border-t border-white/10 space-y-1.5 text-xs max-w-xs mx-auto">
-                    <div class="flex items-center justify-between text-slate-300">
-                      <span class="text-slate-400">${t('phoneLabel')}:</span>
-                      <span class="font-mono font-bold text-white">087 513 666 / 090 513 666</span>
-                    </div>
-                    <div class="flex items-center justify-between text-slate-300">
-                      <span class="text-slate-400">${t('telegramLabel')}:</span>
-                      <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline">@sdoeung_sd</a>
-                    </div>
-                    <div class="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
-                      <span class="text-slate-400">${t('versionLabel')}:</span>
-                      <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.6</span>
-                    </div>
-                  </div>
-
-                  <!-- Solid Accent Fill Button with Auto Contrast Text -->
-                  <div class="w-full max-w-xs mx-auto pt-1">
-                    <a href="https://t.me/sdoeung_sd" target="_blank" 
-                       class="w-full py-2.5 rounded-2xl accent-solid-btn font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
-                      <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                      <span>${t('contactTelegramBtn')}</span>
-                    </a>
-                  </div>
-
-                </div>
-              </div>
-            ` : ''}
-          </div>
-
-          <!-- 1.2 ពណ៌ចម្បង (Theme Accent List Row) -->
-          <div>
-            <div onclick="toggleSettingsItem('accent')" 
-                 class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center shrink-0">
-                  <i data-lucide="palette" class="w-4 h-4 text-purple-400"></i>
-                </div>
-                <div class="min-w-0">
-                  <h4 class="text-xs font-bold text-white truncate leading-tight">${t('themeAccentTitle')}</h4>
-                  <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('themeAccentDesc')}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/10" style="background-color: ${curAccent.dot}20; color: ${curAccent.dot}">
-                  <span class="w-2 h-2 rounded-full" style="background-color: ${curAccent.dot}"></span>
-                  <span>${curAccent.name}</span>
-                </span>
-                <i data-lucide="${active === 'accent' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
-              </div>
-            </div>
-
-            <!-- EXPANDED CARD: 6 Theme Accent Swatches & Contrast System -->
-            ${active === 'accent' ? `
-              <div class="p-4 bg-black/40 border-t border-white/5 space-y-3 animate-fade-in">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-white">${isKm ? 'ជ្រើសរើសពណ៌ចម្បង (៦ ពណ៌)' : 'Choose Accent Color (6 Colors)'}</span>
-                  <span class="text-[10px] text-slate-400">${isKm ? 'Apply ទៅកាន់កាតខាងក្រៅ' : 'Applies to Dashboard'}</span>
-                </div>
-
-                <!-- 6 Modern Swatches (Deep Blue, Coral Red, Sunset Orange, Golden Amber, Emerald Green, Rose Pink) -->
-                <div class="grid grid-cols-3 gap-2">
-                  
-                  <!-- 1. Deep Blue -->
-                  <button onclick="setThemeAccent('blue')" 
-                          class="p-2 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'blue' ? 'border-blue-500 bg-blue-500/20 ring-2 ring-blue-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
-                    <div class="w-8 h-8 rounded-xl bg-[#2563EB] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
-                    <span class="text-[11px] font-bold text-white mt-0.5">${t('accentBlue')}</span>
-                    <span class="text-[9px] text-slate-400">#2563EB (ស)</span>
-                  </button>
-
-                  <!-- 2. Coral Red -->
-                  <button onclick="setThemeAccent('coral')" 
-                          class="p-2 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'coral' ? 'border-rose-500 bg-rose-500/20 ring-2 ring-rose-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
-                    <div class="w-8 h-8 rounded-xl bg-[#F43F5E] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
-                    <span class="text-[11px] font-bold text-white mt-0.5">${t('accentCoral')}</span>
-                    <span class="text-[9px] text-slate-400">#F43F5E (ស)</span>
-                  </button>
-
-                  <!-- 3. Sunset Orange -->
-                  <button onclick="setThemeAccent('orange')" 
-                          class="p-2 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'orange' ? 'border-orange-500 bg-orange-500/20 ring-2 ring-orange-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
-                    <div class="w-8 h-8 rounded-xl bg-[#F97316] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
-                    <span class="text-[11px] font-bold text-white mt-0.5">${t('accentOrange')}</span>
-                    <span class="text-[9px] text-slate-400">#F97316 (ស)</span>
-                  </button>
-
-                  <!-- 4. Golden Amber (Special: Dark Charcoal Text!) -->
-                  <button onclick="setThemeAccent('amber')" 
-                          class="p-2 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'amber' ? 'border-amber-500 bg-amber-500/20 ring-2 ring-amber-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
-                    <div class="w-8 h-8 rounded-xl bg-[#F59E0B] text-[#0F172A] font-black text-xs flex items-center justify-center shadow-md">Aa</div>
-                    <span class="text-[11px] font-bold text-white mt-0.5">${t('accentAmber')}</span>
-                    <span class="text-[9px] text-amber-300 font-bold">#F59E0B (ខ្មៅ)</span>
-                  </button>
-
-                  <!-- 5. Emerald Green -->
-                  <button onclick="setThemeAccent('emerald')" 
-                          class="p-2 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'emerald' ? 'border-emerald-500 bg-emerald-500/20 ring-2 ring-emerald-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
-                    <div class="w-8 h-8 rounded-xl bg-[#10B981] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
-                    <span class="text-[11px] font-bold text-white mt-0.5">${t('accentEmerald')}</span>
-                    <span class="text-[9px] text-slate-400">#10B981 (ស)</span>
-                  </button>
-
-                  <!-- 6. Rose Pink -->
-                  <button onclick="setThemeAccent('pink')" 
-                          class="p-2 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'pink' ? 'border-pink-500 bg-pink-500/20 ring-2 ring-pink-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
-                    <div class="w-8 h-8 rounded-xl bg-[#EC4899] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
-                    <span class="text-[11px] font-bold text-white mt-0.5">${t('accentPink')}</span>
-                    <span class="text-[9px] text-slate-400">#EC4899 (ស)</span>
-                  </button>
-
-                </div>
-
-                <!-- Explanation Banner -->
-                <div class="p-2.5 rounded-2xl bg-white/5 border border-white/5 flex items-start gap-2 text-[10px] text-slate-300">
-                  <span class="text-sm">💡</span>
-                  <p class="leading-relaxed">${t('contrastHint')}</p>
-                </div>
-              </div>
-            ` : ''}
-          </div>
-
-          <!-- 1.3 ពុម្ពអក្សរ (Fonts List Row) -->
-          <div>
-            <div onclick="toggleSettingsItem('fonts')" 
-                 class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-8 h-8 rounded-xl bg-slate-700/40 border border-white/10 flex items-center justify-center shrink-0">
-                  <span class="text-xs font-bold text-white">Aa</span>
-                </div>
-                <div class="min-w-0">
-                  <h4 class="text-xs font-bold text-white truncate leading-tight">${t('fontTitle')}</h4>
-                  <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('fontDesc')}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/5">
-                  ${appState.fontFamily === 'font-kantumruy' ? (isKm ? 'កន្ទុំរុយ' : 'Kantumruy') : (appState.fontFamily === 'font-koh-santepheap' ? (isKm ? 'កោះសន្តិភាព' : 'Santepheap') : 'Jakarta')}
-                </span>
-                <i data-lucide="${active === 'fonts' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
-              </div>
-            </div>
-
-            <!-- EXPANDED CARD: Font Selection -->
-            ${active === 'fonts' ? `
-              <div class="p-3.5 bg-black/40 border-t border-white/5 space-y-2 animate-fade-in">
-                <div class="grid grid-cols-3 gap-1.5 bg-black/40 p-1 rounded-2xl border border-white/5 text-center">
-                  <button onclick="setAppFont('font-kantumruy')" 
-                          class="py-2 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-kantumruy' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                    <span>${isKm ? 'កន្ទុំរុយ' : 'Kantumruy'}</span>
-                  </button>
-                  <button onclick="setAppFont('font-koh-santepheap')" 
-                          class="py-2 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                    <span>${isKm ? 'កោះសន្តិភាព' : 'Santepheap'}</span>
-                  </button>
-                  <button onclick="setAppFont('font-jakarta')" 
-                          class="py-2 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-jakarta' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                    <span>${isKm ? 'ចាការតា' : 'Jakarta'}</span>
-                  </button>
-                </div>
-              </div>
-            ` : ''}
-          </div>
-
-          <!-- 1.4 ទំហំអក្សរ (Text Size List Row - Direct interactive controls) -->
-          <div class="p-3.5 flex items-center justify-between select-none">
+          <div onclick="toggleSettingsItem('accent')" 
+               class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0">
-                <i data-lucide="scaling" class="w-4 h-4 text-blue-400"></i>
+              <div class="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center shrink-0">
+                <i data-lucide="palette" class="w-4 h-4 text-purple-400"></i>
               </div>
               <div class="min-w-0">
-                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('textSizeTitle')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('textSizeDesc')}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
-              <button onclick="setAppTextSize('sm')" 
-                      class="w-7 h-7 rounded-lg font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'sm' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-xs'}">
-                <span>A-</span>
-              </button>
-              <button onclick="setAppTextSize('md')" 
-                      class="w-7 h-7 rounded-lg font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'md' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-xs'}">
-                <span>A</span>
-              </button>
-              <button onclick="setAppTextSize('lg')" 
-                      class="w-7 h-7 rounded-lg font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'lg' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-sm'}">
-                <span>A+</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- 1.5 ផ្ទាំងរូបភាពចាក់សោរ (Wallpaper List Row) -->
-          <div>
-            <div onclick="toggleSettingsItem('wallpaper')" 
-                 class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-                  <i data-lucide="image" class="w-4 h-4 text-indigo-400"></i>
-                </div>
-                <div class="min-w-0">
-                  <h4 class="text-xs font-bold text-white truncate leading-tight">${t('wallpaperTitle')}</h4>
-                  <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('wallpaperDesc')}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <button onclick="event.stopPropagation(); lockApp();" 
-                        class="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold border border-white/10 flex items-center gap-1 active:scale-95 transition">
-                  <i data-lucide="eye" class="w-3 h-3 text-orange-400"></i>
-                  <span>${t('lockScreenNow')}</span>
-                </button>
-                <i data-lucide="${active === 'wallpaper' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
-              </div>
-            </div>
-
-            <!-- EXPANDED CARD: Wallpaper Carousel -->
-            ${active === 'wallpaper' ? `
-              <div class="p-3.5 bg-black/40 border-t border-white/5 space-y-2 animate-fade-in">
-                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                  <!-- Wallpaper 1 -->
-                  <button onclick="setLockWallpaper('wp-deep-mesh')" 
-                          class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-deep-mesh' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                    <div class="w-full h-14 rounded-xl bg-gradient-to-br from-indigo-900 via-blue-950 to-slate-900 border border-white/20 mb-1 relative overflow-hidden flex items-center justify-center">
-                      <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                    </div>
-                    <p class="text-[11px] font-bold text-white truncate">${isKm ? 'សំណាញ់ខៀវ' : 'Deep Mesh'}</p>
-                    <span class="text-[9px] text-slate-400">${isKm ? 'លំនាំដើម' : 'Default'}</span>
-                  </button>
-
-                  <!-- Wallpaper 2 -->
-                  <button onclick="setLockWallpaper('wp-midnight-purple')" 
-                          class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-midnight-purple' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                    <div class="w-full h-14 rounded-xl bg-gradient-to-br from-purple-950 via-slate-950 to-indigo-950 border border-white/20 mb-1 relative overflow-hidden flex items-center justify-center">
-                      <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                    </div>
-                    <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ស្វាយរាត្រី' : 'Midnight'}</p>
-                    <span class="text-[9px] text-slate-400">${isKm ? 'ស្វាយចាស់' : 'Purple'}</span>
-                  </button>
-
-                  <!-- Wallpaper 3 -->
-                  <button onclick="setLockWallpaper('wp-pure-oled')" 
-                          class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-pure-oled' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                    <div class="w-full h-14 rounded-xl bg-black border border-white/30 mb-1 relative overflow-hidden flex items-center justify-center">
-                      <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                    </div>
-                    <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ខ្មៅសុទ្ធ' : 'Pure OLED'}</p>
-                    <span class="text-[9px] text-slate-400">${isKm ? 'សន្សំថ្ម' : 'True Black'}</span>
-                  </button>
-
-                  <!-- Wallpaper 4 -->
-                  <button onclick="setLockWallpaper('wp-emerald-aurora')" 
-                          class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-emerald-aurora' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                    <div class="w-full h-14 rounded-xl bg-gradient-to-br from-emerald-950 via-teal-950 to-black border border-white/20 mb-1 relative overflow-hidden flex items-center justify-center">
-                      <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                    </div>
-                    <p class="text-[11px] font-bold text-white truncate">${isKm ? 'បៃតងរស្មី' : 'Aurora'}</p>
-                    <span class="text-[9px] text-slate-400">${isKm ? 'ធម្មជាតិ' : 'Emerald'}</span>
-                  </button>
-                </div>
-              </div>
-            ` : ''}
-          </div>
-
-          <!-- 1.6 ភាសា (Language List Row) -->
-          <div class="p-3.5 flex items-center justify-between select-none">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0">
-                <i data-lucide="globe" class="w-4 h-4 text-sky-400"></i>
-              </div>
-              <div class="min-w-0">
-                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('language')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${isKm ? 'ខ្មែរ / អង់គ្លេស' : 'Khmer / English'}</p>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
-              <button onclick="setLanguage('km')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${isKm ? 'accent-solid-btn' : 'text-slate-400'}">ខ្មែរ</button>
-              <button onclick="setLanguage('en')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${!isKm ? 'accent-solid-btn' : 'text-slate-400'}">EN</button>
-            </div>
-          </div>
-
-          <!-- 1.7 ទម្រង់ពណ៌ (Color Mode List Row) -->
-          <div class="p-3.5 flex items-center justify-between select-none">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
-                <i data-lucide="${isDark ? 'moon' : 'sun'}" class="w-4 h-4 text-amber-400"></i>
-              </div>
-              <div class="min-w-0">
-                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('theme')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${isDark ? (isKm ? 'របៀបងងឹត' : 'Dark Mode') : (isKm ? 'របៀបភ្លឺ' : 'Light Mode')}</p>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
-              <button onclick="toggleTheme('dark')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${isDark ? 'accent-solid-btn' : 'text-slate-400'}">${t('dark')}</button>
-              <button onclick="toggleTheme('light')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${!isDark ? 'accent-solid-btn' : 'text-slate-400'}">${t('light')}</button>
-            </div>
-          </div>
-
-          <!-- 1.8 ការជូនដំណឹង (Notifications List Row) -->
-          <div class="p-3.5 flex items-center justify-between select-none">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0">
-                <i data-lucide="bell" class="w-4 h-4 text-rose-400"></i>
-              </div>
-              <div class="min-w-0">
-                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('notificationsTitle')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('notificationsDesc')}</p>
-              </div>
-            </div>
-            <button onclick="toggleNotificationsEnabled()" 
-                    class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.notificationsEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
-                    role="switch" aria-checked="${appState.notificationsEnabled}">
-              <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${appState.notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ======================================================== -->
-      <!-- GROUP 2: សុវត្ថិភាព & ប្រព័ន្ធ (Security & Passcode iOS List) -->
-      <!-- ======================================================== -->
-      <div class="space-y-1.5 pt-1">
-        <div class="px-1.5">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">${isKm ? 'សុវត្ថិភាព និងប្រព័ន្ធ' : 'Security & System'}</span>
-        </div>
-
-        <div class="bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
-          
-          <!-- Passcode Security List Row -->
-          <div class="p-3.5 flex items-center justify-between select-none">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-              </div>
-              <div class="min-w-0">
-                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('enablePinTitle')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('enablePinDesc')}</p>
+                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('themeAccentTitle')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('themeAccentDesc')}</p>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              ${appState.pinEnabled ? `
-                <button onclick="openChangePinModal()" 
-                        class="px-2.5 py-1 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-[10px] transition active:scale-95 shadow-md">
-                  ${t('changePinBtn')}
-                </button>
-              ` : ''}
-              <button onclick="togglePinEnabled()" 
-                      class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.pinEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
-                      role="switch" aria-checked="${appState.pinEnabled}">
-                <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
-              </button>
+              <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/10" style="background-color: ${curAccent.dot}20; color: ${curAccent.dot}">
+                <span class="w-2 h-2 rounded-full" style="background-color: ${curAccent.dot}"></span>
+                <span>${curAccent.name}</span>
+              </span>
+              <i data-lucide="${active === 'accent' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
             </div>
           </div>
 
+          <!-- EXPANDED ACCENT SELECTION (អក្សរឈ្មោះពណ៌ច្បាស់ៗ គ្មានកូដ HEX) -->
+          ${active === 'accent' ? `
+            <div class="p-4 bg-black/40 border-t border-white/5 space-y-3 animate-fade-in">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-white">${isKm ? 'ជ្រើសរើសពណ៌ចម្បង (៦ ពណ៌)' : 'Choose Accent Color (6 Colors)'}</span>
+                <span class="text-[10px] text-slate-400">${isKm ? 'ស្វ័យប្រវត្តិ Contrast' : 'Auto Contrast'}</span>
+              </div>
+
+              <!-- 6 Modern Swatches with Pure Text Names -->
+              <div class="grid grid-cols-3 gap-2">
+                <!-- 1. Deep Blue -->
+                <button onclick="setThemeAccent('blue')" 
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'blue' ? 'border-blue-500 bg-blue-500/20 ring-2 ring-blue-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
+                  <div class="w-8 h-8 rounded-xl bg-[#2563EB] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
+                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentBlue')}</span>
+                  <span class="text-[9px] text-slate-400">${isKm ? '⚪ អក្សរស' : 'White Text'}</span>
+                </button>
+
+                <!-- 2. Coral Red -->
+                <button onclick="setThemeAccent('coral')" 
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'coral' ? 'border-rose-500 bg-rose-500/20 ring-2 ring-rose-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
+                  <div class="w-8 h-8 rounded-xl bg-[#F43F5E] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
+                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentCoral')}</span>
+                  <span class="text-[9px] text-slate-400">${isKm ? '⚪ អក្សរស' : 'White Text'}</span>
+                </button>
+
+                <!-- 3. Sunset Orange -->
+                <button onclick="setThemeAccent('orange')" 
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'orange' ? 'border-orange-500 bg-orange-500/20 ring-2 ring-orange-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
+                  <div class="w-8 h-8 rounded-xl bg-[#F97316] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
+                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentOrange')}</span>
+                  <span class="text-[9px] text-slate-400">${isKm ? '⚪ អក្សរស' : 'White Text'}</span>
+                </button>
+
+                <!-- 4. Golden Amber (Dark Charcoal Text) -->
+                <button onclick="setThemeAccent('amber')" 
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'amber' ? 'border-amber-500 bg-amber-500/20 ring-2 ring-amber-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
+                  <div class="w-8 h-8 rounded-xl bg-[#F59E0B] text-[#0F172A] font-black text-xs flex items-center justify-center shadow-md">Aa</div>
+                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentAmber')}</span>
+                  <span class="text-[9px] text-amber-300 font-bold">${isKm ? '⚫ អក្សរខ្មៅ' : 'Dark Text'}</span>
+                </button>
+
+                <!-- 5. Emerald Green -->
+                <button onclick="setThemeAccent('emerald')" 
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'emerald' ? 'border-emerald-500 bg-emerald-500/20 ring-2 ring-emerald-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
+                  <div class="w-8 h-8 rounded-xl bg-[#10B981] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
+                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentEmerald')}</span>
+                  <span class="text-[9px] text-slate-400">${isKm ? '⚪ អក្សរស' : 'White Text'}</span>
+                </button>
+
+                <!-- 6. Rose Pink -->
+                <button onclick="setThemeAccent('pink')" 
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'pink' ? 'border-pink-500 bg-pink-500/20 ring-2 ring-pink-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
+                  <div class="w-8 h-8 rounded-xl bg-[#EC4899] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
+                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentPink')}</span>
+                  <span class="text-[9px] text-slate-400">${isKm ? '⚪ អក្សរស' : 'White Text'}</span>
+                </button>
+              </div>
+
+              <!-- Contrast Explanation Banner -->
+              <div class="p-2.5 rounded-2xl bg-white/5 border border-white/5 flex items-start gap-2 text-[10px] text-slate-300">
+                <span class="text-sm">💡</span>
+                <p class="leading-relaxed">${t('contrastHint')}</p>
+              </div>
+            </div>
+          ` : ''}
         </div>
+
+        <!-- 3. ពុម្ពអក្សរ (Font Family) -->
+        <div>
+          <div onclick="toggleSettingsItem('fonts')" 
+               class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-8 h-8 rounded-xl bg-slate-700/40 border border-white/10 flex items-center justify-center shrink-0">
+                <span class="text-xs font-bold text-white">Aa</span>
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('fontTitle')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('fontDesc')}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/5">
+                ${appState.fontFamily === 'font-kantumruy' ? (isKm ? 'កន្ទុំរុយ' : 'Kantumruy') : (appState.fontFamily === 'font-koh-santepheap' ? (isKm ? 'កោះសន្តិភាព' : 'Santepheap') : 'Jakarta')}
+              </span>
+              <i data-lucide="${active === 'fonts' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          </div>
+
+          ${active === 'fonts' ? `
+            <div class="p-3.5 bg-black/40 border-t border-white/5 space-y-2 animate-fade-in">
+              <div class="grid grid-cols-3 gap-1.5 bg-black/40 p-1 rounded-2xl border border-white/5 text-center">
+                <button onclick="setAppFont('font-kantumruy')" 
+                        class="py-2 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-kantumruy' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
+                  <span>${isKm ? 'កន្ទុំរុយ' : 'Kantumruy'}</span>
+                </button>
+                <button onclick="setAppFont('font-koh-santepheap')" 
+                        class="py-2 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
+                  <span>${isKm ? 'កោះសន្តិភាព' : 'Santepheap'}</span>
+                </button>
+                <button onclick="setAppFont('font-jakarta')" 
+                        class="py-2 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-jakarta' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
+                  <span>${isKm ? 'ចាការតា' : 'Jakarta'}</span>
+                </button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- 4. ទំហំអក្សរ (Text Size) -->
+        <div class="p-3.5 flex items-center justify-between select-none">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="scaling" class="w-4 h-4 text-blue-400"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('textSizeTitle')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('textSizeDesc')}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
+            <button onclick="setAppTextSize('sm')" 
+                    class="w-7 h-7 rounded-lg font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'sm' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-xs'}">
+              <span>A-</span>
+            </button>
+            <button onclick="setAppTextSize('md')" 
+                    class="w-7 h-7 rounded-lg font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'md' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-xs'}">
+              <span>A</span>
+            </button>
+            <button onclick="setAppTextSize('lg')" 
+                    class="w-7 h-7 rounded-lg font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'lg' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-sm'}">
+              <span>A+</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. ផ្ទាំងរូបភាពចាក់សោរ (Lock Screen Wallpaper - បន្ថែម ៣ ពណ៌/ម៉ូដទៀត) -->
+        <div>
+          <div onclick="toggleSettingsItem('wallpaper')" 
+               class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                <i data-lucide="image" class="w-4 h-4 text-indigo-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('wallpaperTitle')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('wallpaperDesc')}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="event.stopPropagation(); lockApp();" 
+                      class="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold border border-white/10 flex items-center gap-1 active:scale-95 transition">
+                <i data-lucide="eye" class="w-3 h-3 text-orange-400"></i>
+                <span>${t('lockScreenNow')}</span>
+              </button>
+              <i data-lucide="${active === 'wallpaper' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          </div>
+
+          ${active === 'wallpaper' ? `
+            <div class="p-3.5 bg-black/40 border-t border-white/5 space-y-2 animate-fade-in">
+              <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                <!-- Wallpaper 1: Deep Mesh -->
+                <button onclick="setLockWallpaper('wp-deep-mesh')" 
+                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-deep-mesh' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-indigo-900 via-blue-950 to-slate-900 border border-white/20 mb-1 relative overflow-hidden flex items-center justify-center">
+                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
+                  </div>
+                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'សំណាញ់ខៀវ' : 'Deep Mesh'}</p>
+                  <span class="text-[9px] text-slate-400">${isKm ? 'លំនាំដើម' : 'Default'}</span>
+                </button>
+
+                <!-- Wallpaper 2: Midnight Purple -->
+                <button onclick="setLockWallpaper('wp-midnight-purple')" 
+                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-midnight-purple' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-purple-950 via-slate-950 to-indigo-950 border border-white/20 mb-1 relative overflow-hidden flex items-center justify-center">
+                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
+                  </div>
+                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ស្វាយរាត្រី' : 'Midnight'}</p>
+                  <span class="text-[9px] text-slate-400">${isKm ? 'ស្វាយចាស់' : 'Purple'}</span>
+                </button>
+
+                <!-- Wallpaper 3: Pure OLED -->
+                <button onclick="setLockWallpaper('wp-pure-oled')" 
+                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-pure-oled' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                  <div class="w-full h-14 rounded-xl bg-black border border-white/30 mb-1 relative overflow-hidden flex items-center justify-center">
+                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
+                  </div>
+                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ខ្មៅសុទ្ធ' : 'Pure OLED'}</p>
+                  <span class="text-[9px] text-slate-400">${isKm ? 'សន្សំថ្ម' : 'True Black'}</span>
+                </button>
+
+                <!-- Wallpaper 4: Emerald Aurora -->
+                <button onclick="setLockWallpaper('wp-emerald-aurora')" 
+                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-emerald-aurora' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-emerald-950 via-teal-950 to-black border border-white/20 mb-1 relative overflow-hidden flex items-center justify-center">
+                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
+                  </div>
+                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'បៃតងរស្មី' : 'Aurora'}</p>
+                  <span class="text-[9px] text-slate-400">${isKm ? 'ធម្មជាតិ' : 'Emerald'}</span>
+                </button>
+
+                <!-- Wallpaper 5: NEW Velvet Crimson (ក្រហមប្រណីត) -->
+                <button onclick="setLockWallpaper('wp-velvet-crimson')" 
+                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-velvet-crimson' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-rose-950 via-red-950 to-black border border-rose-500/30 mb-1 relative overflow-hidden flex items-center justify-center">
+                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
+                  </div>
+                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ក្រហមប្រណីត' : 'Crimson'}</p>
+                  <span class="text-[9px] text-rose-400">${isKm ? 'ម៉ូដថ្មី' : 'New'}</span>
+                </button>
+
+                <!-- Wallpaper 6: NEW Royal Gold (មាសរាជវង្ស) -->
+                <button onclick="setLockWallpaper('wp-royal-gold')" 
+                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-royal-gold' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-amber-950 via-yellow-950 to-black border border-amber-500/30 mb-1 relative overflow-hidden flex items-center justify-center">
+                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
+                  </div>
+                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'មាសរាជវង្ស' : 'Royal Gold'}</p>
+                  <span class="text-[9px] text-amber-300 font-bold">${isKm ? 'ម៉ូដថ្មី' : 'New'}</span>
+                </button>
+
+                <!-- Wallpaper 7: NEW Cyber Cyan (ខៀវរាត្រី) -->
+                <button onclick="setLockWallpaper('wp-cyber-cyan')" 
+                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-cyber-cyan' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-cyan-950 via-sky-950 to-black border border-cyan-500/30 mb-1 relative overflow-hidden flex items-center justify-center">
+                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
+                  </div>
+                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ខៀវរាត្រី' : 'Cyber Cyan'}</p>
+                  <span class="text-[9px] text-cyan-400">${isKm ? 'ម៉ូដថ្មី' : 'New'}</span>
+                </button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- 6. ទម្រង់ពណ៌ (Color Mode - ងងឹត / ភ្លឺ) -->
+        <div class="p-3.5 flex items-center justify-between select-none">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="${isDark ? 'moon' : 'sun'}" class="w-4 h-4 text-amber-400"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('theme')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${isDark ? (isKm ? 'របៀបងងឹត' : 'Dark Mode') : (isKm ? 'របៀបភ្លឺ' : 'Light Mode')}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
+            <button onclick="toggleTheme('dark')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${isDark ? 'accent-solid-btn' : 'text-slate-400'}">${t('dark')}</button>
+            <button onclick="toggleTheme('light')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${!isDark ? 'accent-solid-btn' : 'text-slate-400'}">${t('light')}</button>
+          </div>
+        </div>
+
+        <!-- 7. ការជូនដំណឹង (Notifications) -->
+        <div class="p-3.5 flex items-center justify-between select-none">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="bell" class="w-4 h-4 text-rose-400"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('notificationsTitle')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('notificationsDesc')}</p>
+            </div>
+          </div>
+          <button onclick="toggleNotificationsEnabled()" 
+                  class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.notificationsEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
+                  role="switch" aria-checked="${appState.notificationsEnabled}">
+            <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${appState.notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+          </button>
+        </div>
+
+        <!-- 8. ការចាក់សោរ (Security / Passcode Lock) -->
+        <div class="p-3.5 flex items-center justify-between select-none">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('enablePinTitle')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('enablePinDesc')}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            ${appState.pinEnabled ? `
+              <button onclick="openChangePinModal()" 
+                      class="px-2.5 py-1 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-[10px] transition active:scale-95 shadow-md">
+                ${t('changePinBtn')}
+              </button>
+            ` : ''}
+            <button onclick="togglePinEnabled()" 
+                    class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.pinEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
+                    role="switch" aria-checked="${appState.pinEnabled}">
+              <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 9. អំពីខ្ញុំ (About Me - ពេលចុចទើបបង្ហាញកាតពេញលេញ) -->
+        <div>
+          <div onclick="toggleSettingsItem('about')" 
+               class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0">
+                <i data-lucide="user" class="w-4 h-4 text-orange-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate">ស្តី ស្តើង • SDEY SDOEUNG</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <i data-lucide="${active === 'about' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          </div>
+
+          <!-- FULL CENTERED PROFILE CARD (បង្ហាញពេលចុចលើជួរនេះ) -->
+          ${active === 'about' ? `
+            <div class="p-4 bg-black/40 border-t border-white/5 animate-fade-in">
+              <div class="rounded-3xl bg-[#09111D] border border-white/10 p-5 shadow-2xl flex flex-col items-center text-center space-y-3.5 relative overflow-hidden">
+                
+                <!-- Ambient Top Glow -->
+                <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full bg-orange-500/15 blur-3xl pointer-events-none"></div>
+
+                <!-- Centered Profile Photo with Green Status Dot -->
+                <div class="relative">
+                  <img src="profile.png" alt="SDEY SDOEUNG" 
+                       class="w-24 h-24 rounded-full object-cover border-4 border-[var(--accent-solid)] shadow-2xl">
+                  <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#070D18] shadow-md"></span>
+                </div>
+
+                <!-- Centered Name with Verified Blue Tick -->
+                <div>
+                  <div class="flex items-center justify-center gap-1.5">
+                    <h2 class="text-xl font-black text-white tracking-wide">ស្តី ស្តើង</h2>
+                    <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
+                  </div>
+                  <p class="text-xs text-orange-400 font-semibold tracking-widest uppercase mt-0.5">SDEY SDOEUNG</p>
+                  
+                  <!-- Manager Badge Centered -->
+                  <div class="mt-2 flex justify-center">
+                    <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/35 text-amber-300 font-extrabold text-xs shadow-sm flex items-center gap-1">
+                      <span>🎖️</span>
+                      <span>${t('managerTitle')}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Roles Badges Centered in 3 Columns -->
+                <div class="w-full pt-3 border-t border-white/10">
+                  <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">${isKm ? 'តួនាទីទទួលខុសត្រូវ' : 'Core Responsibilities'}</span>
+                  <div class="grid grid-cols-3 gap-1.5 w-full max-w-xs mx-auto">
+                    <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+                      <span class="text-xs">📈</span>
+                      <p class="text-[10px] font-bold text-white mt-0.5">${t('salesRole')}</p>
+                    </div>
+                    <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+                      <span class="text-xs">👑</span>
+                      <p class="text-[10px] font-bold text-white mt-0.5">${t('leaderRole')}</p>
+                    </div>
+                    <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+                      <span class="text-xs">💻</span>
+                      <p class="text-[10px] font-bold text-white mt-0.5">${t('developerRole')}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Centered Contacts List -->
+                <div class="w-full pt-2.5 border-t border-white/10 space-y-1.5 text-xs max-w-xs mx-auto">
+                  <div class="flex items-center justify-between text-slate-300">
+                    <span class="text-slate-400">${t('phoneLabel')}:</span>
+                    <span class="font-mono font-bold text-white">087 513 666 / 090 513 666</span>
+                  </div>
+                  <div class="flex items-center justify-between text-slate-300">
+                    <span class="text-slate-400">${t('telegramLabel')}:</span>
+                    <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline">@sdoeung_sd</a>
+                  </div>
+                  <div class="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
+                    <span class="text-slate-400">${t('versionLabel')}:</span>
+                    <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.7</span>
+                  </div>
+                </div>
+
+                <!-- Solid Accent Fill Button with Auto Contrast Text -->
+                <div class="w-full max-w-xs mx-auto pt-1">
+                  <a href="https://t.me/sdoeung_sd" target="_blank" 
+                     class="w-full py-2.5 rounded-2xl accent-solid-btn font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                    <span>${t('contactTelegramBtn')}</span>
+                  </a>
+                </div>
+
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
       </div>
 
     </div>
