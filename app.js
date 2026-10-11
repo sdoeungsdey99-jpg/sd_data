@@ -446,6 +446,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateLockClock, 1000);
   updateLockClock();
 
+  // Regularly check reload time lag to auto-hide when within 5s and reveal when time differs
+  setInterval(checkReloadTimeLag, 1000);
+
   if (!appState.pinEnabled || sessionStorage.getItem('sd_unlocked') === 'true') {
     const lockScreen = document.getElementById('lock-screen');
     if (lockScreen) lockScreen.classList.add('hidden');
@@ -468,6 +471,7 @@ function onDataUpdated(service) {
 }
 
 function updateReloadBadge(service) {
+  const btnReload = document.getElementById('btn-reload');
   const timeText = document.getElementById('reload-time-text');
   const icon = document.getElementById('reload-icon');
   const notifBadge = document.getElementById('notif-badge');
@@ -475,11 +479,15 @@ function updateReloadBadge(service) {
   if (service.isLoading) {
     if (icon) icon.classList.add('animate-spin');
     if (timeText) timeText.textContent = '...';
+    // Always visible during loading
+    if (btnReload) btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
   } else {
     if (icon) icon.classList.remove('animate-spin');
     if (service.lastFetched && timeText) {
-      timeText.textContent = service.lastFetched.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
+      timeText.textContent = service.lastFetched.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
+    // Check time lag to auto-hide or reveal
+    checkReloadTimeLag();
   }
 
   if (notifBadge) {
@@ -490,6 +498,35 @@ function updateReloadBadge(service) {
     } else {
       notifBadge.classList.add('hidden');
     }
+  }
+}
+
+// ⏰ Smart Auto-Hide & Reveal Logic (3-5 Seconds Threshold)
+// - If within 5 seconds of reload: Hide automatically (Hidden)
+// - If older than 5 seconds (current time differs): Reveal automatically (Visible)
+function checkReloadTimeLag() {
+  const btnReload = document.getElementById('btn-reload');
+  if (!btnReload) return;
+
+  // Don't modify if currently in loading state
+  if (DataService.isLoading) {
+    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+    return;
+  }
+
+  const lastTime = DataService.lastFetched ? DataService.lastFetched.getTime() : 0;
+  if (!lastTime) {
+    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+    return;
+  }
+
+  const diffSec = (Date.now() - lastTime) / 1000;
+
+  // 3-5 seconds rule: If fresh (<= 5s), hide automatically; if > 5s, reveal automatically
+  if (diffSec <= 5) {
+    btnReload.classList.add('hidden', 'opacity-0', 'pointer-events-none');
+  } else {
+    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
   }
 }
 
@@ -1543,8 +1580,10 @@ function getDashboardViewHTML() {
             <i data-lucide="wallet" class="w-4 h-4"></i>
           </div>
           <div>
-            <p class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">${t('pureCashTitle')}</p>
-            <p class="text-[10px] text-amber-200/80">${t('pureCashSubtitle')}</p>
+            <p class="text-xs text-white uppercase tracking-wider font-extrabold flex items-center gap-1.5 drop-shadow-sm">
+              <span>${t('pureCashTitle')}</span>
+            </p>
+            <p class="text-[10px] text-slate-300 font-medium">${t('pureCashSubtitle')}</p>
           </div>
         </div>
         <button onclick="toggleHideBalance(event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
@@ -1552,17 +1591,25 @@ function getDashboardViewHTML() {
         </button>
       </div>
 
-      <!-- Currency Balances -->
+      <!-- Currency Balances (បំបែកពណ៌ដាច់រវាង $ និង ៛) -->
       <div class="grid grid-cols-2 gap-3 mb-2">
-        <div class="bg-black/25 rounded-2xl p-3 border border-white/5">
-          <p class="text-[10px] text-slate-400 mb-0.5">${t('usdOnly')}</p>
-          <p class="text-xl sm:text-2xl font-bold font-mono text-white tracking-tight">
+        <!-- USD Balance: ពណ៌បៃតងរស្មី Emerald Cash (#10B981) -->
+        <div class="bg-black/35 rounded-2xl p-3 border border-emerald-500/20 shadow-inner">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] text-slate-300 font-semibold">${t('usdOnly')}</span>
+            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400 font-mono font-bold">USD</span>
+          </div>
+          <p class="text-xl sm:text-2xl font-black font-mono text-emerald-400 tracking-tight drop-shadow-[0_0_12px_rgba(16,185,129,0.35)]">
             ${appState.hideBalance ? '•••••• $' : formatUSD(pureUsd)}
           </p>
         </div>
-        <div class="bg-black/25 rounded-2xl p-3 border border-white/5">
-          <p class="text-[10px] text-slate-400 mb-0.5">${t('khrOnly')}</p>
-          <p class="text-xl sm:text-2xl font-bold font-mono text-emerald-400 tracking-tight">
+        <!-- KHR Balance: ពណ៌លឿងទុំ/មាសរាជវង្ស Golden Amber (#F59E0B) -->
+        <div class="bg-black/35 rounded-2xl p-3 border border-amber-500/20 shadow-inner">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] text-slate-300 font-semibold">${t('khrOnly')}</span>
+            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-300 font-mono font-bold">KHR</span>
+          </div>
+          <p class="text-xl sm:text-2xl font-black font-mono text-amber-400 tracking-tight drop-shadow-[0_0_12px_rgba(245,158,11,0.35)]">
             ${appState.hideBalance ? '•••••• ៛' : formatKHR(pureKhr)}
           </p>
         </div>

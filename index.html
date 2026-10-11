@@ -690,17 +690,17 @@
         <!-- Action Buttons -->
         <div class="flex items-center gap-2">
           
-          <!-- Manual Reload with Time -->
+          <!-- Manual Reload with Time (Auto-Hides when up-to-date, Reveals after 3-5s lag) -->
           <button id="btn-reload" onclick="manualReload()" 
-                  class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs text-slate-300 transition">
-            <i id="reload-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-orange-400"></i>
-            <span id="reload-time-text" class="text-[11px] font-mono">--:--</span>
+                  class="h-9 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs text-slate-300 transition-all duration-300 flex items-center gap-1.5 shadow-sm">
+            <i id="reload-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+            <span id="reload-time-text" class="text-[11px] font-mono leading-none">--:--</span>
           </button>
 
           <!-- Notification Bell with Red Badge -->
           <div class="relative">
             <button onclick="toggleNotificationsModal()" 
-                    class="p-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 relative transition">
+                    class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 relative flex items-center justify-center transition shadow-sm">
               <i data-lucide="bell" class="w-4 h-4"></i>
               <span id="notif-badge" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center border-2 border-[#070D18] hidden">0</span>
             </button>
@@ -708,7 +708,7 @@
 
           <!-- Search Button -->
           <button onclick="openSearchBar()" 
-                  class="p-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white transition"
+                  class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition shadow-sm"
                   title="ស្វែងរកទិន្នន័យ">
             <i data-lucide="search" class="w-4 h-4 text-orange-400"></i>
           </button>
