@@ -446,8 +446,15 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateLockClock, 1000);
   updateLockClock();
 
-  // Regularly check reload time lag to auto-hide when within 5s and reveal when time differs
-  setInterval(checkReloadTimeLag, 1000);
+  // Listen to Online & Offline connection state changes
+  window.addEventListener('online', () => {
+    DataService.fetchData(false);
+    checkOnlineOfflineStatus();
+  });
+  window.addEventListener('offline', () => {
+    checkOnlineOfflineStatus();
+  });
+  setInterval(checkOnlineOfflineStatus, 2000);
 
   if (!appState.pinEnabled || sessionStorage.getItem('sd_unlocked') === 'true') {
     const lockScreen = document.getElementById('lock-screen');
@@ -479,15 +486,15 @@ function updateReloadBadge(service) {
   if (service.isLoading) {
     if (icon) icon.classList.add('animate-spin');
     if (timeText) timeText.textContent = '...';
-    // Always visible during loading
+    // Show only briefly during active loading
     if (btnReload) btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
   } else {
     if (icon) icon.classList.remove('animate-spin');
     if (service.lastFetched && timeText) {
-      timeText.textContent = service.lastFetched.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      timeText.textContent = service.lastFetched.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
     }
-    // Check time lag to auto-hide or reveal
-    checkReloadTimeLag();
+    // Option B: Auto-hide unless offline or error
+    checkOnlineOfflineStatus();
   }
 
   if (notifBadge) {
@@ -501,32 +508,27 @@ function updateReloadBadge(service) {
   }
 }
 
-// ⏰ Smart Auto-Hide & Reveal Logic (3-5 Seconds Threshold)
-// - If within 5 seconds of reload: Hide automatically (Hidden)
-// - If older than 5 seconds (current time differs): Reveal automatically (Visible)
-function checkReloadTimeLag() {
+// 🌐 Option B: Zero-Noise UI (Hidden Always, Show ONLY on No Internet / Connection Error)
+function checkOnlineOfflineStatus() {
   const btnReload = document.getElementById('btn-reload');
   if (!btnReload) return;
 
-  // Don't modify if currently in loading state
+  // If currently fetching, keep visible
   if (DataService.isLoading) {
     btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
     return;
   }
 
-  const lastTime = DataService.lastFetched ? DataService.lastFetched.getTime() : 0;
-  if (!lastTime) {
+  const isOffline = !navigator.onLine || Boolean(DataService.error);
+
+  if (isOffline) {
+    // Reveal ONLY when No Internet or Connection Failed
     btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-    return;
-  }
-
-  const diffSec = (Date.now() - lastTime) / 1000;
-
-  // 3-5 seconds rule: If fresh (<= 5s), hide automatically; if > 5s, reveal automatically
-  if (diffSec <= 5) {
-    btnReload.classList.add('hidden', 'opacity-0', 'pointer-events-none');
+    btnReload.classList.add('border-amber-500/40', 'bg-amber-500/10');
   } else {
-    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+    // Normal connection: Hide 100% to keep header clean and distraction-free!
+    btnReload.classList.add('hidden', 'opacity-0', 'pointer-events-none');
+    btnReload.classList.remove('border-amber-500/40', 'bg-amber-500/10');
   }
 }
 
