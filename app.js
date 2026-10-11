@@ -2244,16 +2244,6 @@ function getSettingsViewHTML() {
         <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">${t('settingsSubtitle')}</p>
       </div>
 
-      <!-- Swipe Gesture Hint Banner (អូសមកពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់) -->
-      <div onclick="switchView('dashboard')" 
-           class="mx-1 px-3 py-2 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-between text-xs text-orange-300 cursor-pointer active:scale-98 transition">
-        <div class="flex items-center gap-2">
-          <i data-lucide="move-right" class="w-4 h-4 text-orange-400 shrink-0"></i>
-          <span class="text-[11px] font-medium">${isKm ? 'អូសមកពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់' : 'Swipe left to right to return'}</span>
-        </div>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 font-bold">${isKm ? 'តេស្ត' : 'Test'}</span>
-      </div>
-
       <!-- ======================================================== -->
       <!-- UNIFIED INSET GROUPED LIST (ដកកាតចេញ រក្សា Icon បែប iPhone) -->
       <!-- ======================================================== -->
