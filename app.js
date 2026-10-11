@@ -41,23 +41,45 @@ const translations = {
     target100: 'គោលដៅ ១០០ ប្រអប់',
     homeDock: 'ទំព័រដើម',
     analyticsDock: 'វិភាគ',
-    orderDock: 'Order',
+    orderDock: 'កុម្ម៉ង់',
     learningDock: 'សិក្សា',
     settingsDock: 'កំណត់',
     settingsTitle: 'ការកំណត់',
-    protectApp: 'ការពារ SD Data របស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
+    settingsSubtitle: 'គ្រប់គ្រងរចនាប័ទ្ម ភាសា និងព័ត៌មានប្រព័ន្ធ',
+    appearanceSection: 'រចនាប័ទ្ម និងចំណូលចិត្ត',
+    appearanceDesc: 'កំណត់ពុម្ពអក្សរ ទំហំអក្សរ ផ្ទាំងរូបភាព និងភាសា',
+    accountSection: 'គណនី និងអំពីប្រព័ន្ធ',
+    accountDesc: 'គ្រប់គ្រងសុវត្ថិភាព និងព័ត៌មានម្ចាស់គណនី',
+    fontTitle: 'ពុម្ពអក្សរ',
+    fontDesc: 'ជ្រើសរើសទម្រង់អក្សរងាយស្រួលអាន',
+    textSizeTitle: 'ទំហំអក្សរ',
+    textSizeDesc: 'តូច • មធ្យម • ធំ',
+    wallpaperTitle: 'ផ្ទាំងរូបភាពអេក្រង់ចាក់សោរ',
+    wallpaperDesc: 'រូបភាព និងពណ៌ពន្លឺផ្ទៃខាងក្រោយ',
+    protectApp: 'ការពារទិន្នន័យរបស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
     protectDesc: 'ប្រើលេខសម្ងាត់ ដើម្បីសុវត្ថិភាព និងទំនុកចិត្តខ្ពស់',
-    enablePinTitle: 'បើក/បិទ ការចាក់សោរ (Passcode Lock)',
+    enablePinTitle: 'ការចាក់សោរដោយលេខសម្ងាត់',
     enablePinDesc: 'ទាមទារលេខសម្ងាត់ពេលបើកកម្មវិធី',
-    changePinBtn: 'ប្តូរលេខកូដសម្ងាត់ (Change PIN)',
-    theme: 'ទម្រង់បង្ហាញ (Theme)',
-    dark: 'ងងឹត (Dark)',
-    light: 'ភ្លឺ (Light)',
-    language: 'ភាសា (Language)',
-    lockScreenNow: 'ចាក់សោអេក្រង់ឥឡូវនេះ (Lock Screen)',
-    aboutMe: 'អំពីខ្ញុំ (About Me)',
+    changePinBtn: 'ផ្លាស់ប្តូរលេខកូដសម្ងាត់',
+    theme: 'ទម្រង់ពណ៌',
+    dark: 'ងងឹត',
+    light: 'ភ្លឺ',
+    language: 'ភាសា',
+    notificationsTitle: 'ការជូនដំណឹង',
+    notificationsDesc: 'សាររំលឹកការលក់ និងចំណាយប្រចាំថ្ងៃ',
+    lockScreenNow: 'ចាក់សោអេក្រង់ឥឡូវនេះ',
+    aboutMe: 'អំពីខ្ញុំ',
+    aboutDesc: 'ព័ត៌មានផ្ទាល់ខ្លួន និងតួនាទីគ្រប់គ្រង',
+    managerTitle: 'ប្រធានគ្រប់គ្រង',
+    salesRole: 'ផ្នែកលក់',
+    leaderRole: 'ដឹកនាំក្រុម',
+    developerRole: 'អ្នកអភិវឌ្ឍន៍',
+    versionLabel: 'ជំនាន់ប្រព័ន្ធ',
+    phoneLabel: 'លេខទូរសព្ទ',
+    telegramLabel: 'តេឡេក្រាម',
+    contactTelegramBtn: 'ទាក់ទងតាមតេឡេក្រាម',
     noData: 'គ្មានទិន្នន័យ',
-    diagramTitle: 'ដ្យាក្រាមការលក់ & ប្រាក់ចំណេញ (Diagram)',
+    diagramTitle: 'ដ្យាក្រាមការលក់ និងប្រាក់ចំណេញ',
     diagramSubtitle: 'តួលេខលក់ពិតប្រាកដនៅលើសរសរក្រាបនីមួយៗ'
   },
   en: {
@@ -77,9 +99,9 @@ const translations = {
     grossProfit: 'Gross Profit',
     expenses: 'Total Expenses',
     boxUnit: 'Boxes',
-    pendingCodTitle: '📦 Outstanding Customer Payment',
+    pendingCodTitle: 'Outstanding Customer Payment',
     pendingCodHint: 'Outstanding Customer Payment',
-    netCashTitle: '📈 Net Cash Position Summary',
+    netCashTitle: 'Net Cash Position Summary',
     actualCash: 'Total Actual Cash',
     pendingCod: 'Pending COD / Receivables',
     liquidAssets: 'Total Liquid Assets',
@@ -96,17 +118,39 @@ const translations = {
     learningDock: 'Study',
     settingsDock: 'Settings',
     settingsTitle: 'Settings',
-    protectApp: 'Protect your SD Data with 4-digit PIN',
+    settingsSubtitle: 'Manage appearance, language, and system preferences',
+    appearanceSection: 'Appearance & Preferences',
+    appearanceDesc: 'Customize typography, text size, wallpapers, and language',
+    accountSection: 'Account & System',
+    accountDesc: 'Manage passcode security and profile information',
+    fontTitle: 'Typography',
+    fontDesc: 'Choose preferred readable font family',
+    textSizeTitle: 'Text Size',
+    textSizeDesc: 'Small • Medium • Large',
+    wallpaperTitle: 'Lock Screen Wallpaper',
+    wallpaperDesc: 'Background visuals and ambient glows',
+    protectApp: 'Protect your data with a 4-digit passcode',
     protectDesc: 'Use passcode for higher security and peace of mind',
-    enablePinTitle: 'Passcode Lock (On/Off)',
+    enablePinTitle: 'Passcode Lock',
     enablePinDesc: 'Require passcode when opening app',
-    changePinBtn: 'Change Passcode (PIN)',
-    theme: 'Theme Mode',
-    dark: 'Dark Mode',
-    light: 'Light Mode',
+    changePinBtn: 'Change Passcode',
+    theme: 'Color Mode',
+    dark: 'Dark',
+    light: 'Light',
     language: 'Language',
+    notificationsTitle: 'Notifications',
+    notificationsDesc: 'Sales alerts and daily expense reminders',
     lockScreenNow: 'Lock Screen Now',
     aboutMe: 'About Me',
+    aboutDesc: 'Personal profile and management roles',
+    managerTitle: 'Manager',
+    salesRole: 'Sale',
+    leaderRole: 'Leader',
+    developerRole: 'Developer',
+    versionLabel: 'System Version',
+    phoneLabel: 'Phone Number',
+    telegramLabel: 'Telegram',
+    contactTelegramBtn: 'Contact via Telegram',
     noData: 'No Data Available',
     diagramTitle: 'Sales & Profit Diagram',
     diagramSubtitle: 'Live values labeled on top of each bar'
@@ -128,8 +172,41 @@ const appState = {
   lockWallpaper: localStorage.getItem('sd_lock_wallpaper') || 'wp-deep-mesh',
   analyticsMonthKey: 'all', // 'all' or 'YYYY-MM'
   hasReadNotifications: false,
-  studyWordCount: 5
+  studyWordCount: 5,
+  fontFamily: localStorage.getItem('sd_font') || 'font-kantumruy',
+  textSize: localStorage.getItem('sd_text_size') || 'md',
+  notificationsEnabled: localStorage.getItem('sd_notif_enabled') !== 'false'
 };
+
+function applyAppFont(fontClass) {
+  document.body.classList.remove('font-kantumruy', 'font-koh-santepheap', 'font-jakarta');
+  document.body.classList.add(fontClass || 'font-kantumruy');
+}
+
+function setAppFont(fontClass) {
+  appState.fontFamily = fontClass;
+  localStorage.setItem('sd_font', fontClass);
+  applyAppFont(fontClass);
+  renderCurrentView();
+}
+
+function applyAppTextSize(size) {
+  document.documentElement.classList.remove('text-size-sm', 'text-size-md', 'text-size-lg');
+  document.documentElement.classList.add(`text-size-${size || 'md'}`);
+}
+
+function setAppTextSize(size) {
+  appState.textSize = size;
+  localStorage.setItem('sd_text_size', size);
+  applyAppTextSize(size);
+  renderCurrentView();
+}
+
+function toggleNotificationsEnabled() {
+  appState.notificationsEnabled = !appState.notificationsEnabled;
+  localStorage.setItem('sd_notif_enabled', appState.notificationsEnabled ? 'true' : 'false');
+  renderCurrentView();
+}
 
 function getLocalIsoDate(d = new Date()) {
   const year = d.getFullYear();
@@ -321,6 +398,8 @@ function togglePinEnabled() {
 document.addEventListener('DOMContentLoaded', () => {
   applyTheme(appState.theme);
   applyLockWallpaper(appState.lockWallpaper);
+  applyAppFont(appState.fontFamily);
+  applyAppTextSize(appState.textSize);
 
   setInterval(updateLockClock, 1000);
   updateLockClock();
@@ -332,6 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupPullToRefresh();
   setupSmartDockScroll();
+  setupSwipeToBack();
 
   DataService.subscribe(onDataUpdated);
   DataService.fetchData();
@@ -413,6 +493,115 @@ function setupPullToRefresh() {
       indicator.style.height = '0px';
     }
     isPulling = false;
+  });
+}
+
+// ==========================================
+// Native Swipe Left-to-Right to Return Back
+// (អូសមកពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់)
+// ==========================================
+function handleBackNavigation() {
+  // 1. Close any open modal if visible
+  const openModals = [
+    'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
+  ];
+  for (const id of openModals) {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains('hidden')) {
+      el.classList.add('hidden');
+      if (id === 'sales-modal') {
+        const det = document.getElementById('sales-detail-view');
+        if (det) det.classList.add('hidden');
+      }
+      if (navigator.vibrate) navigator.vibrate(15);
+      return true;
+    }
+  }
+
+  // 2. If in non-dashboard view (Settings, Analytics, Learning), return to dashboard
+  if (appState.currentView !== 'dashboard') {
+    switchView('dashboard');
+    if (navigator.vibrate) navigator.vibrate(20);
+    return true;
+  }
+  return false;
+}
+
+function setupSwipeToBack() {
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isPotentialSwipe = false;
+
+  // Touch support for Mobile / iPad
+  document.addEventListener('touchstart', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+
+    // Do not intercept form inputs or sliders
+    if (e.target && e.target.closest && e.target.closest('input, textarea, select')) {
+      isPotentialSwipe = false;
+      return;
+    }
+
+    // Edge swipe detection: started from left side (within 90px of screen edge)
+    if (touchStartX <= 90) {
+      isPotentialSwipe = true;
+    } else {
+      isPotentialSwipe = false;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!isPotentialSwipe || !e.touches || e.touches.length !== 1) return;
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - touchStartX;
+    const deltaY = currentY - touchStartY;
+
+    // If vertical scrolling dominates, cancel swipe
+    if (Math.abs(deltaY) > 35 && Math.abs(deltaY) > deltaX) {
+      isPotentialSwipe = false;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    if (!isPotentialSwipe || !e.changedTouches || e.changedTouches.length !== 1) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+
+    // Must be left-to-right swipe (at least 65px horizontal, deltaX dominant)
+    if (deltaX >= 65 && deltaX > Math.abs(deltaY) * 1.25) {
+      handleBackNavigation();
+    }
+    isPotentialSwipe = false;
+  }, { passive: true });
+
+  // Mouse drag support for Desktop Preview testing
+  let mouseStartX = 0;
+  let mouseStartY = 0;
+  let isMouseDown = false;
+
+  document.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    if (e.clientX <= 80 && !e.target.closest('input, textarea, select, button, a')) {
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      isMouseDown = true;
+    }
+  });
+
+  document.addEventListener('mouseup', (e) => {
+    if (!isMouseDown) return;
+    const deltaX = e.clientX - mouseStartX;
+    const deltaY = e.clientY - mouseStartY;
+    if (deltaX >= 65 && deltaX > Math.abs(deltaY) * 1.25) {
+      handleBackNavigation();
+    }
+    isMouseDown = false;
   });
 }
 
@@ -1966,163 +2155,331 @@ function loadMoreStudyWords() {
 }
 
 // ==========================================
-// 7. View: Settings (Clean ABA Style)
+// 7. View: Settings (Structured Android/iOS Standard)
 // ==========================================
 function getSettingsViewHTML() {
   const isDark = appState.theme === 'dark';
   const isKm = appState.language === 'km';
 
   return `
-    <div class="space-y-4">
+    <div class="space-y-4 pb-8">
       
-      <!-- Profile Header (Slightly larger with centered Blue Tick as requested) -->
-      <div class="flex flex-col items-center text-center py-4">
-        <div class="relative mb-3">
-          <img src="profile.png" alt="SDEY SDOEUNG" 
-               class="w-24 h-24 rounded-full object-cover border-4 border-orange-500 shadow-2xl">
-          <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
+      <!-- Top Settings Header (Title & Summary Description) -->
+      <div class="pt-2 pb-1 px-1 flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+            <span>⚙️</span>
+            <span>${t('settingsTitle')}</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">${t('settingsSubtitle')}</p>
         </div>
-        <div class="flex items-center justify-center gap-1.5 mt-1">
-          <h2 class="text-xl font-bold text-white tracking-wide">ស្តី ស្តើង</h2>
-          <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
-        </div>
-        <p class="text-xs text-orange-400 font-semibold tracking-wider uppercase mt-0.5">SDEY SDOEUNG</p>
+        <button onclick="switchView('dashboard')" 
+                title="${isKm ? 'ត្រឡប់ទៅទំព័រដើម' : 'Back to Home'}"
+                class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-sm shrink-0">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
+          <span>${isKm ? 'ត្រឡប់' : 'Back'}</span>
+        </button>
       </div>
 
-      <!-- Lock Screen Wallpaper Selector -->
-      <div class="bg-[#0F1B2E] rounded-2xl p-4 border border-white/10 flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <i data-lucide="image" class="w-4 h-4 text-orange-400"></i>
-            <h4 class="text-xs font-bold text-white">ផ្ទាំងរូបភាពអេក្រង់ចាក់សោរ (Wallpaper)</h4>
+      <!-- Swipe Gesture Hint Pill -->
+      <div class="mx-1 px-3 py-1.5 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center gap-2 text-[11px] text-orange-300">
+        <i data-lucide="move-right" class="w-3.5 h-3.5 shrink-0 text-orange-400"></i>
+        <span>${isKm ? 'អូសមកពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់' : 'Swipe left to right to return'}</span>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 1: APPEARANCE & PREFERENCES                      -->
+      <!-- ======================================================== -->
+      <div class="space-y-2">
+        <div class="px-1 flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>🎨</span>
+              <span>${t('appearanceSection')}</span>
+            </h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">${t('appearanceDesc')}</p>
           </div>
-          <span class="text-[10px] text-slate-400 font-mono">4 ម៉ូដ</span>
         </div>
-        
-        <div class="grid grid-cols-2 gap-2.5">
-          <!-- 1. Deep Mesh -->
-          <button onclick="setLockWallpaper('wp-deep-mesh')" 
-                  class="p-2.5 rounded-xl border flex items-center gap-2.5 transition active:scale-95 ${appState.lockWallpaper === 'wp-deep-mesh' ? 'bg-orange-500/20 border-orange-500 text-white' : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'}">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-900 via-blue-950 to-slate-900 border border-white/20 shrink-0"></div>
-            <div class="text-left">
-              <p class="text-xs font-semibold leading-tight">Deep Mesh</p>
-              <span class="text-[9px] text-slate-400">ស្តង់ដារ iOS</span>
-            </div>
-          </button>
 
-          <!-- 2. Midnight Purple -->
-          <button onclick="setLockWallpaper('wp-midnight-purple')" 
-                  class="p-2.5 rounded-xl border flex items-center gap-2.5 transition active:scale-95 ${appState.lockWallpaper === 'wp-midnight-purple' ? 'bg-orange-500/20 border-orange-500 text-white' : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'}">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-950 via-slate-950 to-indigo-950 border border-white/20 shrink-0"></div>
-            <div class="text-left">
-              <p class="text-xs font-semibold leading-tight">Midnight</p>
-              <span class="text-[9px] text-slate-400">ស្វាយរាត្រី</span>
+        <div class="bg-[#0F1B2E] rounded-3xl border border-white/10 p-3.5 space-y-3.5 shadow-lg">
+          
+          <!-- 1.1 Typography (Font Selection) -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i data-lucide="type" class="w-3.5 h-3.5 text-orange-400"></i>
+                <span>${t('fontTitle')}</span>
+              </span>
+              <span class="text-[10px] text-slate-400">${t('fontDesc')}</span>
             </div>
-          </button>
+            <div class="grid grid-cols-3 gap-1.5 bg-black/35 p-1 rounded-2xl border border-white/5">
+              <button onclick="setAppFont('font-kantumruy')" 
+                      class="py-2 px-1.5 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-kantumruy' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white'}">
+                <span>${isKm ? 'កន្ទុំរុយ' : 'Kantumruy'}</span>
+              </button>
+              <button onclick="setAppFont('font-koh-santepheap')" 
+                      class="py-2 px-1.5 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white'}">
+                <span>${isKm ? 'កោះសន្តិភាព' : 'Santepheap'}</span>
+              </button>
+              <button onclick="setAppFont('font-jakarta')" 
+                      class="py-2 px-1.5 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-jakarta' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white'}">
+                <span>${isKm ? 'ចាការតា' : 'Jakarta'}</span>
+              </button>
+            </div>
+          </div>
 
-          <!-- 3. Pure OLED -->
-          <button onclick="setLockWallpaper('wp-pure-oled')" 
-                  class="p-2.5 rounded-xl border flex items-center gap-2.5 transition active:scale-95 ${appState.lockWallpaper === 'wp-pure-oled' ? 'bg-orange-500/20 border-orange-500 text-white' : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'}">
-            <div class="w-8 h-8 rounded-lg bg-black border border-white/30 shrink-0"></div>
-            <div class="text-left">
-              <p class="text-xs font-semibold leading-tight">Pure OLED</p>
-              <span class="text-[9px] text-slate-400">ខ្មៅសុទ្ធសន្សំថ្ម</span>
-            </div>
-          </button>
-
-          <!-- 4. Emerald Aurora -->
-          <button onclick="setLockWallpaper('wp-emerald-aurora')" 
-                  class="p-2.5 rounded-xl border flex items-center gap-2.5 transition active:scale-95 ${appState.lockWallpaper === 'wp-emerald-aurora' ? 'bg-orange-500/20 border-orange-500 text-white' : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10'}">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-950 via-teal-950 to-black border border-white/20 shrink-0"></div>
-            <div class="text-left">
-              <p class="text-xs font-semibold leading-tight">Aurora</p>
-              <span class="text-[9px] text-slate-400">បៃតងរស្មី</span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      <!-- Security Card (With Passcode On/Off Toggle & Change PIN) -->
-      <div class="bg-gradient-to-r from-[#102A43] to-[#0B1D30] rounded-2xl p-4 border border-blue-500/20 shadow-lg flex flex-col gap-3">
-        <!-- Toggle Switch Row -->
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
-              <i data-lucide="shield-check" class="w-5 h-5"></i>
-            </div>
+          <!-- 1.2 Text Size (Small / Medium / Large) -->
+          <div class="pt-2.5 border-t border-white/5 flex items-center justify-between">
             <div>
-              <h4 class="font-bold text-xs text-white leading-tight">${t('enablePinTitle')}</h4>
-              <p class="text-[10px] text-slate-300 mt-0.5">${t('enablePinDesc')}</p>
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i data-lucide="scaling" class="w-3.5 h-3.5 text-orange-400"></i>
+                <span>${t('textSizeTitle')}</span>
+              </span>
+              <p class="text-[10px] text-slate-400 mt-0.5">${t('textSizeDesc')}</p>
+            </div>
+            <div class="flex items-center gap-1 bg-black/35 p-1 rounded-2xl border border-white/5">
+              <button onclick="setAppTextSize('sm')" 
+                      class="w-8 h-8 rounded-xl font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'sm' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white text-xs'}">
+                <span>A-</span>
+              </button>
+              <button onclick="setAppTextSize('md')" 
+                      class="w-8 h-8 rounded-xl font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'md' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white text-sm'}">
+                <span>A</span>
+              </button>
+              <button onclick="setAppTextSize('lg')" 
+                      class="w-8 h-8 rounded-xl font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'lg' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-400 hover:text-white text-base'}">
+                <span>A+</span>
+              </button>
             </div>
           </div>
-          <!-- iOS Toggle Switch -->
-          <button onclick="togglePinEnabled()" 
-                  class="w-12 h-7 rounded-full transition-colors duration-200 ease-in-out p-1 relative flex items-center shrink-0 ${appState.pinEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
-                  role="switch" aria-checked="${appState.pinEnabled}">
-            <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
-          </button>
-        </div>
 
-        ${appState.pinEnabled ? `
-          <div class="pt-2 border-t border-white/10 flex flex-col gap-2">
-            <p class="text-[11px] text-slate-300">${t('protectDesc')}</p>
-            <button onclick="openChangePinModal()" 
-                    class="w-full py-2.5 rounded-xl bg-[#007AFF] hover:bg-blue-600 text-white font-semibold text-xs transition active:scale-98">
-              ${t('changePinBtn')}
+          <!-- 1.3 Lock Screen Wallpaper Carousel & Mockup Preview -->
+          <div class="pt-2.5 border-t border-white/5 space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="image" class="w-3.5 h-3.5 text-orange-400"></i>
+                  <span>${t('wallpaperTitle')}</span>
+                </span>
+                <p class="text-[10px] text-slate-400 mt-0.5">${t('wallpaperDesc')}</p>
+              </div>
+              <button onclick="lockApp()" 
+                      class="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold border border-white/10 flex items-center gap-1 active:scale-95 transition">
+                <i data-lucide="eye" class="w-3 h-3 text-orange-400"></i>
+                <span>${t('lockScreenNow')}</span>
+              </button>
+            </div>
+
+            <!-- Horizontal Carousel Wallpapers (Android / iOS Style) -->
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+              <!-- Wallpaper 1: Deep Mesh -->
+              <button onclick="setLockWallpaper('wp-deep-mesh')" 
+                      class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-deep-mesh' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                <div class="w-full h-16 rounded-xl bg-gradient-to-br from-indigo-900 via-blue-950 to-slate-900 border border-white/20 mb-1.5 relative overflow-hidden flex items-center justify-center">
+                  <div class="w-6 h-6 rounded-full bg-blue-500/40 blur-md"></div>
+                  <span class="text-[9px] font-mono text-white/90 font-bold z-10">9:41</span>
+                </div>
+                <p class="text-[11px] font-bold text-white truncate">${isKm ? 'សំណាញ់ខៀវ' : 'Deep Mesh'}</p>
+                <span class="text-[9px] text-slate-400">${isKm ? 'លំនាំដើម' : 'Default'}</span>
+              </button>
+
+              <!-- Wallpaper 2: Midnight Purple -->
+              <button onclick="setLockWallpaper('wp-midnight-purple')" 
+                      class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-midnight-purple' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                <div class="w-full h-16 rounded-xl bg-gradient-to-br from-purple-950 via-slate-950 to-indigo-950 border border-white/20 mb-1.5 relative overflow-hidden flex items-center justify-center">
+                  <div class="w-6 h-6 rounded-full bg-purple-500/40 blur-md"></div>
+                  <span class="text-[9px] font-mono text-white/90 font-bold z-10">9:41</span>
+                </div>
+                <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ស្វាយរាត្រី' : 'Midnight'}</p>
+                <span class="text-[9px] text-slate-400">${isKm ? 'ស្វាយចាស់' : 'Purple'}</span>
+              </button>
+
+              <!-- Wallpaper 3: Pure OLED -->
+              <button onclick="setLockWallpaper('wp-pure-oled')" 
+                      class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-pure-oled' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                <div class="w-full h-16 rounded-xl bg-black border border-white/30 mb-1.5 relative overflow-hidden flex items-center justify-center">
+                  <span class="text-[9px] font-mono text-white/90 font-bold z-10">9:41</span>
+                </div>
+                <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ខ្មៅសុទ្ធ' : 'Pure OLED'}</p>
+                <span class="text-[9px] text-slate-400">${isKm ? 'សន្សំថ្ម' : 'True Black'}</span>
+              </button>
+
+              <!-- Wallpaper 4: Emerald Aurora -->
+              <button onclick="setLockWallpaper('wp-emerald-aurora')" 
+                      class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-emerald-aurora' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
+                <div class="w-full h-16 rounded-xl bg-gradient-to-br from-emerald-950 via-teal-950 to-black border border-white/20 mb-1.5 relative overflow-hidden flex items-center justify-center">
+                  <div class="w-6 h-6 rounded-full bg-emerald-500/40 blur-md"></div>
+                  <span class="text-[9px] font-mono text-white/90 font-bold z-10">9:41</span>
+                </div>
+                <p class="text-[11px] font-bold text-white truncate">${isKm ? 'បៃតងរស្មី' : 'Aurora'}</p>
+                <span class="text-[9px] text-slate-400">${isKm ? 'ធម្មជាតិ' : 'Emerald'}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 1.4 Language & Color Mode Row -->
+          <div class="pt-2.5 border-t border-white/5 grid grid-cols-2 gap-2.5">
+            <!-- Language -->
+            <div class="bg-black/35 p-2.5 rounded-2xl border border-white/5 flex flex-col justify-between">
+              <span class="text-[11px] font-bold text-white flex items-center gap-1.5 mb-1.5">
+                <i data-lucide="globe" class="w-3.5 h-3.5 text-slate-400"></i>
+                <span>${t('language')}</span>
+              </span>
+              <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5">
+                <button onclick="setLanguage('km')" class="py-1 rounded-lg text-[10px] font-bold transition ${isKm ? 'bg-orange-500 text-white' : 'text-slate-400'}">ខ្មែរ</button>
+                <button onclick="setLanguage('en')" class="py-1 rounded-lg text-[10px] font-bold transition ${!isKm ? 'bg-orange-500 text-white' : 'text-slate-400'}">EN</button>
+              </div>
+            </div>
+
+            <!-- Theme Mode -->
+            <div class="bg-black/35 p-2.5 rounded-2xl border border-white/5 flex flex-col justify-between">
+              <span class="text-[11px] font-bold text-white flex items-center gap-1.5 mb-1.5">
+                <i data-lucide="${isDark ? 'moon' : 'sun'}" class="w-3.5 h-3.5 text-orange-400"></i>
+                <span>${t('theme')}</span>
+              </span>
+              <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5">
+                <button onclick="toggleTheme('dark')" class="py-1 rounded-lg text-[10px] font-bold transition ${isDark ? 'bg-orange-500 text-white' : 'text-slate-400'}">${t('dark')}</button>
+                <button onclick="toggleTheme('light')" class="py-1 rounded-lg text-[10px] font-bold transition ${!isDark ? 'bg-orange-500 text-white' : 'text-slate-400'}">${t('light')}</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1.5 Notifications Toggle -->
+          <div class="pt-2.5 border-t border-white/5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="p-2 rounded-xl bg-orange-500/20 text-orange-400">
+                <i data-lucide="bell" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-white leading-tight">${t('notificationsTitle')}</span>
+                <p class="text-[10px] text-slate-400 mt-0.5">${t('notificationsDesc')}</p>
+              </div>
+            </div>
+            <button onclick="toggleNotificationsEnabled()" 
+                    class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.notificationsEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
+                    role="switch" aria-checked="${appState.notificationsEnabled}">
+              <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${appState.notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
             </button>
           </div>
-        ` : `
-          <div class="pt-2 border-t border-white/10 text-center">
-            <span class="text-[11px] text-amber-300">⚠️ ការចាក់សោរត្រូវបានបិទ (បើកកម្មវិធីឡើងដោយមិនបាច់វាយលេខកូដ)</span>
-          </div>
-        `}
+
+        </div>
       </div>
 
-      <!-- Inset List Group (Duplicate Telegram removed) -->
-      <div class="bg-[#0F1B2E] rounded-2xl border border-white/10 divide-y divide-white/5 overflow-hidden">
-        
-        <!-- Theme Toggle -->
-        <div class="p-3.5 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <i data-lucide="${isDark ? 'moon' : 'sun'}" class="w-4 h-4 text-orange-400"></i>
-            <span class="text-xs text-white font-medium">${t('theme')}</span>
-          </div>
-          <div class="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
-            <button onclick="toggleTheme('dark')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${isDark ? 'bg-orange-500 text-white' : 'text-slate-400'}">${t('dark')}</button>
-            <button onclick="toggleTheme('light')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${!isDark ? 'bg-orange-500 text-white' : 'text-slate-400'}">${t('light')}</button>
-          </div>
-        </div>
-
-        <!-- Language Toggle -->
-        <div class="p-3.5 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <i data-lucide="globe" class="w-4 h-4 text-slate-400"></i>
-            <span class="text-xs text-white font-medium">${t('language')}</span>
-          </div>
-          <div class="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
-            <button onclick="setLanguage('km')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${isKm ? 'bg-orange-500 text-white' : 'text-slate-400'}">ភាសាខ្មែរ</button>
-            <button onclick="setLanguage('en')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${!isKm ? 'bg-orange-500 text-white' : 'text-slate-400'}">English</button>
+      <!-- ======================================================== -->
+      <!-- SECTION 2: ACCOUNT & SYSTEM (Security + Profile inside About) -->
+      <!-- ======================================================== -->
+      <div class="space-y-2 pt-2">
+        <div class="px-1 flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>👤</span>
+              <span>${t('accountSection')}</span>
+            </h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">${t('accountDesc')}</p>
           </div>
         </div>
 
-        <!-- Lock Screen Now -->
-        <div onclick="lockApp()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition">
-          <div class="flex items-center gap-3">
-            <i data-lucide="lock" class="w-4 h-4 text-slate-400"></i>
-            <span class="text-xs text-white font-medium">${t('lockScreenNow')}</span>
+        <div class="bg-[#0F1B2E] rounded-3xl border border-white/10 p-3.5 space-y-3.5 shadow-lg">
+          
+          <!-- 2.1 Passcode Security Toggle -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-white leading-tight">${t('enablePinTitle')}</span>
+                <p class="text-[10px] text-slate-400 mt-0.5">${t('enablePinDesc')}</p>
+              </div>
+            </div>
+            <button onclick="togglePinEnabled()" 
+                    class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.pinEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
+                    role="switch" aria-checked="${appState.pinEnabled}">
+              <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+            </button>
           </div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
-        </div>
 
-        <!-- អំពីខ្ញុំ (At the very bottom as requested) -->
-        <div onclick="openAboutModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition bg-orange-500/10">
-          <div class="flex items-center gap-3">
-            <i data-lucide="user-check" class="w-4 h-4 text-orange-400"></i>
-            <span class="text-xs text-orange-400 font-bold">${t('aboutMe')}</span>
+          ${appState.pinEnabled ? `
+            <div class="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+              <p class="text-[10px] text-slate-400 leading-tight">${t('protectDesc')}</p>
+              <button onclick="openChangePinModal()" 
+                      class="px-3 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs transition active:scale-95 shrink-0 shadow-md">
+                ${t('changePinBtn')}
+              </button>
+            </div>
+          ` : ''}
+
+          <!-- 2.2 About / Profile Card (Full Details: Manager, Sales, Leader, Developer) -->
+          <div class="pt-2.5 border-t border-white/5">
+            <div class="rounded-2xl bg-black/35 border border-white/5 p-3.5 space-y-3">
+              
+              <!-- Profile Header Row inside About -->
+              <div class="flex items-center gap-3">
+                <div class="relative shrink-0">
+                  <img src="profile.png" alt="SDEY SDOEUNG" 
+                       class="w-14 h-14 rounded-full object-cover border-2 border-orange-500 shadow-md">
+                  <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5">
+                    <h4 class="font-bold text-sm text-white truncate">ស្តី ស្តើង</h4>
+                    <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
+                  </div>
+                  <p class="text-[11px] text-orange-400 font-semibold tracking-wider uppercase mt-0.5">SDEY SDOEUNG</p>
+                  <div class="mt-1 flex items-center gap-1.5">
+                    <span class="px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/30 text-amber-300 font-extrabold text-[10px]">
+                      🎖️ ${t('managerTitle')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Roles & Responsibilities Badges -->
+              <div class="pt-2 border-t border-white/5">
+                <span class="text-[10px] text-slate-400 block mb-1.5 font-bold uppercase tracking-wider">${isKm ? 'តួនាទីទទួលខុសត្រូវ' : 'Core Responsibilities'}:</span>
+                <div class="grid grid-cols-3 gap-1.5 text-center">
+                  <div class="p-1.5 rounded-xl bg-white/5 border border-white/5">
+                    <span class="text-xs">📈</span>
+                    <p class="text-[10px] font-bold text-white mt-0.5">${t('salesRole')}</p>
+                  </div>
+                  <div class="p-1.5 rounded-xl bg-white/5 border border-white/5">
+                    <span class="text-xs">👑</span>
+                    <p class="text-[10px] font-bold text-white mt-0.5">${t('leaderRole')}</p>
+                  </div>
+                  <div class="p-1.5 rounded-xl bg-white/5 border border-white/5">
+                    <span class="text-xs">💻</span>
+                    <p class="text-[10px] font-bold text-white mt-0.5">${t('developerRole')}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contact & System Version -->
+              <div class="pt-2 border-t border-white/5 space-y-1.5 text-[11px]">
+                <div class="flex items-center justify-between text-slate-300">
+                  <span class="text-slate-400">${t('phoneLabel')}:</span>
+                  <span class="font-mono font-bold text-white">087 513 666 / 090 513 666</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-300">
+                  <span class="text-slate-400">${t('telegramLabel')}:</span>
+                  <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline">@sdoeung_sd</a>
+                </div>
+                <div class="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
+                  <span class="text-slate-400">${t('versionLabel')}:</span>
+                  <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.5</span>
+                </div>
+              </div>
+
+              <!-- Telegram Contact Button -->
+              <a href="https://t.me/sdoeung_sd" target="_blank" 
+                 class="w-full py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                <span>${t('contactTelegramBtn')}</span>
+              </a>
+
+            </div>
           </div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-orange-400"></i>
-        </div>
 
+        </div>
       </div>
 
     </div>

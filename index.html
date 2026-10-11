@@ -14,7 +14,7 @@
   <!-- Google Fonts: Kantumruy Pro & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Koh+Santepheap:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -239,10 +239,26 @@
       padding-top: calc(1.5rem + env(safe-area-inset-top, 0px)) !important;
     }
 
-    /* Long Press Card Scale & Slim Capsule */
-    .card-pressing {
-      transform: scale(0.98) !important;
-      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Font Family Overrides */
+    body.font-kantumruy {
+      font-family: 'Kantumruy Pro', 'Plus Jakarta Sans', sans-serif !important;
+    }
+    body.font-koh-santepheap {
+      font-family: 'Koh Santepheap', 'Plus Jakarta Sans', sans-serif !important;
+    }
+    body.font-jakarta {
+      font-family: 'Plus Jakarta Sans', 'Kantumruy Pro', sans-serif !important;
+    }
+
+    /* Text Scale Adjustments */
+    html.text-size-sm {
+      font-size: 14.5px;
+    }
+    html.text-size-md {
+      font-size: 16px;
+    }
+    html.text-size-lg {
+      font-size: 17.5px;
     }
     .ios-slim-capsule {
       animation: slimCapsuleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1107,7 +1123,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=3.4"></script>
-  <script src="app.js?v=3.4"></script>
+  <script src="dataService.js?v=3.5"></script>
+  <script src="app.js?v=3.5"></script>
 </body>
 </html>
