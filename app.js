@@ -2595,103 +2595,21 @@ function getSettingsViewHTML() {
           </div>
         </div>
 
-        <!-- 9. អំពីខ្ញុំ (About Me - ពេលចុចទើបបង្ហាញកាតពេញលេញ) -->
-        <div>
-          <div onclick="toggleSettingsItem('about')" 
-               class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0">
-                <i data-lucide="user" class="w-4 h-4 text-orange-400"></i>
-              </div>
-              <div class="min-w-0">
-                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">ស្តី ស្តើង • SDEY SDOEUNG</p>
-              </div>
+        <!-- 9. អំពីខ្ញុំ (About Me - ពេលចុចបង្ហាញផ្ទាំងកាតចំកណ្តាល Blur ផ្ទៃខាងក្រោយ & ប៉ះកន្លែងទំនេរបិទ) -->
+        <div onclick="openAboutModal()" 
+             class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="user" class="w-4 h-4 text-orange-400"></i>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <i data-lucide="${active === 'about' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate">ស្តី ស្តើង • SDEY SDOEUNG</p>
             </div>
           </div>
-
-          <!-- FULL CENTERED PROFILE CARD (បង្ហាញពេលចុចលើជួរនេះ) -->
-          ${active === 'about' ? `
-            <div class="p-4 bg-black/40 border-t border-white/5 animate-fade-in">
-              <div class="rounded-3xl bg-[#09111D] border border-white/10 p-5 shadow-2xl flex flex-col items-center text-center space-y-3.5 relative overflow-hidden">
-                
-                <!-- Ambient Top Glow -->
-                <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full bg-orange-500/15 blur-3xl pointer-events-none"></div>
-
-                <!-- Centered Profile Photo with Green Status Dot -->
-                <div class="relative">
-                  <img src="profile.png" alt="SDEY SDOEUNG" 
-                       class="w-24 h-24 rounded-full object-cover border-4 border-[var(--accent-solid)] shadow-2xl">
-                  <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#070D18] shadow-md"></span>
-                </div>
-
-                <!-- Centered Name with Verified Blue Tick -->
-                <div>
-                  <div class="flex items-center justify-center gap-1.5">
-                    <h2 class="text-xl font-black text-white tracking-wide">ស្តី ស្តើង</h2>
-                    <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
-                  </div>
-                  <p class="text-xs text-orange-400 font-semibold tracking-widest uppercase mt-0.5">SDEY SDOEUNG</p>
-                  
-                  <!-- Manager Badge Centered -->
-                  <div class="mt-2 flex justify-center">
-                    <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/35 text-amber-300 font-extrabold text-xs shadow-sm flex items-center gap-1">
-                      <span>🎖️</span>
-                      <span>${t('managerTitle')}</span>
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Roles Badges Centered in 3 Columns -->
-                <div class="w-full pt-3 border-t border-white/10">
-                  <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">${isKm ? 'តួនាទីទទួលខុសត្រូវ' : 'Core Responsibilities'}</span>
-                  <div class="grid grid-cols-3 gap-1.5 w-full max-w-xs mx-auto">
-                    <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
-                      <span class="text-xs">📈</span>
-                      <p class="text-[10px] font-bold text-white mt-0.5">${t('salesRole')}</p>
-                    </div>
-                    <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
-                      <span class="text-xs">👑</span>
-                      <p class="text-[10px] font-bold text-white mt-0.5">${t('leaderRole')}</p>
-                    </div>
-                    <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
-                      <span class="text-xs">💻</span>
-                      <p class="text-[10px] font-bold text-white mt-0.5">${t('developerRole')}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Centered Contacts List -->
-                <div class="w-full pt-2.5 border-t border-white/10 space-y-1.5 text-xs max-w-xs mx-auto">
-                  <div class="flex items-center justify-between text-slate-300">
-                    <span class="text-slate-400">${t('phoneLabel')}:</span>
-                    <span class="font-mono font-bold text-white">087 513 666 / 090 513 666</span>
-                  </div>
-                  <div class="flex items-center justify-between text-slate-300">
-                    <span class="text-slate-400">${t('telegramLabel')}:</span>
-                    <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline">@sdoeung_sd</a>
-                  </div>
-                  <div class="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
-                    <span class="text-slate-400">${t('versionLabel')}:</span>
-                    <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.7</span>
-                  </div>
-                </div>
-
-                <!-- Solid Accent Fill Button with Auto Contrast Text -->
-                <div class="w-full max-w-xs mx-auto pt-1">
-                  <a href="https://t.me/sdoeung_sd" target="_blank" 
-                     class="w-full py-2.5 rounded-2xl accent-solid-btn font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
-                    <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                    <span>${t('contactTelegramBtn')}</span>
-                  </a>
-                </div>
-
-              </div>
-            </div>
-          ` : ''}
+          <div class="flex items-center gap-2 shrink-0">
+            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+          </div>
         </div>
 
       </div>
@@ -3043,11 +2961,22 @@ function closeExpensesModal() {
 }
 
 function openAboutModal() {
-  document.getElementById('about-modal').classList.remove('hidden');
+  const modal = document.getElementById('about-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
+    if (navigator.vibrate) navigator.vibrate(12);
+  }
 }
 
-function closeAboutModal() {
-  document.getElementById('about-modal').classList.add('hidden');
+function closeAboutModal(e) {
+  if (e && e.target && e.target.closest && e.target.closest('#about-modal > div')) {
+    return; // clicked inside card, don't close
+  }
+  const modal = document.getElementById('about-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
 }
 
 function toggleNotificationsModal() {
