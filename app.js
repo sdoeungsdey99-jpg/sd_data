@@ -733,7 +733,14 @@ function handleBackNavigation() {
     return true;
   }
 
-  // 2c. If at top level of non-dashboard view (Settings, Analytics, Learning), return to Home (dashboard)
+  // 2c. If in Settings, step back to Profile first!
+  if (appState.currentView === 'settings') {
+    switchView('profile');
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+
+  // 2d. If at top level of non-dashboard view (Profile, Analytics, Learning), return to Home (dashboard)
   if (appState.currentView !== 'dashboard') {
     switchView('dashboard');
     if (navigator.vibrate) navigator.vibrate(20);
@@ -1191,10 +1198,11 @@ function switchView(viewName) {
   ['dashboard', 'analytics', 'learning', 'settings'].forEach(v => {
     const btn = document.getElementById(`dock-btn-${v}`);
     if (btn) {
-      if (v === viewName) {
-        btn.className = 'dock-btn active-tab flex-1 flex flex-col items-center justify-center py-1 rounded-full transition';
+      const isActive = (v === viewName) || (v === 'settings' && (viewName === 'profile' || viewName === 'settings'));
+      if (isActive) {
+        btn.classList.add('active-tab');
       } else {
-        btn.className = 'dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition';
+        btn.classList.remove('active-tab');
       }
     }
   });
@@ -2615,6 +2623,8 @@ function getSettingsViewHTML() {
   ];
   const curTextSizeTier = textSizeTiers.find(t => t.key === appState.textSize) || textSizeTiers[2];
 
+  const prof = getProfileData();
+
   return `
     <div class="space-y-4 pb-8 relative">
       
@@ -2646,24 +2656,33 @@ function getSettingsViewHTML() {
         </div>
       </div>
 
-      <!-- Top Settings Profile (រូប និង ឈ្មោះ ដូច Version មុន - មិនទាន់ដាក់តួនាទី) -->
-      <div class="pt-2 px-1 flex items-center gap-3.5 relative z-10">
+      <!-- Settings Header Bar with Back Button to Profile Dashboard -->
+      <div class="pt-1 px-1 flex items-center justify-between relative z-10">
+        <button onclick="switchView('profile')" 
+                class="py-1.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 transition shadow-sm">
+          <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          <span>ត្រឡប់</span>
+        </button>
+      </div>
+
+      <!-- Top Settings Profile (ឈ្មោះធំមិនតូចជាង «⚙️ ការកំណត់» + Blue Tick ស្មើអក្សរ ង និងចំកណ្តាល + មិនដាច់លើក្រោម) -->
+      <div class="pt-1 px-1 flex items-center gap-3.5 relative z-10">
         <div class="relative">
-          <img src="profile.png" alt="SDEY SDOEUNG" 
+          <img src="${prof.avatar || 'profile.png'}" alt="${prof.name || 'SDEY SDOEUNG'}" 
                class="w-13 h-13 rounded-full object-cover border-2 border-[var(--accent-solid)] shadow-lg"
                style="width: 52px; height: 52px;">
           <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
         </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1.5">
-            <h1 class="font-black text-base text-white leading-tight truncate brand-title">ស្តី ស្តើង</h1>
-            <img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0" style="width: 14px; height: 14px;">
+        <div class="min-w-0 flex-1 overflow-visible">
+          <div class="flex items-center gap-2 py-0.5 overflow-visible">
+            <h1 class="font-black text-xl text-white leading-normal tracking-normal brand-title overflow-visible select-none">${prof.name || 'ស្តី ស្តើង'}</h1>
+            <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;">
           </div>
-          <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">SDEY SDOEUNG</p>
+          <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">${prof.subtitle || 'SDEY SDOEUNG'}</p>
         </div>
       </div>
 
-      <!-- Settings Title & Subtitle (គ្មាន Button Back) -->
+      <!-- Settings Title & Subtitle -->
       <div class="px-1 pt-1 relative z-10">
         <h2 class="text-xl font-black text-white tracking-tight">
           ${t('settingsTitle')}
@@ -4558,10 +4577,25 @@ function getProfileViewHTML() {
       </div>
 
       <!-- ======================================================== -->
-      <!-- ZONE 3: BOTTOM MENU ROWS (Privacy, Feedback, Support)    -->
+      <!-- ZONE 3: BOTTOM MENU ROWS (Settings, Privacy, Feedback, Support) -->
       <!-- ======================================================== -->
       <div class="settings-list-card bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
         
+        <!-- 0. ការកំណត់ (Settings - ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ, សុវត្ថិភាព) -->
+        <div onclick="switchView('settings')" 
+             class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+          <div class="settings-row-left flex items-center gap-3 min-w-0">
+            <div class="settings-icon-box w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="settings" class="w-4 h-4 text-orange-400"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ការកំណត់ (Settings)</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ពុម្ពអក្សរ, ទំហំអក្សរ, ពណ៌ចម្បង, ផ្ទាំងរូបភាព និងសុវត្ថិភាព</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
+        </div>
+
         <!-- 1. ឯកជនភាព (Privacy - សិទ្ធិរក្សាព័ត៌មានផ្ទាល់ខ្លួន ដាច់ពី Setting របស់ Dock) -->
         <div onclick="openProfileSubModal('privacy')" 
              class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
