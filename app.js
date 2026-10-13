@@ -1033,32 +1033,32 @@ function setupSwipeToBack() {
 }
 
 // Smart Dock & Sticky Filter Bar iOS Auto-Hide:
-// - Scrolling content up (finger moving up) -> Dock & Filter Bar hide smoothly
-// - Scrolling content down (finger moving down) or screen stops/still -> Dock restores smoothly
-function setupSmartDockScroll() {
-  const main = document.getElementById('main-content');
+// - Scrolling content down (finger moving up, going deeper) -> Dock & Filter Bar hide smoothly
+// - Scrolling content up (finger moving down, going towards top) or screen stops/still -> Dock restores smoothly
+function hookScrollableForDock(el, isMain = false) {
+  if (!el || el._dockHooked) return;
+  el._dockHooked = true;
+
   const dock = document.getElementById('bottom-dock');
   const filterBar = document.getElementById('sticky-filter-bar');
-  if (!main || !dock) return;
+  if (!dock) return;
 
-  dock.classList.remove('dock-hidden');
-
-  let lastScrollTop = 0;
+  let lastScrollTop = el.scrollTop || 0;
   let scrollIdleTimer = null;
 
-  main.addEventListener('scroll', () => {
-    const currentScrollTop = main.scrollTop;
+  el.addEventListener('scroll', () => {
+    const currentScrollTop = el.scrollTop;
     const diff = currentScrollTop - lastScrollTop;
 
-    // 1. Scrolling content up (finger moving up, going deeper into content) -> Smoothly hide Dock & Filter Bar
-    if (diff > 8 && currentScrollTop > 40) {
+    // 1. Scrolling content down (finger moving up) -> Smoothly hide Dock & Filter Bar
+    if (diff > 8 && currentScrollTop > 30) {
       dock.classList.add('dock-hidden');
-      if (filterBar) filterBar.classList.add('filter-hidden');
+      if (isMain && filterBar) filterBar.classList.add('filter-hidden');
     }
-    // 2. Scrolling content down (finger moving down, going towards top) -> Immediately restore Dock & Filter Bar
+    // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock
     else if (diff < -6 || currentScrollTop <= 15) {
       dock.classList.remove('dock-hidden');
-      if (filterBar && appState.currentView === 'dashboard') {
+      if (isMain && filterBar && appState.currentView === 'dashboard') {
         filterBar.classList.remove('filter-hidden');
       }
     }
@@ -1066,8 +1066,8 @@ function setupSmartDockScroll() {
     lastScrollTop = currentScrollTop;
 
     // 3. Auto-load 5 more words when near bottom in Study / Learning view
-    if (appState.currentView === 'learning') {
-      const scrollBottom = main.scrollHeight - main.scrollTop - main.clientHeight;
+    if (isMain && appState.currentView === 'learning') {
+      const scrollBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
       if (scrollBottom < 260) {
         loadMoreStudyWords();
       }
@@ -1079,6 +1079,32 @@ function setupSmartDockScroll() {
       dock.classList.remove('dock-hidden');
     }, 450);
   }, { passive: true });
+}
+
+function setupSmartDockScroll() {
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('dock-hidden');
+
+  const main = document.getElementById('main-content');
+  if (main) hookScrollableForDock(main, true);
+
+  const scrollableIds = [
+    'notif-feed-list',
+    'sales-modal-list',
+    'expenses-modal-list',
+    'cod-modal-table-container',
+    'bank-modal-list',
+    'payables-modal-list',
+    'all-customers-list',
+    'profile-drawer-content',
+    'search-results-container',
+    'profile-settings-search-results'
+  ];
+
+  scrollableIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) hookScrollableForDock(el, false);
+  });
 }
 
 function handleHeroCardTap(event) {
@@ -1411,7 +1437,38 @@ function handleGlobalSearch(query) {
 // ==========================================
 // 3. Navigation & Dock Switcher
 // ==========================================
+function closeAllModals() {
+  const modals = [
+    'sales-modal',
+    'payables-modal',
+    'expenses-modal',
+    'cod-modal',
+    'bank-modal',
+    'notif-modal',
+    'all-customers-modal',
+    'profile-drawer-modal',
+    'edit-profile-modal',
+    'qr-photos-modal',
+    'profile-sub-modal',
+    'about-modal',
+    'change-pin-modal',
+    'shortcut-modal',
+    'global-search-modal',
+    'profile-settings-search-modal'
+  ];
+  modals.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+  const drawerPanel = document.getElementById('profile-drawer-panel');
+  if (drawerPanel) {
+    drawerPanel.classList.remove('translate-x-0');
+    drawerPanel.classList.add('-translate-x-full');
+  }
+}
+
 function switchView(viewName) {
+  closeAllModals();
   if (viewName === 'profile') {
     openProfileDrawer();
     return;
@@ -3794,6 +3851,9 @@ function openPersonalSalesModal() {
   }
 
   modal.classList.remove('hidden');
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('dock-hidden');
+  if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
 }
 
 function closeSalesModal() {
@@ -3845,6 +3905,9 @@ function openPayablesModal() {
   }
 
   modal.classList.remove('hidden');
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('dock-hidden');
+  if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -3902,6 +3965,10 @@ function openCodModal() {
   }
 
   modal.classList.remove('hidden');
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('dock-hidden');
+  const tableContainer = document.getElementById('cod-modal-table-container');
+  if (tableContainer && typeof hookScrollableForDock === 'function') hookScrollableForDock(tableContainer, false);
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -3956,6 +4023,9 @@ function openBankModal() {
   }
 
   modal.classList.remove('hidden');
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('dock-hidden');
+  if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -4078,6 +4148,9 @@ function openExpensesModal(forceMonthly = false) {
   }
 
   modal.classList.remove('hidden');
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('dock-hidden');
+  if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
   if (appState.fontFamily) modal.classList.add(appState.fontFamily);
   if (window.lucide) window.lucide.createIcons();
 }
@@ -4333,6 +4406,10 @@ function toggleNotificationsModal() {
   const isHidden = modal.classList.contains('hidden');
   if (isHidden) {
     if (DataService.data) renderNotificationsFeed(DataService.data);
+    const dock = document.getElementById('bottom-dock');
+    if (dock) dock.classList.remove('dock-hidden');
+    const feedList = document.getElementById('notif-feed-list');
+    if (feedList && typeof hookScrollableForDock === 'function') hookScrollableForDock(feedList, false);
     modal.classList.remove('hidden');
   } else {
     modal.classList.add('hidden');
@@ -4479,6 +4556,10 @@ function saveShortcutUrl() {
 let currentCelestialIndex = 0; // 0: ✨ sparkle, 1: ☀️ ray, 2: 🌙 moon
 
 function handleHomeClick(e) {
+  closeAllModals();
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('dock-hidden');
+
   // Tap Home to cycle celestial icons AND reload/refresh data smoothly to top!
   if (appState.currentView === 'dashboard') {
     cycleHomeCelestialGlow();
@@ -4892,6 +4973,11 @@ function openProfileDrawer() {
 
   renderProfileDrawerContent();
   modal.classList.remove('hidden');
+
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('dock-hidden');
+  const scrollEl = document.getElementById('profile-drawer-content');
+  if (scrollEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(scrollEl, false);
 
   requestAnimationFrame(() => {
     panel.classList.remove('-translate-x-full');
@@ -5718,26 +5804,40 @@ function setupAllCustomersScroll() {
   allCustScrollInitialized = true;
 
   let lastScrollTop = listEl.scrollTop || 0;
+  let dockIdleTimer = null;
 
   listEl.addEventListener('scroll', () => {
     const currentScrollTop = listEl.scrollTop;
     const diff = currentScrollTop - lastScrollTop;
 
-    // 1. Scrolling down into deeper items (finger dragging up) -> Hide Summary
+    // 1. Scrolling down into deeper items (finger dragging up) -> Hide Summary & Dock
     if (diff > 6 && currentScrollTop > 25) {
       if (!summaryEl.classList.contains('summary-collapsed')) {
         summaryEl.classList.add('summary-collapsed');
       }
+      const dock = document.getElementById('bottom-dock');
+      if (dock && diff > 8 && currentScrollTop > 30) {
+        dock.classList.add('dock-hidden');
+      }
     }
-    // 2. Scrolling back up towards top (finger dragging down) OR near top -> Show Summary
+    // 2. Scrolling back up towards top (finger dragging down) OR near top -> Show Summary & Dock
     else if (diff < -5 || currentScrollTop <= 15) {
       if (summaryEl.classList.contains('summary-collapsed')) {
         summaryEl.classList.remove('summary-collapsed');
       }
+      const dock = document.getElementById('bottom-dock');
+      if (dock) {
+        dock.classList.remove('dock-hidden');
+      }
     }
 
     lastScrollTop = currentScrollTop;
-    // NOTE: Strictly no idle timer! Stays hidden when user stops scrolling.
+    // NOTE: Summary strip stays hidden on idle, but Dock restores smoothly when screen is still
+    clearTimeout(dockIdleTimer);
+    dockIdleTimer = setTimeout(() => {
+      const dock = document.getElementById('bottom-dock');
+      if (dock) dock.classList.remove('dock-hidden');
+    }, 450);
   }, { passive: true });
 }
 
@@ -5751,6 +5851,8 @@ function openAllCustomersModal() {
   if (searchContainer) searchContainer.classList.add('hidden');
   renderAllCustomersList();
   setupAllCustomersScroll();
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('dock-hidden');
   const modal = document.getElementById('all-customers-modal');
   if (modal) {
     modal.classList.remove('hidden');
