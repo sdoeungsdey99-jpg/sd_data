@@ -623,6 +623,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (urlParams.get('qr') === '1') {
     setTimeout(openQrPhotosModal, 150);
   }
+  if (urlParams.get('notif') === '1') {
+    setTimeout(toggleNotificationsModal, 150);
+  }
+  if (urlParams.get('sales') === '1') {
+    setTimeout(openPersonalSalesModal, 250);
+  }
   if (urlParams.get('submodal')) {
     setTimeout(() => {
       openProfileSubModal(urlParams.get('submodal'));
@@ -4854,13 +4860,13 @@ function renderProfileDrawerContent() {
     <!-- ZONE 1: 6 GRID SHORTCUTS (មុខងារក្នុង Dashboard) -->
     <div>
       <div class="flex items-center justify-between px-1 mb-2">
-        <span class="text-xs font-bold text-slate-300">មុខងារក្នុង Dashboard</span>
-        <span class="text-[10px] text-slate-400 font-mono">All Shortcuts</span>
+        <span class="text-xs font-bold text-slate-300">${isEn ? 'Dashboard Shortcuts' : 'មុខងារចម្បង'}</span>
+        <span class="text-[10px] text-slate-400 font-mono">${isEn ? 'All Shortcuts' : 'ផ្លូវកាត់ទាំងអស់'}</span>
       </div>
 
       <div class="grid grid-cols-2 gap-2.5">
         
-        <!-- 1. បញ្ជីអតិថិជនទាំងអស់ (ពេញអេក្រង់) -->
+        <!-- 1. បញ្ជីអតិថិជន (Customer Directory) -->
         <div onclick="closeProfileDrawer(); openAllCustomersModal();" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-orange-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -4868,16 +4874,16 @@ function renderProfileDrawerContent() {
               <i data-lucide="users" class="w-4 h-4"></i>
             </div>
             <span class="px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-mono font-bold text-[10px]">
-              ${customers.length} នាក់
+              ${customers.length} ${isEn ? 'Cust' : 'នាក់'}
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">បញ្ជីអតិថិជនទាំងអស់</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">បង្ហាញពេញអេក្រង់ 100%</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Customer Directory' : 'បញ្ជីអតិថិជន'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Full Directory View' : 'បង្ហាញពេញអេក្រង់'}</p>
           </div>
         </div>
 
-        <!-- 2. ផែនការ (Note) -->
+        <!-- 2. កំណត់ត្រាផែនការ (Notes & Plans) -->
         <div onclick="closeProfileDrawer(); openProfileSubModal('note');" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-amber-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -4885,16 +4891,16 @@ function renderProfileDrawerContent() {
               <i data-lucide="notebook-pen" class="w-4 h-4"></i>
             </div>
             <span class="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold text-[10px]">
-              ${notes.length} Note
+              ${notes.length} ${isEn ? 'Notes' : 'ច្បាប់'}
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">ផែនការ (Note)</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">កត់ត្រាផែនការ & គោលដៅ</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Notes & Plans' : 'កំណត់ត្រាផែនការ'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Track goals & daily tasks' : 'កត់ត្រាផែនការ & គោលដៅ'}</p>
           </div>
         </div>
 
-        <!-- 3. សៀវភៅ (ជីវិតជាការរៀនសូត្រ) -->
+        <!-- 3. សៀវភៅ (Life & Learning) -->
         <div onclick="closeProfileDrawer(); openProfileSubModal('book');" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-emerald-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -4902,16 +4908,16 @@ function renderProfileDrawerContent() {
               <i data-lucide="book-open" class="w-4 h-4"></i>
             </div>
             <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold text-[10px]">
-              អាន
+              ${isEn ? 'Read' : 'អាន'}
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">សៀវភៅ</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">ជីវិតជាការរៀនសូត្រ</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Life & Learning' : 'សៀវភៅ'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Book lessons & wisdom' : 'ជីវិតជាការរៀនសូត្រ'}</p>
           </div>
         </div>
 
-        <!-- 4. សមាជិក (Member) -->
+        <!-- 4. សមាជិកក្រុម (Team Members) -->
         <div onclick="closeProfileDrawer(); openProfileSubModal('members');" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -4919,16 +4925,16 @@ function renderProfileDrawerContent() {
               <i data-lucide="contact-round" class="w-4 h-4"></i>
             </div>
             <span class="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-mono font-bold text-[10px]">
-              ${membersCount} នាក់
+              ${membersCount} ${isEn ? 'Members' : 'នាក់'}
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Member' : 'សមាជិក'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Team Members' : 'បញ្ជីសមាជិកក្រុម'}</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Members' : 'សមាជិកក្រុម'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Team roster & roles' : 'បញ្ជីសមាជិកក្រុម'}</p>
           </div>
         </div>
 
-        <!-- 5. ជជែក (Link Telegram Group) -->
+        <!-- 5. ក្រុមជជែក (Team Chat) -->
         <div onclick="closeProfileDrawer(); handleTelegramGroupClick();" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-sky-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -4936,18 +4942,18 @@ function renderProfileDrawerContent() {
               <i data-lucide="send" class="w-4 h-4"></i>
             </div>
             <button onclick="event.stopPropagation(); closeProfileDrawer(); openProfileSubModal('telegram_edit');" 
-                    title="កែ Link Telegram"
+                    title="${isEn ? 'Edit Telegram Link' : 'កែ Link Telegram'}"
                     class="p-1 rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white border border-white/10 transition">
               <i data-lucide="settings-2" class="w-3 h-3"></i>
             </button>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">ជជែក (សមាជិក)</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">Telegram Group</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Chat' : 'ក្រុមជជែក'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Telegram Group' : 'គ្រុបតេឡេក្រាម'}</p>
           </div>
         </div>
 
-        <!-- 6. QR Code (Member Only) -->
+        <!-- 6. កូដទទួលប្រាក់ (Payment QR) -->
         <div onclick="closeProfileDrawer(); openQrPhotosModal();" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-purple-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -4955,19 +4961,19 @@ function renderProfileDrawerContent() {
               <i data-lucide="qr-code" class="w-4 h-4"></i>
             </div>
             <span class="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 font-mono font-bold text-[10px]">
-              ${uploadedQrCount}/4 រូប
+              ${uploadedQrCount}/4 ${isEn ? 'Photos' : 'រូប'}
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">QR Code (Member Only)</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">រូបភាព QR ស្កេន</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Payment QR' : 'កូដទទួលប្រាក់'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Scan QR photo' : 'ស្កេនរូបភាព QR'}</p>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- ZONE 2: ព័ត៌មានសមាជិក (Member Info) - Default Bar, tap to expand full -->
+    <!-- ZONE 2: ព័ត៌មានផ្ទាល់ខ្លួន (Personal Profile) - Default Bar, tap to expand full -->
     <div class="ios-glass-card rounded-2xl border border-white/10 overflow-hidden">
       <!-- Clickable Header Bar (Default Collapsed) -->
       <div onclick="toggleDrawerMemberInfo()" 
@@ -4976,7 +4982,7 @@ function renderProfileDrawerContent() {
           <div class="w-6 h-6 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0">
             <i data-lucide="id-card" class="w-3.5 h-3.5"></i>
           </div>
-          <span class="text-xs font-bold text-white">${isEn ? 'Member Info' : 'ព័ត៌មានសមាជិក (Info)'}</span>
+          <span class="text-xs font-bold text-white">${isEn ? 'Personal Profile' : 'ព័ត៌មានផ្ទាល់ខ្លួន'}</span>
         </div>
         <div class="flex items-center gap-2">
           <button id="drawer-member-edit-btn" 
@@ -4997,7 +5003,7 @@ function renderProfileDrawerContent() {
             <span class="text-slate-400 text-[10.5px] shrink-0">${item.label}:</span>
             <span class="text-white font-semibold truncate text-[11px]">${item.val}</span>
           </div>
-        `).join('') || `<p class="text-xs text-slate-400 text-center py-1">មិនទាន់បង្ហាញព័ត៌មានផ្ទាល់ខ្លួន</p>`}
+        `).join('') || `<p class="text-xs text-slate-400 text-center py-1">${isEn ? 'No personal info shown' : 'មិនទាន់បង្ហាញព័ត៌មានផ្ទាល់ខ្លួន'}</p>`}
       </div>
     </div>
 
@@ -5012,8 +5018,8 @@ function renderProfileDrawerContent() {
             <i data-lucide="settings" class="w-3.5 h-3.5 text-orange-400"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ការកំណត់ (Settings)</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ, ផ្ទាំងរូបភាព</p>
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Settings' : 'ការកំណត់'}</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Colors, fonts, text sizes, wallpapers' : 'ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ, ផ្ទាំងរូបភាព'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -5027,14 +5033,14 @@ function renderProfileDrawerContent() {
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ឯកជនភាព (Privacy)</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">បិទ/បើកការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន</p>
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Privacy' : 'ឯកជនភាព'}</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Toggle personal info visibility' : 'បិទ/បើកការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
       </div>
 
-      <!-- 3. ផ្តល់មតិយោបល់មកក្រុមហ៊ុន (Feedback) -->
+      <!-- 3. មតិកែលម្អ (Feedback) -->
       <div onclick="closeProfileDrawer(); openProfileSubModal('feedback');" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
@@ -5042,14 +5048,14 @@ function renderProfileDrawerContent() {
             <i data-lucide="message-square-plus" class="w-3.5 h-3.5 text-blue-400"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ផ្តល់មតិយោបល់មកក្រុមហ៊ុន</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">ផ្ញើសំណូមពរ និងមតិកែលម្អ</p>
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Feedback' : 'មតិកែលម្អ'}</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Suggestions & improvements' : 'ផ្ញើសំណូមពរ និងមតិកែលម្អ'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
       </div>
 
-      <!-- 4. សុំជំនួយ (Help / Support) -->
+      <!-- 4. ជំនួយបច្ចេកទេស (Support) -->
       <div onclick="closeProfileDrawer(); openProfileSubModal('support');" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
@@ -5057,8 +5063,8 @@ function renderProfileDrawerContent() {
             <i data-lucide="help-circle" class="w-3.5 h-3.5 text-amber-400"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">សុំជំនួយ</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">ទំនាក់ទំនងក្រុមការងារបច្ចេកទេស</p>
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Support' : 'ជំនួយបច្ចេកទេស'}</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Technical assistance & contact' : 'ទំនាក់ទំនងក្រុមការងារបច្ចេកទេស'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -5072,8 +5078,8 @@ function renderProfileDrawerContent() {
             <i data-lucide="log-out" class="w-3.5 h-3.5 text-rose-400"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-rose-400 truncate leading-tight">ចាកចេញ (Log Out)</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">ចាកចេញដើម្បីប្រើប្រាស់ Email ផ្សេង</p>
+            <h4 class="settings-row-title text-xs font-bold text-rose-400 truncate leading-tight">${isEn ? 'Log Out' : 'ចាកចេញ'}</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Switch Google account' : 'ចាកចេញដើម្បីប្រើប្រាស់គណនីផ្សេង'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-rose-400/60 shrink-0"></i>
@@ -5623,27 +5629,38 @@ function setupAllCustomersScroll() {
 
   let lastScrollTop = 0;
   let summaryIdleTimer = null;
+  let ticking = false;
 
   listEl.addEventListener('scroll', () => {
-    const currentScrollTop = listEl.scrollTop;
-    const diff = currentScrollTop - lastScrollTop;
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        const currentScrollTop = listEl.scrollTop;
+        const diff = currentScrollTop - lastScrollTop;
 
-    // 1. Dragging finger UP (content scrolling down into deeper items) -> Hide Summary
-    if (diff > 6 && currentScrollTop > 25) {
-      summaryEl.classList.add('summary-collapsed');
+        // 1. Dragging finger UP (content scrolling down into deeper items) -> Hide Summary
+        if (diff > 8 && currentScrollTop > 30) {
+          if (!summaryEl.classList.contains('summary-collapsed')) {
+            summaryEl.classList.add('summary-collapsed');
+          }
+        }
+        // 2. Dragging finger DOWN (content scrolling back up towards top) OR near top -> Show Summary
+        else if (diff < -6 || currentScrollTop <= 15) {
+          if (summaryEl.classList.contains('summary-collapsed')) {
+            summaryEl.classList.remove('summary-collapsed');
+          }
+        }
+
+        lastScrollTop = currentScrollTop;
+        ticking = false;
+
+        // 3. When scrolling stops / screen is still -> Smoothly restore Summary!
+        clearTimeout(summaryIdleTimer);
+        summaryIdleTimer = setTimeout(() => {
+          summaryEl.classList.remove('summary-collapsed');
+        }, 350);
+      });
+      ticking = true;
     }
-    // 2. Dragging finger DOWN (content scrolling back up towards top) OR near top -> Show Summary
-    else if (diff < -5 || currentScrollTop <= 15) {
-      summaryEl.classList.remove('summary-collapsed');
-    }
-
-    lastScrollTop = currentScrollTop;
-
-    // 3. When scrolling stops / screen is still -> Smoothly restore Summary!
-    clearTimeout(summaryIdleTimer);
-    summaryIdleTimer = setTimeout(() => {
-      summaryEl.classList.remove('summary-collapsed');
-    }, 400);
   }, { passive: true });
 }
 
@@ -5655,7 +5672,11 @@ function openAllCustomersModal() {
   if (searchContainer) searchContainer.classList.add('hidden');
   renderAllCustomersList();
   setupAllCustomersScroll();
-  document.getElementById('all-customers-modal')?.classList?.remove('hidden');
+  const modal = document.getElementById('all-customers-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    if (appState.fontFamily) modal.classList.add(appState.fontFamily);
+  }
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -5807,6 +5828,10 @@ function renderAllCustomersList() {
     expandedCustomerKey = customers[0].key;
   }
 
+  const isEn = appState.language === 'en';
+  const countText = document.getElementById('all-customers-count-text');
+  const countDisplay = isEn ? `(${customers.length} Cust)` : `(${customers.length} នាក់)`;
+  if (countText) countText.textContent = countDisplay;
   if (countBadge) countBadge.textContent = `${customers.length} នាក់`;
 
   const totalOrdersSum = customers.reduce((acc, c) => acc + c.totalOrders, 0);
@@ -5816,15 +5841,15 @@ function renderAllCustomersList() {
   if (summaryEl) {
     summaryEl.innerHTML = `
       <div class="p-2 rounded-xl bg-black/30 border border-white/5">
-        <span class="text-[10px] text-slate-400 block">សរុបការកុម្ម៉ង់</span>
-        <span class="font-mono font-bold text-xs text-white">${formatInt(totalOrdersSum)} ដង</span>
+        <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Orders' : 'សរុបការកុម្ម៉ង់'}</span>
+        <span class="font-mono font-bold text-xs text-white">${formatInt(totalOrdersSum)} ${isEn ? 'times' : 'ដង'}</span>
       </div>
       <div class="p-2 rounded-xl bg-black/30 border border-white/5">
-        <span class="text-[10px] text-slate-400 block">សរុបប្រអប់</span>
-        <span class="font-mono font-bold text-xs text-orange-400">${formatInt(totalBoxesSum)} ប្រអប់</span>
+        <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Boxes' : 'សរុបប្រអប់'}</span>
+        <span class="font-mono font-bold text-xs text-orange-400">${formatInt(totalBoxesSum)} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>
       </div>
       <div class="p-2 rounded-xl bg-black/30 border border-white/5">
-        <span class="text-[10px] text-slate-400 block">ទឹកប្រាក់សរុប</span>
+        <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Revenue' : 'ទឹកប្រាក់សរុប'}</span>
         <span class="font-mono font-bold text-xs text-emerald-400">${formatUSD(totalSpentSum)}</span>
       </div>
     `;
@@ -5837,28 +5862,33 @@ function renderAllCustomersList() {
 
     return `
       <div class="ios-glass-card rounded-2xl p-3 border border-white/10 transition">
-        <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-2 cursor-pointer select-none">
-          <div class="flex items-center gap-2.5 min-w-0">
+        <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-3 cursor-pointer select-none">
+          <!-- Left Column: Ample room so Customer Name, Location, Phone, Date never truncate with ... -->
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
             <span class="w-7 h-7 rounded-xl bg-orange-500/20 border border-orange-500/30 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
               ${idx + 1}
             </span>
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <h4 class="font-bold text-xs text-white truncate">${c.name}</h4>
-                <span class="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-mono text-slate-300 shrink-0">${c.totalOrders} ដង</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <h4 class="font-bold text-xs text-white truncate max-w-[140px] sm:max-w-none">${c.name}</h4>
+                <span class="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-mono text-slate-300 shrink-0">${c.totalOrders} ${isEn ? 'orders' : 'ដង'}</span>
               </div>
-              <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 truncate">
-                <span>📍 ${c.location}</span>
+              <div class="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5 flex-wrap">
+                <span class="truncate max-w-[90px] sm:max-w-none">📍 ${c.location}</span>
                 <span>•</span>
-                <span class="font-mono">📞 ${c.phone}</span>
+                <span class="font-mono text-slate-300 font-semibold shrink-0 whitespace-nowrap">📞 ${c.phone}</span>
+                <span class="text-slate-500">•</span>
+                <span class="font-mono text-slate-400 shrink-0 whitespace-nowrap">${c.lastDate}</span>
               </div>
             </div>
           </div>
 
-          <div class="text-right shrink-0">
-            <div class="font-mono font-bold text-xs text-emerald-400">${formatUSD(c.totalSpent)}</div>
-            <div class="text-[10px] font-mono leading-tight mt-0.5">
-              ${c.totalThaiBaht > 0 ? `<span class="text-slate-200 font-semibold">${formatInt(c.totalThaiBaht)} ฿ • </span>` : ''}<span class="text-orange-400 font-bold">${c.totalBoxes} ប្រអប់</span> <span class="text-slate-400 font-normal">• ${c.lastDate}</span>
+          <!-- Right Column: Amount on top line, Box quantity on bottom line (Ensures complete digit visibility) -->
+          <div class="text-right shrink-0 min-w-[70px]">
+            <div class="font-mono font-bold text-xs text-emerald-400 leading-tight">${formatUSD(c.totalSpent)}</div>
+            ${c.totalThaiBaht > 0 ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalThaiBaht)} ฿</div>` : ''}
+            <div class="text-[10px] font-mono font-bold text-orange-400 leading-tight mt-0.5">
+              ${c.totalBoxes} ${isEn ? 'Boxes' : 'ប្រអប់'}
             </div>
           </div>
         </div>
@@ -6191,9 +6221,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'customers',
     group: 'Profile Dashboard',
-    groupKm: 'មុខងារ Profile Dashboard',
-    title: 'បញ្ជីអតិថិជនទាំងអស់ (Customers)',
+    groupKm: 'មុខងារចម្បង',
+    title: 'បញ្ជីអតិថិជនទាំងអស់',
+    titleEn: 'Customer Directory',
     subtitle: 'Profile > បញ្ជីអតិថិជនលម្អិត & ប្រវត្តិកុម្ម៉ង់',
+    subtitleEn: 'Profile > All Customer Directory & History',
     icon: 'users',
     iconBg: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     keywords: 'customer custommer all customers បញ្ជី អតិថិជន ទិញ ទំនិញ លក់ ប្រវត្តិ',
@@ -6202,9 +6234,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'note',
     group: 'Profile Dashboard',
-    groupKm: 'មុខងារ Profile Dashboard',
-    title: 'ផែនការ & គោលដៅ (Notes & Plans)',
+    groupKm: 'មុខងារចម្បង',
+    title: 'កំណត់ត្រាផែនការ',
+    titleEn: 'Notes & Plans',
     subtitle: 'Profile > កត់ត្រាផែនការ និងគោលដៅប្រចាំថ្ងៃ/ខែ',
+    subtitleEn: 'Profile > Daily and Monthly Goals',
     icon: 'file-text',
     iconBg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
     keywords: 'note notes plan plans ផែនការ គោលដៅ កត់ត្រា note goal',
@@ -6213,9 +6247,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'book',
     group: 'Profile Dashboard',
-    groupKm: 'មុខងារ Profile Dashboard',
-    title: 'សៀវភៅ (ជីវិតជាការរៀនសូត្រ)',
+    groupKm: 'មុខងារចម្បង',
+    title: 'សៀវភៅ',
+    titleEn: 'Life & Learning',
     subtitle: 'Profile > មេរៀន បទពិសោធន៍ និងការអាន',
+    subtitleEn: 'Profile > Reading, Lessons & Growth',
     icon: 'book-open',
     iconBg: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
     keywords: 'book read reading learn learning សៀវភៅ រៀន មេរៀន',
@@ -6224,9 +6260,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'members',
     group: 'Profile Dashboard',
-    groupKm: 'មុខងារ Profile Dashboard',
-    title: 'សមាជិក (Members List)',
+    groupKm: 'មុខងារចម្បង',
+    title: 'សមាជិកក្រុម',
+    titleEn: 'Team Members',
     subtitle: 'Profile > បញ្ជីសមាជិកក្រុម និងតួនាទី',
+    subtitleEn: 'Profile > Team Members and Roles',
     icon: 'contact',
     iconBg: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
     keywords: 'member members list សមាជិក ក្រុម ថ្នាក់ដឹកនាំ leader',
@@ -6235,9 +6273,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'telegram',
     group: 'Profile Dashboard',
-    groupKm: 'មុខងារ Profile Dashboard',
-    title: 'ជជែក Telegram (Group & Setting Link)',
+    groupKm: 'មុខងារចម្បង',
+    title: 'ក្រុមជជែក',
+    titleEn: 'Team Chat',
     subtitle: 'Profile > ចូលទៅកាន់គ្រុបតេឡេក្រាមក្រុម',
+    subtitleEn: 'Profile > Team Telegram Group & Chat',
     icon: 'send',
     iconBg: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
     keywords: 'telegram chat group link ជជែក តេឡេក្រាម គ្រុប',
@@ -6246,9 +6286,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'qr',
     group: 'Profile Dashboard',
-    groupKm: 'មុខងារ Profile Dashboard',
-    title: 'QR Code (Member Only)',
+    groupKm: 'មុខងារចម្បង',
+    title: 'កូដទទួលប្រាក់',
+    titleEn: 'Payment QR',
     subtitle: 'Profile > ស្កេនរូបភាព QR ទទួលប្រាក់',
+    subtitleEn: 'Profile > Payment Receive QR Codes',
     icon: 'qr-code',
     iconBg: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
     keywords: 'qr qrcode photo bank payment ទទួលប្រាក់ គណនី ស្កេន',
@@ -6257,9 +6299,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'edit_profile',
     group: 'Profile Dashboard',
-    groupKm: 'មុខងារ Profile Dashboard',
-    title: 'កែប្រែព័ត៌មានផ្ទាល់ខ្លួន (Edit Profile)',
+    groupKm: 'មុខងារចម្បង',
+    title: 'ព័ត៌មានផ្ទាល់ខ្លួន',
+    titleEn: 'Personal Profile',
     subtitle: 'Profile > ឈ្មោះ, លេខទូរស័ព្ទ, គណនីធនាគារ',
+    subtitleEn: 'Profile > Name, Phone, Bank Account',
     icon: 'user-cog',
     iconBg: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     keywords: 'edit profile user info កែប្រែ ព័ត៌មាន ឈ្មោះ ទូរស័ព្ទ',
@@ -6268,9 +6312,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'security_pin',
     group: 'Settings / ការកំណត់',
-    groupKm: 'ការកំណត់ (Settings)',
-    title: 'លេខកូដសម្ងាត់ PIN (Security Code)',
+    groupKm: 'ការកំណត់',
+    title: 'លេខកូដសម្ងាត់',
+    titleEn: 'Security PIN',
     subtitle: 'Settings > ប្តូរលេខកូដសុវត្ថិភាព ៤ ខ្ទង់',
+    subtitleEn: 'Settings > Change 4-digit Passcode',
     icon: 'lock',
     iconBg: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
     keywords: 'pin lock password security សុវត្ថិភាព លេខកូដ សម្ងាត់',
@@ -6279,9 +6325,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'accent_color',
     group: 'Settings / ការកំណត់',
-    groupKm: 'ការកំណត់ (Settings)',
-    title: 'ពណ៌ចម្បង (Accent Color)',
+    groupKm: 'ការកំណត់',
+    title: 'ពណ៌ចម្បង',
+    titleEn: 'Accent Color',
     subtitle: 'Settings > ទឹកក្រូច, បៃតង, ខៀវ, ស្វាយ, ផ្កាឈូក',
+    subtitleEn: 'Settings > Orange, Emerald, Blue, Purple, Rose',
     icon: 'palette',
     iconBg: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     keywords: 'color theme accent ពណ៌ ទឹកក្រូច បៃតង ខៀវ ស្វាយ ផ្កាឈូក',
@@ -6290,9 +6338,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'font_family',
     group: 'Settings / ការកំណត់',
-    groupKm: 'ការកំណត់ (Settings)',
-    title: 'ពុម្ពអក្សរ (Font Family)',
+    groupKm: 'ការកំណត់',
+    title: 'ពុម្ពអក្សរ',
+    titleEn: 'Font Family',
     subtitle: 'Settings > Kantumruy Pro, Koh Santepheap, Siemreap...',
+    subtitleEn: 'Settings > Kantumruy Pro, Koh Santepheap, Siemreap...',
     icon: 'type',
     iconBg: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
     keywords: 'font text typography ពុម្ពអក្សរ កន្ទុមរុយ កោះសន្តិភាព សៀមរាប បាត់ដំបង',
@@ -6301,9 +6351,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'text_size',
     group: 'Settings / ការកំណត់',
-    groupKm: 'ការកំណត់ (Settings)',
-    title: 'ទំហំអក្សរ (Text Size)',
-    subtitle: 'Settings > តូច (Small), មធ្យម (Medium), ធំ (Large)',
+    groupKm: 'ការកំណត់',
+    title: 'ទំហំអក្សរ',
+    titleEn: 'Text Size',
+    subtitle: 'Settings > តូច, មធ្យម, ធំ',
+    subtitleEn: 'Settings > Small, Medium, Large',
     icon: 'maximize-2',
     iconBg: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     keywords: 'size font text size ទំហំ អក្សរ តូច មធ្យម ធំ small medium large',
@@ -6312,9 +6364,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'wallpapers',
     group: 'Settings / ការកំណត់',
-    groupKm: 'ការកំណត់ (Settings)',
-    title: 'ផ្ទាំងរូបភាព & ផ្ទៃខាងក្រោយ (Wallpapers)',
+    groupKm: 'ការកំណត់',
+    title: 'ផ្ទាំងរូបភាព',
+    titleEn: 'Wallpapers',
     subtitle: 'Settings > រូបភាពគំរូ និងផ្ទៃផ្ទាំងរូបភាពផ្ទាល់ខ្លួន',
+    subtitleEn: 'Settings > Lock Screen & Mesh Wallpapers',
     icon: 'image',
     iconBg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
     keywords: 'wallpaper background image ផ្ទាំងរូបភាព ផ្ទៃ រូបភាព',
@@ -6323,9 +6377,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'theme_dark_light',
     group: 'Settings / ការកំណត់',
-    groupKm: 'ការកំណត់ (Settings)',
-    title: 'ផ្ទៃងងឹត / ពន្លឺ (Dark & Light Theme)',
+    groupKm: 'ការកំណត់',
+    title: 'ផ្ទៃងងឹត ឬ ពន្លឺ',
+    titleEn: 'Dark & Light Theme',
     subtitle: 'Settings > Dark, Light, ឬ Auto តាមប្រព័ន្ធទូរស័ព្ទ',
+    subtitleEn: 'Settings > Dark, Light, or System Auto',
     icon: 'moon',
     iconBg: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
     keywords: 'theme dark light mode ងងឹត ពន្លឺ ប្រព័ន្ធ',
@@ -6334,9 +6390,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'language',
     group: 'Settings / ការកំណត់',
-    groupKm: 'ការកំណត់ (Settings)',
-    title: 'ភាសា (Language)',
-    subtitle: 'Settings > ភាសាខ្មែរ (Khmer) / English',
+    groupKm: 'ការកំណត់',
+    title: 'ភាសា',
+    titleEn: 'Language',
+    subtitle: 'Settings > ភាសាខ្មែរ / English',
+    subtitleEn: 'Settings > Khmer / English',
     icon: 'globe',
     iconBg: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
     keywords: 'language lang ភាសា ខ្មែរ english khmer',
@@ -6345,9 +6403,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'notifications',
     group: 'Settings / ការកំណត់',
-    groupKm: 'ការកំណត់ (Settings)',
-    title: 'ការជូនដំណឹង (Notifications Toggle)',
+    groupKm: 'ការកំណត់',
+    title: 'ការជូនដំណឹង',
+    titleEn: 'Notifications',
     subtitle: 'Settings > បើក ឬ បិទសំឡេង និងការជូនដំណឹង',
+    subtitleEn: 'Settings > Toggle In-App Alerts & Sounds',
     icon: 'bell',
     iconBg: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
     keywords: 'notification alert ជូនដំណឹង សារ',
@@ -6356,9 +6416,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'hide_subtitles',
     group: 'Settings / ការកំណត់',
-    groupKm: 'ការកំណត់ (Settings)',
-    title: 'លាក់ចំណងជើងរង (Hide Subtitles)',
+    groupKm: 'ការកំណត់',
+    title: 'លាក់ចំណងជើងរង',
+    titleEn: 'Hide Subtitles',
     subtitle: 'Settings > បង្ហាញ ឬ លាក់ចំណងជើងរងកាត',
+    subtitleEn: 'Settings > Show or Hide Card Subtitles',
     icon: 'eye-off',
     iconBg: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
     keywords: 'subtitle hide លាក់ ចំណងជើង រង',
@@ -6367,9 +6429,11 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
   {
     id: 'about',
     group: 'Settings / ការកំណត់',
-    groupKm: 'ការកំណត់ (Settings)',
-    title: 'អំពីកម្មវិធី (About SD Dashboard)',
+    groupKm: 'ការកំណត់',
+    title: 'អំពីកម្មវិធី',
+    titleEn: 'About App',
     subtitle: 'Settings > ព័ត៌មានកម្មវិធី កំណែទម្រង់ v2.5 និងអ្នកអភិវឌ្ឍន៍',
+    subtitleEn: 'Settings > Version v2.5 & Developer Credits',
     icon: 'info',
     iconBg: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     keywords: 'about version dev អំពី កម្មវិធី v2.5 ព័ត៌មាន',
@@ -6424,11 +6488,14 @@ function renderProfileSettingsSearchResults(query) {
   const container = document.getElementById('profile-settings-search-results');
   if (!container) return;
 
+  const isEn = appState.language === 'en';
   const q = (query || '').toLowerCase().trim();
   const filtered = PROFILE_SETTINGS_SEARCH_ITEMS.filter(item => {
     if (!q) return true;
-    return item.title.toLowerCase().includes(q) ||
-           item.subtitle.toLowerCase().includes(q) ||
+    const t = isEn ? (item.titleEn || item.title) : item.title;
+    const s = isEn ? (item.subtitleEn || item.subtitle) : item.subtitle;
+    return t.toLowerCase().includes(q) ||
+           s.toLowerCase().includes(q) ||
            (item.keywords && item.keywords.toLowerCase().includes(q)) ||
            item.group.toLowerCase().includes(q) ||
            item.groupKm.toLowerCase().includes(q);
@@ -6440,8 +6507,8 @@ function renderProfileSettingsSearchResults(query) {
         <div class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-slate-400">
           <i data-lucide="search-x" class="w-6 h-6"></i>
         </div>
-        <p class="text-xs text-slate-300 font-bold">រកមិនឃើញលទ្ធផល</p>
-        <p class="text-[11px] text-slate-500">គ្មានមុខងារណាត្រូវគ្នានឹង "${query}" ឡើយ</p>
+        <p class="text-xs text-slate-300 font-bold">${isEn ? 'No results found' : 'រកមិនឃើញលទ្ធផល'}</p>
+        <p class="text-[11px] text-slate-500">${isEn ? `No settings match "${query}"` : `គ្មានមុខងារណាត្រូវគ្នានឹង "${query}" ឡើយ`}</p>
       </div>
     `;
     if (window.lucide) window.lucide.createIcons();
@@ -6451,7 +6518,7 @@ function renderProfileSettingsSearchResults(query) {
   // Group items by group (Profile Dashboard vs Settings)
   const groups = {};
   filtered.forEach(item => {
-    const gKey = item.groupKm;
+    const gKey = isEn ? (item.group || 'Shortcuts') : item.groupKm;
     if (!groups[gKey]) groups[gKey] = [];
     groups[gKey].push(item);
   });
@@ -6473,8 +6540,8 @@ function renderProfileSettingsSearchResults(query) {
                   <i data-lucide="${item.icon}" class="w-4 h-4"></i>
                 </div>
                 <div class="min-w-0">
-                  <h4 class="text-xs font-bold text-white truncate leading-tight">${item.title}</h4>
-                  <p class="text-[10px] text-slate-400 mt-0.5 truncate font-mono">${item.subtitle}</p>
+                  <h4 class="text-xs font-bold text-white truncate leading-tight">${isEn ? (item.titleEn || item.title) : item.title}</h4>
+                  <p class="text-[10px] text-slate-400 mt-0.5 truncate font-mono">${isEn ? (item.subtitleEn || item.subtitle) : item.subtitle}</p>
                 </div>
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-white transition-colors shrink-0"></i>
@@ -6496,11 +6563,142 @@ function executeProfileSettingsAction(itemId) {
   }
 }
 
+// ==========================================
+// 5. UNIVERSAL EDGE SWIPE BACK GESTURE (អូសពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់ក្រោយ)
+// ==========================================
+function handleUniversalSwipeBack() {
+  // 1. Profile sub-modal (highest sub-layer)
+  const profileSubModal = document.getElementById('profile-sub-modal');
+  if (profileSubModal && !profileSubModal.classList.contains('hidden')) {
+    closeProfileSubModal();
+    return true;
+  }
+
+  // 2. Profile Settings Search Modal
+  const profSearchModal = document.getElementById('profile-settings-search-modal');
+  if (profSearchModal && !profSearchModal.classList.contains('hidden')) {
+    closeProfileSettingsSearch();
+    return true;
+  }
+
+  // 3. Edit Profile Modal
+  const editProfModal = document.getElementById('edit-profile-modal');
+  if (editProfModal && !editProfModal.classList.contains('hidden')) {
+    closeEditProfileModal();
+    return true;
+  }
+
+  // 4. QR Photos Modal
+  const qrModal = document.getElementById('qr-photos-modal');
+  if (qrModal && !qrModal.classList.contains('hidden')) {
+    closeQrPhotosModal();
+    return true;
+  }
+
+  // 5. All Customers Directory Modal
+  const custModal = document.getElementById('all-customers-modal');
+  if (custModal && !custModal.classList.contains('hidden')) {
+    closeAllCustomersModal();
+    return true;
+  }
+
+  // 6. Notifications Bottom Sheet Modal
+  const notifModal = document.getElementById('notif-modal');
+  if (notifModal && !notifModal.classList.contains('hidden')) {
+    toggleNotificationsModal();
+    return true;
+  }
+
+  // 7. Grid drilldown bottom sheets
+  const salesModal = document.getElementById('sales-modal');
+  if (salesModal && !salesModal.classList.contains('hidden')) {
+    closeSalesModal();
+    return true;
+  }
+
+  const codModal = document.getElementById('cod-modal');
+  if (codModal && !codModal.classList.contains('hidden')) {
+    closeCodModal();
+    return true;
+  }
+
+  const bankModal = document.getElementById('bank-modal');
+  if (bankModal && !bankModal.classList.contains('hidden')) {
+    closeBankModal();
+    return true;
+  }
+
+  const payablesModal = document.getElementById('payables-modal');
+  if (payablesModal && !payablesModal.classList.contains('hidden')) {
+    closePayablesModal();
+    return true;
+  }
+
+  const expensesModal = document.getElementById('expenses-modal');
+  if (expensesModal && !expensesModal.classList.contains('hidden')) {
+    closeExpensesModal();
+    return true;
+  }
+
+  const aboutModal = document.getElementById('about-modal');
+  if (aboutModal && !aboutModal.classList.contains('hidden')) {
+    closeAboutModal();
+    return true;
+  }
+
+  const pinModal = document.getElementById('change-pin-modal');
+  if (pinModal && !pinModal.classList.contains('hidden')) {
+    closeChangePinModal();
+    return true;
+  }
+
+  // 8. Profile Drawer (Left drawer -> swipe left to right can dismiss, or if open, close it)
+  const profDrawer = document.getElementById('profile-drawer-modal');
+  if (profDrawer && !profDrawer.classList.contains('hidden')) {
+    closeProfileDrawer();
+    return true;
+  }
+
+  return false;
+}
+
+function initUniversalEdgeSwipeBack() {
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isEdgeSwipe = false;
+
+  window.addEventListener('touchstart', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    // Edge touch: within the left 75px zone
+    isEdgeSwipe = (touchStartX <= 75);
+  }, { passive: true });
+
+  window.addEventListener('touchend', (e) => {
+    if (!isEdgeSwipe || !e.changedTouches || e.changedTouches.length !== 1) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = Math.abs(touch.clientY - touchStartY);
+
+    // If swiped right by > 65px and vertical deviation < 50px
+    if (deltaX >= 65 && deltaY < 50) {
+      handleUniversalSwipeBack();
+    }
+    isEdgeSwipe = false;
+  }, { passive: true });
+}
+
+// Auto initialize edge swipe back gesture on startup
+initUniversalEdgeSwipeBack();
+
 window.openProfileSettingsSearch = openProfileSettingsSearch;
 window.closeProfileSettingsSearch = closeProfileSettingsSearch;
 window.clearProfileSettingsSearch = clearProfileSettingsSearch;
 window.handleProfileSettingsSearch = handleProfileSettingsSearch;
 window.executeProfileSettingsAction = executeProfileSettingsAction;
 window.toggleProfitNetBoost = toggleProfitNetBoost;
+window.handleUniversalSwipeBack = handleUniversalSwipeBack;
 
 
