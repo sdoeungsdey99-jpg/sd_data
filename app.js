@@ -556,6 +556,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lockScreen) lockScreen.classList.add('hidden');
   }
 
+  if (urlParams.get('theme')) {
+    toggleTheme(urlParams.get('theme'));
+  }
+
   setupPullToRefresh();
   setupSmartDockScroll();
   setupSwipeToBack();
