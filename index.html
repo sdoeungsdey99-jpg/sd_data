@@ -95,6 +95,13 @@
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.20);
     }
+    .progressive-blur-dock {
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: linear-gradient(to top, rgba(7, 13, 24, 0.90) 0%, rgba(7, 13, 24, 0.40) 50%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.70) 40%, rgba(0, 0, 0, 0.20) 75%, transparent 100%);
+      mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.70) 40%, rgba(0, 0, 0, 0.20) 75%, transparent 100%);
+    }
     .liquid-orange-glow {
       box-shadow: 0 0 45px -8px rgba(249, 115, 22, 0.35);
     }
@@ -1458,7 +1465,7 @@
       box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.10), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
     }
     .light-theme #dock-blur-backdrop {
-      background: rgba(248, 250, 252, 0.65) !important;
+      background: linear-gradient(to top, rgba(248, 250, 252, 0.92) 0%, rgba(248, 250, 252, 0.40) 50%, transparent 100%) !important;
     }
     .light-theme .ios-slim-capsule {
       background: rgba(255, 255, 255, 0.96) !important;
@@ -1960,7 +1967,7 @@
     <!-- ======================================================== -->
     <!-- TELEGRAM FLOATING CAPSULE BOTTOM DOCK & FROSTED BLUR BACKDROP -->
     <!-- ======================================================== -->
-    <div id="dock-blur-backdrop" class="fixed bottom-0 inset-x-0 h-4 pointer-events-none z-[58] backdrop-blur-sm bg-[#070D18]/50 transition-opacity duration-300"></div>
+    <div id="dock-blur-backdrop" class="fixed bottom-0 inset-x-0 h-28 pointer-events-none z-[58] progressive-blur-dock transition-opacity duration-300"></div>
     <nav id="bottom-dock" class="fixed bottom-4 inset-x-4 max-w-sm mx-auto h-16 rounded-full telegram-dock flex items-center justify-between px-3 z-[60] transition-all duration-300 transform">
       
       <!-- 1. Home (Classic House with Micro Celestial Sparkle/Sun/Moon Glow) -->
