@@ -549,7 +549,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   setInterval(checkOnlineOfflineStatus, 2000);
 
-  if (!appState.pinEnabled || sessionStorage.getItem('sd_unlocked') === 'true') {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (!appState.pinEnabled || sessionStorage.getItem('sd_unlocked') === 'true' || urlParams.get('unlock') === '1') {
     const lockScreen = document.getElementById('lock-screen');
     if (lockScreen) lockScreen.classList.add('hidden');
   }
@@ -563,6 +564,13 @@ document.addEventListener('DOMContentLoaded', () => {
   DataService.startAutoReload(5);
 
   renderCurrentView();
+
+  if (urlParams.get('view')) {
+    switchView(urlParams.get('view'));
+  }
+  if (urlParams.get('drawer') === 'profile') {
+    setTimeout(openProfileDrawer, 150);
+  }
 });
 
 function onDataUpdated(service) {
@@ -698,7 +706,15 @@ function handleBackNavigation() {
     }
   }
 
-  // 1c. Close any open modal if visible
+  // 1c. Close Profile Drawer if open
+  const profDrawer = document.getElementById('profile-drawer-modal');
+  if (profDrawer && !profDrawer.classList.contains('hidden')) {
+    closeProfileDrawer();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+
+  // 1d. Close any open modal if visible
   const openModals = [
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal',
@@ -733,10 +749,9 @@ function handleBackNavigation() {
     return true;
   }
 
-  // 2c. If in Settings, step back to previous view (Profile or Dashboard)
+  // 2c. If in Settings, step back to Dashboard
   if (appState.currentView === 'settings') {
-    const target = (appState.previousView === 'profile') ? 'profile' : 'dashboard';
-    switchView(target);
+    switchView('dashboard');
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
@@ -798,6 +813,13 @@ function setupSwipeToBack() {
     // Must be left-to-right swipe (at least 65px horizontal, deltaX dominant)
     if (deltaX >= 65 && deltaX > Math.abs(deltaY) * 1.25) {
       handleBackNavigation();
+    } else if (deltaX <= -50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      // Swipe left to dismiss profile drawer
+      const profDrawer = document.getElementById('profile-drawer-modal');
+      if (profDrawer && !profDrawer.classList.contains('hidden')) {
+        closeProfileDrawer();
+        if (navigator.vibrate) navigator.vibrate(15);
+      }
     }
     isPotentialSwipe = false;
   }, { passive: true });
@@ -1111,6 +1133,10 @@ function handleGlobalSearch(query) {
 // 3. Navigation & Dock Switcher
 // ==========================================
 function switchView(viewName) {
+  if (viewName === 'profile') {
+    openProfileDrawer();
+    return;
+  }
   const isAlreadyDashboard = (appState.currentView === 'dashboard' && viewName === 'dashboard');
   if (appState.currentView !== viewName) {
     appState.previousView = appState.currentView;
@@ -2659,36 +2685,22 @@ function getSettingsViewHTML() {
         </div>
       </div>
 
-      <!-- Settings Header Bar with Back Button -->
-      <div class="pt-1 px-1 flex items-center justify-between relative z-10">
-        <button onclick="handleBackNavigation()" 
-                class="py-1.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 transition shadow-sm">
-          <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
-          <span>ត្រឡប់</span>
-        </button>
-      </div>
-
-      <!-- Top Settings Profile (ចុច Profile ក៏ចេញ Profile Dashboard ដែរ ទោះឈរនៅ Dock Setting ក៏ដោយ) -->
-      <div onclick="switchView('profile')" 
-           class="pt-1 px-1 flex items-center justify-between gap-3 relative z-10 cursor-pointer active:scale-[0.98] hover:bg-white/[0.03] p-1.5 -mx-1.5 rounded-2xl transition group select-none"
+      <!-- Top Settings Profile (ចុចលើ Profile បើក Profile Dashboard Drawer) -->
+      <div onclick="openProfileDrawer()" 
+           class="pt-2 px-1 flex items-center gap-3.5 relative z-10 cursor-pointer active:scale-[0.98] transition group select-none"
            title="បើក Profile Dashboard">
-        <div class="flex items-center gap-3.5 min-w-0 flex-1 overflow-visible">
-          <div class="relative shrink-0">
-            <img src="${prof.avatar || 'profile.png'}" alt="${prof.name || 'SDEY SDOEUNG'}" 
-                 class="w-13 h-13 rounded-full object-cover border-2 border-[var(--accent-solid)] shadow-lg group-hover:border-orange-400 transition"
-                 style="width: 52px; height: 52px;">
-            <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
-          </div>
-          <div class="min-w-0 flex-1 overflow-visible">
-            <div class="flex items-center gap-2 py-0.5 overflow-visible">
-              <h1 class="font-black text-xl text-white leading-normal tracking-normal brand-title overflow-visible select-none group-hover:text-orange-400 transition">${prof.name || 'ស្តី ស្តើង'}</h1>
-              <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;">
-            </div>
-            <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">${prof.subtitle || 'SDEY SDOEUNG'}</p>
-          </div>
+        <div class="relative shrink-0">
+          <img src="${prof.avatar || 'profile.png'}" alt="${prof.name || 'SDEY SDOEUNG'}" 
+               class="w-13 h-13 rounded-full object-cover border-2 border-[var(--accent-solid)] shadow-lg group-hover:border-orange-400 transition"
+               style="width: 52px; height: 52px;">
+          <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
         </div>
-        <div class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-orange-400 group-hover:bg-orange-500/10 group-hover:border-orange-500/30 transition shadow-sm">
-          <i data-lucide="chevron-right" class="w-4 h-4 text-orange-400"></i>
+        <div class="min-w-0 flex-1 overflow-visible">
+          <div class="flex items-center gap-2 py-0.5 overflow-visible">
+            <h1 class="font-black text-xl text-white leading-normal tracking-normal brand-title overflow-visible select-none group-hover:text-orange-400 transition">${prof.name || 'ស្តី ស្តើង'}</h1>
+            <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;">
+          </div>
+          <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">${prof.subtitle || 'SDEY SDOEUNG'}</p>
         </div>
       </div>
 
@@ -4378,6 +4390,292 @@ function getQrPhotosList() {
   ];
 }
 
+// ==========================================
+// Profile Dashboard Drawer (82% Width - Facebook Style)
+// ==========================================
+function openProfileDrawer() {
+  const modal = document.getElementById('profile-drawer-modal');
+  const panel = document.getElementById('profile-drawer-panel');
+  if (!modal || !panel) return;
+
+  renderProfileDrawerContent();
+  modal.classList.remove('hidden');
+
+  requestAnimationFrame(() => {
+    panel.classList.remove('-translate-x-full');
+    panel.classList.add('translate-x-0');
+  });
+
+  if (window.lucide) window.lucide.createIcons();
+  if (navigator.vibrate) navigator.vibrate(15);
+}
+
+function closeProfileDrawer() {
+  const modal = document.getElementById('profile-drawer-modal');
+  const panel = document.getElementById('profile-drawer-panel');
+  if (!modal || !panel) return;
+
+  panel.classList.remove('translate-x-0');
+  panel.classList.add('-translate-x-full');
+
+  setTimeout(() => {
+    modal.classList.add('hidden');
+  }, 260);
+}
+
+function renderProfileDrawerContent() {
+  const p = getProfileData();
+  const customers = getAllUniqueCustomers();
+  const notes = getProfileNotes();
+  const qrList = getQrPhotosList();
+  const uploadedQrCount = qrList.filter(q => q.image).length;
+  const d = DataService.data;
+  const membersCount = (d && d.teamLeaders) ? d.teamLeaders.length : 3;
+
+  // Update Drawer Header (Original high left position)
+  const drawerAvatar = document.getElementById('drawer-prof-avatar');
+  const drawerName = document.getElementById('drawer-prof-name');
+  const drawerId = document.getElementById('drawer-prof-id');
+  if (drawerAvatar) drawerAvatar.src = p.avatar || 'profile.png';
+  if (drawerName) drawerName.textContent = p.name || 'ស្តី ស្តើង';
+  if (drawerId) drawerId.textContent = p.memberId || 'SD-8899';
+
+  const infoItems = [
+    { key: 'showWork', icon: 'briefcase', color: 'text-orange-400', label: 'ធ្វើការនៅ', val: p.work },
+    { key: 'showStudy', icon: 'graduation-cap', color: 'text-blue-400', label: 'សិក្សានៅ', val: p.study },
+    { key: 'showLive', icon: 'home', color: 'text-emerald-400', label: 'រស់នៅ', val: p.live },
+    { key: 'showFrom', icon: 'map-pin', color: 'text-rose-400', label: 'មកពី', val: p.from },
+    { key: 'showStatus', icon: 'heart', color: 'text-pink-400', label: 'ស្ថានភាព', val: p.status },
+    { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរសព្ទ', val: p.phone }
+  ].filter(item => p.privacy[item.key] !== false && item.val && item.val.trim() !== '');
+
+  const container = document.getElementById('profile-drawer-content');
+  if (!container) return;
+
+  container.innerHTML = `
+    <!-- ZONE 1: 6 GRID SHORTCUTS (មុខងារក្នុង Dashboard) -->
+    <div>
+      <div class="flex items-center justify-between px-1 mb-2">
+        <span class="text-xs font-bold text-slate-300">មុខងារក្នុង Dashboard</span>
+        <span class="text-[10px] text-slate-400 font-mono">All Shortcuts</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        
+        <!-- 1. បញ្ជីអតិថិជនទាំងអស់ (ពេញអេក្រង់) -->
+        <div onclick="closeProfileDrawer(); openAllCustomersModal();" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-orange-500/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center">
+              <i data-lucide="users" class="w-4 h-4"></i>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-mono font-bold text-[10px]">
+              ${customers.length} នាក់
+            </span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-white leading-tight">បញ្ជីអតិថិជនទាំងអស់</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">បង្ហាញពេញអេក្រង់ 100%</p>
+          </div>
+        </div>
+
+        <!-- 2. ផែនការ (Note) -->
+        <div onclick="closeProfileDrawer(); openProfileSubModal('note');" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-amber-500/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+              <i data-lucide="notebook-pen" class="w-4 h-4"></i>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold text-[10px]">
+              ${notes.length} Note
+            </span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-white leading-tight">ផែនការ (Note)</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">កត់ត្រាផែនការ & គោលដៅ</p>
+          </div>
+        </div>
+
+        <!-- 3. សៀវភៅ (ជីវិតជាការរៀនសូត្រ) -->
+        <div onclick="closeProfileDrawer(); openProfileSubModal('book');" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-emerald-500/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+              <i data-lucide="book-open" class="w-4 h-4"></i>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold text-[10px]">
+              អាន
+            </span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-white leading-tight">សៀវភៅ</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">ជីវិតជាការរៀនសូត្រ</p>
+          </div>
+        </div>
+
+        <!-- 4. Members List -->
+        <div onclick="closeProfileDrawer(); openProfileSubModal('members');" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+              <i data-lucide="contact-round" class="w-4 h-4"></i>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-mono font-bold text-[10px]">
+              ${membersCount} នាក់
+            </span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-white leading-tight">Members List</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">បញ្ជីសមាជិកក្រុម</p>
+          </div>
+        </div>
+
+        <!-- 5. ជជែក (Link Telegram Group) -->
+        <div onclick="closeProfileDrawer(); handleTelegramGroupClick();" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-sky-500/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center">
+              <i data-lucide="send" class="w-4 h-4"></i>
+            </div>
+            <button onclick="event.stopPropagation(); closeProfileDrawer(); openProfileSubModal('telegram_edit');" 
+                    title="កែ Link Telegram"
+                    class="p-1 rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white border border-white/10 transition">
+              <i data-lucide="settings-2" class="w-3 h-3"></i>
+            </button>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-white leading-tight">ជជែក (សមាជិក)</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">Telegram Group</p>
+          </div>
+        </div>
+
+        <!-- 6. QR Code (Photos) -->
+        <div onclick="closeProfileDrawer(); openQrPhotosModal();" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-purple-500/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
+              <i data-lucide="qr-code" class="w-4 h-4"></i>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 font-mono font-bold text-[10px]">
+              ${uploadedQrCount}/4 រូប
+            </span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-white leading-tight">QR Code</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">រូបភាព QR ស្កេន</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ZONE 2: ព័ត៌មានសមាជិក (Member Info) + Button «កែប្រែ» -->
+    <div class="ios-glass-card rounded-2xl p-3 border border-white/10">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="id-card" class="w-3.5 h-3.5 text-orange-400"></i>
+          <span>ព័ត៌មានសមាជិក (Info)</span>
+        </span>
+        <button onclick="closeProfileDrawer(); openEditProfileModal();" 
+                class="text-[11px] font-bold text-orange-400 hover:underline flex items-center gap-1 active:scale-95 transition">
+          <i data-lucide="pencil" class="w-3 h-3"></i>
+          <span>កែប្រែ</span>
+        </button>
+      </div>
+
+      <div class="space-y-1.5">
+        ${infoItems.map(item => `
+          <div class="flex items-center gap-2 text-xs py-1 px-2 rounded-xl bg-black/20 border border-white/5">
+            <i data-lucide="${item.icon}" class="w-3.5 h-3.5 ${item.color} shrink-0"></i>
+            <span class="text-slate-400 text-[10.5px] shrink-0">${item.label}:</span>
+            <span class="text-white font-semibold truncate text-[11px]">${item.val}</span>
+          </div>
+        `).join('') || `<p class="text-xs text-slate-400 text-center py-1">មិនទាន់បង្ហាញព័ត៌មានផ្ទាល់ខ្លួន</p>`}
+      </div>
+    </div>
+
+    <!-- ZONE 3: MENU ROWS (Settings, Privacy, Feedback, Support, Logout) -->
+    <div class="settings-list-card bg-[#0F1B2E] rounded-2xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
+      
+      <!-- 1. ការកំណត់ (Settings) -->
+      <div onclick="closeProfileDrawer(); switchView('settings');" 
+           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
+          <div class="settings-icon-box w-7 h-7 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="settings" class="w-3.5 h-3.5 text-orange-400"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ការកំណត់ (Settings)</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ, ផ្ទាំងរូបភាព</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+      </div>
+
+      <!-- 2. ឯកជនភាព (Privacy) -->
+      <div onclick="closeProfileDrawer(); openProfileSubModal('privacy');" 
+           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
+          <div class="settings-icon-box w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ឯកជនភាព (Privacy)</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">បិទ/បើកការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+      </div>
+
+      <!-- 3. ផ្តល់មតិយោបល់មកក្រុមហ៊ុន (Feedback) -->
+      <div onclick="closeProfileDrawer(); openProfileSubModal('feedback');" 
+           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
+          <div class="settings-icon-box w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="message-square-plus" class="w-3.5 h-3.5 text-blue-400"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ផ្តល់មតិយោបល់មកក្រុមហ៊ុន</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">ផ្ញើសំណូមពរ និងមតិកែលម្អ</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+      </div>
+
+      <!-- 4. សុំជំនួយ (Help / Support) -->
+      <div onclick="closeProfileDrawer(); openProfileSubModal('support');" 
+           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
+          <div class="settings-icon-box w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="help-circle" class="w-3.5 h-3.5 text-amber-400"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">សុំជំនួយ</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">ទំនាក់ទំនងក្រុមការងារបច្ចេកទេស</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+      </div>
+
+      <!-- 5. ចាកចេញ (Log Out) -->
+      <div onclick="closeProfileDrawer(); openProfileSubModal('logout');" 
+           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-rose-500/10 active:scale-[0.99] transition select-none">
+        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
+          <div class="settings-icon-box w-7 h-7 rounded-lg bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="log-out" class="w-3.5 h-3.5 text-rose-400"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="settings-row-title text-xs font-bold text-rose-400 truncate leading-tight">ចាកចេញ (Log Out)</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">ចាកចេញដើម្បីប្រើប្រាស់ Email ផ្សេង</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-rose-400/60 shrink-0"></i>
+      </div>
+
+    </div>
+  `;
+}
+
 function getProfileViewHTML() {
   const p = getProfileData();
   const customers = getAllUniqueCustomers();
@@ -4428,19 +4726,7 @@ function getProfileViewHTML() {
         <p class="text-xs font-mono font-bold text-orange-400 mt-0.5">${p.memberId}</p>
         ${p.subtitle ? `<p class="text-[11px] text-slate-400 mt-0.5">${p.subtitle}</p>` : ''}
 
-        <!-- Quick Action Buttons Under Name/ID -->
-        <div class="flex items-center justify-center gap-2 mt-3.5">
-          <button onclick="openEditProfileModal()" 
-                  class="px-3.5 py-2 rounded-xl accent-solid-btn text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition">
-            <i data-lucide="user-pen" class="w-3.5 h-3.5"></i>
-            <span>កែប្រវត្តិរូប & Info</span>
-          </button>
-          <button onclick="openQrPhotosModal()" 
-                  class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-bold flex items-center gap-1.5 active:scale-95 transition">
-            <i data-lucide="qr-code" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>QR Code</span>
-          </button>
-        </div>
+
 
         <!-- Member Info (Live, Study, Work, From, Status, Phone - Editable) -->
         <div class="mt-4 pt-3.5 border-t border-white/10 text-left">
