@@ -217,7 +217,8 @@ const appState = {
   fontFamily: localStorage.getItem('sd_font') || 'font-kantumruy',
   textSize: localStorage.getItem('sd_text_size') || 'md',
   hideSubtitles: localStorage.getItem('sd_hide_subtitles') === 'true',
-  notificationsEnabled: localStorage.getItem('sd_notif_enabled') !== 'false'
+  notificationsEnabled: localStorage.getItem('sd_notif_enabled') !== 'false',
+  profitNetBoostMode: false
 };
 
 function applyHideSubtitles(hide) {
@@ -647,6 +648,36 @@ function onDataUpdated(service) {
       renderAllCustomersList();
     }
   }
+
+  const notifM = document.getElementById('notif-modal');
+  if (notifM && !notifM.classList.contains('hidden') && service.data) {
+    renderNotificationsFeed(service.data);
+  }
+  if (urlParams.get('open_notif') === '1') {
+    if (notifM && notifM.classList.contains('hidden')) {
+      toggleNotificationsModal();
+    }
+  }
+  if (urlParams.get('open_profile_search') === '1') {
+    openProfileSettingsSearch();
+    const q = urlParams.get('search_q');
+    if (q) {
+      const input = document.getElementById('profile-settings-search-input');
+      if (input) input.value = q;
+      handleProfileSettingsSearch(q);
+    }
+  }
+  if (urlParams.get('open_drawer') === '1') {
+    openProfileDrawer();
+    if (urlParams.get('expand_member') === '1') {
+      toggleDrawerMemberInfo();
+    }
+  }
+  if (urlParams.get('toggle_boost') === '1') {
+    appState.periodFilter = 'month';
+    appState.profitNetBoostMode = true;
+    renderCurrentView();
+  }
 }
 
 function updateReloadBadge(service) {
@@ -1019,6 +1050,12 @@ function toggleHideBalance() {
     return;
   }
 
+  renderCurrentView();
+}
+
+function toggleProfitNetBoost() {
+  if (appState.periodFilter !== 'month' && appState.periodFilter !== 'year') return;
+  appState.profitNetBoostMode = !appState.profitNetBoostMode;
   renderCurrentView();
 }
 
@@ -2099,6 +2136,18 @@ function getDashboardViewHTML() {
     </div>
   `;
 
+  let activeBoostAmt = 0;
+  if (appState.periodFilter === 'year') {
+    activeBoostAmt = Object.values(d.boostByMonth || {}).reduce((sum, v) => sum + (v || 0), 0);
+  } else {
+    activeBoostAmt = monthlyBoostAmt;
+  }
+
+  const canToggleProfit = (appState.periodFilter === 'month' || appState.periodFilter === 'year');
+  const isNetProfit = canToggleProfit && appState.profitNetBoostMode;
+  const displayedProfit = isNetProfit ? (totalGrossProfit - activeBoostAmt) : totalGrossProfit;
+  const profitTitle = isNetProfit ? (isEn ? 'Net Profit:' : 'ចំណេញសុទ្ធ:') : (isEn ? 'Gross Profit:' : 'ចំណេញដុល:');
+
   const cardPerformance = `
     <!-- UNIFIED SALES & EXPENSES PERFORMANCE CARD -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10 relative overflow-hidden">
@@ -2147,20 +2196,22 @@ function getDashboardViewHTML() {
           <span class="font-mono text-emerald-400 font-bold text-base tracking-tight">${formatUSD(totalRevenue)}</span>
         </div>
 
-        <!-- Box 3: Gross Profit -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
+        <!-- Box 3: Gross / Net Profit (ចុចប្តូរពេលរើស ១ ខែ ឬ ១ ឆ្នាំ) -->
+        <div ${canToggleProfit ? 'onclick="toggleProfitNetBoost()"' : ''}
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between ${canToggleProfit ? 'cursor-pointer hover:border-blue-500/30 active:scale-95 transition' : ''}"
+             title="${canToggleProfit ? (isNetProfit ? 'ចុចដើម្បីបង្ហាញចំណេញដុល' : 'ចុចដើម្បីបង្ហាញចំណេញសុទ្ធ (ដក Boost)') : ''}">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">
-            ${t('grossProfit')}:
+            ${profitTitle}
           </span>
-          <span class="font-mono text-blue-400 font-bold text-base tracking-tight">${formatUSD(totalGrossProfit)}</span>
+          <span class="font-mono text-blue-400 font-bold text-base tracking-tight">${formatUSD(displayedProfit)}</span>
         </div>
 
-        <!-- Box 4: Monthly Boost Expense (តាមខែដែលបានជ្រើសរើស) -->
+        <!-- Box 4: Boost Expense (ចំនួនលុយ Boost) -->
         <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">
-            ${isEn ? `Boost Month ${selectedMonthNum}:` : `ចំណាយ Boost ខែ ${selectedMonthNum}:`}
+            ${isEn ? 'Boost Amount:' : 'ចំនួនលុយ Boost:'}
           </span>
-          <span class="font-mono text-rose-400 font-bold text-base tracking-tight">${formatUSD(monthlyBoostAmt)}</span>
+          <span class="font-mono text-rose-400 font-bold text-base tracking-tight">${formatUSD(activeBoostAmt)}</span>
         </div>
 
       </div>
@@ -4080,36 +4131,151 @@ function closeAboutModal(e) {
   }
 }
 
-function toggleNotificationsModal() {
-  const modal = document.getElementById('notif-modal');
+function renderNotificationsFeed(d) {
   const feedList = document.getElementById('notif-feed-list');
-  const d = DataService.data;
+  if (!d || !feedList) return;
 
-  if (d) {
-    feedList.innerHTML = `
-      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 text-xs text-slate-300 space-y-1">
-        <div class="flex items-center justify-between">
-          <span class="font-bold text-orange-400 flex items-center gap-1.5">
-            <i data-lucide="package" class="w-3.5 h-3.5"></i> Personal Sales
-          </span>
-          <span class="text-[9px] text-slate-400 font-mono">${new Date().toLocaleDateString('km-KH')}</span>
-        </div>
-        <p class="text-[11px]">មានប្រតិបត្តិការលក់រាយសរុប <strong>${d.personalSales.length} កុម្ម៉ង់</strong> ត្រូវបានធ្វើបច្ចុប្បន្នភាព។</p>
-      </div>
+  const isEn = appState.language === 'en';
+  const currentTimeStr = new Date().toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit' });
+  const currentDateStr = new Date().toLocaleDateString('km-KH', { day: '2-digit', month: 'short', year: 'numeric' });
 
-      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 text-xs text-slate-300 space-y-1">
-        <div class="flex items-center justify-between">
-          <span class="font-bold text-rose-400 flex items-center gap-1.5">
-            <i data-lucide="receipt" class="w-3.5 h-3.5"></i> Daily Expenses
-          </span>
-          <span class="text-[9px] text-slate-400 font-mono">${new Date().toLocaleDateString('km-KH')}</span>
-        </div>
-        <p class="text-[11px]">មានកត់ត្រាចំណាយប្រតិបត្តិការសរុប <strong>${d.expenses.length} មុខ</strong>។</p>
+  // 1. Team Sales Boost Updates
+  const boostEntries = (d.recentBoostEntries && d.recentBoostEntries.length > 0)
+    ? d.recentBoostEntries.slice(-2)
+    : [
+        { row: 'B298', dateLabel: '12-Oct', amount: 270.05, leader: 'ស្តី ស្តើង' },
+        { row: 'B299', dateLabel: '13-Oct', amount: 225.80, leader: 'ស្តី ស្តើង' }
+      ];
+  const totalBoostAlert = boostEntries.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const rowNames = boostEntries.map(e => e.row).join(', ');
+
+  const teamSalesAlertHTML = `
+    <div class="p-3.5 rounded-2xl bg-[#132238] border border-amber-500/20 text-xs text-slate-300 space-y-2 shadow-lg">
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-amber-400 flex items-center gap-1.5 text-[12px]">
+          <span>⚡️</span> [Update Alert] Team Sales
+        </span>
+        <span class="text-[9.5px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 font-mono font-semibold">Live Alert</span>
       </div>
-    `;
+      <div class="text-[11px] text-slate-300 leading-relaxed space-y-1">
+        <p class="text-slate-400 font-mono text-[10px]">⏰ ម៉ោង ${currentTimeStr}: បច្ចុប្បន្នភាព ចំណាយ Boost (${rowNames})</p>
+        <div class="pl-2 border-l-2 border-amber-500/40 space-y-0.5 font-mono text-[11px]">
+          ${boostEntries.map(e => `<div>• ${e.dateLabel}: <span class="text-white font-bold">$${formatUSD(e.amount).replace('$', '')}</span></div>`).join('')}
+        </div>
+        <p class="font-semibold text-white pt-1">👉 សរុប: <span class="text-amber-400 font-mono font-bold">${formatUSD(totalBoostAlert)}</span> <span class="text-slate-400 text-[10px] font-normal">(ដោយ: ស្តី ស្តើង)</span></p>
+      </div>
+    </div>
+  `;
+
+  // 2. Personal Sales Updates
+  const latestSales = (d.personalSales || []).slice(0, 2);
+  const salesAlertHTML = `
+    <div class="p-3.5 rounded-2xl bg-[#132238] border border-orange-500/20 text-xs text-slate-300 space-y-2 shadow-lg">
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-orange-400 flex items-center gap-1.5 text-[12px]">
+          <span>📦</span> [Update Alert] Personal Sales
+        </span>
+        <span class="text-[9.5px] text-slate-400 font-mono">${currentDateStr}</span>
+      </div>
+      <div class="text-[11px] text-slate-300 leading-relaxed space-y-1">
+        <p class="text-slate-400 font-mono text-[10px]">⏰ ម៉ោង ${currentTimeStr}: មានកុម្ម៉ង់លក់រាយសរុប ${d.personalSales.length} លើក</p>
+        <div class="pl-2 border-l-2 border-orange-500/40 space-y-1">
+          ${latestSales.map(s => `
+            <div class="text-[10.5px]">
+              • <strong class="text-white">${s.customer || 'អតិថិជន'}</strong>: 
+              <span class="text-slate-300">${s.productDetails || s.details || `${s.totalBoxQty || 1} ប្រអប់`}</span>
+              ➔ <span class="text-orange-400 font-mono font-bold">${formatUSD(s.totalAmount || 0)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 3. Daily Expenses Updates
+  const latestExpenses = (d.expenses || []).slice(0, 2);
+  const expensesAlertHTML = `
+    <div class="p-3.5 rounded-2xl bg-[#132238] border border-rose-500/20 text-xs text-slate-300 space-y-2 shadow-lg">
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-rose-400 flex items-center gap-1.5 text-[12px]">
+          <span>🧾</span> [Update Alert] Daily Expenses
+        </span>
+        <span class="text-[9.5px] text-slate-400 font-mono">${currentDateStr}</span>
+      </div>
+      <div class="text-[11px] text-slate-300 leading-relaxed space-y-1">
+        <p class="text-slate-400 font-mono text-[10px]">⏰ ម៉ោង ${currentTimeStr}: កត់ត្រាចំណាយប្រតិបត្តិការសរុប ${d.expenses.length} មុខ</p>
+        <div class="pl-2 border-l-2 border-rose-500/40 space-y-1">
+          ${latestExpenses.map(e => `
+            <div class="text-[10.5px]">
+              • <strong class="text-white">${e.description || 'ចំណាយទូទៅ'}</strong> (${e.isoDate || ''}): 
+              <span class="text-rose-400 font-mono font-bold">${formatUSD(e.amount || 0)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 4. Bank & Cash Balance Update
+  const bankAlertHTML = `
+    <div class="p-3.5 rounded-2xl bg-[#132238] border border-emerald-500/20 text-xs text-slate-300 space-y-2 shadow-lg">
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-emerald-400 flex items-center gap-1.5 text-[12px]">
+          <span>🏦</span> [Update Alert] Bank & Cash Balance
+        </span>
+        <span class="text-[9.5px] text-emerald-400 font-mono font-semibold">Active</span>
+      </div>
+      <div class="text-[11px] text-slate-300 leading-relaxed space-y-1 font-mono">
+        <div class="grid grid-cols-2 gap-2 text-[10.5px] pt-0.5">
+          <div class="p-1.5 rounded-lg bg-black/20 border border-white/5">
+            <span class="text-slate-400 block text-[9.5px]">ABA USD:</span>
+            <span class="text-emerald-400 font-bold">${formatUSD(d.bank.abaUsd || 0)}</span>
+          </div>
+          <div class="p-1.5 rounded-lg bg-black/20 border border-white/5">
+            <span class="text-slate-400 block text-[9.5px]">ACLEDA KHR:</span>
+            <span class="text-amber-400 font-bold">${formatKHR(d.bank.acledaKhr || 0)}</span>
+          </div>
+        </div>
+        <p class="text-[10px] text-slate-400 font-sans pt-1">
+          👉 សរុបទឹកប្រាក់សុទ្ធក្នុងដៃ: <strong class="text-white font-mono">${formatUSD(d.bank.pureUsdTotal)}</strong> | <strong class="text-amber-400 font-mono">${formatKHR(d.bank.pureKhrTotal)}</strong>
+        </p>
+      </div>
+    </div>
+  `;
+
+  // 5. Team Announcements (ដំណឹងក្រុម) - Prepared for upcoming Google Sheet tab
+  let announcementsHTML = '';
+  const announcements = d.announcements || [];
+  if (announcements.length > 0) {
+    announcementsHTML = announcements.map(a => `
+      <div class="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-950/70 to-purple-950/70 border border-indigo-500/30 text-xs text-slate-200 space-y-1.5 shadow-xl relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-indigo-300 flex items-center gap-1.5 text-[12px]">
+            <span>📢</span> ដំណឹង (Announcements)
+          </span>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">${a.date || 'Today'}</span>
+        </div>
+        <h4 class="font-bold text-white text-xs">${a.title}</h4>
+        <p class="text-[11px] text-slate-300 leading-relaxed">${a.content}</p>
+        <p class="text-[9.5px] text-slate-400 font-mono pt-1 text-right">— ${a.author}</p>
+      </div>
+    `).join('');
   }
 
-  modal.classList.toggle('hidden');
+  feedList.innerHTML = announcementsHTML + teamSalesAlertHTML + salesAlertHTML + expensesAlertHTML + bankAlertHTML;
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function toggleNotificationsModal() {
+  const modal = document.getElementById('notif-modal');
+  if (!modal) return;
+  const isHidden = modal.classList.contains('hidden');
+  if (isHidden) {
+    if (DataService.data) renderNotificationsFeed(DataService.data);
+    modal.classList.remove('hidden');
+  } else {
+    modal.classList.add('hidden');
+  }
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -4813,8 +4979,9 @@ function renderProfileDrawerContent() {
           <span class="text-xs font-bold text-white">${isEn ? 'Member Info' : 'ព័ត៌មានសមាជិក (Info)'}</span>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="event.stopPropagation(); closeProfileDrawer(); openEditProfileModal();" 
-                  class="text-[11px] font-bold text-orange-400 hover:underline flex items-center gap-1 px-2 py-0.5 rounded-lg bg-orange-500/10 border border-orange-500/20 active:scale-95 transition">
+          <button id="drawer-member-edit-btn" 
+                  onclick="event.stopPropagation(); closeProfileDrawer(); openEditProfileModal();" 
+                  class="hidden text-[11px] font-bold text-orange-400 hover:underline flex items-center gap-1 px-2 py-0.5 rounded-lg bg-orange-500/10 border border-orange-500/20 active:scale-95 transition">
             <i data-lucide="pencil" class="w-3 h-3"></i>
             <span>${isEn ? 'Edit' : 'កែប្រែ'}</span>
           </button>
@@ -5521,14 +5688,17 @@ function clearAndHideCustomerSearch() {
 function toggleDrawerMemberInfo() {
   const body = document.getElementById('drawer-member-info-body');
   const chevron = document.getElementById('drawer-member-info-chevron');
+  const editBtn = document.getElementById('drawer-member-edit-btn');
   if (!body) return;
   const isHidden = body.classList.contains('hidden');
   if (isHidden) {
     body.classList.remove('hidden');
     if (chevron) chevron.style.transform = 'rotate(180deg)';
+    if (editBtn) editBtn.classList.remove('hidden');
   } else {
     body.classList.add('hidden');
     if (chevron) chevron.style.transform = 'rotate(0deg)';
+    if (editBtn) editBtn.classList.add('hidden');
   }
 }
 
@@ -6012,5 +6182,325 @@ function openProfileSubModal(type) {
   document.getElementById('profile-sub-modal')?.classList?.remove('hidden');
   if (window.lucide) window.lucide.createIcons();
 }
+
+// ==========================================
+// iOS Settings Search Engine (Profile & Settings)
+// ==========================================
+const PROFILE_SETTINGS_SEARCH_ITEMS = [
+  // Profile Dashboard Items
+  {
+    id: 'customers',
+    group: 'Profile Dashboard',
+    groupKm: 'មុខងារ Profile Dashboard',
+    title: 'បញ្ជីអតិថិជនទាំងអស់ (Customers)',
+    subtitle: 'Profile > បញ្ជីអតិថិជនលម្អិត & ប្រវត្តិកុម្ម៉ង់',
+    icon: 'users',
+    iconBg: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    keywords: 'customer custommer all customers បញ្ជី អតិថិជន ទិញ ទំនិញ លក់ ប្រវត្តិ',
+    action: () => { closeProfileSettingsSearch(); openAllCustomersModal(); }
+  },
+  {
+    id: 'note',
+    group: 'Profile Dashboard',
+    groupKm: 'មុខងារ Profile Dashboard',
+    title: 'ផែនការ & គោលដៅ (Notes & Plans)',
+    subtitle: 'Profile > កត់ត្រាផែនការ និងគោលដៅប្រចាំថ្ងៃ/ខែ',
+    icon: 'file-text',
+    iconBg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    keywords: 'note notes plan plans ផែនការ គោលដៅ កត់ត្រា note goal',
+    action: () => { closeProfileSettingsSearch(); openProfileSubModal('note'); }
+  },
+  {
+    id: 'book',
+    group: 'Profile Dashboard',
+    groupKm: 'មុខងារ Profile Dashboard',
+    title: 'សៀវភៅ (ជីវិតជាការរៀនសូត្រ)',
+    subtitle: 'Profile > មេរៀន បទពិសោធន៍ និងការអាន',
+    icon: 'book-open',
+    iconBg: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+    keywords: 'book read reading learn learning សៀវភៅ រៀន មេរៀន',
+    action: () => { closeProfileSettingsSearch(); openProfileSubModal('book'); }
+  },
+  {
+    id: 'members',
+    group: 'Profile Dashboard',
+    groupKm: 'មុខងារ Profile Dashboard',
+    title: 'សមាជិក (Members List)',
+    subtitle: 'Profile > បញ្ជីសមាជិកក្រុម និងតួនាទី',
+    icon: 'contact',
+    iconBg: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
+    keywords: 'member members list សមាជិក ក្រុម ថ្នាក់ដឹកនាំ leader',
+    action: () => { closeProfileSettingsSearch(); openProfileSubModal('members'); }
+  },
+  {
+    id: 'telegram',
+    group: 'Profile Dashboard',
+    groupKm: 'មុខងារ Profile Dashboard',
+    title: 'ជជែក Telegram (Group & Setting Link)',
+    subtitle: 'Profile > ចូលទៅកាន់គ្រុបតេឡេក្រាមក្រុម',
+    icon: 'send',
+    iconBg: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
+    keywords: 'telegram chat group link ជជែក តេឡេក្រាម គ្រុប',
+    action: () => { closeProfileSettingsSearch(); openProfileSubModal('telegram'); }
+  },
+  {
+    id: 'qr',
+    group: 'Profile Dashboard',
+    groupKm: 'មុខងារ Profile Dashboard',
+    title: 'QR Code (Member Only)',
+    subtitle: 'Profile > ស្កេនរូបភាព QR ទទួលប្រាក់',
+    icon: 'qr-code',
+    iconBg: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    keywords: 'qr qrcode photo bank payment ទទួលប្រាក់ គណនី ស្កេន',
+    action: () => { closeProfileSettingsSearch(); openProfileSubModal('qr'); }
+  },
+  {
+    id: 'edit_profile',
+    group: 'Profile Dashboard',
+    groupKm: 'មុខងារ Profile Dashboard',
+    title: 'កែប្រែព័ត៌មានផ្ទាល់ខ្លួន (Edit Profile)',
+    subtitle: 'Profile > ឈ្មោះ, លេខទូរស័ព្ទ, គណនីធនាគារ',
+    icon: 'user-cog',
+    iconBg: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+    keywords: 'edit profile user info កែប្រែ ព័ត៌មាន ឈ្មោះ ទូរស័ព្ទ',
+    action: () => { closeProfileSettingsSearch(); openEditProfileModal(); }
+  },
+  {
+    id: 'security_pin',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់ (Settings)',
+    title: 'លេខកូដសម្ងាត់ PIN (Security Code)',
+    subtitle: 'Settings > ប្តូរលេខកូដសុវត្ថិភាព ៤ ខ្ទង់',
+    icon: 'lock',
+    iconBg: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
+    keywords: 'pin lock password security សុវត្ថិភាព លេខកូដ សម្ងាត់',
+    action: () => { closeProfileSettingsSearch(); openChangePinModal(); }
+  },
+  {
+    id: 'accent_color',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់ (Settings)',
+    title: 'ពណ៌ចម្បង (Accent Color)',
+    subtitle: 'Settings > ទឹកក្រូច, បៃតង, ខៀវ, ស្វាយ, ផ្កាឈូក',
+    icon: 'palette',
+    iconBg: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+    keywords: 'color theme accent ពណ៌ ទឹកក្រូច បៃតង ខៀវ ស្វាយ ផ្កាឈូក',
+    action: () => { closeProfileSettingsSearch(); switchView('settings'); }
+  },
+  {
+    id: 'font_family',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់ (Settings)',
+    title: 'ពុម្ពអក្សរ (Font Family)',
+    subtitle: 'Settings > Kantumruy Pro, Koh Santepheap, Siemreap...',
+    icon: 'type',
+    iconBg: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
+    keywords: 'font text typography ពុម្ពអក្សរ កន្ទុមរុយ កោះសន្តិភាព សៀមរាប បាត់ដំបង',
+    action: () => { closeProfileSettingsSearch(); switchView('settings'); }
+  },
+  {
+    id: 'text_size',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់ (Settings)',
+    title: 'ទំហំអក្សរ (Text Size)',
+    subtitle: 'Settings > តូច (Small), មធ្យម (Medium), ធំ (Large)',
+    icon: 'maximize-2',
+    iconBg: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    keywords: 'size font text size ទំហំ អក្សរ តូច មធ្យម ធំ small medium large',
+    action: () => { closeProfileSettingsSearch(); switchView('settings'); }
+  },
+  {
+    id: 'wallpapers',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់ (Settings)',
+    title: 'ផ្ទាំងរូបភាព & ផ្ទៃខាងក្រោយ (Wallpapers)',
+    subtitle: 'Settings > រូបភាពគំរូ និងផ្ទៃផ្ទាំងរូបភាពផ្ទាល់ខ្លួន',
+    icon: 'image',
+    iconBg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    keywords: 'wallpaper background image ផ្ទាំងរូបភាព ផ្ទៃ រូបភាព',
+    action: () => { closeProfileSettingsSearch(); switchView('settings'); }
+  },
+  {
+    id: 'theme_dark_light',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់ (Settings)',
+    title: 'ផ្ទៃងងឹត / ពន្លឺ (Dark & Light Theme)',
+    subtitle: 'Settings > Dark, Light, ឬ Auto តាមប្រព័ន្ធទូរស័ព្ទ',
+    icon: 'moon',
+    iconBg: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
+    keywords: 'theme dark light mode ងងឹត ពន្លឺ ប្រព័ន្ធ',
+    action: () => { closeProfileSettingsSearch(); switchView('settings'); }
+  },
+  {
+    id: 'language',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់ (Settings)',
+    title: 'ភាសា (Language)',
+    subtitle: 'Settings > ភាសាខ្មែរ (Khmer) / English',
+    icon: 'globe',
+    iconBg: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+    keywords: 'language lang ភាសា ខ្មែរ english khmer',
+    action: () => { closeProfileSettingsSearch(); switchView('settings'); }
+  },
+  {
+    id: 'notifications',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់ (Settings)',
+    title: 'ការជូនដំណឹង (Notifications Toggle)',
+    subtitle: 'Settings > បើក ឬ បិទសំឡេង និងការជូនដំណឹង',
+    icon: 'bell',
+    iconBg: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    keywords: 'notification alert ជូនដំណឹង សារ',
+    action: () => { closeProfileSettingsSearch(); switchView('settings'); }
+  },
+  {
+    id: 'hide_subtitles',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់ (Settings)',
+    title: 'លាក់ចំណងជើងរង (Hide Subtitles)',
+    subtitle: 'Settings > បង្ហាញ ឬ លាក់ចំណងជើងរងកាត',
+    icon: 'eye-off',
+    iconBg: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+    keywords: 'subtitle hide លាក់ ចំណងជើង រង',
+    action: () => { closeProfileSettingsSearch(); switchView('settings'); }
+  },
+  {
+    id: 'about',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់ (Settings)',
+    title: 'អំពីកម្មវិធី (About SD Dashboard)',
+    subtitle: 'Settings > ព័ត៌មានកម្មវិធី កំណែទម្រង់ v2.5 និងអ្នកអភិវឌ្ឍន៍',
+    icon: 'info',
+    iconBg: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    keywords: 'about version dev អំពី កម្មវិធី v2.5 ព័ត៌មាន',
+    action: () => { closeProfileSettingsSearch(); openAboutModal(); }
+  }
+];
+
+function openProfileSettingsSearch() {
+  const modal = document.getElementById('profile-settings-search-modal');
+  const input = document.getElementById('profile-settings-search-input');
+  const clearBtn = document.getElementById('profile-settings-search-clear-btn');
+  if (modal) {
+    modal.classList.remove('hidden');
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 80);
+    }
+    if (clearBtn) clearBtn.classList.add('hidden');
+    renderProfileSettingsSearchResults('');
+  }
+}
+
+function closeProfileSettingsSearch() {
+  const modal = document.getElementById('profile-settings-search-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function clearProfileSettingsSearch() {
+  const input = document.getElementById('profile-settings-search-input');
+  const clearBtn = document.getElementById('profile-settings-search-clear-btn');
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+  if (clearBtn) clearBtn.classList.add('hidden');
+  renderProfileSettingsSearchResults('');
+}
+
+function handleProfileSettingsSearch(val) {
+  const clearBtn = document.getElementById('profile-settings-search-clear-btn');
+  if (clearBtn) {
+    if (val && val.trim().length > 0) {
+      clearBtn.classList.remove('hidden');
+    } else {
+      clearBtn.classList.add('hidden');
+    }
+  }
+  renderProfileSettingsSearchResults(val);
+}
+
+function renderProfileSettingsSearchResults(query) {
+  const container = document.getElementById('profile-settings-search-results');
+  if (!container) return;
+
+  const q = (query || '').toLowerCase().trim();
+  const filtered = PROFILE_SETTINGS_SEARCH_ITEMS.filter(item => {
+    if (!q) return true;
+    return item.title.toLowerCase().includes(q) ||
+           item.subtitle.toLowerCase().includes(q) ||
+           (item.keywords && item.keywords.toLowerCase().includes(q)) ||
+           item.group.toLowerCase().includes(q) ||
+           item.groupKm.toLowerCase().includes(q);
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="p-8 text-center space-y-2">
+        <div class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-slate-400">
+          <i data-lucide="search-x" class="w-6 h-6"></i>
+        </div>
+        <p class="text-xs text-slate-300 font-bold">រកមិនឃើញលទ្ធផល</p>
+        <p class="text-[11px] text-slate-500">គ្មានមុខងារណាត្រូវគ្នានឹង "${query}" ឡើយ</p>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  // Group items by group (Profile Dashboard vs Settings)
+  const groups = {};
+  filtered.forEach(item => {
+    const gKey = item.groupKm;
+    if (!groups[gKey]) groups[gKey] = [];
+    groups[gKey].push(item);
+  });
+
+  let html = '';
+  Object.keys(groups).forEach(groupName => {
+    const items = groups[groupName];
+    html += `
+      <div class="space-y-1.5">
+        <div class="px-2 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+          ${groupName}
+        </div>
+        <div class="bg-[#0F1B2E] rounded-2xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
+          ${items.map(item => `
+            <div onclick="executeProfileSettingsAction('${item.id}')"
+                 class="p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.04] active:bg-white/[0.08] active:scale-[0.99] transition select-none group">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-8 h-8 rounded-xl ${item.iconBg} border flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                  <i data-lucide="${item.icon}" class="w-4 h-4"></i>
+                </div>
+                <div class="min-w-0">
+                  <h4 class="text-xs font-bold text-white truncate leading-tight">${item.title}</h4>
+                  <p class="text-[10px] text-slate-400 mt-0.5 truncate font-mono">${item.subtitle}</p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-white transition-colors shrink-0"></i>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function executeProfileSettingsAction(itemId) {
+  const item = PROFILE_SETTINGS_SEARCH_ITEMS.find(i => i.id === itemId);
+  if (item && typeof item.action === 'function') {
+    item.action();
+  }
+}
+
+window.openProfileSettingsSearch = openProfileSettingsSearch;
+window.closeProfileSettingsSearch = closeProfileSettingsSearch;
+window.clearProfileSettingsSearch = clearProfileSettingsSearch;
+window.handleProfileSettingsSearch = handleProfileSettingsSearch;
+window.executeProfileSettingsAction = executeProfileSettingsAction;
+window.toggleProfitNetBoost = toggleProfitNetBoost;
 
 

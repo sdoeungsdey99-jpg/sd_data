@@ -374,6 +374,7 @@ window.DataService = {
       const targetsByMonth = {};
       const teamLeadersByMonth = {};
       const boostByMonth = {};
+      const recentBoostEntries = [];
       const leaderNames = ['ស្តី ស្តើង', 'ឆេង សុធី', 'ឆេង រ៉ាស៊ុង'];
 
       if (Array.isArray(teamSalesCsvRows) && teamSalesCsvRows.length > 300) {
@@ -403,7 +404,27 @@ window.DataService = {
           for (let r_i = mInfo.startDayRow; r_i <= mInfo.endDayRow && r_i < teamSalesCsvRows.length; r_i++) {
             const dayRow = teamSalesCsvRows[r_i];
             if (!dayRow) continue;
-            sdeyBoost += cleanNumber(dayRow[1]) || 0;
+            const bVal = cleanNumber(dayRow[1]) || 0;
+            sdeyBoost += bVal;
+            if (bVal > 0) {
+              const dayStr = String(dayRow[0] || '').trim();
+              let dateLabel = dayStr;
+              if (/^\d+$/.test(dayStr)) {
+                dateLabel = `${dayStr}-Oct`;
+              } else if (dayStr.includes('-')) {
+                const parts = dayStr.split('-');
+                dateLabel = `${parts[0]}-${parts[1]}`;
+              }
+              if (!dateLabel) dateLabel = `Day ${r_i - mInfo.startDayRow + 1}`;
+              recentBoostEntries.push({
+                row: `B${r_i + 1}`,
+                day: dayStr || (r_i - mInfo.startDayRow + 1),
+                dateLabel: dateLabel,
+                month: mInfo.month,
+                amount: bVal,
+                leader: 'ស្តី ស្តើង'
+              });
+            }
             sotheyBoost += cleanNumber(dayRow[9]) || 0;
             rasungBoost += cleanNumber(dayRow[17]) || 0;
             for (let s = 0; s < 5; s++) {
@@ -504,6 +525,17 @@ window.DataService = {
         teamLeadersByMonth,
         targetsByMonth,
         boostByMonth,
+        recentBoostEntries,
+        announcements: [
+          {
+            id: 1,
+            title: 'ស្វាគមន៍ការប្រើប្រាស់ SD Dashboard v2.5',
+            date: '13-Oct-2026',
+            author: 'ស្តី ស្តើង (Leader)',
+            urgent: false,
+            content: 'សូមជម្រាបជូនថ្នាក់ដឹកនាំ និងសមាជិកក្រុមទាំងអស់ ឥឡូវនេះប្រព័ន្ធត្រូវបានអាប់ដេតមុខងារស្វែងរកថ្មី និងប្រព័ន្ធត្រួតពិនិត្យទិន្នន័យផ្ទាល់។'
+          }
+        ],
         meta: {
           totalSalesCount: personalSales.length,
           totalExpensesCount: expenses.length
