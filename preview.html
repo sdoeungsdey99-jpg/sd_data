@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="km" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SD Data - iOS Liquid Fintech ERP</title>
+
+  <!-- iOS Status Bar & Theme Color (Matches Light & Dark Mode seamlessly) -->
+  <meta name="theme-color" id="theme-color-meta" content="#070D18">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="SD Data">
+  <script>
+    (function() {
+      try {
+        var t = localStorage.getItem('sd_theme') || 'dark';
+        var isLight = false;
+        if (t === 'light') {
+          isLight = true;
+        } else if (t === 'auto') {
+          isLight = window.matchMedia && !window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        if (isLight) {
+          document.documentElement.classList.add('light-theme');
+          var m = document.getElementById('theme-color-meta');
+          if (m) m.setAttribute('content', '#FFFFFF');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- iOS App Icon (Add to Home Screen) -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="apple-touch-icon-180.png">
+  <link rel="shortcut icon" href="apple-touch-icon-180.png">
+
+  <!-- Google Fonts CDN: Kantumruy Pro, Battambang, Koulen, Noto Sans Khmer, Hanuman, Koh Santepheap, Siemreap, Bokor, Freehand -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Bokor&family=Freehand&family=Hanuman:wght@400;700&family=Kantumruy+Pro:wght@300;400;500;600;700&family=Koh+Santepheap:wght@400;700&family=Koulen&family=Noto+Sans+Khmer:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Siemreap&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Kantumruy Pro"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"SF Mono"', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+          },
+          colors: {
+            ios: {
+              bg: '#070D18',
+              card: '#0F1B2E',
+              border: '#1E2D4A',
+              orange: '#F97316',
+              amber: '#F59E0B',
+              blue: '#1877F2', /* Facebook Blue */
+              abaBlue: '#007AFF', /* iOS Accent */
+              emerald: '#10B981',
+              rose: '#F43F5E'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* iOS Glassmorphism & Liquid Glow */
+    .ios-glass {
+      background: rgba(15, 27, 46, 0.82);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .ios-glass-card {
+      background: linear-gradient(135deg, rgba(20, 36, 61, 0.88) 0%, rgba(10, 20, 36, 0.94) 100%);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .telegram-dock {
+      background: rgba(14, 24, 38, 0.88);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    }
+    .liquid-orange-glow {
+      box-shadow: 0 0 45px -8px rgba(249, 115, 22, 0.35);
+    }
+    .liquid-ambient-orange {
+      background: radial-gradient(circle, rgba(249, 115, 22, 0.22) 0%, rgba(249, 115, 22, 0) 70%);
+    }
+    .liquid-ambient-blue {
+      background: radial-gradient(circle, rgba(24, 119, 242, 0.22) 0%, rgba(24, 119, 242, 0) 70%);
+    }
+    /* Hide scrollbar */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Telegram Dock Bounce Interaction */
+    .dock-btn {
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dock-btn:active {
+      transform: scale(0.88);
+    }
+
+    /* ⚙️ Dock Micro-Animations */
+    .gear-spin {
+      transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dock-btn:hover .gear-spin,
+    .dock-btn.active-tab .gear-spin {
+      transform: rotate(60deg);
+    }
+
+    /* 📈 Analytics Growth Arrow Continuous Loop (Only Arrow, Bars Static) */
+    @keyframes arrowGlideContinuousLoop {
+      0%, 100% {
+        transform: translate(0, 0);
+      }
+      50% {
+        transform: translate(2.5px, -2.5px);
+      }
+    }
+    .chart-arrow-loop {
+      animation: arrowGlideContinuousLoop 1.8s infinite ease-in-out;
+    }
+
+    /* 🌐 Study A ⇄ 文 Diagonal Corner Swap Animation (No 'អ', Only A and 文 Swapping Positions) */
+    @keyframes diagonalSwapA {
+      0%, 40% {
+        transform: translate(4px, 3px) scale(1.05);
+        opacity: 1;
+      }
+      50%, 90% {
+        transform: translate(-4px, -3px) scale(0.92);
+        opacity: 0.95;
+      }
+      100% {
+        transform: translate(4px, 3px) scale(1.05);
+        opacity: 1;
+      }
+    }
+
+    @keyframes diagonalSwapWen {
+      0%, 40% {
+        transform: translate(-4px, -3px) scale(0.92);
+        opacity: 0.95;
+      }
+      50%, 90% {
+        transform: translate(4px, 3px) scale(1.05);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-4px, -3px) scale(0.92);
+        opacity: 0.95;
+      }
+    }
+
+    .diag-a { animation: diagonalSwapA 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
+    .diag-wen { animation: diagonalSwapWen 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /* ✨ Micro Celestial Glow (✨ Sparkle, ☀️ Ray, 🌙 Moon) */
+    @keyframes sparkleTwinkle {
+      0%, 100% {
+        transform: scale(0.7) rotate(0deg);
+        opacity: 0.35;
+      }
+      50% {
+        transform: scale(1.15) rotate(45deg);
+        opacity: 0.95;
+        filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.85));
+      }
+    }
+    .sparkle-sun-micro {
+      animation: sparkleTwinkle 2.8s infinite ease-in-out;
+    }
+
+    @keyframes starTwinkleMoon {
+      0%, 100% {
+        transform: scale(0.65) rotate(0deg);
+        opacity: 0.3;
+      }
+      50% {
+        transform: scale(1.1) rotate(35deg);
+        opacity: 0.9;
+        filter: drop-shadow(0 0 3px rgba(186, 230, 253, 0.85));
+      }
+    }
+    .sparkle-moon-micro {
+      animation: starTwinkleMoon 3.2s infinite ease-in-out;
+    }
+
+    /* ✨ Apsara Angel Float & Scale Animation */
+    @keyframes apsaraFloatBreath {
+      0%, 100% {
+        transform: translateY(0px) scale(0.96);
+      }
+      50% {
+        transform: translateY(5px) scale(1.04);
+      }
+    }
+    .apsara-animated {
+      animation: apsaraFloatBreath 4.5s ease-in-out infinite;
+      transform-origin: top right;
+      will-change: transform;
+    }
+
+    /* ☀️ Sun Ray Gentle Subtle Glow (Day 6AM - 6PM) - ពន្លឺរស្មីតិចៗ ស្រទន់ មិនភ្លឺខ្លាំង */
+    @keyframes sunRayPulse {
+      0%, 100% {
+        transform: scale(0.95) rotate(0deg);
+        opacity: 0.16;
+      }
+      50% {
+        transform: scale(1.08) rotate(30deg);
+        opacity: 0.28;
+      }
+    }
+    .celestial-sun-rays {
+      animation: sunRayPulse 8s ease-in-out infinite;
+    }
+
+    /* 🌕 Full Moon & Micro Stars Gentle Glow (Night 6PM - 6AM) - ព្រះចន្ទពេញបូរមីមូល ពន្លឺតិចៗស្រទន់ */
+    @keyframes fullMoonGlow {
+      0%, 100% {
+        opacity: 0.20;
+        transform: scale(0.96);
+        box-shadow: 0 0 10px rgba(254, 243, 199, 0.18), 0 0 20px rgba(251, 191, 36, 0.10);
+      }
+      50% {
+        opacity: 0.32;
+        transform: scale(1.04);
+        box-shadow: 0 0 16px rgba(254, 243, 199, 0.28), 0 0 30px rgba(251, 191, 36, 0.15);
+      }
+    }
+    .celestial-full-moon {
+      animation: fullMoonGlow 6s ease-in-out infinite;
+    }
+
+    @keyframes starTwinkleGlow {
+      0%, 100% {
+        opacity: 0.10;
+        transform: scale(0.82);
+      }
+      50% {
+        opacity: 0.32;
+        transform: scale(1.02);
+      }
+    }
+    .celestial-star-twinkle {
+      animation: starTwinkleGlow 4s ease-in-out infinite;
+    }
+
+    /* Strict Anti-Drift Lock: Prevent any horizontal swaying/rubberbanding on iPhone Safari */
+    html, body {
+      overflow-x: hidden !important;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      overscroll-behavior-x: none !important;
+    }
+    #app-container {
+      overflow-x: hidden !important;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Prevent Safari Callout & Enable 120Hz ProMotion Native Scroll strictly vertical */
+    *, *::before, *::after {
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      user-select: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+      outline: none !important;
+      box-sizing: border-box;
+    }
+    input, textarea {
+      -webkit-user-select: auto !important;
+      user-select: auto !important;
+    }
+    ::selection {
+      background: transparent !important;
+      color: inherit !important;
+    }
+    ::-moz-selection {
+      background: transparent !important;
+      color: inherit !important;
+    }
+    .ios-glass-card {
+      touch-action: pan-y !important;
+      -webkit-user-select: none !important;
+      user-select: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
+    }
+    .ios-glass-card:active {
+      transform: scale(0.985) !important;
+    }
+    .ios-touch-item {
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.18s ease, border-color 0.18s ease !important;
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-user-select: none !important;
+      user-select: none !important;
+    }
+    .ios-touch-item:active {
+      transform: scale(0.97) !important;
+    }
+    button, input, select, textarea {
+      -webkit-tap-highlight-color: transparent !important;
+      outline: none !important;
+    }
+    html {
+      height: 100%;
+      height: 100dvh;
+      background-color: #070D18;
+    }
+    html.light-theme {
+      background-color: #F8FAFC !important;
+    }
+    body {
+      min-height: 100%;
+      min-height: 100dvh;
+      height: 100dvh;
+      background-color: #070D18;
+    }
+    body.light-theme,
+    html.light-theme body,
+    html.light-theme #app-container {
+      background-color: #F8FAFC !important;
+    }
+    #main-content {
+      -webkit-overflow-scrolling: touch !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      overscroll-behavior-y: contain !important;
+      overscroll-behavior-x: none !important;
+      touch-action: pan-y !important;
+      scroll-behavior: auto !important;
+      padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 16px)) !important;
+    }
+    #top-header,
+    #sticky-filter-bar {
+      background-color: rgba(8, 18, 32, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    #top-header {
+      padding-top: env(safe-area-inset-top, 0px) !important;
+      height: calc(4rem + env(safe-area-inset-top, 0px)) !important;
+    }
+    html.light-theme #top-header,
+    body.light-theme #top-header,
+    html.light-theme #sticky-filter-bar,
+    body.light-theme #sticky-filter-bar {
+      background-color: #FFFFFF !important;
+      border-bottom-color: #E2E8F0 !important;
+    }
+    #sticky-filter-bar > div {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      border-radius: 14px;
+    }
+    html.light-theme #sticky-filter-bar > div,
+    body.light-theme #sticky-filter-bar > div {
+      background-color: #F1F5F9 !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    }
+    html.light-theme #sticky-filter-bar button:not(.accent-solid-btn),
+    body.light-theme #sticky-filter-bar button:not(.accent-solid-btn) {
+      color: #64748B !important;
+    }
+    html.light-theme #sticky-filter-bar button:not(.accent-solid-btn):hover,
+    body.light-theme #sticky-filter-bar button:not(.accent-solid-btn):hover {
+      background-color: #E2E8F0 !important;
+      color: #0F172A !important;
+    }
+    #main-content.settings-view-active {
+      padding-top: calc(0.75rem + env(safe-area-inset-top, 0px)) !important;
+      padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 16px)) !important;
+      overscroll-behavior-y: contain !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+
+    /* Native Local Fonts: AKbalthom & SN Fonts */
+    @font-face {
+      font-family: 'SN KH Simple';
+      src: url('fonts/SN%20KH%20SIMPLE.otf') format('opentype');
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Battambang';
+      src: url('fonts/Battambang-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Battambang';
+      src: url('fonts/Battambang-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Hanuman UI';
+      src: url('fonts/HanumanUI.ttf') format('truetype');
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Hanuman UI';
+      src: url('fonts/HanumanUI-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Bokor';
+      src: url('fonts/Bokor.ttf') format('truetype');
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'KhmerOS Moul';
+      src: url('fonts/KhmerOSMoul.ttf') format('truetype');
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'KhmerOS Freehand';
+      src: url('fonts/Freehand.ttf') format('truetype');
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'SN KH Rangerforce';
+      src: url('fonts/SN%20KH%20RANGERFORCE.ttf') format('truetype');
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'SN Kh Writhand';
+      src: url('fonts/SN%20Kh%20Writhand.otf') format('opentype');
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Siemreap';
+      src: url('fonts/Siemreap.ttf') format('truetype');
+      font-display: swap;
+    }
+
+    /* Font Family Overrides (100% Native iPhone 2026 Typography Standards) */
+    body.font-kantumruy {
+      font-family: 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Plus Jakarta Sans', sans-serif !important;
+    }
+    body.font-koh-santepheap {
+      font-family: 'Koh Santepheap', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Plus Jakarta Sans', sans-serif !important;
+    }
+    body.font-jakarta {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Kantumruy Pro', sans-serif !important;
+    }
+    body.font-battambang {
+      font-family: 'Battambang', 'Kantumruy Pro', sans-serif !important;
+    }
+    body.font-hanuman {
+      font-family: 'Hanuman', 'Hanuman UI', 'Kantumruy Pro', sans-serif !important;
+    }
+    body.font-koulen {
+      font-family: 'Koulen', cursive, 'Kantumruy Pro', sans-serif !important;
+    }
+    body.font-noto-sans-khmer {
+      font-family: 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Kantumruy Pro', sans-serif !important;
+    }
+    body.font-siemreap {
+      font-family: 'Siemreap', 'Kantumruy Pro', sans-serif !important;
+    }
+    body.font-bokor {
+      font-family: 'Bokor', 'Kantumruy Pro', cursive !important;
+    }
+    body.font-khmeros-moul {
+      font-family: 'KhmerOS Moul', 'Kantumruy Pro', sans-serif !important;
+    }
+    body.font-freehand {
+      font-family: 'KhmerOS Freehand', 'Kantumruy Pro', cursive !important;
+    }
+    body.font-sn-simple {
+      font-family: 'SN KH Simple', 'Kantumruy Pro', -apple-system, sans-serif !important;
+    }
+    body.font-sn-ranger {
+      font-family: 'SN KH Rangerforce', 'Kantumruy Pro', sans-serif !important;
+    }
+    body.font-sn-writhand {
+      font-family: 'SN Kh Writhand', 'Kantumruy Pro', cursive !important;
+    }
+
+    /* Brand Title Protection: Prevent broken subscript+vowel ligatures in "ស្តី ស្តើង" Home title */
+    body.font-battambang #header-normal h1,
+    body.font-siemreap #header-normal h1,
+    body.font-bokor #header-normal h1,
+    body.font-khmeros-moul #header-normal h1,
+    body.font-freehand #header-normal h1,
+    body.font-koulen #header-normal h1,
+    body.font-battambang .brand-title,
+    body.font-siemreap .brand-title,
+    body.font-bokor .brand-title,
+    body.font-khmeros-moul .brand-title,
+    body.font-freehand .brand-title,
+    body.font-koulen .brand-title,
+    body.font-battambang #about-modal h2,
+    body.font-siemreap #about-modal h2,
+    body.font-bokor #about-modal h2,
+    body.font-khmeros-moul #about-modal h2,
+    body.font-freehand #about-modal h2,
+    body.font-koulen #about-modal h2 {
+      font-family: 'Hanuman', 'Hanuman UI', 'Kantumruy Pro', -apple-system, sans-serif !important;
+      font-synthesis: none !important;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Card Titles & Khmer Typography: Prevent subscript/vowel detachment by keeping letter-spacing normal */
+    h1, h2, h3, h4, h5, h6,
+    .ios-glass-card h3,
+    .ios-glass-card h4,
+    body.font-battambang *,
+    body.font-siemreap *,
+    body.font-bokor *,
+    body.font-khmeros-moul *,
+    body.font-freehand * {
+      letter-spacing: normal;
+    }
+    .font-mono, [class*="font-mono"] {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
+
+    /* Text Scale Adjustments (5-Tier iOS Dynamic Type Scaling: 14 - 15.5 - 17 - 18.5 - 20) */
+    html.text-size-xs {
+      font-size: 14px;
+    }
+    html.text-size-sm {
+      font-size: 15.5px;
+    }
+    html.text-size-md {
+      font-size: 17px;
+    }
+    html.text-size-lg {
+      font-size: 18.5px;
+    }
+    html.text-size-xl {
+      font-size: 20px;
+    }
+
+    /* 5-Tier iOS Dynamic Type Font Slider & Tick Marks */
+    input[type="range"].font-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      width: 100%;
+      height: 28px;
+      margin: 0;
+      cursor: pointer;
+      outline: none;
+      position: relative;
+      z-index: 20;
+    }
+    input[type="range"].font-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 0 1px rgba(0, 0, 0, 0.3);
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+    input[type="range"].font-slider::-webkit-slider-thumb:active {
+      transform: scale(1.15);
+    }
+    input[type="range"].font-slider::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      cursor: pointer;
+    }
+    .light-theme input[type="range"].font-slider::-webkit-slider-thumb {
+      background: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 0 1px rgba(0, 0, 0, 0.15);
+      border: 1.5px solid #CBD5E1;
+    }
+
+    /* iOS Standard Typography Hierarchy & 5-Tier Dynamic Type Scaling (14px ➔ 20px) */
+    .ios-glass-card h3,
+    .ios-glass-card h4,
+    .settings-row-title {
+      font-size: 0.8125rem !important;     /* ~13.8px at 17px MD - clear iOS card & row title */
+      line-height: 1.3 !important;
+    }
+    #main-content .text-\[10px\],
+    .card-subtitle,
+    .settings-subtitle {
+      font-size: 0.625rem !important;      /* ~10.6px at 17px MD - scales smoothly with 14px-20px slider */
+      line-height: 1.35 !important;
+    }
+    #main-content .text-\[11px\] {
+      font-size: 0.6875rem !important;     /* ~11.7px at 17px MD - scales smoothly with slider */
+      line-height: 1.35 !important;
+    }
+    #main-content .text-\[9px\] {
+      font-size: 0.5625rem !important;     /* ~9.6px at 17px MD - scales smoothly with slider */
+    }
+
+    /* Hide Subtitles Mode (លាក់ចំណងជើងរងលើកាតទំព័រដើម និងម៉ឺនុយការកំណត់ទាំងអស់) */
+    body.hide-subtitles .card-subtitle,
+    body.hide-subtitles .settings-subtitle,
+    html.hide-subtitles .card-subtitle,
+    html.hide-subtitles .settings-subtitle {
+      display: none !important;
+    }
+    body.hide-subtitles .ios-glass-card h3,
+    body.hide-subtitles .ios-glass-card h4,
+    html.hide-subtitles .ios-glass-card h3,
+    html.hide-subtitles .ios-glass-card h4 {
+      font-size: 0.85rem !important;       /* ~14.5px crisp single-line card title when subtitle is hidden */
+      line-height: 1.3 !important;
+    }
+
+    /* iPhone iOS Single-Line Settings Row Standard when Subtitles are Hidden */
+    body.hide-subtitles .settings-row,
+    html.hide-subtitles .settings-row {
+      padding-top: 0.625rem !important;    /* ~10.5px - balanced iPhone row spacing */
+      padding-bottom: 0.625rem !important;
+      padding-left: 0.875rem !important;   /* 14px */
+      padding-right: 0.875rem !important;
+      min-height: 2.75rem !important;      /* ~46.75px standard Apple iOS touch row height */
+      align-items: center !important;
+    }
+    body.hide-subtitles .settings-row-left,
+    html.hide-subtitles .settings-row-left {
+      gap: 0.75rem !important;             /* 12px consistent gap between icon and title */
+      align-items: center !important;
+    }
+    body.hide-subtitles .settings-icon-box,
+    html.hide-subtitles .settings-icon-box {
+      width: 1.8125rem !important;         /* ~29-30px iOS Settings squircle icon */
+      height: 1.8125rem !important;
+      border-radius: 0.5rem !important;    /* 8px Apple squircle radius */
+    }
+    body.hide-subtitles .settings-icon-box svg,
+    html.hide-subtitles .settings-icon-box svg {
+      width: 0.95rem !important;
+      height: 0.95rem !important;
+    }
+    body.hide-subtitles .settings-row-title,
+    html.hide-subtitles .settings-row-title {
+      font-size: 0.85rem !important;       /* ~14.5px clear single-line title */
+      line-height: 1.3 !important;
+      margin: 0 !important;
+    }
+
+    /* iOS Standard Bottom Dock Hierarchy (Colors, Sizes & Baseline Alignment) */
+    @keyframes dockOrderFloat {
+      0%, 100% {
+        transform: translateY(0px);
+        box-shadow: 0 4px 12px -1px rgba(249, 115, 22, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.28);
+      }
+      50% {
+        transform: translateY(-2px);
+        box-shadow: 0 7px 15px -1px rgba(249, 115, 22, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+      }
+    }
+    #bottom-dock .dock-btn {
+      color: #94A3B8;
+      height: 100%;
+      justify-content: flex-end !important;
+      padding-bottom: 7px !important;
+      padding-top: 0 !important;
+    }
+    #bottom-dock .dock-btn:hover {
+      color: #F8FAFC;
+    }
+    #bottom-dock .dock-btn .dock-label {
+      font-size: 10.5px !important;
+      line-height: 1.15 !important;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+    #bottom-dock .dock-btn.active-tab {
+      color: var(--accent-badge-text) !important;
+    }
+    #bottom-dock .dock-btn.active-tab .dock-label {
+      font-weight: 700 !important;
+    }
+    #bottom-dock .dock-order-ring {
+      background: linear-gradient(145deg, rgba(251, 146, 60, 0.28) 0%, rgba(234, 88, 12, 0.16) 100%);
+      border: 1.2px solid rgba(251, 146, 60, 0.55);
+      color: #FB923C;
+      animation: dockOrderFloat 2.8s ease-in-out infinite;
+    }
+    #bottom-dock .dock-order-btn:hover .dock-order-ring {
+      background: linear-gradient(145deg, rgba(251, 146, 60, 0.38) 0%, rgba(234, 88, 12, 0.24) 100%);
+      border-color: rgba(251, 146, 60, 0.8);
+      color: #FDBA74;
+    }
+    #bottom-dock .dock-order-btn .dock-label {
+      color: #FB923C;
+      font-weight: 700 !important;
+    }
+    .light-theme #bottom-dock .dock-btn {
+      color: #64748B;
+    }
+    .light-theme #bottom-dock .dock-btn:hover {
+      color: #0F172A;
+    }
+    .light-theme #bottom-dock .dock-btn.active-tab {
+      color: var(--accent-solid) !important;
+    }
+    .light-theme #bottom-dock .dock-order-ring {
+      background: linear-gradient(145deg, rgba(255, 237, 213, 0.96) 0%, rgba(254, 215, 170, 0.85) 100%);
+      border-color: rgba(249, 115, 22, 0.5);
+      color: #EA580C;
+    }
+    .light-theme #bottom-dock .dock-order-btn .dock-label {
+      color: #EA580C;
+    }
+
+    .switch-thumb {
+      background-color: #FFFFFF !important;
+    }
+
+    /* Accent Themes & Contrast Auto-Adaptation System (6 iOS & Modern Palettes) */
+    body.theme-blue {
+      --accent-solid: #2563EB;
+      --accent-solid-text: #FFFFFF;
+      --accent-subtle: rgba(37, 99, 235, 0.16);
+      --accent-border: rgba(37, 99, 235, 0.4);
+      --accent-badge-text: #60A5FA;
+      --accent-shadow: rgba(37, 99, 235, 0.35);
+    }
+    body.theme-coral {
+      --accent-solid: #F43F5E;
+      --accent-solid-text: #FFFFFF;
+      --accent-subtle: rgba(244, 63, 94, 0.16);
+      --accent-border: rgba(244, 63, 94, 0.4);
+      --accent-badge-text: #FB7185;
+      --accent-shadow: rgba(244, 63, 94, 0.35);
+    }
+    :root, body.theme-orange {
+      --accent-solid: #F97316;
+      --accent-solid-text: #FFFFFF;
+      --accent-subtle: rgba(249, 115, 22, 0.16);
+      --accent-border: rgba(249, 115, 22, 0.4);
+      --accent-badge-text: #FB923C;
+      --accent-shadow: rgba(249, 115, 22, 0.35);
+    }
+    body.theme-amber {
+      --accent-solid: #F59E0B;
+      --accent-solid-text: #0F172A; /* High Contrast: Dark Charcoal on bright Amber gold! */
+      --accent-subtle: rgba(245, 158, 11, 0.22);
+      --accent-border: rgba(245, 158, 11, 0.45);
+      --accent-badge-text: #FBBF24;
+      --accent-shadow: rgba(245, 158, 11, 0.35);
+    }
+    body.theme-emerald {
+      --accent-solid: #10B981;
+      --accent-solid-text: #FFFFFF;
+      --accent-subtle: rgba(16, 185, 129, 0.16);
+      --accent-border: rgba(16, 185, 129, 0.4);
+      --accent-badge-text: #34D399;
+      --accent-shadow: rgba(16, 185, 129, 0.35);
+    }
+    body.theme-pink {
+      --accent-solid: #EC4899;
+      --accent-solid-text: #FFFFFF;
+      --accent-subtle: rgba(236, 72, 153, 0.16);
+      --accent-border: rgba(236, 72, 153, 0.4);
+      --accent-badge-text: #F472B6;
+      --accent-shadow: rgba(236, 72, 153, 0.35);
+    }
+
+    .accent-solid-btn {
+      background-color: var(--accent-solid) !important;
+      color: var(--accent-solid-text) !important;
+      box-shadow: 0 4px 14px var(--accent-shadow) !important;
+    }
+    .accent-border-active {
+      border-color: var(--accent-solid) !important;
+      background-color: var(--accent-subtle) !important;
+    }
+    .accent-badge-pill {
+      background-color: var(--accent-subtle) !important;
+      border: 1px solid var(--accent-border) !important;
+      color: var(--accent-badge-text) !important;
+    }
+    .accent-highlight-text {
+      color: var(--accent-badge-text) !important;
+    }
+    .ios-slim-capsule {
+      animation: slimCapsuleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes slimCapsuleIn {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 6px) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+    }
+
+    /* Light Mode Overrides (Crisp, High-Contrast iOS Style - Specially Refined for Settings & Dashboard) */
+    .light-theme {
+      background-color: #F8FAFC !important;
+      color: #0F172A !important;
+    }
+    .light-theme .text-white {
+      color: #0F172A !important;
+    }
+    .light-theme .text-slate-100 {
+      color: #0F172A !important;
+    }
+    .light-theme .text-slate-200 {
+      color: #1E293B !important;
+    }
+    .light-theme .text-slate-300 {
+      color: #334155 !important;
+    }
+    .light-theme .text-slate-400 {
+      color: #64748B !important;
+    }
+    .light-theme .text-slate-500 {
+      color: #475569 !important;
+    }
+    .light-theme .bg-black\/20,
+    .light-theme .bg-black\/25,
+    .light-theme .bg-black\/30,
+    .light-theme .bg-black\/40,
+    .light-theme .bg-black\/50 {
+      background-color: #F1F5F9 !important;
+      border-color: #E2E8F0 !important;
+      color: #0F172A !important;
+    }
+    .light-theme .bg-white\/5,
+    .light-theme .bg-white\/10 {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme .border-white\/5,
+    .light-theme .border-white\/10,
+    .light-theme .border-white\/15,
+    .light-theme .border-white\/20 {
+      border-color: #E2E8F0 !important;
+    }
+    /* Settings Cards & Modals: Convert dark navy to bright clean white */
+    .light-theme .bg-\[\#0F1B2E\],
+    .light-theme [class*="bg-[#0F1B2E]"],
+    .light-theme #change-pin-modal > div,
+    .light-theme #about-modal-card {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.1) !important;
+      color: #0F172A !important;
+    }
+    .light-theme #about-modal-card .border-white\/10 {
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #about-modal-card .bg-white\/5 {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #about-modal-card .text-white {
+      color: #0F172A !important;
+    }
+    .light-theme #about-modal-card .text-slate-300 {
+      color: #334155 !important;
+    }
+    .light-theme #change-pin-modal input {
+      background-color: #F1F5F9 !important;
+      border-color: #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    .light-theme #change-pin-modal .text-white {
+      color: #0F172A !important;
+    }
+    /* Text Size Slider Box Light Theme */
+    .light-theme .text-size-slider-box {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme .text-size-slider-box .bg-black\/50 {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    }
+    .light-theme .text-size-slider-box button:not(.accent-solid-btn) {
+      color: #64748B !important;
+    }
+    .light-theme .text-size-slider-box button:not(.accent-solid-btn) span.text-slate-200 {
+      color: #1E293B !important;
+    }
+    .light-theme .text-size-slider-box button:not(.accent-solid-btn):hover {
+      background-color: #F1F5F9 !important;
+    }
+    /* Context Dropdown Menus (Save to PDF, Share, Copy) */
+    .light-theme #modal-menu-cod,
+    .light-theme [id^="modal-menu-"] {
+      background-color: rgba(255, 255, 255, 0.98) !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.16) !important;
+    }
+    .light-theme [id^="modal-menu-"] button {
+      color: #1E293B !important;
+    }
+    .light-theme [id^="modal-menu-"] button:hover {
+      background-color: #F1F5F9 !important;
+      color: #0F172A !important;
+    }
+    /* Card 2 & 3 Highlight Banners */
+    .light-theme .from-rose-950\/40 {
+      --tw-gradient-from: #FFF1F2 var(--tw-gradient-from-position) !important;
+      --tw-gradient-stops: var(--tw-gradient-from), #F8FAFC, #F0FDF4 !important;
+      border-color: #FECDD3 !important;
+    }
+    .light-theme .from-emerald-950\/40 {
+      --tw-gradient-from: #ECFDF5 var(--tw-gradient-from-position) !important;
+      --tw-gradient-stops: var(--tw-gradient-from), #F0FDF4, #EFF6FF !important;
+      border-color: #A7F3D0 !important;
+    }
+    .light-theme .from-emerald-950\/40 span.text-white {
+      color: #065F46 !important;
+    }
+    /* AI Quick Launch Icons: Remove harsh dark shadow in Light Mode, add soft Apple blur shadow */
+    .light-theme #card-tools img,
+    .light-theme .shadow-black\/50 {
+      --tw-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.12), 0 2px 6px -1px rgba(0, 0, 0, 0.08) !important;
+      --tw-shadow-colored: 0 6px 16px -2px var(--tw-shadow-color), 0 2px 6px -1px var(--tw-shadow-color) !important;
+      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+      border-color: #E2E8F0 !important;
+    }
+    /* Text Size Slider Track and Box */
+    .light-theme .slider-track-box,
+    .light-theme input[type="range"] + div,
+    .light-theme .bg-black\/50 {
+      background-color: #F1F5F9 !important;
+      border-color: #E2E8F0 !important;
+      color: #0F172A !important;
+    }
+    .light-theme .bg-black\/50 .bg-white\/20 {
+      background-color: #CBD5E1 !important;
+    }
+    .light-theme .bg-black\/50 .bg-white {
+      background-color: #0F172A !important;
+    }
+    .light-theme .bg-black\/50 .bg-white\/30 {
+      background-color: #94A3B8 !important;
+    }
+    /* Security Card in Settings: Soft subtle blue/slate gradient */
+    .light-theme .from-\[\#102A43\] {
+      --tw-gradient-from: #EFF6FF var(--tw-gradient-from-position) !important;
+      --tw-gradient-to: #F8FAFC var(--tw-gradient-to-position) !important;
+      --tw-gradient-stops: var(--tw-gradient-from), #F1F5F9, var(--tw-gradient-to) !important;
+      border-color: #BFDBFE !important;
+      box-shadow: 0 4px 16px -2px rgba(59, 130, 246, 0.08) !important;
+    }
+    .light-theme .to-\[\#0B1D30\] {
+      --tw-gradient-to: #F8FAFC var(--tw-gradient-to-position) !important;
+    }
+    .light-theme .border-blue-500\/20 {
+      border-color: #BFDBFE !important;
+    }
+    .light-theme .divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
+      border-color: #F1F5F9 !important;
+    }
+    .light-theme .ios-glass-card {
+      background: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06) !important;
+      color: #0F172A !important;
+    }
+    .light-theme .telegram-dock {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12) !important;
+    }
+    .light-theme .ios-slim-capsule {
+      background: rgba(255, 255, 255, 0.96) !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.18) !important;
+      color: #0F172A !important;
+    }
+    .light-theme .ios-slim-capsule button {
+      color: #0F172A !important;
+    }
+    .light-theme .ios-slim-capsule button:hover {
+      background-color: #F1F5F9 !important;
+    }
+    .light-theme header,
+    .light-theme #sticky-filter-bar {
+      background: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme header button,
+    .light-theme #header-normal button {
+      background-color: #F1F5F9 !important;
+      border-color: #E2E8F0 !important;
+      color: #0F172A !important;
+    }
+    .light-theme header button:hover,
+    .light-theme #header-normal button:hover {
+      background-color: #E2E8F0 !important;
+    }
+    .light-theme #day-dropdown-menu,
+    .light-theme #month-dropdown-menu,
+    .light-theme #year-dropdown-menu {
+      background: rgba(255, 255, 255, 0.98) !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.16) !important;
+      color: #0F172A !important;
+    }
+    .light-theme #day-dropdown-menu span,
+    .light-theme #day-dropdown-menu button,
+    .light-theme #month-dropdown-menu button,
+    .light-theme #year-dropdown-menu button {
+      color: #1E293B !important;
+    }
+    .light-theme #day-dropdown-menu button:hover,
+    .light-theme #month-dropdown-menu button:hover,
+    .light-theme #year-dropdown-menu button:hover {
+      background-color: #F1F5F9 !important;
+    }
+    .light-theme .liquid-ambient-orange,
+    .light-theme .liquid-ambient-blue {
+      opacity: 0.15;
+    }
+    .light-theme .liquid-ambient-orange,
+    .light-theme .liquid-ambient-blue {
+      opacity: 0.15;
+    }
+    /* Auto-hide Sticky Filter Bar (Zero-Height Collapse: eliminates any blank gap completely) */
+    #sticky-filter-bar {
+      max-height: 120px;
+      transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, padding 0.3s ease, margin 0.3s ease;
+      overflow: visible;
+    }
+    #sticky-filter-bar.filter-hidden {
+      max-height: 0 !important;
+      opacity: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      border-bottom-width: 0 !important;
+      pointer-events: none !important;
+      overflow: hidden !important;
+    }
+    /* Bottom Dock iOS Auto-Hide & Smooth Slide/Spring */
+    #bottom-dock {
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease !important;
+      will-change: transform, opacity;
+    }
+    #bottom-dock.dock-hidden {
+      transform: translateY(6.5rem) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    /* Search Result Highlight */
+    mark.search-highlight {
+      background: #F59E0B;
+      color: #000;
+      border-radius: 3px;
+      padding: 0 2px;
+      font-weight: 700;
+    }
+    /* Lock Wallpaper Presets */
+    .wp-deep-mesh {
+      background: linear-gradient(180deg, #0a1828 0%, #092232 50%, #04101c 100%);
+    }
+    .wp-midnight-purple {
+      background: linear-gradient(180deg, #130924 0%, #1a0b36 50%, #080314 100%);
+    }
+    .wp-pure-oled {
+      background: #000000;
+    }
+    .wp-emerald-aurora {
+      background: linear-gradient(180deg, #061e1c 0%, #0a2d24 50%, #020e0c 100%);
+    }
+    .wp-velvet-crimson {
+      background: linear-gradient(180deg, #2b0610 0%, #1a030a 50%, #080104 100%);
+    }
+    .wp-royal-gold {
+      background: linear-gradient(180deg, #261904 0%, #1c1202 50%, #080501 100%);
+    }
+    .wp-cyber-cyan {
+      background: linear-gradient(180deg, #041f29 0%, #02141a 50%, #01080b 100%);
+    }
+    /* iOS Glass Lock Clock Glow (Matching Image 2 Reference) */
+    .ios-lock-clock {
+      color: rgba(210, 235, 255, 0.92);
+      text-shadow: 
+        0 0 20px rgba(147, 197, 253, 0.6),
+        0 0 45px rgba(59, 130, 246, 0.4),
+        0 2px 10px rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      letter-spacing: -0.04em;
+    }
+
+    /* Print & Save as PDF Format Styles */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      .modal-print-target, .modal-print-target * {
+        visibility: visible !important;
+      }
+      .modal-print-target {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      .modal-print-target table {
+        width: 100% !important;
+        color: #000000 !important;
+      }
+      .modal-print-target th, .modal-print-target td {
+        color: #000000 !important;
+        border-color: #cccccc !important;
+      }
+      .modal-print-target .text-white, .modal-print-target .text-slate-200, .modal-print-target .text-slate-300, .modal-print-target .text-slate-400 {
+        color: #111827 !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="text-slate-100 font-sans h-full overflow-hidden flex flex-col select-none relative">
+
+  <!-- ======================================================== -->
+  <!-- 0. 100% CLEAN iOS PASSCODE LOCK SCREEN                      -->
+  <!-- ======================================================== -->
+  <div id="lock-screen" class="fixed inset-0 z-[100] bg-[#0a1828] flex flex-col justify-between items-center pt-12 pb-8 px-6 transition-all duration-500 overflow-hidden select-none">
+    
+    <!-- Ambient iOS Wallpaper Mesh Circles (Full Bleed Across Entire Screen) -->
+    <div class="absolute -top-32 -right-24 w-[500px] h-[600px] bg-gradient-to-b from-blue-600/40 to-indigo-800/30 rounded-[100%] blur-3xl pointer-events-none transform -rotate-12"></div>
+    <div class="absolute bottom-0 -left-32 w-[500px] h-[600px] bg-gradient-to-t from-teal-500/35 to-emerald-600/30 rounded-[100%] blur-3xl pointer-events-none transform rotate-12"></div>
+
+    <!-- Top Section: Khmer Date + Big iOS Glowing Clock -->
+    <div class="flex flex-col items-center text-center mt-2 z-10 w-full shrink-0">
+      <!-- Khmer Date -->
+      <div id="lock-calendar" class="text-sm sm:text-base font-normal text-white/80 tracking-wide mb-1">
+        <!-- Live Khmer Date -->
+      </div>
+      
+      <!-- iOS Lock Glow Clock (Like 5:20 in user reference image) -->
+      <div id="lock-time" class="ios-lock-clock text-6xl sm:text-7xl font-extralight leading-none my-1 select-none font-sans">
+        <!-- Live Clock -->
+      </div>
+
+      <!-- Enter Passcode Prompt -->
+      <h2 class="text-sm sm:text-[15px] font-normal text-white/80 mt-3.5 mb-3 tracking-wide" id="lock-prompt">
+        Enter Passcode
+      </h2>
+
+      <!-- 4 iOS Hollow Rings / Filled Circles -->
+      <div class="flex gap-4" id="pin-dots">
+        <div class="w-3.5 h-3.5 rounded-full border-2 border-white/60 transition-all duration-150"></div>
+        <div class="w-3.5 h-3.5 rounded-full border-2 border-white/60 transition-all duration-150"></div>
+        <div class="w-3.5 h-3.5 rounded-full border-2 border-white/60 transition-all duration-150"></div>
+        <div class="w-3.5 h-3.5 rounded-full border-2 border-white/60 transition-all duration-150"></div>
+      </div>
+    </div>
+
+    <!-- Center Keypad: Perfect circular buttons (aspect-square) with authentic iOS proportions -->
+    <div class="w-full max-w-[290px] flex flex-col items-center z-10 my-auto">
+      <div class="grid grid-cols-3 gap-6 w-full place-items-center">
+        
+        <!-- 1 -->
+        <button onclick="pressPin('1')" class="w-[72px] h-[72px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all active:scale-95 flex flex-col items-center justify-center border border-white/10 shadow-lg shrink-0">
+          <span class="text-3xl font-light leading-none">1</span>
+        </button>
+
+        <!-- 2 ABC -->
+        <button onclick="pressPin('2')" class="w-[72px] h-[72px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all active:scale-95 flex flex-col items-center justify-center border border-white/10 shadow-lg shrink-0">
+          <span class="text-3xl font-light leading-none">2</span>
+          <span class="text-[9px] font-bold tracking-widest text-white/70 uppercase mt-0.5">A B C</span>
+        </button>
+
+        <!-- 3 DEF -->
+        <button onclick="pressPin('3')" class="w-[72px] h-[72px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all active:scale-95 flex flex-col items-center justify-center border border-white/10 shadow-lg shrink-0">
+          <span class="text-3xl font-light leading-none">3</span>
+          <span class="text-[9px] font-bold tracking-widest text-white/70 uppercase mt-0.5">D E F</span>
+        </button>
+
+        <!-- 4 GHI -->
+        <button onclick="pressPin('4')" class="w-[72px] h-[72px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all active:scale-95 flex flex-col items-center justify-center border border-white/10 shadow-lg shrink-0">
+          <span class="text-3xl font-light leading-none">4</span>
+          <span class="text-[9px] font-bold tracking-widest text-white/70 uppercase mt-0.5">G H I</span>
+        </button>
+
+        <!-- 5 JKL -->
+        <button onclick="pressPin('5')" class="w-[72px] h-[72px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all active:scale-95 flex flex-col items-center justify-center border border-white/10 shadow-lg shrink-0">
+          <span class="text-3xl font-light leading-none">5</span>
+          <span class="text-[9px] font-bold tracking-widest text-white/70 uppercase mt-0.5">J K L</span>
+        </button>
+
+        <!-- 6 MNO -->
+        <button onclick="pressPin('6')" class="w-[72px] h-[72px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all active:scale-95 flex flex-col items-center justify-center border border-white/10 shadow-lg shrink-0">
+          <span class="text-3xl font-light leading-none">6</span>
+          <span class="text-[9px] font-bold tracking-widest text-white/70 uppercase mt-0.5">M N O</span>
+        </button>
+
+        <!-- 7 PQRS -->
+        <button onclick="pressPin('7')" class="w-[72px] h-[72px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all active:scale-95 flex flex-col items-center justify-center border border-white/10 shadow-lg shrink-0">
+          <span class="text-3xl font-light leading-none">7</span>
+          <span class="text-[9px] font-bold tracking-widest text-white/70 uppercase mt-0.5">P Q R S</span>
+        </button>
+
+        <!-- 8 TUV -->
+        <button onclick="pressPin('8')" class="w-[72px] h-[72px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all active:scale-95 flex flex-col items-center justify-center border border-white/10 shadow-lg shrink-0">
+          <span class="text-3xl font-light leading-none">8</span>
+          <span class="text-[9px] font-bold tracking-widest text-white/70 uppercase mt-0.5">T U V</span>
+        </button>
+
+        <!-- 9 WXYZ -->
+        <button onclick="pressPin('9')" class="w-[72px] h-[72px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all active:scale-95 flex flex-col items-center justify-center border border-white/10 shadow-lg shrink-0">
+          <span class="text-3xl font-light leading-none">9</span>
+          <span class="text-[9px] font-bold tracking-widest text-white/70 uppercase mt-0.5">W X Y Z</span>
+        </button>
+
+        <!-- Empty slot for alignment -->
+        <div class="w-[72px] h-[72px]"></div>
+
+        <!-- 0 -->
+        <button onclick="pressPin('0')" class="w-[72px] h-[72px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white backdrop-blur-xl transition-all active:scale-95 flex flex-col items-center justify-center border border-white/10 shadow-lg shrink-0">
+          <span class="text-3xl font-light leading-none">0</span>
+        </button>
+
+        <!-- Delete button -->
+        <button onclick="deletePin()" class="w-[72px] h-[72px] rounded-full active:scale-95 text-white/80 hover:text-white transition-all flex items-center justify-center shrink-0">
+          <i data-lucide="delete" class="w-6 h-6"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Actions: Emergency on Left, Cancel on Right (Exact 100% Image 2) -->
+    <div class="w-full flex items-center justify-between px-6 z-20 text-white/80 text-[15px] font-normal tracking-wide">
+      <button onclick="clearPin()" class="hover:text-white transition-all active:opacity-60">
+        Emergency
+      </button>
+      <button onclick="clearPin()" class="hover:text-white transition-all active:opacity-60">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- Ambient Glow Backdrops -->
+  <div class="fixed -top-32 -left-32 w-96 h-96 liquid-ambient-orange rounded-full pointer-events-none z-0"></div>
+  <div class="fixed top-1/4 -right-36 w-96 h-96 liquid-ambient-blue rounded-full pointer-events-none z-0"></div>
+
+  <!-- ======================================================== -->
+  <!-- 1. MAIN APP CONTAINER                                   -->
+  <!-- ======================================================== -->
+  <div id="app-container" class="relative z-10 flex flex-col h-full w-full max-w-md mx-auto overflow-hidden">
+    
+    <!-- Top Header Navigation (Tap empty area/Status Bar to Scroll to Top like Native iOS) -->
+    <header id="top-header" onclick="handleHeaderScrollToTop(event)" class="h-16 px-4 flex items-center justify-between shrink-0 border-b border-white/5 backdrop-blur-md z-30 relative cursor-pointer">
+      
+      <!-- Normal Header Bar -->
+      <div id="header-normal" class="w-full flex items-center justify-between">
+        <!-- Profile & 100% Facebook Blue Tick (Always visible except in Settings) -->
+        <div id="header-profile-block" class="flex items-center gap-3 cursor-pointer" onclick="switchView('settings')">
+          <div class="relative">
+            <img src="profile.png" alt="SDEY SDOEUNG" 
+                 class="w-10 h-10 rounded-full object-cover border-2 border-orange-500 shadow-md">
+            <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 class="font-bold text-sm text-white leading-tight brand-title">ស្តី ស្តើង</h1>
+              <!-- Exact 100% Facebook Blue Tick -->
+              <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
+            </div>
+            <p class="text-[11px] text-slate-400 leading-tight">SDEY SDOEUNG</p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2">
+          
+          <!-- Manual Reload with Time (Auto-Hides when up-to-date, Reveals after 3-5s lag) -->
+          <button id="btn-reload" onclick="manualReload()" 
+                  class="h-9 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs text-slate-300 transition-all duration-300 flex items-center gap-1.5 shadow-sm">
+            <i id="reload-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+            <span id="reload-time-text" class="text-[11px] font-mono leading-none">--:--</span>
+          </button>
+
+          <!-- Notification Bell with Red Badge -->
+          <div class="relative">
+            <button onclick="toggleNotificationsModal()" 
+                    class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 relative flex items-center justify-center transition shadow-sm">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+              <span id="notif-badge" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center border-2 border-[#070D18] hidden">0</span>
+            </button>
+          </div>
+
+          <!-- Search Button -->
+          <button onclick="openSearchBar()" 
+                  class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition shadow-sm"
+                  title="ស្វែងរកទិន្នន័យ">
+            <i data-lucide="search" class="w-4 h-4 text-orange-400"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ======================================================== -->
+    <!-- iOS 17 Pro Fullscreen Heavy Blur Floating Search Modal    -->
+    <!-- Z-Index 50 Floating Overlay blurs everything behind it    -->
+    <!-- ======================================================== -->
+    <div id="global-search-modal" class="fixed inset-0 z-50 bg-[#070D18]/90 backdrop-blur-3xl hidden flex flex-col p-4 pt-6 transition-all duration-300">
+      
+      <!-- Top iOS Capsule Search Bar & Independent Circular ✕ Button -->
+      <div class="w-full max-w-md mx-auto flex items-center gap-3 mb-4 shrink-0">
+        <!-- Elongated iOS Capsule Input (Pill style matching user reference photo) -->
+        <div class="flex-1 flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white/10 border border-white/15 text-white shadow-xl focus-within:border-orange-500/60 focus-within:bg-white/15 transition-all">
+          <svg class="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+          <input type="text" id="global-search-input" 
+                 oninput="handleGlobalSearch(this.value)"
+                 placeholder="ស្វែងរកអតិថិជន, Order, ចំណាយ..." 
+                 class="w-full bg-transparent text-sm text-white placeholder-slate-400 focus:outline-none font-medium">
+        </div>
+        <!-- Independent Circular ✕ Button -->
+        <button onclick="closeSearchBar()" 
+                class="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white flex items-center justify-center shrink-0 border border-white/15 shadow-xl transition-all"
+                title="បិទ (Close)">
+          <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Live Search Results (Directly on blurred background) -->
+      <div id="search-results-container" class="w-full max-w-md mx-auto flex-1 overflow-y-auto no-scrollbar space-y-2 pb-16">
+        <!-- Search cards inserted here -->
+      </div>
+    </div>
+
+    <!-- STICKY FLOATING FILTER PILLS BAR (Shown ONLY on Home / Dashboard) -->
+    <div id="sticky-filter-bar" class="sticky top-0 z-20 px-3 py-2 backdrop-blur-md border-b border-white/5 flex flex-col gap-1.5">
+      <div class="flex items-center gap-1 bg-[#050B14]/85 p-1 rounded-2xl border border-white/5 w-full relative">
+        
+        <!-- 1. Day Popover Pill (ថ្ងៃ ⌄) -> iPhone UI Mini Calendar Popover -->
+        <div class="relative flex-1">
+          <button onclick="toggleDayDropdown(event)" id="filter-btn-today" 
+                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn accent-solid-btn shadow-md flex items-center justify-center gap-1">
+            <span id="day-pill-label">ថ្ងៃទី</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
+          </button>
+
+          <!-- iPhone UI Mini Calendar Popover Container -->
+          <div id="day-dropdown-menu" 
+               class="hidden absolute top-full left-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-[#0C1425]/95 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl p-3.5 z-50 flex flex-col gap-2.5">
+            <!-- Rendered dynamically by renderMiniCalendar() in app.js -->
+          </div>
+        </div>
+
+        <!-- 2. Month Popover Pill (ខែ ⌄) with Ticks -->
+        <div class="relative flex-1">
+          <button onclick="toggleMonthDropdown(event)" id="filter-btn-month" 
+                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white flex items-center justify-center gap-1">
+            <span id="month-pill-label">ខែ</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
+          </button>
+
+          <!-- Month Selector Submenu (iOS List Style showing all 12 months without scroll) -->
+          <div id="month-dropdown-menu" 
+               class="hidden absolute top-full left-0 mt-1.5 w-40 bg-[#0B1528]/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 flex flex-col gap-0.5">
+            <!-- Rendered dynamically by renderMonthDropdownMenu() -->
+          </div>
+        </div>
+
+        <!-- 3. Year Popover Pill (ឆ្នាំ ⌄) with Ticks -->
+        <div class="relative flex-1">
+          <button onclick="toggleYearDropdown(event)" id="filter-btn-year" 
+                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white flex items-center justify-center gap-1">
+            <span id="year-pill-label">ឆ្នាំ</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
+          </button>
+
+          <!-- Year Selector Submenu with Ticks -->
+          <div id="year-dropdown-menu" 
+               class="hidden absolute top-full left-0 mt-1.5 w-32 bg-[#0B1528]/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 flex flex-col gap-0.5">
+            <!-- Rendered dynamically by renderYearDropdownMenu() -->
+          </div>
+        </div>
+
+        <!-- 4. Custom Filter Button (ជ្រើសរើស) -->
+        <button onclick="setPeriodFilter('custom')" id="filter-btn-custom" 
+                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white flex items-center justify-center gap-0.5">
+          <span>ជ្រើសរើស</span>
+          <i data-lucide="calendar" class="w-3 h-3 opacity-80"></i>
+        </button>
+      </div>
+
+      <!-- Custom Date Picker Dropdown Container (Visible only when 'custom' is active) -->
+      <div id="custom-date-container" class="hidden flex items-center justify-between gap-2 p-2 bg-black/50 rounded-xl border border-white/10 text-xs">
+        <div class="flex items-center gap-1 flex-1">
+          <span class="text-slate-400 text-[10px]">ពី:</span>
+          <input type="date" id="custom-start-date" class="bg-white/10 rounded px-1.5 py-1 text-white text-[11px] w-full focus:outline-none">
+        </div>
+        <div class="flex items-center gap-1 flex-1">
+          <span class="text-slate-400 text-[10px]">ដល់:</span>
+          <input type="date" id="custom-end-date" class="bg-white/10 rounded px-1.5 py-1 text-white text-[11px] w-full focus:outline-none">
+        </div>
+        <button onclick="applyCustomRangeFilter()" class="px-2.5 py-1 rounded bg-orange-500 text-white font-semibold text-[11px]">
+          យល់ព្រម
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN SCROLLABLE CONTENT BODY (With Pull-to-Refresh Container) -->
+    <div id="pull-refresh-indicator" class="h-0 overflow-hidden flex items-center justify-center text-xs text-orange-400 transition-all duration-200">
+      <i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1"></i> កំពុង Refresh...
+    </div>
+
+    <main class="flex-1 overflow-y-auto px-3.5 pt-2.5 pb-28 space-y-3.5 no-scrollbar" id="main-content">
+      <!-- Dynamic render by app.js -->
+    </main>
+
+    <!-- ======================================================== -->
+    <!-- TELEGRAM FLOATING CAPSULE BOTTOM DOCK                    -->
+    <!-- ======================================================== -->
+    <nav id="bottom-dock" class="absolute bottom-4 inset-x-4 max-w-sm mx-auto h-16 rounded-full telegram-dock flex items-center justify-between px-3 z-40 transition-all duration-300 transform">
+      
+      <!-- 1. Home (Classic House with Micro Celestial Sparkle/Sun/Moon Glow) -->
+      <button onclick="handleHomeClick(event)" id="dock-btn-dashboard" 
+              class="dock-btn active-tab flex-1 flex flex-col items-center justify-center py-1 rounded-full transition relative">
+        <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0">
+          <!-- Mode 1: ✨ Micro Diamond Sparkle (Default) -->
+          <svg id="home-celestial-sparkle" class="absolute -top-0.5 right-0.5 w-2.5 h-2.5 text-amber-300 sparkle-sun-micro pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"/>
+          </svg>
+
+          <!-- Mode 2: ☀️ Micro Sun Ray -->
+          <div id="home-celestial-ray" class="hidden absolute top-0 right-1 w-2 h-2 rounded-full bg-amber-400/80 shadow-[0_0_6px_rgba(251,191,36,0.9)] sparkle-sun-micro pointer-events-none"></div>
+
+          <!-- Mode 3: 🌙 Micro Crescent Moon -->
+          <svg id="home-celestial-moon" class="hidden absolute -top-0.5 right-0.5 w-2.5 h-2.5 text-sky-200 sparkle-moon-micro pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+
+          <!-- Clean House SVG -->
+          <svg class="w-5 h-5 relative z-10 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 7.5V3.5h3v2.2" />
+            <path d="M2.5 10.5L12 3l9.5 7.5" />
+            <path d="M4.8 9.5V21h4.8v-6h4.8v6h4.8V9.5" />
+          </svg>
+        </div>
+        <span id="dock-label-dashboard" class="dock-label">ទំព័រដើម</span>
+      </button>
+
+      <!-- 2. Analytics (L-axis + 4 Static Bars + Upward Growth Arrow Continuous Loop) -->
+      <button onclick="switchView('analytics')" id="dock-btn-analytics" 
+              class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition">
+        <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <!-- L-axis (Left vertical & Bottom horizontal) -->
+            <path d="M2.5 2.5v16.5a2 2 0 0 0 2 2h17" stroke-width="2.3" />
+            <!-- 4 Static Bars (Calm, no jitter) -->
+            <rect x="5.5" y="12" width="2.4" height="6.5" rx="1.2" fill="currentColor" />
+            <rect x="9.5" y="9" width="2.4" height="9.5" rx="1.2" fill="currentColor" />
+            <rect x="13.5" y="11" width="2.4" height="7.5" rx="1.2" fill="currentColor" />
+            <rect x="17.5" y="7.5" width="2.4" height="11" rx="1.2" fill="currentColor" />
+            <!-- Upward Growth Zigzag Trend Arrow (Continuous Loop) -->
+            <g class="chart-arrow-loop">
+              <path d="M5.5 10l5-4.5 3 3 5.5-5.5" stroke-width="2.3" />
+              <path d="M15.5 3h4V7" stroke-width="2.3" />
+            </g>
+          </svg>
+        </div>
+        <span id="dock-label-analytics" class="dock-label">វិភាគ</span>
+      </button>
+
+      <!-- 3. CENTER ORDER BUTTON (Shopping Cart w-5 h-5 inside 36px Floating Orange Ring inside Dock bar) -->
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSd_hP30dqB-F5gCV44AuxcftgmoDjo5zzkN-NSMiK-1rDEqPQ/viewform?usp=header" 
+         target="_blank" 
+         class="dock-btn dock-order-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition">
+        <div class="w-9 h-9 mb-0.5 rounded-full dock-order-ring flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="21" r="1"></circle>
+            <circle cx="19" cy="21" r="1"></circle>
+            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+          </svg>
+        </div>
+        <span id="dock-label-order" class="dock-label">Order</span>
+      </a>
+
+      <!-- 4. Learning 5 Words (Languages A ⇄ 文 Position Swap Micro-Animation) -->
+      <button onclick="switchView('learning')" id="dock-btn-learning" 
+              class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition">
+        <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0">
+          <span class="diag-a absolute text-[12px] font-black font-sans leading-none text-current" style="font-size: 12px !important;">A</span>
+          <span class="diag-wen absolute text-[11px] font-bold leading-none text-current" style="font-size: 11px !important;">文</span>
+        </div>
+        <span id="dock-label-learning" class="dock-label">សិក្សា</span>
+      </button>
+
+      <!-- 5. Settings (Gear ⚙️ with Spin Animation) -->
+      <button onclick="switchView('settings')" id="dock-btn-settings" 
+              class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition">
+        <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 gear-spin text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </div>
+        <span id="dock-label-settings" class="dock-label">កំណត់</span>
+      </button>
+
+    </nav>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODALS CONTAINER                                         -->
+  <!-- ======================================================== -->
+
+  <!-- Personal Sales Drill-down Modal (Latest First 31 -> 01) -->
+  <div id="sales-modal" onclick="if(event.target === this) closeSalesModal()" class="fixed inset-0 z-50 bg-[#070D18]/70 backdrop-blur-xl hidden flex items-center justify-center p-4">
+    <div class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl">
+      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
+            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white leading-tight">តារាងការលក់ Personal Sales</h3>
+            <p id="sales-modal-subtitle" class="text-[11px] text-slate-400 mt-0.5">រៀបចំពីថ្ងៃចុងក្រោយមកមុន (31 ➔ 01)</p>
+          </div>
+        </div>
+        <div class="relative">
+          <button onclick="toggleModalContextMenu('sales', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
+            <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+          </button>
+          <div id="modal-menu-sales" class="hidden absolute right-0 top-full mt-1 w-44 bg-[#0B1528]/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 divide-y divide-white/5 animate-fade-in">
+            <button onclick="handleModalMenuAction('sales', 'pdf')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+              <i data-lucide="file-text" class="w-4 h-4 text-orange-400"></i>
+              <span class="action-label-pdf">រក្សាទុកជា PDF</span>
+            </button>
+            <button onclick="handleModalMenuAction('sales', 'share')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+              <i data-lucide="share-2" class="w-4 h-4 text-blue-400"></i>
+              <span class="action-label-share">ចែករំលែក</span>
+            </button>
+            <button onclick="handleModalMenuAction('sales', 'copy')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+              <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
+              <span class="action-label-copy">ចម្លង</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-2.5" id="sales-modal-list">
+        <!-- Rendered dynamically -->
+      </div>
+      <!-- Total Footer Row -->
+      <div id="sales-modal-footer" class="px-5 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Payables Full Drill-down Modal -->
+  <div id="payables-modal" onclick="if(event.target === this) closePayablesModal()" class="fixed inset-0 z-50 bg-[#070D18]/70 backdrop-blur-xl hidden flex items-center justify-center p-4">
+    <div class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl">
+      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
+            <i data-lucide="credit-card" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white leading-tight">បញ្ជីបំណុលត្រូវទូទាត់ពេញលេញ</h3>
+            <p id="payables-modal-subtitle" class="text-[11px] text-slate-400 mt-0.5">ទិន្នន័យជាក់ស្តែងពី Bank & Cash Balance</p>
+          </div>
+        </div>
+        <div class="relative">
+          <button onclick="toggleModalContextMenu('payables', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
+            <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+          </button>
+          <div id="modal-menu-payables" class="hidden absolute right-0 top-full mt-1 w-44 bg-[#0B1528]/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 divide-y divide-white/5 animate-fade-in">
+            <button onclick="handleModalMenuAction('payables', 'pdf')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+              <i data-lucide="file-text" class="w-4 h-4 text-orange-400"></i>
+              <span class="action-label-pdf">រក្សាទុកជា PDF</span>
+            </button>
+            <button onclick="handleModalMenuAction('payables', 'share')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+              <i data-lucide="share-2" class="w-4 h-4 text-blue-400"></i>
+              <span class="action-label-share">ចែករំលែក</span>
+            </button>
+            <button onclick="handleModalMenuAction('payables', 'copy')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+              <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
+              <span class="action-label-copy">ចម្លង</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-2" id="payables-modal-list">
+        <!-- Rendered dynamically -->
+      </div>
+      <!-- Total Footer Row -->
+      <div id="payables-modal-footer" class="px-5 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Expenses Full Drill-down Modal -->
+  <div id="expenses-modal" onclick="if(event.target === this) closeExpensesModal()" class="fixed inset-0 z-50 bg-[#070D18]/70 backdrop-blur-xl hidden flex items-center justify-center p-4">
+    <div class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl">
+      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
+            <i data-lucide="receipt" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white leading-tight">បញ្ជីចំណាយពេញលេញ (Daily Expenses)</h3>
+            <p id="expenses-modal-subtitle" class="text-[11px] text-slate-400 mt-0.5">រៀបចំតាមកាលបរិច្ឆេទចុងក្រោយ</p>
+          </div>
+        </div>
+        <div class="relative">
+          <button onclick="toggleModalContextMenu('expenses', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
+            <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+          </button>
+          <div id="modal-menu-expenses" class="hidden absolute right-0 top-full mt-1 w-44 bg-[#0B1528]/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 divide-y divide-white/5 animate-fade-in">
+            <button onclick="handleModalMenuAction('expenses', 'pdf')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+              <i data-lucide="file-text" class="w-4 h-4 text-orange-400"></i>
+              <span class="action-label-pdf">រក្សាទុកជា PDF</span>
+            </button>
+            <button onclick="handleModalMenuAction('expenses', 'share')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+              <i data-lucide="share-2" class="w-4 h-4 text-blue-400"></i>
+              <span class="action-label-share">ចែករំលែក</span>
+            </button>
+            <button onclick="handleModalMenuAction('expenses', 'copy')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+              <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
+              <span class="action-label-copy">ចម្លង</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-2" id="expenses-modal-list">
+        <!-- Rendered dynamically -->
+      </div>
+      <!-- Total Footer Row -->
+      <div id="expenses-modal-footer" class="px-5 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- COD Receivables Modal (Note 2 - iOS Standard Header) -->
+  <div id="cod-modal" onclick="if(event.target === this) closeCodModal()" class="fixed inset-0 z-50 bg-[#070D18]/70 backdrop-blur-xl hidden flex items-center justify-center p-4">
+    <div class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl">
+      <!-- Header matching iOS Standard -->
+      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white leading-tight">លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់</h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Outstanding Customer Payment</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="cod-modal-count-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold border border-amber-500/30 shadow-sm">
+            0
+          </span>
+          <div class="relative">
+            <button onclick="toggleModalContextMenu('cod', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
+              <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+            </button>
+            <div id="modal-menu-cod" class="hidden absolute right-0 top-full mt-1 w-44 bg-[#0B1528]/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 divide-y divide-white/5 animate-fade-in">
+              <button onclick="handleModalMenuAction('cod', 'pdf')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+                <i data-lucide="file-text" class="w-4 h-4 text-orange-400"></i>
+                <span class="action-label-pdf">រក្សាទុកជា PDF</span>
+              </button>
+              <button onclick="handleModalMenuAction('cod', 'share')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+                <i data-lucide="share-2" class="w-4 h-4 text-blue-400"></i>
+                <span class="action-label-share">ចែករំលែក</span>
+              </button>
+              <button onclick="handleModalMenuAction('cod', 'copy')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+                <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
+                <span class="action-label-copy">ចម្លង</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table matching Image 2 -->
+      <div class="overflow-x-auto overflow-y-auto flex-1 no-scrollbar p-3" id="cod-modal-table-container">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+          <thead>
+            <tr class="text-slate-400 border-b border-white/10 text-[11px]">
+              <th class="py-2 px-2.5">ល.រ</th>
+              <th class="py-2 px-2.5">កាលបរិច្ឆេទ</th>
+              <th class="py-2 px-2.5">ចំនួន</th>
+              <th class="py-2 px-2.5">ស្ថានភាព</th>
+              <th class="py-2 px-2.5 text-right">ទឹកប្រាក់ ($)</th>
+            </tr>
+          </thead>
+          <tbody id="cod-modal-tbody" class="divide-y divide-white/5">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Total Footer Row (និងដាក់សរុបផង) -->
+      <div id="cod-modal-footer" class="px-5 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Bank Accounts & Actual Cash Breakdown Modal (Note 4) -->
+  <div id="bank-modal" onclick="if(event.target === this) closeBankModal()" class="fixed inset-0 z-50 bg-[#070D18]/70 backdrop-blur-xl hidden flex items-center justify-center p-4">
+    <div class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl">
+      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
+            <i data-lucide="building-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white leading-tight">ឈ្មោះគណនី / ធនាគារ និងសមតុល្យ</h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Bank Accounts & Cash Balance</p>
+          </div>
+        </div>
+        <button onclick="closeBankModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-2" id="bank-modal-list">
+        <!-- Populated dynamically -->
+      </div>
+      <div id="bank-modal-footer" class="px-5 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ACLEDA Style Notification Modal -->
+  <div id="notif-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 max-w-sm w-full relative shadow-2xl">
+      <button onclick="toggleNotificationsModal()" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div class="flex items-center gap-2.5 mb-4">
+        <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-sm text-white leading-tight">ការជូនដំណឹង (Notifications)</h3>
+          <p class="text-[10px] text-slate-400 mt-0.5">បច្ចុប្បន្នភាពពី Personal Sales & Daily Expenses</p>
+        </div>
+      </div>
+
+      <div id="notif-feed-list" class="space-y-2 max-h-64 overflow-y-auto no-scrollbar mb-4">
+        <!-- Injected dynamically -->
+      </div>
+
+      <button onclick="markAllNotificationsAsRead()" 
+              class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs text-white font-semibold transition">
+        បានអានទាំងអស់ (Mark all as read)
+      </button>
+    </div>
+  </div>
+
+  <!-- About Me Modal (ផ្ទាំងកាតអំពីខ្ញុំចំកណ្តាលពេញលេញ + Blur ផ្ទៃខាងក្រោយ + ប៉ះកន្លែងទំនេរដើម្បីបិទ) -->
+  <div id="about-modal" onclick="closeAboutModal(event)" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-300">
+    <div id="about-modal-card" onclick="event.stopPropagation()" class="rounded-3xl bg-[#09111D] border border-white/10 p-5 shadow-2xl flex flex-col items-center text-center space-y-3.5 relative overflow-hidden max-w-xs w-full animate-fade-in">
+      <!-- Populated dynamically by renderAboutModal() -->
+    </div>
+  </div>
+
+  <!-- Passcode Change Modal -->
+  <div id="change-pin-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-6 max-w-xs w-full text-center relative shadow-2xl">
+      <button onclick="closeChangePinModal()" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center mx-auto mb-3">
+        <i data-lucide="key" class="w-6 h-6"></i>
+      </div>
+      <h3 class="font-bold text-sm text-white mb-1">ប្តូរលេខកូដសម្ងាត់ (PIN)</h3>
+      <p class="text-xs text-slate-400 mb-4">វាយលេខកូដថ្មី ៤ ខ្ទង់</p>
+      <input type="password" maxlength="4" id="new-pin-input" 
+             placeholder="••••" 
+             class="w-32 mx-auto text-center font-mono text-2xl tracking-widest bg-black/40 border border-white/10 rounded-xl py-2 text-white focus:outline-none focus:border-orange-500 mb-4">
+      <button onclick="saveNewPin()" 
+              class="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 font-semibold text-xs text-white">
+        រក្សាទុកលេខកូដថ្មី
+      </button>
+    </div>
+  </div>
+
+  <!-- App Shortcut Customizer Modal -->
+  <div id="shortcut-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 max-w-xs w-full relative shadow-2xl">
+      <button onclick="closeShortcutModal()" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
+          <i data-lucide="external-link" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-sm text-white leading-tight">Shortcut កត់ត្រាចំណាយ</h3>
+          <p class="text-[10px] text-slate-400 mt-0.5">ជ្រើសរើស App សម្រាប់បើកពេលចុច (+)</p>
+        </div>
+      </div>
+      <div class="space-y-2 mb-4">
+        <label class="block text-[11px] text-slate-300">បញ្ចូល Link ឬ AppSheet URL:</label>
+        <input type="url" id="shortcut-url-input" 
+               placeholder="https://www.appsheet.com/start/..." 
+               class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500">
+        <p class="text-[10px] text-slate-400 leading-relaxed">
+          * បើទុកទទេ វានឹងបើក <strong>AppSheet</strong> លំនាំដើម។ លោកគ្រូអាចដាក់ link ទៅកាន់ Telegram, Google Forms ឬ AppSheet ផ្ទាល់ខ្លួនបាន។
+        </p>
+      </div>
+      <button onclick="saveShortcutUrl()" 
+              class="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold text-xs shadow-lg transition active:scale-95">
+        រក្សាទុក Shortcut
+      </button>
+    </div>
+  </div>
+
+  <script src="dataService.js?v=4.8"></script>
+  <script src="app.js?v=4.8"></script>
+</body>
+</html>

@@ -26,9 +26,9 @@ const translations = {
     grossProfit: 'ចំណេញដុល (Profit)',
     expenses: 'ចំណាយសរុប',
     boxUnit: 'ប្រអប់',
-    pendingCodTitle: '📦 លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់',
+    pendingCodTitle: 'លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់',
     pendingCodHint: 'Outstanding Customer Payment',
-    netCashTitle: '📈 សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash Position)',
+    netCashTitle: 'សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash Position)',
     actualCash: 'សរុបសាច់ប្រាក់ជាក់ស្តែង',
     pendingCod: 'លុយ COD រង់ចាំទូទាត់',
     liquidAssets: 'សរុបទ្រព្យសកម្មរាវ',
@@ -44,7 +44,7 @@ const translations = {
     orderDock: 'កុម្ម៉ង់',
     learningDock: 'សិក្សា',
     settingsDock: 'កំណត់',
-    settingsTitle: 'ការកំណត់',
+    settingsTitle: '⚙️ ការកំណត់',
     settingsSubtitle: 'កំណត់ការរចនា ភាសា និងសុវត្ថិភាព',
     appearanceSection: 'រចនាប័ទ្ម និងចំណូលចិត្ត',
     appearanceDesc: 'កំណត់ពុម្ពអក្សរ ទំហំអក្សរ ផ្ទាំងរូបភាព និងភាសា',
@@ -53,7 +53,7 @@ const translations = {
     fontTitle: 'ពុម្ពអក្សរ',
     fontDesc: 'ជ្រើសរើសទម្រង់អក្សរងាយស្រួលអាន',
     textSizeTitle: 'ទំហំអក្សរ',
-    textSizeDesc: 'តូច • មធ្យម • ធំ',
+    textSizeDesc: '14px - 15.5px - 17px - 18.5px - 20px (XS ➔ XL)',
     wallpaperTitle: 'ផ្ទាំងរូបភាពអេក្រង់ចាក់សោរ',
     wallpaperDesc: 'រូបភាព និងពណ៌ពន្លឺផ្ទៃខាងក្រោយ',
     protectApp: 'ការពារទិន្នន័យរបស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
@@ -64,6 +64,7 @@ const translations = {
     theme: 'ទម្រង់ពណ៌',
     dark: 'ងងឹត',
     light: 'ភ្លឺ',
+    auto: 'ស្វ័យប្រវត្តិ (Auto)',
     language: 'ភាសា',
     notificationsTitle: 'ការជូនដំណឹង',
     notificationsDesc: 'សាររំលឹកការលក់ និងចំណាយប្រចាំថ្ងៃ',
@@ -89,7 +90,16 @@ const translations = {
     accentPink: 'ផ្កាឈូក',
     contrastHint: 'ពណ៌អក្សរផ្លាស់ប្តូរស្វ័យប្រវត្តិតាមពណ៌ផ្ទៃ ដើម្បីច្បាស់ភ្នែក (លឿងទុំ = អក្សរខ្មៅធ្យូង)',
     diagramTitle: 'ដ្យាក្រាមការលក់ និងប្រាក់ចំណេញ',
-    diagramSubtitle: 'តួលេខលក់ពិតប្រាកដនៅលើសរសរក្រាបនីមួយៗ'
+    diagramSubtitle: 'តួលេខលក់ពិតប្រាកដនៅលើសរសរក្រាបនីមួយៗ',
+    layoutTitle: 'ទម្រង់តម្រៀបកាត',
+    layoutDesc: 'ជ្រើសរើសជម្រើសតម្រៀបកាត (1-2-3)',
+    layout1: 'ស្តង់ដា',
+    layout2: 'ហិរញ្ញវត្ថុ',
+    layout3: 'ផ្នែកលក់',
+    resetSettingsTitle: 'កំណត់ឡើងវិញទៅទម្រង់ដើម',
+    resetSettingsDesc: 'កំណត់ពណ៌, Font, ទំហំអក្សរ និង Layout ទៅ Default វិញ',
+    resetConfirmTitle: 'កំណត់ទៅទម្រង់ដើម (Reset to Default)?',
+    resetConfirmMsg: 'តើអ្នកពិតជាចង់កំណត់ការកំណត់ទាំងអស់ (ពណ៌, Font, ទំហំអក្សរ, Layout) ទៅជាទម្រង់ដើមវិញមែនទេ?'
   },
   en: {
     appTitle: 'SD Data',
@@ -126,7 +136,7 @@ const translations = {
     orderDock: 'Order',
     learningDock: 'Study',
     settingsDock: 'Settings',
-    settingsTitle: 'Settings',
+    settingsTitle: '⚙️ Settings',
     settingsSubtitle: 'Manage appearance, language, and system preferences',
     appearanceSection: 'Appearance & Preferences',
     appearanceDesc: 'Customize typography, text size, wallpapers, and language',
@@ -135,7 +145,7 @@ const translations = {
     fontTitle: 'Typography',
     fontDesc: 'Choose preferred readable font family',
     textSizeTitle: 'Text Size',
-    textSizeDesc: 'Small • Medium • Large',
+    textSizeDesc: '14px - 15.5px - 17px - 18.5px - 20px (XS ➔ XL)',
     wallpaperTitle: 'Lock Screen Wallpaper',
     wallpaperDesc: 'Background visuals and ambient glows',
     protectApp: 'Protect your data with a 4-digit passcode',
@@ -146,6 +156,7 @@ const translations = {
     theme: 'Color Mode',
     dark: 'Dark',
     light: 'Light',
+    auto: 'Auto (System)',
     language: 'Language',
     notificationsTitle: 'Notifications',
     notificationsDesc: 'Sales alerts and daily expense reminders',
@@ -171,7 +182,16 @@ const translations = {
     accentPink: 'Rose Pink',
     contrastHint: 'Text color auto-adapts for optimal readability (Amber = Dark Charcoal)',
     diagramTitle: 'Sales & Profit Diagram',
-    diagramSubtitle: 'Live values labeled on top of each bar'
+    diagramSubtitle: 'Live values labeled on top of each bar',
+    layoutTitle: 'Card Layout',
+    layoutDesc: 'Select preferred card order (1-2-3)',
+    layout1: 'Standard',
+    layout2: 'Finance',
+    layout3: 'Sales',
+    resetSettingsTitle: 'Reset to Default',
+    resetSettingsDesc: 'Reset color, font, text size, and layout to defaults',
+    resetConfirmTitle: 'Reset to Default?',
+    resetConfirmMsg: 'Are you sure you want to reset all customizations (accent, font, text size, layout) to default settings?'
   }
 };
 
@@ -184,6 +204,7 @@ const appState = {
   language: localStorage.getItem('sd_lang') || 'km',
   theme: localStorage.getItem('sd_theme') || 'dark',
   themeAccent: localStorage.getItem('sd_theme_accent') || 'orange', // 'blue' | 'coral' | 'orange' | 'amber' | 'emerald' | 'pink'
+  cardLayout: localStorage.getItem('sd_card_layout') || '1', // '1' (standard) | '2' (finance) | '3' (sales)
   activeSettingsItem: null, // null | 'about' | 'accent' | 'fonts' | 'text_size' | 'wallpaper' | 'security'
   pinEnabled: localStorage.getItem('sd_pin_enabled') !== 'false',
   isLocked: localStorage.getItem('sd_pin_enabled') !== 'false' && !sessionStorage.getItem('sd_unlocked'),
@@ -195,11 +216,36 @@ const appState = {
   studyWordCount: 5,
   fontFamily: localStorage.getItem('sd_font') || 'font-kantumruy',
   textSize: localStorage.getItem('sd_text_size') || 'md',
+  hideSubtitles: localStorage.getItem('sd_hide_subtitles') === 'true',
   notificationsEnabled: localStorage.getItem('sd_notif_enabled') !== 'false'
 };
 
+function applyHideSubtitles(hide) {
+  if (hide) {
+    document.body.classList.add('hide-subtitles');
+    document.documentElement.classList.add('hide-subtitles');
+  } else {
+    document.body.classList.remove('hide-subtitles');
+    document.documentElement.classList.remove('hide-subtitles');
+  }
+}
+
+function toggleHideSubtitles() {
+  appState.hideSubtitles = !appState.hideSubtitles;
+  localStorage.setItem('sd_hide_subtitles', appState.hideSubtitles ? 'true' : 'false');
+  applyHideSubtitles(appState.hideSubtitles);
+  if (navigator.vibrate) navigator.vibrate(12);
+  renderCurrentView();
+}
+
 function applyAppFont(fontClass) {
-  document.body.classList.remove('font-kantumruy', 'font-koh-santepheap', 'font-jakarta');
+  document.body.classList.remove(
+    'font-kantumruy', 'font-koh-santepheap', 'font-jakarta',
+    'font-battambang', 'font-hanuman', 'font-koulen', 'font-noto-sans-khmer',
+    'font-siemreap', 'font-bokor', 'font-khmeros-moul', 'font-freehand',
+    'font-sn-simple', 'font-sn-ranger', 'font-sn-writhand', 'font-sn-deydos',
+    'font-khmeros-bassac', 'font-sn-nyhorn', 'font-akbalthom-kulen', 'font-akbalthom-kbach'
+  );
   document.body.classList.add(fontClass || 'font-kantumruy');
 }
 
@@ -211,7 +257,7 @@ function setAppFont(fontClass) {
 }
 
 function applyAppTextSize(size) {
-  document.documentElement.classList.remove('text-size-sm', 'text-size-md', 'text-size-lg');
+  document.documentElement.classList.remove('text-size-xs', 'text-size-sm', 'text-size-md', 'text-size-lg', 'text-size-xl');
   document.documentElement.classList.add(`text-size-${size || 'md'}`);
 }
 
@@ -219,6 +265,51 @@ function setAppTextSize(size) {
   appState.textSize = size;
   localStorage.setItem('sd_text_size', size);
   applyAppTextSize(size);
+  renderCurrentView();
+}
+
+function setCardLayout(layout) {
+  appState.cardLayout = String(layout);
+  localStorage.setItem('sd_card_layout', String(layout));
+  if (navigator.vibrate) navigator.vibrate(10);
+  renderCurrentView();
+}
+
+function resetAppSettings() {
+  const isKm = appState.language === 'km';
+  const confirmed = confirm(isKm 
+    ? 'តើអ្នកពិតជាចង់កំណត់ការកំណត់ទាំងអស់ (ពណ៌, Font, ទំហំអក្សរ, និង Layout) ទៅជាទម្រង់ដើមវិញមែនទេ?' 
+    : 'Are you sure you want to reset all customizations to default settings?');
+  
+  if (!confirmed) return;
+
+  // Clear specific custom UI keys
+  localStorage.removeItem('sd_theme_accent');
+  localStorage.removeItem('sd_font');
+  localStorage.removeItem('sd_text_size');
+  localStorage.removeItem('sd_hide_subtitles');
+  localStorage.removeItem('sd_card_layout');
+  localStorage.removeItem('sd_theme');
+  localStorage.removeItem('sd_lock_wallpaper');
+
+  // Reset in appState
+  appState.themeAccent = 'orange';
+  appState.fontFamily = 'font-kantumruy';
+  appState.textSize = 'md';
+  appState.hideSubtitles = false;
+  appState.cardLayout = '1';
+  appState.theme = 'dark';
+  appState.lockWallpaper = 'wp-deep-mesh';
+
+  // Apply to DOM
+  applyThemeAccent('orange');
+  applyAppFont('font-kantumruy');
+  applyAppTextSize('md');
+  applyHideSubtitles(false);
+  applyTheme('dark');
+  applyLockWallpaper('wp-deep-mesh');
+
+  if (navigator.vibrate) navigator.vibrate([15, 50, 15]);
   renderCurrentView();
 }
 
@@ -442,6 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyLockWallpaper(appState.lockWallpaper);
   applyAppFont(appState.fontFamily);
   applyAppTextSize(appState.textSize);
+  applyHideSubtitles(appState.hideSubtitles);
 
   setInterval(updateLockClock, 1000);
   updateLockClock();
@@ -578,11 +670,34 @@ function setupPullToRefresh() {
 }
 
 // ==========================================
-// Native Swipe Left-to-Right to Return Back
-// (អូសមកពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់)
+// Native Swipe Left-to-Right to Return Back 1 Step
+// (អូសមកពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់ ១ ជំហាន)
 // ==========================================
 function handleBackNavigation() {
-  // 1. Close any open modal if visible
+  // ជំហានទី ១ (Step 1): បិទផ្ទាំង Popover / Dropdown / Modal ដែលកំពុងបើកមុនគេ
+  // 1a. Close any open modal context menu (PDF/Share/Copy)
+  const contextMenuTypes = ['sales', 'payables', 'expenses', 'cod'];
+  for (const type of contextMenuTypes) {
+    const m = document.getElementById(`modal-menu-${type}`);
+    if (m && !m.classList.contains('hidden')) {
+      closeAllModalContextMenus();
+      if (navigator.vibrate) navigator.vibrate(12);
+      return true;
+    }
+  }
+
+  // 1b. Close any open date filter dropdown (Day / Month / Year)
+  const filterDropdowns = ['day-dropdown-menu', 'month-dropdown-menu', 'year-dropdown-menu'];
+  for (const id of filterDropdowns) {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains('hidden')) {
+      closeAllFilterDropdowns();
+      if (navigator.vibrate) navigator.vibrate(12);
+      return true;
+    }
+  }
+
+  // 1c. Close any open modal if visible
   const openModals = [
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
@@ -600,7 +715,23 @@ function handleBackNavigation() {
     }
   }
 
-  // 2. If in non-dashboard view (Settings, Analytics, Learning), return to dashboard
+  // ជំហានទី ២ (Step 2): បង្រួមផ្ទាំងរង (Sub-view / Accordion) ក្នុងទំព័រនោះ (ត្រឡប់ ១ ជំហាន)
+  // 2a. If in Settings and an accordion item (textSize, fonts, accent, wallpaper, cardLayout) is open -> collapse it first!
+  if (appState.currentView === 'settings' && appState.activeSettingsItem) {
+    appState.activeSettingsItem = null;
+    renderCurrentView();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+
+  // 2b. If in Analytics and viewing a specific month drill-down -> step back to All Months first!
+  if (appState.currentView === 'analytics' && appState.analyticsMonthKey && appState.analyticsMonthKey !== 'all') {
+    setAnalyticsMonth('all');
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+
+  // 2c. If at top level of non-dashboard view (Settings, Analytics, Learning), return to Home (dashboard)
   if (appState.currentView !== 'dashboard') {
     switchView('dashboard');
     if (navigator.vibrate) navigator.vibrate(20);
@@ -735,8 +866,35 @@ function setupSmartDockScroll() {
   }, { passive: true });
 }
 
+function handleHeroCardTap(event) {
+  if (window.getSelection) {
+    try { window.getSelection().removeAllRanges(); } catch (e) {}
+  }
+  toggleHideBalance();
+}
+
 function toggleHideBalance() {
+  if (window.getSelection) {
+    try { window.getSelection().removeAllRanges(); } catch (e) {}
+  }
   appState.hideBalance = !appState.hideBalance;
+  if (navigator.vibrate) navigator.vibrate(12);
+
+  // Instant in-place DOM update without tearing down the element (prevents WebKit stuck tap highlight)
+  const heroCard = document.getElementById('hero-balance-card');
+  const eyeBtn = document.getElementById('btn-hero-eye');
+  const usdElem = document.getElementById('hero-val-usd');
+  const khrElem = document.getElementById('hero-val-khr');
+
+  if (heroCard && eyeBtn && usdElem && khrElem && DataService.data) {
+    const d = DataService.data;
+    usdElem.textContent = appState.hideBalance ? '***,*** $' : formatUSD(d.bank.pureUsdTotal);
+    khrElem.textContent = appState.hideBalance ? '***,*** ៛' : formatKHR(d.bank.pureKhrTotal);
+    eyeBtn.innerHTML = `<i data-lucide="${appState.hideBalance ? 'eye-off' : 'eye'}" class="w-4 h-4 pointer-events-none"></i>`;
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
   renderCurrentView();
 }
 
@@ -998,9 +1156,9 @@ function switchView(viewName) {
     const btn = document.getElementById(`dock-btn-${v}`);
     if (btn) {
       if (v === viewName) {
-        btn.className = 'dock-btn active-tab flex-1 flex flex-col items-center justify-center py-1 rounded-full text-orange-400 transition';
+        btn.className = 'dock-btn active-tab flex-1 flex flex-col items-center justify-center py-1 rounded-full transition';
       } else {
-        btn.className = 'dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full text-slate-400 hover:text-white transition';
+        btn.className = 'dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition';
       }
     }
   });
@@ -1217,10 +1375,20 @@ function toggleMonthDropdown(event) {
   }
 }
 
+let monthPickerYear = (new Date()).getFullYear();
+
+function navigateMonthPickerYear(delta, event) {
+  if (event) event.stopPropagation();
+  monthPickerYear += delta;
+  renderMonthDropdownMenu();
+}
+
 function renderMonthDropdownMenu() {
   const menu = document.getElementById('month-dropdown-menu');
   if (!menu) return;
 
+  const isKm = appState.language === 'km';
+  const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
   const monthsList = [
     { num: 1, name: 'មករា', en: 'Jan' },
     { num: 2, name: 'កុម្ភៈ', en: 'Feb' },
@@ -1559,89 +1727,139 @@ function getDashboardViewHTML() {
   const currentTeamLeaders = (d.teamLeadersByMonth && d.teamLeadersByMonth[selectedMonthInt]) || d.teamLeaders;
   const monthlyExpensesList = d.expenses.filter(e => e.isoDate.startsWith(targetMonthKey));
   const monthlyTotalExpenseAmt = monthlyExpensesList.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const monthlyBoostAmt = (d.boostByMonth && d.boostByMonth[selectedMonthInt]) || 0;
   const monthlyBudgetGoal = 450.0;
   const remainingBudget = monthlyBudgetGoal - monthlyTotalExpenseAmt;
+
+  // Dynamic Expense Card Title based on selected Day / Month / Year
+  const isEn = appState.language === 'en';
+  let dynamicExpenseTitle = t('todayExpTitle');
+  if (appState.periodFilter === 'today') {
+    if (appState.daySubFilter === 'specific' && appState.specificDate) {
+      const dayNum = parseInt(appState.specificDate.split('-')[2], 10) || appState.specificDate.split('-')[2];
+      dynamicExpenseTitle = isEn ? `Expenses (Day ${dayNum})` : `ការចំណាយថ្ងៃទី ${dayNum}`;
+    } else if (appState.daySubFilter === 'yesterday') {
+      dynamicExpenseTitle = isEn ? "Yesterday's Expenses" : 'ការចំណាយថ្ងៃម្សិលមិញ';
+    } else {
+      dynamicExpenseTitle = isEn ? "Today's Expenses" : 'ការចំណាយថ្ងៃនេះ';
+    }
+  } else if (appState.periodFilter === 'month') {
+    const targetMonth = appState.selectedMonthKey || currentIsoMonth;
+    const mNum = targetMonth.split('-')[1] || '10';
+    dynamicExpenseTitle = isEn ? `Expenses (Month ${mNum})` : `ការចំណាយខែ ${mNum}`;
+  } else if (appState.periodFilter === 'year') {
+    const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
+    dynamicExpenseTitle = isEn ? `Expenses (${targetYear})` : `ការចំណាយឆ្នាំ ${targetYear}`;
+  } else if (appState.periodFilter === 'custom' && appState.customStartDate && appState.customEndDate) {
+    dynamicExpenseTitle = isEn
+      ? `Expenses (${displayDDMMYYYY(appState.customStartDate)} - ${displayDDMMYYYY(appState.customEndDate)})`
+      : `ការចំណាយ (${displayDDMMYYYY(appState.customStartDate)} - ${displayDDMMYYYY(appState.customEndDate)})`;
+  }
+
+  // Strict sorting from latest to earliest (Day 31 ➔ 01, Month 12 ➔ 01, latest row first)
+  const sortedFilteredExpenses = [...filteredExpenses].sort((a, b) => {
+    const cmp = (b.isoDate || '').localeCompare(a.isoDate || '');
+    if (cmp !== 0) return cmp;
+    return (b.rowIndex || 0) - (a.rowIndex || 0);
+  });
 
   const totalBoxQty = filteredSales.reduce((acc, cur) => acc + (cur.totalBoxQty || 0), 0);
   const totalRevenue = filteredSales.reduce((acc, cur) => acc + (cur.totalAmount || 0), 0);
   const totalGrossProfit = filteredSales.reduce((acc, cur) => acc + (cur.profit || 0), 0);
-  const totalExpenseAmt = filteredExpenses.reduce((acc, cur) => acc + (cur.amount || 0), 0);
+  const totalExpenseAmt = sortedFilteredExpenses.reduce((acc, cur) => acc + (cur.amount || 0), 0);
 
   const pureUsd = d.bank.pureUsdTotal;
   const pureKhr = d.bank.pureKhrTotal;
   const netCash = d.bank.netCashPosition;
 
-  return `
-    <!-- HERO BALANCE CARD (ទឹកប្រាក់ដែលមាន) -->
-    <div id="hero-balance-card" class="ios-glass-card rounded-3xl p-5 relative liquid-orange-glow select-none cursor-pointer transition-all duration-200">
+  const cardPureCash = `
+    <!-- HERO BALANCE CARD (ទឹកប្រាក់ដែលមាន - ប៉ះលើកាតត្រង់ណាក៏បានដើម្បីបិទ, ប៉ះលើភ្នែកដើម្បីបើក) -->
+    <div id="hero-balance-card" 
+         onclick="handleHeroCardTap(event)"
+         class="ios-glass-card rounded-3xl p-4 relative liquid-orange-glow select-none cursor-pointer transition-all duration-200 overflow-hidden"
+         style="-webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;">
       <div class="absolute -top-12 -right-12 w-44 h-44 bg-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
 
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400 border border-orange-500/30">
-            <i data-lucide="wallet" class="w-4 h-4"></i>
+      <div class="flex items-center justify-between mb-3 select-none" style="-webkit-user-select: none; user-select: none;">
+        <div class="flex items-center gap-2.5 select-none" style="-webkit-user-select: none; user-select: none;">
+          <div class="w-8 h-8 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400 border border-orange-500/30 shrink-0">
+            <i data-lucide="wallet" class="w-4 h-4 pointer-events-none"></i>
           </div>
-          <div>
-            <p class="text-xs text-white uppercase tracking-wider font-extrabold flex items-center gap-1.5 drop-shadow-sm">
-              <span>${t('pureCashTitle')}</span>
-            </p>
-            <p class="text-[10px] text-slate-300 font-medium">${t('pureCashSubtitle')}</p>
+          <div class="select-none" style="-webkit-user-select: none; user-select: none;">
+            <h3 class="font-bold text-xs uppercase text-white leading-tight select-none">
+              ${t('pureCashTitle')}
+            </h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 select-none card-subtitle">${t('pureCashSubtitle')}</p>
           </div>
         </div>
-        <button onclick="toggleHideBalance(event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
-          <i data-lucide="${appState.hideBalance ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>
+        <!-- Eye Button matching Action UI (No tap clipping or black highlight) -->
+        <button id="btn-hero-eye" 
+                type="button"
+                tabindex="-1"
+                onclick="event.stopPropagation(); toggleHideBalance();" 
+                class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition shadow-sm select-none overflow-hidden shrink-0 outline-none"
+                style="-webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; -webkit-user-select: none !important; user-select: none !important; outline: none !important;"
+                title="បិទ/បង្ហាញទឹកប្រាក់">
+          <i data-lucide="${appState.hideBalance ? 'eye-off' : 'eye'}" class="w-4 h-4 pointer-events-none"></i>
         </button>
       </div>
 
-      <!-- Currency Balances (បំបែកពណ៌ដាច់រវាង $ និង ៛) -->
-      <div class="grid grid-cols-2 gap-3 mb-2">
+      <!-- Currency Balances (2 Grid boxes exactly aligned with standard cards: p-2.5 rounded-xl bg-black/25 gap-2) -->
+      <div class="grid grid-cols-2 gap-2 text-xs select-none">
         <!-- USD Balance: ពណ៌បៃតងរស្មី Emerald Cash (#10B981) -->
-        <div class="bg-black/35 rounded-2xl p-3 border border-emerald-500/20 shadow-inner">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-[10px] text-slate-300 font-semibold">${t('usdOnly')}</span>
+        <div class="p-2.5 rounded-xl bg-black/25 border border-emerald-500/20 shadow-inner flex flex-col justify-between select-none">
+          <div class="flex items-center justify-between mb-1 select-none">
+            <span class="text-[10px] text-slate-300 font-semibold leading-tight select-none">${t('usdOnly')}</span>
             <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400 font-mono font-bold">USD</span>
           </div>
-          <p class="text-xl sm:text-2xl font-black font-mono text-emerald-400 tracking-tight drop-shadow-[0_0_12px_rgba(16,185,129,0.35)]">
-            ${appState.hideBalance ? '•••••• $' : formatUSD(pureUsd)}
+          <p id="hero-val-usd" class="text-lg font-bold font-mono text-emerald-400 tracking-tight drop-shadow-[0_0_12px_rgba(16,185,129,0.35)] mt-0.5 select-none">
+            ${appState.hideBalance ? '***,*** $' : formatUSD(pureUsd)}
           </p>
         </div>
         <!-- KHR Balance: ពណ៌លឿងទុំ/មាសរាជវង្ស Golden Amber (#F59E0B) -->
-        <div class="bg-black/35 rounded-2xl p-3 border border-amber-500/20 shadow-inner">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-[10px] text-slate-300 font-semibold">${t('khrOnly')}</span>
+        <div class="p-2.5 rounded-xl bg-black/25 border border-amber-500/20 shadow-inner flex flex-col justify-between select-none">
+          <div class="flex items-center justify-between mb-1 select-none">
+            <span class="text-[10px] text-slate-300 font-semibold leading-tight select-none">${t('khrOnly')}</span>
             <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-300 font-mono font-bold">KHR</span>
           </div>
-          <p class="text-xl sm:text-2xl font-black font-mono text-amber-400 tracking-tight drop-shadow-[0_0_12px_rgba(245,158,11,0.35)]">
-            ${appState.hideBalance ? '•••••• ៛' : formatKHR(pureKhr)}
+          <p id="hero-val-khr" class="text-lg font-bold font-mono text-amber-400 tracking-tight drop-shadow-[0_0_12px_rgba(245,158,11,0.35)] mt-0.5 select-none">
+            ${appState.hideBalance ? '***,*** ៛' : formatKHR(pureKhr)}
           </p>
         </div>
       </div>
     </div>
+  `;
 
+  const periodBanner = `
     <!-- Active Period Display (Home only) -->
     <div class="flex items-center justify-between px-1">
-      <span class="text-xs text-slate-300 font-medium">📌 ${activePeriodDisplay}</span>
-      <span class="text-[10px] text-orange-400 font-mono">Personal Sales</span>
+      <span class="text-xs text-slate-300 font-medium flex items-center gap-1.5">
+        <i data-lucide="calendar" class="w-3.5 h-3.5 text-orange-400"></i>
+        <span>${activePeriodDisplay}</span>
+      </span>
+      <span class="text-[10px] text-orange-400 font-mono card-subtitle">Personal Sales</span>
     </div>
+  `;
 
-    <!-- UNIFIED SALES & EXPENSES PERFORMANCE CARD (តូចល្មម និងតែមួយដូចរូបទី ២) -->
+  const cardPerformance = `
+    <!-- UNIFIED SALES & EXPENSES PERFORMANCE CARD -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10 relative overflow-hidden">
       
-      <!-- Top Card Header: Title (Clean without action buttons) -->
-      <div class="flex items-center gap-2 mb-3">
-        <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30">
-          <i data-lucide="bar-chart" class="w-4 h-4"></i>
+      <!-- Top Card Header: Title (Clean iOS Standard without emojis) -->
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
+          <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
         </div>
         <div>
-          <h3 class="font-bold text-xs uppercase tracking-wider text-white leading-tight">
-            📊 សង្ខេបការលក់ & ចំណាយ
+          <h3 class="font-bold text-xs uppercase text-white leading-tight">
+            សង្ខេបការលក់ & ចំណាយ
           </h3>
-          <p class="text-[10px] text-slate-400 font-mono leading-tight">Sales & Expense Performance</p>
+          <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Sales & Expense Performance</p>
         </div>
       </div>
 
-      <!-- 4 Mini Grid Boxes (2x2 layout matching Image 2) -->
-      <div class="grid grid-cols-2 gap-2 text-xs mb-2.5">
+      <!-- 4 Mini Grid Boxes (2x2 layout) -->
+      <div class="grid grid-cols-2 gap-2 text-xs">
         
         <!-- Box 1: Total Box Qty (With View / មើល > Button) -->
         <div onclick="openPersonalSalesModal()" 
@@ -1679,62 +1897,39 @@ function getDashboardViewHTML() {
           <span class="font-mono text-blue-400 font-bold text-base tracking-tight">${formatUSD(totalGrossProfit)}</span>
         </div>
 
-        <!-- Box 4: Monthly Expense (With Shortcut (+) Button) -->
+        <!-- Box 4: Monthly Boost Expense (តាមខែដែលបានជ្រើសរើស) -->
         <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-slate-400 text-[10px] leading-tight">
-              ចំណាយខែ ${selectedMonthNum}:
-            </span>
-            <!-- Shortcut (+) to AppSheet / Custom Form inside Grid 4 -->
-            <button onclick="openExpenseShortcut()" 
-                    oncontextmenu="openShortcutModal(event)"
-                    title="ចុចដើម្បីបើក AppSheet (ចុចស្តាំដើម្បីកំណត់ Link)"
-                    class="w-5 h-5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 flex items-center justify-center active:scale-95 transition shadow-sm">
-              <i data-lucide="plus" class="w-3 h-3"></i>
-            </button>
-          </div>
-          <span class="font-mono text-rose-400 font-bold text-base tracking-tight mt-0.5">${formatUSD(monthlyTotalExpenseAmt)}</span>
-        </div>
-
-      </div>
-
-      <!-- Bottom Highlight Banner (matching Image 2 bottom row: Goal 450$/mo + Remaining Budget + List Icon) -->
-      <div class="p-2.5 rounded-xl bg-gradient-to-r from-rose-950/40 via-black/30 to-emerald-950/40 border border-white/10 flex items-center justify-between">
-        <div class="flex items-center gap-1.5">
-          <span class="text-xs text-slate-300 font-semibold">🎯 កំណត់ចំណាយ 450$/ខែ</span>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <!-- Remaining Budget text -->
-          <span class="text-sm font-bold font-mono ${remainingBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
-            ${remainingBudget >= 0 ? `សល់ ${formatUSD(remainingBudget)}` : `លើស ${formatUSD(Math.abs(remainingBudget))}`}
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">
+            ${isEn ? `Boost Month ${selectedMonthNum}:` : `ចំណាយ Boost ខែ ${selectedMonthNum}:`}
           </span>
-
-          <!-- List Icon: Click to open full monthly expenses drill-down -->
-          <button onclick="openExpensesModal(true)" 
-                  title="មើលតារាងចំណាយពេញមួយខែ ${selectedMonthNum}"
-                  class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition flex items-center justify-center">
-            <i data-lucide="list" class="w-3.5 h-3.5"></i>
-          </button>
+          <span class="font-mono text-rose-400 font-bold text-base tracking-tight">${formatUSD(monthlyBoostAmt)}</span>
         </div>
+
       </div>
     </div>
 
     <!-- ======================================================== -->
-    <!-- CARD B: 📈 NET CASH POSITION (Khmer top, English bottom, badge on right)  -->
+  `;
+
+  const cardNetCash = `
+    <!-- CARD B: NET CASH POSITION (iOS Standard Header: Emerald Icon Box + Pure White Title) -->
     <!-- ======================================================== -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       
       <!-- Top Title (2 lines) and Right-Aligned Cash Health Badge -->
       <div class="flex items-center justify-between mb-3">
-        <div>
-          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
-            <span>📈 សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ</span>
-          </h3>
-          <p class="text-[10px] text-slate-400 font-mono ml-5">Net Cash Position</p>
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
+            <i data-lucide="landmark" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs uppercase text-white leading-tight">
+              សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ
+            </h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Net Cash Position</p>
+          </div>
         </div>
-        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-xs shadow-sm">
+        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-xs shadow-sm shrink-0">
           ${netCash.healthStatus}
         </span>
       </div>
@@ -1745,7 +1940,7 @@ function getDashboardViewHTML() {
              title="ចុចដើម្បីមើលកុងធនាគារទាំងអស់"
              class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-emerald-500/30 transition ios-touch-item flex flex-col justify-between select-none">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('actualCash')}:</span>
-          <span class="font-mono text-white font-bold text-sm tracking-tight mt-0.5">${formatUSD(netCash.totalActualCash)}</span>
+          <span class="font-mono text-white font-bold text-base tracking-tight mt-0.5">${formatUSD(netCash.totalActualCash)}</span>
         </div>
 
         <!-- Box 2: Pending COD (Touch to view Pending COD Modal) -->
@@ -1753,13 +1948,13 @@ function getDashboardViewHTML() {
              title="ចុចដើម្បីមើលតារាង COD ទាំងអស់"
              class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-amber-500/30 transition ios-touch-item flex flex-col justify-between select-none">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('pendingCod')}:</span>
-          <span class="font-mono text-amber-400 font-bold text-sm tracking-tight mt-0.5">${formatUSD(netCash.pendingCodReceivables)}</span>
+          <span class="font-mono text-amber-400 font-bold text-base tracking-tight mt-0.5">${formatUSD(netCash.pendingCodReceivables)}</span>
         </div>
 
         <!-- Box 3: Liquid Assets -->
         <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between select-none">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('liquidAssets')}:</span>
-          <span class="font-mono text-blue-400 font-bold text-sm tracking-tight mt-auto">${formatUSD(netCash.totalLiquidAssets)}</span>
+          <span class="font-mono text-blue-400 font-bold text-base tracking-tight mt-auto">${formatUSD(netCash.totalLiquidAssets)}</span>
         </div>
 
         <!-- Box 4: Accounts Payable (Touch to view Accounts Payable Modal) -->
@@ -1767,7 +1962,7 @@ function getDashboardViewHTML() {
              title="ចុចដើម្បីមើលបញ្ជីបំណុលទាំងអស់"
              class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-rose-500/30 transition ios-touch-item flex flex-col justify-between select-none">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('payablesTotal')}:</span>
-          <span class="font-mono text-rose-400 font-bold text-sm tracking-tight mt-0.5">${formatUSD(netCash.totalAccountsPayable)}</span>
+          <span class="font-mono text-rose-400 font-bold text-base tracking-tight mt-0.5">${formatUSD(netCash.totalAccountsPayable)}</span>
         </div>
       </div>
       <div class="mt-2 p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/40 to-blue-950/40 border border-emerald-500/20 flex items-center justify-between">
@@ -1777,31 +1972,38 @@ function getDashboardViewHTML() {
     </div>
 
     <!-- ======================================================== -->
-    <!-- CARD D: 🧾 FULL-WIDTH EXPENSES CARD (ស្រឡះស្អាត តាម Filter)  -->
+  `;
+
+  const cardExpenses = `
+    <!-- CARD D: FULL-WIDTH EXPENSES CARD (ចុចលើកាតដើម្បីមើលការចំណាយតាមថ្ងៃ/ខែដែលបានជ្រើសរើស) -->
     <!-- ======================================================== -->
-    <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
+    <div onclick="openExpensesModal()" 
+         title="ប៉ះលើកាតដើម្បីបង្ហាញ ${dynamicExpenseTitle}"
+         class="ios-glass-card rounded-3xl p-4 border border-white/10 cursor-pointer select-none active:scale-[0.99] transition-all">
       <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
             <i data-lucide="receipt" class="w-4 h-4"></i>
           </div>
           <div>
-            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-200 leading-tight">
-              ${t('todayExpTitle')}
+            <h3 class="font-bold text-xs uppercase text-white leading-tight">
+              ${dynamicExpenseTitle}
             </h3>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Expenses (${filteredExpenses.length} មុខ)</p>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Expenses (${sortedFilteredExpenses.length} មុខ)</p>
           </div>
         </div>
-        <button onclick="openExpensesModal()" 
-                class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 hover:text-white text-[11px] font-semibold flex items-center gap-1 active:scale-95 transition shadow-sm">
-          <span>${appState.language === 'en' ? 'View All' : 'មើលទាំងអស់'}</span>
-          <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <!-- Top-Right (+) Button linked to AppSheet on Phone -->
+        <button onclick="event.stopPropagation(); openExpenseShortcut();" 
+                oncontextmenu="event.stopPropagation(); openShortcutModal(event);"
+                title="ចុចដើម្បីបើក AppSheet កត់ត្រាចំណាយ (ចុចស្តាំដើម្បីកំណត់ Link)"
+                class="w-8 h-8 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 flex items-center justify-center active:scale-95 transition shadow-sm shrink-0">
+          <i data-lucide="plus" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Expenses List -->
+      <!-- Expenses List (Sorted latest 31 ➔ 01 / Month 12 ➔ 01) -->
       <div class="space-y-2 max-h-52 overflow-y-auto no-scrollbar">
-        ${filteredExpenses.slice(0, 15).map((e, idx) => `
+        ${sortedFilteredExpenses.slice(0, 15).map((e, idx) => `
           <div class="p-2.5 rounded-2xl bg-black/25 border border-white/5 flex items-center justify-between text-xs hover:border-white/10 transition">
             <div class="flex items-center gap-2.5 min-w-0 pr-2">
               <span class="w-5 h-5 rounded-lg bg-white/5 text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
@@ -1810,8 +2012,8 @@ function getDashboardViewHTML() {
               <div class="min-w-0">
                 <p class="text-white font-medium text-xs truncate leading-tight">${e.description || e.category || 'ចំណាយទូទៅ'}</p>
                 <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
-                  <span>📅 ${e.date}</span>
-                  ${e.time ? `<span class="text-amber-300">⏰ ${e.time}</span>` : ''}
+                  <span>${e.date}</span>
+                  ${e.time ? `<span class="text-amber-300">${e.time}</span>` : ''}
                   ${e.category ? `<span class="px-1.5 py-0.2 rounded bg-white/5 text-slate-300 font-sans">${e.category}</span>` : ''}
                 </div>
               </div>
@@ -1823,30 +2025,57 @@ function getDashboardViewHTML() {
 
       <!-- Expenses Footer Summary -->
       <div class="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
-        <span class="text-slate-400 text-[11px]">ចំណាយសរុប (${filteredExpenses.length} មុខ):</span>
+        <span class="text-slate-400 text-[11px]">ចំណាយសរុប (${sortedFilteredExpenses.length} មុខ):</span>
         <span class="font-mono text-rose-400 font-bold text-sm">${formatUSD(totalExpenseAmt)}</span>
       </div>
-    </div>
 
+      <!-- Transferred Monthly Expense Budget Bar (កំណត់ចំណាយ 450$/ខែ) -->
+      <div onclick="event.stopPropagation(); openExpensesModal(true);"
+           title="មើលតារាងចំណាយពេញមួយខែ ${selectedMonthNum}"
+           class="mt-2.5 p-2.5 rounded-xl bg-gradient-to-r from-rose-950/40 via-black/30 to-emerald-950/40 border border-white/10 flex items-center justify-between cursor-pointer hover:border-white/20 transition">
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="target" class="w-3.5 h-3.5 text-rose-400 shrink-0"></i>
+          <span class="text-xs text-slate-300 font-semibold">កំណត់ចំណាយ 450$/ខែ</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Remaining Budget text -->
+          <span class="text-sm font-bold font-mono ${remainingBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+            ${remainingBudget >= 0 ? `សល់ ${formatUSD(remainingBudget)}` : `លើស ${formatUSD(Math.abs(remainingBudget))}`}
+          </span>
+
+          <!-- List Icon: Click to open full monthly expenses drill-down -->
+          <button onclick="event.stopPropagation(); openExpensesModal(true)" 
+                  title="មើលតារាងចំណាយពេញមួយខែ ${selectedMonthNum}"
+                  class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition flex items-center justify-center">
+            <i data-lucide="list" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const cardTeamSales = `
     <!-- CARD E: TEAM SALES - DYNAMIC TARGET FROM GOOGLE SHEET (High-Security Style Badge) -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
             <i data-lucide="users" class="w-4 h-4"></i>
           </div>
           <div>
-            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-200 leading-tight">
+            <h3 class="font-bold text-xs uppercase text-white leading-tight">
               ${t('teamSalesTitle')}
             </h3>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Team Sales Targets</p>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Team Sales Targets</p>
           </div>
         </div>
         
         <!-- Target Highlight Badge (ដូចកន្លែង សុវត្ថិភាពខ្ពស់ / High Security Badge) -->
-        <div class="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1 shadow-sm shrink-0">
+        <div class="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1.5 shadow-sm shrink-0">
+          <i data-lucide="target" class="w-3.5 h-3.5 text-blue-400"></i>
           <span class="text-xs text-blue-400 font-bold font-mono">
-            🎯 ${(currentTeamLeaders.reduce((acc, cur) => acc + (cur.targetGoal || 100), 0))} ប្រអប់
+            ${(currentTeamLeaders.reduce((acc, cur) => acc + (cur.targetGoal || 100), 0))} ប្រអប់
           </span>
         </div>
       </div>
@@ -1882,15 +2111,26 @@ function getDashboardViewHTML() {
         `).join('')}
       </div>
     </div>
+  `;
 
-    <!-- AI & TOOLS SECTION (Clean iPhone Home Screen Style - No Inner Box, Pure App Icons) -->
+  const cardTools = `
+    <!-- AI & TOOLS SECTION (Clean iPhone Home Screen Style - iOS Standard Header) -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
-          <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>
-          <span>ឧបករណ៍ AI & បកប្រែ</span>
-        </h3>
-        <span class="text-[10px] text-purple-400 font-mono font-semibold">Quick Launch</span>
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/30 shrink-0">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs uppercase text-white leading-tight">
+              ឧបករណ៍ AI & បកប្រែ
+            </h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">AI & Translation Tools</p>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-[10px] text-purple-400 font-mono font-bold shadow-sm shrink-0">
+          Quick Launch
+        </span>
       </div>
 
       <!-- Pure iPhone Springboard Icon Grid (Spacious & Clean with Native App Schemes) -->
@@ -1928,6 +2168,42 @@ function getDashboardViewHTML() {
         </button>
       </div>
     </div>
+  `;
+
+  const layout = appState.cardLayout || '1';
+  if (layout === '2') {
+    // Option 2: Finance / Cash Focus (Pure Cash -> Net Cash -> Expenses -> Period -> Performance -> Team Sales -> Tools)
+    return `
+      ${cardPureCash}
+      ${cardNetCash}
+      ${cardExpenses}
+      ${periodBanner}
+      ${cardPerformance}
+      ${cardTeamSales}
+      ${cardTools}
+    `;
+  } else if (layout === '3') {
+    // Option 3: Sales Focus (Period -> Performance -> Team Sales -> Pure Cash -> Net Cash -> Expenses -> Tools)
+    return `
+      ${periodBanner}
+      ${cardPerformance}
+      ${cardTeamSales}
+      ${cardPureCash}
+      ${cardNetCash}
+      ${cardExpenses}
+      ${cardTools}
+    `;
+  }
+
+  // Option 1: Standard (Default) (Pure Cash -> Period -> Performance -> Net Cash -> Expenses -> Team Sales -> Tools)
+  return `
+    ${cardPureCash}
+    ${periodBanner}
+    ${cardPerformance}
+    ${cardNetCash}
+    ${cardExpenses}
+    ${cardTeamSales}
+    ${cardTools}
   `;
 }
 
@@ -2011,14 +2287,19 @@ function getAnalyticsViewHTML() {
         <!-- Month Hero Card -->
         <div class="ios-glass-card rounded-3xl p-5 border border-white/10 relative overflow-hidden">
           <div class="flex items-center justify-between mb-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="font-bold text-sm text-white">${monthTitle} - ការវិភាគតាមថ្ងៃ</h3>
-                <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">Daily Trend</span>
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
+                <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
               </div>
-              <p class="text-[11px] text-slate-400 mt-0.5">តាមដានកំណើនឡើងចុះនៃការលក់ប្រចាំថ្ងៃ</p>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-bold text-xs uppercase text-white leading-tight">${monthTitle} - ការវិភាគតាមថ្ងៃ</h3>
+                  <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">Daily Trend</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-0.5 leading-tight card-subtitle">តាមដានកំណើនឡើងចុះនៃការលក់ប្រចាំថ្ងៃ</p>
+              </div>
             </div>
-            <button onclick="setAnalyticsMonth('all')" class="text-xs text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1">
+            <button onclick="setAnalyticsMonth('all')" class="text-xs text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1 shrink-0">
               <span>ពេញមួយឆ្នាំ</span>
               <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
             </button>
@@ -2066,9 +2347,17 @@ function getAnalyticsViewHTML() {
 
         <!-- Daily Trend Ups & Downs List (Reverse: Latest Day First) -->
         <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
-          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300 mb-3">
-            📈 ការប្រែប្រួលឡើង-ចុះប្រចាំថ្ងៃ (${daysSorted.length} ថ្ងៃ)
-          </h4>
+          <div class="flex items-center gap-2.5 mb-3">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
+              <i data-lucide="trending-up" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-xs uppercase text-white leading-tight">
+                ការប្រែប្រួលឡើង-ចុះប្រចាំថ្ងៃ (${daysSorted.length} ថ្ងៃ)
+              </h4>
+              <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Daily Revenue Comparison</p>
+            </div>
+          </div>
           <div class="space-y-2">
             ${[...daysSorted].reverse().map(dayIso => {
               const item = dailyMap[dayIso];
@@ -2122,11 +2411,16 @@ function getAnalyticsViewHTML() {
 
       <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
         <div class="flex items-center justify-between mb-4">
-          <div>
-            <h3 class="font-bold text-sm text-white">${t('diagramTitle')}</h3>
-            <p class="text-[11px] text-slate-400">${t('diagramSubtitle')}</p>
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
+              <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs uppercase text-white leading-tight">${t('diagramTitle')}</h3>
+              <p class="text-[10px] text-slate-400 leading-tight mt-0.5 card-subtitle">${t('diagramSubtitle')}</p>
+            </div>
           </div>
-          <span class="px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold">${new Date().getFullYear()} Trend</span>
+          <span class="px-2.5 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-semibold shrink-0">${new Date().getFullYear()} Trend</span>
         </div>
 
         <div class="h-56 w-full flex items-end gap-2 pt-8 pb-3 px-1 border-b border-white/10">
@@ -2149,7 +2443,15 @@ function getAnalyticsViewHTML() {
       </div>
 
       <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
-        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300 mb-3">${appState.language === 'en' ? 'Monthly Summary Table' : 'តារាងសង្ខេបចំណូល-ចំណេញតាមខែ'}</h4>
+        <div class="flex items-center gap-2.5 mb-3">
+          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-xs uppercase text-white leading-tight">${appState.language === 'en' ? 'Monthly Summary Table' : 'តារាងសង្ខេបចំណូល-ចំណេញតាមខែ'}</h4>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Monthly Revenue & Profit</p>
+          </div>
+        </div>
         <div class="space-y-2">
           ${months.slice(-6).reverse().map(m => `
             <div onclick="setAnalyticsMonth('${m}')" class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5 hover:border-orange-500/30 cursor-pointer transition">
@@ -2264,11 +2566,49 @@ function getSettingsViewHTML() {
   };
   const curAccent = accentMeta[appState.themeAccent] || accentMeta.orange;
 
+  // 5-Tier Font Size Metadata (14px - 15.5px - 17px - 18.5px - 20px)
+  const textSizeTiers = [
+    { key: 'xs', px: '14px', label: '14px', tier: 'XS', val: 1 },
+    { key: 'sm', px: '15.5px', label: '15.5px', tier: 'SM', val: 2 },
+    { key: 'md', px: '17px', label: '17px', tier: 'MD', val: 3, isDefault: true },
+    { key: 'lg', px: '18.5px', label: '18.5px', tier: 'LG', val: 4 },
+    { key: 'xl', px: '20px', label: '20px', tier: 'XL', val: 5 }
+  ];
+  const curTextSizeTier = textSizeTiers.find(t => t.key === appState.textSize) || textSizeTiers[2];
+
   return `
-    <div class="space-y-4 pb-8">
+    <div class="space-y-4 pb-8 relative">
       
+      <!-- Animated Khmer Apsara Motif with Twinkling Stars Behind (ផ្កាយក្រោយទេវតា និង Animation ទាំងទេវតា និងផ្កាយ) -->
+      <div class="absolute -top-3 right-0 w-28 h-32 pointer-events-none select-none overflow-hidden z-0 flex items-start justify-end">
+        
+        <!-- Twinkling Stars Behind Apsara (ផ្កាយនៅពីក្រោយទេវតា - ពន្លឺស្រទន់តិចៗ មិនភ្លឺចាំង) -->
+        <div class="absolute inset-0 z-0 pointer-events-none">
+          <!-- Soft Ambient Star Glow Aura Behind (ពន្លឺរស្មីស្រទន់) -->
+          <div class="absolute top-1 right-2 w-20 h-20 rounded-full celestial-star-twinkle"
+               style="background: radial-gradient(circle, rgba(254, 243, 199, 0.08) 0%, rgba(251, 191, 36, 0.02) 45%, transparent 70%); filter: blur(3px);">
+          </div>
+          
+          <!-- Twinkling Stars with subtle soft brightness -->
+          <span class="absolute top-2 right-12 text-[9px] celestial-star-twinkle text-amber-200/40">✦</span>
+          <span class="absolute top-4 right-20 text-[7px] celestial-star-twinkle text-sky-200/35" style="animation-delay: 1.2s;">✨</span>
+          <span class="absolute top-10 right-6 text-[8px] celestial-star-twinkle text-amber-300/40" style="animation-delay: 0.7s;">✦</span>
+          <span class="absolute top-16 right-18 text-[9px] celestial-star-twinkle text-yellow-100/35" style="animation-delay: 1.9s;">✨</span>
+          <span class="absolute top-7 right-2 text-[6px] celestial-star-twinkle text-white/35" style="animation-delay: 2.4s;">✦</span>
+          <span class="absolute top-22 right-10 text-[7px] celestial-star-twinkle text-amber-200/30" style="animation-delay: 1.4s;">✨</span>
+          <span class="absolute top-14 right-24 text-[5px] celestial-star-twinkle text-sky-100/30" style="animation-delay: 3.1s;">✦</span>
+        </div>
+
+        <!-- Animated Apsara in Front (ទេវតា អណ្តែតថ្នមៗ ស្រទន់) -->
+        <div class="w-24 h-28 relative z-10 apsara-animated" style="opacity: 0.28;">
+          <img src="khmer-apsara-gold.png" alt="Khmer Art" 
+               class="w-full h-full object-contain object-top-right transition-all duration-500"
+               style="filter: drop-shadow(0 0 8px rgba(245,158,11,0.22));">
+        </div>
+      </div>
+
       <!-- Top Settings Profile (រូប និង ឈ្មោះ ដូច Version មុន - មិនទាន់ដាក់តួនាទី) -->
-      <div class="pt-2 px-1 flex items-center gap-3.5">
+      <div class="pt-2 px-1 flex items-center gap-3.5 relative z-10">
         <div class="relative">
           <img src="profile.png" alt="SDEY SDOEUNG" 
                class="w-13 h-13 rounded-full object-cover border-2 border-[var(--accent-solid)] shadow-lg"
@@ -2277,36 +2617,35 @@ function getSettingsViewHTML() {
         </div>
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5">
-            <h1 class="font-black text-base text-white leading-tight truncate">ស្តី ស្តើង</h1>
-            <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
+            <h1 class="font-black text-base text-white leading-tight truncate brand-title">ស្តី ស្តើង</h1>
+            <img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0" style="width: 14px; height: 14px;">
           </div>
           <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">SDEY SDOEUNG</p>
         </div>
       </div>
 
       <!-- Settings Title & Subtitle (គ្មាន Button Back) -->
-      <div class="px-1 pt-1">
-        <h2 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
-          <span>⚙️</span>
-          <span>${t('settingsTitle')}</span>
+      <div class="px-1 pt-1 relative z-10">
+        <h2 class="text-xl font-black text-white tracking-tight">
+          ${t('settingsTitle')}
         </h2>
-        <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">${t('settingsSubtitle')}</p>
+        <p class="text-xs text-slate-400 mt-0.5 leading-relaxed settings-subtitle">${t('settingsSubtitle')}</p>
       </div>
 
       <!-- ======================================================== -->
       <!-- UNIFIED INSET GROUPED LIST (ដកកាតចេញ រក្សា Icon បែប iPhone) -->
       <!-- ======================================================== -->
-      <div class="bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
+      <div class="settings-list-card bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
         
         <!-- 1. ភាសា (Language) -->
-        <div class="p-3.5 flex items-center justify-between select-none">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0">
+        <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
+          <div class="settings-row-left flex items-center gap-3 min-w-0">
+            <div class="settings-icon-box w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
               <i data-lucide="globe" class="w-4 h-4 text-sky-400"></i>
             </div>
             <div class="min-w-0">
-              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('language')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${isKm ? 'ខ្មែរ / English' : 'Khmer / English'}</p>
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('language')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ខ្មែរ / English' : 'Khmer / English'}</p>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
@@ -2318,14 +2657,14 @@ function getSettingsViewHTML() {
         <!-- 2. ពណ៌ចម្បង (Theme Accent - ដកកូដពណ៌ចេញ ជំនួសដោយអក្សរ) -->
         <div>
           <div onclick="toggleSettingsItem('accent')" 
-               class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center shrink-0">
+               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
                 <i data-lucide="palette" class="w-4 h-4 text-purple-400"></i>
               </div>
               <div class="min-w-0">
-                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('themeAccentTitle')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('themeAccentDesc')}</p>
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('themeAccentTitle')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('themeAccentDesc')}</p>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -2405,85 +2744,343 @@ function getSettingsViewHTML() {
           ` : ''}
         </div>
 
-        <!-- 3. ពុម្ពអក្សរ (Font Family) -->
+        <!-- 3. ពុម្ពអក្សរ (Font Family - 9 ជម្រើសរួមមាន AKbalthom & SN Fonts) -->
         <div>
           <div onclick="toggleSettingsItem('fonts')" 
-               class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-slate-700/40 border border-white/10 flex items-center justify-center shrink-0">
-                <span class="text-xs font-bold text-white">Aa</span>
+               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <span class="text-xs font-bold text-purple-400">Aa</span>
               </div>
               <div class="min-w-0">
-                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('fontTitle')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('fontDesc')}</p>
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('fontTitle')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('fontDesc')}</p>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/5">
-                ${appState.fontFamily === 'font-kantumruy' ? (isKm ? 'កន្ទុំរុយ' : 'Kantumruy') : (appState.fontFamily === 'font-koh-santepheap' ? (isKm ? 'កោះសន្តិភាព' : 'Santepheap') : 'Jakarta')}
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-purple-300 border border-white/5 font-mono">
+                ${appState.fontFamily === 'font-battambang' ? (isKm ? 'បាត់ដំបង' : 'Battambang') : 
+                  (appState.fontFamily === 'font-koulen' ? (isKm ? 'គូលេន' : 'Koulen') : 
+                  (appState.fontFamily === 'font-noto-sans-khmer' ? 'Noto Sans' : 
+                  (appState.fontFamily === 'font-hanuman' ? 'Hanuman' : 
+                  (appState.fontFamily === 'font-siemreap' ? (isKm ? 'សៀមរាប' : 'Siemreap') : 
+                  (appState.fontFamily === 'font-bokor' ? (isKm ? 'បូកគោ' : 'Bokor') : 
+                  (appState.fontFamily === 'font-khmeros-moul' ? (isKm ? 'អក្សរមូល' : 'Moul') : 
+                  (appState.fontFamily === 'font-freehand' ? 'Freehand' : 
+                  (appState.fontFamily === 'font-sn-simple' ? 'SN Simple' : 
+                  (appState.fontFamily === 'font-sn-writhand' ? (isKm ? 'សរសេរដៃ' : 'Writhand') : 
+                  (appState.fontFamily === 'font-koh-santepheap' ? (isKm ? 'សន្តិភាព' : 'Santepheap') : 
+                  (appState.fontFamily === 'font-jakarta' ? 'Jakarta' : (isKm ? 'កន្ទុំរុយ' : 'Kantumruy'))))))))))))}
               </span>
               <i data-lucide="${active === 'fonts' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
             </div>
           </div>
 
           ${active === 'fonts' ? `
-            <div class="p-3.5 bg-black/40 border-t border-white/5 space-y-2 animate-fade-in">
-              <div class="grid grid-cols-3 gap-1.5 bg-black/40 p-1 rounded-2xl border border-white/5 text-center">
+            <div class="p-4 bg-black/40 border-t border-white/5 space-y-2.5 animate-fade-in">
+              <div class="flex items-center justify-between text-[11px] text-slate-300">
+                <span class="font-bold text-white">${isKm ? 'ជ្រើសរើសពុម្ពអក្សរ (Google Fonts & Unicode)' : 'Choose Font Style (Google Fonts & Unicode)'}</span>
+                <span class="text-[10px] text-emerald-400 font-mono font-bold">☁️ Google CDN Ready</span>
+              </div>
+
+              <!-- 12 Font Grid (4 Rows x 3 Columns) -->
+              <div class="grid grid-cols-3 gap-1.5 text-center">
+                <!-- 1. Kantumruy Pro (Google Fonts CDN - Default UI) -->
                 <button onclick="setAppFont('font-kantumruy')" 
-                        class="py-2 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-kantumruy' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                  <span>${isKm ? 'កន្ទុំរុយ' : 'Kantumruy'}</span>
+                        style="font-family: 'Kantumruy Pro', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-kantumruy' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold font-sans">កខAa</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'កន្ទុំរុយ' : 'Kantumruy'}</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
                 </button>
+
+                <!-- 2. Battambang (Google Fonts CDN - Regular & Bold) -->
+                <button onclick="setAppFont('font-battambang')" 
+                        style="font-family: 'Battambang', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-battambang' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'បាត់ដំបង' : 'Battambang'}</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
+                </button>
+
+                <!-- 3. Koulen (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-koulen')" 
+                        style="font-family: 'Koulen', cursive;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-koulen' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'គូលេន' : 'Koulen'}</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
+                </button>
+
+                <!-- 4. Noto Sans Khmer (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-noto-sans-khmer')" 
+                        style="font-family: 'Noto Sans Khmer', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-noto-sans-khmer' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">Noto Sans</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
+                </button>
+
+                <!-- 5. Hanuman (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-hanuman')" 
+                        style="font-family: 'Hanuman', 'Hanuman UI', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-hanuman' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">Hanuman</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
+                </button>
+
+                <!-- 6. Koh Santepheap (Google Fonts CDN) -->
                 <button onclick="setAppFont('font-koh-santepheap')" 
-                        class="py-2 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                  <span>${isKm ? 'កោះសន្តិភាព' : 'Santepheap'}</span>
+                        style="font-family: 'Koh Santepheap', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'សន្តិភាព' : 'Santepheap'}</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
                 </button>
+
+                <!-- 7. Siemreap (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-siemreap')" 
+                        style="font-family: 'Siemreap', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-siemreap' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'សៀមរាប' : 'Siemreap'}</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
+                </button>
+
+                <!-- 8. Bokor (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-bokor')" 
+                        style="font-family: 'Bokor', cursive;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-bokor' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'បូកគោ' : 'Bokor'}</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
+                </button>
+
+                <!-- 9. KhmerOS Moul -->
+                <button onclick="setAppFont('font-khmeros-moul')" 
+                        style="font-family: 'KhmerOS Moul', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-khmeros-moul' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខ</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'អក្សរមូល' : 'Moul'}</span>
+                  <span class="text-[8px] opacity-70">ក្បាលធំ</span>
+                </button>
+
+                <!-- 10. Freehand (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-freehand')" 
+                        style="font-family: 'KhmerOS Freehand', 'Freehand', cursive;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-freehand' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">Freehand</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
+                </button>
+
+                <!-- 11. SN KH Simple -->
+                <button onclick="setAppFont('font-sn-simple')" 
+                        style="font-family: 'SN KH Simple', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-sn-simple' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">SN Simple</span>
+                  <span class="text-[8px] opacity-70">Minimal Tech</span>
+                </button>
+
+                <!-- 12. SN Kh Writhand -->
+                <button onclick="setAppFont('font-sn-writhand')" 
+                        style="font-family: 'SN Kh Writhand', cursive;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-sn-writhand' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'សរសេរដៃ' : 'Writhand'}</span>
+                  <span class="text-[8px] opacity-70">ហត្ថលេខា</span>
+                </button>
+
+                <!-- 10. SN KH Rangerforce -->
+                <button onclick="setAppFont('font-sn-ranger')" 
+                        style="font-family: 'SN KH Rangerforce', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-sn-ranger' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">Rangerforce</span>
+                  <span class="text-[8px] opacity-70">កែងរឹងមាំ</span>
+                </button>
+
+                <!-- 11. Koh Santepheap -->
+                <button onclick="setAppFont('font-koh-santepheap')" 
+                        style="font-family: 'Koh Santepheap', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'សន្តិភាព' : 'Santepheap'}</span>
+                  <span class="text-[8px] opacity-70">អក្សរពុម្ព</span>
+                </button>
+
+                <!-- 12. Plus Jakarta Sans -->
                 <button onclick="setAppFont('font-jakarta')" 
-                        class="py-2 rounded-xl text-xs font-semibold transition active:scale-95 ${appState.fontFamily === 'font-jakarta' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                  <span>${isKm ? 'ចាការតា' : 'Jakarta'}</span>
+                        style="font-family: 'Plus Jakarta Sans', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-jakarta' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">Aa12</span>
+                  <span class="text-[10px] font-semibold">Jakarta</span>
+                  <span class="text-[8px] opacity-70">Latin Clean</span>
                 </button>
               </div>
             </div>
           ` : ''}
         </div>
 
-        <!-- 4. ទំហំអក្សរ (Text Size) -->
-        <div class="p-3.5 flex items-center justify-between select-none">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0">
-              <i data-lucide="scaling" class="w-4 h-4 text-blue-400"></i>
+        <!-- 4. ទំហំអក្សរ (Text Size - Accordion with >) -->
+        <div>
+          <div onclick="toggleSettingsItem('textSize')" 
+               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="scaling" class="w-4 h-4 text-blue-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('textSizeTitle')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('textSizeDesc')}</p>
+              </div>
             </div>
-            <div class="min-w-0">
-              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('textSizeTitle')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('textSizeDesc')}</p>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/25 font-mono">
+                ${curTextSizeTier.tier} (${curTextSizeTier.px})
+              </span>
+              <i data-lucide="${active === 'textSize' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
             </div>
           </div>
-          <div class="flex items-center gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
-            <button onclick="setAppTextSize('sm')" 
-                    class="w-7 h-7 rounded-lg font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'sm' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-xs'}">
-              <span>A-</span>
-            </button>
-            <button onclick="setAppTextSize('md')" 
-                    class="w-7 h-7 rounded-lg font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'md' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-xs'}">
-              <span>A</span>
-            </button>
-            <button onclick="setAppTextSize('lg')" 
-                    class="w-7 h-7 rounded-lg font-bold flex items-center justify-center transition active:scale-95 ${appState.textSize === 'lg' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white text-sm'}">
-              <span>A+</span>
-            </button>
-          </div>
+
+          ${active === 'textSize' ? `
+            <div class="p-4 bg-black/40 border-t border-white/5 space-y-3 animate-fade-in text-size-slider-box">
+              
+              <!-- Title & Active Badge -->
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-white">${isKm ? 'រំកិលកំណត់ទំហំអក្សរ (៥ កម្រិត)' : 'Adjust Font Size (5 Levels)'}</span>
+                <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg accent-solid-btn shadow-sm">
+                  ${curTextSizeTier.tier} • ${curTextSizeTier.px}${curTextSizeTier.isDefault ? (isKm ? ' (ដើម)' : ' (Default)') : ''}
+                </span>
+              </div>
+
+              <!-- iOS Style Range Slider Box with 5 Tick Marks & Active Fill -->
+              <div class="bg-black/50 border border-white/10 rounded-2xl p-3.5 space-y-3.5 shadow-inner">
+                
+                <!-- Slider Row: A [ Track + 5 Ticks + Thumb ] A -->
+                <div class="flex items-center gap-3">
+                  <span class="text-xs font-black text-slate-400 select-none w-4 text-center">A</span>
+                  
+                  <div class="flex-1 relative flex items-center h-8">
+                    <!-- Background Track Line -->
+                    <div class="absolute left-2.5 right-2.5 h-2 bg-white/15 dark:bg-white/15 bg-slate-200 rounded-full pointer-events-none overflow-hidden">
+                      <!-- Active Track Fill (from left to current thumb) -->
+                      <div class="h-full rounded-full transition-all duration-150" 
+                           style="width: ${((curTextSizeTier.val - 1) / 4) * 100}%; background-color: var(--accent-solid);"></div>
+                    </div>
+                    
+                    <!-- 5 Tick Mark Stops on the Track -->
+                    <div class="absolute left-2.5 right-2.5 flex justify-between items-center pointer-events-none">
+                      ${textSizeTiers.map(tier => {
+                        const isActive = tier.key === appState.textSize;
+                        const isPassed = tier.val <= curTextSizeTier.val;
+                        return `
+                          <div class="w-3.5 h-3.5 -ml-[7px] -mr-[7px] rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-white shadow-md scale-110' : (isPassed ? 'scale-90' : 'bg-white/40 dark:bg-white/30 scale-75')}"
+                               style="${isActive ? 'box-shadow: 0 0 0 3px var(--accent-solid);' : (isPassed ? 'background-color: var(--accent-solid);' : '')}">
+                            <span class="w-1.5 h-1.5 rounded-full ${isActive ? '' : 'bg-white'}"
+                                  style="${isActive ? 'background-color: var(--accent-solid);' : ''}"></span>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+
+                    <!-- Range Input -->
+                    <input type="range" min="1" max="5" step="1" 
+                           value="${curTextSizeTier.val}" 
+                           oninput="const val = this.value; const sz = val == '1' ? 'xs' : (val == '2' ? 'sm' : (val == '3' ? 'md' : (val == '4' ? 'lg' : 'xl'))); setAppTextSize(sz);"
+                           class="font-slider absolute inset-0 w-full h-full cursor-pointer z-10"
+                           aria-label="Font Size Slider">
+                  </div>
+                  
+                  <span class="text-lg font-black text-slate-100 select-none w-4 text-center">A</span>
+                </div>
+
+                <!-- 5 Exact Font Size Numbers & Tick Buttons (Direct Clickable Selection) -->
+                <div class="grid grid-cols-5 gap-1 pt-2 border-t border-white/10 select-none">
+                  ${textSizeTiers.map(tier => {
+                    const isActive = tier.key === appState.textSize;
+                    return `
+                      <button type="button" onclick="setAppTextSize('${tier.key}')" 
+                              class="flex flex-col items-center py-1.5 px-0.5 rounded-xl transition-all active:scale-95 ${isActive ? 'accent-solid-btn font-bold ring-1 ring-white/30' : 'text-slate-400 dark:text-slate-300 hover:text-white hover:bg-white/5'}">
+                        <!-- Exact Number (14px, 15.5px, 17px, 18.5px, 20px) -->
+                        <span class="text-xs font-mono font-black ${isActive ? 'text-inherit' : 'text-slate-200'}">
+                          ${tier.px}
+                        </span>
+                        <!-- Tier Badge (XS, SM, MD, LG, XL) -->
+                        <span class="text-[9px] font-bold tracking-tight mt-0.5 ${isActive ? 'opacity-95 font-black' : (tier.isDefault ? 'text-amber-400 font-bold' : 'text-slate-400')}">
+                          ${tier.tier}${tier.isDefault ? (isKm ? ' ដើម' : '') : ''}
+                        </span>
+                        <!-- Tick Dot below -->
+                        <span class="mt-1 w-1.5 h-1.5 rounded-full ${isActive ? 'bg-white' : 'bg-white/25'}"></span>
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+
+              </div>
+
+              <!-- Option: Hide Subtitles (លាក់ចំណងជើងរង មាន Button បិទ/បើក) -->
+              <div onclick="toggleHideSubtitles()" 
+                   class="settings-row p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between cursor-pointer transition-all duration-150 select-none">
+                <div class="settings-row-left flex items-center gap-2.5 min-w-0 pr-2">
+                  <div class="settings-icon-box w-8 h-8 rounded-xl ${appState.hideSubtitles ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-blue-500/20 border-blue-500/30 text-blue-400'} border flex items-center justify-center shrink-0 transition-all duration-150">
+                    <i data-lucide="${appState.hideSubtitles ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <h5 class="settings-row-title text-xs font-bold text-white truncate leading-tight">
+                        ${isKm ? 'លាក់ចំណងជើងរង (Hide Subtitles)' : 'Hide Subtitles'}
+                      </h5>
+                      <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-md ${appState.hideSubtitles ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/10 text-slate-400'}">
+                        ${appState.hideSubtitles ? (isKm ? 'បើក' : 'ON') : (isKm ? 'បិទ' : 'OFF')}
+                      </span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">
+                      ${isKm ? 'បង្ហាញតែចំណងជើងធំៗ ដើម្បីឱ្យស្រឡះ និងងាយស្រួលមើល' : 'Show main titles only for cleaner readability'}
+                    </p>
+                  </div>
+                </div>
+                <button type="button" 
+                        onclick="event.stopPropagation(); toggleHideSubtitles();"
+                        class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.hideSubtitles ? 'bg-emerald-500' : 'bg-slate-700'}"
+                        role="switch" aria-checked="${appState.hideSubtitles}">
+                  <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.hideSubtitles ? 'translate-x-5' : 'translate-x-0'}"></div>
+                </button>
+              </div>
+
+              <!-- Live Sample Preview -->
+              <div class="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+                <div class="min-w-0 pr-2">
+                  <p class="text-slate-400 text-[10px] uppercase tracking-wider font-bold">${isKm ? 'គំរូទំហំអក្សរជាក់ស្តែង' : 'Live Preview'}:</p>
+                  <p class="font-bold text-white truncate mt-0.5" style="font-size: ${curTextSizeTier.px};">
+                    ${isKm ? 'សួស្តី! នេះជាទំហំអក្សរគំរូជាក់ស្តែង' : 'Sample typography preview'}
+                  </p>
+                  <p class="text-[10px] text-slate-400 font-mono truncate mt-0.5 settings-subtitle">
+                    ${isKm ? 'ចំណងជើងរង • Subtitle Preview (ABA + ACLEDA)' : 'Subtitle Preview • Secondary Description'}
+                  </p>
+                </div>
+                <span class="shrink-0 px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 font-mono text-[11px] font-bold border border-white/10">
+                  ${curTextSizeTier.px}
+                </span>
+              </div>
+
+            </div>
+          ` : ''}
         </div>
 
         <!-- 5. ផ្ទាំងរូបភាពចាក់សោរ (Lock Screen Wallpaper - បន្ថែម ៣ ពណ៌/ម៉ូដទៀត) -->
         <div>
           <div onclick="toggleSettingsItem('wallpaper')" 
-               class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
                 <i data-lucide="image" class="w-4 h-4 text-indigo-400"></i>
               </div>
               <div class="min-w-0">
-                <h4 class="text-xs font-bold text-white truncate leading-tight">${t('wallpaperTitle')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('wallpaperDesc')}</p>
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('wallpaperTitle')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('wallpaperDesc')}</p>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -2573,50 +3170,51 @@ function getSettingsViewHTML() {
           ` : ''}
         </div>
 
-        <!-- 6. ទម្រង់ពណ៌ (Color Mode - ងងឹត / ភ្លឺ) -->
-        <div class="p-3.5 flex items-center justify-between select-none">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
-              <i data-lucide="${isDark ? 'moon' : 'sun'}" class="w-4 h-4 text-amber-400"></i>
+        <!-- 6. ទម្រង់ពណ៌ (Color Mode - ស្វ័យប្រវត្តិ / ភ្លឺ / ងងឹត) -->
+        <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
+          <div class="settings-row-left flex items-center gap-3 min-w-0">
+            <div class="settings-icon-box w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+              <i data-lucide="${appState.theme === 'auto' ? 'sun-medium' : (isDark ? 'moon' : 'sun')}" class="w-4 h-4 text-amber-400"></i>
             </div>
             <div class="min-w-0">
-              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('theme')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${isDark ? (isKm ? 'របៀបងងឹត' : 'Dark Mode') : (isKm ? 'របៀបភ្លឺ' : 'Light Mode')}</p>
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('theme')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${appState.theme === 'auto' ? (isKm ? 'ស្វ័យប្រវត្តិតាមទូរស័ព្ទ' : 'Auto (System)') : (isDark ? (isKm ? 'របៀបងងឹត' : 'Dark Mode') : (isKm ? 'របៀបភ្លឺ' : 'Light Mode'))}</p>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
-            <button onclick="toggleTheme('dark')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${isDark ? 'accent-solid-btn' : 'text-slate-400'}">${t('dark')}</button>
-            <button onclick="toggleTheme('light')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${!isDark ? 'accent-solid-btn' : 'text-slate-400'}">${t('light')}</button>
+          <div class="grid grid-cols-3 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
+            <button onclick="toggleTheme('auto')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'auto' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">Auto</button>
+            <button onclick="toggleTheme('light')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'light' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${t('light')}</button>
+            <button onclick="toggleTheme('dark')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'dark' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${t('dark')}</button>
           </div>
         </div>
 
         <!-- 7. ការជូនដំណឹង (Notifications) -->
-        <div class="p-3.5 flex items-center justify-between select-none">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0">
+        <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
+          <div class="settings-row-left flex items-center gap-3 min-w-0">
+            <div class="settings-icon-box w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
               <i data-lucide="bell" class="w-4 h-4 text-rose-400"></i>
             </div>
             <div class="min-w-0">
-              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('notificationsTitle')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('notificationsDesc')}</p>
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('notificationsTitle')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('notificationsDesc')}</p>
             </div>
           </div>
           <button onclick="toggleNotificationsEnabled()" 
                   class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.notificationsEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
                   role="switch" aria-checked="${appState.notificationsEnabled}">
-            <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${appState.notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+            <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
           </button>
         </div>
 
         <!-- 8. ការចាក់សោរ (Security / Passcode Lock) -->
-        <div class="p-3.5 flex items-center justify-between select-none">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+        <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
+          <div class="settings-row-left flex items-center gap-3 min-w-0">
+            <div class="settings-icon-box w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
               <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
             </div>
             <div class="min-w-0">
-              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('enablePinTitle')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${t('enablePinDesc')}</p>
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('enablePinTitle')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('enablePinDesc')}</p>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -2629,21 +3227,75 @@ function getSettingsViewHTML() {
             <button onclick="togglePinEnabled()" 
                     class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.pinEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
                     role="switch" aria-checked="${appState.pinEnabled}">
-              <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+              <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
             </button>
           </div>
         </div>
 
-        <!-- 9. អំពីខ្ញុំ (About Me - ពេលចុចបង្ហាញផ្ទាំងកាតចំកណ្តាល Blur ផ្ទៃខាងក្រោយ & ប៉ះកន្លែងទំនេរបិទ) -->
+        <!-- 9. ទម្រង់តម្រៀបកាត (Card Layout - Accordion with >) -->
+        <div>
+          <div onclick="toggleSettingsItem('cardLayout')" 
+               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('layoutTitle')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('layoutDesc')}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/25 font-mono">
+                ${appState.cardLayout === '1' ? '១. ' + t('layout1') : (appState.cardLayout === '2' ? '២. ' + t('layout2') : '៣. ' + t('layout3'))}
+              </span>
+              <i data-lucide="${active === 'cardLayout' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          </div>
+
+          ${active === 'cardLayout' ? `
+            <div class="p-4 bg-black/40 border-t border-white/5 space-y-3 animate-fade-in">
+              <div class="flex items-center justify-between text-[11px] text-slate-300">
+                <span class="font-bold text-white">${isKm ? 'ជ្រើសរើសលំដាប់កាតលើ Dashboard' : 'Choose Dashboard Card Order'}</span>
+                <span class="text-[10px] text-slate-400">${isKm ? '៣ ជម្រើស' : '3 Options'}</span>
+              </div>
+              <!-- iOS Segmented Control: Option 1, 2, 3 -->
+              <div class="grid grid-cols-3 gap-1 bg-black/50 p-1 rounded-2xl border border-white/10 text-center text-xs">
+                <button onclick="setCardLayout('1')" 
+                        class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '1' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
+                  <span>១. ${t('layout1')}</span>
+                </button>
+                <button onclick="setCardLayout('2')" 
+                        class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '2' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
+                  <span>២. ${t('layout2')}</span>
+                </button>
+                <button onclick="setCardLayout('3')" 
+                        class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '3' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
+                  <span>៣. ${t('layout3')}</span>
+                </button>
+              </div>
+              <!-- Layout Description Box -->
+              <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-[10px] text-slate-300 leading-relaxed">
+                ${appState.cardLayout === '1' 
+                  ? '🔹 <strong>ស្តង់ដា៖</strong> ទឹកប្រាក់សុទ្ធ ➔ 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ ➔ ក្រុម'
+                  : (appState.cardLayout === '2'
+                    ? '🔹 <strong>ហិរញ្ញវត្ថុ៖</strong> ទឹកប្រាក់សុទ្ធ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ ➔ 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ ក្រុម'
+                    : '🔹 <strong>ផ្នែកលក់៖</strong> 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ លក់ក្រុម ➔ ទឹកប្រាក់សុទ្ធ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- 10. អំពីខ្ញុំ (About Me - ពេលចុចបង្ហាញផ្ទាំងកាតចំកណ្តាល Blur ផ្ទៃខាងក្រោយ & ប៉ះកន្លែងទំនេរបិទ) -->
         <div onclick="openAboutModal()" 
-             class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition select-none">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0">
+             class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
+          <div class="settings-row-left flex items-center gap-3 min-w-0">
+            <div class="settings-icon-box w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
               <i data-lucide="user" class="w-4 h-4 text-orange-400"></i>
             </div>
             <div class="min-w-0">
-              <h4 class="text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate">ស្តី ស្តើង • SDEY SDOEUNG</p>
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ស្តី ស្តើង • SDEY SDOEUNG</p>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -2653,6 +3305,16 @@ function getSettingsViewHTML() {
 
       </div>
 
+      <!-- 11. កំណត់ឡើងវិញទៅទម្រង់ដើម (Reset to Default Button) -->
+      <div class="pt-2">
+        <button onclick="resetAppSettings()" 
+                class="w-full p-3.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 hover:text-rose-300 font-semibold text-xs flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          <span>${t('resetSettingsTitle')}</span>
+        </button>
+        <p class="text-[10px] text-slate-500 text-center mt-1.5 px-4 settings-subtitle">${t('resetSettingsDesc')}</p>
+      </div>
+
     </div>
   `;
 }
@@ -2660,6 +3322,7 @@ function getSettingsViewHTML() {
 // ==========================================
 // 8. Drill-down Modals & Actions
 // ==========================================
+
 function openPersonalSalesModal() {
   const d = DataService.data;
   if (!d) return;
@@ -2947,8 +3610,12 @@ function openExpensesModal(forceMonthly = false) {
     }
   }
 
-  // Strict sorting from latest to earliest (31 ➔ 01)
-  const sortedExpenses = [...filteredExpenses].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
+  // Strict sorting from latest to earliest (Day 31 ➔ 01, Month 12 ➔ 01, latest row first)
+  const sortedExpenses = [...filteredExpenses].sort((a, b) => {
+    const cmp = (b.isoDate || '').localeCompare(a.isoDate || '');
+    if (cmp !== 0) return cmp;
+    return (b.rowIndex || 0) - (a.rowIndex || 0);
+  });
   const totalAmount = sortedExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
   if (subtitle) {
@@ -2999,17 +3666,104 @@ function closeExpensesModal() {
   document.getElementById('expenses-modal').classList.add('hidden');
 }
 
+function renderAboutModalContent() {
+  const isKm = appState.language === 'km';
+  const card = document.getElementById('about-modal-card');
+  if (!card) return;
+
+  card.innerHTML = `
+    <!-- Close Button top right -->
+    <button onclick="closeAboutModal()" class="absolute top-3.5 right-3.5 p-1.5 rounded-full text-slate-400 hover:text-white bg-white/5 border border-white/5 active:scale-95 transition z-10">
+      <i data-lucide="x" class="w-4 h-4"></i>
+    </button>
+
+    <!-- Ambient Top Glow -->
+    <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full bg-orange-500/15 blur-3xl pointer-events-none"></div>
+
+    <!-- Centered Profile Photo with Green Status Dot -->
+    <div class="relative">
+      <img src="profile.png" alt="SDEY SDOEUNG" 
+           class="w-24 h-24 rounded-full object-cover border-4 border-[var(--accent-solid)] shadow-2xl">
+      <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#070D18] shadow-md"></span>
+    </div>
+
+    <!-- Centered Name with Verified Blue Tick (រក្សាបែបនេះ ទោះប្តូរភាសាក៏ដោយ ដូចរូបភាពគំរូ) -->
+    <div>
+      <div class="flex items-center justify-center gap-1.5">
+        <h2 class="text-2xl font-black text-white tracking-wide brand-title">ស្តី ស្តើង</h2>
+        <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0" style="width: 16px; height: 16px;">
+      </div>
+      <p class="text-xs text-orange-400 font-bold tracking-widest uppercase mt-1">SDEY SDOEUNG</p>
+      
+      <!-- Manager Badge Centered (រក្សា Manager ជាប់ជានិច្ច មិនផ្លាស់ប្តូរតាមភាសា ដូចរូបភាពគំរូ) -->
+      <div class="mt-2.5 flex justify-center">
+        <span class="px-4 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 font-black text-xs shadow-sm flex items-center gap-1.5 tracking-wide">
+          <span>🎖️</span>
+          <span>Manager</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Roles Badges Centered in 3 Columns (ប្តូរតាម Setting) -->
+    <div class="w-full pt-3 border-t border-white/10">
+      <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">
+        ${isKm ? 'តួនាទីទទួលខុសត្រូវ:' : 'Key Responsibilities:'}
+      </span>
+      <div class="grid grid-cols-3 gap-1.5 w-full">
+        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+          <span class="text-xs">📈</span>
+          <p class="text-[10px] font-bold text-white mt-0.5">${t('salesRole')}</p>
+        </div>
+        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+          <span class="text-xs">👑</span>
+          <p class="text-[10px] font-bold text-white mt-0.5">${t('leaderRole')}</p>
+        </div>
+        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+          <span class="text-xs">💻</span>
+          <p class="text-[10px] font-bold text-white mt-0.5">${t('developerRole')}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centered Contacts List (ប្តូរតាម Setting) -->
+    <div class="w-full pt-2.5 border-t border-white/10 space-y-1.5 text-xs">
+      <div class="flex items-center justify-between text-slate-300">
+        <span class="text-slate-400">${t('phoneLabel')}:</span>
+        <span class="font-mono font-bold text-white">087 513 666 / 090 513 666</span>
+      </div>
+      <div class="flex items-center justify-between text-slate-300">
+        <span class="text-slate-400">${t('telegramLabel')}:</span>
+        <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline">@sdoeung_sd</a>
+      </div>
+      <div class="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
+        <span class="text-slate-400">${t('versionLabel')}:</span>
+        <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.5</span>
+      </div>
+    </div>
+
+    <!-- Solid Accent Fill Button with Auto Contrast Text -->
+    <div class="w-full pt-1">
+      <a href="https://t.me/sdoeung_sd" target="_blank" 
+         class="w-full py-2.5 rounded-2xl accent-solid-btn font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
+        <i data-lucide="send" class="w-3.5 h-3.5"></i>
+        <span>${t('contactTelegramBtn')}</span>
+      </a>
+    </div>
+  `;
+  if (window.lucide) window.lucide.createIcons();
+}
+
 function openAboutModal() {
   const modal = document.getElementById('about-modal');
   if (modal) {
+    renderAboutModalContent();
     modal.classList.remove('hidden');
-    if (window.lucide) window.lucide.createIcons();
     if (navigator.vibrate) navigator.vibrate(12);
   }
 }
 
 function closeAboutModal(e) {
-  if (e && e.target && e.target.closest && e.target.closest('#about-modal > div')) {
+  if (e && e.target && e.target.closest && e.target.closest('#about-modal-card')) {
     return; // clicked inside card, don't close
   }
   const modal = document.getElementById('about-modal');
@@ -3084,11 +3838,51 @@ function toggleTheme(theme) {
   renderCurrentView();
 }
 
+let systemThemeMediaQueryListener = null;
+
 function applyTheme(theme) {
-  if (theme === 'light') {
-    document.body.classList.add('light-theme');
+  const metaTheme = document.getElementById('theme-color-meta');
+  
+  if (theme === 'auto') {
+    const isSystemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const effectiveTheme = isSystemDark ? 'dark' : 'light';
+    
+    if (effectiveTheme === 'light') {
+      document.documentElement.classList.add('light-theme');
+      document.body.classList.add('light-theme');
+      if (metaTheme) metaTheme.setAttribute('content', '#FFFFFF');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+      document.body.classList.remove('light-theme');
+      if (metaTheme) metaTheme.setAttribute('content', '#070D18');
+    }
+
+    // Set up continuous system listener if not already attached
+    if (window.matchMedia && !systemThemeMediaQueryListener) {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      systemThemeMediaQueryListener = (e) => {
+        if (appState.theme === 'auto') {
+          applyTheme('auto');
+          renderCurrentView();
+        }
+      };
+      if (mq.addEventListener) {
+        mq.addEventListener('change', systemThemeMediaQueryListener);
+      } else if (mq.addListener) {
+        mq.addListener(systemThemeMediaQueryListener);
+      }
+    }
   } else {
-    document.body.classList.remove('light-theme');
+    const isLight = (theme === 'light');
+    if (isLight) {
+      document.documentElement.classList.add('light-theme');
+      document.body.classList.add('light-theme');
+      if (metaTheme) metaTheme.setAttribute('content', '#FFFFFF');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+      document.body.classList.remove('light-theme');
+      if (metaTheme) metaTheme.setAttribute('content', '#070D18');
+    }
   }
 }
 
@@ -3200,5 +3994,190 @@ function cycleHomeCelestialGlow() {
 }
 
 // ==========================================
-// Card Touch Interactions & Helpers
+// Modal Context Menu Actions (Save as PDF, Share, Copy)
 // ==========================================
+function toggleModalContextMenu(modalType, event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById(`modal-menu-${modalType}`);
+  if (!menu) return;
+
+  const isHidden = menu.classList.contains('hidden');
+  closeAllModalContextMenus();
+  if (isHidden) {
+    menu.classList.remove('hidden');
+    // Update labels based on appState.language
+    const isKm = appState.language === 'km';
+    menu.querySelectorAll('.action-label-pdf').forEach(el => el.textContent = isKm ? 'រក្សាទុកជា PDF' : 'Save as PDF');
+    menu.querySelectorAll('.action-label-share').forEach(el => el.textContent = isKm ? 'ចែករំលែក' : 'Share');
+    menu.querySelectorAll('.action-label-copy').forEach(el => el.textContent = isKm ? 'ចម្លង' : 'Copy');
+  }
+}
+
+function closeAllModalContextMenus() {
+  ['sales', 'payables', 'expenses', 'cod'].forEach(type => {
+    const m = document.getElementById(`modal-menu-${type}`);
+    if (m) m.classList.add('hidden');
+  });
+}
+
+// Close context menus when tapping anywhere outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('[id^="modal-menu-"]') && !e.target.closest('button[title="ជម្រើស"]')) {
+    closeAllModalContextMenus();
+  }
+});
+
+function handleModalMenuAction(modalType, action) {
+  closeAllModalContextMenus();
+  if (action === 'pdf') {
+    exportModalToPDF(modalType);
+  } else if (action === 'share') {
+    shareModalSummary(modalType);
+  } else if (action === 'copy') {
+    copyModalSummary(modalType);
+  }
+}
+
+function getModalContentText(modalType) {
+  const d = DataService.data;
+  if (!d) return '';
+  const isKm = appState.language === 'km';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('km-KH');
+
+  if (modalType === 'sales') {
+    const list = d.personalSales || [];
+    const totalBox = list.reduce((sum, item) => sum + (item.totalBoxQty || 0), 0);
+    const totalRev = list.reduce((sum, item) => sum + (item.totalAmount || 0), 0);
+    let txt = `📊 ${isKm ? 'របាយការណ៍ការលក់ Personal Sales' : 'Personal Sales Report'} (${dateStr})\n`;
+    txt += `------------------------------------\n`;
+    txt += `${isKm ? 'ចំនួនកុម្ម៉ង់' : 'Total Orders'}: ${list.length}\n`;
+    txt += `${isKm ? 'ចំនួនប្រអប់' : 'Total Boxes'}: ${formatInt(totalBox)}\n`;
+    txt += `${isKm ? 'ទឹកប្រាក់សរុប' : 'Total Revenue'}: ${formatUSD(totalRev)}\n`;
+    txt += `------------------------------------\n`;
+    list.slice(0, 15).forEach((item, i) => {
+      txt += `${i + 1}. ${item.customer || '—'} | ${item.date} | ${item.totalBoxQty || 0} box | ${formatUSD(item.totalAmount)}\n`;
+    });
+    if (list.length > 15) txt += `... និង ${list.length - 15} មុខទៀត\n`;
+    return txt;
+  } else if (modalType === 'payables') {
+    const payables = (d.bank && d.bank.payables) || [];
+    const total = (d.bank && d.bank.netCashPosition && d.bank.netCashPosition.totalAccountsPayable) ||
+      payables.reduce((s, p) => s + (p.amount || 0), 0);
+    let txt = `💳 ${isKm ? 'បញ្ជីបំណុលត្រូវទូទាត់' : 'Accounts Payable'} (${dateStr})\n`;
+    txt += `------------------------------------\n`;
+    txt += `${isKm ? 'ចំនួនមុខ' : 'Total Items'}: ${payables.length}\n`;
+    txt += `${isKm ? 'ទឹកប្រាក់សរុប' : 'Total Amount'}: ${formatUSD(total)}\n`;
+    txt += `------------------------------------\n`;
+    payables.forEach((p, i) => {
+      txt += `${i + 1}. ${p.title} - ${formatUSD(p.amount)}\n`;
+    });
+    return txt;
+  } else if (modalType === 'expenses') {
+    const exp = d.expenses || [];
+    const total = exp.reduce((s, e) => s + (e.amount || 0), 0);
+    let txt = `🧾 ${isKm ? 'បញ្ជីចំណាយ Daily Expenses' : 'Daily Expenses'} (${dateStr})\n`;
+    txt += `------------------------------------\n`;
+    txt += `${isKm ? 'ចំនួនមុខ' : 'Total Items'}: ${exp.length}\n`;
+    txt += `${isKm ? 'ទឹកប្រាក់សរុប' : 'Total Amount'}: ${formatUSD(total)}\n`;
+    txt += `------------------------------------\n`;
+    exp.slice(0, 15).forEach((e, i) => {
+      txt += `${i + 1}. ${e.description || e.category} | ${e.date} | ${formatUSD(e.amount)}\n`;
+    });
+    if (exp.length > 15) txt += `... និង ${exp.length - 15} មុខទៀត\n`;
+    return txt;
+  } else if (modalType === 'cod') {
+    const items = d.pendingCodReceivables || [];
+    const totalAmt = items.reduce((s, it) => s + (it.amount || 0), 0);
+    const totalBoxes = items.reduce((s, it) => s + (parseInt(it.qtyBoxes, 10) || 0), 0);
+    let txt = `📦 ${isKm ? 'លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់' : 'Outstanding COD Receivables'} (${dateStr})\n`;
+    txt += `------------------------------------\n`;
+    txt += `${isKm ? 'ចំនួនមុខ' : 'Total Items'}: ${items.length}\n`;
+    txt += `${isKm ? 'ចំនួនប្រអប់' : 'Total Boxes'}: ${totalBoxes}\n`;
+    txt += `${isKm ? 'ទឹកប្រាក់សរុប' : 'Total Amount'}: ${formatUSD(totalAmt)}\n`;
+    txt += `------------------------------------\n`;
+    items.forEach((it, i) => {
+      txt += `${i + 1}. ${it.date} | ${it.qtyBoxes} box | ${it.status} | ${formatUSD(it.amount)}\n`;
+    });
+    return txt;
+  }
+  return '';
+}
+
+function exportModalToPDF(modalType) {
+  const modalIdMap = {
+    sales: 'sales-modal',
+    payables: 'payables-modal',
+    expenses: 'expenses-modal',
+    cod: 'cod-modal'
+  };
+  const modalEl = document.getElementById(modalIdMap[modalType]);
+  if (!modalEl) return;
+
+  const card = modalEl.querySelector('.bg-\\[\\#0F1B2E\\]\\/95') || modalEl.firstElementChild;
+  if (!card) return;
+
+  card.classList.add('modal-print-target');
+  window.print();
+  setTimeout(() => {
+    card.classList.remove('modal-print-target');
+  }, 1000);
+}
+
+function shareModalSummary(modalType) {
+  const text = getModalContentText(modalType);
+  if (!text) return;
+
+  if (navigator.share) {
+    navigator.share({
+      title: 'SD Dashboard Summary',
+      text: text
+    }).catch(() => {
+      copyModalSummary(modalType);
+    });
+  } else {
+    copyModalSummary(modalType);
+  }
+}
+
+function copyModalSummary(modalType) {
+  const text = getModalContentText(modalType);
+  if (!text) return;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToastNotification(appState.language === 'km' ? 'បានចម្លងជោគជ័យ!' : 'Copied successfully!');
+    }).catch(() => {
+      fallbackCopyText(text);
+    });
+  } else {
+    fallbackCopyText(text);
+  }
+}
+
+function fallbackCopyText(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToastNotification(appState.language === 'km' ? 'បានចម្លងជោគជ័យ!' : 'Copied successfully!');
+  } catch (e) {
+    alert('មិនអាចចម្លងបានទេ: ' + e);
+  }
+  document.body.removeChild(ta);
+}
+
+function showToastNotification(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-full shadow-2xl z-[999] animate-bounce';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.remove();
+  }, 2200);
+}
+

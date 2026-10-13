@@ -253,7 +253,8 @@ window.DataService = {
           time: timeStr,
           description: desc,
           category: cat,
-          amount: amt
+          amount: amt,
+          rowIndex: i
         });
       }
 
@@ -361,6 +362,7 @@ window.DataService = {
 
       const targetsByMonth = {};
       const teamLeadersByMonth = {};
+      const boostByMonth = {};
       const leaderNames = ['ស្តី ស្តើង', 'ឆេង សុធី', 'ឆេង រ៉ាស៊ុង'];
 
       if (Array.isArray(teamSalesCsvRows) && teamSalesCsvRows.length > 300) {
@@ -379,14 +381,20 @@ window.DataService = {
             rasung: rasungTarget
           };
 
-          // Calculate Sets by summing day rows for that month
+          // Calculate Sets & Monthly Boost by summing day rows for that month
           const sdeySets = [0, 0, 0, 0, 0];
           const sotheySets = [0, 0, 0, 0, 0];
           const rasungSets = [0, 0, 0, 0, 0];
+          let sdeyBoost = 0;
+          let sotheyBoost = 0;
+          let rasungBoost = 0;
 
           for (let r_i = mInfo.startDayRow; r_i <= mInfo.endDayRow && r_i < teamSalesCsvRows.length; r_i++) {
             const dayRow = teamSalesCsvRows[r_i];
             if (!dayRow) continue;
+            sdeyBoost += cleanNumber(dayRow[1]) || 0;
+            sotheyBoost += cleanNumber(dayRow[9]) || 0;
+            rasungBoost += cleanNumber(dayRow[17]) || 0;
             for (let s = 0; s < 5; s++) {
               sdeySets[s] += cleanNumber(dayRow[2 + s]) || 0;
               sotheySets[s] += cleanNumber(dayRow[10 + s]) || 0;
@@ -394,9 +402,12 @@ window.DataService = {
             }
           }
 
+          boostByMonth[mInfo.month] = sdeyBoost;
+
           teamLeadersByMonth[mInfo.month] = [
             {
               name: 'ស្តី ស្តើង',
+              boost: sdeyBoost,
               orders: cleanNumber(tRow[8]) || 0,
               set1: sdeySets[0],
               set2: sdeySets[1],
@@ -481,6 +492,7 @@ window.DataService = {
         teamLeaders,
         teamLeadersByMonth,
         targetsByMonth,
+        boostByMonth,
         meta: {
           totalSalesCount: personalSales.length,
           totalExpensesCount: expenses.length
