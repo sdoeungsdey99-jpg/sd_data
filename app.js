@@ -571,14 +571,29 @@ document.addEventListener('DOMContentLoaded', () => {
   if (urlParams.get('drawer') === 'profile') {
     setTimeout(openProfileDrawer, 150);
   }
+  if (urlParams.get('drawer_expanded') === '1') {
+    setTimeout(() => {
+      openProfileDrawer();
+      setTimeout(toggleDrawerMemberInfo, 180);
+    }, 150);
+  }
   if (urlParams.get('customers') === '1') {
     setTimeout(openAllCustomersModal, 150);
+  }
+  if (urlParams.get('searchopen') === '1') {
+    setTimeout(() => {
+      openAllCustomersModal();
+      setTimeout(toggleCustomersSearch, 180);
+    }, 150);
   }
   if (urlParams.get('sortmenu') === '1') {
     setTimeout(() => {
       openAllCustomersModal();
       setTimeout(toggleCustomersSortMenu, 120);
     }, 180);
+  }
+  if (urlParams.get('qr') === '1') {
+    setTimeout(openQrPhotosModal, 150);
   }
   if (urlParams.get('submodal')) {
     setTimeout(() => {
@@ -4484,6 +4499,8 @@ function renderProfileDrawerContent() {
     { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរសព្ទ', val: p.phone }
   ].filter(item => p.privacy[item.key] !== false && item.val && item.val.trim() !== '');
 
+  const isEn = appState.language === 'en';
+
   const container = document.getElementById('profile-drawer-content');
   if (!container) return;
 
@@ -4548,7 +4565,7 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 4. Members List -->
+        <!-- 4. សមាជិក (Member) -->
         <div onclick="closeProfileDrawer(); openProfileSubModal('members');" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -4560,8 +4577,8 @@ function renderProfileDrawerContent() {
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">Members List</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">បញ្ជីសមាជិកក្រុម</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Member' : 'សមាជិក'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Team Members' : 'បញ្ជីសមាជិកក្រុម'}</p>
           </div>
         </div>
 
@@ -4584,7 +4601,7 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 6. QR Code (Photos) -->
+        <!-- 6. QR Code (Member Only) -->
         <div onclick="closeProfileDrawer(); openQrPhotosModal();" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-purple-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -4596,7 +4613,7 @@ function renderProfileDrawerContent() {
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">QR Code</h3>
+            <h3 class="font-bold text-xs text-white leading-tight">QR Code (Member Only)</h3>
             <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">រូបភាព QR ស្កេន</p>
           </div>
         </div>
@@ -4604,21 +4621,32 @@ function renderProfileDrawerContent() {
       </div>
     </div>
 
-    <!-- ZONE 2: ព័ត៌មានសមាជិក (Member Info) + Button «កែប្រែ» -->
-    <div class="ios-glass-card rounded-2xl p-3 border border-white/10">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-          <i data-lucide="id-card" class="w-3.5 h-3.5 text-orange-400"></i>
-          <span>ព័ត៌មានសមាជិក (Info)</span>
-        </span>
-        <button onclick="closeProfileDrawer(); openEditProfileModal();" 
-                class="text-[11px] font-bold text-orange-400 hover:underline flex items-center gap-1 active:scale-95 transition">
-          <i data-lucide="pencil" class="w-3 h-3"></i>
-          <span>កែប្រែ</span>
-        </button>
+    <!-- ZONE 2: ព័ត៌មានសមាជិក (Member Info) - Default Bar, tap to expand full -->
+    <div class="ios-glass-card rounded-2xl border border-white/10 overflow-hidden">
+      <!-- Clickable Header Bar (Default Collapsed) -->
+      <div onclick="toggleDrawerMemberInfo()" 
+           class="p-3 flex items-center justify-between cursor-pointer select-none hover:bg-white/[0.03] active:scale-[0.99] transition">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="id-card" class="w-3.5 h-3.5"></i>
+          </div>
+          <span class="text-xs font-bold text-white">${isEn ? 'Member Info' : 'ព័ត៌មានសមាជិក (Info)'}</span>
+          <span class="px-1.5 py-0.2 rounded-full bg-white/5 border border-white/10 text-[9.5px] font-mono text-slate-400">
+            ${infoItems.length}
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="event.stopPropagation(); closeProfileDrawer(); openEditProfileModal();" 
+                  class="text-[11px] font-bold text-orange-400 hover:underline flex items-center gap-1 px-2 py-0.5 rounded-lg bg-orange-500/10 border border-orange-500/20 active:scale-95 transition">
+            <i data-lucide="pencil" class="w-3 h-3"></i>
+            <span>${isEn ? 'Edit' : 'កែប្រែ'}</span>
+          </button>
+          <i id="drawer-member-info-chevron" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300"></i>
+        </div>
       </div>
 
-      <div class="space-y-1.5">
+      <!-- Expandable Info Body (Hidden by default) -->
+      <div id="drawer-member-info-body" class="hidden px-3 pb-3 pt-1 space-y-1.5 border-t border-white/5 transition-all">
         ${infoItems.map(item => `
           <div class="flex items-center gap-2 text-xs py-1 px-2 rounded-xl bg-black/20 border border-white/5">
             <i data-lucide="${item.icon}" class="w-3.5 h-3.5 ${item.color} shrink-0"></i>
@@ -4763,21 +4791,28 @@ function getProfileViewHTML() {
 
 
 
-        <!-- Member Info (Live, Study, Work, From, Status, Phone - Editable) -->
+        <!-- Member Info (Live, Study, Work, From, Status, Phone - Collapsible Bar) -->
         <div class="mt-4 pt-3.5 border-t border-white/10 text-left">
-          <div class="flex items-center justify-between mb-2">
+          <div onclick="toggleProfileViewMemberInfo()" 
+               class="flex items-center justify-between mb-2 cursor-pointer select-none hover:bg-white/[0.03] p-1.5 -mx-1.5 rounded-xl transition">
             <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <i data-lucide="id-card" class="w-3.5 h-3.5 text-orange-400"></i>
-              <span>ព័ត៌មានសមាជិក (Info)</span>
+              <span>${appState.language === 'en' ? 'Member Info' : 'ព័ត៌មានសមាជិក (Info)'}</span>
+              <span class="px-1.5 py-0.2 rounded-full bg-white/5 border border-white/10 text-[9.5px] font-mono text-slate-400">
+                ${infoItems.length}
+              </span>
             </span>
-            <button onclick="openEditProfileModal()" 
-                    class="text-[11px] font-bold text-orange-400 hover:underline flex items-center gap-1 active:scale-95 transition">
-              <i data-lucide="pencil" class="w-3 h-3"></i>
-              <span>កែប្រែ</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button onclick="event.stopPropagation(); openEditProfileModal()" 
+                      class="text-[11px] font-bold text-orange-400 hover:underline flex items-center gap-1 px-2 py-0.5 rounded-lg bg-orange-500/10 border border-orange-500/20 active:scale-95 transition">
+                <i data-lucide="pencil" class="w-3 h-3"></i>
+                <span>${appState.language === 'en' ? 'Edit' : 'កែប្រែ'}</span>
+              </button>
+              <i id="prof-view-member-info-chevron" data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-300"></i>
+            </div>
           </div>
 
-          <div class="space-y-1.5">
+          <div id="prof-view-member-info-body" class="hidden space-y-1.5 pt-1 transition-all">
             ${infoItems.map(item => `
               <div class="flex items-center gap-2.5 text-xs py-1 px-2 rounded-xl bg-black/20 border border-white/5">
                 <i data-lucide="${item.icon}" class="w-3.5 h-3.5 ${item.color} shrink-0"></i>
@@ -4851,7 +4886,7 @@ function getProfileViewHTML() {
             </div>
           </div>
 
-          <!-- 4. Members List -->
+          <!-- 4. សមាជិក (Member) -->
           <div onclick="openProfileSubModal('members')" 
                class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
             <div class="flex items-center justify-between mb-2">
@@ -4863,8 +4898,8 @@ function getProfileViewHTML() {
               </span>
             </div>
             <div>
-              <h3 class="font-bold text-xs text-white leading-tight">Members List</h3>
-              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">បញ្ជីសមាជិកក្រុម</p>
+              <h3 class="font-bold text-xs text-white leading-tight">${appState.language === 'en' ? 'Member' : 'សមាជិក'}</h3>
+              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">${appState.language === 'en' ? 'Team Members' : 'បញ្ជីសមាជិកក្រុម'}</p>
             </div>
           </div>
 
@@ -4887,7 +4922,7 @@ function getProfileViewHTML() {
             </div>
           </div>
 
-          <!-- 6. QR Code (Photos) -->
+          <!-- 6. QR Code (Member Only) -->
           <div onclick="openQrPhotosModal()" 
                class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-purple-500/40">
             <div class="flex items-center justify-between mb-2">
@@ -4899,7 +4934,7 @@ function getProfileViewHTML() {
               </span>
             </div>
             <div>
-              <h3 class="font-bold text-xs text-white leading-tight">QR Code (Photos)</h3>
+              <h3 class="font-bold text-xs text-white leading-tight">QR Code (Member Only)</h3>
               <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">រូបភាព QR សម្រាប់ស្កេន</p>
             </div>
           </div>
@@ -5274,11 +5309,67 @@ function setupAllCustomersScroll() {
 function openAllCustomersModal() {
   expandedCustomerKey = null;
   const searchInput = document.getElementById('all-customers-search-input');
+  const searchContainer = document.getElementById('all-customers-search-container');
   if (searchInput) searchInput.value = '';
+  if (searchContainer) searchContainer.classList.add('hidden');
   renderAllCustomersList();
   setupAllCustomersScroll();
   document.getElementById('all-customers-modal')?.classList?.remove('hidden');
   if (window.lucide) window.lucide.createIcons();
+}
+
+function toggleCustomersSearch() {
+  const container = document.getElementById('all-customers-search-container');
+  const input = document.getElementById('all-customers-search-input');
+  if (!container || !input) return;
+
+  const isHidden = container.classList.contains('hidden');
+  if (isHidden) {
+    container.classList.remove('hidden');
+    input.focus();
+  } else {
+    if (!input.value.trim()) {
+      container.classList.add('hidden');
+    } else {
+      input.focus();
+    }
+  }
+}
+
+function clearAndHideCustomerSearch() {
+  const container = document.getElementById('all-customers-search-container');
+  const input = document.getElementById('all-customers-search-input');
+  if (input) input.value = '';
+  if (container) container.classList.add('hidden');
+  renderAllCustomersList();
+}
+
+function toggleDrawerMemberInfo() {
+  const body = document.getElementById('drawer-member-info-body');
+  const chevron = document.getElementById('drawer-member-info-chevron');
+  if (!body) return;
+  const isHidden = body.classList.contains('hidden');
+  if (isHidden) {
+    body.classList.remove('hidden');
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+  } else {
+    body.classList.add('hidden');
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+  }
+}
+
+function toggleProfileViewMemberInfo() {
+  const body = document.getElementById('prof-view-member-info-body');
+  const chevron = document.getElementById('prof-view-member-info-chevron');
+  if (!body) return;
+  const isHidden = body.classList.contains('hidden');
+  if (isHidden) {
+    body.classList.remove('hidden');
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+  } else {
+    body.classList.add('hidden');
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+  }
 }
 
 function closeAllCustomersModal() {
@@ -5628,8 +5719,8 @@ function openProfileSubModal(type) {
   } else if (type === 'members') {
     const d = DataService.data;
     const leaders = (d && d.teamLeaders) ? d.teamLeaders : [];
-    title = 'Members List (សមាជិកក្រុម)';
-    sub = 'បញ្ជីឈ្មោះសមាជិក និងលទ្ធផលការងារ';
+    title = (appState.language === 'en') ? 'Member' : 'សមាជិក';
+    sub = (appState.language === 'en') ? 'Team members list & achievements' : 'បញ្ជីឈ្មោះសមាជិក និងលទ្ធផលការងារ';
     icon = 'contact-round';
     contentHTML = `
       <div class="space-y-2">
