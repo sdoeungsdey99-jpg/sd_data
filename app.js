@@ -571,6 +571,20 @@ document.addEventListener('DOMContentLoaded', () => {
   if (urlParams.get('drawer') === 'profile') {
     setTimeout(openProfileDrawer, 150);
   }
+  if (urlParams.get('customers') === '1') {
+    setTimeout(openAllCustomersModal, 150);
+  }
+  if (urlParams.get('sortmenu') === '1') {
+    setTimeout(() => {
+      openAllCustomersModal();
+      setTimeout(toggleCustomersSortMenu, 120);
+    }, 180);
+  }
+  if (urlParams.get('submodal')) {
+    setTimeout(() => {
+      openProfileSubModal(urlParams.get('submodal'));
+    }, 150);
+  }
 });
 
 function onDataUpdated(service) {
@@ -706,7 +720,29 @@ function handleBackNavigation() {
     }
   }
 
-  // 1c. Close Profile Drawer if open
+  // 1c. Close any open Profile Sub-Modal -> returns to Profile Drawer!
+  if (!document.getElementById('all-customers-modal')?.classList?.contains('hidden')) {
+    closeAllCustomersModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+  if (!document.getElementById('profile-sub-modal')?.classList?.contains('hidden')) {
+    closeProfileSubModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+  if (!document.getElementById('qr-photos-modal')?.classList?.contains('hidden')) {
+    closeQrPhotosModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+  if (!document.getElementById('edit-profile-modal')?.classList?.contains('hidden')) {
+    closeEditProfileModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+
+  // 1d. Close Profile Drawer itself if open -> returns to Home!
   const profDrawer = document.getElementById('profile-drawer-modal');
   if (profDrawer && !profDrawer.classList.contains('hidden')) {
     closeProfileDrawer();
@@ -714,11 +750,10 @@ function handleBackNavigation() {
     return true;
   }
 
-  // 1d. Close any open modal if visible
+  // 1e. Close any other open modal if visible
   const openModals = [
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
-    'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal',
-    'all-customers-modal', 'edit-profile-modal', 'qr-photos-modal', 'profile-sub-modal'
+    'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
     const el = document.getElementById(id);
@@ -4995,6 +5030,7 @@ function openEditProfileModal() {
 
 function closeEditProfileModal() {
   document.getElementById('edit-profile-modal')?.classList?.add('hidden');
+  openProfileDrawer();
 }
 
 function compressImageFile(file, maxSizePx = 500, quality = 0.82) {
@@ -5088,6 +5124,7 @@ function openQrPhotosModal() {
 
 function closeQrPhotosModal() {
   document.getElementById('qr-photos-modal')?.classList?.add('hidden');
+  openProfileDrawer();
 }
 
 function selectQrPhotoSlot(idx) {
@@ -5200,32 +5237,89 @@ function deleteQrPhotoSlot() {
 // =========================================================
 let allCustomersSortMode = 'latest';
 let expandedCustomerKey = null;
+let allCustScrollInitialized = false;
+
+function setupAllCustomersScroll() {
+  const listEl = document.getElementById('all-customers-list');
+  const summaryEl = document.getElementById('all-customers-summary');
+  if (!listEl || !summaryEl || allCustScrollInitialized) return;
+  allCustScrollInitialized = true;
+
+  let lastScrollTop = 0;
+  let summaryIdleTimer = null;
+
+  listEl.addEventListener('scroll', () => {
+    const currentScrollTop = listEl.scrollTop;
+    const diff = currentScrollTop - lastScrollTop;
+
+    // 1. Dragging finger UP (content scrolling down into deeper items) -> Hide Summary
+    if (diff > 6 && currentScrollTop > 25) {
+      summaryEl.classList.add('summary-collapsed');
+    }
+    // 2. Dragging finger DOWN (content scrolling back up towards top) OR near top -> Show Summary
+    else if (diff < -5 || currentScrollTop <= 15) {
+      summaryEl.classList.remove('summary-collapsed');
+    }
+
+    lastScrollTop = currentScrollTop;
+
+    // 3. When scrolling stops / screen is still -> Smoothly restore Summary!
+    clearTimeout(summaryIdleTimer);
+    summaryIdleTimer = setTimeout(() => {
+      summaryEl.classList.remove('summary-collapsed');
+    }, 400);
+  }, { passive: true });
+}
 
 function openAllCustomersModal() {
   expandedCustomerKey = null;
   const searchInput = document.getElementById('all-customers-search-input');
   if (searchInput) searchInput.value = '';
   renderAllCustomersList();
+  setupAllCustomersScroll();
   document.getElementById('all-customers-modal')?.classList?.remove('hidden');
   if (window.lucide) window.lucide.createIcons();
 }
 
 function closeAllCustomersModal() {
   document.getElementById('all-customers-modal')?.classList?.add('hidden');
+  openProfileDrawer();
 }
+
+function toggleCustomersSortMenu(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('cust-sort-dropdown-menu');
+  if (!menu) return;
+  menu.classList.toggle('hidden');
+}
+
+// Close sort dropdown when tapping outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#btn-cust-sort-trigger') && !e.target.closest('#cust-sort-dropdown-menu')) {
+    const menu = document.getElementById('cust-sort-dropdown-menu');
+    if (menu) menu.classList.add('hidden');
+  }
+});
 
 function setAllCustomersSort(mode) {
   allCustomersSortMode = mode;
+  
+  const labelEl = document.getElementById('cust-sort-current-label');
+  const labels = {
+    latest: 'ថ្មីបំផុត',
+    top: 'ទិញច្រើន',
+    name: 'ឈ្មោះ (ក-អ)'
+  };
+  if (labelEl) labelEl.textContent = labels[mode] || 'ថ្មីបំផុត';
+
   ['latest', 'top', 'name'].forEach(m => {
-    const btn = document.getElementById(`cust-sort-${m}`);
-    if (btn) {
-      if (m === mode) {
-        btn.className = 'py-1.5 px-2 rounded-lg text-[11px] font-bold transition accent-solid-btn';
-      } else {
-        btn.className = 'py-1.5 px-2 rounded-lg text-[11px] font-bold transition text-slate-400 hover:text-white';
-      }
+    const check = document.getElementById(`cust-check-${m}`);
+    if (check) {
+      if (m === mode) check.classList.remove('hidden');
+      else check.classList.add('hidden');
     }
   });
+
   renderAllCustomersList();
 }
 
@@ -5352,7 +5446,8 @@ function renderAllCustomersList() {
         ` : ''}
       </div>
     `;
-  }).join('') || `<p class="text-xs text-slate-400 text-center py-10">មិនพบទិន្នន័យអតិថិជនទេ</p>`;
+  }).join('') || `<p class="text-xs text-slate-400 text-center py-10">មិនមានទិន្នន័យអតិថិជនទេ</p>`;
+  if (window.lucide) window.lucide.createIcons();
 }
 
 // =========================================================
@@ -5414,6 +5509,7 @@ function deleteProfileNote(id) {
 
 function closeProfileSubModal() {
   document.getElementById('profile-sub-modal')?.classList?.add('hidden');
+  openProfileDrawer();
 }
 
 function openProfileSubModal(type) {
@@ -5618,8 +5714,10 @@ function openProfileSubModal(type) {
         <p class="text-[10px] text-slate-400 mt-0.5">${sub}</p>
       </div>
     </div>
-    <button onclick="closeProfileSubModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5">
-      <i data-lucide="x" class="w-4 h-4"></i>
+    <button onclick="closeProfileSubModal()" 
+            class="py-1 px-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-white/5 border border-white/10 flex items-center gap-1 active:scale-95 transition shadow-sm">
+      <i data-lucide="chevron-left" class="w-3.5 h-3.5 text-orange-400"></i>
+      <span>ត្រឡប់</span>
     </button>
   `;
   body.innerHTML = contentHTML;
