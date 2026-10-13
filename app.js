@@ -629,6 +629,24 @@ document.addEventListener('DOMContentLoaded', () => {
   if (urlParams.get('sales') === '1') {
     setTimeout(openPersonalSalesModal, 250);
   }
+  if (urlParams.get('expenses') === '1') {
+    setTimeout(() => openExpensesModal(true), 250);
+  }
+  if (urlParams.get('customers') === '1') {
+    setTimeout(openAllCustomersModal, 250);
+  }
+  if (urlParams.get('customers_scrolled') === '1') {
+    setTimeout(() => {
+      openAllCustomersModal();
+      setTimeout(() => {
+        const el = document.getElementById('all-customers-list');
+        if (el) {
+          el.scrollTop = 350;
+          el.dispatchEvent(new Event('scroll'));
+        }
+      }, 200);
+    }, 200);
+  }
   if (urlParams.get('submodal')) {
     setTimeout(() => {
       openProfileSubModal(urlParams.get('submodal'));
@@ -683,6 +701,26 @@ function onDataUpdated(service) {
     appState.periodFilter = 'month';
     appState.profitNetBoostMode = true;
     renderCurrentView();
+  }
+  if (urlParams.get('open_expenses') === '1') {
+    setTimeout(() => openExpensesModal(true), 100);
+  }
+  if (urlParams.get('open_customers') === '1') {
+    setTimeout(openAllCustomersModal, 100);
+  }
+  if (urlParams.get('open_customers_scrolled') === '1') {
+    setTimeout(() => {
+      openAllCustomersModal();
+      setTimeout(() => {
+        const el = document.getElementById('all-customers-list');
+        const summary = document.getElementById('all-customers-summary');
+        if (el) {
+          el.scrollTop = 400;
+          el.dispatchEvent(new Event('scroll'));
+        }
+        if (summary) summary.classList.add('summary-collapsed');
+      }, 150);
+    }, 100);
   }
 }
 
@@ -4024,6 +4062,7 @@ function openExpensesModal(forceMonthly = false) {
   }
 
   modal.classList.remove('hidden');
+  if (appState.fontFamily) modal.classList.add(appState.fontFamily);
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -4437,17 +4476,52 @@ function handleHomeClick(e) {
   }
 }
 
-// Native iOS Tap Status Bar / Header to Scroll To Top
-function handleHeaderScrollToTop(e) {
+// Native iOS Tap Status Bar / Header / Static Empty Area to Scroll To Top
+function handleHeaderScrollToTop(e, targetId = null) {
   // Only trigger if user didn't tap interactive action buttons inside header
-  if (e && e.target && e.target.closest('button, input, select, a, #header-profile-block')) {
+  if (e && e.target && e.target.closest('button, input, select, a, #header-profile-block, [data-prevent-scroll-top]')) {
     return;
   }
-  const main = document.getElementById('main-content');
-  if (main) {
-    main.scrollTo({ top: 0, behavior: 'smooth' });
+  let target = null;
+  if (targetId) {
+    target = document.getElementById(targetId);
+  } else {
+    // Dynamic detection based on what is currently active/visible on screen
+    const modals = [
+      { modalId: 'all-customers-modal', listId: 'all-customers-list' },
+      { modalId: 'sales-modal', listId: 'sales-modal-list' },
+      { modalId: 'expenses-modal', listId: 'expenses-modal-list' },
+      { modalId: 'cod-modal', listId: 'cod-modal-table-container' },
+      { modalId: 'bank-modal', listId: 'bank-modal-list' },
+      { modalId: 'payables-modal', listId: 'payables-modal-list' },
+      { modalId: 'notif-modal', listId: 'notif-feed-list' },
+      { modalId: 'profile-drawer-modal', listId: 'profile-drawer-content' },
+      { modalId: 'global-search-modal', listId: 'search-results-container' },
+      { modalId: 'profile-settings-search-modal', listId: 'profile-settings-search-results' }
+    ];
+    for (const m of modals) {
+      const modalEl = document.getElementById(m.modalId);
+      if (modalEl && !modalEl.classList.contains('hidden')) {
+        target = document.getElementById(m.listId);
+        break;
+      }
+    }
+    if (!target) {
+      target = document.getElementById('main-content');
+    }
   }
-  if (navigator.vibrate) navigator.vibrate(10);
+
+  if (target) {
+    target.scrollTo({ top: 0, behavior: 'smooth' });
+    // If scrolling customer list to top, ensure summary bar is revealed
+    if (target.id === 'all-customers-list') {
+      const summaryEl = document.getElementById('all-customers-summary');
+      if (summaryEl) summaryEl.classList.remove('summary-collapsed');
+    }
+  }
+  if (navigator.vibrate) {
+    try { navigator.vibrate(10); } catch (_) {}
+  }
 }
 
 function cycleHomeCelestialGlow() {
@@ -5627,40 +5701,27 @@ function setupAllCustomersScroll() {
   if (!listEl || !summaryEl || allCustScrollInitialized) return;
   allCustScrollInitialized = true;
 
-  let lastScrollTop = 0;
-  let summaryIdleTimer = null;
-  let ticking = false;
+  let lastScrollTop = listEl.scrollTop || 0;
 
   listEl.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        const currentScrollTop = listEl.scrollTop;
-        const diff = currentScrollTop - lastScrollTop;
+    const currentScrollTop = listEl.scrollTop;
+    const diff = currentScrollTop - lastScrollTop;
 
-        // 1. Dragging finger UP (content scrolling down into deeper items) -> Hide Summary
-        if (diff > 8 && currentScrollTop > 30) {
-          if (!summaryEl.classList.contains('summary-collapsed')) {
-            summaryEl.classList.add('summary-collapsed');
-          }
-        }
-        // 2. Dragging finger DOWN (content scrolling back up towards top) OR near top -> Show Summary
-        else if (diff < -6 || currentScrollTop <= 15) {
-          if (summaryEl.classList.contains('summary-collapsed')) {
-            summaryEl.classList.remove('summary-collapsed');
-          }
-        }
-
-        lastScrollTop = currentScrollTop;
-        ticking = false;
-
-        // 3. When scrolling stops / screen is still -> Smoothly restore Summary!
-        clearTimeout(summaryIdleTimer);
-        summaryIdleTimer = setTimeout(() => {
-          summaryEl.classList.remove('summary-collapsed');
-        }, 350);
-      });
-      ticking = true;
+    // 1. Scrolling down into deeper items (finger dragging up) -> Hide Summary
+    if (diff > 6 && currentScrollTop > 25) {
+      if (!summaryEl.classList.contains('summary-collapsed')) {
+        summaryEl.classList.add('summary-collapsed');
+      }
     }
+    // 2. Scrolling back up towards top (finger dragging down) OR near top -> Show Summary
+    else if (diff < -5 || currentScrollTop <= 15) {
+      if (summaryEl.classList.contains('summary-collapsed')) {
+        summaryEl.classList.remove('summary-collapsed');
+      }
+    }
+
+    lastScrollTop = currentScrollTop;
+    // NOTE: Strictly no idle timer! Stays hidden when user stops scrolling.
   }, { passive: true });
 }
 
@@ -5668,6 +5729,8 @@ function openAllCustomersModal() {
   expandedCustomerKey = null;
   const searchInput = document.getElementById('all-customers-search-input');
   const searchContainer = document.getElementById('all-customers-search-container');
+  const summaryEl = document.getElementById('all-customers-summary');
+  if (summaryEl) summaryEl.classList.remove('summary-collapsed');
   if (searchInput) searchInput.value = '';
   if (searchContainer) searchContainer.classList.add('hidden');
   renderAllCustomersList();
@@ -6700,5 +6763,6 @@ window.handleProfileSettingsSearch = handleProfileSettingsSearch;
 window.executeProfileSettingsAction = executeProfileSettingsAction;
 window.toggleProfitNetBoost = toggleProfitNetBoost;
 window.handleUniversalSwipeBack = handleUniversalSwipeBack;
+window.handleHeaderScrollToTop = handleHeaderScrollToTop;
 
 
