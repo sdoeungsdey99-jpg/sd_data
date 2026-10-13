@@ -690,7 +690,7 @@ function onDataUpdated(service) {
     setTimeout(openBankModal, 300);
   }
   if (urlParams.get('open_sales') === '1') {
-    setTimeout(openSalesModal, 300);
+    setTimeout(openPersonalSalesModal, 300);
   }
   if (urlParams.get('open_expenses') === '1') {
     setTimeout(openExpensesModal, 300);
@@ -1032,6 +1032,18 @@ function setupSwipeToBack() {
   });
 }
 
+function setDockVisible(visible) {
+  const dock = document.getElementById('bottom-dock');
+  const dockBlur = document.getElementById('dock-blur-backdrop');
+  if (visible) {
+    if (dock) dock.classList.remove('dock-hidden');
+    if (dockBlur) dockBlur.classList.remove('opacity-0');
+  } else {
+    if (dock) dock.classList.add('dock-hidden');
+    if (dockBlur) dockBlur.classList.add('opacity-0');
+  }
+}
+
 // Smart Dock & Sticky Filter Bar iOS Auto-Hide:
 // - Scrolling content down (finger moving up, going deeper) -> Dock & Filter Bar hide smoothly
 // - Scrolling content up (finger moving down, going towards top) or screen stops/still -> Dock restores smoothly
@@ -1052,12 +1064,12 @@ function hookScrollableForDock(el, isMain = false) {
 
     // 1. Scrolling content down (finger moving up) -> Smoothly hide Dock & Filter Bar
     if (diff > 8 && currentScrollTop > 30) {
-      dock.classList.add('dock-hidden');
+      setDockVisible(false);
       if (isMain && filterBar) filterBar.classList.add('filter-hidden');
     }
     // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock
     else if (diff < -6 || currentScrollTop <= 15) {
-      dock.classList.remove('dock-hidden');
+      setDockVisible(true);
       if (isMain && filterBar && appState.currentView === 'dashboard') {
         filterBar.classList.remove('filter-hidden');
       }
@@ -1076,14 +1088,13 @@ function hookScrollableForDock(el, isMain = false) {
     // 4. When scrolling stops / screen is still -> Smoothly restore Dock!
     clearTimeout(scrollIdleTimer);
     scrollIdleTimer = setTimeout(() => {
-      dock.classList.remove('dock-hidden');
+      setDockVisible(true);
     }, 450);
   }, { passive: true });
 }
 
 function setupSmartDockScroll() {
-  const dock = document.getElementById('bottom-dock');
-  if (dock) dock.classList.remove('dock-hidden');
+  setDockVisible(true);
 
   const main = document.getElementById('main-content');
   if (main) hookScrollableForDock(main, true);
@@ -1489,10 +1500,7 @@ function switchView(viewName) {
     }
   }
 
-  const dock = document.getElementById('bottom-dock');
-  if (dock) {
-    dock.classList.remove('dock-hidden');
-  }
+  setDockVisible(true);
 
   if (viewName === 'dashboard') {
     manualReload();
@@ -3851,8 +3859,7 @@ function openPersonalSalesModal() {
   }
 
   modal.classList.remove('hidden');
-  const dock = document.getElementById('bottom-dock');
-  if (dock) dock.classList.remove('dock-hidden');
+  setDockVisible(true);
   if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
 }
 
@@ -3905,8 +3912,7 @@ function openPayablesModal() {
   }
 
   modal.classList.remove('hidden');
-  const dock = document.getElementById('bottom-dock');
-  if (dock) dock.classList.remove('dock-hidden');
+  setDockVisible(true);
   if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
   if (window.lucide) window.lucide.createIcons();
 }
@@ -3965,8 +3971,7 @@ function openCodModal() {
   }
 
   modal.classList.remove('hidden');
-  const dock = document.getElementById('bottom-dock');
-  if (dock) dock.classList.remove('dock-hidden');
+  setDockVisible(true);
   const tableContainer = document.getElementById('cod-modal-table-container');
   if (tableContainer && typeof hookScrollableForDock === 'function') hookScrollableForDock(tableContainer, false);
   if (window.lucide) window.lucide.createIcons();
@@ -4023,8 +4028,7 @@ function openBankModal() {
   }
 
   modal.classList.remove('hidden');
-  const dock = document.getElementById('bottom-dock');
-  if (dock) dock.classList.remove('dock-hidden');
+  setDockVisible(true);
   if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
   if (window.lucide) window.lucide.createIcons();
 }
@@ -4148,8 +4152,7 @@ function openExpensesModal(forceMonthly = false) {
   }
 
   modal.classList.remove('hidden');
-  const dock = document.getElementById('bottom-dock');
-  if (dock) dock.classList.remove('dock-hidden');
+  setDockVisible(true);
   if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
   if (appState.fontFamily) modal.classList.add(appState.fontFamily);
   if (window.lucide) window.lucide.createIcons();
@@ -4406,8 +4409,7 @@ function toggleNotificationsModal() {
   const isHidden = modal.classList.contains('hidden');
   if (isHidden) {
     if (DataService.data) renderNotificationsFeed(DataService.data);
-    const dock = document.getElementById('bottom-dock');
-    if (dock) dock.classList.remove('dock-hidden');
+    setDockVisible(true);
     const feedList = document.getElementById('notif-feed-list');
     if (feedList && typeof hookScrollableForDock === 'function') hookScrollableForDock(feedList, false);
     modal.classList.remove('hidden');
@@ -4665,18 +4667,24 @@ function toggleModalContextMenu(modalType, event) {
 }
 
 function closeAllModalContextMenus() {
-  ['sales', 'payables', 'expenses', 'cod'].forEach(type => {
+  ['sales', 'payables', 'expenses', 'cod', 'bank'].forEach(type => {
     const m = document.getElementById(`modal-menu-${type}`);
     if (m) m.classList.add('hidden');
   });
 }
 
-// Close context menus when tapping anywhere outside
-document.addEventListener('click', (e) => {
+// Universal outside tap/click dismiss using Capture Phase (intercepts before stopPropagation)
+window.addEventListener('pointerdown', (e) => {
   if (!e.target.closest('[id^="modal-menu-"]') && !e.target.closest('button[title="ជម្រើស"]')) {
     closeAllModalContextMenus();
   }
-});
+}, true);
+
+window.addEventListener('click', (e) => {
+  if (!e.target.closest('[id^="modal-menu-"]') && !e.target.closest('button[title="ជម្រើស"]')) {
+    closeAllModalContextMenus();
+  }
+}, true);
 
 function handleModalMenuAction(modalType, action) {
   closeAllModalContextMenus();
@@ -4751,6 +4759,22 @@ function getModalContentText(modalType) {
       txt += `${i + 1}. ${it.date} | ${it.qtyBoxes} box | ${it.status} | ${formatUSD(it.amount)}\n`;
     });
     return txt;
+  } else if (modalType === 'bank') {
+    const accounts = (d.bank && d.bank.accounts) || [];
+    const netCash = (d.bank && d.bank.netCashPosition) || {};
+    let txt = `🏦 ${isKm ? 'ឈ្មោះគណនី / ធនាគារ និងសមតុល្យ' : 'Bank Accounts & Cash Balance'} (${dateStr})\n`;
+    txt += `------------------------------------\n`;
+    txt += `${isKm ? 'ចំនួនគណនី' : 'Total Accounts'}: ${accounts.length}\n`;
+    txt += `${isKm ? 'សរុបជាក់ស្តែង' : 'Total Actual Cash'}: ${formatUSD(netCash.totalActualCash || 0)}\n`;
+    txt += `------------------------------------\n`;
+    accounts.forEach((a, i) => {
+      let bStr = '';
+      if (a.usd > 0) bStr += formatUSD(a.usd);
+      if (a.khr > 0) bStr += (bStr ? ' | ' : '') + formatKHR(a.khr);
+      if (!bStr) bStr = '$0.00';
+      txt += `${i + 1}. ${a.name} | ${bStr}\n`;
+    });
+    return txt;
   }
   return '';
 }
@@ -4760,7 +4784,8 @@ function exportModalToPDF(modalType) {
     sales: 'sales-modal',
     payables: 'payables-modal',
     expenses: 'expenses-modal',
-    cod: 'cod-modal'
+    cod: 'cod-modal',
+    bank: 'bank-modal'
   };
   const modalEl = document.getElementById(modalIdMap[modalType]);
   if (!modalEl) return;
@@ -4974,8 +4999,7 @@ function openProfileDrawer() {
   renderProfileDrawerContent();
   modal.classList.remove('hidden');
 
-  const dock = document.getElementById('bottom-dock');
-  if (dock) dock.classList.remove('dock-hidden');
+  setDockVisible(true);
   const scrollEl = document.getElementById('profile-drawer-content');
   if (scrollEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(scrollEl, false);
 
@@ -5815,9 +5839,8 @@ function setupAllCustomersScroll() {
       if (!summaryEl.classList.contains('summary-collapsed')) {
         summaryEl.classList.add('summary-collapsed');
       }
-      const dock = document.getElementById('bottom-dock');
-      if (dock && diff > 8 && currentScrollTop > 30) {
-        dock.classList.add('dock-hidden');
+      if (diff > 8 && currentScrollTop > 30) {
+        setDockVisible(false);
       }
     }
     // 2. Scrolling back up towards top (finger dragging down) OR near top -> Show Summary & Dock
@@ -5825,18 +5848,14 @@ function setupAllCustomersScroll() {
       if (summaryEl.classList.contains('summary-collapsed')) {
         summaryEl.classList.remove('summary-collapsed');
       }
-      const dock = document.getElementById('bottom-dock');
-      if (dock) {
-        dock.classList.remove('dock-hidden');
-      }
+      setDockVisible(true);
     }
 
     lastScrollTop = currentScrollTop;
     // NOTE: Summary strip stays hidden on idle, but Dock restores smoothly when screen is still
     clearTimeout(dockIdleTimer);
     dockIdleTimer = setTimeout(() => {
-      const dock = document.getElementById('bottom-dock');
-      if (dock) dock.classList.remove('dock-hidden');
+      setDockVisible(true);
     }, 450);
   }, { passive: true });
 }
@@ -5851,8 +5870,7 @@ function openAllCustomersModal() {
   if (searchContainer) searchContainer.classList.add('hidden');
   renderAllCustomersList();
   setupAllCustomersScroll();
-  const dock = document.getElementById('bottom-dock');
-  if (dock) dock.classList.remove('dock-hidden');
+  setDockVisible(true);
   const modal = document.getElementById('all-customers-modal');
   if (modal) {
     modal.classList.remove('hidden');

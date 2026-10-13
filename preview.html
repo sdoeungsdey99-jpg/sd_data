@@ -1455,6 +1455,9 @@
       border-color: #CBD5E1 !important;
       box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12) !important;
     }
+    .light-theme #dock-blur-backdrop {
+      background: rgba(248, 250, 252, 0.85) !important;
+    }
     .light-theme .ios-slim-capsule {
       background: rgba(255, 255, 255, 0.96) !important;
       border-color: #CBD5E1 !important;
@@ -1953,8 +1956,9 @@
   </div>
 
     <!-- ======================================================== -->
-    <!-- TELEGRAM FLOATING CAPSULE BOTTOM DOCK                    -->
+    <!-- TELEGRAM FLOATING CAPSULE BOTTOM DOCK & FROSTED BLUR BACKDROP -->
     <!-- ======================================================== -->
+    <div id="dock-blur-backdrop" class="fixed bottom-0 inset-x-0 h-4 pointer-events-none z-[58] backdrop-blur-md bg-[#070D18]/80 transition-opacity duration-300"></div>
     <nav id="bottom-dock" class="fixed bottom-4 inset-x-4 max-w-sm mx-auto h-16 rounded-full telegram-dock flex items-center justify-between px-3 z-[60] transition-all duration-300 transform">
       
       <!-- 1. Home (Classic House with Micro Celestial Sparkle/Sun/Moon Glow) -->
@@ -2049,13 +2053,8 @@
   <!-- ======================================================== -->
 
   <!-- Personal Sales Drill-down Modal (Latest First 31 -> 01) -->
-  <div id="sales-modal" onclick="if(event.target === this) closeSalesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-24 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[82vh] sm:max-h-[90vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
-      <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
-      <div onclick="handleHeaderScrollToTop(event, 'sales-modal-list')" class="w-full pt-2.5 pb-1 flex justify-center cursor-pointer">
-        <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
-      </div>
-
+  <div id="sales-modal" onclick="if(event.target === this) closeSalesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[76vh] sm:max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
       <div onclick="handleHeaderScrollToTop(event, 'sales-modal-list')" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 cursor-pointer">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
@@ -2086,24 +2085,19 @@
           </div>
         </div>
       </div>
-      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-2.5" id="sales-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
-        <!-- Rendered dynamically -->
-      </div>
-      <!-- Total Footer Row -->
-      <div id="sales-modal-footer" class="px-5 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+      <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
+      <div id="sales-modal-footer" class="px-5 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
+      </div>
+      <div class="p-4 pb-10 overflow-y-auto flex-1 no-scrollbar space-y-2.5" id="sales-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+        <!-- Rendered dynamically -->
       </div>
     </div>
   </div>
 
   <!-- Payables Full Drill-down Modal -->
-  <div id="payables-modal" onclick="if(event.target === this) closePayablesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-24 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[82vh] sm:max-h-[90vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
-      <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
-      <div onclick="handleHeaderScrollToTop(event, 'payables-modal-list')" class="w-full pt-2.5 pb-1 flex justify-center cursor-pointer">
-        <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
-      </div>
-
+  <div id="payables-modal" onclick="if(event.target === this) closePayablesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[76vh] sm:max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
       <div onclick="handleHeaderScrollToTop(event, 'payables-modal-list')" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 cursor-pointer">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
@@ -2134,24 +2128,19 @@
           </div>
         </div>
       </div>
-      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-2" id="payables-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
-        <!-- Rendered dynamically -->
-      </div>
-      <!-- Total Footer Row -->
-      <div id="payables-modal-footer" class="px-5 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+      <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
+      <div id="payables-modal-footer" class="px-5 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
+      </div>
+      <div class="p-4 pb-10 overflow-y-auto flex-1 no-scrollbar space-y-2" id="payables-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+        <!-- Rendered dynamically -->
       </div>
     </div>
   </div>
 
   <!-- Expenses Full Drill-down Modal -->
-  <div id="expenses-modal" onclick="if(event.target === this) closeExpensesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-24 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[82vh] sm:max-h-[90vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
-      <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
-      <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="w-full pt-2.5 pb-1 flex justify-center cursor-pointer">
-        <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
-      </div>
-
+  <div id="expenses-modal" onclick="if(event.target === this) closeExpensesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[76vh] sm:max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
       <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 cursor-pointer">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
@@ -2182,24 +2171,19 @@
           </div>
         </div>
       </div>
-      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-2" id="expenses-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
-        <!-- Rendered dynamically -->
-      </div>
-      <!-- Total Footer Row -->
-      <div id="expenses-modal-footer" class="px-5 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+      <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
+      <div id="expenses-modal-footer" class="px-5 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
+      </div>
+      <div class="p-4 pb-10 overflow-y-auto flex-1 no-scrollbar space-y-2" id="expenses-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+        <!-- Rendered dynamically -->
       </div>
     </div>
   </div>
 
   <!-- COD Receivables Modal (Note 2 - iOS Standard Header) -->
-  <div id="cod-modal" onclick="if(event.target === this) closeCodModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-24 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[82vh] sm:max-h-[90vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
-      <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
-      <div onclick="handleHeaderScrollToTop(event, 'cod-modal-table-container')" class="w-full pt-2.5 pb-1 flex justify-center cursor-pointer">
-        <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
-      </div>
-
+  <div id="cod-modal" onclick="if(event.target === this) closeCodModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[76vh] sm:max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
       <!-- Header matching iOS Standard -->
       <div onclick="handleHeaderScrollToTop(event, 'cod-modal-table-container')" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 cursor-pointer">
         <div class="flex items-center gap-2.5">
@@ -2237,8 +2221,13 @@
         </div>
       </div>
 
+      <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
+      <div id="cod-modal-footer" class="px-5 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+        <!-- Injected dynamically -->
+      </div>
+
       <!-- Table matching Image 2 -->
-      <div class="overflow-x-auto overflow-y-auto flex-1 no-scrollbar p-3" id="cod-modal-table-container" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="overflow-x-auto overflow-y-auto flex-1 no-scrollbar p-3 pb-10" id="cod-modal-table-container" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <table class="w-full text-left text-xs whitespace-nowrap">
           <thead>
             <tr class="text-slate-400 border-b border-white/10 text-[11px]">
@@ -2254,21 +2243,12 @@
           </tbody>
         </table>
       </div>
-
-      <!-- Total Footer Row (និងដាក់សរុបផង) -->
-      <div id="cod-modal-footer" class="px-5 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
-        <!-- Injected dynamically -->
-      </div>
     </div>
   </div>
 
   <!-- Bank Accounts & Actual Cash Breakdown Modal (Note 4) -->
-  <div id="bank-modal" onclick="if(event.target === this) closeBankModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-24 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[82vh] sm:max-h-[90vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
-      <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
-      <div onclick="handleHeaderScrollToTop(event, 'bank-modal-list')" class="w-full pt-2.5 pb-1 flex justify-center cursor-pointer">
-        <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
-      </div>
+  <div id="bank-modal" onclick="if(event.target === this) closeBankModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[76vh] sm:max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
       <div onclick="handleHeaderScrollToTop(event, 'bank-modal-list')" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 cursor-pointer">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
@@ -2279,48 +2259,66 @@
             <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Bank Accounts & Cash Balance</p>
           </div>
         </div>
-        <button onclick="closeBankModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
-          <i data-lucide="chevron-down" class="w-5 h-5"></i>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <div class="relative">
+            <button onclick="toggleModalContextMenu('bank', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
+              <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+            </button>
+            <div id="modal-menu-bank" class="hidden absolute right-0 top-full mt-1 w-44 bg-[#0B1528]/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 divide-y divide-white/5 animate-fade-in">
+              <button onclick="handleModalMenuAction('bank', 'pdf')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+                <i data-lucide="file-text" class="w-4 h-4 text-orange-400"></i>
+                <span class="action-label-pdf">រក្សាទុកជា PDF</span>
+              </button>
+              <button onclick="handleModalMenuAction('bank', 'share')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+                <i data-lucide="share-2" class="w-4 h-4 text-blue-400"></i>
+                <span class="action-label-share">ចែករំលែក</span>
+              </button>
+              <button onclick="handleModalMenuAction('bank', 'copy')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2 transition active:scale-95">
+                <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
+                <span class="action-label-copy">ចម្លង</span>
+              </button>
+            </div>
+          </div>
+          <button onclick="closeBankModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
+            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+          </button>
+        </div>
       </div>
-      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-2" id="bank-modal-list">
-        <!-- Populated dynamically -->
-      </div>
-      <div id="bank-modal-footer" class="px-5 py-3.5 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+      <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
+      <div id="bank-modal-footer" class="px-5 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
+      </div>
+      <div class="p-4 pb-10 overflow-y-auto flex-1 no-scrollbar space-y-2" id="bank-modal-list">
+        <!-- Populated dynamically -->
       </div>
     </div>
   </div>
 
   <!-- Notification Bottom Sheet Modal (លាតពេញឆ្វេងទៅស្តាំ ១០០% + ប៉ះផ្ទៃទំនេរបិទ) -->
   <div id="notif-modal" onclick="if(event.target === this) toggleNotificationsModal()" 
-       class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 pb-24 sm:p-4 transition-all duration-300">
+       class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
     <div id="notif-modal-card" onclick="event.stopPropagation()" 
-         class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 w-full max-w-lg mx-auto relative shadow-2xl animate-fade-in flex flex-col max-h-[82vh] sm:max-h-[90vh]">
-      
-      <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
-      <div onclick="handleHeaderScrollToTop(event, 'notif-feed-list')" class="w-full pt-1 pb-1 flex justify-center cursor-pointer">
-        <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
+         class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 w-full max-w-lg mx-auto relative shadow-2xl animate-fade-in flex flex-col max-h-[76vh] sm:max-h-[85vh]">
+      <div class="flex items-center justify-between mb-3 shrink-0">
+        <div onclick="handleHeaderScrollToTop(event, 'notif-feed-list')" class="flex items-center gap-2.5 cursor-pointer">
+          <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
+            <i data-lucide="bell" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white leading-tight">ការជូនដំណឹង & បច្ចុប្បន្នភាព</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">របាយការណ៍បច្ចុប្បន្នភាពជួរដេក និងដំណឹងក្រុម</p>
+          </div>
+        </div>
+        <button onclick="markAllNotificationsAsRead()" 
+                class="px-2.5 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 active:scale-95 text-xs text-orange-400 font-semibold transition shrink-0 flex items-center gap-1 border border-orange-500/30">
+          <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
+          <span>បានអាន</span>
+        </button>
       </div>
 
-      <div onclick="handleHeaderScrollToTop(event, 'notif-feed-list')" class="flex items-center gap-2.5 mb-3 shrink-0 cursor-pointer">
-        <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
-          <i data-lucide="bell" class="w-4 h-4"></i>
-        </div>
-        <div>
-          <h3 class="font-bold text-sm text-white leading-tight">ការជូនដំណឹង & បច្ចុប្បន្នភាព (Update Alerts)</h3>
-          <p class="text-[10px] text-slate-400 mt-0.5">របាយការណ៍បច្ចុប្បន្នភាពជួរដេក និងដំណឹងក្រុម</p>
-        </div>
-      </div>
-
-      <div id="notif-feed-list" class="space-y-2.5 overflow-y-auto no-scrollbar mb-3 flex-1" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div id="notif-feed-list" class="space-y-2.5 overflow-y-auto no-scrollbar pb-10 flex-1" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Injected dynamically -->
       </div>
-
-      <button onclick="markAllNotificationsAsRead()" 
-              class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs text-white font-semibold transition shrink-0 active:scale-98">
-        បានអានទាំងអស់ (Mark all as read)
-      </button>
     </div>
   </div>
 
