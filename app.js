@@ -733,9 +733,10 @@ function handleBackNavigation() {
     return true;
   }
 
-  // 2c. If in Settings, step back to Profile first!
+  // 2c. If in Settings, step back to previous view (Profile or Dashboard)
   if (appState.currentView === 'settings') {
-    switchView('profile');
+    const target = (appState.previousView === 'profile') ? 'profile' : 'dashboard';
+    switchView(target);
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
@@ -1111,6 +1112,9 @@ function handleGlobalSearch(query) {
 // ==========================================
 function switchView(viewName) {
   const isAlreadyDashboard = (appState.currentView === 'dashboard' && viewName === 'dashboard');
+  if (appState.currentView !== viewName) {
+    appState.previousView = appState.currentView;
+  }
   appState.currentView = viewName;
 
   const main = document.getElementById('main-content');
@@ -1198,8 +1202,7 @@ function switchView(viewName) {
   ['dashboard', 'analytics', 'learning', 'settings'].forEach(v => {
     const btn = document.getElementById(`dock-btn-${v}`);
     if (btn) {
-      const isActive = (v === viewName) || (v === 'settings' && (viewName === 'profile' || viewName === 'settings'));
-      if (isActive) {
+      if (v === viewName) {
         btn.classList.add('active-tab');
       } else {
         btn.classList.remove('active-tab');
@@ -2656,29 +2659,36 @@ function getSettingsViewHTML() {
         </div>
       </div>
 
-      <!-- Settings Header Bar with Back Button to Profile Dashboard -->
+      <!-- Settings Header Bar with Back Button -->
       <div class="pt-1 px-1 flex items-center justify-between relative z-10">
-        <button onclick="switchView('profile')" 
+        <button onclick="handleBackNavigation()" 
                 class="py-1.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 transition shadow-sm">
           <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
           <span>ត្រឡប់</span>
         </button>
       </div>
 
-      <!-- Top Settings Profile (ឈ្មោះធំមិនតូចជាង «⚙️ ការកំណត់» + Blue Tick ស្មើអក្សរ ង និងចំកណ្តាល + មិនដាច់លើក្រោម) -->
-      <div class="pt-1 px-1 flex items-center gap-3.5 relative z-10">
-        <div class="relative">
-          <img src="${prof.avatar || 'profile.png'}" alt="${prof.name || 'SDEY SDOEUNG'}" 
-               class="w-13 h-13 rounded-full object-cover border-2 border-[var(--accent-solid)] shadow-lg"
-               style="width: 52px; height: 52px;">
-          <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
-        </div>
-        <div class="min-w-0 flex-1 overflow-visible">
-          <div class="flex items-center gap-2 py-0.5 overflow-visible">
-            <h1 class="font-black text-xl text-white leading-normal tracking-normal brand-title overflow-visible select-none">${prof.name || 'ស្តី ស្តើង'}</h1>
-            <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;">
+      <!-- Top Settings Profile (ចុច Profile ក៏ចេញ Profile Dashboard ដែរ ទោះឈរនៅ Dock Setting ក៏ដោយ) -->
+      <div onclick="switchView('profile')" 
+           class="pt-1 px-1 flex items-center justify-between gap-3 relative z-10 cursor-pointer active:scale-[0.98] hover:bg-white/[0.03] p-1.5 -mx-1.5 rounded-2xl transition group select-none"
+           title="បើក Profile Dashboard">
+        <div class="flex items-center gap-3.5 min-w-0 flex-1 overflow-visible">
+          <div class="relative shrink-0">
+            <img src="${prof.avatar || 'profile.png'}" alt="${prof.name || 'SDEY SDOEUNG'}" 
+                 class="w-13 h-13 rounded-full object-cover border-2 border-[var(--accent-solid)] shadow-lg group-hover:border-orange-400 transition"
+                 style="width: 52px; height: 52px;">
+            <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
           </div>
-          <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">${prof.subtitle || 'SDEY SDOEUNG'}</p>
+          <div class="min-w-0 flex-1 overflow-visible">
+            <div class="flex items-center gap-2 py-0.5 overflow-visible">
+              <h1 class="font-black text-xl text-white leading-normal tracking-normal brand-title overflow-visible select-none group-hover:text-orange-400 transition">${prof.name || 'ស្តី ស្តើង'}</h1>
+              <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;">
+            </div>
+            <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">${prof.subtitle || 'SDEY SDOEUNG'}</p>
+          </div>
+        </div>
+        <div class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-orange-400 group-hover:bg-orange-500/10 group-hover:border-orange-500/30 transition shadow-sm">
+          <i data-lucide="chevron-right" class="w-4 h-4 text-orange-400"></i>
         </div>
       </div>
 
