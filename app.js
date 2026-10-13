@@ -968,6 +968,7 @@ function setupSwipeToBack() {
   let touchStartX = 0;
   let touchStartY = 0;
   let isPotentialSwipe = false;
+  let swipeOrigin = 'edge-left'; // 'edge-left', 'edge-right', or 'drawer'
 
   // Touch support for Mobile / iPad
   document.addEventListener('touchstart', (e) => {
@@ -981,9 +982,22 @@ function setupSwipeToBack() {
       return;
     }
 
-    // Edge swipe detection: started from left edge (within 60px of screen edge)
+    const screenWidth = window.innerWidth || document.documentElement.clientWidth;
+    const profDrawer = document.getElementById('profile-drawer-modal');
+    const isDrawerOpen = profDrawer && !profDrawer.classList.contains('hidden');
+
     if (touchStartX <= 60) {
+      // 1. Started from screen left edge (<= 60px)
       isPotentialSwipe = true;
+      swipeOrigin = 'edge-left';
+    } else if (touchStartX >= screenWidth - 60) {
+      // 2. Started from screen right edge (within 60px from right)
+      isPotentialSwipe = true;
+      swipeOrigin = 'edge-right';
+    } else if (isDrawerOpen && e.target && e.target.closest('#profile-drawer-modal')) {
+      // 3. Touching anywhere on or inside Profile Dashboard Drawer
+      isPotentialSwipe = true;
+      swipeOrigin = 'drawer';
     } else {
       isPotentialSwipe = false;
     }
@@ -996,8 +1010,8 @@ function setupSwipeToBack() {
     const deltaX = currentX - touchStartX;
     const deltaY = currentY - touchStartY;
 
-    // If vertical scrolling dominates, cancel swipe
-    if (Math.abs(deltaY) > 35 && Math.abs(deltaY) > deltaX) {
+    // If vertical scrolling strongly dominates, cancel swipe
+    if (Math.abs(deltaY) > 40 && Math.abs(deltaY) > Math.abs(deltaX) * 1.5) {
       isPotentialSwipe = false;
     }
   }, { passive: true });
@@ -1008,24 +1022,33 @@ function setupSwipeToBack() {
     const touchEndY = e.changedTouches[0].clientY;
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
+    const profDrawer = document.getElementById('profile-drawer-modal');
+    const isDrawerOpen = profDrawer && !profDrawer.classList.contains('hidden');
 
-    // Left-to-right swipe from left edge (at least 60px horizontal, deltaX dominant)
+    // Case 1: Left-to-right swipe (deltaX >= 60px)
     if (deltaX >= 60 && deltaX > Math.abs(deltaY) * 1.25) {
-      if (isAnyModalOrDrawerOpen()) {
-        // If a modal or drawer is open, back navigation steps back / closes it
-        handleBackNavigation();
-      } else {
-        // If standing on any of the 5 Dock views, swipe from left edge opens Profile Dashboard (មុខងារចម្បង)
-        if (typeof openProfileDrawer === 'function') {
-          openProfileDrawer();
-          if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+      if (swipeOrigin === 'edge-left') {
+        if (isAnyModalOrDrawerOpen()) {
+          // If a modal or drawer is open, back navigation steps back / closes it
+          handleBackNavigation();
+        } else {
+          // If standing on any of the 5 Dock views, swipe from left edge opens Profile Dashboard (មុខងារចម្បង)
+          if (typeof openProfileDrawer === 'function') {
+            openProfileDrawer();
+            if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+          }
         }
       }
-    } else if (deltaX <= -50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
-      // Swipe left to dismiss profile drawer
-      const profDrawer = document.getElementById('profile-drawer-modal');
-      if (profDrawer && !profDrawer.classList.contains('hidden')) {
+    } 
+    // Case 2: Right-to-left swipe (deltaX <= -55px)
+    else if (deltaX <= -55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      if (isDrawerOpen) {
+        // If Profile Dashboard is open, swiping right-to-left (anywhere on it or right edge) closes / slides it back!
         closeProfileDrawer();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+      } else if (swipeOrigin === 'edge-right') {
+        // If swiping from the screen right edge, trigger back navigation (ថយក្រោយមួយជំហាន)
+        handleBackNavigation();
         if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
       }
     }
@@ -1036,13 +1059,31 @@ function setupSwipeToBack() {
   let mouseStartX = 0;
   let mouseStartY = 0;
   let isMouseDown = false;
+  let mouseOrigin = 'edge-left';
 
   document.addEventListener('mousedown', (e) => {
     if (e.button !== 0) return;
-    if (e.clientX <= 60 && !e.target.closest('input, textarea, select, button, a')) {
+    if (e.target && e.target.closest && e.target.closest('input, textarea, select, button, a')) return;
+
+    const screenWidth = window.innerWidth || document.documentElement.clientWidth;
+    const profDrawer = document.getElementById('profile-drawer-modal');
+    const isDrawerOpen = profDrawer && !profDrawer.classList.contains('hidden');
+
+    if (e.clientX <= 60) {
       mouseStartX = e.clientX;
       mouseStartY = e.clientY;
       isMouseDown = true;
+      mouseOrigin = 'edge-left';
+    } else if (e.clientX >= screenWidth - 60) {
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      isMouseDown = true;
+      mouseOrigin = 'edge-right';
+    } else if (isDrawerOpen && e.target && e.target.closest('#profile-drawer-modal')) {
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      isMouseDown = true;
+      mouseOrigin = 'drawer';
     }
   });
 
@@ -1050,13 +1091,24 @@ function setupSwipeToBack() {
     if (!isMouseDown) return;
     const deltaX = e.clientX - mouseStartX;
     const deltaY = e.clientY - mouseStartY;
+    const profDrawer = document.getElementById('profile-drawer-modal');
+    const isDrawerOpen = profDrawer && !profDrawer.classList.contains('hidden');
+
     if (deltaX >= 60 && deltaX > Math.abs(deltaY) * 1.25) {
-      if (isAnyModalOrDrawerOpen()) {
-        handleBackNavigation();
-      } else {
-        if (typeof openProfileDrawer === 'function') {
-          openProfileDrawer();
+      if (mouseOrigin === 'edge-left') {
+        if (isAnyModalOrDrawerOpen()) {
+          handleBackNavigation();
+        } else {
+          if (typeof openProfileDrawer === 'function') {
+            openProfileDrawer();
+          }
         }
+      }
+    } else if (deltaX <= -55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      if (isDrawerOpen) {
+        closeProfileDrawer();
+      } else if (mouseOrigin === 'edge-right') {
+        handleBackNavigation();
       }
     }
     isMouseDown = false;
