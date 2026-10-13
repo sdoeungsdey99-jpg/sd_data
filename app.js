@@ -605,6 +605,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function onDataUpdated(service) {
   updateReloadBadge(service);
   renderCurrentView();
+  const custModal = document.getElementById('all-customers-modal');
+  if (custModal && !custModal.classList.contains('hidden')) {
+    renderAllCustomersList();
+  }
 }
 
 function updateReloadBadge(service) {
@@ -4388,6 +4392,7 @@ function getAllUniqueCustomers() {
         totalOrders: 0,
         totalBoxes: 0,
         totalSpent: 0,
+        totalThaiBaht: 0,
         lastDate: s.date || '',
         lastIsoDate: s.isoDate || '',
         orders: []
@@ -4406,6 +4411,7 @@ function getAllUniqueCustomers() {
     entry.totalOrders += 1;
     entry.totalBoxes += (s.totalBoxQty || 0);
     entry.totalSpent += (s.totalAmount || 0);
+    entry.totalThaiBaht += (s.thaiBaht || s.price || 0);
     if ((s.isoDate || '') >= (entry.lastIsoDate || '')) {
       entry.lastIsoDate = s.isoDate || '';
       entry.lastDate = s.date || '';
@@ -4631,9 +4637,6 @@ function renderProfileDrawerContent() {
             <i data-lucide="id-card" class="w-3.5 h-3.5"></i>
           </div>
           <span class="text-xs font-bold text-white">${isEn ? 'Member Info' : 'ព័ត៌មានសមាជិក (Info)'}</span>
-          <span class="px-1.5 py-0.2 rounded-full bg-white/5 border border-white/10 text-[9.5px] font-mono text-slate-400">
-            ${infoItems.length}
-          </span>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="event.stopPropagation(); closeProfileDrawer(); openEditProfileModal();" 
@@ -4798,9 +4801,6 @@ function getProfileViewHTML() {
             <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <i data-lucide="id-card" class="w-3.5 h-3.5 text-orange-400"></i>
               <span>${appState.language === 'en' ? 'Member Info' : 'ព័ត៌មានសមាជិក (Info)'}</span>
-              <span class="px-1.5 py-0.2 rounded-full bg-white/5 border border-white/10 text-[9.5px] font-mono text-slate-400">
-                ${infoItems.length}
-              </span>
             </span>
             <div class="flex items-center gap-2">
               <button onclick="event.stopPropagation(); openEditProfileModal()" 
@@ -5497,7 +5497,9 @@ function renderAllCustomersList() {
 
           <div class="text-right shrink-0">
             <div class="font-mono font-bold text-xs text-emerald-400">${formatUSD(c.totalSpent)}</div>
-            <div class="text-[10px] font-mono text-orange-400 font-bold">${c.totalBoxes} ប្រអប់ • ${c.lastDate}</div>
+            <div class="text-[10px] font-mono leading-tight mt-0.5">
+              ${c.totalThaiBaht > 0 ? `<span class="text-slate-200 font-semibold">${formatInt(c.totalThaiBaht)} ฿ • </span>` : ''}<span class="text-orange-400 font-bold">${c.totalBoxes} ប្រអប់</span> <span class="text-slate-400 font-normal">• ${c.lastDate}</span>
+            </div>
           </div>
         </div>
 
@@ -5525,7 +5527,11 @@ function renderAllCustomersList() {
                     <span class="font-mono text-white font-bold">${o.date}</span>
                     <span class="text-slate-400 ml-1.5">(${o.deliveryMethod || '—'})</span>
                   </div>
-                  <div class="font-mono">
+                  <div class="font-mono text-right">
+                    ${(o.thaiBaht > 0 || o.price > 0) ? `
+                      <span class="text-slate-200 font-medium text-[10.5px]">${formatInt(o.thaiBaht || o.price)} ฿</span>
+                      <span class="text-slate-500 mx-1">•</span>
+                    ` : ''}
                     <span class="text-orange-400 font-bold">${o.totalBoxQty} ប្រអប់</span>
                     <span class="text-slate-500 mx-1">|</span>
                     <span class="text-emerald-400 font-bold">${formatUSD(o.totalAmount)}</span>

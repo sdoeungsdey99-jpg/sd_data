@@ -179,7 +179,8 @@ window.DataService = {
         const freeQty = cleanNumber(getCell(11));
         const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
 
-        const price = cleanNumber(getCell(12));
+        const thaiBaht = cleanNumber(getCell(12));
+        const price = thaiBaht;
         const totalAmount = cleanNumber(getCell(13));
         const shipFee = cleanNumber(getCell(14));
         const deliveryMethod = String(getCell(15) || 'មិនបញ្ជាក់').trim();
@@ -204,6 +205,7 @@ window.DataService = {
           freeQty,
           totalBoxQty,
           price,
+          thaiBaht,
           totalAmount,
           shipFee,
           deliveryMethod,
