@@ -3859,6 +3859,7 @@ function openPersonalSalesModal() {
   }
 
   modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
   setDockVisible(true);
   if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
 }
