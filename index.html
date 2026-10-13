@@ -1336,30 +1336,37 @@
         </button>
 
         <!-- Profile & 100% Facebook Blue Tick (Click to open Profile Dashboard Drawer) -->
-        <div id="header-profile-block" class="flex items-center gap-3 cursor-pointer active:scale-95 transition" onclick="openProfileDrawer()">
-          <div class="relative">
+        <div id="header-profile-block" class="flex items-center gap-2.5 min-w-0 cursor-pointer active:scale-95 transition" onclick="openProfileDrawer()">
+          <div class="relative shrink-0">
             <img id="header-profile-avatar" src="profile.png" alt="SDEY SDOEUNG" 
                  class="w-10 h-10 rounded-full object-cover border-2 border-orange-500 shadow-md">
             <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
           </div>
-          <div>
+          <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <h1 id="header-profile-name" class="font-bold text-sm text-white leading-tight brand-title">ស្តី ស្តើង</h1>
+              <h1 id="header-profile-name" class="font-bold text-sm text-white leading-tight brand-title truncate">ស្តី ស្តើង</h1>
               <!-- Exact 100% Facebook Blue Tick -->
               <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
             </div>
-            <p id="header-profile-sub" class="text-[11px] text-slate-400 leading-tight">SDEY SDOEUNG</p>
+            <p id="header-profile-sub" class="text-[11px] text-slate-400 leading-tight truncate">SDEY SDOEUNG</p>
           </div>
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 shrink-0">
           
           <!-- Manual Reload with Time (Auto-Hides when up-to-date, Reveals after 3-5s lag) -->
           <button id="btn-reload" onclick="manualReload()" 
                   class="h-9 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs text-slate-300 transition-all duration-300 flex items-center gap-1.5 shadow-sm">
             <i id="reload-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
             <span id="reload-time-text" class="text-[11px] font-mono leading-none">--:--</span>
+          </button>
+
+          <!-- Search Button -->
+          <button onclick="openSearchBar()" 
+                  class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition shadow-sm"
+                  title="ស្វែងរកទិន្នន័យ">
+            <i data-lucide="search" class="w-4 h-4 text-orange-400"></i>
           </button>
 
           <!-- Notification Bell with Red Badge (Hidden when in Profile View) -->
@@ -1370,13 +1377,6 @@
               <span id="notif-badge" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center border-2 border-[#070D18] hidden">0</span>
             </button>
           </div>
-
-          <!-- Search Button -->
-          <button onclick="openSearchBar()" 
-                  class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition shadow-sm"
-                  title="ស្វែងរកទិន្នន័យ">
-            <i data-lucide="search" class="w-4 h-4 text-orange-400"></i>
-          </button>
         </div>
       </div>
     </header>
@@ -1957,7 +1957,7 @@
   <div id="all-customers-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden">
     <div class="w-full max-w-md mx-auto flex flex-col h-full overflow-hidden">
       <!-- Top Bar -->
-      <div class="px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/90 backdrop-blur-xl shrink-0 space-y-2.5">
+      <div class="relative z-30 px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2.5">
         <div class="flex items-center justify-between">
           <button onclick="closeAllCustomersModal()" 
                   class="py-1.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 transition">
@@ -1989,7 +1989,7 @@
               
               <!-- Dropdown Menu (Newest -> Oldest [Default], Top Buyer, Name) -->
               <div id="cust-sort-dropdown-menu" 
-                   class="hidden absolute right-0 top-full mt-1.5 w-48 bg-[#0D1829]/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 divide-y divide-white/5 animate-fade-in select-none">
+                   class="hidden absolute right-0 top-full mt-1.5 w-48 bg-[#0D1829] backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl p-1 z-[100] divide-y divide-white/5 animate-fade-in select-none">
                 <button onclick="setAllCustomersSort('latest'); toggleCustomersSortMenu();" 
                         class="w-full text-left px-3 py-2 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition">
                   <span class="flex items-center gap-2">

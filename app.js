@@ -592,6 +592,33 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(toggleCustomersSortMenu, 120);
     }, 180);
   }
+  if (urlParams.get('expand_cust') === '1') {
+    setTimeout(() => {
+      openAllCustomersModal();
+      const first = getAllUniqueCustomers()[0];
+      if (first) {
+        expandedCustomerKey = first.key;
+        renderAllCustomersList();
+      }
+    }, 250);
+  }
+  if (urlParams.get('search_learning') === '1') {
+    setTimeout(() => {
+      switchView('learning');
+      openSearchBar();
+      const input = document.getElementById('global-search-input');
+      if (input) {
+        input.value = 'board';
+        handleGlobalSearch('board');
+      }
+    }, 250);
+  }
+  if (urlParams.get('scroll_learning') === '1') {
+    setTimeout(() => {
+      switchView('learning');
+      loadMoreStudyWords();
+    }, 250);
+  }
   if (urlParams.get('qr') === '1') {
     setTimeout(openQrPhotosModal, 150);
   }
@@ -605,9 +632,20 @@ document.addEventListener('DOMContentLoaded', () => {
 function onDataUpdated(service) {
   updateReloadBadge(service);
   renderCurrentView();
-  const custModal = document.getElementById('all-customers-modal');
-  if (custModal && !custModal.classList.contains('hidden')) {
-    renderAllCustomersList();
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('expand_cust') === '1') {
+    openAllCustomersModal();
+    const custs = getAllUniqueCustomers();
+    custs.sort((a, b) => (b.lastIsoDate || '').localeCompare(a.lastIsoDate || ''));
+    if (custs.length > 0) {
+      expandedCustomerKey = custs[0].key;
+      renderAllCustomersList();
+    }
+  } else {
+    const custModal = document.getElementById('all-customers-modal');
+    if (custModal && !custModal.classList.contains('hidden')) {
+      renderAllCustomersList();
+    }
   }
 }
 
@@ -939,7 +977,7 @@ function setupSmartDockScroll() {
     // 3. Auto-load 5 more words when near bottom in Study / Learning view
     if (appState.currentView === 'learning') {
       const scrollBottom = main.scrollHeight - main.scrollTop - main.clientHeight;
-      if (scrollBottom < 120) {
+      if (scrollBottom < 260) {
         loadMoreStudyWords();
       }
     }
@@ -1008,6 +1046,11 @@ function openSearchBar() {
   const input = document.getElementById('global-search-input');
   if (modal) modal.classList.remove('hidden');
   if (input) {
+    if (appState.currentView === 'learning') {
+      input.placeholder = 'ស្វែងរកពាក្យអង់គ្លេស, អាន, ខ្មែរ (Vocabulary)...';
+    } else {
+      input.placeholder = 'ស្វែងរកអតិថិជន, Order, ចំណាយ...';
+    }
     input.focus();
     handleGlobalSearch(input.value);
   }
@@ -1036,15 +1079,100 @@ function handleGlobalSearch(query) {
   const container = document.getElementById('search-results-container');
   if (!container) return;
 
+  const isLearning = (appState.currentView === 'learning');
   const q = (query || '').trim().toLowerCase();
   if (!q) {
-    container.innerHTML = `
-      <div class="py-16 text-center text-slate-400">
-        <i data-lucide="search" class="w-8 h-8 mx-auto mb-2 opacity-40 text-orange-400"></i>
-        <p class="text-xs">វាយបញ្ចូលពាក្យដើម្បីស្វែងរកទិន្នន័យ...</p>
-        <p class="text-[10px] text-slate-500 mt-1">ស្វែងរកអតិថិជន, លេខទូរស័ព្ទ, ទីតាំង, Order, ឬការចំណាយពី Google Sheet</p>
+    if (isLearning) {
+      container.innerHTML = `
+        <div class="py-16 text-center text-slate-400">
+          <i data-lucide="book-open" class="w-8 h-8 mx-auto mb-2 opacity-40 text-orange-400"></i>
+          <p class="text-xs">វាយបញ្ចូលពាក្យដើម្បីស្វែងរកក្នុងមេរៀន...</p>
+          <p class="text-[10px] text-slate-500 mt-1">ស្វែងរកពាក្យអង់គ្លេស, ការបញ្ចេញសំឡេង, ប្រែសម្រួលជាភាសាខ្មែរ ឬឧទាហរណ៍</p>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="py-16 text-center text-slate-400">
+          <i data-lucide="search" class="w-8 h-8 mx-auto mb-2 opacity-40 text-orange-400"></i>
+          <p class="text-xs">វាយបញ្ចូលពាក្យដើម្បីស្វែងរកទិន្នន័យ...</p>
+          <p class="text-[10px] text-slate-500 mt-1">ស្វែងរកអតិថិជន, លេខទូរស័ព្ទ, ទីតាំង, Order, ឬការចំណាយពី Google Sheet</p>
+        </div>
+      `;
+    }
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  // Option: Search in Vocabulary strictly when in Dock សិក្សា (Learning)
+  if (isLearning) {
+    const learnedCount = appState.studyWordCount || 5;
+    const matchedWords = DAILY_ENGLISH_WORDS.map((w, idx) => ({
+      ...w,
+      wordIndex: idx + 1,
+      isLearned: idx < learnedCount
+    })).filter(w => {
+      return (w.en && w.en.toLowerCase().includes(q)) ||
+             (w.km && w.km.toLowerCase().includes(q)) ||
+             (w.pron && w.pron.toLowerCase().includes(q)) ||
+             (w.pos && w.pos.toLowerCase().includes(q)) ||
+             (w.ex && w.ex.toLowerCase().includes(q));
+    });
+
+    matchedWords.sort((a, b) => {
+      if (a.isLearned === b.isLearned) return a.wordIndex - b.wordIndex;
+      return a.isLearned ? -1 : 1;
+    });
+
+    if (matchedWords.length === 0) {
+      container.innerHTML = `
+        <div class="py-16 text-center text-slate-400">
+          <i data-lucide="alert-circle" class="w-8 h-8 mx-auto mb-2 opacity-40 text-rose-400"></i>
+          <p class="text-xs">រកមិនឃើញពាក្យដែលត្រូវនឹង “${query}” ទេ</p>
+          <p class="text-[10px] text-slate-500 mt-1">សូមសាកល្បងវាយពាក្យអង់គ្លេស ឬអត្ថន័យខ្មែរផ្សេងទៀត</p>
+        </div>
+      `;
+      if (window.lucide) window.lucide.createIcons();
+      return;
+    }
+
+    let html = `
+      <div class="text-[11px] text-slate-400 pb-2 border-b border-white/10 flex items-center justify-between">
+        <span>លទ្ធផលស្វែងរក: <strong class="text-white">${matchedWords.length}</strong> ពាក្យ</span>
+        <span class="text-[10px] text-orange-400 font-medium">📚 មេរៀនភាសាអង់គ្លេស</span>
+      </div>
+      <div class="pt-2 space-y-2.5">
+        ${matchedWords.map(w => `
+          <div class="ios-glass-card rounded-2xl p-3.5 border border-white/10 flex items-start gap-3 transition">
+            <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 font-bold text-sm flex items-center justify-center shrink-0">
+              ${w.wordIndex}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <div class="flex items-baseline gap-2 flex-wrap">
+                  <h4 class="font-bold text-base text-white tracking-wide">${highlightSearchText(w.en, q)}</h4>
+                  <span class="text-xs text-orange-400 font-medium">(${highlightSearchText(w.pron, q)})</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-slate-400">${w.pos}</span>
+                </div>
+                ${w.isLearned ? `
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold shrink-0">
+                    ✓ បានរៀន
+                  </span>
+                ` : `
+                  <span class="px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-slate-400 text-[10px] font-medium shrink-0">
+                    ពាក្យបន្ទាប់
+                  </span>
+                `}
+              </div>
+              <p class="text-xs text-emerald-300 font-semibold mb-1">👉 ${highlightSearchText(w.km, q)}</p>
+              <div class="p-2 rounded-xl bg-black/30 border border-white/5">
+                <p class="text-[11px] text-slate-300 italic font-sans">“${highlightSearchText(w.ex, q)}”</p>
+              </div>
+            </div>
+          </div>
+        `).join('')}
       </div>
     `;
+    container.innerHTML = html;
     if (window.lucide) window.lucide.createIcons();
     return;
   }
@@ -2617,7 +2745,7 @@ function getLearningViewHTML() {
         <h3 class="font-bold text-base text-white">រៀនភាសាអង់គ្លេស ១ ថ្ងៃ ៥ ពាក្យ</h3>
         <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1">ពាក្យគន្លឹះសម្រាប់ការងារប្រចាំថ្ងៃ និងកូដបែប UI</p>
         <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] text-orange-400 font-medium">
-          <span>បង្ហាញ ${visibleWords.length} នៃ ${DAILY_ENGLISH_WORDS.length} ពាក្យ</span>
+          <span id="study-word-counter">បង្ហាញ ${visibleWords.length} នៃ ${DAILY_ENGLISH_WORDS.length} ពាក្យ</span>
           <span>•</span>
           <span>អូសចុះក្រោម ឬចុចប៊ូតុងដើម្បីថែម ៥ ទៀត</span>
         </div>
@@ -2644,19 +2772,21 @@ function getLearningViewHTML() {
         `).join('')}
       </div>
 
-      ${hasMore ? `
-        <div class="pt-2 text-center pb-6">
-          <button onclick="loadMoreStudyWords()" 
-                  class="w-full py-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-98 border border-white/10 text-xs font-semibold text-orange-400 flex items-center justify-center gap-2 transition">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-            <span>បង្ហាញ ៥ ពាក្យទៀតស្វ័យប្រវត្ត (Load 5 More Words)</span>
-          </button>
-        </div>
-      ` : `
-        <div class="py-4 text-center text-xs text-slate-400 pb-6">
-          🎉 លោកអ្នកបានមើលពាក្យទាំងអស់ហើយ!
-        </div>
-      `}
+      <div id="study-load-more-container">
+        ${hasMore ? `
+          <div class="pt-2 text-center pb-6">
+            <button onclick="loadMoreStudyWords()" 
+                    class="w-full py-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-98 border border-white/10 text-xs font-semibold text-orange-400 flex items-center justify-center gap-2 transition">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>បង្ហាញ ៥ ពាក្យទៀតស្វ័យប្រវត្ត (Load 5 More Words)</span>
+            </button>
+          </div>
+        ` : `
+          <div class="py-4 text-center text-xs text-slate-400 pb-6">
+            🎉 លោកអ្នកបានមើលពាក្យទាំងអស់ហើយ!
+          </div>
+        `}
+      </div>
     </div>
   `;
 }
@@ -2665,16 +2795,60 @@ let isStudyLoading = false;
 function loadMoreStudyWords() {
   if (isStudyLoading || appState.studyWordCount >= DAILY_ENGLISH_WORDS.length) return;
   isStudyLoading = true;
-  const container = document.getElementById('main-content');
-  const prevScroll = container ? container.scrollTop : 0;
-  appState.studyWordCount = Math.min(appState.studyWordCount + 5, DAILY_ENGLISH_WORDS.length);
-  renderCurrentView();
-  if (container) {
-    container.scrollTop = prevScroll;
+  
+  const oldWordCount = appState.studyWordCount || 5;
+  const newWordCount = Math.min(oldWordCount + 5, DAILY_ENGLISH_WORDS.length);
+  appState.studyWordCount = newWordCount;
+
+  const wordsListEl = document.getElementById('study-words-list');
+  const counterEl = document.getElementById('study-word-counter');
+  const btnContainer = document.getElementById('study-load-more-container');
+
+  if (wordsListEl) {
+    const newSlice = DAILY_ENGLISH_WORDS.slice(oldWordCount, newWordCount);
+    const newHtml = newSlice.map((w, idx) => `
+      <div class="ios-glass-card rounded-2xl p-4 border border-white/10 flex items-start gap-3.5 transition-all animate-fade-in">
+        <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 font-bold text-sm flex items-center justify-center shrink-0">
+          ${oldWordCount + idx + 1}
+        </div>
+        <div class="flex-1">
+          <div class="flex items-baseline gap-2 mb-0.5">
+            <h4 class="font-bold text-base text-white tracking-wide">${w.en}</h4>
+            <span class="text-xs text-orange-400 font-medium">(${w.pron})</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded bg-white/10 text-slate-400">${w.pos}</span>
+          </div>
+          <p class="text-xs text-emerald-300 font-semibold mb-1.5">👉 ${w.km}</p>
+          <div class="p-2 rounded-xl bg-black/30 border border-white/5">
+            <p class="text-[11px] text-slate-300 italic font-sans">“${w.ex}”</p>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    
+    wordsListEl.insertAdjacentHTML('beforeend', newHtml);
+    if (counterEl) {
+      counterEl.textContent = `បង្ហាញ ${newWordCount} នៃ ${DAILY_ENGLISH_WORDS.length} ពាក្យ`;
+    }
+    if (btnContainer && newWordCount >= DAILY_ENGLISH_WORDS.length) {
+      btnContainer.innerHTML = `
+        <div class="py-4 text-center text-xs text-slate-400 pb-6 animate-fade-in">
+          🎉 លោកអ្នកបានមើលពាក្យទាំងអស់ហើយ!
+        </div>
+      `;
+    }
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    const container = document.getElementById('main-content');
+    const prevScroll = container ? container.scrollTop : 0;
+    renderCurrentView();
+    if (container) {
+      container.scrollTop = prevScroll;
+    }
   }
+
   setTimeout(() => {
     isStudyLoading = false;
-  }, 450);
+  }, 350);
 }
 
 // ==========================================
@@ -5420,6 +5594,17 @@ function toggleCustomerOrderHistory(encodedKey) {
   renderAllCustomersList();
 }
 
+function getOrderProductSummary(o) {
+  if (o.product && o.product !== 'ទំនិញ') return o.product;
+  const parts = [];
+  if (o.qtyKN > 0) parts.push(o.qtyKN > 1 ? `KN (${o.qtyKN})` : `KN`);
+  if (o.qtyPDO > 0) parts.push(o.qtyPDO > 1 ? `PDO (${o.qtyPDO})` : `PDO`);
+  if (o.qtyYL > 0) parts.push(o.qtyYL > 1 ? `YL (${o.qtyYL})` : `YL`);
+  if (o.qtyYLP > 0) parts.push(o.qtyYLP > 1 ? `YLP (${o.qtyYLP})` : `YLP`);
+  if (o.freeQty > 0) parts.push(`Free (${o.freeQty})`);
+  return parts.join(', ') || (o.product || 'ទំនិញ');
+}
+
 function renderAllCustomersList() {
   const listEl = document.getElementById('all-customers-list');
   const countBadge = document.getElementById('all-customers-count-badge');
@@ -5447,6 +5632,11 @@ function renderAllCustomersList() {
     customers.sort((a, b) => (b.lastIsoDate || '').localeCompare(a.lastIsoDate || ''));
   }
 
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('expand_cust') === '1' && !expandedCustomerKey && customers.length > 0) {
+    expandedCustomerKey = customers[0].key;
+  }
+
   if (countBadge) countBadge.textContent = `${customers.length} នាក់`;
 
   const totalOrdersSum = customers.reduce((acc, c) => acc + c.totalOrders, 0);
@@ -5471,7 +5661,7 @@ function renderAllCustomersList() {
   }
 
   listEl.innerHTML = customers.map((c, idx) => {
-    const isExpanded = expandedCustomerKey === c.key;
+    const isExpanded = (expandedCustomerKey === c.key) || (urlParams.get('expand_cust') === '1' && idx === 0);
     const encodedKey = encodeURIComponent(c.key);
     const sortedOrders = [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
 
@@ -5523,11 +5713,11 @@ function renderAllCustomersList() {
             <div class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
               ${sortedOrders.map(o => `
                 <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-[11px]">
-                  <div>
-                    <span class="font-mono text-white font-bold">${o.date}</span>
-                    <span class="text-slate-400 ml-1.5">(${o.deliveryMethod || '—'})</span>
+                  <div class="flex items-center gap-1.5 min-w-0 pr-2">
+                    <span class="font-mono text-white font-bold shrink-0">${o.date}</span>
+                    <span class="text-slate-300 font-medium truncate">(${getOrderProductSummary(o)})</span>
                   </div>
-                  <div class="font-mono text-right">
+                  <div class="font-mono text-right shrink-0">
                     ${(o.thaiBaht > 0 || o.price > 0) ? `
                       <span class="text-slate-200 font-medium text-[10.5px]">${formatInt(o.thaiBaht || o.price)} ฿</span>
                       <span class="text-slate-500 mx-1">•</span>

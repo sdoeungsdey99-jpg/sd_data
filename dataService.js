@@ -189,6 +189,14 @@ window.DataService = {
         const note = String(getCell(20) || '').trim();
         const recordId = String(getCell(23) || `REC-${i}`).trim();
 
+        const prodParts = [];
+        if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
+        if (qtyPDO > 0) prodParts.push(qtyPDO > 1 ? `PDO (${qtyPDO})` : `PDO`);
+        if (qtyYL > 0) prodParts.push(qtyYL > 1 ? `YL (${qtyYL})` : `YL`);
+        if (qtyYLP > 0) prodParts.push(qtyYLP > 1 ? `YLP (${qtyYLP})` : `YLP`);
+        if (freeQty > 0) prodParts.push(`Free (${freeQty})`);
+        const product = prodParts.join(', ') || 'ទំនិញ';
+
         personalSales.push({
           date: ddmmyyyy,
           isoDate: isoDate,
@@ -204,6 +212,7 @@ window.DataService = {
           qtyPDO,
           freeQty,
           totalBoxQty,
+          product,
           price,
           thaiBaht,
           totalAmount,
