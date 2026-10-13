@@ -534,6 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyAppFont(appState.fontFamily);
   applyAppTextSize(appState.textSize);
   applyHideSubtitles(appState.hideSubtitles);
+  if (typeof syncHeaderProfileUI === 'function') syncHeaderProfileUI();
 
   setInterval(updateLockClock, 1000);
   updateLockClock();
@@ -700,7 +701,8 @@ function handleBackNavigation() {
   // 1c. Close any open modal if visible
   const openModals = [
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
-    'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
+    'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal',
+    'all-customers-modal', 'edit-profile-modal', 'qr-photos-modal', 'profile-sub-modal'
   ];
   for (const id of openModals) {
     const el = document.getElementById(id);
@@ -1142,13 +1144,47 @@ function switchView(viewName) {
     }
   }
 
-  // Profile block in Header: visible always EXCEPT when in 'settings'
+  // Profile block & Back button in Header
   const headerProfile = document.getElementById('header-profile-block');
+  const headerProfileBack = document.getElementById('header-profile-back');
+  const headerNotifWrapper = document.getElementById('header-notif-wrapper');
+  const btnReload = document.getElementById('btn-reload');
+
   if (headerProfile) {
     if (viewName === 'settings') {
+      headerProfile.classList.remove('hidden');
       headerProfile.classList.add('invisible', 'pointer-events-none');
+    } else if (viewName === 'profile') {
+      headerProfile.classList.add('hidden');
     } else {
-      headerProfile.classList.remove('invisible', 'pointer-events-none');
+      headerProfile.classList.remove('hidden', 'invisible', 'pointer-events-none');
+    }
+  }
+
+  if (headerProfileBack) {
+    if (viewName === 'profile') {
+      headerProfileBack.classList.remove('hidden');
+      headerProfileBack.classList.add('flex');
+    } else {
+      headerProfileBack.classList.add('hidden');
+      headerProfileBack.classList.remove('flex');
+    }
+  }
+
+  // Remove Notification Button ONLY when inside Profile View (ទុកតែ Button Search ប៉ុណ្ណោះ)
+  if (headerNotifWrapper) {
+    if (viewName === 'profile') {
+      headerNotifWrapper.classList.add('hidden');
+    } else {
+      headerNotifWrapper.classList.remove('hidden');
+    }
+  }
+
+  if (btnReload) {
+    if (viewName === 'profile') {
+      btnReload.classList.add('hidden');
+    } else {
+      btnReload.classList.remove('hidden');
     }
   }
 
@@ -1608,6 +1644,9 @@ function renderCurrentView() {
       break;
     case 'settings':
       container.innerHTML = getSettingsViewHTML();
+      break;
+    case 'profile':
+      container.innerHTML = getProfileViewHTML();
       break;
   }
 
@@ -4180,4 +4219,1083 @@ function showToastNotification(msg) {
     toast.remove();
   }, 2200);
 }
+
+// =========================================================
+// PROFILE DASHBOARD (Facebook Menu + iOS Liquid Glass Hub)
+// =========================================================
+
+const DEFAULT_PROFILE_DATA = {
+  name: 'ស្តី ស្តើង',
+  memberId: 'ID: SD-0001',
+  subtitle: 'SDEY SDOEUNG',
+  avatar: 'profile.png',
+  work: 'ស្ថាបនិក & អ្នកគ្រប់គ្រងនៅ SD Data',
+  study: 'ជីវិតជាការរៀនសូត្រ (Life is Learning)',
+  live: 'រាជធានីភ្នំពេញ',
+  from: 'ព្រះរាជាណាចក្រកម្ពុជា',
+  status: 'កំពុងអភិវឌ្ឍអាជីវកម្ម',
+  phone: '096 212 9261',
+  privacy: {
+    showWork: true,
+    showStudy: true,
+    showLive: true,
+    showFrom: true,
+    showStatus: true,
+    showPhone: true
+  }
+};
+
+function getProfileData() {
+  try {
+    const raw = localStorage.getItem('sd_profile_data');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        ...DEFAULT_PROFILE_DATA,
+        ...parsed,
+        privacy: {
+          ...DEFAULT_PROFILE_DATA.privacy,
+          ...(parsed.privacy || {})
+        }
+      };
+    }
+  } catch (e) {
+    console.warn('Error reading sd_profile_data:', e);
+  }
+  return { ...DEFAULT_PROFILE_DATA, privacy: { ...DEFAULT_PROFILE_DATA.privacy } };
+}
+
+function syncHeaderProfileUI() {
+  const p = getProfileData();
+  const avatarEl = document.getElementById('header-profile-avatar');
+  const nameEl = document.getElementById('header-profile-name');
+  const subEl = document.getElementById('header-profile-sub');
+  if (avatarEl) avatarEl.src = p.avatar || 'profile.png';
+  if (nameEl) nameEl.textContent = p.name || 'ស្តី ស្តើង';
+  if (subEl) subEl.textContent = p.subtitle || 'SDEY SDOEUNG';
+}
+
+function getAllUniqueCustomers() {
+  const d = DataService.data;
+  const sales = (d && d.personalSales) ? d.personalSales : [];
+  const map = new Map();
+
+  sales.forEach(s => {
+    const rawName = (s.customer || '').trim();
+    const rawPhone = (s.phone || '').trim();
+    const key = (rawPhone && rawPhone.length >= 6)
+      ? `TEL:${rawPhone.replace(/\s+/g, '')}`
+      : `NAME:${(rawName || 'អតិថិជនទូទៅ').toLowerCase()}`;
+
+    if (!map.has(key)) {
+      map.set(key, {
+        key,
+        name: rawName || 'អតិថិជនទូទៅ',
+        phone: rawPhone || '—',
+        location: s.location || '—',
+        seller: s.seller || 'ស្តី ស្តើង',
+        totalOrders: 0,
+        totalBoxes: 0,
+        totalSpent: 0,
+        lastDate: s.date || '',
+        lastIsoDate: s.isoDate || '',
+        orders: []
+      });
+    }
+    const entry = map.get(key);
+    if (rawName && (entry.name === 'អតិថិជនទូទៅ' || !entry.name)) {
+      entry.name = rawName;
+    }
+    if (rawPhone && entry.phone === '—') {
+      entry.phone = rawPhone;
+    }
+    if (s.location && entry.location === '—') {
+      entry.location = s.location;
+    }
+    entry.totalOrders += 1;
+    entry.totalBoxes += (s.totalBoxQty || 0);
+    entry.totalSpent += (s.totalAmount || 0);
+    if ((s.isoDate || '') >= (entry.lastIsoDate || '')) {
+      entry.lastIsoDate = s.isoDate || '';
+      entry.lastDate = s.date || '';
+      if (s.location) entry.location = s.location;
+    }
+    entry.orders.push(s);
+  });
+
+  return Array.from(map.values());
+}
+
+function getProfileNotes() {
+  try {
+    const raw = localStorage.getItem('sd_profile_notes');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [
+    { id: 1, title: 'គោលដៅលក់ប្រចាំខែ', text: 'ពង្រឹងការតាមដានអតិថិជនចាស់ និងបង្កើនការលក់ឈុត 2-3 ប្រអប់។', date: '13/10/2026' }
+  ];
+}
+
+function getQrPhotosList() {
+  try {
+    const raw = localStorage.getItem('sd_qr_photos');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [
+    { id: 'aba_usd', label: 'ABA (USD $)', image: '' },
+    { id: 'aba_khr', label: 'ABA (KHR ៛)', image: '' },
+    { id: 'acleda', label: 'ACLEDA QR', image: '' },
+    { id: 'telegram', label: 'Telegram QR', image: '' }
+  ];
+}
+
+function getProfileViewHTML() {
+  const p = getProfileData();
+  const customers = getAllUniqueCustomers();
+  const notes = getProfileNotes();
+  const qrList = getQrPhotosList();
+  const uploadedQrCount = qrList.filter(q => q.image).length;
+  const d = DataService.data;
+  const membersCount = (d && d.teamLeaders) ? d.teamLeaders.length : 3;
+
+  const infoItems = [
+    { key: 'showWork', icon: 'briefcase', color: 'text-orange-400', label: 'ធ្វើការនៅ', val: p.work },
+    { key: 'showStudy', icon: 'graduation-cap', color: 'text-blue-400', label: 'សិក្សានៅ', val: p.study },
+    { key: 'showLive', icon: 'home', color: 'text-emerald-400', label: 'រស់នៅ', val: p.live },
+    { key: 'showFrom', icon: 'map-pin', color: 'text-rose-400', label: 'មកពី', val: p.from },
+    { key: 'showStatus', icon: 'heart', color: 'text-pink-400', label: 'ស្ថានភាព', val: p.status },
+    { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរសព្ទ', val: p.phone }
+  ].filter(item => p.privacy[item.key] !== false && item.val && item.val.trim() !== '');
+
+  return `
+    <div class="space-y-3.5 pb-10 relative">
+
+      <!-- ======================================================== -->
+      <!-- ZONE 1: CENTERED PROFILE HERO (ឈ្មោះ និង ID នៅពីក្រោម)   -->
+      <!-- ======================================================== -->
+      <div class="ios-glass-card rounded-3xl p-5 border border-white/10 relative overflow-hidden text-center">
+        <div class="absolute -top-14 left-1/2 -translate-x-1/2 w-48 h-36 bg-orange-500/15 rounded-full blur-2xl pointer-events-none"></div>
+
+        <!-- Centered Avatar with Camera Quick Upload -->
+        <div class="relative inline-block mx-auto mb-2.5">
+          <img src="${p.avatar || 'profile.png'}" alt="${p.name}" 
+               onclick="openEditProfileModal()"
+               class="w-20 h-20 rounded-full object-cover border-[2.5px] border-orange-500 shadow-xl cursor-pointer mx-auto">
+          <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#070D18]" title="Online"></span>
+          <button onclick="openEditProfileModal()" 
+                  title="ប្តូររូប Profile"
+                  class="absolute -bottom-0.5 -left-1 w-7 h-7 rounded-full bg-[#16243D] hover:bg-orange-500 text-slate-200 hover:text-white border border-white/15 flex items-center justify-center shadow-lg active:scale-90 transition">
+            <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Centered Name + Verified Blue Tick -->
+        <div class="flex items-center justify-center gap-1.5">
+          <h2 class="text-lg font-black text-white leading-tight">${p.name}</h2>
+          <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
+        </div>
+
+        <!-- Centered Member ID & Subtitle Below Name -->
+        <p class="text-xs font-mono font-bold text-orange-400 mt-0.5">${p.memberId}</p>
+        ${p.subtitle ? `<p class="text-[11px] text-slate-400 mt-0.5">${p.subtitle}</p>` : ''}
+
+        <!-- Quick Action Buttons Under Name/ID -->
+        <div class="flex items-center justify-center gap-2 mt-3.5">
+          <button onclick="openEditProfileModal()" 
+                  class="px-3.5 py-2 rounded-xl accent-solid-btn text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition">
+            <i data-lucide="user-pen" class="w-3.5 h-3.5"></i>
+            <span>កែប្រវត្តិរូប & Info</span>
+          </button>
+          <button onclick="openQrPhotosModal()" 
+                  class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-bold flex items-center gap-1.5 active:scale-95 transition">
+            <i data-lucide="qr-code" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>QR Code</span>
+          </button>
+        </div>
+
+        <!-- Member Info (Live, Study, Work, From, Status, Phone - Editable) -->
+        <div class="mt-4 pt-3.5 border-t border-white/10 text-left">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="id-card" class="w-3.5 h-3.5 text-orange-400"></i>
+              <span>ព័ត៌មានសមាជិក (Info)</span>
+            </span>
+            <button onclick="openEditProfileModal()" 
+                    class="text-[11px] font-bold text-orange-400 hover:underline flex items-center gap-1 active:scale-95 transition">
+              <i data-lucide="pencil" class="w-3 h-3"></i>
+              <span>កែប្រែ</span>
+            </button>
+          </div>
+
+          <div class="space-y-1.5">
+            ${infoItems.map(item => `
+              <div class="flex items-center gap-2.5 text-xs py-1 px-2 rounded-xl bg-black/20 border border-white/5">
+                <i data-lucide="${item.icon}" class="w-3.5 h-3.5 ${item.color} shrink-0"></i>
+                <span class="text-slate-400 text-[11px] shrink-0">${item.label}:</span>
+                <span class="text-white font-semibold truncate">${item.val}</span>
+              </div>
+            `).join('') || `<p class="text-xs text-slate-400 text-center py-2">មិនទាន់បង្ហាញព័ត៌មានផ្ទាល់ខ្លួន</p>`}
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ZONE 2: FACEBOOK-STYLE 2x3 SHORTCUTS GRID                -->
+      <!-- ======================================================== -->
+      <div>
+        <div class="flex items-center justify-between px-1 mb-2">
+          <span class="text-xs font-bold text-slate-300">មុខងារក្នុង Dashboard</span>
+          <span class="text-[10px] text-slate-400 font-mono">All Shortcuts</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          
+          <!-- 1. បញ្ជីអតិថិជនទាំងអស់ (ពេញអេក្រង់) -->
+          <div onclick="openAllCustomersModal()" 
+               class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-orange-500/40">
+            <div class="flex items-center justify-between mb-2">
+              <div class="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center">
+                <i data-lucide="users" class="w-4.5 h-4.5"></i>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-mono font-bold text-[10px]">
+                ${customers.length} នាក់
+              </span>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-white leading-tight">បញ្ជីអតិថិជនទាំងអស់</h3>
+              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">បង្ហាញពេញអេក្រង់ 100%</p>
+            </div>
+          </div>
+
+          <!-- 2. ផែនការ (Note) -->
+          <div onclick="openProfileSubModal('note')" 
+               class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-amber-500/40">
+            <div class="flex items-center justify-between mb-2">
+              <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+                <i data-lucide="notebook-pen" class="w-4.5 h-4.5"></i>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold text-[10px]">
+                ${notes.length} Note
+              </span>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-white leading-tight">ផែនការ (Note)</h3>
+              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">កត់ត្រាផែនការ & គោលដៅ</p>
+            </div>
+          </div>
+
+          <!-- 3. សៀវភៅ (ជីវិតជាការរៀនសូត្រ) -->
+          <div onclick="openProfileSubModal('book')" 
+               class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-emerald-500/40">
+            <div class="flex items-center justify-between mb-2">
+              <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+                <i data-lucide="book-open" class="w-4.5 h-4.5"></i>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold text-[10px]">
+                អាន
+              </span>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-white leading-tight">សៀវភៅ</h3>
+              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">ជីវិតជាការរៀនសូត្រ</p>
+            </div>
+          </div>
+
+          <!-- 4. Members List -->
+          <div onclick="openProfileSubModal('members')" 
+               class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
+            <div class="flex items-center justify-between mb-2">
+              <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+                <i data-lucide="contact-round" class="w-4.5 h-4.5"></i>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-mono font-bold text-[10px]">
+                ${membersCount} នាក់
+              </span>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-white leading-tight">Members List</h3>
+              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">បញ្ជីសមាជិកក្រុម</p>
+            </div>
+          </div>
+
+          <!-- 5. ជជែក (សមាជិកក្រុម Link Telegram Group) -->
+          <div onclick="handleTelegramGroupClick()" 
+               class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-sky-500/40">
+            <div class="flex items-center justify-between mb-2">
+              <div class="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center">
+                <i data-lucide="send" class="w-4.5 h-4.5"></i>
+              </div>
+              <button onclick="event.stopPropagation(); openProfileSubModal('telegram_edit');" 
+                      title="កែដាក់ Link Telegram Group ខ្លួនឯង"
+                      class="p-1.5 rounded-lg bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white border border-white/10 transition">
+                <i data-lucide="settings-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-white leading-tight">ជជែក (សមាជិកក្រុម)</h3>
+              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">Link Telegram Group</p>
+            </div>
+          </div>
+
+          <!-- 6. QR Code (Photos) -->
+          <div onclick="openQrPhotosModal()" 
+               class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-purple-500/40">
+            <div class="flex items-center justify-between mb-2">
+              <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
+                <i data-lucide="qr-code" class="w-4.5 h-4.5"></i>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 font-mono font-bold text-[10px]">
+                ${uploadedQrCount}/4 រូប
+              </span>
+            </div>
+            <div>
+              <h3 class="font-bold text-xs text-white leading-tight">QR Code (Photos)</h3>
+              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">រូបភាព QR សម្រាប់ស្កេន</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ZONE 3: BOTTOM MENU ROWS (Privacy, Feedback, Support)    -->
+      <!-- ======================================================== -->
+      <div class="settings-list-card bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
+        
+        <!-- 1. ឯកជនភាព (Privacy - សិទ្ធិរក្សាព័ត៌មានផ្ទាល់ខ្លួន ដាច់ពី Setting របស់ Dock) -->
+        <div onclick="openProfileSubModal('privacy')" 
+             class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+          <div class="settings-row-left flex items-center gap-3 min-w-0">
+            <div class="settings-icon-box w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ឯកជនភាព (Privacy)</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">សិទ្ធិរក្សា និងបិទ/បើកការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
+        </div>
+
+        <!-- 2. ផ្តល់មតិយោបល់មកក្រុមហ៊ុន (Feedback) -->
+        <div onclick="openProfileSubModal('feedback')" 
+             class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+          <div class="settings-row-left flex items-center gap-3 min-w-0">
+            <div class="settings-icon-box w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="message-square-heart" class="w-4 h-4 text-amber-400"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ផ្តល់មតិយោបល់មកក្រុមហ៊ុន</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ចូលរួមផ្តល់មតិកែលម្អប្រព័ន្ធ SD Data</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
+        </div>
+
+        <!-- 3. សុំជំនួយ (Help & Support) -->
+        <div onclick="openProfileSubModal('help')" 
+             class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+          <div class="settings-row-left flex items-center gap-3 min-w-0">
+            <div class="settings-icon-box w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="circle-help" class="w-4 h-4 text-sky-400"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">សុំជំនួយ (Help & Support)</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">មជ្ឈមណ្ឌលជំនួយ និងទំនាក់ទំនងបច្ចេកទេស</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ZONE 4: LOG OUT BUTTON (Log out ដើម្បីប្រើ Mail ផ្សេង Beta) -->
+      <!-- ======================================================== -->
+      <button onclick="openProfileSubModal('logout')" 
+              class="w-full p-3.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 flex items-center justify-between transition active:scale-[0.99]">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </div>
+          <div class="text-left">
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-rose-400">ចាកចេញ (Log out)</span>
+              <span class="px-1.5 py-0.2 rounded-md bg-rose-500/20 border border-rose-500/30 text-[9px] font-mono font-bold text-rose-300 uppercase">Beta</span>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">ប្តូរគណនី ដើម្បីប្រើអ៊ីមែលផ្សេង</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-rose-400"></i>
+      </button>
+
+    </div>
+  `;
+}
+
+// =========================================================
+// 1. EDIT PROFILE & MEMBER INFO HANDLERS
+// =========================================================
+let tempAvatarDataUrl = null;
+
+function openEditProfileModal() {
+  const p = getProfileData();
+  tempAvatarDataUrl = p.avatar || 'profile.png';
+
+  const preview = document.getElementById('edit-prof-avatar-preview');
+  if (preview) preview.src = tempAvatarDataUrl;
+
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val || '';
+  };
+  setVal('edit-prof-name', p.name);
+  setVal('edit-prof-id', p.memberId);
+  setVal('edit-prof-sub', p.subtitle);
+  setVal('edit-prof-work', p.work);
+  setVal('edit-prof-study', p.study);
+  setVal('edit-prof-live', p.live);
+  setVal('edit-prof-from', p.from);
+  setVal('edit-prof-status', p.status);
+  setVal('edit-prof-phone', p.phone);
+
+  document.getElementById('edit-profile-modal')?.classList?.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeEditProfileModal() {
+  document.getElementById('edit-profile-modal')?.classList?.add('hidden');
+}
+
+function compressImageFile(file, maxSizePx = 500, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width;
+        let h = img.height;
+        if (w > h && w > maxSizePx) {
+          h = Math.round((h * maxSizePx) / w);
+          w = maxSizePx;
+        } else if (h >= w && h > maxSizePx) {
+          w = Math.round((w * maxSizePx) / h);
+          h = maxSizePx;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = ev.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleProfileAvatarUpload(event) {
+  const file = event.target?.files?.[0];
+  if (!file) return;
+  try {
+    const dataUrl = await compressImageFile(file, 360, 0.85);
+    tempAvatarDataUrl = dataUrl;
+    const preview = document.getElementById('edit-prof-avatar-preview');
+    if (preview) preview.src = dataUrl;
+  } catch (e) {
+    alert('មិនអាចអានរូបភាពបានទេ');
+  }
+}
+
+function resetProfileAvatar() {
+  tempAvatarDataUrl = 'profile.png';
+  const preview = document.getElementById('edit-prof-avatar-preview');
+  if (preview) preview.src = 'profile.png';
+}
+
+function saveProfileData() {
+  const current = getProfileData();
+  const getVal = (id) => (document.getElementById(id)?.value || '').trim();
+
+  const updated = {
+    ...current,
+    avatar: tempAvatarDataUrl || current.avatar || 'profile.png',
+    name: getVal('edit-prof-name') || 'ស្តី ស្តើង',
+    memberId: getVal('edit-prof-id') || 'ID: SD-0001',
+    subtitle: getVal('edit-prof-sub') || 'SDEY SDOEUNG',
+    work: getVal('edit-prof-work'),
+    study: getVal('edit-prof-study'),
+    live: getVal('edit-prof-live'),
+    from: getVal('edit-prof-from'),
+    status: getVal('edit-prof-status'),
+    phone: getVal('edit-prof-phone')
+  };
+
+  try {
+    localStorage.setItem('sd_profile_data', JSON.stringify(updated));
+    syncHeaderProfileUI();
+    closeEditProfileModal();
+    renderCurrentView();
+    showToastNotification('រក្សាទុកព័ត៌មានជោគជ័យ!');
+  } catch (e) {
+    alert('មិនអាចរក្សាទុកបានទេ (ទំហំរូបធំពេក)');
+  }
+}
+
+// =========================================================
+// 2. QR CODE (PHOTOS) MODAL HANDLERS
+// =========================================================
+let activeQrSlotIdx = 0;
+
+function openQrPhotosModal() {
+  renderQrPhotosModalBody();
+  document.getElementById('qr-photos-modal')?.classList?.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeQrPhotosModal() {
+  document.getElementById('qr-photos-modal')?.classList?.add('hidden');
+}
+
+function selectQrPhotoSlot(idx) {
+  activeQrSlotIdx = idx;
+  renderQrPhotosModalBody();
+}
+
+function renderQrPhotosModalBody() {
+  const body = document.getElementById('qr-photos-modal-body');
+  if (!body) return;
+
+  const list = getQrPhotosList();
+  if (activeQrSlotIdx >= list.length) activeQrSlotIdx = 0;
+  const current = list[activeQrSlotIdx];
+
+  body.innerHTML = `
+    <!-- 4 QR Slot Tabs -->
+    <div class="grid grid-cols-4 gap-1.5 bg-black/35 p-1 rounded-xl border border-white/5">
+      ${list.map((q, i) => `
+        <button onclick="selectQrPhotoSlot(${i})" 
+                class="py-1.5 px-1 rounded-lg text-[10px] font-bold truncate transition ${i === activeQrSlotIdx ? 'accent-solid-btn' : 'text-slate-400 hover:text-white'}">
+          ${q.label}
+        </button>
+      `).join('')}
+    </div>
+
+    <!-- Label Customizer -->
+    <div class="flex items-center gap-2">
+      <input type="text" id="qr-slot-label-input" value="${current.label}" 
+             placeholder="ឈ្មោះ QR (ឧ. ABA USD)"
+             class="flex-1 text-xs bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+      <button onclick="saveQrPhotoLabel()" 
+              class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white border border-white/10 active:scale-95 transition">
+        ប្តូរឈ្មោះ
+      </button>
+    </div>
+
+    <!-- QR Image Display Frame -->
+    <div class="rounded-2xl bg-black/40 border border-white/10 p-3 flex flex-col items-center justify-center min-h-[260px]">
+      ${current.image ? `
+        <img src="${current.image}" alt="${current.label}" 
+             class="max-h-64 w-auto rounded-xl object-contain shadow-xl border border-white/10">
+      ` : `
+        <div class="text-center py-10 px-4">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto mb-2.5">
+            <i data-lucide="qr-code" class="w-6 h-6"></i>
+          </div>
+          <p class="text-xs font-bold text-white">មិនទាន់មានរូប ${current.label}</p>
+          <p class="text-[10px] text-slate-400 mt-1">ចុចប៊ូតុងខាងក្រោមដើម្បីជ្រើសរើសរូប QR ពីទូរសព្ទ</p>
+        </div>
+      `}
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-2">
+      <button onclick="document.getElementById('qr-photo-input').click()" 
+              class="flex-1 py-2.5 rounded-xl accent-solid-btn text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition">
+        <i data-lucide="upload" class="w-4 h-4"></i>
+        <span>${current.image ? 'ប្តូររូប QR' : '+ បញ្ចូលរូប QR'}</span>
+      </button>
+      ${current.image ? `
+        <button onclick="deleteQrPhotoSlot()" 
+                class="py-2.5 px-3.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-400 text-xs font-bold active:scale-95 transition">
+          លុប
+        </button>
+      ` : ''}
+    </div>
+  `;
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function saveQrPhotoLabel() {
+  const input = document.getElementById('qr-slot-label-input');
+  if (!input) return;
+  const list = getQrPhotosList();
+  list[activeQrSlotIdx].label = input.value.trim() || `QR ${activeQrSlotIdx + 1}`;
+  localStorage.setItem('sd_qr_photos', JSON.stringify(list));
+  renderQrPhotosModalBody();
+  if (appState.currentView === 'profile') renderCurrentView();
+  showToastNotification('រក្សាទុកឈ្មោះ QR រួចរាល់!');
+}
+
+async function handleQrPhotoUpload(event) {
+  const file = event.target?.files?.[0];
+  if (!file) return;
+  try {
+    const dataUrl = await compressImageFile(file, 720, 0.85);
+    const list = getQrPhotosList();
+    list[activeQrSlotIdx].image = dataUrl;
+    localStorage.setItem('sd_qr_photos', JSON.stringify(list));
+    event.target.value = '';
+    renderQrPhotosModalBody();
+    if (appState.currentView === 'profile') renderCurrentView();
+    showToastNotification('បញ្ចូលរូប QR ជោគជ័យ!');
+  } catch (e) {
+    alert('មិនអាចរក្សាទុករូប QR បានទេ');
+  }
+}
+
+function deleteQrPhotoSlot() {
+  const list = getQrPhotosList();
+  list[activeQrSlotIdx].image = '';
+  localStorage.setItem('sd_qr_photos', JSON.stringify(list));
+  renderQrPhotosModalBody();
+  if (appState.currentView === 'profile') renderCurrentView();
+}
+
+// =========================================================
+// 3. FULL-SCREEN ALL CUSTOMERS DIRECTORY (100% SCREEN)
+// =========================================================
+let allCustomersSortMode = 'latest';
+let expandedCustomerKey = null;
+
+function openAllCustomersModal() {
+  expandedCustomerKey = null;
+  const searchInput = document.getElementById('all-customers-search-input');
+  if (searchInput) searchInput.value = '';
+  renderAllCustomersList();
+  document.getElementById('all-customers-modal')?.classList?.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeAllCustomersModal() {
+  document.getElementById('all-customers-modal')?.classList?.add('hidden');
+}
+
+function setAllCustomersSort(mode) {
+  allCustomersSortMode = mode;
+  ['latest', 'top', 'name'].forEach(m => {
+    const btn = document.getElementById(`cust-sort-${m}`);
+    if (btn) {
+      if (m === mode) {
+        btn.className = 'py-1.5 px-2 rounded-lg text-[11px] font-bold transition accent-solid-btn';
+      } else {
+        btn.className = 'py-1.5 px-2 rounded-lg text-[11px] font-bold transition text-slate-400 hover:text-white';
+      }
+    }
+  });
+  renderAllCustomersList();
+}
+
+function toggleCustomerOrderHistory(encodedKey) {
+  const key = decodeURIComponent(encodedKey);
+  expandedCustomerKey = (expandedCustomerKey === key) ? null : key;
+  renderAllCustomersList();
+}
+
+function renderAllCustomersList() {
+  const listEl = document.getElementById('all-customers-list');
+  const countBadge = document.getElementById('all-customers-count-badge');
+  const summaryEl = document.getElementById('all-customers-summary');
+  if (!listEl) return;
+
+  const q = (document.getElementById('all-customers-search-input')?.value || '').trim().toLowerCase();
+  let customers = getAllUniqueCustomers();
+
+  if (q) {
+    customers = customers.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.phone.toLowerCase().includes(q) ||
+      c.location.toLowerCase().includes(q) ||
+      c.seller.toLowerCase().includes(q)
+    );
+  }
+
+  if (allCustomersSortMode === 'top') {
+    customers.sort((a, b) => (b.totalBoxes - a.totalBoxes) || (b.totalSpent - a.totalSpent));
+  } else if (allCustomersSortMode === 'name') {
+    customers.sort((a, b) => a.name.localeCompare(b.name, 'km'));
+  } else {
+    // Latest (31 ➔ 01 / 12 ➔ 01)
+    customers.sort((a, b) => (b.lastIsoDate || '').localeCompare(a.lastIsoDate || ''));
+  }
+
+  if (countBadge) countBadge.textContent = `${customers.length} នាក់`;
+
+  const totalOrdersSum = customers.reduce((acc, c) => acc + c.totalOrders, 0);
+  const totalBoxesSum = customers.reduce((acc, c) => acc + c.totalBoxes, 0);
+  const totalSpentSum = customers.reduce((acc, c) => acc + c.totalSpent, 0);
+
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="p-2 rounded-xl bg-black/30 border border-white/5">
+        <span class="text-[10px] text-slate-400 block">សរុបការកុម្ម៉ង់</span>
+        <span class="font-mono font-bold text-xs text-white">${formatInt(totalOrdersSum)} ដង</span>
+      </div>
+      <div class="p-2 rounded-xl bg-black/30 border border-white/5">
+        <span class="text-[10px] text-slate-400 block">សរុបប្រអប់</span>
+        <span class="font-mono font-bold text-xs text-orange-400">${formatInt(totalBoxesSum)} ប្រអប់</span>
+      </div>
+      <div class="p-2 rounded-xl bg-black/30 border border-white/5">
+        <span class="text-[10px] text-slate-400 block">ទឹកប្រាក់សរុប</span>
+        <span class="font-mono font-bold text-xs text-emerald-400">${formatUSD(totalSpentSum)}</span>
+      </div>
+    `;
+  }
+
+  listEl.innerHTML = customers.map((c, idx) => {
+    const isExpanded = expandedCustomerKey === c.key;
+    const encodedKey = encodeURIComponent(c.key);
+    const sortedOrders = [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
+
+    return `
+      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 transition">
+        <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-2 cursor-pointer select-none">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-7 h-7 rounded-xl bg-orange-500/20 border border-orange-500/30 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+              ${idx + 1}
+            </span>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-xs text-white truncate">${c.name}</h4>
+                <span class="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-mono text-slate-300 shrink-0">${c.totalOrders} ដង</span>
+              </div>
+              <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 truncate">
+                <span>📍 ${c.location}</span>
+                <span>•</span>
+                <span class="font-mono">📞 ${c.phone}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-right shrink-0">
+            <div class="font-mono font-bold text-xs text-emerald-400">${formatUSD(c.totalSpent)}</div>
+            <div class="text-[10px] font-mono text-orange-400 font-bold">${c.totalBoxes} ប្រអប់ • ${c.lastDate}</div>
+          </div>
+        </div>
+
+        ${isExpanded ? `
+          <div class="mt-2.5 pt-2.5 border-t border-white/10 space-y-2">
+            <div class="flex items-center justify-between text-[10px]">
+              <span class="text-slate-400 font-semibold">ប្រវត្តិទិញទាំងអស់ (${sortedOrders.length} ប្រតិបត្តិការ)</span>
+              ${c.phone && c.phone !== '—' ? `
+                <div class="flex items-center gap-1.5">
+                  <a href="tel:${c.phone.replace(/\s+/g, '')}" onclick="event.stopPropagation()" 
+                     class="px-2 py-0.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold">
+                    📞 ហៅទូរសព្ទ
+                  </a>
+                  <button onclick="event.stopPropagation(); fallbackCopyText('${c.phone}')" 
+                          class="px-2 py-0.5 rounded-lg bg-white/10 text-slate-200 font-bold">
+                    ចម្លងលេខ
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+            <div class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
+              ${sortedOrders.map(o => `
+                <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-[11px]">
+                  <div>
+                    <span class="font-mono text-white font-bold">${o.date}</span>
+                    <span class="text-slate-400 ml-1.5">(${o.deliveryMethod || '—'})</span>
+                  </div>
+                  <div class="font-mono">
+                    <span class="text-orange-400 font-bold">${o.totalBoxQty} ប្រអប់</span>
+                    <span class="text-slate-500 mx-1">|</span>
+                    <span class="text-emerald-400 font-bold">${formatUSD(o.totalAmount)}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('') || `<p class="text-xs text-slate-400 text-center py-10">មិនพบទិន្នន័យអតិថិជនទេ</p>`;
+}
+
+// =========================================================
+// 4. PROFILE SUB-MODALS (Note, Book, Members, Telegram, Privacy, Feedback, Help, Logout Beta)
+// =========================================================
+function handleTelegramGroupClick() {
+  const savedUrl = localStorage.getItem('sd_telegram_group_url');
+  if (savedUrl && savedUrl.trim()) {
+    window.open(savedUrl.trim(), '_blank');
+  } else {
+    openProfileSubModal('telegram_edit');
+  }
+}
+
+function saveTelegramGroupUrl(openImmediately = false) {
+  const input = document.getElementById('tg-group-url-input');
+  if (!input) return;
+  const val = input.value.trim();
+  localStorage.setItem('sd_telegram_group_url', val);
+  showToastNotification('រក្សាទុក Link Telegram Group ជោគជ័យ!');
+  closeProfileSubModal();
+  if (openImmediately && val) {
+    window.open(val, '_blank');
+  }
+}
+
+function togglePrivacyField(fieldKey) {
+  const p = getProfileData();
+  p.privacy[fieldKey] = p.privacy[fieldKey] === false ? true : false;
+  localStorage.setItem('sd_profile_data', JSON.stringify(p));
+  openProfileSubModal('privacy');
+  if (appState.currentView === 'profile') renderCurrentView();
+}
+
+function addProfileNote() {
+  const titleEl = document.getElementById('new-note-title');
+  const textEl = document.getElementById('new-note-text');
+  const title = (titleEl?.value || '').trim();
+  const text = (textEl?.value || '').trim();
+  if (!title && !text) return;
+  const notes = getProfileNotes();
+  notes.unshift({
+    id: Date.now(),
+    title: title || 'ផែនការថ្មី',
+    text: text,
+    date: new Date().toLocaleDateString('en-GB')
+  });
+  localStorage.setItem('sd_profile_notes', JSON.stringify(notes));
+  openProfileSubModal('note');
+  if (appState.currentView === 'profile') renderCurrentView();
+}
+
+function deleteProfileNote(id) {
+  const notes = getProfileNotes().filter(n => n.id !== id);
+  localStorage.setItem('sd_profile_notes', JSON.stringify(notes));
+  openProfileSubModal('note');
+  if (appState.currentView === 'profile') renderCurrentView();
+}
+
+function closeProfileSubModal() {
+  document.getElementById('profile-sub-modal')?.classList?.add('hidden');
+}
+
+function openProfileSubModal(type) {
+  const header = document.getElementById('profile-sub-modal-header');
+  const body = document.getElementById('profile-sub-modal-body');
+  if (!header || !body) return;
+
+  let title = '';
+  let sub = '';
+  let icon = 'sparkles';
+  let contentHTML = '';
+
+  if (type === 'privacy') {
+    const p = getProfileData();
+    title = 'ឯកជនភាព (Privacy)';
+    sub = 'សិទ្ធិគ្រប់គ្រងការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន';
+    icon = 'shield-check';
+    const items = [
+      { key: 'showWork', label: '💼 បង្ហាញកន្លែងធ្វើការ (Work)' },
+      { key: 'showStudy', label: '🎓 បង្ហាញកន្លែងសិក្សា (Study)' },
+      { key: 'showLive', label: '🏠 បង្ហាញទីកន្លែងរស់នៅ (Live)' },
+      { key: 'showFrom', label: '📍 បង្ហាញស្រុកកំណើត (From)' },
+      { key: 'showStatus', label: '❤️ បង្ហាញស្ថានភាព (Status)' },
+      { key: 'showPhone', label: '📞 បង្ហាញលេខទូរសព្ទ (Phone)' }
+    ];
+    contentHTML = `
+      <p class="text-[11px] text-slate-400 leading-relaxed mb-2">
+        បងអាចបិទ ឬបើកសិទ្ធិបង្ហាញព័ត៌មានផ្ទាល់ខ្លួននៅលើផ្ទាំង Profile Dashboard បានតាមចិត្ត៖
+      </p>
+      <div class="space-y-2">
+        ${items.map(it => {
+          const isOn = p.privacy[it.key] !== false;
+          return `
+            <div onclick="togglePrivacyField('${it.key}')" 
+                 class="p-3 rounded-2xl bg-black/30 border border-white/5 flex items-center justify-between cursor-pointer">
+              <span class="text-xs font-semibold text-white">${it.label}</span>
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${isOn ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/5 text-slate-400 border border-white/10'}">
+                ${isOn ? 'បង្ហាញ (Public)' : 'លាក់ទុក (Only Me)'}
+              </span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } else if (type === 'telegram_edit') {
+    const saved = localStorage.getItem('sd_telegram_group_url') || '';
+    title = 'ជជែក (Link Telegram Group)';
+    sub = 'កែដាក់ Link Telegram Group ខ្លួនឯង';
+    icon = 'send';
+    contentHTML = `
+      <div class="space-y-2.5">
+        <label class="block text-xs text-slate-300 font-semibold">បញ្ចូល Link Telegram Group របស់ក្រុម៖</label>
+        <input type="url" id="tg-group-url-input" value="${saved}" 
+               placeholder="https://t.me/+..." 
+               class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+        <div class="flex items-center gap-2 pt-2">
+          <button onclick="saveTelegramGroupUrl(false)" 
+                  class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs transition active:scale-95">
+            រក្សាទុក Link
+          </button>
+          <button onclick="saveTelegramGroupUrl(true)" 
+                  class="flex-1 py-2.5 rounded-xl accent-solid-btn font-bold text-xs transition active:scale-95">
+            រក្សាទុក & បើក Group
+          </button>
+        </div>
+      </div>
+    `;
+  } else if (type === 'note') {
+    const notes = getProfileNotes();
+    title = 'ផែនការ (Note)';
+    sub = 'កត់ត្រាផែនការ និងកិច្ចការសំខាន់ៗ';
+    icon = 'notebook-pen';
+    contentHTML = `
+      <div class="space-y-2 p-3 rounded-2xl bg-black/30 border border-white/10">
+        <input type="text" id="new-note-title" placeholder="ចំណងជើងផែនការ..." 
+               class="w-full text-xs font-bold bg-black/40 border border-white/10 rounded-xl p-2 text-white focus:outline-none">
+        <textarea id="new-note-text" rows="2" placeholder="សរសេរខ្លឹមសារផែនការ..." 
+                  class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2 text-white focus:outline-none"></textarea>
+        <button onclick="addProfileNote()" class="w-full py-2 rounded-xl accent-solid-btn text-xs font-bold active:scale-95 transition">
+          + បន្ថែមផែនការថ្មី
+        </button>
+      </div>
+      <div class="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
+        ${notes.map(n => `
+          <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex items-start justify-between gap-2">
+            <div>
+              <h5 class="text-xs font-bold text-white">${n.title}</h5>
+              <p class="text-[11px] text-slate-300 mt-0.5 leading-relaxed">${n.text}</p>
+              <span class="text-[9px] text-slate-500 font-mono mt-1 block">${n.date}</span>
+            </div>
+            <button onclick="deleteProfileNote(${n.id})" class="text-rose-400 hover:text-rose-300 text-xs px-1.5">✕</button>
+          </div>
+        `).join('') || `<p class="text-xs text-slate-400 text-center py-4">មិនទាន់មានផែនការទេ</p>`}
+      </div>
+    `;
+  } else if (type === 'book') {
+    title = 'សៀវភៅ (ជីវិតជាការរៀនសូត្រ)';
+    sub = 'គតិបណ្ឌិត និងការអភិវឌ្ឍខ្លួនប្រចាំថ្ងៃ';
+    icon = 'book-open';
+    contentHTML = `
+      <div class="space-y-2.5">
+        <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
+          <h4 class="text-xs font-bold text-emerald-400 mb-1">📖 ជំពូកទី ១ ៖ ជីវិតជាការរៀនសូត្រមិនចេះចប់</h4>
+          <p class="text-xs text-slate-200 leading-relaxed">
+            ការរៀនសូត្ររាល់ថ្ងៃ ទោះត្រឹមតែ ១% ក៏ដោយ នឹងធ្វើឱ្យយើងរីកចម្រើន gấp ៣៧ ដងក្នុងរយៈពេល ១ ឆ្នាំ។ វិន័យ និងភាពទៀងទាត់ គឺជាកូនសោរនៃភាពជោគជ័យ។
+          </p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25">
+          <h4 class="text-xs font-bold text-amber-400 mb-1">💡 ជំពូកទី ២ ៖ សិល្បៈនៃការដឹកនាំ និងបម្រើអតិថិជន</h4>
+          <p class="text-xs text-slate-200 leading-relaxed">
+            អតិថិជនមិនត្រឹមតែទិញផលិតផលទេ តែគាត់ទិញទំនុកចិត្ត និងការយកចិត្តទុកដាក់របស់យើង។
+          </p>
+        </div>
+      </div>
+    `;
+  } else if (type === 'members') {
+    const d = DataService.data;
+    const leaders = (d && d.teamLeaders) ? d.teamLeaders : [];
+    title = 'Members List (សមាជិកក្រុម)';
+    sub = 'បញ្ជីឈ្មោះសមាជិក និងលទ្ធផលការងារ';
+    icon = 'contact-round';
+    contentHTML = `
+      <div class="space-y-2">
+        ${leaders.map((m, idx) => `
+          <div class="p-3 rounded-2xl bg-black/30 border border-white/10 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-mono font-bold text-xs flex items-center justify-center">0${idx + 1}</span>
+              <div>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs font-bold text-white">${m.name}</span>
+                  ${idx === 0 ? '<img src="blue-tick.png" class="w-3.5 h-3.5 object-contain">' : ''}
+                </div>
+                <span class="text-[10px] text-slate-400">គោលដៅ: ${m.targetGoal} ប្រអប់</span>
+              </div>
+            </div>
+            <span class="font-mono font-bold text-xs text-emerald-400">${m.totalBoxes} ប្រអប់ (${m.targetPercent}%)</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else if (type === 'feedback') {
+    title = 'ផ្តល់មតិយោបល់មកក្រុមហ៊ុន';
+    sub = 'រាល់មតិយោបល់របស់បងជួយឱ្យប្រព័ន្ធកាន់តែល្អប្រសើរ';
+    icon = 'message-square-heart';
+    contentHTML = `
+      <div class="space-y-2.5">
+        <textarea id="feedback-text-input" rows="3" placeholder="សូមសរសេរមតិយោបល់ ឬសំណូមពររបស់អ្នក..." 
+                  class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500"></textarea>
+        <button onclick="showToastNotification('អរគុណសម្រាប់មតិយោបល់របស់អ្នក!'); closeProfileSubModal();" 
+                class="w-full py-2.5 rounded-xl accent-solid-btn text-xs font-bold active:scale-95 transition">
+          ផ្ញើមតិយោបល់
+        </button>
+      </div>
+    `;
+  } else if (type === 'help') {
+    title = 'សុំជំនួយ (Help & Support)';
+    sub = 'ទំនាក់ទំនងផ្នែកជំនួយបច្ចេកទេស';
+    icon = 'circle-help';
+    contentHTML = `
+      <div class="space-y-2.5 text-xs">
+        <div class="p-3 rounded-2xl bg-black/30 border border-white/10 space-y-1.5">
+          <p class="text-white font-bold">📞 ទូរសព្ទជំនួយបន្ទាន់៖ <span class="font-mono text-orange-400">096 212 9261</span></p>
+          <p class="text-slate-300">💬 Telegram៖ <span class="font-mono text-sky-400">@sdey_sdoeung</span></p>
+        </div>
+        <a href="https://t.me/sdey_sdoeung" target="_blank" 
+           class="w-full py-2.5 rounded-xl accent-solid-btn text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition">
+          <i data-lucide="send" class="w-3.5 h-3.5"></i>
+          <span>ទាក់ទងតាម Telegram ផ្ទាល់</span>
+        </a>
+      </div>
+    `;
+  } else if (type === 'logout') {
+    title = 'ចាកចេញ (Log out - Beta)';
+    sub = 'ប្តូរគណនី ដើម្បីប្រើអ៊ីមែលផ្សេង';
+    icon = 'log-out';
+    contentHTML = `
+      <div class="space-y-3 text-xs">
+        <div class="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-slate-200 leading-relaxed">
+          មុខងារ <strong>Log out (Beta)</strong> អនុញ្ញាតឱ្យអ្នកចាកចេញពីសម័យប្រើប្រាស់បច្ចុប្បន្ន ឬប្តូរទៅប្រើគណនី Google / Email ផ្សេង។
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="closeProfileSubModal(); lockAppNow();" 
+                  class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs active:scale-95 transition">
+            🔒 ចាក់សោអេក្រង់
+          </button>
+          <button onclick="window.location.href='/logout';" 
+                  class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs active:scale-95 transition">
+            🚪 ប្តូរអ៊ីមែលផ្សេង
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  header.innerHTML = `
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
+        <i data-lucide="${icon}" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-sm text-white leading-tight">${title}</h3>
+        <p class="text-[10px] text-slate-400 mt-0.5">${sub}</p>
+      </div>
+    </div>
+    <button onclick="closeProfileSubModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5">
+      <i data-lucide="x" class="w-4 h-4"></i>
+    </button>
+  `;
+  body.innerHTML = contentHTML;
+
+  document.getElementById('profile-sub-modal')?.classList?.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
 
