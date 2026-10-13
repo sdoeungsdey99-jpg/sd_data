@@ -686,6 +686,18 @@ function onDataUpdated(service) {
       toggleNotificationsModal();
     }
   }
+  if (urlParams.get('open_bank') === '1') {
+    setTimeout(openBankModal, 300);
+  }
+  if (urlParams.get('open_sales') === '1') {
+    setTimeout(openSalesModal, 300);
+  }
+  if (urlParams.get('open_expenses') === '1') {
+    setTimeout(openExpensesModal, 300);
+  }
+  if (urlParams.get('open_cod') === '1') {
+    setTimeout(openCodModal, 300);
+  }
   if (urlParams.get('open_profile_search') === '1') {
     openProfileSettingsSearch();
     const q = urlParams.get('search_q');

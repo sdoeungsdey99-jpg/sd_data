@@ -1119,7 +1119,7 @@
     .light-theme #notif-modal-card {
       background-color: #FFFFFF !important;
       border-color: #E2E8F0 !important;
-      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.12) !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.16) !important;
       color: #0F172A !important;
     }
     .light-theme #sales-modal .border-b,
@@ -1277,7 +1277,7 @@
       background-color: #FFFFFF !important;
       border-color: #E2E8F0 !important;
       color: #0F172A !important;
-      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.12) !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.16) !important;
     }
     .light-theme #notif-modal-card .bg-white\/20 {
       background-color: #CBD5E1 !important;
@@ -2050,8 +2050,8 @@
   <!-- ======================================================== -->
 
   <!-- Personal Sales Drill-down Modal (Latest First 31 -> 01) -->
-  <div id="sales-modal" onclick="if(event.target === this) closeSalesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
+  <div id="sales-modal" onclick="if(event.target === this) closeSalesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[92vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
       <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
       <div onclick="handleHeaderScrollToTop(event, 'sales-modal-list')" class="w-full pt-2.5 pb-1 flex justify-center cursor-pointer">
         <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
@@ -2098,8 +2098,8 @@
   </div>
 
   <!-- Payables Full Drill-down Modal -->
-  <div id="payables-modal" onclick="if(event.target === this) closePayablesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
+  <div id="payables-modal" onclick="if(event.target === this) closePayablesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[92vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
       <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
       <div onclick="handleHeaderScrollToTop(event, 'payables-modal-list')" class="w-full pt-2.5 pb-1 flex justify-center cursor-pointer">
         <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
@@ -2146,8 +2146,8 @@
   </div>
 
   <!-- Expenses Full Drill-down Modal -->
-  <div id="expenses-modal" onclick="if(event.target === this) closeExpensesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
+  <div id="expenses-modal" onclick="if(event.target === this) closeExpensesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[92vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
       <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
       <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="w-full pt-2.5 pb-1 flex justify-center cursor-pointer">
         <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
@@ -2194,8 +2194,8 @@
   </div>
 
   <!-- COD Receivables Modal (Note 2 - iOS Standard Header) -->
-  <div id="cod-modal" onclick="if(event.target === this) closeCodModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
+  <div id="cod-modal" onclick="if(event.target === this) closeCodModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[92vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
       <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
       <div onclick="handleHeaderScrollToTop(event, 'cod-modal-table-container')" class="w-full pt-2.5 pb-1 flex justify-center cursor-pointer">
         <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
@@ -2264,8 +2264,8 @@
   </div>
 
   <!-- Bank Accounts & Actual Cash Breakdown Modal (Note 4) -->
-  <div id="bank-modal" onclick="if(event.target === this) closeBankModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
+  <div id="bank-modal" onclick="if(event.target === this) closeBankModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[92vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
       <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
       <div onclick="handleHeaderScrollToTop(event, 'bank-modal-list')" class="w-full pt-2.5 pb-1 flex justify-center cursor-pointer">
         <div class="w-10 h-1 rounded-full bg-white/20 shrink-0"></div>
@@ -2295,9 +2295,9 @@
 
   <!-- Notification Bottom Sheet Modal (លាតពេញឆ្វេងទៅស្តាំ ១០០% + ប៉ះផ្ទៃទំនេរបិទ) -->
   <div id="notif-modal" onclick="if(event.target === this) toggleNotificationsModal()" 
-       class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
+       class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 transition-all duration-300">
     <div id="notif-modal-card" onclick="event.stopPropagation()" 
-         class="bg-[#0F1B2E] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl p-5 w-full max-w-lg mx-auto relative shadow-2xl animate-fade-in flex flex-col max-h-[85vh]">
+         class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 w-full max-w-lg mx-auto relative shadow-2xl animate-fade-in flex flex-col max-h-[92vh]">
       
       <!-- Top Drag Indicator for iOS Bottom Sheet feel -->
       <div onclick="handleHeaderScrollToTop(event, 'notif-feed-list')" class="w-full pt-1 pb-1 flex justify-center cursor-pointer">
