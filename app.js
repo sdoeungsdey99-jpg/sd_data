@@ -563,6 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupPullToRefresh();
   setupSmartDockScroll();
   setupSwipeToBack();
+  setupDockSwipeGesture();
 
   DataService.subscribe(onDataUpdated);
   DataService.fetchData();
@@ -1029,6 +1030,113 @@ function setupSwipeToBack() {
       handleBackNavigation();
     }
     isMouseDown = false;
+  });
+}
+
+// ==========================================
+// Swipe Left-to-Right on Dock to Open Profile Dashboard
+// ==========================================
+function setupDockSwipeGesture() {
+  const dock = document.getElementById('bottom-dock');
+  if (!dock) return;
+
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+  let isSwipingDock = false;
+  let suppressClick = false;
+
+  // Prevent accidental tab click when a swipe was performed
+  dock.addEventListener('click', (e) => {
+    if (suppressClick) {
+      e.stopPropagation();
+      e.preventDefault();
+      suppressClick = false;
+    }
+  }, true);
+
+  // --- Touch Support for Mobile / iPad ---
+  dock.addEventListener('touchstart', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startTime = Date.now();
+    isSwipingDock = true;
+  }, { passive: true });
+
+  dock.addEventListener('touchmove', (e) => {
+    if (!isSwipingDock || !e.touches || e.touches.length !== 1) return;
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const diffX = currentX - startX;
+    const diffY = currentY - startY;
+
+    // When dragged horizontally more than 20px, suppress normal tab clicks
+    if (diffX > 20 && diffX > Math.abs(diffY)) {
+      suppressClick = true;
+    }
+  }, { passive: true });
+
+  dock.addEventListener('touchend', (e) => {
+    if (!isSwipingDock || !e.changedTouches || e.changedTouches.length !== 1) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+    const elapsed = Date.now() - startTime;
+    isSwipingDock = false;
+
+    // Left-to-Right swipe: deltaX >= 40px, deltaX dominant, smooth gesture (< 800ms)
+    if (deltaX >= 40 && deltaX > Math.abs(deltaY) * 1.2 && elapsed < 800) {
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 250);
+      if (typeof openProfileDrawer === 'function') {
+        openProfileDrawer();
+        if (navigator.vibrate) {
+          try { navigator.vibrate(20); } catch (_) {}
+        }
+      }
+    } else {
+      setTimeout(() => { suppressClick = false; }, 100);
+    }
+  }, { passive: true });
+
+  // --- Mouse Drag Support for Desktop Testing ---
+  let isMouseDownOnDock = false;
+
+  dock.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    startX = e.clientX;
+    startY = e.clientY;
+    startTime = Date.now();
+    isMouseDownOnDock = true;
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isMouseDownOnDock) return;
+    const diffX = e.clientX - startX;
+    const diffY = e.clientY - startY;
+    if (diffX > 25 && diffX > Math.abs(diffY)) {
+      suppressClick = true;
+    }
+  });
+
+  window.addEventListener('mouseup', (e) => {
+    if (!isMouseDownOnDock) return;
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+    const elapsed = Date.now() - startTime;
+    isMouseDownOnDock = false;
+
+    if (deltaX >= 45 && deltaX > Math.abs(deltaY) * 1.2 && elapsed < 800) {
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 250);
+      if (typeof openProfileDrawer === 'function') {
+        openProfileDrawer();
+      }
+    } else {
+      setTimeout(() => { suppressClick = false; }, 100);
+    }
   });
 }
 
