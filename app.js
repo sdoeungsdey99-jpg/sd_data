@@ -53,7 +53,7 @@ const translations = {
     fontTitle: 'ពុម្ពអក្សរ',
     fontDesc: 'ជ្រើសរើសទម្រង់អក្សរងាយស្រួលអាន',
     textSizeTitle: 'ទំហំអក្សរ',
-    textSizeDesc: '14px - 15.5px - 17px - 18.5px - 20px (XS ➔ XL)',
+    textSizeDesc: 'តូចបំផុត ➔ ធំបំផុត',
     wallpaperTitle: 'ផ្ទាំងរូបភាពអេក្រង់ចាក់សោរ',
     wallpaperDesc: 'រូបភាព និងពណ៌ពន្លឺផ្ទៃខាងក្រោយ',
     protectApp: 'ការពារទិន្នន័យរបស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
@@ -64,7 +64,7 @@ const translations = {
     theme: 'ទម្រង់ពណ៌',
     dark: 'ងងឹត',
     light: 'ភ្លឺ',
-    auto: 'ស្វ័យប្រវត្តិ (Auto)',
+    auto: 'ស្វ័យប្រវត្តិ',
     language: 'ភាសា',
     notificationsTitle: 'ការជូនដំណឹង',
     notificationsDesc: 'សាររំលឹកការលក់ និងចំណាយប្រចាំថ្ងៃ',
@@ -91,24 +91,24 @@ const translations = {
     contrastHint: 'ពណ៌អក្សរផ្លាស់ប្តូរស្វ័យប្រវត្តិតាមពណ៌ផ្ទៃ ដើម្បីច្បាស់ភ្នែក (លឿងទុំ = អក្សរខ្មៅធ្យូង)',
     diagramTitle: 'ដ្យាក្រាមការលក់ និងប្រាក់ចំណេញ',
     diagramSubtitle: 'តួលេខលក់ពិតប្រាកដនៅលើសរសរក្រាបនីមួយៗ',
-    layoutTitle: 'ទម្រង់តម្រៀបកាត',
-    layoutDesc: 'ជ្រើសរើសជម្រើសតម្រៀបកាត (1-2-3)',
+    layoutTitle: 'ការរៀបចំកាតទិន្នន័យ',
+    layoutDesc: 'លំដាប់តម្រៀបកាត និងការកំណត់បង្ហាញកាត',
     layout1: 'ស្តង់ដា',
     layout2: 'ហិរញ្ញវត្ថុ',
     layout3: 'ផ្នែកលក់',
     resetSettingsTitle: 'កំណត់ឡើងវិញទៅទម្រង់ដើម',
-    resetSettingsDesc: 'កំណត់ពណ៌, Font, ទំហំអក្សរ និង Layout ទៅ Default វិញ',
-    resetConfirmTitle: 'កំណត់ទៅទម្រង់ដើម (Reset to Default)?',
-    resetConfirmMsg: 'តើអ្នកពិតជាចង់កំណត់ការកំណត់ទាំងអស់ (ពណ៌, Font, ទំហំអក្សរ, Layout) ទៅជាទម្រង់ដើមវិញមែនទេ?'
+    resetSettingsDesc: 'កំណត់ពណ៌ ពុម្ពអក្សរ ទំហំអក្សរ និងការរៀបចំកាតទៅទម្រង់ដើមវិញ',
+    resetConfirmTitle: 'កំណត់ទៅទម្រង់ដើម?',
+    resetConfirmMsg: 'តើអ្នកពិតជាចង់កំណត់ការកំណត់ទាំងអស់ (ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ, ការរៀបចំកាត) ទៅជាទម្រង់ដើមវិញមែនទេ?'
   },
   en: {
     appTitle: 'SD Data',
     securityPrompt: 'Enter 4-Digit Passcode',
     clear: 'Clear',
-    pureCashTitle: 'Available Funds (Pure Cash)',
+    pureCashTitle: 'Available Funds',
     pureCashSubtitle: 'ABA + ACLEDA + Cash Wallet',
-    usdOnly: 'Pure USD',
-    khrOnly: 'Pure KHR',
+    usdOnly: 'USD ($)',
+    khrOnly: 'KHR (៛)',
     today: 'Day',
     thisMonth: 'Month',
     thisYear: 'Year',
@@ -145,7 +145,7 @@ const translations = {
     fontTitle: 'Typography',
     fontDesc: 'Choose preferred readable font family',
     textSizeTitle: 'Text Size',
-    textSizeDesc: '14px - 15.5px - 17px - 18.5px - 20px (XS ➔ XL)',
+    textSizeDesc: 'Extra Small ➔ Extra Large',
     wallpaperTitle: 'Lock Screen Wallpaper',
     wallpaperDesc: 'Background visuals and ambient glows',
     protectApp: 'Protect your data with a 4-digit passcode',
@@ -156,7 +156,7 @@ const translations = {
     theme: 'Color Mode',
     dark: 'Dark',
     light: 'Light',
-    auto: 'Auto (System)',
+    auto: 'System Auto',
     language: 'Language',
     notificationsTitle: 'Notifications',
     notificationsDesc: 'Sales alerts and daily expense reminders',
@@ -183,13 +183,13 @@ const translations = {
     contrastHint: 'Text color auto-adapts for optimal readability (Amber = Dark Charcoal)',
     diagramTitle: 'Sales & Profit Diagram',
     diagramSubtitle: 'Live values labeled on top of each bar',
-    layoutTitle: 'Card Layout',
-    layoutDesc: 'Select preferred card order (1-2-3)',
+    layoutTitle: 'Card Layout & Display',
+    layoutDesc: 'Card order and display settings',
     layout1: 'Standard',
     layout2: 'Finance',
     layout3: 'Sales',
     resetSettingsTitle: 'Reset to Default',
-    resetSettingsDesc: 'Reset color, font, text size, and layout to defaults',
+    resetSettingsDesc: 'Reset color, font, text size, and card layout to defaults',
     resetConfirmTitle: 'Reset to Default?',
     resetConfirmMsg: 'Are you sure you want to reset all customizations (accent, font, text size, layout) to default settings?'
   }
@@ -358,6 +358,9 @@ function setThemeAccent(accent) {
 }
 
 function toggleSettingsItem(itemName) {
+  if (itemName === 'cardLayout' || itemName === 'cardVisibility') {
+    itemName = 'cardPreferences';
+  }
   if (appState.activeSettingsItem === itemName) {
     appState.activeSettingsItem = null;
   } else {
@@ -1008,6 +1011,15 @@ function isProfileDrawerOpen() {
   return !!(profDrawer && !profDrawer.classList.contains('hidden'));
 }
 
+function isProfileSubModalOpen() {
+  const ids = ['all-customers-modal', 'profile-sub-modal', 'qr-photos-modal', 'attendance-modal', 'edit-profile-modal'];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains('hidden')) return true;
+  }
+  return false;
+}
+
 function isAnyModalOrDrawerOpen() {
   return isAnyDrilldownModalOpen() || isProfileDrawerOpen();
 }
@@ -1016,7 +1028,7 @@ function setupSwipeToBack() {
   let touchStartX = 0;
   let touchStartY = 0;
   let isPotentialSwipe = false;
-  let swipeOrigin = 'edge-left'; // 'edge-left', 'edge-right', or 'drawer'
+  let swipeOrigin = 'edge-left'; // 'edge-left', 'edge-right', 'profile-submodal', or 'drawer'
 
   // Touch support for Mobile / iPad
   document.addEventListener('touchstart', (e) => {
@@ -1032,17 +1044,22 @@ function setupSwipeToBack() {
 
     const screenWidth = window.innerWidth || document.documentElement.clientWidth;
     const isDrawerOpen = isProfileDrawerOpen();
+    const isSubModalOpen = isProfileSubModalOpen();
 
-    if (touchStartX <= 60) {
-      // 1. Started from screen left edge (<= 60px)
+    if (isSubModalOpen) {
+      // 1. Touching anywhere when a profile submodal is open (Books & Notes, Customers, Attendance, QR...)
+      isPotentialSwipe = true;
+      swipeOrigin = 'profile-submodal';
+    } else if (touchStartX <= 60) {
+      // 2. Started from screen left edge (<= 60px)
       isPotentialSwipe = true;
       swipeOrigin = 'edge-left';
     } else if (touchStartX >= screenWidth - 60) {
-      // 2. Started from screen right edge (within 60px from right)
+      // 3. Started from screen right edge (within 60px from right)
       isPotentialSwipe = true;
       swipeOrigin = 'edge-right';
     } else if (isDrawerOpen && e.target && e.target.closest('#profile-drawer-modal')) {
-      // 3. Touching anywhere on or inside Profile Dashboard Drawer
+      // 4. Touching anywhere on or inside Profile Dashboard Drawer
       isPotentialSwipe = true;
       swipeOrigin = 'drawer';
     } else {
@@ -1070,15 +1087,23 @@ function setupSwipeToBack() {
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
     const isDrawerOpen = isProfileDrawerOpen();
+    const isSubModalOpen = isProfileSubModalOpen();
 
-    // Case 1: Left-to-right swipe (deltaX >= 60px)
-    if (deltaX >= 60 && deltaX > Math.abs(deltaY) * 1.25) {
-      if (swipeOrigin === 'edge-left') {
+    // Case 1: Left-to-right swipe (deltaX >= 55px) -> Back / Return 1 Step
+    if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
+      if (isSubModalOpen || swipeOrigin === 'profile-submodal') {
+        // Step back from Profile Sub-Modal (Books & Notes, Customers, Attendance...) to Profile Drawer
+        handleBackNavigation();
+      } else if (isDrawerOpen || swipeOrigin === 'drawer') {
+        // Step back from Profile Drawer to Dashboard
+        closeProfileDrawer();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+      } else if (swipeOrigin === 'edge-left') {
         if (isAnyDrilldownModalOpen()) {
           // If a drilldown modal is open, swipe from left edge closes/steps back
           handleBackNavigation();
         } else if (!isDrawerOpen) {
-          // If standing on any of the 5 Dock views and drawer is closed, swipe from left edge opens Profile Dashboard (មុខងារចម្បង)
+          // If standing on any of the 5 Dock views and drawer is closed, swipe from left edge opens Profile Dashboard
           if (typeof openProfileDrawer === 'function') {
             openProfileDrawer();
             if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
@@ -1088,12 +1113,12 @@ function setupSwipeToBack() {
     } 
     // Case 2: Right-to-left swipe (deltaX <= -55px)
     else if (deltaX <= -55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
-      if (isDrawerOpen) {
-        // If Profile Dashboard is open, swiping right-to-left (anywhere on it or right edge) closes it
+      if (isDrawerOpen && !isSubModalOpen) {
+        // If Profile Dashboard is open, swiping right-to-left also closes it
         closeProfileDrawer();
         if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
       } else if (swipeOrigin === 'edge-right') {
-        // If swiping from the screen right edge, trigger back navigation (ថយក្រោយមួយជំហាន)
+        // If swiping from the screen right edge, trigger back navigation
         handleBackNavigation();
         if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
       }
@@ -1113,8 +1138,14 @@ function setupSwipeToBack() {
 
     const screenWidth = window.innerWidth || document.documentElement.clientWidth;
     const isDrawerOpen = isProfileDrawerOpen();
+    const isSubModalOpen = isProfileSubModalOpen();
 
-    if (e.clientX <= 60) {
+    if (isSubModalOpen) {
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      isMouseDown = true;
+      mouseOrigin = 'profile-submodal';
+    } else if (e.clientX <= 60) {
       mouseStartX = e.clientX;
       mouseStartY = e.clientY;
       isMouseDown = true;
@@ -1137,9 +1168,14 @@ function setupSwipeToBack() {
     const deltaX = e.clientX - mouseStartX;
     const deltaY = e.clientY - mouseStartY;
     const isDrawerOpen = isProfileDrawerOpen();
+    const isSubModalOpen = isProfileSubModalOpen();
 
-    if (deltaX >= 60 && deltaX > Math.abs(deltaY) * 1.25) {
-      if (mouseOrigin === 'edge-left') {
+    if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
+      if (isSubModalOpen || mouseOrigin === 'profile-submodal') {
+        handleBackNavigation();
+      } else if (isDrawerOpen || mouseOrigin === 'drawer') {
+        closeProfileDrawer();
+      } else if (mouseOrigin === 'edge-left') {
         if (isAnyDrilldownModalOpen()) {
           handleBackNavigation();
         } else if (!isDrawerOpen) {
@@ -1149,7 +1185,7 @@ function setupSwipeToBack() {
         }
       }
     } else if (deltaX <= -55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
-      if (isDrawerOpen) {
+      if (isDrawerOpen && !isSubModalOpen) {
         closeProfileDrawer();
       } else if (mouseOrigin === 'edge-right') {
         handleBackNavigation();
@@ -2802,9 +2838,9 @@ function getDashboardViewHTML() {
         </div>
         <p class="text-sm font-bold text-white mb-1">កាតទាំងអស់ត្រូវបានលាក់</p>
         <p class="text-xs text-slate-400 mb-4">កាតគ្មានទិន្នន័យត្រូវបានលាក់ស្វ័យប្រវត្តិ ឬអ្នកបានបិទកាត</p>
-        <button onclick="switchView('settings'); setTimeout(() => toggleSettingsItem('cardVisibility'), 100);" 
+        <button onclick="switchView('settings'); setTimeout(() => toggleSettingsItem('cardPreferences'), 100);" 
                 class="px-4 py-2 rounded-xl accent-solid-btn font-bold text-xs shadow-lg transition active:scale-95">
-          គ្រប់គ្រងការបង្ហាញកាត
+          ${isKm ? 'ការរៀបចំកាតទិន្នន័យ' : 'Card Preferences'}
         </button>
       </div>
     `;
@@ -3300,7 +3336,7 @@ function getSettingsViewHTML() {
             </div>
             <div class="min-w-0">
               <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('language')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ខ្មែរ / English' : 'Khmer / English'}</p>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ភាសាខ្មែរ / អង់គ្លេស' : 'Khmer / English'}</p>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
@@ -3686,7 +3722,7 @@ function getSettingsViewHTML() {
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5">
                       <h5 class="settings-row-title text-xs font-bold text-white truncate leading-tight">
-                        ${isKm ? 'លាក់ចំណងជើងរង (Hide Subtitles)' : 'Hide Subtitles'}
+                        ${isKm ? 'លាក់ចំណងជើងរង' : 'Hide Subtitles'}
                       </h5>
                       <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-md ${appState.hideSubtitles ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/10 text-slate-400'}">
                         ${appState.hideSubtitles ? (isKm ? 'បើក' : 'ON') : (isKm ? 'បិទ' : 'OFF')}
@@ -3713,7 +3749,7 @@ function getSettingsViewHTML() {
                     ${isKm ? 'សួស្តី! នេះជាទំហំអក្សរគំរូជាក់ស្តែង' : 'Sample typography preview'}
                   </p>
                   <p class="text-[10px] text-slate-400 font-mono truncate mt-0.5 settings-subtitle">
-                    ${isKm ? 'ចំណងជើងរង • Subtitle Preview (ABA + ACLEDA)' : 'Subtitle Preview • Secondary Description'}
+                    ${isKm ? 'ចំណងជើងរងគំរូ (កាលបរិច្ឆេទ • សាច់ប្រាក់)' : 'Subtitle Preview • Secondary Description'}
                   </p>
                 </div>
                 <span class="shrink-0 px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 font-mono text-[11px] font-bold border border-white/10">
@@ -3837,7 +3873,7 @@ function getSettingsViewHTML() {
             </div>
           </div>
           <div class="grid grid-cols-3 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
-            <button onclick="toggleTheme('auto')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'auto' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">Auto</button>
+            <button onclick="toggleTheme('auto')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'auto' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${isKm ? 'ស្វ័យប្រវត្តិ' : 'Auto'}</button>
             <button onclick="toggleTheme('light')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'light' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${t('light')}</button>
             <button onclick="toggleTheme('dark')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'dark' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${t('dark')}</button>
           </div>
@@ -3887,13 +3923,13 @@ function getSettingsViewHTML() {
           </div>
         </div>
 
-        <!-- 9. ទម្រង់តម្រៀបកាត (Card Layout - Accordion with >) -->
+        <!-- 9. ការរៀបចំកាតទិន្នន័យ (Card Layout & Display - Accordion with >) -->
         <div>
-          <div onclick="toggleSettingsItem('cardLayout')" 
+          <div onclick="toggleSettingsItem('cardPreferences')" 
                class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
             <div class="settings-row-left flex items-center gap-3 min-w-0">
-              <div class="settings-icon-box w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-                <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="layers" class="w-4 h-4 text-teal-400"></i>
               </div>
               <div class="min-w-0">
                 <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('layoutTitle')}</h4>
@@ -3901,138 +3937,118 @@ function getSettingsViewHTML() {
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/25 font-mono">
-                ${appState.cardLayout === '1' ? '១. ' + t('layout1') : (appState.cardLayout === '2' ? '២. ' + t('layout2') : '៣. ' + t('layout3'))}
-              </span>
-              <i data-lucide="${active === 'cardLayout' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
-            </div>
-          </div>
-
-          ${active === 'cardLayout' ? `
-            <div class="p-4 bg-black/40 border-t border-white/5 space-y-3 animate-fade-in">
-              <div class="flex items-center justify-between text-[11px] text-slate-300">
-                <span class="font-bold text-white">${isKm ? 'ជ្រើសរើសលំដាប់កាតលើ Dashboard' : 'Choose Dashboard Card Order'}</span>
-                <span class="text-[10px] text-slate-400">${isKm ? '៣ ជម្រើស' : '3 Options'}</span>
-              </div>
-              <!-- iOS Segmented Control: Option 1, 2, 3 -->
-              <div class="grid grid-cols-3 gap-1 bg-black/50 p-1 rounded-2xl border border-white/10 text-center text-xs">
-                <button onclick="setCardLayout('1')" 
-                        class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '1' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                  <span>១. ${t('layout1')}</span>
-                </button>
-                <button onclick="setCardLayout('2')" 
-                        class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '2' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                  <span>២. ${t('layout2')}</span>
-                </button>
-                <button onclick="setCardLayout('3')" 
-                        class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '3' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                  <span>៣. ${t('layout3')}</span>
-                </button>
-              </div>
-              <!-- Layout Description Box -->
-              <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-[10px] text-slate-300 leading-relaxed">
-                ${appState.cardLayout === '1' 
-                  ? '🔹 <strong>ស្តង់ដា៖</strong> ទឹកប្រាក់សុទ្ធ ➔ 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ ➔ ក្រុម'
-                  : (appState.cardLayout === '2'
-                    ? '🔹 <strong>ហិរញ្ញវត្ថុ៖</strong> ទឹកប្រាក់សុទ្ធ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ ➔ 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ ក្រុម'
-                    : '🔹 <strong>ផ្នែកលក់៖</strong> 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ លក់ក្រុម ➔ ទឹកប្រាក់សុទ្ធ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ')}
-              </div>
-            </div>
-          ` : ''}
-        </div>
-
-        <!-- 10. គ្រប់គ្រងកាតទិន្នន័យ (Card Visibility - Accordion with >) -->
-        <div>
-          <div onclick="toggleSettingsItem('cardVisibility')" 
-               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
-            <div class="settings-row-left flex items-center gap-3 min-w-0">
-              <div class="settings-icon-box w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-                <i data-lucide="sliders" class="w-4 h-4 text-teal-400"></i>
-              </div>
-              <div class="min-w-0">
-                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isKm ? 'គ្រប់គ្រងកាតទិន្នន័យ (Card Visibility)' : 'Card Visibility'}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'កំណត់បង្ហាញ/លាក់កាត និងលាក់កាតគ្មានទិន្នន័យ' : 'Show/hide cards and auto-hide empty'}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
               <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/25 font-mono">
-                ${(appState.cardVisibility?.autoHideEmpty !== false) ? (isKm ? 'Auto-Hide បើក' : 'Auto ON') : (isKm ? 'បង្ហាញទាំងអស់' : 'Show All')}
+                ${appState.cardLayout === '1' ? (isKm ? '១. ' : '1. ') + t('layout1') : (appState.cardLayout === '2' ? (isKm ? '២. ' : '2. ') + t('layout2') : (isKm ? '៣. ' : '3. ') + t('layout3'))}
               </span>
-              <i data-lucide="${active === 'cardVisibility' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
+              <i data-lucide="${active === 'cardPreferences' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
             </div>
           </div>
 
-          ${active === 'cardVisibility' ? `
-            <div class="p-4 bg-black/40 border-t border-white/5 space-y-2.5 animate-fade-in">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-bold text-white">${isKm ? 'កំណត់បង្ហាញ ឬលាក់កាតលើទំព័រដើម' : 'Configure Card Visibility'}</span>
-                <span class="text-[10px] text-teal-400 font-mono font-bold">Live Synced</span>
-              </div>
-
-              <!-- Main Master Toggle: Auto-hide Empty Cards -->
-              <div onclick="toggleCardVisibility('autoHideEmpty')" 
-                   class="settings-row p-3 rounded-2xl bg-teal-500/10 hover:bg-teal-500/15 border border-teal-500/30 flex items-center justify-between cursor-pointer transition select-none">
-                <div class="flex items-center gap-2.5 min-w-0 pr-2">
-                  <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center shrink-0">
-                    <i data-lucide="sparkles" class="w-4 h-4"></i>
-                  </div>
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-1.5">
-                      <h5 class="text-xs font-bold text-teal-300 truncate">
-                        ${isKm ? 'លាក់កាតគ្មានទិន្នន័យស្វ័យប្រវត្ត' : 'Auto-Hide Empty Cards'}
-                      </h5>
-                    </div>
-                    <p class="text-[10px] text-slate-300 mt-0.5">
-                      ${isKm ? 'លាក់កាតណាដែលគ្មានទិន្នន័យក្នុងថ្ងៃ/ខែនោះ (ស្រឡះភ្នែក)' : 'Hide cards with 0 data in selected period'}
-                    </p>
-                  </div>
+          ${active === 'cardPreferences' ? `
+            <div class="p-4 bg-black/40 border-t border-white/5 space-y-4 animate-fade-in">
+              <!-- Part A: Card Layout / Order -->
+              <div class="space-y-2.5">
+                <div class="flex items-center justify-between text-[11px] text-slate-300">
+                  <span class="font-bold text-white">${isKm ? 'លំដាប់កាតលើទំព័រដើម' : 'Dashboard Card Order'}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">${isKm ? '៣ ជម្រើស' : '3 Options'}</span>
                 </div>
-                <button type="button" 
-                        onclick="event.stopPropagation(); toggleCardVisibility('autoHideEmpty');"
-                        class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${(appState.cardVisibility?.autoHideEmpty !== false) ? 'bg-teal-500' : 'bg-slate-700'}"
-                        role="switch" aria-checked="${(appState.cardVisibility?.autoHideEmpty !== false)}">
-                  <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${(appState.cardVisibility?.autoHideEmpty !== false) ? 'translate-x-5' : 'translate-x-0'}"></div>
-                </button>
+                <!-- iOS Segmented Control: Option 1, 2, 3 -->
+                <div class="grid grid-cols-3 gap-1 bg-black/50 p-1 rounded-2xl border border-white/10 text-center text-xs">
+                  <button onclick="setCardLayout('1')" 
+                          class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '1' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
+                    <span>${isKm ? '១. ' : '1. '}${t('layout1')}</span>
+                  </button>
+                  <button onclick="setCardLayout('2')" 
+                          class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '2' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
+                    <span>${isKm ? '២. ' : '2. '}${t('layout2')}</span>
+                  </button>
+                  <button onclick="setCardLayout('3')" 
+                          class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '3' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
+                    <span>${isKm ? '៣. ' : '3. '}${t('layout3')}</span>
+                  </button>
+                </div>
+                <!-- Layout Description Box -->
+                <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-[10px] text-slate-300 leading-relaxed">
+                  ${appState.cardLayout === '1' 
+                    ? (isKm ? '🔹 <strong>ស្តង់ដា៖</strong> ទឹកប្រាក់សុទ្ធ ➔ 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ ➔ ក្រុម' : '🔹 <strong>Standard:</strong> Pure Cash ➔ Date Filter ➔ Sales/Expenses ➔ Net Cash ➔ Today Expenses ➔ Team')
+                    : (appState.cardLayout === '2'
+                      ? (isKm ? '🔹 <strong>ហិរញ្ញវត្ថុ៖</strong> ទឹកប្រាក់សុទ្ធ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ ➔ 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ ក្រុម' : '🔹 <strong>Finance:</strong> Pure Cash ➔ Net Cash ➔ Today Expenses ➔ Date Filter ➔ Sales/Expenses ➔ Team')
+                      : (isKm ? '🔹 <strong>ផ្នែកលក់៖</strong> 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ លក់ក្រុម ➔ ទឹកប្រាក់សុទ្ធ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ' : '🔹 <strong>Sales:</strong> Date Filter ➔ Sales/Expenses ➔ Team Sales ➔ Pure Cash ➔ Net Cash ➔ Today Expenses'))}
+                </div>
               </div>
 
-              <div class="pt-1.5 pb-1 text-[11px] font-bold text-slate-400">
-                ${isKm ? 'កាតទិន្នន័យនីមួយៗ (Individual Cards):' : 'Individual Cards:'}
-              </div>
+              <!-- Part B: Card Display / Visibility -->
+              <div class="border-t border-white/10 pt-3 space-y-2.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-white">${isKm ? 'ការបង្ហាញកាតលើទំព័រដើម' : 'Dashboard Card Display'}</span>
+                  <span class="text-[10px] text-teal-400 font-mono font-bold">${isKm ? 'ធ្វើបច្ចុប្បន្នភាពភ្លាមៗ' : 'Live Synced'}</span>
+                </div>
 
-              <!-- List of Cards -->
-              <div class="space-y-1.5">
-                ${[
-                  { key: 'pureCash', label: isKm ? 'កាតទឹកប្រាក់ដែលមាន (Pure Cash)' : 'Pure Cash Card', icon: 'wallet', color: 'text-orange-400' },
-                  { key: 'salesPerformance', label: isKm ? 'កាតសង្ខេបការលក់ & ចំណាយ' : 'Sales & Expenses Card', icon: 'bar-chart-2', color: 'text-blue-400' },
-                  { key: 'netCash', label: isKm ? 'កាតស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash)' : 'Net Cash Position', icon: 'landmark', color: 'text-emerald-400' },
-                  { key: 'expenses', label: isKm ? 'កាតការចំណាយ (Expenses Card)' : 'Expenses Card', icon: 'receipt', color: 'text-rose-400' },
-                  { key: 'teamSales', label: isKm ? 'កាតគោលដៅលក់ក្រុម (Team Sales)' : 'Team Sales Card', icon: 'users', color: 'text-amber-400' },
-                  { key: 'tools', label: isKm ? 'កាតឧបករណ៍ AI & បកប្រែ (Quick Tools)' : 'AI & Translation Tools', icon: 'sparkles', color: 'text-purple-400' }
-                ].map(item => {
-                  const isVisible = (appState.cardVisibility && appState.cardVisibility[item.key] !== false);
-                  return `
-                    <div onclick="toggleCardVisibility('${item.key}')" 
-                         class="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-between cursor-pointer transition select-none">
-                      <div class="flex items-center gap-2.5 min-w-0 pr-2">
-                        <i data-lucide="${item.icon}" class="w-4 h-4 ${item.color} shrink-0"></i>
-                        <span class="text-xs font-semibold text-white truncate">${item.label}</span>
-                      </div>
-                      <button type="button" 
-                              onclick="event.stopPropagation(); toggleCardVisibility('${item.key}');"
-                              class="w-9 h-5 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${isVisible ? 'bg-emerald-500' : 'bg-slate-700'}"
-                              role="switch" aria-checked="${isVisible}">
-                        <div class="w-4 h-4 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${isVisible ? 'translate-x-4' : 'translate-x-0'}"></div>
-                      </button>
+                <!-- Main Master Toggle: Auto-hide Empty Cards -->
+                <div onclick="toggleCardVisibility('autoHideEmpty')" 
+                     class="settings-row p-3 rounded-2xl bg-teal-500/10 hover:bg-teal-500/15 border border-teal-500/30 flex items-center justify-between cursor-pointer transition select-none">
+                  <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                    <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center shrink-0">
+                      <i data-lucide="sparkles" class="w-4 h-4"></i>
                     </div>
-                  `;
-                }).join('')}
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5">
+                        <h5 class="text-xs font-bold text-teal-300 truncate">
+                          ${isKm ? 'លាក់កាតគ្មានទិន្នន័យស្វ័យប្រវត្តិ' : 'Auto-Hide Empty Cards'}
+                        </h5>
+                      </div>
+                      <p class="text-[10px] text-slate-300 mt-0.5">
+                        ${isKm ? 'លាក់កាតណាដែលគ្មានទិន្នន័យក្នុងថ្ងៃ ឬខែនោះ' : 'Hide cards with 0 data in selected period'}
+                      </p>
+                    </div>
+                  </div>
+                  <button type="button" 
+                          onclick="event.stopPropagation(); toggleCardVisibility('autoHideEmpty');"
+                          class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${(appState.cardVisibility?.autoHideEmpty !== false) ? 'bg-teal-500' : 'bg-slate-700'}"
+                          role="switch" aria-checked="${(appState.cardVisibility?.autoHideEmpty !== false)}">
+                    <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${(appState.cardVisibility?.autoHideEmpty !== false) ? 'translate-x-5' : 'translate-x-0'}"></div>
+                  </button>
+                </div>
+
+                <div class="pt-1.5 pb-1 text-[11px] font-bold text-slate-400">
+                  ${isKm ? 'កាតទិន្នន័យនីមួយៗ៖' : 'Individual Cards:'}
+                </div>
+
+                <!-- List of Cards -->
+                <div class="space-y-1.5">
+                  ${[
+                    { key: 'pureCash', label: isKm ? 'កាតទឹកប្រាក់ដែលមាន' : 'Available Funds Card', icon: 'wallet', color: 'text-orange-400' },
+                    { key: 'salesPerformance', label: isKm ? 'កាតសង្ខេបការលក់ និងចំណាយ' : 'Sales & Expenses Card', icon: 'bar-chart-2', color: 'text-blue-400' },
+                    { key: 'netCash', label: isKm ? 'កាតស្ថាពរហិរញ្ញវត្ថុ' : 'Net Cash Position Card', icon: 'landmark', color: 'text-emerald-400' },
+                    { key: 'expenses', label: isKm ? 'កាតការចំណាយ' : 'Expenses Card', icon: 'receipt', color: 'text-rose-400' },
+                    { key: 'teamSales', label: isKm ? 'កាតការលក់ក្រុម' : 'Team Sales Card', icon: 'users', color: 'text-amber-400' },
+                    { key: 'tools', label: isKm ? 'កាតឧបករណ៍រហ័ស' : 'Quick Tools Card', icon: 'sparkles', color: 'text-purple-400' }
+                  ].map(item => {
+                    const isVisible = (appState.cardVisibility && appState.cardVisibility[item.key] !== false);
+                    return `
+                      <div onclick="toggleCardVisibility('${item.key}')" 
+                           class="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-between cursor-pointer transition select-none">
+                        <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                          <i data-lucide="${item.icon}" class="w-4 h-4 ${item.color} shrink-0"></i>
+                          <span class="text-xs font-semibold text-white truncate">${item.label}</span>
+                        </div>
+                        <button type="button" 
+                                onclick="event.stopPropagation(); toggleCardVisibility('${item.key}');"
+                                class="w-9 h-5 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${isVisible ? 'bg-emerald-500' : 'bg-slate-700'}"
+                                role="switch" aria-checked="${isVisible}">
+                          <div class="w-4 h-4 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${isVisible ? 'translate-x-4' : 'translate-x-0'}"></div>
+                        </button>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
               </div>
 
             </div>
           ` : ''}
         </div>
 
-        <!-- 11. អំពីខ្ញុំ (About Me) -->
+        <!-- 10. អំពីខ្ញុំ (About Me) -->
         <div onclick="openAboutModal()" 
              class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
           <div class="settings-row-left flex items-center gap-3 min-w-0">
@@ -4041,7 +4057,7 @@ function getSettingsViewHTML() {
             </div>
             <div class="min-w-0">
               <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ស្តី ស្តើង • SDEY SDOEUNG</p>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ស្តី ស្តើង • ប្រធានគ្រប់គ្រង' : 'SDEY SDOEUNG • Manager'}</p>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -7470,6 +7486,19 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
     iconBg: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
     keywords: 'subtitle hide លាក់ ចំណងជើង រង',
     action: () => { closeProfileSettingsSearch(); switchView('settings'); }
+  },
+  {
+    id: 'card_preferences',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់',
+    title: 'ការរៀបចំកាតទិន្នន័យ',
+    titleEn: 'Card Layout & Display',
+    subtitle: 'Settings > លំដាប់តម្រៀបកាត និងការកំណត់បង្ហាញកាត',
+    subtitleEn: 'Settings > Card order and display preferences',
+    icon: 'layers',
+    iconBg: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
+    keywords: 'card layout visibility display order កាត តម្រៀប បង្ហាញ លាក់',
+    action: () => { closeProfileSettingsSearch(); switchView('settings'); setTimeout(() => toggleSettingsItem('cardPreferences'), 100); }
   },
   {
     id: 'about',
