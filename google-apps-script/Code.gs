@@ -5,10 +5,11 @@
  * សុវត្ថិភាពខ្ពស់ ១០០% មិនប៉ះពាល់រូបមន្តចាស់ និងការពារទិន្នន័យ manual tracking
  * 
  * គោលការណ៍សុវត្ថិភាពទាំង ៤៖
- * 1. ពិនិត្យភាពស្ទួន (Deduplication) តាម Order ID និង Phone
+ * 1. ពិនិត្យភាពស្ទួន (Deduplication) តាម Order ID (អនុញ្ញាតលេខទូរស័ព្ទដដែលសម្រាប់អតិថិជនទិញម្តងទៀត)
  * 2. ថែរក្សារូបមន្តស្វ័យប្រវត្តិ (No., Total $, Stock Cost, Profit)
- * 3. មិនប៉ះពាល់ជួរឈរដែលកត់ត្រាដោយដៃ (COD Status, Payment Date, Note)
+ * 3. មិនប៉ះពាល់ជួរឈរដែលកត់ត្រាដោយដៃ (COD Status = បានដាក់ការកុម្មង់, Payment Date, Note)
  * 4. បង្កើត Record_ID (REC-XXXX) ស្វ័យប្រវត្តិសម្រាប់ AppSheet ស្គាល់
+ * 5. បំប្លែងកាលបរិច្ឆេទជា Date Object ពិតប្រាកដ ការពារបញ្ហា Invalid Date លើ Google Sheet
  * ==============================================================================
  */
 
@@ -67,6 +68,36 @@ function doPost(e) {
 }
 
 /**
+ * ជំនួយការបំប្លែង String ទៅជា JavaScript Date Object ពិតប្រាកដ
+ * ការពារដាច់ខាតកុំឱ្យលោតសញ្ញា Invalid Date លើ Google Sheet Data Validation
+ */
+function parseToDateObj(dateStr) {
+  if (!dateStr) return new Date();
+  if (dateStr instanceof Date) return dateStr;
+  var str = String(dateStr).trim();
+
+  // ទម្រង់ DD/MM/YYYY ឬ D/M/YYYY
+  var dmMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (dmMatch) {
+    var day = parseInt(dmMatch[1], 10);
+    var month = parseInt(dmMatch[2], 10) - 1; // 0-indexed month
+    var year = parseInt(dmMatch[3], 10);
+    return new Date(year, month, day, 12, 0, 0);
+  }
+
+  // ទម្រង់ ISO YYYY-MM-DD
+  var isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoMatch) {
+    var iYear = parseInt(isoMatch[1], 10);
+    var iMonth = parseInt(isoMatch[2], 10) - 1;
+    var iDay = parseInt(isoMatch[3], 10);
+    return new Date(iYear, iMonth, iDay, 12, 0, 0);
+  }
+
+  return new Date();
+}
+
+/**
  * បញ្ចូលការកុម្ម៉ង់ចូលផ្ទាំង Personal Sales ដោយសុវត្ថិភាព ១០០%
  */
 function insertPersonalSalesOrder(ss, order) {
@@ -75,13 +106,12 @@ function insertPersonalSalesOrder(ss, order) {
     return { status: 'error', message: 'Tab "Personal Sales" not found!' };
   }
 
-  // 1. ស្វែងរកជួរដេកទាំងអស់ដើម្បីពិនិត្យភាពស្ទួន (Col E: Order ID, Col G: Phone)
+  // 1. ស្វែងរកជួរដេកទាំងអស់ដើម្បីពិនិត្យភាពស្ទួន Order ID (Col E)
   var dataRange = sheet.getDataRange();
   var values = dataRange.getValues();
   var numRows = values.length;
 
   var newOrderId = String(order.orderId || '').trim();
-  var newPhone = String(order.phone || '').trim().replace(/[\s\-\.]/g, '');
 
   var maxRecNum = 0;
   var targetRow = -1; // ជួរដេកដែលត្រូវបំពេញ
@@ -89,7 +119,6 @@ function insertPersonalSalesOrder(ss, order) {
   for (var r = 1; r < numRows; r++) { // រាប់ពីជួរទី ២ (Index 1) ក្រោម Header
     var rowDate = values[r][0]; // Col A
     var existingOrderId = String(values[r][4] || '').trim(); // Col E
-    var existingPhone = String(values[r][6] || '').trim().replace(/[\s\-\.]/g, ''); // Col G
     var existingRecId = String(values[r][23] || '').trim(); // Col X
 
     // តាមដានលេខ REC-XXXX ខ្ពស់បំផុត
@@ -99,7 +128,7 @@ function insertPersonalSalesOrder(ss, order) {
       if (recVal > maxRecNum) maxRecNum = recVal;
     }
 
-    // ក. ពិនិត្យភាពស្ទួន (បើ Order ID ដូចគ្នា ហើយមិនមែនទទេ)
+    // ពិនិត្យភាពស្ទួនតាម Order ID (បើ Order ID ដូចគ្នា មិនឱ្យបញ្ចូលទេ តែលេខទូរស័ព្ទដូចគ្នាអនុញ្ញាត)
     if (newOrderId && existingOrderId && newOrderId.toLowerCase() === existingOrderId.toLowerCase()) {
       return { 
         status: 'duplicate', 
@@ -130,24 +159,27 @@ function insertPersonalSalesOrder(ss, order) {
   var formulaStock = '=(H' + targetRow + '+I' + targetRow + '+J' + targetRow + '+K' + targetRow + '+L' + targetRow + ')*24';
   var formulaProfit = '=N' + targetRow + '-(O' + targetRow + '+R' + targetRow + ')';
 
+  // បំប្លែង Date Object ពិតប្រាកដ និងកំណត់ Format dd/MM/yyyy ការពារ Invalid Error
+  var dateObj = parseToDateObj(order.date);
+
   // បំពេញទិន្នន័យចូលក្រឡាជួរនីមួយៗ
-  sheet.getRange(targetRow, 1).setValue(order.date || Utilities.formatDate(new Date(), 'GMT+7', 'dd/MM/yyyy')); // Col A: Date
+  sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date Object (លែងមាន Invalid)
   sheet.getRange(targetRow, 2).setFormula(formulaNo); // Col B: No. (Formula)
-  sheet.getRange(targetRow, 3).setValue(order.customer || 'អតិថិជនទូទៅ'); // Col C: FB Name
+  sheet.getRange(targetRow, 3).setValue(order.customer || ''); // Col C: FB Name (រំលង/ទុកទំនេរបាន)
   sheet.getRange(targetRow, 4).setValue(order.seller || 'ស្តី ស្តើង'); // Col D: Seller
   sheet.getRange(targetRow, 5).setValue(order.orderId || ''); // Col E: Order ID
   sheet.getRange(targetRow, 6).setValue(order.location || ''); // Col F: Location
-  sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone
-  sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0)); // Col H: YL
-  sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0)); // Col I: YLP
-  sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0)); // Col J: KN
-  sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0)); // Col K: P D.O
+  sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone (លេខទូរស័ព្ទដូចគ្នាអាចបញ្ជូនបាន)
+  sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0)); // Col H: YL (Yong Liang)
+  sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0)); // Col I: YLP (Yong Liang Plus)
+  sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0)); // Col J: KN (Kidney Pro)
+  sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0)); // Col K: P D.O (Pro D.O)
   sheet.getRange(targetRow, 12).setValue(Number(order.freeQty || 0)); // Col L: Free
   sheet.getRange(targetRow, 13).setValue(Number(order.thaiBaht || order.price || 0)); // Col M: Price (Baht)
-  sheet.getRange(targetRow, 14).setFormula(formulaTotal); // Col N: Total $ (Formula)
+  sheet.getRange(targetRow, 14).setFormula(formulaTotal); // Col N: Total $ (Formula auto)
   sheet.getRange(targetRow, 15).setValue(Number(order.shipFee || 0)); // Col O: Ship Fee
   sheet.getRange(targetRow, 16).setValue(order.deliveryMethod || 'VET(COD)'); // Col P: Delivery
-  sheet.getRange(targetRow, 17).setValue(order.codStatus || 'មិនទាន់ទូទាត់'); // Col Q: COD Status (មិនជាន់ពាក្យ update ចាស់)
+  sheet.getRange(targetRow, 17).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col Q: COD Status (Default: បានដាក់ការកុម្មង់)
   sheet.getRange(targetRow, 18).setFormula(formulaStock); // Col R: Stock Cost (Formula)
   // Col S (19): Payment Date ទុកឱ្យនៅទំនេរ រង់ចាំលោកគ្រូបំពេញពេលលុយចូលជាក់ស្តែង
   sheet.getRange(targetRow, 20).setFormula(formulaProfit); // Col T: Profit (Formula)
@@ -189,10 +221,19 @@ function insertDailyExpense(ss, exp) {
     targetRow = numRows + 1;
   }
 
-  var ddmmyyyy = exp.date || Utilities.formatDate(new Date(), 'GMT+7', 'dd/MM/yyyy');
-  var fullTimeStr = exp.time ? (ddmmyyyy + ' ' + exp.time) : ddmmyyyy;
+  var dateObj = parseToDateObj(exp.date);
+  if (exp.time) {
+    var tParts = String(exp.time).split(':');
+    if (tParts.length >= 2) {
+      dateObj.setHours(parseInt(tParts[0], 10), parseInt(tParts[1], 10), 0);
+      sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy HH:mm');
+    } else {
+      sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy');
+    }
+  } else {
+    sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy');
+  }
 
-  sheet.getRange(targetRow, 1).setValue(fullTimeStr); // Col A: Date & Time
   sheet.getRange(targetRow, 2).setValue(exp.description || ''); // Col B: Description
   sheet.getRange(targetRow, 3).setValue(exp.category || 'ហូបចុក & ប្រចាំថ្ងៃ'); // Col C: Category
   sheet.getRange(targetRow, 4).setValue(Number(exp.amount || 0)); // Col D: Amount ($)
@@ -206,31 +247,4 @@ function insertDailyExpense(ss, exp) {
     row: targetRow,
     amount: exp.amount
   };
-}
-
-/**
- * តេស្តសាកល្បងដោយផ្ទាល់ក្នុង Apps Script Console (Test Function)
- */
-function testInsertOrder() {
-  var sampleOrder = {
-    date: '15/10/2026',
-    customer: 'អតិថិជន តេស្ត',
-    seller: 'ស្តី ស្តើង',
-    orderId: '#TEST-9999',
-    location: 'ភ្នំពេញ',
-    phone: '012 345 678',
-    qtyYL: 1,
-    qtyYLP: 1,
-    qtyKN: 0,
-    qtyPDO: 0,
-    freeQty: 0,
-    thaiBaht: 3400,
-    shipFee: 5.50,
-    deliveryMethod: 'Thai ✅COD',
-    codStatus: 'មិនទាន់ទូទាត់',
-    note: 'តេស្តប្រព័ន្ធសុវត្ថិភាព'
-  };
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var res = insertPersonalSalesOrder(ss, sampleOrder);
-  Logger.log(JSON.stringify(res));
 }

@@ -7745,7 +7745,8 @@ function openNewOrderModal() {
   const todayStr = `${d}/${m}/${y}`;
 
   if (sellerInput) sellerInput.value = profile.name || 'ស្ដី ស្ដើង';
-  if (sellerPhoneInput) sellerPhoneInput.value = profile.phone || '097 859 5526';
+  // ផ្ទៃលេខទូរសព្ទអ្នកលក់ទុកទទេរស្អាតសិន (រំលង)
+  if (sellerPhoneInput) sellerPhoneInput.value = '';
   if (dateInput) dateInput.value = todayStr;
 
   if (orderIdInput && !orderIdInput.value) {
@@ -7764,7 +7765,9 @@ function openNewOrderModal() {
   updateProductQtyDisplay();
   setOrderType('standard');
   switchOrderMode('paste');
+  if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
   if (typeof updateModalLanguage === 'function') updateModalLanguage();
+  checkOrderSubmitValidation();
 
   modal.classList.remove('hidden');
   setDockVisible(false);
@@ -7776,6 +7779,53 @@ function closeNewOrderModal() {
   const modal = document.getElementById('new-order-modal');
   if (modal) modal.classList.add('hidden');
   setDockVisible(true);
+}
+
+function checkOrderSubmitValidation() {
+  const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                     (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                     (currentOrderProducts.free || 0);
+  const phone = (document.getElementById('order-field-phone')?.value || '').trim().replace(/[\s\-\.]/g, '');
+  const btn = document.getElementById('btn-submit-order');
+  if (!btn) return;
+
+  // បើមិនអាចបញ្ជូនបាន (0 ប្រអប់ ឬលេខទូរស័ព្ទតិចជាង ៨ ខ្ទង់) គឺមិនគួរបង្ហាញ Button ទេ
+  const isReady = (totalBoxes > 0 && phone.length >= 8);
+  if (isReady) {
+    btn.classList.remove('hidden');
+    btn.disabled = false;
+  } else {
+    btn.classList.add('hidden');
+    btn.disabled = true;
+  }
+}
+
+function clearOrderInput() {
+  const pasteInput = document.getElementById('order-paste-input');
+  if (pasteInput) pasteInput.value = '';
+
+  const custInput = document.getElementById('order-field-customer');
+  if (custInput) custInput.value = '';
+
+  const phoneInput = document.getElementById('order-field-phone');
+  if (phoneInput) phoneInput.value = '';
+
+  const locInput = document.getElementById('order-field-location');
+  if (locInput) locInput.value = '';
+
+  const noteInput = document.getElementById('order-field-note');
+  if (noteInput) noteInput.value = '';
+
+  const sellerPhoneInput = document.getElementById('order-field-seller-phone');
+  if (sellerPhoneInput) sellerPhoneInput.value = '';
+
+  currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, free: 0 };
+  updateProductQtyDisplay();
+  calculateOrderFinancials();
+  checkOrderSubmitValidation();
+
+  showToastNotification('បានសម្អាតទម្រង់រួចរាល់! 🧹');
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
 }
 
 function switchOrderMode(mode) {
@@ -7804,6 +7854,7 @@ function switchOrderMode(mode) {
     if (pastePanel) pastePanel.classList.add('hidden');
     if (formPanel) formPanel.classList.remove('hidden');
   }
+  checkOrderSubmitValidation();
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -7814,21 +7865,26 @@ function setOrderType(type) {
   const desc = document.getElementById('order-type-desc');
   const orderIdGroup = document.getElementById('group-order-id');
   const noteInput = document.getElementById('order-field-note');
+  const sellerPhoneInput = document.getElementById('order-field-seller-phone');
 
   if (type === 'reward') {
     if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-400';
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
-    if (desc) desc.innerText = '🎁 មិនមានគិតថ្លៃស្តុក ($0) មិនទាមទារ Order ID និងគណនាប្រាក់ចំណេញពេញលេញ (Total - Ship)។';
+    if (desc) desc.innerText = '🎁 លក់រង្វាន់: មិនគិតថ្លៃដើមស្តុក ($0) និងកំណត់លេខអ្នកលក់ជា 097 859 5526 ស្វ័យប្រវត្តិ។';
     if (orderIdGroup) orderIdGroup.classList.add('opacity-40', 'pointer-events-none');
     if (noteInput && !noteInput.value) noteInput.value = 'លក់រង្វាន់';
+    // លក់រង្វាន់: លេខអ្នកលក់គឺត្រូវតែ 097 859 5526
+    if (sellerPhoneInput) sellerPhoneInput.value = '097 859 5526';
   } else {
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-orange-500/20 border-orange-500 text-orange-400';
     if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
     if (desc) desc.innerText = 'គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។';
     if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
     if (noteInput && noteInput.value === 'លក់រង្វាន់') noteInput.value = '';
+    if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
   }
   calculateOrderFinancials();
+  checkOrderSubmitValidation();
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -7837,14 +7893,27 @@ function adjustProductQty(prod, delta) {
     currentOrderProducts[prod] = Math.max(0, (currentOrderProducts[prod] || 0) + delta);
     updateProductQtyDisplay();
     calculateOrderFinancials();
+    checkOrderSubmitValidation();
     if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
   }
 }
 
 function updateProductQtyDisplay() {
-  ['yl', 'ylp', 'kn', 'pdo', 'free'].forEach(p => {
+  const prods = ['yl', 'ylp', 'kn', 'pdo', 'free'];
+  prods.forEach(p => {
+    const qty = currentOrderProducts[p] || 0;
     const el = document.getElementById(`qty-disp-${p}`);
-    if (el) el.innerText = currentOrderProducts[p] || 0;
+    if (el) el.innerText = qty;
+
+    // ឈ្មោះផលិតផល ត្រូវហាយឡាយផ្ទៃរបស់របារ ពីឆ្វេងមកស្តាំ តាមចំនួន
+    const card = document.getElementById(`product-card-${p}`);
+    if (card) {
+      if (qty > 0) {
+        card.className = "flex items-center justify-between p-2.5 rounded-xl border transition-all duration-300 bg-gradient-to-r from-orange-500/25 via-amber-500/15 to-orange-500/10 border-orange-500/50 shadow-sm";
+      } else {
+        card.className = "flex items-center justify-between p-2.5 rounded-xl border transition-all duration-300 bg-white/5 border-white/5";
+      }
+    }
   });
 
   const total = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
@@ -7853,6 +7922,8 @@ function updateProductQtyDisplay() {
 
   const badge = document.getElementById('order-total-boxes-badge');
   if (badge) badge.innerText = `សរុប: ${total} ប្រអប់`;
+
+  checkOrderSubmitValidation();
 }
 
 function toggleExtraProducts() {
@@ -7883,8 +7954,9 @@ function calculateOrderFinancials() {
   const rawVal = cleanNumber(priceRawInput?.value);
   let totalUsd = cleanNumber(totalUsdInput?.value);
 
+  // ប្រសិនបើតម្លៃបាត/រៀលធំជាង 10,000 គណនាតាមរូបមន្តសរុបស្វ័យប្រវត្តិ
   if (rawVal > 10000 && (!totalUsd || totalUsd <= 0)) {
-    totalUsd = rawVal / 4000;
+    totalUsd = (rawVal * 0.97) / 35.6; // ស្តង់ដារពិតរបស់ Sheet
     if (totalUsdInput) totalUsdInput.value = totalUsd.toFixed(2);
   }
 
@@ -7908,18 +7980,27 @@ function calculateOrderFinancials() {
 
 async function pasteClipboardToOrderInput() {
   try {
+    let text = '';
     if (navigator.clipboard && navigator.clipboard.readText) {
-      const text = await navigator.clipboard.readText();
-      const input = document.getElementById('order-paste-input');
-      if (input && text) {
-        input.value = text;
-        showToastNotification('បានបិទភ្ជាប់សារពី Clipboard!');
-      }
+      text = await navigator.clipboard.readText();
+    }
+    const input = document.getElementById('order-paste-input');
+    if (text && input) {
+      input.value = text;
+      parsePastedOrderText();
+      showToastNotification('បាន Pass និងស្រង់ទិន្នន័យដោយស្វ័យប្រវត្តិ! 🚀');
+    } else if (input && input.value.trim()) {
+      parsePastedOrderText();
     } else {
-      alert('សូមប្រើ Paste ដោយផ្ទាល់លើប្រអប់អត្ថបទ');
+      showToastNotification('សូមចម្លងសារពី Telegram ឬបិទភ្ជាប់ក្នុងប្រអប់!');
     }
   } catch (e) {
-    alert('មិនអាចអាន Clipboard ដោយស្វ័យប្រវត្តិបានទេ សូមចុច Paste ដោយដៃ');
+    const input = document.getElementById('order-paste-input');
+    if (input && input.value.trim()) {
+      parsePastedOrderText();
+    } else {
+      showToastNotification('សូមចុចបិទភ្ជាប់ (Paste) ក្នុងប្រអប់អត្ថបទ');
+    }
   }
 }
 
@@ -7927,7 +8008,7 @@ function parsePastedOrderText() {
   const input = document.getElementById('order-paste-input');
   const text = (input?.value || '').trim();
   if (!text) {
-    alert('សូមបិទភ្ជាប់អត្ថបទសារពី Telegram ជាមុនសិន!');
+    showToastNotification('សូមបិទភ្ជាប់អត្ថបទសារពី Telegram ជាមុនសិន!');
     return;
   }
 
@@ -7942,8 +8023,9 @@ function parsePastedOrderText() {
   const sellerNo = extract(/(?:លេខអ្នកលក់\(Seller No\)|Seller No|លេខអ្នកលក់)[:\s]*([^\n\r]+)/i);
   const ylQty = extract(/\[Yong Liang\][:\s]*(\d+)/i) || extract(/Yong Liang[:\s]*(\d+)/i);
   const ylpQty = extract(/\[Yong Liang Plus\][:\s]*(\d+)/i) || extract(/Yong Liang Plus[:\s]*(\d+)/i);
-  const knQty = extract(/\[KN\][:\s]*(\d+)/i) || extract(/KN[:\s]*(\d+)/i);
-  const pdoQty = extract(/\[P D\.O\][:\s]*(\d+)/i) || extract(/P D\.O[:\s]*(\d+)/i);
+  const knQty = extract(/\[KN\][:\s]*(\d+)/i) || extract(/KN[:\s]*(\d+)/i) || extract(/\[Kidney Pro\][:\s]*(\d+)/i);
+  const pdoQty = extract(/\[P D\.O\][:\s]*(\d+)/i) || extract(/P D\.O[:\s]*(\d+)/i) || extract(/\[Pro D\.O\][:\s]*(\d+)/i);
+  const freeQty = extract(/\[Free\][:\s]*(\d+)/i) || extract(/Free[:\s]*(\d+)/i);
   const priceRaw = extract(/(?:តម្លៃ\(Price\)|Price|តម្លៃ)[:\s]*(\d+[\d,\.]*)/i);
   const receiverNo = extract(/(?:លេខអ្នកទទួល\(Receiver No\)|Receiver No|លេខអ្នកទទួល)[:\s]*([^\n\r]+)/i);
   const address = extract(/(?:អាសយដ្ឋាន\(Address\)|Address|អាសយដ្ឋាន|Location)[:\s]*([^\n\r]+)/i);
@@ -7955,23 +8037,24 @@ function parsePastedOrderText() {
     document.getElementById('order-field-date').value = formatted || dateRaw;
   }
   if (seller) document.getElementById('order-field-seller').value = seller;
-  if (sellerNo) document.getElementById('order-field-seller-phone').value = sellerNo;
   if (receiverNo) document.getElementById('order-field-phone').value = receiverNo;
   if (address) document.getElementById('order-field-location').value = address;
 
-  if (ylQty) currentOrderProducts.yl = parseInt(ylQty) || 0;
-  if (ylpQty) currentOrderProducts.ylp = parseInt(ylpQty) || 0;
-  if (knQty) currentOrderProducts.kn = parseInt(knQty) || 0;
-  if (pdoQty) currentOrderProducts.pdo = parseInt(pdoQty) || 0;
+  // មុខទំនិញ
+  currentOrderProducts.yl = ylQty ? parseInt(ylQty) : 0;
+  currentOrderProducts.ylp = ylpQty ? parseInt(ylpQty) : 0;
+  currentOrderProducts.kn = knQty ? parseInt(knQty) : 0;
+  currentOrderProducts.pdo = pdoQty ? parseInt(pdoQty) : 0;
+  currentOrderProducts.free = freeQty ? parseInt(freeQty) : 0;
 
   if (priceRaw) {
     const num = cleanNumber(priceRaw);
     const priceInput = document.getElementById('order-field-price-raw');
     const totalInput = document.getElementById('order-field-total-usd');
     if (priceInput) priceInput.value = num;
-    if (num > 10000) {
-      if (totalInput) totalInput.value = (num / 4000).toFixed(2);
-    } else if (num > 0 && num < 1000) {
+    if (num > 1000) {
+      if (totalInput) totalInput.value = ((num * 0.97) / 35.6).toFixed(2);
+    } else if (num > 0 && num <= 1000) {
       if (totalInput) totalInput.value = num.toFixed(2);
     }
   }
@@ -7987,11 +8070,21 @@ function parsePastedOrderText() {
         }
       }
     }
-    if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
+  }
+
+  // ហៅអនុគមន៍កំណត់សេវាដឹកជញ្ជូន និងលេខទូរស័ព្ទ VET COD
+  if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
+
+  // បើមាន sellerNo ពីមុន តែ delivery មិនមែន VET COD ប្រើ sellerNo
+  const currentDeliv = document.getElementById('order-field-delivery')?.value || '';
+  if (sellerNo && currentDeliv !== 'VET(COD)') {
+    const phoneInput = document.getElementById('order-field-seller-phone');
+    if (phoneInput) phoneInput.value = sellerNo;
   }
 
   updateProductQtyDisplay();
   calculateOrderFinancials();
+  checkOrderSubmitValidation();
 
   switchOrderMode('form');
   showToastNotification('ទាញស្រង់ទិន្នន័យពីសារបានជោគជ័យ! 🎉');
@@ -8007,25 +8100,40 @@ async function submitNewOrder() {
   const seller = getVal('order-field-seller') || 'ស្ដី ស្ដើង';
   const phone = getVal('order-field-phone');
   const location = getVal('order-field-location');
-  const customer = getVal('order-field-customer') || 'អតិថិជនទូទៅ';
+  const customer = getVal('order-field-customer'); // រំលង/ទុកទំនេរបាន
   const delivery = getVal('order-field-delivery') || 'VET(COD)';
   const totalUsd = cleanNumber(getVal('order-field-total-usd')) || 90.00;
   const shipFee = cleanNumber(getVal('order-field-ship')) || 3.00;
   const priceRaw = cleanNumber(getVal('order-field-price-raw')) || 360000;
   const note = getVal('order-field-note') || (isReward ? 'លក់រង្វាន់' : '');
 
+  // លេខអ្នកលក់: បើ VET(COD) ឬ លក់រង្វាន់ ត្រូវតែជា 097 859 5526
+  let sellerPhone = getVal('order-field-seller-phone');
+  if (delivery === 'VET(COD)' || isReward) {
+    sellerPhone = '097 859 5526';
+  }
+
   const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
                      (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
                      (currentOrderProducts.free || 0);
 
   if (totalBoxes === 0) {
-    alert('សូមជ្រើសរើសចំនួនប្រអប់ទំនិញយ៉ាងហោចណាស់ ១ ប្រអប់!');
+    showToastNotification('សូមជ្រើសរើសចំនួនប្រអប់ទំនិញយ៉ាងហោចណាស់ ១ ប្រអប់!');
     return;
   }
 
-  if (!phone) {
-    alert('សូមបញ្ចូលលេខទូរសព្ទអតិថិជន!');
+  if (!phone || phone.replace(/[\s\-\.]/g, '').length < 8) {
+    showToastNotification('សូមបញ្ចូលលេខទូរសព្ទអ្នកទទួលឱ្យបានត្រឹមត្រូវ!');
     return;
+  }
+
+  // ពិនិត្យភាពស្ទួនតាម Order ID (លក្ខខណ្ឌ៖ លេខទូរស័ព្ទដូចគ្នាអនុញ្ញាត តែ Order ID / Row ដូចគ្នាមិនបានទេ)
+  if (orderId && DataService.data && Array.isArray(DataService.data.personalSales)) {
+    const isDup = DataService.data.personalSales.some(s => s.orderId && s.orderId.toLowerCase() === orderId.toLowerCase());
+    if (isDup) {
+      alert(`⚠️ លេខកុម្ម៉ង់ ${orderId} នេះមានរួចហើយក្នុង Personal Sales! មិនអាចបញ្ចូលស្ទួនបានទេ។`);
+      return;
+    }
   }
 
   const btn = document.getElementById('btn-submit-order');
@@ -8053,6 +8161,7 @@ async function submitNewOrder() {
     recordId: `REC-${Date.now().toString().slice(-4)}`,
     customer: customer,
     seller: seller,
+    sellerPhone: sellerPhone,
     location: location,
     phone: phone,
     qtyYL: currentOrderProducts.yl || 0,
@@ -8067,9 +8176,10 @@ async function submitNewOrder() {
     totalAmount: totalUsd,
     shipFee: shipFee,
     deliveryMethod: delivery,
-    codStatus: 'មិនទាន់ទូទាត់',
+    codStatus: 'បានដាក់ការកុម្មង់', // កំណត់ពាក្យ "បានដាក់ការកុម្មង់" ជា Default
     profit: profit,
-    note: note
+    note: note,
+    createdAt: Date.now()
   };
 
   // 1. Immediately inject into live DataService in-memory
@@ -8100,13 +8210,14 @@ async function submitNewOrder() {
     }
   }
 
-  // 4. Update UI live
+  // 4. Update UI live and clear input
+  clearOrderInput();
   closeNewOrderModal();
   renderCurrentView();
 
   if (btn) {
     btn.disabled = false;
-    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូល Personal Sales 🚀</span>`;
+    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូលការលក់ផ្ទាល់ខ្លួន 🚀</span>`;
   }
 
   showToastNotification(`កត់ត្រាការកុម្ម៉ង់ ${orderId || 'រង្វាន់'} ចូល Personal Sales ជោគជ័យ! 🎉`);
@@ -8123,6 +8234,8 @@ window.calculateOrderFinancials = calculateOrderFinancials;
 window.pasteClipboardToOrderInput = pasteClipboardToOrderInput;
 window.parsePastedOrderText = parsePastedOrderText;
 window.submitNewOrder = submitNewOrder;
+window.checkOrderSubmitValidation = checkOrderSubmitValidation;
+window.clearOrderInput = clearOrderInput;
 
 // ==========================================
 // Quick Expense Modal Logic (In-App Entry)
@@ -8310,17 +8423,30 @@ window.submitNewExpense = submitNewExpense;
 // ==========================================
 // Delivery Shipping Auto-Defaults (Customizable)
 // ==========================================
+// Delivery Shipping Auto-Defaults (Customizable) & VET COD Seller Phone Rule
+// ==========================================
 function updateDeliveryShippingDefault() {
   const sel = document.getElementById('order-field-delivery');
   const shipInput = document.getElementById('order-field-ship');
+  const sellerPhoneInput = document.getElementById('order-field-seller-phone');
   if (!sel || !shipInput) return;
   const val = sel.value || '';
+
   if (val.includes('Thai')) {
     shipInput.value = '5.50';
-  } else if (val.includes('VET')) {
+  } else if (val.includes('VET(COD)')) {
     shipInput.value = '3.00';
+    // លក្ខណត្រង់ក្រុមហ៊ុនដឹកជញ្ជូន បើជ្រើសយក VET(COD) ត្រូវលោតបំពេញលេខ 097 859 5526 ជានិច្ច
+    if (sellerPhoneInput) sellerPhoneInput.value = '097 859 5526';
+  } else if (val === 'VET') {
+    shipInput.value = '2.50';
+  } else if (val === 'Delivery COD') {
+    shipInput.value = '2.50';
+  } else if (val === 'Moto') {
+    shipInput.value = '2.00';
   }
   calculateOrderFinancials();
+  if (typeof checkOrderSubmitValidation === 'function') checkOrderSubmitValidation();
 }
 
 // ==========================================
@@ -8343,14 +8469,13 @@ function updateModalLanguage() {
   const expQuickAmt = document.getElementById('expense-quick-amount-label');
   const expLabelNote = document.getElementById('expense-label-note');
   const expFieldNote = document.getElementById('expense-field-note');
-  const btnCancelExp = document.getElementById('btn-cancel-expense');
   const btnSubmitExp = document.getElementById('btn-submit-expense');
 
   if (expTitle) expTitle.textContent = isKm ? 'កត់ត្រាចំណាយថ្មី' : 'Record New Expense';
   if (expSubtitle) expSubtitle.textContent = isKm ? 'បញ្ចូលចំណាយប្រចាំថ្ងៃដោយផ្ទាល់' : 'Daily Expenses Direct Entry';
   if (expPresetsLabel) expPresetsLabel.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i><span>${isKm ? 'ចំណាយញឹកញាប់៖' : 'Quick Presets:'}</span>`;
   if (expPresetsHint) expPresetsHint.textContent = isKm ? 'ចុច ១ដើម្បីបំពេញ' : 'Tap to auto-fill';
-  if (expLabelDate) expLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ:' : 'Date:';
+  if (expLabelDate) expLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ (dd/mm/yyyy):' : 'Date (dd/mm/yyyy):';
   if (expLabelTime) expLabelTime.textContent = isKm ? 'ម៉ោង:' : 'Time:';
   if (expLabelDesc) expLabelDesc.innerHTML = `${isKm ? 'បរិយាយ ឬមុខចំណាយ:' : 'Description:'} <span class="text-rose-400">*</span>`;
   if (expFieldDesc) expFieldDesc.placeholder = isKm ? 'ឧ. កាហ្វេ, បាយថ្ងៃត្រង់, ចាក់សាំង...' : 'e.g. Coffee, Lunch, Gas...';
@@ -8359,12 +8484,12 @@ function updateModalLanguage() {
   if (expQuickAmt) expQuickAmt.textContent = isKm ? 'រហ័ស:' : 'Quick:';
   if (expLabelNote) expLabelNote.textContent = isKm ? 'សម្គាល់បន្ថែម (ស្រេចចិត្ត):' : 'Note (Optional):';
   if (expFieldNote) expFieldNote.placeholder = isKm ? 'ឧ. ទីតាំង ឬហាង...' : 'e.g. Location or store...';
-  if (btnCancelExp) btnCancelExp.textContent = isKm ? 'បោះបង់' : 'Cancel';
   if (btnSubmitExp) btnSubmitExp.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>${isKm ? 'រក្សាទុកចំណាយ 💸' : 'Save Expense 💸'}</span>`;
 
   // 2. Order modal
   const orderTitle = document.getElementById('order-modal-title');
   const orderSubtitle = document.getElementById('order-modal-subtitle');
+  const orderBtnClear = document.getElementById('order-btn-clear-text');
   const orderPasteTab = document.getElementById('order-mode-paste-tab');
   const orderFormTab = document.getElementById('order-mode-form-tab');
   const orderPastePrompt = document.getElementById('order-label-paste-prompt');
@@ -8382,7 +8507,6 @@ function updateModalLanguage() {
   const orderCustPhone = document.getElementById('order-label-cust-phone');
   const orderLocation = document.getElementById('order-label-location');
   const orderProducts = document.getElementById('order-label-products');
-  const orderExtraBtn = document.getElementById('extra-prod-btn-text');
   const orderDelivSection = document.getElementById('order-label-delivery-section');
   const orderDelivLabel = document.getElementById('order-label-delivery');
   const orderShipLabel = document.getElementById('order-label-ship');
@@ -8391,11 +8515,11 @@ function updateModalLanguage() {
   const orderStockText = document.getElementById('order-label-stock-text');
   const orderProfitText = document.getElementById('order-label-profit-text');
   const orderLabelNote = document.getElementById('order-label-note');
-  const btnCancelOrder = document.getElementById('btn-cancel-order');
   const btnSubmitOrder = document.getElementById('btn-submit-order');
 
   if (orderTitle) orderTitle.textContent = isKm ? 'កត់ត្រាការកុម្ម៉ង់ថ្មី' : 'Record New Order';
   if (orderSubtitle) orderSubtitle.textContent = isKm ? 'ការលក់ផ្ទាល់ខ្លួន និងក្រុម' : 'Personal Sales & Team Sync';
+  if (orderBtnClear) orderBtnClear.textContent = isKm ? 'សម្អាត' : 'Clear';
   if (orderPasteTab) orderPasteTab.innerHTML = `<i data-lucide="clipboard-paste" class="w-3.5 h-3.5"></i><span>${isKm ? 'បិទភ្ជាប់ស្វ័យប្រវត្តិ' : 'Smart Paste'}</span>`;
   if (orderFormTab) orderFormTab.innerHTML = `<i data-lucide="file-pen-line" class="w-3.5 h-3.5"></i><span>${isKm ? 'ទម្រង់រហ័ស' : 'Quick Form'}</span>`;
   if (orderPastePrompt) orderPastePrompt.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i><span>${isKm ? 'បិទភ្ជាប់សារពីតេឡេក្រាម៖' : 'Paste message from Telegram / Bot:'}</span>`;
@@ -8405,24 +8529,22 @@ function updateModalLanguage() {
   if (btnTypeRwdText) btnTypeRwdText.textContent = isKm ? '🎁 លក់រង្វាន់ (ថ្លៃដើម $0)' : '🎁 Reward Order ($0 Cost)';
   if (orderTypeDesc) orderTypeDesc.textContent = isKm ? 'គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។' : 'Standard stock cost ($24/box) with official Order ID.';
   if (orderLabelId) orderLabelId.textContent = isKm ? 'លេខកុម្ម៉ង់:' : 'Order ID:';
-  if (orderLabelDate) orderLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ:' : 'Order Date:';
+  if (orderLabelDate) orderLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ (dd/mm/yyyy):' : 'Date (dd/mm/yyyy):';
   if (orderLabelSeller) orderLabelSeller.textContent = isKm ? 'ឈ្មោះអ្នកលក់:' : 'Seller Name:';
   if (orderLabelSellerPhone) orderLabelSellerPhone.textContent = isKm ? 'លេខទូរសព្ទអ្នកលក់:' : 'Seller Phone:';
   if (orderCustSection) orderCustSection.innerHTML = `<i data-lucide="user" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'ព័ត៌មានអតិថិជន:' : 'Customer Information:'}</span>`;
   if (orderCustName) orderCustName.textContent = isKm ? 'ឈ្មោះអតិថិជន (ហ្វេសប៊ុក):' : 'Customer Name (Facebook):';
-  if (orderCustPhone) orderCustPhone.textContent = isKm ? 'លេខទូរសព្ទអ្នកទទួល:' : 'Receiver Phone:';
+  if (orderCustPhone) orderCustPhone.innerHTML = `${isKm ? 'លេខទូរសព្ទអ្នកទទួល:' : 'Receiver Phone:'} <span class="text-rose-400">*</span>`;
   if (orderLocation) orderLocation.textContent = isKm ? 'អាសយដ្ឋានដឹកជញ្ជូន:' : 'Delivery Address:';
   if (orderProducts) orderProducts.innerHTML = `<i data-lucide="boxes" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'មុខទំនិញ & ចំនួនប្រអប់:' : 'Products & Quantity:'}</span>`;
-  if (orderExtraBtn) orderExtraBtn.textContent = isKm ? '+ បង្ហាញមុខទំនិញបន្ថែម' : '+ Show Extra Products (KN, PDO, Free)';
   if (orderDelivSection) orderDelivSection.innerHTML = `<i data-lucide="truck" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'សេវាដឹកជញ្ជូន & ទឹកប្រាក់:' : 'Delivery & Financials:'}</span>`;
   if (orderDelivLabel) orderDelivLabel.textContent = isKm ? 'ក្រុមហ៊ុនដឹកជញ្ជូន:' : 'Shipping Carrier:';
   if (orderShipLabel) orderShipLabel.textContent = isKm ? 'ថ្លៃដឹកជញ្ជូន ($):' : 'Shipping Fee ($):';
   if (orderPriceRaw) orderPriceRaw.textContent = isKm ? 'តម្លៃលក់ (៛ ឬ បាត):' : 'Sale Price (KHR / THB):';
-  if (orderTotalUsd) orderTotalUsd.textContent = isKm ? 'តម្លៃសរុប ($ ដុល្លារ):' : 'Total Amount ($ USD):';
+  if (orderTotalUsd) orderTotalUsd.textContent = isKm ? 'តម្លៃសរុប ($ Auto):' : 'Total Amount ($ Auto):';
   if (orderStockText) orderStockText.textContent = isKm ? 'ថ្លៃដើមស្តុក:' : 'Stock Cost:';
   if (orderProfitText) orderProfitText.textContent = isKm ? 'ប្រាក់ចំណេញ:' : 'Net Profit:';
   if (orderLabelNote) orderLabelNote.textContent = isKm ? 'ចំណាំបន្ថែម (ស្រេចចិត្ត):' : 'Note (Optional):';
-  if (btnCancelOrder) btnCancelOrder.textContent = isKm ? 'បោះបង់' : 'Cancel';
   if (btnSubmitOrder) btnSubmitOrder.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>${isKm ? 'បញ្ជូនចូលការលក់ផ្ទាល់ខ្លួន 🚀' : 'Submit to Personal Sales 🚀'}</span>`;
 
   if (window.lucide) window.lucide.createIcons();

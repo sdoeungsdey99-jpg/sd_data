@@ -510,26 +510,36 @@ window.DataService = {
         }
       }
 
-      // Merge any pending local orders (submitted through app) that haven't synced to sheet yet
+      // Merge any pending local orders (submitted through app within last 30 minutes)
       try {
         const localOrders = JSON.parse(localStorage.getItem('sd_local_orders') || '[]');
         if (Array.isArray(localOrders) && localOrders.length > 0) {
           const sheetRecordIds = new Set(personalSales.map(s => s.orderId || s.recordId));
-          const unsynced = localOrders.filter(lo => !sheetRecordIds.has(lo.orderId || lo.recordId));
-          if (unsynced.length > 0) {
-            personalSales.unshift(...unsynced);
+          const stillPending = localOrders.filter(lo => {
+            if (sheetRecordIds.has(lo.orderId || lo.recordId)) return false; // Confirmed synced to sheet!
+            const age = Date.now() - (lo.createdAt || 0);
+            return lo.createdAt ? (age < 30 * 60 * 1000) : false; // Do not revive phantom/deleted records
+          });
+          localStorage.setItem('sd_local_orders', JSON.stringify(stillPending));
+          if (stillPending.length > 0) {
+            personalSales.unshift(...stillPending);
           }
         }
       } catch (_) {}
 
-      // Merge any pending local expenses (submitted through app) that haven't synced to sheet yet
+      // Merge any pending local expenses (submitted through app within last 30 minutes)
       try {
         const localExpenses = JSON.parse(localStorage.getItem('sd_local_expenses') || '[]');
         if (Array.isArray(localExpenses) && localExpenses.length > 0) {
           const sheetExpKeys = new Set(expenses.map(e => `${e.date}|${e.description}|${e.amount}`));
-          const unsynced = localExpenses.filter(le => !sheetExpKeys.has(`${le.date}|${le.description}|${le.amount}`));
-          if (unsynced.length > 0) {
-            expenses.unshift(...unsynced);
+          const stillPending = localExpenses.filter(le => {
+            if (sheetExpKeys.has(`${le.date}|${le.description}|${le.amount}`)) return false; // Confirmed synced to sheet!
+            const age = Date.now() - (le.createdAt || 0);
+            return le.createdAt ? (age < 30 * 60 * 1000) : false; // Do not revive phantom/deleted records
+          });
+          localStorage.setItem('sd_local_expenses', JSON.stringify(stillPending));
+          if (stillPending.length > 0) {
+            expenses.unshift(...stillPending);
           }
         }
       } catch (_) {}
