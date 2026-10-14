@@ -1212,9 +1212,10 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // 4. When scrolling stops / screen is still -> Smoothly restore Dock!
+    // 4. When scrolling stops / screen is still -> Smoothly restore Dock (except when deep inside profile drawer)
     clearTimeout(scrollIdleTimer);
     scrollIdleTimer = setTimeout(() => {
+      if (el.id === 'profile-drawer-content' && el.scrollTop > 25) return;
       setDockVisible(true);
     }, 450);
   }, { passive: true });
@@ -5740,10 +5741,13 @@ function openProfileDrawer() {
   renderProfileDrawerContent();
   modal.classList.remove('hidden');
 
-  // Auto-hide bottom dock to give full focus to Profile Dashboard
-  setDockVisible(false);
+  // Show Tab Dock initially when opening Profile Dashboard, and let scrolling auto-hide it dynamically
+  setDockVisible(true);
   const scrollEl = document.getElementById('profile-drawer-content');
-  if (scrollEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(scrollEl, false);
+  if (scrollEl) {
+    scrollEl.scrollTop = 0;
+    if (typeof hookScrollableForDock === 'function') hookScrollableForDock(scrollEl, false);
+  }
 
   requestAnimationFrame(() => {
     panel.classList.remove('-translate-x-full');
