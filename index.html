@@ -2068,19 +2068,22 @@
   <!-- ======================================================== -->
 
   <!-- Personal Sales Drill-down Modal (Latest First 31 -> 01) -->
-  <div id="sales-modal" onclick="if(event.target === this) closeSalesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[76vh] sm:max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
-      <div onclick="handleHeaderScrollToTop(event, 'sales-modal-list')" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 cursor-pointer">
-        <div class="flex items-center gap-2.5">
+  <div id="sales-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
+    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
+      <div onclick="handleHeaderScrollToTop(event, 'sales-modal-list')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="closeSalesModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
           <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
             <i data-lucide="shopping-bag" class="w-4 h-4"></i>
           </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight">តារាងការលក់ Personal Sales</h3>
-            <p id="sales-modal-subtitle" class="text-[11px] text-slate-400 mt-0.5">រៀបចំពីថ្ងៃចុងក្រោយមកមុន (31 ➔ 01)</p>
+          <div class="min-w-0 truncate">
+            <h3 class="font-bold text-sm text-white leading-tight truncate">តារាងការលក់ Personal Sales</h3>
+            <p id="sales-modal-subtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">រៀបចំពីថ្ងៃចុងក្រោយមកមុន (31 ➔ 01)</p>
           </div>
         </div>
-        <div class="relative">
+        <div class="relative shrink-0">
           <button onclick="toggleModalContextMenu('sales', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
             <i data-lucide="more-horizontal" class="w-5 h-5"></i>
           </button>
@@ -2101,29 +2104,32 @@
         </div>
       </div>
       <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
-      <div id="sales-modal-footer" class="px-5 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+      <div id="sales-modal-footer" class="px-4 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
-      <div class="p-4 pb-10 overflow-y-auto flex-1 no-scrollbar space-y-2.5" id="sales-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2.5" id="sales-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Rendered dynamically -->
       </div>
     </div>
   </div>
 
   <!-- Payables Full Drill-down Modal -->
-  <div id="payables-modal" onclick="if(event.target === this) closePayablesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[76vh] sm:max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
-      <div onclick="handleHeaderScrollToTop(event, 'payables-modal-list')" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 cursor-pointer">
-        <div class="flex items-center gap-2.5">
+  <div id="payables-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
+    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
+      <div onclick="handleHeaderScrollToTop(event, 'payables-modal-list')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="closePayablesModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
           <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
             <i data-lucide="credit-card" class="w-4 h-4"></i>
           </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight">បញ្ជីបំណុលត្រូវទូទាត់ពេញលេញ</h3>
-            <p id="payables-modal-subtitle" class="text-[11px] text-slate-400 mt-0.5">ទិន្នន័យជាក់ស្តែងពី Bank & Cash Balance</p>
+          <div class="min-w-0 truncate">
+            <h3 class="font-bold text-sm text-white leading-tight truncate">បញ្ជីបំណុលត្រូវទូទាត់ពេញលេញ</h3>
+            <p id="payables-modal-subtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">ទិន្នន័យជាក់ស្តែងពី Bank & Cash Balance</p>
           </div>
         </div>
-        <div class="relative">
+        <div class="relative shrink-0">
           <button onclick="toggleModalContextMenu('payables', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
             <i data-lucide="more-horizontal" class="w-5 h-5"></i>
           </button>
@@ -2144,29 +2150,32 @@
         </div>
       </div>
       <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
-      <div id="payables-modal-footer" class="px-5 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+      <div id="payables-modal-footer" class="px-4 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
-      <div class="p-4 pb-10 overflow-y-auto flex-1 no-scrollbar space-y-2" id="payables-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2" id="payables-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Rendered dynamically -->
       </div>
     </div>
   </div>
 
   <!-- Expenses Full Drill-down Modal -->
-  <div id="expenses-modal" onclick="if(event.target === this) closeExpensesModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[76vh] sm:max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
-      <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 cursor-pointer">
-        <div class="flex items-center gap-2.5">
+  <div id="expenses-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
+    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
+      <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="closeExpensesModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
           <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
             <i data-lucide="receipt" class="w-4 h-4"></i>
           </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight">បញ្ជីចំណាយពេញលេញ (Daily Expenses)</h3>
-            <p id="expenses-modal-subtitle" class="text-[11px] text-slate-400 mt-0.5">រៀបចំតាមកាលបរិច្ឆេទចុងក្រោយ</p>
+          <div class="min-w-0 truncate">
+            <h3 class="font-bold text-sm text-white leading-tight truncate">បញ្ជីចំណាយពេញលេញ (Daily Expenses)</h3>
+            <p id="expenses-modal-subtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">រៀបចំតាមកាលបរិច្ឆេទចុងក្រោយ</p>
           </div>
         </div>
-        <div class="relative">
+        <div class="relative shrink-0">
           <button onclick="toggleModalContextMenu('expenses', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
             <i data-lucide="more-horizontal" class="w-5 h-5"></i>
           </button>
@@ -2187,31 +2196,33 @@
         </div>
       </div>
       <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
-      <div id="expenses-modal-footer" class="px-5 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+      <div id="expenses-modal-footer" class="px-4 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
-      <div class="p-4 pb-10 overflow-y-auto flex-1 no-scrollbar space-y-2" id="expenses-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2" id="expenses-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Rendered dynamically -->
       </div>
     </div>
   </div>
 
   <!-- COD Receivables Modal (Note 2 - iOS Standard Header) -->
-  <div id="cod-modal" onclick="if(event.target === this) closeCodModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[76vh] sm:max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
+  <div id="cod-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
+    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
       <!-- Header matching iOS Standard -->
-      <div onclick="handleHeaderScrollToTop(event, 'cod-modal-table-container')" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 cursor-pointer">
-        <div class="flex items-center gap-2.5">
+      <div onclick="handleHeaderScrollToTop(event, 'cod-modal-table-container')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="closeCodModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
           <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
             <i data-lucide="clock" class="w-4 h-4"></i>
           </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight">លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់</h3>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Outstanding Customer Payment</p>
+          <div class="min-w-0 truncate">
+            <h3 class="font-bold text-sm text-white leading-tight truncate">លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់</h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 truncate">Outstanding Customer Payment</p>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <div class="relative">
+        <div class="relative shrink-0">
             <button onclick="toggleModalContextMenu('cod', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
               <i data-lucide="more-horizontal" class="w-5 h-5"></i>
             </button>
@@ -2229,17 +2240,16 @@
                 <span class="action-label-copy">ចម្លង</span>
               </button>
             </div>
-          </div>
         </div>
       </div>
 
       <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
-      <div id="cod-modal-footer" class="px-5 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+      <div id="cod-modal-footer" class="px-4 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
 
       <!-- Table matching Image 2 -->
-      <div class="overflow-x-auto overflow-y-auto flex-1 no-scrollbar p-3 pb-10" id="cod-modal-table-container" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="overflow-x-auto overflow-y-auto flex-1 no-scrollbar p-3 pb-28" id="cod-modal-table-container" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <table class="w-full text-left text-xs whitespace-nowrap">
           <thead>
             <tr class="text-slate-400 border-b border-white/10 text-[11px]">
@@ -2259,19 +2269,22 @@
   </div>
 
   <!-- Bank Accounts & Actual Cash Breakdown Modal (Note 4) -->
-  <div id="bank-modal" onclick="if(event.target === this) closeBankModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
-    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E]/95 backdrop-blur-2xl border border-white/10 rounded-3xl max-h-[76vh] sm:max-h-[85vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl animate-fade-in">
-      <div onclick="handleHeaderScrollToTop(event, 'bank-modal-list')" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 cursor-pointer">
-        <div class="flex items-center gap-2.5">
+  <div id="bank-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
+    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
+      <div onclick="handleHeaderScrollToTop(event, 'bank-modal-list')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="closeBankModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
           <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
             <i data-lucide="building-2" class="w-4 h-4"></i>
           </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight">ឈ្មោះគណនី / ធនាគារ និងសមតុល្យ</h3>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5">Bank Accounts & Cash Balance</p>
+          <div class="min-w-0 truncate">
+            <h3 class="font-bold text-sm text-white leading-tight truncate">ឈ្មោះគណនី / ធនាគារ និងសមតុល្យ</h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 truncate">Bank Accounts & Cash Balance</p>
           </div>
         </div>
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-1.5 shrink-0">
           <div class="relative">
             <button onclick="toggleModalContextMenu('bank', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
               <i data-lucide="more-horizontal" class="w-5 h-5"></i>
@@ -2291,34 +2304,32 @@
               </button>
             </div>
           </div>
-          <button onclick="closeBankModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition">
-            <i data-lucide="chevron-down" class="w-5 h-5"></i>
-          </button>
         </div>
       </div>
       <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
-      <div id="bank-modal-footer" class="px-5 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+      <div id="bank-modal-footer" class="px-4 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
-      <div class="p-4 pb-10 overflow-y-auto flex-1 no-scrollbar space-y-2" id="bank-modal-list">
+      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2" id="bank-modal-list">
         <!-- Populated dynamically -->
       </div>
     </div>
   </div>
 
   <!-- Notification Bottom Sheet Modal (លាតពេញឆ្វេងទៅស្តាំ ១០០% + ប៉ះផ្ទៃទំនេរបិទ) -->
-  <div id="notif-modal" onclick="if(event.target === this) toggleNotificationsModal()" 
-       class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 pb-28 sm:p-4 transition-all duration-300">
-    <div id="notif-modal-card" onclick="event.stopPropagation()" 
-         class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 w-full max-w-lg mx-auto relative shadow-2xl animate-fade-in flex flex-col max-h-[76vh] sm:max-h-[85vh]">
-      <div class="flex items-center justify-between mb-3 shrink-0">
-        <div onclick="handleHeaderScrollToTop(event, 'notif-feed-list')" class="flex items-center gap-2.5 cursor-pointer">
+  <div id="notif-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
+    <div id="notif-modal-card" class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
+      <div onclick="handleHeaderScrollToTop(event, 'notif-feed-list')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="toggleNotificationsModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
           <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
             <i data-lucide="bell" class="w-4 h-4"></i>
           </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight">ការជូនដំណឹង & បច្ចុប្បន្នភាព</h3>
-            <p class="text-[10px] text-slate-400 mt-0.5">របាយការណ៍បច្ចុប្បន្នភាពជួរដេក និងដំណឹងក្រុម</p>
+          <div class="min-w-0 truncate">
+            <h3 class="font-bold text-sm text-white leading-tight truncate">ការជូនដំណឹង & បច្ចុប្បន្នភាព</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5 truncate">របាយការណ៍បច្ចុប្បន្នភាពជួរដេក និងដំណឹងក្រុម</p>
           </div>
         </div>
         <button onclick="markAllNotificationsAsRead()" 
@@ -2328,7 +2339,7 @@
         </button>
       </div>
 
-      <div id="notif-feed-list" class="space-y-2.5 overflow-y-auto no-scrollbar pb-10 flex-1" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div id="notif-feed-list" class="p-3.5 space-y-2.5 overflow-y-auto no-scrollbar pb-28 flex-1" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Injected dynamically -->
       </div>
     </div>
