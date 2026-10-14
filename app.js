@@ -5124,16 +5124,16 @@ function showToastNotification(msg) {
 // =========================================================
 
 const DEFAULT_PROFILE_DATA = {
-  name: 'ស្តី ស្តើង',
-  memberId: 'ID: SD-0001',
-  subtitle: 'SDEY SDOEUNG',
-  avatar: 'profile.png',
-  work: 'ស្ថាបនិក & អ្នកគ្រប់គ្រងនៅ SD Data',
-  study: 'ជីវិតជាការរៀនសូត្រ (Life is Learning)',
+  name: 'វណ្ណ ស៊ីថា',
+  memberId: 'MANAGING DIRECTOR',
+  subtitle: 'VANN SITHA TRADING CO., LTD.',
+  avatar: 'vst-logo.png',
+  work: 'អគ្គនាយកនៅ វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក',
+  study: 'អ្នកបង្រៀន AI • ភាពជាអ្នកដឹកនាំ & ការបិទការលក់ (AI, Leadership & Sales)',
   live: 'រាជធានីភ្នំពេញ',
   from: 'ព្រះរាជាណាចក្រកម្ពុជា',
-  status: 'កំពុងអភិវឌ្ឍអាជីវកម្ម',
-  birthday: '១៥ មករា ២០០០',
+  status: 'អគ្គនាយក វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក',
+  birthday: '០១ មករា',
   phone: '096 212 9261',
   privacy: {
     showWork: true,
@@ -5151,6 +5151,22 @@ function getProfileData() {
     const raw = localStorage.getItem('sd_profile_data');
     if (raw) {
       const parsed = JSON.parse(raw);
+      // Seamlessly migrate legacy placeholder profile to Director General Vann Sitha with official VST Logo
+      if (parsed.name === 'ស្តី ស្តើង' || parsed.name === 'ប៊ិច នោរ៉ា' || parsed.avatar === 'bostar-star-logo.png' || parsed.memberId === 'ID: SD-0001' || parsed.memberId === 'SD-8899' || parsed.memberId === 'FOUNDER & CEO') {
+        const migrated = {
+          ...DEFAULT_PROFILE_DATA,
+          ...parsed,
+          name: 'វណ្ណ ស៊ីថា',
+          memberId: 'MANAGING DIRECTOR',
+          subtitle: 'VANN SITHA TRADING CO., LTD.',
+          avatar: 'vst-logo.png',
+          work: 'អគ្គនាយកនៅ វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក',
+          study: 'អ្នកបង្រៀន AI • ភាពជាអ្នកដឹកនាំ & ការបិទការលក់ (AI, Leadership & Sales)',
+          status: 'អគ្គនាយក វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក'
+        };
+        localStorage.setItem('sd_profile_data', JSON.stringify(migrated));
+        return migrated;
+      }
       return {
         ...DEFAULT_PROFILE_DATA,
         ...parsed,
@@ -5230,13 +5246,31 @@ function getAllUniqueCustomers() {
 }
 
 function getProfileNotes() {
+  const tributeNote = {
+    id: 1,
+    title: '💌 សារដឹងគុណជូន លោកអគ្គនាយក វណ្ណ ស៊ីថា',
+    text: '«សមិទ្ធផលទាំងឡាយដែលខ្ញុំអាចធ្វើបាននៅថ្ងៃនេះ រួមទាំងប្រព័ន្ធ Dashboard នេះ កើតចេញពីចំណេះដឹង និងការបង្ហាត់បង្រៀនរបស់លោកអគ្គនាយកផ្ទាល់។ លោកអគ្គនាយកគឺជាគ្រូ ជាអ្នកត្រួសត្រាយផ្លូវផ្នែក AI ជាអ្នកបង្វឹកការបិទការលក់ និងជាបង្អែកដ៏រឹងមាំរបស់ខ្ញុំ!»',
+    date: '14/10/2026'
+  };
+  const stratNote = {
+    id: 2,
+    title: '🚀 យុទ្ធសាស្ត្រពង្រីក វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក',
+    text: 'រួមបញ្ចូលបច្ចេកវិទ្យា AI ក្នុងប្រព័ន្ធការងារ ពង្រឹងសមត្ថភាពក្រុមការងារលក់ និងបណ្តុះបណ្តាលភាពជាអ្នកដឹកនាំឆ្ពោះទៅរកការរីកចម្រើនប្រកបដោយនិរន្តរភាព។',
+    date: '14/10/2026'
+  };
+
   try {
     const raw = localStorage.getItem('sd_profile_notes');
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (!parsed.some(n => n.title && n.title.includes('វណ្ណ ស៊ីថា'))) {
+        parsed.unshift(tributeNote);
+        localStorage.setItem('sd_profile_notes', JSON.stringify(parsed));
+      }
+      return parsed;
+    }
   } catch (e) {}
-  return [
-    { id: 1, title: 'គោលដៅលក់ប្រចាំខែ', text: 'ពង្រឹងការតាមដានអតិថិជនចាស់ និងបង្កើនការលក់ឈុត 2-3 ប្រអប់។', date: '13/10/2026' }
-  ];
+  return [tributeNote, stratNote];
 }
 
 function getQrPhotosList() {
@@ -5253,43 +5287,61 @@ function getQrPhotosList() {
 }
 
 // ==========================================
-// DYNAMIC GREETING CAPSULE (Ambient Floating Apple-Style Pill)
+// DYNAMIC GREETING (Text Morphing & Subtitle Swap - Option 1 ⭐)
 // ==========================================
 function triggerDrawerGreetingAnimation(e) {
   if (e && e.stopPropagation) e.stopPropagation();
-  const container = document.getElementById('drawer-greeting-capsule-container');
-  const iconEl = document.getElementById('drawer-greeting-icon');
-  const textEl = document.getElementById('drawer-greeting-text');
-  if (!container || !iconEl || !textEl) return;
+  const idEl = document.getElementById('drawer-prof-id');
+  const greetingEl = document.getElementById('drawer-prof-greeting');
+  const iconEl = document.getElementById('drawer-prof-greeting-icon');
+  const textEl = document.getElementById('drawer-prof-greeting-text');
+  if (!idEl || !greetingEl) return;
+
+  const p = getProfileData();
+  const fullName = (p.name || 'វណ្ណ ស៊ីថា').trim();
+  let displayName = fullName;
+  if (fullName.includes('ស៊ីថា') || fullName.includes('វណ្ណ')) {
+    displayName = 'លោកអគ្គនាយក ស៊ីថា';
+  } else if (fullName.includes('នោរ៉ា') || fullName.includes('ប៊ិច')) {
+    displayName = 'លោកប្រធាន នោរ៉ា';
+  } else {
+    displayName = fullName.split(/\s+/)[0];
+  }
 
   const hour = new Date().getHours();
   let icon = '🌅';
-  let text = 'អរុណសួស្តី!';
+  let text = `អរុណសួស្តី, ${displayName}!`;
   if (hour >= 12 && hour < 17) {
     icon = '☀️';
-    text = 'ទិវាសួស្តី!';
+    text = `ទិវាសួស្តី, ${displayName}!`;
   } else if (hour >= 17 && hour < 21) {
     icon = '🌇';
-    text = 'សាយ័នសួស្តី!';
+    text = `សាយ័នសួស្តី, ${displayName}!`;
   } else if (hour >= 21 || hour < 5) {
     icon = '🌙';
-    text = 'រាត្រីសួស្តី!';
+    text = `រាត្រីសួស្តី, ${displayName}!`;
   }
 
-  iconEl.textContent = icon;
-  textEl.textContent = text;
+  if (iconEl) iconEl.textContent = icon;
+  if (textEl) textEl.textContent = text;
 
   if (window._drawerGreetingTimer) clearTimeout(window._drawerGreetingTimer);
 
-  // Phase 1: Smoothly expand / run out from Profile towards Search
-  container.classList.remove('max-w-0', 'opacity-0', '-translate-x-3', 'scale-95');
-  container.classList.add('max-w-[150px]', 'opacity-100', 'translate-x-0', 'scale-100');
+  // Smooth vertical morph: slide ID up/fade out, slide Greeting up/fade in
+  idEl.classList.remove('translate-y-0', 'opacity-100');
+  idEl.classList.add('-translate-y-4', 'opacity-0');
 
-  // Phase 2 & 3: Stay visible for 3.5s with gentle ambient glow, then gracefully retract back into Profile
+  greetingEl.classList.remove('translate-y-4', 'opacity-0');
+  greetingEl.classList.add('translate-y-0', 'opacity-100');
+
+  // Display for 3.2s, then gracefully morph back to ID
   window._drawerGreetingTimer = setTimeout(() => {
-    container.classList.remove('max-w-[150px]', 'opacity-100', 'translate-x-0', 'scale-100');
-    container.classList.add('max-w-0', 'opacity-0', '-translate-x-3', 'scale-95');
-  }, 3500);
+    greetingEl.classList.remove('translate-y-0', 'opacity-100');
+    greetingEl.classList.add('translate-y-4', 'opacity-0');
+
+    idEl.classList.remove('-translate-y-4', 'opacity-0');
+    idEl.classList.add('translate-y-0', 'opacity-100');
+  }, 3200);
 }
 
 // ==========================================
@@ -5720,11 +5772,16 @@ function closeProfileDrawer() {
   panel.classList.remove('translate-x-0');
   panel.classList.add('-translate-x-full');
 
-  // Retract dynamic greeting capsule
-  const greetingContainer = document.getElementById('drawer-greeting-capsule-container');
-  if (greetingContainer) {
-    greetingContainer.classList.remove('max-w-[150px]', 'opacity-100', 'translate-x-0', 'scale-100');
-    greetingContainer.classList.add('max-w-0', 'opacity-0', '-translate-x-3', 'scale-95');
+  // Reset text morphing to default ID state
+  const idEl = document.getElementById('drawer-prof-id');
+  const greetingEl = document.getElementById('drawer-prof-greeting');
+  if (idEl) {
+    idEl.classList.remove('-translate-y-4', 'opacity-0');
+    idEl.classList.add('translate-y-0', 'opacity-100');
+  }
+  if (greetingEl) {
+    greetingEl.classList.remove('translate-y-0', 'opacity-100');
+    greetingEl.classList.add('translate-y-4', 'opacity-0');
   }
 
   setTimeout(() => {
@@ -5784,11 +5841,11 @@ function renderProfileDrawerContent() {
   if (!container) return;
 
   container.innerHTML = `
-    <!-- ZONE 1: 8 GRID SHORTCUTS (មុខងារក្នុង Dashboard) -->
+    <!-- ZONE 1: 6 GRID SHORTCUTS (មុខងារក្នុង Dashboard) -->
     <div>
       <div class="flex items-center justify-between px-1 mb-2">
         <span class="text-xs font-bold text-slate-300">${isEn ? 'Dashboard Shortcuts' : 'មុខងារចម្បង'}</span>
-        <span class="text-[10px] text-slate-400 font-mono">${isEn ? '8 Shortcuts' : '៨ ផ្លូវកាត់'}</span>
+        <span class="text-[10px] text-slate-400 font-mono">${isEn ? '6 Shortcuts' : '៦ ផ្លូវកាត់'}</span>
       </div>
 
       <div class="grid grid-cols-2 gap-2.5">
@@ -5829,20 +5886,20 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 3. កំណត់ត្រាផែនការ (Notes & Plans) -->
-        <div onclick="closeProfileDrawer(); openProfileSubModal('note');" 
-             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-amber-500/40">
+        <!-- 3. សៀវភៅ & កំណត់ត្រា (Books & Notes - Merged!) ⭐ -->
+        <div onclick="closeProfileDrawer(); openProfileSubModal('book_notes');" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-teal-500/40">
           <div class="flex items-center justify-between mb-1.5">
-            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
-              <i data-lucide="notebook-pen" class="w-4 h-4"></i>
+            <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center">
+              <i data-lucide="book-marked" class="w-4 h-4"></i>
             </div>
-            <span class="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold text-[10px]">
+            <span class="px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-400 font-mono font-bold text-[10px]">
               ${notes.length} ${isEn ? 'Notes' : 'ច្បាប់'}
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Notes & Plans' : 'កំណត់ត្រាផែនការ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Track goals & daily tasks' : 'កត់ត្រាផែនការ & គោលដៅ'}</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Books & Notes' : 'សៀវភៅ & កំណត់ត្រា'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Wisdom & Daily Plans' : 'គតិបណ្ឌិត & ផែនការ'}</p>
           </div>
         </div>
 
@@ -5873,12 +5930,12 @@ function renderProfileDrawerContent() {
               <i data-lucide="contact-round" class="w-4 h-4"></i>
             </div>
             <span class="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-mono font-bold text-[10px]">
-              ${membersCount} ${isEn ? 'Members' : 'នាក់'}
+              ៤៥ នាក់
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Members' : 'សមាជិកក្រុម'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Team roster & roles' : 'បញ្ជីសមាជិកក្រុម'}</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Structure' : 'សមាជិកក្រុម'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? '5 Core Directors' : 'ថ្នាក់ដឹកនាំកំពូល ៥ រូប'}</p>
           </div>
         </div>
 
@@ -5896,40 +5953,6 @@ function renderProfileDrawerContent() {
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Payment QR' : 'កូដទទួលប្រាក់'}</h3>
             <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Scan QR photo' : 'ស្កេនរូបភាព QR'}</p>
-          </div>
-        </div>
-
-        <!-- 7. សៀវភៅ (Life & Learning) -->
-        <div onclick="closeProfileDrawer(); openProfileSubModal('book');" 
-             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-teal-500/40">
-          <div class="flex items-center justify-between mb-1.5">
-            <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center">
-              <i data-lucide="book-open" class="w-4 h-4"></i>
-            </div>
-            <span class="px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-400 font-mono font-bold text-[10px]">
-              ${isEn ? 'Read' : 'អាន'}
-            </span>
-          </div>
-          <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Life & Learning' : 'សៀវភៅ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Book lessons & wisdom' : 'ជីវិតជាការរៀនសូត្រ'}</p>
-          </div>
-        </div>
-
-        <!-- 8. មតិកែលម្អ & ជំនួយ (Feedback & Support) -->
-        <div onclick="closeProfileDrawer(); openProfileSubModal('feedback');" 
-             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-rose-500/40">
-          <div class="flex items-center justify-between mb-1.5">
-            <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
-              <i data-lucide="message-square-heart" class="w-4 h-4"></i>
-            </div>
-            <span class="px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-[10px]">
-              Help
-            </span>
-          </div>
-          <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Feedback & Help' : 'មតិកែលម្អ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Suggestions & support' : 'សំណូមពរ & ជំនួយ'}</p>
           </div>
         </div>
 
@@ -6959,15 +6982,25 @@ function addProfileNote() {
     date: new Date().toLocaleDateString('en-GB')
   });
   localStorage.setItem('sd_profile_notes', JSON.stringify(notes));
-  openProfileSubModal('note');
+  window._activeBookNotesTab = 'notes';
+  openProfileSubModal('book_notes');
   if (appState.currentView === 'profile') renderCurrentView();
+  renderProfileDrawerContent();
+  showToastNotification('បានរក្សាទុកផែនការថ្មីជោគជ័យ!');
 }
 
 function deleteProfileNote(id) {
   const notes = getProfileNotes().filter(n => n.id !== id);
   localStorage.setItem('sd_profile_notes', JSON.stringify(notes));
-  openProfileSubModal('note');
+  window._activeBookNotesTab = 'notes';
+  openProfileSubModal('book_notes');
   if (appState.currentView === 'profile') renderCurrentView();
+  renderProfileDrawerContent();
+}
+
+function switchBookNotesTab(tab) {
+  window._activeBookNotesTab = tab;
+  openProfileSubModal('book_notes');
 }
 
 function closeProfileSubModal() {
@@ -7041,77 +7074,168 @@ function openProfileSubModal(type) {
         </div>
       </div>
     `;
-  } else if (type === 'note') {
+  } else if (type === 'book_notes' || type === 'book' || type === 'note') {
     const notes = getProfileNotes();
-    title = 'ផែនការ (Note)';
-    sub = 'កត់ត្រាផែនការ និងកិច្ចការសំខាន់ៗ';
-    icon = 'notebook-pen';
+    const activeTab = (type === 'note') ? 'notes' : (type === 'book' ? 'books' : (window._activeBookNotesTab || 'books'));
+    window._activeBookNotesTab = activeTab;
+
+    title = 'សៀវភៅ & កំណត់ត្រា';
+    sub = 'គតិបណ្ឌិតជីវិត និងកត់ត្រាផែនការប្រចាំថ្ងៃ';
+    icon = 'book-marked';
+
     contentHTML = `
-      <div class="space-y-2 p-3 rounded-2xl bg-black/30 border border-white/10">
-        <input type="text" id="new-note-title" placeholder="ចំណងជើងផែនការ..." 
-               class="w-full text-xs font-bold bg-black/40 border border-white/10 rounded-xl p-2 text-white focus:outline-none">
-        <textarea id="new-note-text" rows="2" placeholder="សរសេរខ្លឹមសារផែនការ..." 
-                  class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2 text-white focus:outline-none"></textarea>
-        <button onclick="addProfileNote()" class="w-full py-2 rounded-xl accent-solid-btn text-xs font-bold active:scale-95 transition">
-          + បន្ថែមផែនការថ្មី
-        </button>
-      </div>
-      <div class="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
-        ${notes.map(n => `
-          <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex items-start justify-between gap-2">
-            <div>
-              <h5 class="text-xs font-bold text-white">${n.title}</h5>
-              <p class="text-[11px] text-slate-300 mt-0.5 leading-relaxed">${n.text}</p>
-              <span class="text-[9px] text-slate-500 font-mono mt-1 block">${n.date}</span>
-            </div>
-            <button onclick="deleteProfileNote(${n.id})" class="text-rose-400 hover:text-rose-300 text-xs px-1.5">✕</button>
-          </div>
-        `).join('') || `<p class="text-xs text-slate-400 text-center py-4">មិនទាន់មានផែនការទេ</p>`}
-      </div>
-    `;
-  } else if (type === 'book') {
-    title = 'សៀវភៅ (ជីវិតជាការរៀនសូត្រ)';
-    sub = 'គតិបណ្ឌិត និងការអភិវឌ្ឍខ្លួនប្រចាំថ្ងៃ';
-    icon = 'book-open';
-    contentHTML = `
-      <div class="space-y-2.5">
-        <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
-          <h4 class="text-xs font-bold text-emerald-400 mb-1">📖 ជំពូកទី ១ ៖ ជីវិតជាការរៀនសូត្រមិនចេះចប់</h4>
-          <p class="text-xs text-slate-200 leading-relaxed">
-            ការរៀនសូត្ររាល់ថ្ងៃ ទោះត្រឹមតែ ១% ក៏ដោយ នឹងធ្វើឱ្យយើងរីកចម្រើន gấp ៣៧ ដងក្នុងរយៈពេល ១ ឆ្នាំ។ វិន័យ និងភាពទៀងទាត់ គឺជាកូនសោរនៃភាពជោគជ័យ។
-          </p>
+      <div class="space-y-3">
+        <!-- iOS Style Segmented Control Tab Switcher -->
+        <div class="flex items-center p-1 rounded-2xl bg-black/40 border border-white/10 select-none">
+          <button onclick="switchBookNotesTab('books')" 
+                  class="flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'books' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
+            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+            <span>សៀវភៅ (Books)</span>
+          </button>
+          <button onclick="switchBookNotesTab('notes')" 
+                  class="flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'notes' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
+            <i data-lucide="notebook-pen" class="w-3.5 h-3.5"></i>
+            <span>កំណត់ត្រា (${notes.length})</span>
+          </button>
         </div>
-        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25">
-          <h4 class="text-xs font-bold text-amber-400 mb-1">💡 ជំពូកទី ២ ៖ សិល្បៈនៃការដឹកនាំ និងបម្រើអតិថិជន</h4>
-          <p class="text-xs text-slate-200 leading-relaxed">
-            អតិថិជនមិនត្រឹមតែទិញផលិតផលទេ តែគាត់ទិញទំនុកចិត្ត និងការយកចិត្តទុកដាក់របស់យើង។
-          </p>
+
+        <!-- Section 1: Books (Life Lessons & Wisdom: AI, Leadership & Sales Closing) -->
+        <div id="book-notes-panel-books" class="${activeTab === 'books' ? '' : 'hidden'} space-y-2.5">
+          <!-- Special Tribute Card: Dedicated to Lok Akka-Nayeak Vann Sitha -->
+          <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-transparent border border-amber-500/35 relative overflow-hidden">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 text-sm">💌</span>
+              <div>
+                <h4 class="text-xs font-bold text-amber-300">សារដឹងគុណជូន លោកអគ្គនាយក វណ្ណ ស៊ីថា</h4>
+                <p class="text-[9.5px] text-slate-300">ពីកូនក្រុម និងប្រព័ន្ធជំនួយការ AI</p>
+              </div>
+            </div>
+            <p class="text-[11.5px] text-slate-200 leading-relaxed italic">
+              «សមិទ្ធផលទាំងឡាយដែលខ្ញុំអាចធ្វើបាននៅថ្ងៃនេះ រួមទាំងប្រព័ន្ធ Dashboard នេះ កើតចេញពីការរៀនសូត្រពីលោកអគ្គនាយកទាំងអស់។ លោកអគ្គនាយកគឺជាគ្រូ ជាអ្នកត្រួសត្រាយផ្លូវផ្នែក AI ជាអ្នកបង្វឹកការបិទការលក់ និងជាបង្អែកដ៏រឹងមាំបំផុត។ សូមគោរពជូនពរលោកអគ្គនាយក មានសុខភាពល្អបរិបូរណ៍ និងបន្តដឹកនាំ វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក ឆ្ពោះទៅកាន់ភាពជោគជ័យកាន់តែរុងរឿង!»
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/25">
+            <h4 class="text-xs font-bold text-purple-400 mb-1 flex items-center gap-1.5">
+              <span>🤖</span> <span>សសរស្តម្ភទី ១ ៖ បញ្ញាសិប្បនិម្មិត (AI Mastery & Enterprise Automation)</span>
+            </h4>
+            <p class="text-xs text-slate-200 leading-relaxed">
+              AI មិនមែនមកជំនួសការងារមនុស្សទេ តែមនុស្សដែលចេះប្រើ AI នឹងមកជំនួសអ្នកដែលមិនចេះប្រើ។ រួមបញ្ចូល AI ក្នុងភាពជាអ្នកដឹកនាំ និងយុទ្ធសាស្ត្រលក់ ដើម្បីបង្កើនផលិតភាពរាប់សិបដង។
+            </p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25">
+            <h4 class="text-xs font-bold text-amber-400 mb-1 flex items-center gap-1.5">
+              <span>👑</span> <span>សសរស្តម្ភទី ២ ៖ ភាពជាអ្នកដឹកនាំ (Transformational Leadership)</span>
+            </h4>
+            <p class="text-xs text-slate-200 leading-relaxed">
+              ភាពជាអ្នកដឹកនាំ គឺជាការកសាងមនុស្ស និងការបំផុសថាមពលខាងក្នុង។ ដឹកនាំដោយចក្ខុវិស័យ បម្រើដោយក្តីស្រលាញ់ និងកសាងវប្បធម៌ស្ថាប័នរឹងមាំដើម្បីជោគជ័យយូរអង្វែង។
+            </p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
+            <h4 class="text-xs font-bold text-emerald-400 mb-1 flex items-center gap-1.5">
+              <span>🎯</span> <span>សសរស្តម្ភទី ៣ ៖ សិល្បៈនៃការបិទការលក់ (Master Sales Closing)</span>
+            </h4>
+            <p class="text-xs text-slate-200 leading-relaxed">
+              ការបិទការលក់ មិនមែនជាការបង្ខិតបង្ខំទេ តែជាការជួយអតិថិជនឱ្យធ្វើការសម្រេចចិត្តដ៏ត្រឹមត្រូវបំផុតសម្រាប់ជីវិតរបស់គាត់។ ទំនុកចិត្ត និងការយល់ចិត្ត គឺជាកូនសោរនៃការបិទការលក់។
+            </p>
+          </div>
+        </div>
+
+        <!-- Section 2: Notes & Plans (Interactive Add, List, Delete) -->
+        <div id="book-notes-panel-notes" class="${activeTab === 'notes' ? '' : 'hidden'} space-y-3">
+          <div class="space-y-2 p-3 rounded-2xl bg-black/30 border border-white/10">
+            <input type="text" id="new-note-title" placeholder="ចំណងជើងផែនការ..." 
+                   class="w-full text-xs font-bold bg-black/40 border border-white/10 rounded-xl p-2 text-white focus:outline-none">
+            <textarea id="new-note-text" rows="2" placeholder="សរសេរខ្លឹមសារផែនការ..." 
+                      class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2 text-white focus:outline-none"></textarea>
+            <button onclick="addProfileNote()" class="w-full py-2 rounded-xl accent-solid-btn text-xs font-bold active:scale-95 transition">
+              + បន្ថែមផែនការថ្មី
+            </button>
+          </div>
+          <div class="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
+            ${notes.map(n => `
+              <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex items-start justify-between gap-2">
+                <div>
+                  <h5 class="text-xs font-bold text-white">${n.title}</h5>
+                  <p class="text-[11px] text-slate-300 mt-0.5 leading-relaxed">${n.text}</p>
+                  <span class="text-[9px] text-slate-500 font-mono mt-1 block">${n.date}</span>
+                </div>
+                <button onclick="deleteProfileNote(${n.id})" class="text-rose-400 hover:text-rose-300 text-xs px-1.5">✕</button>
+              </div>
+            `).join('') || `<p class="text-xs text-slate-400 text-center py-4">មិនទាន់មានផែនការទេ</p>`}
+          </div>
         </div>
       </div>
     `;
   } else if (type === 'members') {
-    const d = DataService.data;
-    const leaders = (d && d.teamLeaders) ? d.teamLeaders : [];
-    title = (appState.language === 'en') ? 'Member' : 'សមាជិក';
-    sub = (appState.language === 'en') ? 'Team members list & achievements' : 'បញ្ជីឈ្មោះសមាជិក និងលទ្ធផលការងារ';
-    icon = 'contact-round';
+    title = (appState.language === 'en') ? 'Organization Structure' : 'រចនាសម្ព័ន្ធស្ថាប័ន & ថ្នាក់ដឹកនាំ';
+    sub = (appState.language === 'en') ? 'Vann Sitha Trading Co., Ltd. (VST) • 45+ Team Members' : 'វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក (VST) ៖ ថ្នាក់ដឹកនាំកំពូល & សមាជិកស្ថាប័ន';
+    icon = 'network';
+    
+    // Top 5 Executive Directors / Team Leaders
+    const coreLeaders = [
+      { id: 1, name: 'ស្តី ស្តើង', role: 'នាយកប្រតិបត្តិការ (Operations & Sales Lead)', members: '៩ នាក់', targetGoal: 150, totalBoxes: 29, targetPercent: '19.3', badge: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+      { id: 2, name: 'ឆេង សុធី', role: 'នាយកផ្នែកលក់ (Sales Director)', members: '១០ នាក់', targetGoal: 100, totalBoxes: 12, targetPercent: '12.0', badge: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+      { id: 3, name: 'ឆេង រ៉ាស៊ុង', role: 'នាយកផ្នែកទីផ្សារ (Marketing & Growth Lead)', members: '៨ នាក់', targetGoal: 80, totalBoxes: 8, targetPercent: '10.0', badge: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+      { id: 4, name: 'គឹម សុផល', role: 'នាយកផ្នែកបណ្តុះបណ្តាល (Talent & Coaching Lead)', members: '៩ នាក់', targetGoal: 60, totalBoxes: 6, targetPercent: '10.0', badge: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+      { id: 5, name: 'ម៉ៅ វណ្ណា', role: 'នាយកផ្នែកហិរញ្ញវត្ថុ (Finance & Audit Lead)', members: '៩ នាក់', targetGoal: 60, totalBoxes: 5, targetPercent: '8.3', badge: 'bg-rose-500/20 text-rose-400 border-rose-500/30' }
+    ];
+
     contentHTML = `
-      <div class="space-y-2">
-        ${leaders.map((m, idx) => `
-          <div class="p-3 rounded-2xl bg-black/30 border border-white/10 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <span class="w-7 h-7 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-mono font-bold text-xs flex items-center justify-center">0${idx + 1}</span>
-              <div>
-                <div class="flex items-center gap-1">
-                  <span class="text-xs font-bold text-white">${m.name}</span>
-                  ${idx === 0 ? '<img src="blue-tick.png" class="w-3.5 h-3.5 object-contain">' : ''}
+      <div class="space-y-3">
+        <!-- Executive Hierarchy Header Card with Official VST Logo -->
+        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-orange-500/15 via-amber-500/10 to-transparent border border-orange-500/25 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <img src="vst-logo.png" alt="VST Logo" class="w-11 h-11 rounded-xl object-contain border border-amber-500/40 p-0.5 bg-white shrink-0 shadow-md">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-white">លោកអគ្គនាយក វណ្ណ ស៊ីថា</span>
+                <span class="px-1.5 py-0.2 rounded bg-orange-500 text-white font-mono font-bold text-[9px]">DIRECTOR</span>
+              </div>
+              <p class="text-[10.5px] text-slate-300 mt-0.5">អគ្គនាយក វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-slate-400 block font-medium">សមាជិកស្ថាប័ន</span>
+            <span class="font-mono font-extrabold text-sm text-amber-400">៤៥ នាក់</span>
+          </div>
+        </div>
+
+        <!-- Section Title -->
+        <div class="flex items-center justify-between px-1 pt-1">
+          <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-blue-400"></i>
+            ថ្នាក់ដឹកនាំកំពូលទាំង ៥ រូប (Core Directors)
+          </h4>
+          <span class="text-[10px] text-slate-400 font-mono">៥ ក្រុមការងារ</span>
+        </div>
+
+        <!-- 5 Core Leaders Cards -->
+        <div class="space-y-2">
+          ${coreLeaders.map((m, idx) => `
+            <div class="p-3 rounded-2xl bg-black/30 border border-white/10 hover:border-white/20 transition flex items-center justify-between">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-7 h-7 rounded-xl bg-white/5 border border-white/10 text-white font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                  0${idx + 1}
+                </span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-bold text-white truncate">${m.name}</span>
+                    <img src="blue-tick.png" class="w-3 h-3 object-contain shrink-0">
+                    <span class="px-1.5 py-0.2 rounded-full text-[9px] font-mono border ${m.badge}">
+                      ${m.members}
+                    </span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 block truncate mt-0.5">${m.role}</span>
                 </div>
-                <span class="text-[10px] text-slate-400">គោលដៅ: ${m.targetGoal} ប្រអប់</span>
+              </div>
+              <div class="text-right shrink-0 pl-2">
+                <span class="font-mono font-bold text-xs text-emerald-400 block">${m.totalBoxes}/${m.targetGoal} កេស</span>
+                <span class="text-[9.5px] text-slate-500 font-mono">${m.targetPercent}% នៃគោលដៅ</span>
               </div>
             </div>
-            <span class="font-mono font-bold text-xs text-emerald-400">${m.totalBoxes} ប្រអប់ (${m.targetPercent}%)</span>
-          </div>
-        `).join('')}
+          `).join('')}
+        </div>
       </div>
     `;
   } else if (type === 'feedback') {
@@ -7248,17 +7372,30 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
     action: () => { closeProfileSettingsSearch(); openProfileSubModal('members'); }
   },
   {
+    id: 'attendance',
+    group: 'Profile Dashboard',
+    groupKm: 'មុខងារចម្បង',
+    title: 'កត់ត្រាវត្តមាន',
+    titleEn: 'Attendance Tracker',
+    subtitle: 'Profile > កត់ត្រាម៉ោងចូល/ចេញ និងប្រតិទិនវត្តមាន (CheckinMe)',
+    subtitleEn: 'Profile > Daily Check-in / Out & Attendance Matrix',
+    icon: 'fingerprint',
+    iconBg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    keywords: 'attendance checkin checkout time clock matrix វត្តមាន ចូលធ្វើការ ចេញធ្វើការ ម៉ោង កត់ត្រា checkinme',
+    action: () => { closeProfileSettingsSearch(); openAttendanceModal(); }
+  },
+  {
     id: 'telegram',
     group: 'Profile Dashboard',
     groupKm: 'មុខងារចម្បង',
-    title: 'ក្រុមជជែក',
-    titleEn: 'Team Chat',
-    subtitle: 'Profile > ចូលទៅកាន់គ្រុបតេឡេក្រាមក្រុម',
+    title: 'ទំនាក់ទំនង',
+    titleEn: 'Contact & Chat',
+    subtitle: 'Profile > ចូលទៅកាន់គ្រុបតេឡេក្រាមក្រុម (ទំនាក់ទំនង)',
     subtitleEn: 'Profile > Team Telegram Group & Chat',
     icon: 'send',
     iconBg: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
-    keywords: 'telegram chat group link ជជែក តេឡេក្រាម គ្រុប',
-    action: () => { closeProfileSettingsSearch(); openProfileSubModal('telegram'); }
+    keywords: 'telegram chat group link contact ទំនាក់ទំនង ជជែក តេឡេក្រាម គ្រុប',
+    action: () => { closeProfileSettingsSearch(); handleTelegramGroupClick(); }
   },
   {
     id: 'qr',
