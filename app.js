@@ -218,7 +218,22 @@ const appState = {
   textSize: localStorage.getItem('sd_text_size') || 'md',
   hideSubtitles: localStorage.getItem('sd_hide_subtitles') === 'true',
   notificationsEnabled: localStorage.getItem('sd_notif_enabled') !== 'false',
-  profitNetBoostMode: false
+  profitNetBoostMode: false,
+  cardVisibility: (() => {
+    try {
+      const saved = localStorage.getItem('sd_card_visibility');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return {
+      autoHideEmpty: true,
+      pureCash: true,
+      salesPerformance: true,
+      netCash: true,
+      expenses: true,
+      teamSales: true,
+      tools: true
+    };
+  })()
 };
 
 function applyHideSubtitles(hide) {
@@ -290,6 +305,7 @@ function resetAppSettings() {
   localStorage.removeItem('sd_text_size');
   localStorage.removeItem('sd_hide_subtitles');
   localStorage.removeItem('sd_card_layout');
+  localStorage.removeItem('sd_card_visibility');
   localStorage.removeItem('sd_theme');
   localStorage.removeItem('sd_lock_wallpaper');
 
@@ -299,6 +315,15 @@ function resetAppSettings() {
   appState.textSize = 'md';
   appState.hideSubtitles = false;
   appState.cardLayout = '1';
+  appState.cardVisibility = {
+    autoHideEmpty: true,
+    pureCash: true,
+    salesPerformance: true,
+    netCash: true,
+    expenses: true,
+    teamSales: true,
+    tools: true
+  };
   appState.theme = 'dark';
   appState.lockWallpaper = 'wp-deep-mesh';
 
@@ -585,11 +610,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (urlParams.get('customers') === '1') {
     setTimeout(openAllCustomersModal, 150);
   }
+  if (urlParams.get('attendance') === '1') {
+    openAttendanceModal();
+  }
+  if (urlParams.get('profile_drawer') === '1') {
+    openProfileDrawer();
+  }
   if (urlParams.get('searchopen') === '1') {
-    setTimeout(() => {
-      openAllCustomersModal();
-      setTimeout(toggleCustomersSearch, 180);
-    }, 150);
+    openAllCustomersModal();
+    toggleCustomersSearch();
   }
   if (urlParams.get('sortmenu') === '1') {
     setTimeout(() => {
@@ -632,6 +661,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (urlParams.get('sales') === '1') {
     setTimeout(openPersonalSalesModal, 250);
+  }
+  if (urlParams.get('editprofile') === '1') {
+    openEditProfileModal();
+  }
+  if (urlParams.get('settings_item')) {
+    switchView('settings');
+    toggleSettingsItem(urlParams.get('settings_item'));
   }
   if (urlParams.get('expenses') === '1') {
     setTimeout(() => openExpensesModal(true), 250);
@@ -884,6 +920,11 @@ function handleBackNavigation() {
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
+  if (!document.getElementById('attendance-modal')?.classList?.contains('hidden')) {
+    closeAttendanceModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
   if (!document.getElementById('edit-profile-modal')?.classList?.contains('hidden')) {
     closeEditProfileModal();
     if (navigator.vibrate) navigator.vibrate(15);
@@ -948,10 +989,10 @@ function handleBackNavigation() {
   return false;
 }
 
-function isAnyModalOrDrawerOpen() {
+function isAnyDrilldownModalOpen() {
   const modalIds = [
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
-    'cod-modal', 'bank-modal', 'notif-modal', 'all-customers-modal',
+    'cod-modal', 'bank-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
     'profile-sub-modal', 'qr-photos-modal', 'edit-profile-modal',
     'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
@@ -959,9 +1000,16 @@ function isAnyModalOrDrawerOpen() {
     const el = document.getElementById(id);
     if (el && !el.classList.contains('hidden')) return true;
   }
-  const profDrawer = document.getElementById('profile-drawer-modal');
-  if (profDrawer && !profDrawer.classList.contains('hidden')) return true;
   return false;
+}
+
+function isProfileDrawerOpen() {
+  const profDrawer = document.getElementById('profile-drawer-modal');
+  return !!(profDrawer && !profDrawer.classList.contains('hidden'));
+}
+
+function isAnyModalOrDrawerOpen() {
+  return isAnyDrilldownModalOpen() || isProfileDrawerOpen();
 }
 
 function setupSwipeToBack() {
@@ -983,8 +1031,7 @@ function setupSwipeToBack() {
     }
 
     const screenWidth = window.innerWidth || document.documentElement.clientWidth;
-    const profDrawer = document.getElementById('profile-drawer-modal');
-    const isDrawerOpen = profDrawer && !profDrawer.classList.contains('hidden');
+    const isDrawerOpen = isProfileDrawerOpen();
 
     if (touchStartX <= 60) {
       // 1. Started from screen left edge (<= 60px)
@@ -1022,17 +1069,16 @@ function setupSwipeToBack() {
     const touchEndY = e.changedTouches[0].clientY;
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
-    const profDrawer = document.getElementById('profile-drawer-modal');
-    const isDrawerOpen = profDrawer && !profDrawer.classList.contains('hidden');
+    const isDrawerOpen = isProfileDrawerOpen();
 
     // Case 1: Left-to-right swipe (deltaX >= 60px)
     if (deltaX >= 60 && deltaX > Math.abs(deltaY) * 1.25) {
       if (swipeOrigin === 'edge-left') {
-        if (isAnyModalOrDrawerOpen()) {
-          // If a modal or drawer is open, back navigation steps back / closes it
+        if (isAnyDrilldownModalOpen()) {
+          // If a drilldown modal is open, swipe from left edge closes/steps back
           handleBackNavigation();
-        } else {
-          // If standing on any of the 5 Dock views, swipe from left edge opens Profile Dashboard (មុខងារចម្បង)
+        } else if (!isDrawerOpen) {
+          // If standing on any of the 5 Dock views and drawer is closed, swipe from left edge opens Profile Dashboard (មុខងារចម្បង)
           if (typeof openProfileDrawer === 'function') {
             openProfileDrawer();
             if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
@@ -1043,7 +1089,7 @@ function setupSwipeToBack() {
     // Case 2: Right-to-left swipe (deltaX <= -55px)
     else if (deltaX <= -55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
       if (isDrawerOpen) {
-        // If Profile Dashboard is open, swiping right-to-left (anywhere on it or right edge) closes / slides it back!
+        // If Profile Dashboard is open, swiping right-to-left (anywhere on it or right edge) closes it
         closeProfileDrawer();
         if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
       } else if (swipeOrigin === 'edge-right') {
@@ -1066,8 +1112,7 @@ function setupSwipeToBack() {
     if (e.target && e.target.closest && e.target.closest('input, textarea, select, button, a')) return;
 
     const screenWidth = window.innerWidth || document.documentElement.clientWidth;
-    const profDrawer = document.getElementById('profile-drawer-modal');
-    const isDrawerOpen = profDrawer && !profDrawer.classList.contains('hidden');
+    const isDrawerOpen = isProfileDrawerOpen();
 
     if (e.clientX <= 60) {
       mouseStartX = e.clientX;
@@ -1091,14 +1136,13 @@ function setupSwipeToBack() {
     if (!isMouseDown) return;
     const deltaX = e.clientX - mouseStartX;
     const deltaY = e.clientY - mouseStartY;
-    const profDrawer = document.getElementById('profile-drawer-modal');
-    const isDrawerOpen = profDrawer && !profDrawer.classList.contains('hidden');
+    const isDrawerOpen = isProfileDrawerOpen();
 
     if (deltaX >= 60 && deltaX > Math.abs(deltaY) * 1.25) {
       if (mouseOrigin === 'edge-left') {
-        if (isAnyModalOrDrawerOpen()) {
+        if (isAnyDrilldownModalOpen()) {
           handleBackNavigation();
-        } else {
+        } else if (!isDrawerOpen) {
           if (typeof openProfileDrawer === 'function') {
             openProfileDrawer();
           }
@@ -2687,41 +2731,84 @@ function getDashboardViewHTML() {
     </div>
   `;
 
+  const cv = appState.cardVisibility || {
+    autoHideEmpty: true,
+    pureCash: true,
+    salesPerformance: true,
+    netCash: true,
+    expenses: true,
+    teamSales: true,
+    tools: true
+  };
+
+  const isPerformanceEmpty = (totalBoxQty === 0 && totalRevenue === 0 && totalExpenseAmt === 0 && totalGrossProfit === 0);
+  const isExpensesEmpty = (sortedFilteredExpenses.length === 0);
+  const isPureCashEmpty = (pureUsd === 0 && pureKhr === 0);
+  const isNetCashEmpty = (netCash.totalActualCash === 0 && netCash.pendingCodReceivables === 0 && netCash.totalAccountsPayable === 0);
+  const isTeamSalesEmpty = (!currentTeamLeaders || currentTeamLeaders.length === 0);
+
+  const showPureCash = cv.pureCash !== false && !(cv.autoHideEmpty && isPureCashEmpty);
+  const showPerformance = cv.salesPerformance !== false && !(cv.autoHideEmpty && isPerformanceEmpty);
+  const showNetCash = cv.netCash !== false && !(cv.autoHideEmpty && isNetCashEmpty);
+  const showExpenses = cv.expenses !== false && !(cv.autoHideEmpty && isExpensesEmpty);
+  const showTeamSales = cv.teamSales !== false && !(cv.autoHideEmpty && isTeamSalesEmpty);
+  const showTools = cv.tools !== false;
+
   const layout = appState.cardLayout || '1';
+  let cardsInOrder = [];
   if (layout === '2') {
     // Option 2: Finance / Cash Focus (Pure Cash -> Net Cash -> Expenses -> Period -> Performance -> Team Sales -> Tools)
-    return `
-      ${cardPureCash}
-      ${cardNetCash}
-      ${cardExpenses}
-      ${periodBanner}
-      ${cardPerformance}
-      ${cardTeamSales}
-      ${cardTools}
-    `;
+    cardsInOrder = [
+      { key: 'pureCash', show: showPureCash, html: cardPureCash },
+      { key: 'netCash', show: showNetCash, html: cardNetCash },
+      { key: 'expenses', show: showExpenses, html: cardExpenses },
+      { key: 'banner', show: true, html: periodBanner },
+      { key: 'performance', show: showPerformance, html: cardPerformance },
+      { key: 'teamSales', show: showTeamSales, html: cardTeamSales },
+      { key: 'tools', show: showTools, html: cardTools }
+    ];
   } else if (layout === '3') {
     // Option 3: Sales Focus (Period -> Performance -> Team Sales -> Pure Cash -> Net Cash -> Expenses -> Tools)
-    return `
-      ${periodBanner}
-      ${cardPerformance}
-      ${cardTeamSales}
-      ${cardPureCash}
-      ${cardNetCash}
-      ${cardExpenses}
-      ${cardTools}
-    `;
+    cardsInOrder = [
+      { key: 'banner', show: true, html: periodBanner },
+      { key: 'performance', show: showPerformance, html: cardPerformance },
+      { key: 'teamSales', show: showTeamSales, html: cardTeamSales },
+      { key: 'pureCash', show: showPureCash, html: cardPureCash },
+      { key: 'netCash', show: showNetCash, html: cardNetCash },
+      { key: 'expenses', show: showExpenses, html: cardExpenses },
+      { key: 'tools', show: showTools, html: cardTools }
+    ];
+  } else {
+    // Option 1: Standard (Default) (Pure Cash -> Period -> Performance -> Net Cash -> Expenses -> Team Sales -> Tools)
+    cardsInOrder = [
+      { key: 'pureCash', show: showPureCash, html: cardPureCash },
+      { key: 'banner', show: true, html: periodBanner },
+      { key: 'performance', show: showPerformance, html: cardPerformance },
+      { key: 'netCash', show: showNetCash, html: cardNetCash },
+      { key: 'expenses', show: showExpenses, html: cardExpenses },
+      { key: 'teamSales', show: showTeamSales, html: cardTeamSales },
+      { key: 'tools', show: showTools, html: cardTools }
+    ];
   }
 
-  // Option 1: Standard (Default) (Pure Cash -> Period -> Performance -> Net Cash -> Expenses -> Team Sales -> Tools)
-  return `
-    ${cardPureCash}
-    ${periodBanner}
-    ${cardPerformance}
-    ${cardNetCash}
-    ${cardExpenses}
-    ${cardTeamSales}
-    ${cardTools}
-  `;
+  const renderedCards = cardsInOrder.filter(c => c.show).map(c => c.html).join('');
+  if (!renderedCards.trim()) {
+    return `
+      ${periodBanner}
+      <div class="ios-glass-card rounded-3xl p-6 border border-white/10 text-center py-12">
+        <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 mx-auto mb-3">
+          <i data-lucide="eye-off" class="w-6 h-6"></i>
+        </div>
+        <p class="text-sm font-bold text-white mb-1">កាតទាំងអស់ត្រូវបានលាក់</p>
+        <p class="text-xs text-slate-400 mb-4">កាតគ្មានទិន្នន័យត្រូវបានលាក់ស្វ័យប្រវត្តិ ឬអ្នកបានបិទកាត</p>
+        <button onclick="switchView('settings'); setTimeout(() => toggleSettingsItem('cardVisibility'), 100);" 
+                class="px-4 py-2 rounded-xl accent-solid-btn font-bold text-xs shadow-lg transition active:scale-95">
+          គ្រប់គ្រងការបង្ហាញកាត
+        </button>
+      </div>
+    `;
+  }
+  return renderedCards;
 }
 
 // ==========================================
@@ -3853,7 +3940,98 @@ function getSettingsViewHTML() {
           ` : ''}
         </div>
 
-        <!-- 10. អំពីខ្ញុំ (About Me - ពេលចុចបង្ហាញផ្ទាំងកាតចំកណ្តាល Blur ផ្ទៃខាងក្រោយ & ប៉ះកន្លែងទំនេរបិទ) -->
+        <!-- 10. គ្រប់គ្រងកាតទិន្នន័យ (Card Visibility - Accordion with >) -->
+        <div>
+          <div onclick="toggleSettingsItem('cardVisibility')" 
+               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="sliders" class="w-4 h-4 text-teal-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isKm ? 'គ្រប់គ្រងកាតទិន្នន័យ (Card Visibility)' : 'Card Visibility'}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'កំណត់បង្ហាញ/លាក់កាត និងលាក់កាតគ្មានទិន្នន័យ' : 'Show/hide cards and auto-hide empty'}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/25 font-mono">
+                ${(appState.cardVisibility?.autoHideEmpty !== false) ? (isKm ? 'Auto-Hide បើក' : 'Auto ON') : (isKm ? 'បង្ហាញទាំងអស់' : 'Show All')}
+              </span>
+              <i data-lucide="${active === 'cardVisibility' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          </div>
+
+          ${active === 'cardVisibility' ? `
+            <div class="p-4 bg-black/40 border-t border-white/5 space-y-2.5 animate-fade-in">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-white">${isKm ? 'កំណត់បង្ហាញ ឬលាក់កាតលើទំព័រដើម' : 'Configure Card Visibility'}</span>
+                <span class="text-[10px] text-teal-400 font-mono font-bold">Live Synced</span>
+              </div>
+
+              <!-- Main Master Toggle: Auto-hide Empty Cards -->
+              <div onclick="toggleCardVisibility('autoHideEmpty')" 
+                   class="settings-row p-3 rounded-2xl bg-teal-500/10 hover:bg-teal-500/15 border border-teal-500/30 flex items-center justify-between cursor-pointer transition select-none">
+                <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                  <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center shrink-0">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <h5 class="text-xs font-bold text-teal-300 truncate">
+                        ${isKm ? 'លាក់កាតគ្មានទិន្នន័យស្វ័យប្រវត្ត' : 'Auto-Hide Empty Cards'}
+                      </h5>
+                    </div>
+                    <p class="text-[10px] text-slate-300 mt-0.5">
+                      ${isKm ? 'លាក់កាតណាដែលគ្មានទិន្នន័យក្នុងថ្ងៃ/ខែនោះ (ស្រឡះភ្នែក)' : 'Hide cards with 0 data in selected period'}
+                    </p>
+                  </div>
+                </div>
+                <button type="button" 
+                        onclick="event.stopPropagation(); toggleCardVisibility('autoHideEmpty');"
+                        class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${(appState.cardVisibility?.autoHideEmpty !== false) ? 'bg-teal-500' : 'bg-slate-700'}"
+                        role="switch" aria-checked="${(appState.cardVisibility?.autoHideEmpty !== false)}">
+                  <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${(appState.cardVisibility?.autoHideEmpty !== false) ? 'translate-x-5' : 'translate-x-0'}"></div>
+                </button>
+              </div>
+
+              <div class="pt-1.5 pb-1 text-[11px] font-bold text-slate-400">
+                ${isKm ? 'កាតទិន្នន័យនីមួយៗ (Individual Cards):' : 'Individual Cards:'}
+              </div>
+
+              <!-- List of Cards -->
+              <div class="space-y-1.5">
+                ${[
+                  { key: 'pureCash', label: isKm ? 'កាតទឹកប្រាក់ដែលមាន (Pure Cash)' : 'Pure Cash Card', icon: 'wallet', color: 'text-orange-400' },
+                  { key: 'salesPerformance', label: isKm ? 'កាតសង្ខេបការលក់ & ចំណាយ' : 'Sales & Expenses Card', icon: 'bar-chart-2', color: 'text-blue-400' },
+                  { key: 'netCash', label: isKm ? 'កាតស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash)' : 'Net Cash Position', icon: 'landmark', color: 'text-emerald-400' },
+                  { key: 'expenses', label: isKm ? 'កាតការចំណាយ (Expenses Card)' : 'Expenses Card', icon: 'receipt', color: 'text-rose-400' },
+                  { key: 'teamSales', label: isKm ? 'កាតគោលដៅលក់ក្រុម (Team Sales)' : 'Team Sales Card', icon: 'users', color: 'text-amber-400' },
+                  { key: 'tools', label: isKm ? 'កាតឧបករណ៍ AI & បកប្រែ (Quick Tools)' : 'AI & Translation Tools', icon: 'sparkles', color: 'text-purple-400' }
+                ].map(item => {
+                  const isVisible = (appState.cardVisibility && appState.cardVisibility[item.key] !== false);
+                  return `
+                    <div onclick="toggleCardVisibility('${item.key}')" 
+                         class="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-between cursor-pointer transition select-none">
+                      <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                        <i data-lucide="${item.icon}" class="w-4 h-4 ${item.color} shrink-0"></i>
+                        <span class="text-xs font-semibold text-white truncate">${item.label}</span>
+                      </div>
+                      <button type="button" 
+                              onclick="event.stopPropagation(); toggleCardVisibility('${item.key}');"
+                              class="w-9 h-5 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${isVisible ? 'bg-emerald-500' : 'bg-slate-700'}"
+                              role="switch" aria-checked="${isVisible}">
+                        <div class="w-4 h-4 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${isVisible ? 'translate-x-4' : 'translate-x-0'}"></div>
+                      </button>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- 11. អំពីខ្ញុំ (About Me) -->
         <div onclick="openAboutModal()" 
              class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
           <div class="settings-row-left flex items-center gap-3 min-w-0">
@@ -4955,6 +5133,7 @@ const DEFAULT_PROFILE_DATA = {
   live: 'រាជធានីភ្នំពេញ',
   from: 'ព្រះរាជាណាចក្រកម្ពុជា',
   status: 'កំពុងអភិវឌ្ឍអាជីវកម្ម',
+  birthday: '១៥ មករា ២០០០',
   phone: '096 212 9261',
   privacy: {
     showWork: true,
@@ -4962,6 +5141,7 @@ const DEFAULT_PROFILE_DATA = {
     showLive: true,
     showFrom: true,
     showStatus: true,
+    showBirth: true,
     showPhone: true
   }
 };
@@ -5073,6 +5253,438 @@ function getQrPhotosList() {
 }
 
 // ==========================================
+// DYNAMIC GREETING CAPSULE (Ambient Floating Apple-Style Pill)
+// ==========================================
+function triggerDrawerGreetingAnimation(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const container = document.getElementById('drawer-greeting-capsule-container');
+  const iconEl = document.getElementById('drawer-greeting-icon');
+  const textEl = document.getElementById('drawer-greeting-text');
+  if (!container || !iconEl || !textEl) return;
+
+  const hour = new Date().getHours();
+  let icon = '🌅';
+  let text = 'អរុណសួស្តី!';
+  if (hour >= 12 && hour < 17) {
+    icon = '☀️';
+    text = 'ទិវាសួស្តី!';
+  } else if (hour >= 17 && hour < 21) {
+    icon = '🌇';
+    text = 'សាយ័នសួស្តី!';
+  } else if (hour >= 21 || hour < 5) {
+    icon = '🌙';
+    text = 'រាត្រីសួស្តី!';
+  }
+
+  iconEl.textContent = icon;
+  textEl.textContent = text;
+
+  if (window._drawerGreetingTimer) clearTimeout(window._drawerGreetingTimer);
+
+  // Phase 1: Smoothly expand / run out from Profile towards Search
+  container.classList.remove('max-w-0', 'opacity-0', '-translate-x-3', 'scale-95');
+  container.classList.add('max-w-[150px]', 'opacity-100', 'translate-x-0', 'scale-100');
+
+  // Phase 2 & 3: Stay visible for 3.5s with gentle ambient glow, then gracefully retract back into Profile
+  window._drawerGreetingTimer = setTimeout(() => {
+    container.classList.remove('max-w-[150px]', 'opacity-100', 'translate-x-0', 'scale-100');
+    container.classList.add('max-w-0', 'opacity-0', '-translate-x-3', 'scale-95');
+  }, 3500);
+}
+
+// ==========================================
+// ATTENDANCE TRACKER (CheckinMe Style)
+// ==========================================
+const DEFAULT_ATTENDANCE_STATE = {
+  todayStatus: 'not_checked', // 'not_checked' | 'checked_in' | 'checked_out'
+  checkInTime: null,
+  checkOutTime: null,
+  duration: null,
+  todayLate: false,
+  location: 'ការិយាល័យកណ្តាល (HQ GPS Verified)',
+  records: [
+    { day: 1, date: '01/10/2026', checkIn: '08:02 AM', checkOut: '05:32 PM', status: 'present', duration: '9h 30m' },
+    { day: 2, date: '02/10/2026', checkIn: '08:00 AM', checkOut: '05:30 PM', status: 'present', duration: '9h 30m' },
+    { day: 5, date: '05/10/2026', checkIn: '08:05 AM', checkOut: '05:40 PM', status: 'present', duration: '9h 35m' },
+    { day: 6, date: '06/10/2026', checkIn: '08:03 AM', checkOut: '05:31 PM', status: 'present', duration: '9h 28m' },
+    { day: 7, date: '07/10/2026', checkIn: '08:35 AM', checkOut: '05:45 PM', status: 'late', duration: '9h 10m' },
+    { day: 8, date: '08/10/2026', checkIn: '08:00 AM', checkOut: '05:30 PM', status: 'present', duration: '9h 30m' },
+    { day: 9, date: '09/10/2026', checkIn: '08:04 AM', checkOut: '05:30 PM', status: 'present', duration: '9h 26m' },
+    { day: 12, date: '12/10/2026', checkIn: '08:01 AM', checkOut: '05:35 PM', status: 'present', duration: '9h 34m' },
+    { day: 13, date: '13/10/2026', checkIn: '08:06 AM', checkOut: '05:30 PM', status: 'present', duration: '9h 24m' }
+  ]
+};
+
+function getAttendanceData() {
+  try {
+    const raw = localStorage.getItem('sd_attendance_data');
+    if (raw) return { ...DEFAULT_ATTENDANCE_STATE, ...JSON.parse(raw) };
+  } catch (e) {
+    console.warn('Error reading sd_attendance_data:', e);
+  }
+  return { ...DEFAULT_ATTENDANCE_STATE };
+}
+
+function saveAttendanceData(data) {
+  try {
+    localStorage.setItem('sd_attendance_data', JSON.stringify(data));
+  } catch (e) {
+    console.warn('Error saving sd_attendance_data:', e);
+  }
+}
+
+function openAttendanceModal() {
+  const modal = document.getElementById('attendance-modal');
+  if (!modal) return;
+  renderAttendanceContent();
+  modal.classList.remove('hidden');
+  setDockVisible(false);
+
+  if (window._attendanceClockInterval) clearInterval(window._attendanceClockInterval);
+  window._attendanceClockInterval = setInterval(updateAttendanceLiveClock, 1000);
+
+  if (window.lucide) window.lucide.createIcons();
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch(_) {}
+}
+
+function closeAttendanceModal() {
+  const modal = document.getElementById('attendance-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  if (window._attendanceClockInterval) {
+    clearInterval(window._attendanceClockInterval);
+    window._attendanceClockInterval = null;
+  }
+  openProfileDrawer();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch(_) {}
+}
+
+function updateAttendanceLiveClock() {
+  const clockEl = document.getElementById('attendance-live-clock');
+  if (clockEl) {
+    const now = new Date();
+    clockEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+  }
+}
+
+function handleAttendanceAction(action) {
+  const data = getAttendanceData();
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+  if (action === 'in') {
+    data.todayStatus = 'checked_in';
+    data.checkInTime = timeStr;
+    const isLate = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 15);
+    data.todayLate = isLate;
+    if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch(_) {}
+    showToastNotification(appState.language === 'km' ? 'បានកត់ត្រាចូលធ្វើការជោគជ័យ!' : 'Checked in successfully!');
+  } else if (action === 'out') {
+    data.todayStatus = 'checked_out';
+    data.checkOutTime = timeStr;
+    data.duration = '៨ ម៉ោង ២៥ នាទី';
+    const today = now.getDate();
+    const existingIdx = (data.records || []).findIndex(r => r.day === today);
+    const newRecord = {
+      day: today,
+      date: `${String(today).padStart(2, '0')}/10/2026`,
+      checkIn: data.checkInTime || '08:00 AM',
+      checkOut: timeStr,
+      status: data.todayLate ? 'late' : 'present',
+      duration: data.duration
+    };
+    if (existingIdx >= 0) {
+      data.records[existingIdx] = newRecord;
+    } else {
+      data.records.push(newRecord);
+    }
+    if (navigator.vibrate) try { navigator.vibrate([50, 80, 50]); } catch(_) {}
+    showToastNotification(appState.language === 'km' ? 'បានកត់ត្រាចេញពីធ្វើការជោគជ័យ!' : 'Checked out successfully!');
+  }
+  saveAttendanceData(data);
+  renderAttendanceContent();
+  renderProfileDrawerContent();
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function resetTodayAttendance(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const data = getAttendanceData();
+  data.todayStatus = 'not_checked';
+  data.checkInTime = null;
+  data.checkOutTime = null;
+  data.duration = null;
+  data.todayLate = false;
+  saveAttendanceData(data);
+  renderAttendanceContent();
+  renderProfileDrawerContent();
+  if (window.lucide) window.lucide.createIcons();
+  showToastNotification(appState.language === 'km' ? 'បានកំណត់វត្តមានថ្ងៃនេះឡើងវិញ' : 'Reset today attendance');
+}
+
+function renderAttendanceContent() {
+  const container = document.getElementById('attendance-modal-body');
+  if (!container) return;
+
+  const data = getAttendanceData();
+  const isEn = appState.language === 'en';
+  const now = new Date();
+
+  const kmDays = ['អាទិត្យ', 'ចន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
+  const kmMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  
+  const dayName = kmDays[now.getDay()];
+  const dateNum = now.getDate();
+  const monthName = kmMonths[now.getMonth()];
+  const yearNum = now.getFullYear();
+  const fullDateKm = `ថ្ងៃ${dayName} ទី${dateNum} ខែ${monthName} ឆ្នាំ${yearNum}`;
+  const fullDateEn = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+  const dateStr = isEn ? fullDateEn : fullDateKm;
+
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+  const records = data.records || [];
+  const presentCount = records.filter(r => r.status === 'present').length + (data.todayStatus !== 'not_checked' && !data.todayLate ? 1 : 0);
+  const lateCount = records.filter(r => r.status === 'late').length + (data.todayLate ? 1 : 0);
+  const absentCount = 0;
+  const leaveCount = 0;
+
+  let actionButtonHTML = '';
+  if (data.todayStatus === 'not_checked') {
+    actionButtonHTML = `
+      <div class="relative group my-4">
+        <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-md opacity-40 group-hover:opacity-70 animate-pulse transition"></div>
+        <button onclick="handleAttendanceAction('in')" 
+                class="relative w-36 h-36 rounded-full bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 p-[3px] shadow-[0_0_30px_rgba(16,185,129,0.35)] active:scale-95 transition-all duration-300 mx-auto flex items-center justify-center">
+          <div class="w-full h-full rounded-full bg-[#0B1528] flex flex-col items-center justify-center p-2 group-hover:bg-[#0E1B33] transition">
+            <div class="w-11 h-11 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-1 border border-emerald-500/30">
+              <i data-lucide="fingerprint" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs font-bold text-white leading-tight font-kantumruy">${isEn ? 'Check In Now' : 'ចុចចូលធ្វើការ'}</span>
+            <span class="text-[9px] text-emerald-400 font-mono font-bold mt-0.5">${isEn ? 'Tap to Record' : 'Check In'}</span>
+          </div>
+        </button>
+      </div>
+    `;
+  } else if (data.todayStatus === 'checked_in') {
+    actionButtonHTML = `
+      <div class="relative group my-4">
+        <div class="absolute -inset-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full blur-md opacity-40 group-hover:opacity-70 animate-pulse transition"></div>
+        <button onclick="handleAttendanceAction('out')" 
+                class="relative w-36 h-36 rounded-full bg-gradient-to-tr from-amber-600 via-orange-500 to-amber-400 p-[3px] shadow-[0_0_30px_rgba(245,158,11,0.35)] active:scale-95 transition-all duration-300 mx-auto flex items-center justify-center">
+          <div class="w-full h-full rounded-full bg-[#0B1528] flex flex-col items-center justify-center p-2 group-hover:bg-[#0E1B33] transition">
+            <div class="w-11 h-11 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mb-1 border border-amber-500/30">
+              <i data-lucide="log-out" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs font-bold text-white leading-tight font-kantumruy">${isEn ? 'Check Out' : 'ចុចចេញពីធ្វើការ'}</span>
+            <span class="text-[9px] text-amber-400 font-mono font-bold mt-0.5">${isEn ? 'Finish Day' : 'Check Out'}</span>
+          </div>
+        </button>
+      </div>
+    `;
+  } else {
+    actionButtonHTML = `
+      <div class="relative my-4">
+        <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full blur-md opacity-40"></div>
+        <div class="relative w-36 h-36 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 p-[3px] shadow-[0_0_30px_rgba(59,130,246,0.35)] mx-auto flex items-center justify-center">
+          <div class="w-full h-full rounded-full bg-[#0B1528] flex flex-col items-center justify-center p-2">
+            <div class="w-11 h-11 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-1 border border-emerald-500/30">
+              <i data-lucide="badge-check" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs font-bold text-white leading-tight font-kantumruy">${isEn ? 'Completed' : 'បានបញ្ចប់វត្តមាន'}</span>
+            <span class="text-[9px] text-emerald-400 font-mono font-bold mt-0.5">Day Complete ✓</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  let calendarDaysHTML = '';
+  for (let i = 0; i < 3; i++) {
+    calendarDaysHTML += `<div class="h-8 rounded-lg bg-white/[0.02] border border-transparent"></div>`;
+  }
+  for (let d = 1; d <= 31; d++) {
+    const isToday = d === 14;
+    const isPast = d < 14;
+    const isSunday = (d + 2) % 7 === 0;
+    const isSaturday = (d + 2) % 7 === 6;
+    const rec = records.find(r => r.day === d);
+
+    let cellClass = 'h-8 rounded-lg flex flex-col items-center justify-center text-[10px] font-mono border transition ';
+    let badge = '';
+
+    if (isToday) {
+      if (data.todayStatus === 'checked_in') {
+        cellClass += 'bg-amber-500/20 border-amber-500/50 text-amber-300 font-bold shadow-[0_0_10px_rgba(245,158,11,0.25)]';
+        badge = '<span class="w-1 h-1 rounded-full bg-amber-400 animate-ping"></span>';
+      } else if (data.todayStatus === 'checked_out') {
+        cellClass += 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-bold';
+        badge = '<span class="text-[8px] text-emerald-400 font-bold leading-none">✓</span>';
+      } else {
+        cellClass += 'bg-orange-500/20 border-orange-500/60 text-orange-300 font-bold ring-1 ring-orange-500/40';
+        badge = '<span class="w-1 h-1 rounded-full bg-orange-400"></span>';
+      }
+    } else if (rec) {
+      if (rec.status === 'late') {
+        cellClass += 'bg-yellow-500/15 border-yellow-500/30 text-yellow-300 font-medium';
+        badge = '<span class="text-[7.5px] text-yellow-400 font-bold leading-none">!</span>';
+      } else {
+        cellClass += 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-medium';
+        badge = '<span class="text-[7.5px] text-emerald-400 font-bold leading-none">✓</span>';
+      }
+    } else if (isSunday || isSaturday) {
+      cellClass += 'bg-white/[0.02] border-white/5 text-slate-500';
+    } else if (isPast) {
+      cellClass += 'bg-white/[0.03] border-white/5 text-slate-400';
+    } else {
+      cellClass += 'bg-transparent border-white/5 text-slate-600';
+    }
+
+    calendarDaysHTML += `
+      <div class="${cellClass}" title="ថ្ងៃទី ${d}">
+        <span class="leading-none">${d}</span>
+        ${badge}
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <!-- Card 1: Clock & Action (CheckinMe Style) -->
+    <div class="ios-glass-card rounded-3xl p-4 border border-white/10 text-center relative overflow-hidden shadow-2xl">
+      <div class="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="relative z-10">
+        <div id="attendance-live-clock" class="text-3xl sm:text-4xl font-extrabold text-white font-mono tracking-tight drop-shadow-md">
+          ${timeStr}
+        </div>
+        <p class="text-[11px] text-slate-300 font-medium mt-1">${dateStr}</p>
+        
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10.5px] font-medium mt-2">
+          <i data-lucide="map-pin" class="w-3 h-3"></i>
+          <span>${data.location}</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        </div>
+
+        ${actionButtonHTML}
+
+        <p class="text-[10.5px] text-slate-400">
+          ${data.todayStatus === 'not_checked' 
+            ? (isEn ? 'Standard work hours: 08:00 AM - 05:30 PM' : 'ម៉ោងចូលស្តង់ដារ៖ ០៨:០០ ព្រឹក - ០៥:៣០ ល្ងាច')
+            : (data.todayStatus === 'checked_in' 
+                ? (isEn ? `Checked in at ${data.checkInTime}. Remember to check out when finishing!` : `បានចូលម៉ោង ${data.checkInTime}។ កុំភ្លេចចុចចេញពេលចប់ការងារ!`)
+                : (isEn ? `Full day completed: ${data.duration || '8h 25m'}` : `បានបញ្ចប់ម៉ោងការងារពេញលេញ៖ ${data.duration || '៨ ម៉ោង ២៥ នាទី'}`))
+          }
+        </p>
+      </div>
+    </div>
+
+    <!-- Card 2: Today's Timeline Stats (2x2 Grid) -->
+    <div class="grid grid-cols-2 gap-2.5">
+      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[9.5px] text-slate-400 leading-tight">${isEn ? 'Check In' : 'ម៉ោងចូល'}</p>
+          <h4 class="text-xs font-bold text-white font-mono mt-0.5 truncate">${data.checkInTime || '—'}</h4>
+        </div>
+      </div>
+
+      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[9.5px] text-slate-400 leading-tight">${isEn ? 'Check Out' : 'ម៉ោងចេញ'}</p>
+          <h4 class="text-xs font-bold text-white font-mono mt-0.5 truncate">${data.checkOutTime || '—'}</h4>
+        </div>
+      </div>
+
+      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0">
+          <i data-lucide="timer" class="w-4 h-4"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[9.5px] text-slate-400 leading-tight">${isEn ? 'Working Time' : 'ថិរវេលា'}</p>
+          <h4 class="text-xs font-bold text-white font-mono mt-0.5 truncate">${data.duration || (data.todayStatus === 'checked_in' ? 'កំពុងធ្វើការ' : '—')}</h4>
+        </div>
+      </div>
+
+      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center shrink-0">
+          <i data-lucide="award" class="w-4 h-4"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[9.5px] text-slate-400 leading-tight">${isEn ? 'Status' : 'ស្ថានភាព'}</p>
+          <h4 class="text-xs font-bold ${data.todayLate ? 'text-yellow-400' : 'text-emerald-400'} mt-0.5 truncate">
+            ${data.todayStatus === 'not_checked' ? 'មិនទាន់' : (data.todayLate ? 'យឺត (Late)' : 'ទាន់ពេល ✓')}
+          </h4>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Monthly Attendance Matrix / Grid (CheckinMe Style) -->
+    <div class="ios-glass-card rounded-3xl p-4 border border-white/10 space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center">
+            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-white leading-tight">${isEn ? 'Monthly Matrix' : 'ប្រតិទិនវត្តមានប្រចាំខែ'}</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5">តុលា ២០២៦ (October 2026)</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 text-[9px] font-medium">
+          <span class="flex items-center gap-1 text-emerald-400">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> វត្តមាន
+          </span>
+          <span class="flex items-center gap-1 text-yellow-400">
+            <span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span> យឺត
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-1.5 py-2 px-2.5 rounded-xl bg-black/40 border border-white/5 text-center">
+        <div>
+          <p class="text-[8.5px] text-slate-400">${isEn ? 'Present' : 'វត្តមាន'}</p>
+          <p class="text-xs font-bold text-emerald-400 font-mono mt-0.5">${presentCount} ថ្ងៃ</p>
+        </div>
+        <div>
+          <p class="text-[8.5px] text-slate-400">${isEn ? 'Late' : 'យឺត'}</p>
+          <p class="text-xs font-bold text-yellow-400 font-mono mt-0.5">${lateCount} ថ្ងៃ</p>
+        </div>
+        <div>
+          <p class="text-[8.5px] text-slate-400">${isEn ? 'Leave' : 'ច្បាប់'}</p>
+          <p class="text-xs font-bold text-blue-400 font-mono mt-0.5">${leaveCount} ថ្ងៃ</p>
+        </div>
+        <div>
+          <p class="text-[8.5px] text-slate-400">${isEn ? 'Absent' : 'អវត្តមាន'}</p>
+          <p class="text-xs font-bold text-rose-400 font-mono mt-0.5">${absentCount} ថ្ងៃ</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400 font-medium pt-1">
+        <div>ច</div>
+        <div>អ</div>
+        <div>ព</div>
+        <div>ព្រ</div>
+        <div>សុ</div>
+        <div class="text-slate-500">ស</div>
+        <div class="text-slate-500">អា</div>
+      </div>
+
+      <div class="grid grid-cols-7 gap-1">
+        ${calendarDaysHTML}
+      </div>
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+// ==========================================
 // Profile Dashboard Drawer (82% Width - Facebook Style)
 // ==========================================
 function openProfileDrawer() {
@@ -5083,7 +5695,8 @@ function openProfileDrawer() {
   renderProfileDrawerContent();
   modal.classList.remove('hidden');
 
-  setDockVisible(true);
+  // Auto-hide bottom dock to give full focus to Profile Dashboard
+  setDockVisible(false);
   const scrollEl = document.getElementById('profile-drawer-content');
   if (scrollEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(scrollEl, false);
 
@@ -5091,6 +5704,9 @@ function openProfileDrawer() {
     panel.classList.remove('-translate-x-full');
     panel.classList.add('translate-x-0');
   });
+
+  // Trigger dynamic ambient greeting capsule
+  setTimeout(triggerDrawerGreetingAnimation, 220);
 
   if (window.lucide) window.lucide.createIcons();
   if (navigator.vibrate) navigator.vibrate(15);
@@ -5104,9 +5720,20 @@ function closeProfileDrawer() {
   panel.classList.remove('translate-x-0');
   panel.classList.add('-translate-x-full');
 
+  // Retract dynamic greeting capsule
+  const greetingContainer = document.getElementById('drawer-greeting-capsule-container');
+  if (greetingContainer) {
+    greetingContainer.classList.remove('max-w-[150px]', 'opacity-100', 'translate-x-0', 'scale-100');
+    greetingContainer.classList.add('max-w-0', 'opacity-0', '-translate-x-3', 'scale-95');
+  }
+
   setTimeout(() => {
     modal.classList.add('hidden');
+    // Auto-restore bottom dock
+    setDockVisible(true);
   }, 260);
+
+  if (navigator.vibrate) navigator.vibrate(12);
 }
 
 function renderProfileDrawerContent() {
@@ -5117,6 +5744,23 @@ function renderProfileDrawerContent() {
   const uploadedQrCount = qrList.filter(q => q.image).length;
   const d = DataService.data;
   const membersCount = (d && d.teamLeaders) ? d.teamLeaders.length : 3;
+
+  // Attendance state
+  const att = getAttendanceData();
+  const isEn = appState.language === 'en';
+
+  let attBadgeBg = 'bg-slate-500/20 text-slate-300 border border-slate-500/30';
+  let attBadgeText = isEn ? 'Not Yet' : 'មិនទាន់';
+  let attSubtitle = isEn ? 'Daily Check-in' : 'CheckinMe Style';
+  if (att.todayStatus === 'checked_in') {
+    attBadgeBg = 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+    attBadgeText = isEn ? 'Working' : 'កំពុងធ្វើការ';
+    attSubtitle = (isEn ? 'In: ' : 'ចូល: ') + (att.checkInTime || '08:00 AM');
+  } else if (att.todayStatus === 'checked_out') {
+    attBadgeBg = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+    attBadgeText = isEn ? 'Done ✓' : 'បញ្ចប់ ✓';
+    attSubtitle = att.duration || (isEn ? 'Completed' : 'បានបញ្ចប់វត្តមាន');
+  }
 
   // Update Drawer Header (Original high left position)
   const drawerAvatar = document.getElementById('drawer-prof-avatar');
@@ -5132,20 +5776,19 @@ function renderProfileDrawerContent() {
     { key: 'showLive', icon: 'home', color: 'text-emerald-400', label: 'រស់នៅ', val: p.live },
     { key: 'showFrom', icon: 'map-pin', color: 'text-rose-400', label: 'មកពី', val: p.from },
     { key: 'showStatus', icon: 'heart', color: 'text-pink-400', label: 'ស្ថានភាព', val: p.status },
+    { key: 'showBirth', icon: 'cake', color: 'text-purple-400', label: 'ថ្ងៃកំណើត', val: p.birthday },
     { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរសព្ទ', val: p.phone }
   ].filter(item => p.privacy[item.key] !== false && item.val && item.val.trim() !== '');
-
-  const isEn = appState.language === 'en';
 
   const container = document.getElementById('profile-drawer-content');
   if (!container) return;
 
   container.innerHTML = `
-    <!-- ZONE 1: 6 GRID SHORTCUTS (មុខងារក្នុង Dashboard) -->
+    <!-- ZONE 1: 8 GRID SHORTCUTS (មុខងារក្នុង Dashboard) -->
     <div>
       <div class="flex items-center justify-between px-1 mb-2">
         <span class="text-xs font-bold text-slate-300">${isEn ? 'Dashboard Shortcuts' : 'មុខងារចម្បង'}</span>
-        <span class="text-[10px] text-slate-400 font-mono">${isEn ? 'All Shortcuts' : 'ផ្លូវកាត់ទាំងអស់'}</span>
+        <span class="text-[10px] text-slate-400 font-mono">${isEn ? '8 Shortcuts' : '៨ ផ្លូវកាត់'}</span>
       </div>
 
       <div class="grid grid-cols-2 gap-2.5">
@@ -5167,7 +5810,26 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 2. កំណត់ត្រាផែនការ (Notes & Plans) -->
+        <!-- 2. កត់ត្រាវត្តមាន (Attendance Tracker - CheckinMe Style) ⭐ -->
+        <div onclick="closeProfileDrawer(); openAttendanceModal();" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-emerald-500/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+              <i data-lucide="fingerprint" class="w-4 h-4"></i>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full ${attBadgeBg} font-mono font-bold text-[10px]">
+              ${attBadgeText}
+            </span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-white leading-tight flex items-center gap-1">
+              <span>${isEn ? 'Attendance' : 'កត់ត្រាវត្តមាន'}</span>
+            </h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${attSubtitle}</p>
+          </div>
+        </div>
+
+        <!-- 3. កំណត់ត្រាផែនការ (Notes & Plans) -->
         <div onclick="closeProfileDrawer(); openProfileSubModal('note');" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-amber-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -5184,41 +5846,7 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 3. សៀវភៅ (Life & Learning) -->
-        <div onclick="closeProfileDrawer(); openProfileSubModal('book');" 
-             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-emerald-500/40">
-          <div class="flex items-center justify-between mb-1.5">
-            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
-              <i data-lucide="book-open" class="w-4 h-4"></i>
-            </div>
-            <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold text-[10px]">
-              ${isEn ? 'Read' : 'អាន'}
-            </span>
-          </div>
-          <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Life & Learning' : 'សៀវភៅ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Book lessons & wisdom' : 'ជីវិតជាការរៀនសូត្រ'}</p>
-          </div>
-        </div>
-
-        <!-- 4. សមាជិកក្រុម (Team Members) -->
-        <div onclick="closeProfileDrawer(); openProfileSubModal('members');" 
-             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
-          <div class="flex items-center justify-between mb-1.5">
-            <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
-              <i data-lucide="contact-round" class="w-4 h-4"></i>
-            </div>
-            <span class="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-mono font-bold text-[10px]">
-              ${membersCount} ${isEn ? 'Members' : 'នាក់'}
-            </span>
-          </div>
-          <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Members' : 'សមាជិកក្រុម'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Team roster & roles' : 'បញ្ជីសមាជិកក្រុម'}</p>
-          </div>
-        </div>
-
-        <!-- 5. ក្រុមជជែក (Team Chat) -->
+        <!-- 4. ទំនាក់ទំនង (Team Chat & Telegram Link - Keep Send Icon) -->
         <div onclick="closeProfileDrawer(); handleTelegramGroupClick();" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-sky-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -5232,8 +5860,25 @@ function renderProfileDrawerContent() {
             </button>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Chat' : 'ក្រុមជជែក'}</h3>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Contact & Chat' : 'ទំនាក់ទំនង'}</h3>
             <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Telegram Group' : 'គ្រុបតេឡេក្រាម'}</p>
+          </div>
+        </div>
+
+        <!-- 5. សមាជិកក្រុម (Team Members) -->
+        <div onclick="closeProfileDrawer(); openProfileSubModal('members');" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+              <i data-lucide="contact-round" class="w-4 h-4"></i>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-mono font-bold text-[10px]">
+              ${membersCount} ${isEn ? 'Members' : 'នាក់'}
+            </span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Members' : 'សមាជិកក្រុម'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Team roster & roles' : 'បញ្ជីសមាជិកក្រុម'}</p>
           </div>
         </div>
 
@@ -5251,6 +5896,40 @@ function renderProfileDrawerContent() {
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Payment QR' : 'កូដទទួលប្រាក់'}</h3>
             <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Scan QR photo' : 'ស្កេនរូបភាព QR'}</p>
+          </div>
+        </div>
+
+        <!-- 7. សៀវភៅ (Life & Learning) -->
+        <div onclick="closeProfileDrawer(); openProfileSubModal('book');" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-teal-500/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center">
+              <i data-lucide="book-open" class="w-4 h-4"></i>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-400 font-mono font-bold text-[10px]">
+              ${isEn ? 'Read' : 'អាន'}
+            </span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Life & Learning' : 'សៀវភៅ'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Book lessons & wisdom' : 'ជីវិតជាការរៀនសូត្រ'}</p>
+          </div>
+        </div>
+
+        <!-- 8. មតិកែលម្អ & ជំនួយ (Feedback & Support) -->
+        <div onclick="closeProfileDrawer(); openProfileSubModal('feedback');" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-rose-500/40">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
+              <i data-lucide="message-square-heart" class="w-4 h-4"></i>
+            </div>
+            <span class="px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-[10px]">
+              Help
+            </span>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Feedback & Help' : 'មតិកែលម្អ'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Suggestions & support' : 'សំណូមពរ & ជំនួយ'}</p>
           </div>
         </div>
 
@@ -5388,6 +6067,7 @@ function getProfileViewHTML() {
     { key: 'showLive', icon: 'home', color: 'text-emerald-400', label: 'រស់នៅ', val: p.live },
     { key: 'showFrom', icon: 'map-pin', color: 'text-rose-400', label: 'មកពី', val: p.from },
     { key: 'showStatus', icon: 'heart', color: 'text-pink-400', label: 'ស្ថានភាព', val: p.status },
+    { key: 'showBirth', icon: 'cake', color: 'text-purple-400', label: 'ថ្ងៃកំណើត', val: p.birthday },
     { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរសព្ទ', val: p.phone }
   ].filter(item => p.privacy[item.key] !== false && item.val && item.val.trim() !== '');
 
@@ -5688,6 +6368,7 @@ function openEditProfileModal() {
   setVal('edit-prof-live', p.live);
   setVal('edit-prof-from', p.from);
   setVal('edit-prof-status', p.status);
+  setVal('edit-prof-birthday', p.birthday);
   setVal('edit-prof-phone', p.phone);
 
   document.getElementById('edit-profile-modal')?.classList?.remove('hidden');
@@ -5712,7 +6393,7 @@ function compressImageFile(file, maxSizePx = 500, quality = 0.82) {
           h = Math.round((h * maxSizePx) / w);
           w = maxSizePx;
         } else if (h >= w && h > maxSizePx) {
-          w = Math.round((w * maxSizePx) / h);
+          h = Math.round((w * maxSizePx) / h);
           h = maxSizePx;
         }
         canvas.width = w;
@@ -5763,6 +6444,7 @@ function saveProfileData() {
     live: getVal('edit-prof-live'),
     from: getVal('edit-prof-from'),
     status: getVal('edit-prof-status'),
+    birthday: getVal('edit-prof-birthday') || '១៥ មករា ២០០០',
     phone: getVal('edit-prof-phone')
   };
 
@@ -5947,11 +6629,13 @@ function setupAllCustomersScroll() {
 function openAllCustomersModal() {
   expandedCustomerKey = null;
   const searchInput = document.getElementById('all-customers-search-input');
-  const searchContainer = document.getElementById('all-customers-search-container');
+  const normalNav = document.getElementById('all-customers-normal-nav');
+  const searchBar = document.getElementById('all-customers-search-bar');
   const summaryEl = document.getElementById('all-customers-summary');
   if (summaryEl) summaryEl.classList.remove('summary-collapsed');
   if (searchInput) searchInput.value = '';
-  if (searchContainer) searchContainer.classList.add('hidden');
+  if (normalNav) normalNav.classList.remove('hidden');
+  if (searchBar) searchBar.classList.add('hidden');
   renderAllCustomersList();
   setupAllCustomersScroll();
   setDockVisible(true);
@@ -5964,28 +6648,37 @@ function openAllCustomersModal() {
 }
 
 function toggleCustomersSearch() {
-  const container = document.getElementById('all-customers-search-container');
+  const normalNav = document.getElementById('all-customers-normal-nav');
+  const searchBar = document.getElementById('all-customers-search-bar');
   const input = document.getElementById('all-customers-search-input');
-  if (!container || !input) return;
+  if (!searchBar || !input) return;
 
-  const isHidden = container.classList.contains('hidden');
-  if (isHidden) {
-    container.classList.remove('hidden');
-    input.focus();
+  if (searchBar.classList.contains('hidden')) {
+    if (normalNav) normalNav.classList.add('hidden');
+    searchBar.classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
+    setTimeout(() => input.focus(), 60);
   } else {
-    if (!input.value.trim()) {
-      container.classList.add('hidden');
-    } else {
-      input.focus();
-    }
+    clearAndHideCustomerSearch();
   }
 }
 
+function clearCustomerSearchInput() {
+  const input = document.getElementById('all-customers-search-input');
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+  renderAllCustomersList();
+}
+
 function clearAndHideCustomerSearch() {
-  const container = document.getElementById('all-customers-search-container');
+  const normalNav = document.getElementById('all-customers-normal-nav');
+  const searchBar = document.getElementById('all-customers-search-bar');
   const input = document.getElementById('all-customers-search-input');
   if (input) input.value = '';
-  if (container) container.classList.add('hidden');
+  if (searchBar) searchBar.classList.add('hidden');
+  if (normalNav) normalNav.classList.remove('hidden');
   renderAllCustomersList();
 }
 
@@ -6303,6 +6996,7 @@ function openProfileSubModal(type) {
       { key: 'showLive', label: '🏠 បង្ហាញទីកន្លែងរស់នៅ (Live)' },
       { key: 'showFrom', label: '📍 បង្ហាញស្រុកកំណើត (From)' },
       { key: 'showStatus', label: '❤️ បង្ហាញស្ថានភាព (Status)' },
+      { key: 'showBirth', label: '🎂 បង្ហាញថ្ងៃខែឆ្នាំកំណើត (Birthday)' },
       { key: 'showPhone', label: '📞 បង្ហាញលេខទូរសព្ទ (Phone)' }
     ];
     contentHTML = `
@@ -6846,143 +7540,35 @@ function executeProfileSettingsAction(itemId) {
   }
 }
 
-// ==========================================
-// 5. UNIVERSAL EDGE SWIPE BACK GESTURE (អូសពីឆ្វេងមកស្តាំ ដើម្បីត្រឡប់ក្រោយ)
-// ==========================================
-function handleUniversalSwipeBack() {
-  // 1. Profile sub-modal (highest sub-layer)
-  const profileSubModal = document.getElementById('profile-sub-modal');
-  if (profileSubModal && !profileSubModal.classList.contains('hidden')) {
-    closeProfileSubModal();
-    return true;
+function toggleCardVisibility(cardKey) {
+  if (!appState.cardVisibility) {
+    appState.cardVisibility = {
+      autoHideEmpty: true,
+      pureCash: true,
+      salesPerformance: true,
+      netCash: true,
+      expenses: true,
+      teamSales: true,
+      tools: true
+    };
   }
-
-  // 2. Profile Settings Search Modal
-  const profSearchModal = document.getElementById('profile-settings-search-modal');
-  if (profSearchModal && !profSearchModal.classList.contains('hidden')) {
-    closeProfileSettingsSearch();
-    return true;
-  }
-
-  // 3. Edit Profile Modal
-  const editProfModal = document.getElementById('edit-profile-modal');
-  if (editProfModal && !editProfModal.classList.contains('hidden')) {
-    closeEditProfileModal();
-    return true;
-  }
-
-  // 4. QR Photos Modal
-  const qrModal = document.getElementById('qr-photos-modal');
-  if (qrModal && !qrModal.classList.contains('hidden')) {
-    closeQrPhotosModal();
-    return true;
-  }
-
-  // 5. All Customers Directory Modal
-  const custModal = document.getElementById('all-customers-modal');
-  if (custModal && !custModal.classList.contains('hidden')) {
-    closeAllCustomersModal();
-    return true;
-  }
-
-  // 6. Notifications Bottom Sheet Modal
-  const notifModal = document.getElementById('notif-modal');
-  if (notifModal && !notifModal.classList.contains('hidden')) {
-    toggleNotificationsModal();
-    return true;
-  }
-
-  // 7. Grid drilldown bottom sheets
-  const salesModal = document.getElementById('sales-modal');
-  if (salesModal && !salesModal.classList.contains('hidden')) {
-    closeSalesModal();
-    return true;
-  }
-
-  const codModal = document.getElementById('cod-modal');
-  if (codModal && !codModal.classList.contains('hidden')) {
-    closeCodModal();
-    return true;
-  }
-
-  const bankModal = document.getElementById('bank-modal');
-  if (bankModal && !bankModal.classList.contains('hidden')) {
-    closeBankModal();
-    return true;
-  }
-
-  const payablesModal = document.getElementById('payables-modal');
-  if (payablesModal && !payablesModal.classList.contains('hidden')) {
-    closePayablesModal();
-    return true;
-  }
-
-  const expensesModal = document.getElementById('expenses-modal');
-  if (expensesModal && !expensesModal.classList.contains('hidden')) {
-    closeExpensesModal();
-    return true;
-  }
-
-  const aboutModal = document.getElementById('about-modal');
-  if (aboutModal && !aboutModal.classList.contains('hidden')) {
-    closeAboutModal();
-    return true;
-  }
-
-  const pinModal = document.getElementById('change-pin-modal');
-  if (pinModal && !pinModal.classList.contains('hidden')) {
-    closeChangePinModal();
-    return true;
-  }
-
-  // 8. Profile Drawer (Left drawer -> swipe left to right can dismiss, or if open, close it)
-  const profDrawer = document.getElementById('profile-drawer-modal');
-  if (profDrawer && !profDrawer.classList.contains('hidden')) {
-    closeProfileDrawer();
-    return true;
-  }
-
-  return false;
+  appState.cardVisibility[cardKey] = (appState.cardVisibility[cardKey] === false) ? true : false;
+  try {
+    localStorage.setItem('sd_card_visibility', JSON.stringify(appState.cardVisibility));
+  } catch (_) {}
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
 }
 
-function initUniversalEdgeSwipeBack() {
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let isEdgeSwipe = false;
-
-  window.addEventListener('touchstart', (e) => {
-    if (!e.touches || e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-    // Edge touch: within the left 75px zone
-    isEdgeSwipe = (touchStartX <= 75);
-  }, { passive: true });
-
-  window.addEventListener('touchend', (e) => {
-    if (!isEdgeSwipe || !e.changedTouches || e.changedTouches.length !== 1) return;
-    const touch = e.changedTouches[0];
-    const deltaX = touch.clientX - touchStartX;
-    const deltaY = Math.abs(touch.clientY - touchStartY);
-
-    // If swiped right by > 65px and vertical deviation < 50px
-    if (deltaX >= 65 && deltaY < 50) {
-      handleUniversalSwipeBack();
-    }
-    isEdgeSwipe = false;
-  }, { passive: true });
-}
-
-// Auto initialize edge swipe back gesture on startup
-initUniversalEdgeSwipeBack();
-
+window.toggleCardVisibility = toggleCardVisibility;
+window.clearCustomerSearchInput = clearCustomerSearchInput;
 window.openProfileSettingsSearch = openProfileSettingsSearch;
 window.closeProfileSettingsSearch = closeProfileSettingsSearch;
 window.clearProfileSettingsSearch = clearProfileSettingsSearch;
 window.handleProfileSettingsSearch = handleProfileSettingsSearch;
 window.executeProfileSettingsAction = executeProfileSettingsAction;
 window.toggleProfitNetBoost = toggleProfitNetBoost;
-window.handleUniversalSwipeBack = handleUniversalSwipeBack;
+window.handleUniversalSwipeBack = handleBackNavigation;
 window.handleHeaderScrollToTop = handleHeaderScrollToTop;
 
 
