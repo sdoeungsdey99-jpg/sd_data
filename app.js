@@ -5124,16 +5124,16 @@ function showToastNotification(msg) {
 // =========================================================
 
 const DEFAULT_PROFILE_DATA = {
-  name: 'វណ្ណ ស៊ីថា',
-  memberId: 'MANAGING DIRECTOR',
-  subtitle: 'VANN SITHA TRADING CO., LTD.',
-  avatar: 'vst-logo.png',
-  work: 'អគ្គនាយកនៅ វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក',
-  study: 'អ្នកបង្រៀន AI • ភាពជាអ្នកដឹកនាំ & ការបិទការលក់ (AI, Leadership & Sales)',
+  name: 'ស្តី ស្តើង',
+  memberId: 'ID: SD-0001',
+  subtitle: 'SDEY SDOEUNG',
+  avatar: 'profile.png',
+  work: 'ស្ថាបនិក & អ្នកគ្រប់គ្រងនៅ SD Data',
+  study: 'ជីវិតជាការរៀនសូត្រ (Life is Learning)',
   live: 'រាជធានីភ្នំពេញ',
   from: 'ព្រះរាជាណាចក្រកម្ពុជា',
-  status: 'អគ្គនាយក វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក',
-  birthday: '០១ មករា',
+  status: 'កំពុងអភិវឌ្ឍអាជីវកម្ម',
+  birthday: '១៥ មករា ២០០០',
   phone: '096 212 9261',
   privacy: {
     showWork: true,
@@ -5151,18 +5151,18 @@ function getProfileData() {
     const raw = localStorage.getItem('sd_profile_data');
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Seamlessly migrate legacy placeholder profile to Director General Vann Sitha with official VST Logo
-      if (parsed.name === 'ស្តី ស្តើង' || parsed.name === 'ប៊ិច នោរ៉ា' || parsed.avatar === 'bostar-star-logo.png' || parsed.memberId === 'ID: SD-0001' || parsed.memberId === 'SD-8899' || parsed.memberId === 'FOUNDER & CEO') {
+      // Seamlessly migrate back to user personal profile
+      if (parsed.name === 'ប៊ិច នោរ៉ា' || parsed.name === 'វណ្ណ ស៊ីថា' || parsed.memberId === 'MANAGING DIRECTOR' || parsed.memberId === 'FOUNDER & CEO') {
         const migrated = {
           ...DEFAULT_PROFILE_DATA,
           ...parsed,
-          name: 'វណ្ណ ស៊ីថា',
-          memberId: 'MANAGING DIRECTOR',
-          subtitle: 'VANN SITHA TRADING CO., LTD.',
-          avatar: 'vst-logo.png',
-          work: 'អគ្គនាយកនៅ វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក',
-          study: 'អ្នកបង្រៀន AI • ភាពជាអ្នកដឹកនាំ & ការបិទការលក់ (AI, Leadership & Sales)',
-          status: 'អគ្គនាយក វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក'
+          name: 'ស្តី ស្តើង',
+          memberId: 'ID: SD-0001',
+          subtitle: 'SDEY SDOEUNG',
+          avatar: 'profile.png',
+          work: 'ស្ថាបនិក & អ្នកគ្រប់គ្រងនៅ SD Data',
+          study: 'ជីវិតជាការរៀនសូត្រ (Life is Learning)',
+          status: 'កំពុងអភិវឌ្ឍអាជីវកម្ម'
         };
         localStorage.setItem('sd_profile_data', JSON.stringify(migrated));
         return migrated;
@@ -5246,31 +5246,22 @@ function getAllUniqueCustomers() {
 }
 
 function getProfileNotes() {
-  const tributeNote = {
-    id: 1,
-    title: '💌 សារដឹងគុណជូន លោកអគ្គនាយក វណ្ណ ស៊ីថា',
-    text: '«សមិទ្ធផលទាំងឡាយដែលខ្ញុំអាចធ្វើបាននៅថ្ងៃនេះ រួមទាំងប្រព័ន្ធ Dashboard នេះ កើតចេញពីចំណេះដឹង និងការបង្ហាត់បង្រៀនរបស់លោកអគ្គនាយកផ្ទាល់។ លោកអគ្គនាយកគឺជាគ្រូ ជាអ្នកត្រួសត្រាយផ្លូវផ្នែក AI ជាអ្នកបង្វឹកការបិទការលក់ និងជាបង្អែកដ៏រឹងមាំរបស់ខ្ញុំ!»',
-    date: '14/10/2026'
-  };
-  const stratNote = {
-    id: 2,
-    title: '🚀 យុទ្ធសាស្ត្រពង្រីក វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក',
-    text: 'រួមបញ្ចូលបច្ចេកវិទ្យា AI ក្នុងប្រព័ន្ធការងារ ពង្រឹងសមត្ថភាពក្រុមការងារលក់ និងបណ្តុះបណ្តាលភាពជាអ្នកដឹកនាំឆ្ពោះទៅរកការរីកចម្រើនប្រកបដោយនិរន្តរភាព។',
-    date: '14/10/2026'
-  };
-
+  const defaultNotes = [
+    { id: 1, title: 'គោលដៅលក់ប្រចាំខែ', text: 'ពង្រឹងការតាមដានអតិថិជនចាស់ និងបង្កើនការលក់ឈុត 2-3 ប្រអប់។', date: '14/10/2026' }
+  ];
   try {
     const raw = localStorage.getItem('sd_profile_notes');
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (!parsed.some(n => n.title && n.title.includes('វណ្ណ ស៊ីថា'))) {
-        parsed.unshift(tributeNote);
-        localStorage.setItem('sd_profile_notes', JSON.stringify(parsed));
+      const filtered = parsed.filter(n => !n.title || (!n.title.includes('វណ្ណ ស៊ីថា') && !n.title.includes('Bostar Group')));
+      if (filtered.length > 0) {
+        localStorage.setItem('sd_profile_notes', JSON.stringify(filtered));
+        return filtered;
       }
-      return parsed;
     }
   } catch (e) {}
-  return [tributeNote, stratNote];
+  localStorage.setItem('sd_profile_notes', JSON.stringify(defaultNotes));
+  return defaultNotes;
 }
 
 function getQrPhotosList() {
@@ -5298,9 +5289,11 @@ function triggerDrawerGreetingAnimation(e) {
   if (!idEl || !greetingEl) return;
 
   const p = getProfileData();
-  const fullName = (p.name || 'វណ្ណ ស៊ីថា').trim();
+  const fullName = (p.name || 'ស្តី ស្តើង').trim();
   let displayName = fullName;
-  if (fullName.includes('ស៊ីថា') || fullName.includes('វណ្ណ')) {
+  if (fullName.includes('ស្តី')) {
+    displayName = 'ស្តី';
+  } else if (fullName.includes('ស៊ីថា') || fullName.includes('វណ្ណ')) {
     displayName = 'លោកអគ្គនាយក ស៊ីថា';
   } else if (fullName.includes('នោរ៉ា') || fullName.includes('ប៊ិច')) {
     displayName = 'លោកប្រធាន នោរ៉ា';
@@ -5930,12 +5923,12 @@ function renderProfileDrawerContent() {
               <i data-lucide="contact-round" class="w-4 h-4"></i>
             </div>
             <span class="px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-mono font-bold text-[10px]">
-              ៤៥ នាក់
+              ${membersCount} ${isEn ? 'Members' : 'នាក់'}
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Structure' : 'សមាជិកក្រុម'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? '5 Core Directors' : 'ថ្នាក់ដឹកនាំកំពូល ៥ រូប'}</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Members' : 'សមាជិកក្រុម'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Team roster & roles' : 'បញ្ជីសមាជិកក្រុម'}</p>
           </div>
         </div>
 
@@ -7099,44 +7092,24 @@ function openProfileSubModal(type) {
           </button>
         </div>
 
-        <!-- Section 1: Books (Life Lessons & Wisdom: AI, Leadership & Sales Closing) -->
+        <!-- Section 1: Books (Life Lessons & Wisdom) -->
         <div id="book-notes-panel-books" class="${activeTab === 'books' ? '' : 'hidden'} space-y-2.5">
-          <!-- Special Tribute Card: Dedicated to Lok Akka-Nayeak Vann Sitha -->
-          <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-transparent border border-amber-500/35 relative overflow-hidden">
-            <div class="flex items-center gap-2 mb-1.5">
-              <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 text-sm">💌</span>
-              <div>
-                <h4 class="text-xs font-bold text-amber-300">សារដឹងគុណជូន លោកអគ្គនាយក វណ្ណ ស៊ីថា</h4>
-                <p class="text-[9.5px] text-slate-300">ពីកូនក្រុម និងប្រព័ន្ធជំនួយការ AI</p>
-              </div>
-            </div>
-            <p class="text-[11.5px] text-slate-200 leading-relaxed italic">
-              «សមិទ្ធផលទាំងឡាយដែលខ្ញុំអាចធ្វើបាននៅថ្ងៃនេះ រួមទាំងប្រព័ន្ធ Dashboard នេះ កើតចេញពីការរៀនសូត្រពីលោកអគ្គនាយកទាំងអស់។ លោកអគ្គនាយកគឺជាគ្រូ ជាអ្នកត្រួសត្រាយផ្លូវផ្នែក AI ជាអ្នកបង្វឹកការបិទការលក់ និងជាបង្អែកដ៏រឹងមាំបំផុត។ សូមគោរពជូនពរលោកអគ្គនាយក មានសុខភាពល្អបរិបូរណ៍ និងបន្តដឹកនាំ វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក ឆ្ពោះទៅកាន់ភាពជោគជ័យកាន់តែរុងរឿង!»
-            </p>
-          </div>
-
-          <div class="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/25">
-            <h4 class="text-xs font-bold text-purple-400 mb-1 flex items-center gap-1.5">
-              <span>🤖</span> <span>សសរស្តម្ភទី ១ ៖ បញ្ញាសិប្បនិម្មិត (AI Mastery & Enterprise Automation)</span>
-            </h4>
+          <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
+            <h4 class="text-xs font-bold text-emerald-400 mb-1">📖 ជំពូកទី ១ ៖ ជីវិតជាការរៀនសូត្រមិនចេះចប់</h4>
             <p class="text-xs text-slate-200 leading-relaxed">
-              AI មិនមែនមកជំនួសការងារមនុស្សទេ តែមនុស្សដែលចេះប្រើ AI នឹងមកជំនួសអ្នកដែលមិនចេះប្រើ។ រួមបញ្ចូល AI ក្នុងភាពជាអ្នកដឹកនាំ និងយុទ្ធសាស្ត្រលក់ ដើម្បីបង្កើនផលិតភាពរាប់សិបដង។
+              ការរៀនសូត្ររាល់ថ្ងៃ ទោះត្រឹមតែ ១% ក៏ដោយ នឹងធ្វើឱ្យយើងរីកចម្រើន gấp ៣៧ ដងក្នុងរយៈពេល ១ ឆ្នាំ។ វិន័យ និងភាពទៀងទាត់ គឺជាកូនសោរនៃភាពជោគជ័យ។
             </p>
           </div>
           <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25">
-            <h4 class="text-xs font-bold text-amber-400 mb-1 flex items-center gap-1.5">
-              <span>👑</span> <span>សសរស្តម្ភទី ២ ៖ ភាពជាអ្នកដឹកនាំ (Transformational Leadership)</span>
-            </h4>
+            <h4 class="text-xs font-bold text-amber-400 mb-1">💡 ជំពូកទី ២ ៖ សិល្បៈនៃការដឹកនាំ និងបម្រើអតិថិជន</h4>
             <p class="text-xs text-slate-200 leading-relaxed">
-              ភាពជាអ្នកដឹកនាំ គឺជាការកសាងមនុស្ស និងការបំផុសថាមពលខាងក្នុង។ ដឹកនាំដោយចក្ខុវិស័យ បម្រើដោយក្តីស្រលាញ់ និងកសាងវប្បធម៌ស្ថាប័នរឹងមាំដើម្បីជោគជ័យយូរអង្វែង។
+              អតិថិជនមិនត្រឹមតែទិញផលិតផលទេ តែគាត់ទិញទំនុកចិត្ត និងការយកចិត្តទុកដាក់របស់យើង។
             </p>
           </div>
-          <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
-            <h4 class="text-xs font-bold text-emerald-400 mb-1 flex items-center gap-1.5">
-              <span>🎯</span> <span>សសរស្តម្ភទី ៣ ៖ សិល្បៈនៃការបិទការលក់ (Master Sales Closing)</span>
-            </h4>
+          <div class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/25">
+            <h4 class="text-xs font-bold text-sky-400 mb-1">🚀 ជំពូកទី ៣ ៖ ការគ្រប់គ្រងពេលវេលា និងគោលដៅ</h4>
             <p class="text-xs text-slate-200 leading-relaxed">
-              ការបិទការលក់ មិនមែនជាការបង្ខិតបង្ខំទេ តែជាការជួយអតិថិជនឱ្យធ្វើការសម្រេចចិត្តដ៏ត្រឹមត្រូវបំផុតសម្រាប់ជីវិតរបស់គាត់។ ទំនុកចិត្ត និងការយល់ចិត្ត គឺជាកូនសោរនៃការបិទការលក់។
+              ផ្តោតអារម្មណ៍លើកិច្ចការសំខាន់បំផុតចំនួន ២០% ដែលបង្កើតផល ៨០% ដល់អាជីវកម្ម និងជីវិតរបស់អ្នក។
             </p>
           </div>
         </div>
@@ -7168,74 +7141,28 @@ function openProfileSubModal(type) {
       </div>
     `;
   } else if (type === 'members') {
-    title = (appState.language === 'en') ? 'Organization Structure' : 'រចនាសម្ព័ន្ធស្ថាប័ន & ថ្នាក់ដឹកនាំ';
-    sub = (appState.language === 'en') ? 'Vann Sitha Trading Co., Ltd. (VST) • 45+ Team Members' : 'វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក (VST) ៖ ថ្នាក់ដឹកនាំកំពូល & សមាជិកស្ថាប័ន';
-    icon = 'network';
-    
-    // Top 5 Executive Directors / Team Leaders
-    const coreLeaders = [
-      { id: 1, name: 'ស្តី ស្តើង', role: 'នាយកប្រតិបត្តិការ (Operations & Sales Lead)', members: '៩ នាក់', targetGoal: 150, totalBoxes: 29, targetPercent: '19.3', badge: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-      { id: 2, name: 'ឆេង សុធី', role: 'នាយកផ្នែកលក់ (Sales Director)', members: '១០ នាក់', targetGoal: 100, totalBoxes: 12, targetPercent: '12.0', badge: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-      { id: 3, name: 'ឆេង រ៉ាស៊ុង', role: 'នាយកផ្នែកទីផ្សារ (Marketing & Growth Lead)', members: '៨ នាក់', targetGoal: 80, totalBoxes: 8, targetPercent: '10.0', badge: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
-      { id: 4, name: 'គឹម សុផល', role: 'នាយកផ្នែកបណ្តុះបណ្តាល (Talent & Coaching Lead)', members: '៩ នាក់', targetGoal: 60, totalBoxes: 6, targetPercent: '10.0', badge: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
-      { id: 5, name: 'ម៉ៅ វណ្ណា', role: 'នាយកផ្នែកហិរញ្ញវត្ថុ (Finance & Audit Lead)', members: '៩ នាក់', targetGoal: 60, totalBoxes: 5, targetPercent: '8.3', badge: 'bg-rose-500/20 text-rose-400 border-rose-500/30' }
-    ];
-
+    const d = DataService.data;
+    const leaders = (d && d.teamLeaders) ? d.teamLeaders : [];
+    title = (appState.language === 'en') ? 'Member' : 'សមាជិក';
+    sub = (appState.language === 'en') ? 'Team members list & achievements' : 'បញ្ជីឈ្មោះសមាជិក និងលទ្ធផលការងារ';
+    icon = 'contact-round';
     contentHTML = `
-      <div class="space-y-3">
-        <!-- Executive Hierarchy Header Card with Official VST Logo -->
-        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-orange-500/15 via-amber-500/10 to-transparent border border-orange-500/25 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <img src="vst-logo.png" alt="VST Logo" class="w-11 h-11 rounded-xl object-contain border border-amber-500/40 p-0.5 bg-white shrink-0 shadow-md">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs font-bold text-white">លោកអគ្គនាយក វណ្ណ ស៊ីថា</span>
-                <span class="px-1.5 py-0.2 rounded bg-orange-500 text-white font-mono font-bold text-[9px]">DIRECTOR</span>
-              </div>
-              <p class="text-[10.5px] text-slate-300 mt-0.5">អគ្គនាយក វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក</p>
-            </div>
-          </div>
-          <div class="text-right">
-            <span class="text-[10px] text-slate-400 block font-medium">សមាជិកស្ថាប័ន</span>
-            <span class="font-mono font-extrabold text-sm text-amber-400">៤៥ នាក់</span>
-          </div>
-        </div>
-
-        <!-- Section Title -->
-        <div class="flex items-center justify-between px-1 pt-1">
-          <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-blue-400"></i>
-            ថ្នាក់ដឹកនាំកំពូលទាំង ៥ រូប (Core Directors)
-          </h4>
-          <span class="text-[10px] text-slate-400 font-mono">៥ ក្រុមការងារ</span>
-        </div>
-
-        <!-- 5 Core Leaders Cards -->
-        <div class="space-y-2">
-          ${coreLeaders.map((m, idx) => `
-            <div class="p-3 rounded-2xl bg-black/30 border border-white/10 hover:border-white/20 transition flex items-center justify-between">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <span class="w-7 h-7 rounded-xl bg-white/5 border border-white/10 text-white font-mono font-bold text-xs flex items-center justify-center shrink-0">
-                  0${idx + 1}
-                </span>
-                <div class="min-w-0">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-xs font-bold text-white truncate">${m.name}</span>
-                    <img src="blue-tick.png" class="w-3 h-3 object-contain shrink-0">
-                    <span class="px-1.5 py-0.2 rounded-full text-[9px] font-mono border ${m.badge}">
-                      ${m.members}
-                    </span>
-                  </div>
-                  <span class="text-[10px] text-slate-400 block truncate mt-0.5">${m.role}</span>
+      <div class="space-y-2">
+        ${leaders.map((m, idx) => `
+          <div class="p-3 rounded-2xl bg-black/30 border border-white/10 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-mono font-bold text-xs flex items-center justify-center">0${idx + 1}</span>
+              <div>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs font-bold text-white">${m.name}</span>
+                  ${idx === 0 ? '<img src="blue-tick.png" class="w-3.5 h-3.5 object-contain">' : ''}
                 </div>
-              </div>
-              <div class="text-right shrink-0 pl-2">
-                <span class="font-mono font-bold text-xs text-emerald-400 block">${m.totalBoxes}/${m.targetGoal} កេស</span>
-                <span class="text-[9.5px] text-slate-500 font-mono">${m.targetPercent}% នៃគោលដៅ</span>
+                <span class="text-[10px] text-slate-400">គោលដៅ: ${m.targetGoal} ប្រអប់</span>
               </div>
             </div>
-          `).join('')}
-        </div>
+            <span class="font-mono font-bold text-xs text-emerald-400">${m.totalBoxes} ប្រអប់ (${m.targetPercent}%)</span>
+          </div>
+        `).join('')}
       </div>
     `;
   } else if (type === 'feedback') {
