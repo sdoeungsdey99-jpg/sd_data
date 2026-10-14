@@ -510,6 +510,18 @@ window.DataService = {
         }
       }
 
+      // Merge any pending local orders (submitted through app) that haven't synced to sheet yet
+      try {
+        const localOrders = JSON.parse(localStorage.getItem('sd_local_orders') || '[]');
+        if (Array.isArray(localOrders) && localOrders.length > 0) {
+          const sheetRecordIds = new Set(personalSales.map(s => s.orderId || s.recordId));
+          const unsynced = localOrders.filter(lo => !sheetRecordIds.has(lo.orderId || lo.recordId));
+          if (unsynced.length > 0) {
+            personalSales.unshift(...unsynced);
+          }
+        }
+      } catch (_) {}
+
       this.data = {
         personalSales,
         expenses,

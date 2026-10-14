@@ -944,7 +944,7 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'new-order-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
@@ -1206,7 +1206,8 @@ function isDialogModalOpen() {
     'about-modal',
     'attendance-modal',
     'global-search-modal',
-    'profile-settings-search-modal'
+    'profile-settings-search-modal',
+    'new-order-modal'
   ];
   return ids.some(id => {
     const el = document.getElementById(id);
@@ -2489,11 +2490,12 @@ function getDashboardViewHTML() {
             <span class="text-slate-400 text-[10px] leading-tight">
               ${t('totalBoxes')}:
             </span>
-            <!-- View Sales Drill-down Button inside Grid 1 -->
-            <button onclick="event.stopPropagation(); openPersonalSalesModal()" 
-                    class="px-1.5 py-0.5 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:text-white font-bold text-[10px] flex items-center gap-0.5 active:scale-95 transition">
-              <span>${appState.language === 'en' ? 'View' : 'មើល'}</span>
-              <i data-lucide="chevron-right" class="w-2.5 h-2.5"></i>
+            <!-- New Order Button inside Grid 1 (Replaces redundant View button) -->
+            <button onclick="event.stopPropagation(); openNewOrderModal()" 
+                    title="ចុចដើម្បីបង្កើត ឬកត់ត្រាការកុម្ម៉ង់ថ្មី (Smart Paste / Quick Form)"
+                    class="px-2 py-0.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 hover:text-white font-bold text-[10px] flex items-center gap-1 active:scale-95 transition shadow-sm">
+              <i data-lucide="plus" class="w-2.5 h-2.5"></i>
+              <span>${appState.language === 'en' ? 'Order' : 'កុម្ម៉ង់'}</span>
             </button>
           </div>
           <div class="flex items-baseline gap-1 mt-0.5">
@@ -7703,5 +7705,412 @@ window.executeProfileSettingsAction = executeProfileSettingsAction;
 window.toggleProfitNetBoost = toggleProfitNetBoost;
 window.handleUniversalSwipeBack = handleBackNavigation;
 window.handleHeaderScrollToTop = handleHeaderScrollToTop;
+
+// =========================================================
+// NEW ORDER & SMART PARSER SYSTEM (Personal Sales & Team Sync)
+// =========================================================
+let currentOrderMode = 'paste';
+let currentOrderType = 'standard';
+let currentOrderProducts = {
+  yl: 1,
+  ylp: 1,
+  kn: 0,
+  pdo: 0,
+  free: 0
+};
+
+function openNewOrderModal() {
+  const modal = document.getElementById('new-order-modal');
+  if (!modal) return;
+
+  const profile = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const sellerInput = document.getElementById('order-field-seller');
+  const sellerPhoneInput = document.getElementById('order-field-seller-phone');
+  const dateInput = document.getElementById('order-field-date');
+  const orderIdInput = document.getElementById('order-field-id');
+
+  const now = new Date();
+  const d = String(now.getDate()).padStart(2, '0');
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const y = now.getFullYear();
+  const todayStr = `${d}/${m}/${y}`;
+
+  if (sellerInput) sellerInput.value = profile.name || 'ស្ដី ស្ដើង';
+  if (sellerPhoneInput) sellerPhoneInput.value = profile.phone || '097 859 5526';
+  if (dateInput) dateInput.value = todayStr;
+
+  if (orderIdInput && !orderIdInput.value) {
+    let nextId = '#3137';
+    if (DataService.data && DataService.data.personalSales && DataService.data.personalSales.length > 0) {
+      const topOrder = DataService.data.personalSales.find(o => o.orderId && o.orderId.startsWith('#'));
+      if (topOrder) {
+        const num = parseInt(topOrder.orderId.replace('#', ''));
+        if (!isNaN(num)) nextId = `#${num + 1}`;
+      }
+    }
+    orderIdInput.value = nextId;
+  }
+
+  currentOrderProducts = { yl: 1, ylp: 1, kn: 0, pdo: 0, free: 0 };
+  updateProductQtyDisplay();
+  setOrderType('standard');
+  switchOrderMode('paste');
+
+  modal.classList.remove('hidden');
+  setDockVisible(false);
+  if (window.lucide) window.lucide.createIcons();
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+}
+
+function closeNewOrderModal() {
+  const modal = document.getElementById('new-order-modal');
+  if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
+}
+
+function switchOrderMode(mode) {
+  currentOrderMode = mode;
+  const pasteTab = document.getElementById('order-mode-paste-tab');
+  const formTab = document.getElementById('order-mode-form-tab');
+  const pastePanel = document.getElementById('order-paste-panel');
+  const formPanel = document.getElementById('order-form-panel');
+
+  if (mode === 'paste') {
+    if (pasteTab) {
+      pasteTab.className = 'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-orange-500 text-white shadow-lg shadow-orange-500/30';
+    }
+    if (formTab) {
+      formTab.className = 'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white';
+    }
+    if (pastePanel) pastePanel.classList.remove('hidden');
+    if (formPanel) formPanel.classList.add('hidden');
+  } else {
+    if (formTab) {
+      formTab.className = 'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-orange-500 text-white shadow-lg shadow-orange-500/30';
+    }
+    if (pasteTab) {
+      pasteTab.className = 'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white';
+    }
+    if (pastePanel) pastePanel.classList.add('hidden');
+    if (formPanel) formPanel.classList.remove('hidden');
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function setOrderType(type) {
+  currentOrderType = type;
+  const btnStd = document.getElementById('btn-type-standard');
+  const btnRwd = document.getElementById('btn-type-reward');
+  const desc = document.getElementById('order-type-desc');
+  const orderIdGroup = document.getElementById('group-order-id');
+  const noteInput = document.getElementById('order-field-note');
+
+  if (type === 'reward') {
+    if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-400';
+    if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
+    if (desc) desc.innerText = '🎁 មិនមានគិតថ្លៃស្តុក ($0) មិនទាមទារ Order ID និងគណនាប្រាក់ចំណេញពេញលេញ (Total - Ship)។';
+    if (orderIdGroup) orderIdGroup.classList.add('opacity-40', 'pointer-events-none');
+    if (noteInput && !noteInput.value) noteInput.value = 'លក់រង្វាន់';
+  } else {
+    if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-orange-500/20 border-orange-500 text-orange-400';
+    if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
+    if (desc) desc.innerText = 'គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។';
+    if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
+    if (noteInput && noteInput.value === 'លក់រង្វាន់') noteInput.value = '';
+  }
+  calculateOrderFinancials();
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function adjustProductQty(prod, delta) {
+  if (currentOrderProducts[prod] !== undefined) {
+    currentOrderProducts[prod] = Math.max(0, (currentOrderProducts[prod] || 0) + delta);
+    updateProductQtyDisplay();
+    calculateOrderFinancials();
+    if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+  }
+}
+
+function updateProductQtyDisplay() {
+  ['yl', 'ylp', 'kn', 'pdo', 'free'].forEach(p => {
+    const el = document.getElementById(`qty-disp-${p}`);
+    if (el) el.innerText = currentOrderProducts[p] || 0;
+  });
+
+  const total = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                (currentOrderProducts.free || 0);
+
+  const badge = document.getElementById('order-total-boxes-badge');
+  if (badge) badge.innerText = `សរុប: ${total} ប្រអប់`;
+}
+
+function toggleExtraProducts() {
+  const panel = document.getElementById('extra-products-accordion');
+  const btnText = document.getElementById('extra-prod-btn-text');
+  const icon = document.getElementById('extra-prod-icon');
+  if (!panel) return;
+  const isHidden = panel.classList.contains('hidden');
+  if (isHidden) {
+    panel.classList.remove('hidden');
+    if (btnText) btnText.innerText = '- លាក់មុខទំនិញបន្ថែម';
+    if (icon) icon.classList.add('rotate-180');
+  } else {
+    panel.classList.add('hidden');
+    if (btnText) btnText.innerText = '+ បង្ហាញមុខទំនិញបន្ថែម (KN, PDO, Free)';
+    if (icon) icon.classList.remove('rotate-180');
+  }
+}
+
+function calculateOrderFinancials() {
+  const paidBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                    (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0);
+
+  const totalUsdInput = document.getElementById('order-field-total-usd');
+  const priceRawInput = document.getElementById('order-field-price-raw');
+  const shipInput = document.getElementById('order-field-ship');
+
+  const rawVal = cleanNumber(priceRawInput?.value);
+  let totalUsd = cleanNumber(totalUsdInput?.value);
+
+  if (rawVal > 10000 && (!totalUsd || totalUsd <= 0)) {
+    totalUsd = rawVal / 4000;
+    if (totalUsdInput) totalUsdInput.value = totalUsd.toFixed(2);
+  }
+
+  const shipFee = cleanNumber(shipInput?.value) || 0;
+
+  let stockCost = 0;
+  if (currentOrderType === 'reward') {
+    stockCost = 0;
+  } else {
+    stockCost = paidBoxes * 24.00;
+  }
+
+  const profit = Math.max(0, totalUsd - stockCost - shipFee);
+
+  const stockDisp = document.getElementById('summary-stock-disp');
+  const profitDisp = document.getElementById('summary-profit-disp');
+
+  if (stockDisp) stockDisp.innerText = currentOrderType === 'reward' ? '$0.00 (រង្វាន់)' : `$${stockCost.toFixed(2)}`;
+  if (profitDisp) profitDisp.innerText = `$${profit.toFixed(2)}`;
+}
+
+async function pasteClipboardToOrderInput() {
+  try {
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      const text = await navigator.clipboard.readText();
+      const input = document.getElementById('order-paste-input');
+      if (input && text) {
+        input.value = text;
+        showToastNotification('បានបិទភ្ជាប់សារពី Clipboard!');
+      }
+    } else {
+      alert('សូមប្រើ Paste ដោយផ្ទាល់លើប្រអប់អត្ថបទ');
+    }
+  } catch (e) {
+    alert('មិនអាចអាន Clipboard ដោយស្វ័យប្រវត្តិបានទេ សូមចុច Paste ដោយដៃ');
+  }
+}
+
+function parsePastedOrderText() {
+  const input = document.getElementById('order-paste-input');
+  const text = (input?.value || '').trim();
+  if (!text) {
+    alert('សូមបិទភ្ជាប់អត្ថបទសារពី Telegram ជាមុនសិន!');
+    return;
+  }
+
+  const extract = (regex) => {
+    const m = text.match(regex);
+    return m ? m[1].trim() : '';
+  };
+
+  const orderId = extract(/(?:Order Row|Order ID|Order|ID)[:\s]*([#\w\d-]+)/i);
+  const dateRaw = extract(/(?:កាលបរិច្ឆេទ\(Date\)|Date|កាលបរិច្ឆេទ)[:\s]*([^\n\r]+)/i);
+  const seller = extract(/(?:ឈ្មោះអ្នកលក់|Seller(?:'s)? Name)[:\s]*([^\n\r]+)/i);
+  const sellerNo = extract(/(?:លេខអ្នកលក់\(Seller No\)|Seller No|លេខអ្នកលក់)[:\s]*([^\n\r]+)/i);
+  const ylQty = extract(/\[Yong Liang\][:\s]*(\d+)/i) || extract(/Yong Liang[:\s]*(\d+)/i);
+  const ylpQty = extract(/\[Yong Liang Plus\][:\s]*(\d+)/i) || extract(/Yong Liang Plus[:\s]*(\d+)/i);
+  const knQty = extract(/\[KN\][:\s]*(\d+)/i) || extract(/KN[:\s]*(\d+)/i);
+  const pdoQty = extract(/\[P D\.O\][:\s]*(\d+)/i) || extract(/P D\.O[:\s]*(\d+)/i);
+  const priceRaw = extract(/(?:តម្លៃ\(Price\)|Price|តម្លៃ)[:\s]*(\d+[\d,\.]*)/i);
+  const receiverNo = extract(/(?:លេខអ្នកទទួល\(Receiver No\)|Receiver No|លេខអ្នកទទួល)[:\s]*([^\n\r]+)/i);
+  const address = extract(/(?:អាសយដ្ឋាន\(Address\)|Address|អាសយដ្ឋាន|Location)[:\s]*([^\n\r]+)/i);
+  const delivery = extract(/(?:ដឹកជញ្ជូនតាម\(Delivery\)|Delivery|ដឹកជញ្ជូនតាម)[:\s]*([^\n\r]+)/i);
+
+  if (orderId) document.getElementById('order-field-id').value = orderId.startsWith('#') ? orderId : `#${orderId}`;
+  if (dateRaw) {
+    const formatted = formatToDDMMYYYY(dateRaw);
+    document.getElementById('order-field-date').value = formatted || dateRaw;
+  }
+  if (seller) document.getElementById('order-field-seller').value = seller;
+  if (sellerNo) document.getElementById('order-field-seller-phone').value = sellerNo;
+  if (receiverNo) document.getElementById('order-field-phone').value = receiverNo;
+  if (address) document.getElementById('order-field-location').value = address;
+
+  if (ylQty) currentOrderProducts.yl = parseInt(ylQty) || 0;
+  if (ylpQty) currentOrderProducts.ylp = parseInt(ylpQty) || 0;
+  if (knQty) currentOrderProducts.kn = parseInt(knQty) || 0;
+  if (pdoQty) currentOrderProducts.pdo = parseInt(pdoQty) || 0;
+
+  if (priceRaw) {
+    const num = cleanNumber(priceRaw);
+    const priceInput = document.getElementById('order-field-price-raw');
+    const totalInput = document.getElementById('order-field-total-usd');
+    if (priceInput) priceInput.value = num;
+    if (num > 10000) {
+      if (totalInput) totalInput.value = (num / 4000).toFixed(2);
+    } else if (num > 0 && num < 1000) {
+      if (totalInput) totalInput.value = num.toFixed(2);
+    }
+  }
+
+  if (delivery) {
+    const sel = document.getElementById('order-field-delivery');
+    if (sel) {
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value.toLowerCase().includes(delivery.toLowerCase()) || 
+            delivery.toLowerCase().includes(sel.options[i].value.toLowerCase())) {
+          sel.selectedIndex = i;
+          break;
+        }
+      }
+    }
+  }
+
+  updateProductQtyDisplay();
+  calculateOrderFinancials();
+
+  switchOrderMode('form');
+  showToastNotification('ទាញស្រង់ទិន្នន័យពីសារបានជោគជ័យ! 🎉');
+  if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+}
+
+async function submitNewOrder() {
+  const getVal = (id) => (document.getElementById(id)?.value || '').trim();
+
+  const isReward = (currentOrderType === 'reward');
+  const orderId = isReward ? '' : getVal('order-field-id');
+  const date = getVal('order-field-date') || formatToDDMMYYYY(new Date());
+  const seller = getVal('order-field-seller') || 'ស្ដី ស្ដើង';
+  const phone = getVal('order-field-phone');
+  const location = getVal('order-field-location');
+  const customer = getVal('order-field-customer') || 'អតិថិជនទូទៅ';
+  const delivery = getVal('order-field-delivery') || 'VET(COD)';
+  const totalUsd = cleanNumber(getVal('order-field-total-usd')) || 90.00;
+  const shipFee = cleanNumber(getVal('order-field-ship')) || 3.00;
+  const priceRaw = cleanNumber(getVal('order-field-price-raw')) || 360000;
+  const note = getVal('order-field-note') || (isReward ? 'លក់រង្វាន់' : '');
+
+  const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                     (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                     (currentOrderProducts.free || 0);
+
+  if (totalBoxes === 0) {
+    alert('សូមជ្រើសរើសចំនួនប្រអប់ទំនិញយ៉ាងហោចណាស់ ១ ប្រអប់!');
+    return;
+  }
+
+  if (!phone) {
+    alert('សូមបញ្ចូលលេខទូរសព្ទអតិថិជន!');
+    return;
+  }
+
+  const btn = document.getElementById('btn-submit-order');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>កំពុងរក្សាទុក...</span>`;
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  const stockCost = isReward ? 0 : (totalBoxes * 24.00);
+  const profit = Math.max(0, totalUsd - stockCost - shipFee);
+
+  const prodParts = [];
+  if (currentOrderProducts.yl > 0) prodParts.push(currentOrderProducts.yl > 1 ? `YL (${currentOrderProducts.yl})` : `YL`);
+  if (currentOrderProducts.ylp > 0) prodParts.push(currentOrderProducts.ylp > 1 ? `YLP (${currentOrderProducts.ylp})` : `YLP`);
+  if (currentOrderProducts.kn > 0) prodParts.push(`KN (${currentOrderProducts.kn})`);
+  if (currentOrderProducts.pdo > 0) prodParts.push(`PDO (${currentOrderProducts.pdo})`);
+  if (currentOrderProducts.free > 0) prodParts.push(`Free (${currentOrderProducts.free})`);
+  const productSummary = prodParts.join(', ') || 'ទំនិញ';
+
+  const newRecord = {
+    date: date,
+    isoDate: ddmmyyyyToIso(date),
+    orderId: orderId,
+    recordId: `REC-${Date.now().toString().slice(-4)}`,
+    customer: customer,
+    seller: seller,
+    location: location,
+    phone: phone,
+    qtyYL: currentOrderProducts.yl || 0,
+    qtyYLP: currentOrderProducts.ylp || 0,
+    qtyKN: currentOrderProducts.kn || 0,
+    qtyPDO: currentOrderProducts.pdo || 0,
+    freeQty: currentOrderProducts.free || 0,
+    totalBoxQty: totalBoxes,
+    product: productSummary,
+    price: priceRaw,
+    thaiBaht: priceRaw,
+    totalAmount: totalUsd,
+    shipFee: shipFee,
+    deliveryMethod: delivery,
+    codStatus: 'មិនទាន់ទូទាត់',
+    profit: profit,
+    note: note
+  };
+
+  // 1. Immediately inject into live DataService in-memory
+  if (DataService.data && Array.isArray(DataService.data.personalSales)) {
+    DataService.data.personalSales.unshift(newRecord);
+    if (DataService.data.meta) DataService.data.meta.totalSalesCount++;
+  }
+
+  // 2. Persist to localStorage pending orders
+  try {
+    const existing = JSON.parse(localStorage.getItem('sd_local_orders') || '[]');
+    existing.unshift(newRecord);
+    localStorage.setItem('sd_local_orders', JSON.stringify(existing));
+  } catch (_) {}
+
+  // 3. Send to Google Apps Script Webhook if configured
+  const webhookUrl = localStorage.getItem('sd_apps_script_url');
+  if (webhookUrl && webhookUrl.startsWith('http')) {
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add_order', data: newRecord })
+      });
+    } catch (e) {
+      console.warn('Webhook POST error (fallback to local):', e);
+    }
+  }
+
+  // 4. Update UI live
+  closeNewOrderModal();
+  renderCurrentView();
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូល Personal Sales 🚀</span>`;
+  }
+
+  showToastNotification(`កត់ត្រាការកុម្ម៉ង់ ${orderId || 'រង្វាន់'} ចូល Personal Sales ជោគជ័យ! 🎉`);
+  if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
+}
+
+window.openNewOrderModal = openNewOrderModal;
+window.closeNewOrderModal = closeNewOrderModal;
+window.switchOrderMode = switchOrderMode;
+window.setOrderType = setOrderType;
+window.adjustProductQty = adjustProductQty;
+window.toggleExtraProducts = toggleExtraProducts;
+window.calculateOrderFinancials = calculateOrderFinancials;
+window.pasteClipboardToOrderInput = pasteClipboardToOrderInput;
+window.parsePastedOrderText = parsePastedOrderText;
+window.submitNewOrder = submitNewOrder;
 
 
