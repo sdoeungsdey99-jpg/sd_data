@@ -522,6 +522,18 @@ window.DataService = {
         }
       } catch (_) {}
 
+      // Merge any pending local expenses (submitted through app) that haven't synced to sheet yet
+      try {
+        const localExpenses = JSON.parse(localStorage.getItem('sd_local_expenses') || '[]');
+        if (Array.isArray(localExpenses) && localExpenses.length > 0) {
+          const sheetExpKeys = new Set(expenses.map(e => `${e.date}|${e.description}|${e.amount}`));
+          const unsynced = localExpenses.filter(le => !sheetExpKeys.has(`${le.date}|${le.description}|${le.amount}`));
+          if (unsynced.length > 0) {
+            expenses.unshift(...unsynced);
+          }
+        }
+      } catch (_) {}
+
       this.data = {
         personalSales,
         expenses,

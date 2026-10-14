@@ -944,7 +944,7 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'new-order-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
@@ -995,6 +995,7 @@ function handleBackNavigation() {
 
 function isAnyDrilldownModalOpen() {
   const modalIds = [
+    'new-order-modal', 'new-expense-modal',
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
     'profile-sub-modal', 'qr-photos-modal', 'edit-profile-modal',
@@ -1207,7 +1208,8 @@ function isDialogModalOpen() {
     'attendance-modal',
     'global-search-modal',
     'profile-settings-search-modal',
-    'new-order-modal'
+    'new-order-modal',
+    'new-expense-modal'
   ];
   return ids.some(id => {
     const el = document.getElementById(id);
@@ -2617,10 +2619,10 @@ function getDashboardViewHTML() {
             <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Expenses (${sortedFilteredExpenses.length} មុខ)</p>
           </div>
         </div>
-        <!-- Top-Right (+) Button linked to AppSheet on Phone -->
-        <button onclick="event.stopPropagation(); openExpenseShortcut();" 
-                oncontextmenu="event.stopPropagation(); openShortcutModal(event);"
-                title="ចុចដើម្បីបើក AppSheet កត់ត្រាចំណាយ (ចុចស្តាំដើម្បីកំណត់ Link)"
+        <!-- Top-Right (+) Button: Quick Expense Direct Entry Modal -->
+        <button onclick="event.stopPropagation(); openNewExpenseModal();" 
+                oncontextmenu="event.stopPropagation(); openExpenseShortcut();"
+                title="កត់ត្រាចំណាយថ្មី (Quick Expense)"
                 class="w-8 h-8 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 flex items-center justify-center active:scale-95 transition shadow-sm shrink-0">
           <i data-lucide="plus" class="w-4 h-4"></i>
         </button>
@@ -8112,5 +8114,187 @@ window.calculateOrderFinancials = calculateOrderFinancials;
 window.pasteClipboardToOrderInput = pasteClipboardToOrderInput;
 window.parsePastedOrderText = parsePastedOrderText;
 window.submitNewOrder = submitNewOrder;
+
+// ==========================================
+// Quick Expense Modal Logic (In-App Entry)
+// ==========================================
+
+function openNewExpenseModal() {
+  const modal = document.getElementById('new-expense-modal');
+  if (!modal) return;
+
+  const now = new Date();
+  const dy = String(now.getDate()).padStart(2, '0');
+  const mo = String(now.getMonth() + 1).padStart(2, '0');
+  const yr = now.getFullYear();
+  const ddmmyyyy = `${dy}/${mo}/${yr}`;
+
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const timeStr = `${hh}:${mm}`;
+
+  const dateInput = document.getElementById('expense-field-date');
+  const timeInput = document.getElementById('expense-field-time');
+  const descInput = document.getElementById('expense-field-desc');
+  const catInput = document.getElementById('expense-field-category');
+  const amtInput = document.getElementById('expense-field-amount');
+  const noteInput = document.getElementById('expense-field-note');
+
+  if (dateInput) dateInput.value = ddmmyyyy;
+  if (timeInput) timeInput.value = timeStr;
+  if (descInput) descInput.value = '';
+  if (catInput) catInput.value = 'ហូបចុក & ប្រចាំថ្ងៃ';
+  if (amtInput) amtInput.value = '';
+  if (noteInput) noteInput.value = '';
+
+  modal.classList.remove('hidden');
+  setDockVisible(false);
+
+  if (window.lucide) window.lucide.createIcons();
+  if (descInput) setTimeout(() => descInput.focus(), 150);
+}
+
+function closeNewExpenseModal() {
+  const modal = document.getElementById('new-expense-modal');
+  if (modal) modal.classList.add('hidden');
+  if (!isDialogModalOpen()) {
+    setDockVisible(true);
+  }
+}
+
+function applyExpensePreset(desc, category, amount) {
+  const descInput = document.getElementById('expense-field-desc');
+  const catInput = document.getElementById('expense-field-category');
+  const amtInput = document.getElementById('expense-field-amount');
+
+  if (descInput) descInput.value = desc;
+  if (catInput) catInput.value = category;
+  if (amtInput) amtInput.value = Number(amount).toFixed(2);
+
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+}
+
+function setExpenseAmount(amount) {
+  const amtInput = document.getElementById('expense-field-amount');
+  if (amtInput) {
+    amtInput.value = Number(amount).toFixed(2);
+    amtInput.focus();
+  }
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+async function submitNewExpense() {
+  const dateInput = document.getElementById('expense-field-date');
+  const timeInput = document.getElementById('expense-field-time');
+  const descInput = document.getElementById('expense-field-desc');
+  const catInput = document.getElementById('expense-field-category');
+  const amtInput = document.getElementById('expense-field-amount');
+  const noteInput = document.getElementById('expense-field-note');
+  const btn = document.getElementById('btn-submit-expense');
+
+  const desc = (descInput?.value || '').trim();
+  const rawAmt = parseFloat(amtInput?.value || '0');
+  const cat = (catInput?.value || 'ហូបចុក & ប្រចាំថ្ងៃ').trim();
+  const dateStr = (dateInput?.value || '').trim();
+  const timeStr = (timeInput?.value || '').trim();
+  const note = (noteInput?.value || '').trim();
+
+  if (!desc) {
+    showToastNotification('សូមបញ្ចូលបរិយាយ ឬមុខចំណាយ! ✍️');
+    if (descInput) descInput.focus();
+    return;
+  }
+
+  if (isNaN(rawAmt) || rawAmt <= 0) {
+    showToastNotification('សូមបញ្ចូលចំនួនទឹកប្រាក់ ($) ឲ្យបានត្រឹមត្រូវ! 💰');
+    if (amtInput) amtInput.focus();
+    return;
+  }
+
+  // Format date correctly
+  let ddmmyyyy = dateStr;
+  let isoDate = '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    isoDate = dateStr;
+    ddmmyyyy = typeof formatToDDMMYYYY === 'function' ? formatToDDMMYYYY(dateStr) : dateStr;
+  } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
+    ddmmyyyy = typeof formatToDDMMYYYY === 'function' ? formatToDDMMYYYY(dateStr) : dateStr;
+    isoDate = typeof ddmmyyyyToIso === 'function' ? ddmmyyyyToIso(ddmmyyyy) : dateStr;
+  } else {
+    const now = new Date();
+    isoDate = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(now) : now.toISOString().slice(0, 10);
+    ddmmyyyy = typeof formatToDDMMYYYY === 'function' ? formatToDDMMYYYY(isoDate) : dateStr;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>កំពុងរក្សាទុក...</span>`;
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  const newExpense = {
+    date: ddmmyyyy,
+    isoDate: isoDate,
+    time: timeStr,
+    description: desc,
+    category: cat,
+    amount: rawAmt,
+    note: note,
+    rowIndex: (DataService.data && Array.isArray(DataService.data.expenses)) ? DataService.data.expenses.length + 1 : 1
+  };
+
+  // 1. Immediately inject into live DataService in-memory
+  if (DataService.data && Array.isArray(DataService.data.expenses)) {
+    DataService.data.expenses.unshift(newExpense);
+    if (DataService.data.meta) DataService.data.meta.totalExpensesCount++;
+  }
+
+  // 2. Persist to localStorage pending expenses
+  try {
+    const existing = JSON.parse(localStorage.getItem('sd_local_expenses') || '[]');
+    existing.unshift(newExpense);
+    localStorage.setItem('sd_local_expenses', JSON.stringify(existing));
+  } catch (_) {}
+
+  // 3. Send to Google Apps Script Webhook if configured
+  const webhookUrl = localStorage.getItem('sd_apps_script_url');
+  if (webhookUrl && webhookUrl.startsWith('http')) {
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add_expense', data: newExpense })
+      });
+    } catch (e) {
+      console.warn('Expense Webhook POST error (fallback to local):', e);
+    }
+  }
+
+  // 4. Update UI live
+  closeNewExpenseModal();
+  renderCurrentView();
+
+  // If expenses drill-down modal is open, re-render it
+  const expModal = document.getElementById('expenses-modal');
+  if (expModal && !expModal.classList.contains('hidden')) {
+    openExpensesModal();
+  }
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>រក្សាទុកចំណាយ 💸</span>`;
+  }
+
+  showToastNotification(`កត់ត្រាចំណាយ "${desc}" ($${rawAmt.toFixed(2)}) ជោគជ័យ! 💸`);
+  if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
+}
+
+window.openNewExpenseModal = openNewExpenseModal;
+window.closeNewExpenseModal = closeNewExpenseModal;
+window.applyExpensePreset = applyExpensePreset;
+window.setExpenseAmount = setExpenseAmount;
+window.submitNewExpense = submitNewExpense;
+
 
 
