@@ -4816,6 +4816,7 @@ function setLanguage(lang) {
   appState.language = lang;
   localStorage.setItem('sd_lang', lang);
   renderCurrentView();
+  if (typeof updateModalLanguage === 'function') updateModalLanguage();
 }
 
 // ==========================================
@@ -7757,6 +7758,7 @@ function openNewOrderModal() {
   updateProductQtyDisplay();
   setOrderType('standard');
   switchOrderMode('paste');
+  if (typeof updateModalLanguage === 'function') updateModalLanguage();
 
   modal.classList.remove('hidden');
   setDockVisible(false);
@@ -7979,6 +7981,7 @@ function parsePastedOrderText() {
         }
       }
     }
+    if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
   }
 
   updateProductQtyDisplay();
@@ -8147,6 +8150,8 @@ function openNewExpenseModal() {
   if (amtInput) amtInput.value = '';
   if (noteInput) noteInput.value = '';
 
+  if (typeof updateModalLanguage === 'function') updateModalLanguage();
+
   modal.classList.remove('hidden');
   setDockVisible(false);
 
@@ -8295,6 +8300,131 @@ window.closeNewExpenseModal = closeNewExpenseModal;
 window.applyExpensePreset = applyExpensePreset;
 window.setExpenseAmount = setExpenseAmount;
 window.submitNewExpense = submitNewExpense;
+
+// ==========================================
+// Delivery Shipping Auto-Defaults (Customizable)
+// ==========================================
+function updateDeliveryShippingDefault() {
+  const sel = document.getElementById('order-field-delivery');
+  const shipInput = document.getElementById('order-field-ship');
+  if (!sel || !shipInput) return;
+  const val = sel.value || '';
+  if (val.includes('Thai')) {
+    shipInput.value = '5.50';
+  } else if (val.includes('VET')) {
+    shipInput.value = '3.00';
+  }
+  calculateOrderFinancials();
+}
+
+// ==========================================
+// Clean Language Separation for Modals (i18n)
+// ==========================================
+function updateModalLanguage() {
+  const isKm = (appState.language !== 'en');
+
+  // 1. Expense modal
+  const expTitle = document.getElementById('expense-modal-title');
+  const expSubtitle = document.getElementById('expense-modal-subtitle');
+  const expPresetsLabel = document.getElementById('expense-presets-label');
+  const expPresetsHint = document.getElementById('expense-presets-hint');
+  const expLabelDate = document.getElementById('expense-label-date');
+  const expLabelTime = document.getElementById('expense-label-time');
+  const expLabelDesc = document.getElementById('expense-label-desc');
+  const expFieldDesc = document.getElementById('expense-field-desc');
+  const expLabelCategory = document.getElementById('expense-label-category');
+  const expLabelAmount = document.getElementById('expense-label-amount');
+  const expQuickAmt = document.getElementById('expense-quick-amount-label');
+  const expLabelNote = document.getElementById('expense-label-note');
+  const expFieldNote = document.getElementById('expense-field-note');
+  const btnCancelExp = document.getElementById('btn-cancel-expense');
+  const btnSubmitExp = document.getElementById('btn-submit-expense');
+
+  if (expTitle) expTitle.textContent = isKm ? 'កត់ត្រាចំណាយថ្មី' : 'Record New Expense';
+  if (expSubtitle) expSubtitle.textContent = isKm ? 'បញ្ចូលចំណាយប្រចាំថ្ងៃដោយផ្ទាល់' : 'Daily Expenses Direct Entry';
+  if (expPresetsLabel) expPresetsLabel.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i><span>${isKm ? 'ចំណាយញឹកញាប់៖' : 'Quick Presets:'}</span>`;
+  if (expPresetsHint) expPresetsHint.textContent = isKm ? 'ចុច ១ដើម្បីបំពេញ' : 'Tap to auto-fill';
+  if (expLabelDate) expLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ:' : 'Date:';
+  if (expLabelTime) expLabelTime.textContent = isKm ? 'ម៉ោង:' : 'Time:';
+  if (expLabelDesc) expLabelDesc.innerHTML = `${isKm ? 'បរិយាយ ឬមុខចំណាយ:' : 'Description:'} <span class="text-rose-400">*</span>`;
+  if (expFieldDesc) expFieldDesc.placeholder = isKm ? 'ឧ. កាហ្វេ, បាយថ្ងៃត្រង់, ចាក់សាំង...' : 'e.g. Coffee, Lunch, Gas...';
+  if (expLabelCategory) expLabelCategory.textContent = isKm ? 'ប្រភេទចំណាយ:' : 'Category:';
+  if (expLabelAmount) expLabelAmount.innerHTML = `${isKm ? 'ចំនួនទឹកប្រាក់ ($):' : 'Amount ($):'} <span class="text-rose-400">*</span>`;
+  if (expQuickAmt) expQuickAmt.textContent = isKm ? 'រហ័ស:' : 'Quick:';
+  if (expLabelNote) expLabelNote.textContent = isKm ? 'សម្គាល់បន្ថែម (ស្រេចចិត្ត):' : 'Note (Optional):';
+  if (expFieldNote) expFieldNote.placeholder = isKm ? 'ឧ. ទីតាំង ឬហាង...' : 'e.g. Location or store...';
+  if (btnCancelExp) btnCancelExp.textContent = isKm ? 'បោះបង់' : 'Cancel';
+  if (btnSubmitExp) btnSubmitExp.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>${isKm ? 'រក្សាទុកចំណាយ 💸' : 'Save Expense 💸'}</span>`;
+
+  // 2. Order modal
+  const orderTitle = document.getElementById('order-modal-title');
+  const orderSubtitle = document.getElementById('order-modal-subtitle');
+  const orderPasteTab = document.getElementById('order-mode-paste-tab');
+  const orderFormTab = document.getElementById('order-mode-form-tab');
+  const orderPastePrompt = document.getElementById('order-label-paste-prompt');
+  const btnParse = document.getElementById('btn-parse-paste');
+  const orderLabelType = document.getElementById('order-label-type');
+  const btnTypeStdText = document.getElementById('btn-type-standard-text');
+  const btnTypeRwdText = document.getElementById('btn-type-reward-text');
+  const orderTypeDesc = document.getElementById('order-type-desc');
+  const orderLabelId = document.getElementById('order-label-id');
+  const orderLabelDate = document.getElementById('order-label-date');
+  const orderLabelSeller = document.getElementById('order-label-seller');
+  const orderLabelSellerPhone = document.getElementById('order-label-seller-phone');
+  const orderCustSection = document.getElementById('order-label-cust-section');
+  const orderCustName = document.getElementById('order-label-cust-name');
+  const orderCustPhone = document.getElementById('order-label-cust-phone');
+  const orderLocation = document.getElementById('order-label-location');
+  const orderProducts = document.getElementById('order-label-products');
+  const orderExtraBtn = document.getElementById('extra-prod-btn-text');
+  const orderDelivSection = document.getElementById('order-label-delivery-section');
+  const orderDelivLabel = document.getElementById('order-label-delivery');
+  const orderShipLabel = document.getElementById('order-label-ship');
+  const orderPriceRaw = document.getElementById('order-label-price-raw');
+  const orderTotalUsd = document.getElementById('order-label-total-usd');
+  const orderStockText = document.getElementById('order-label-stock-text');
+  const orderProfitText = document.getElementById('order-label-profit-text');
+  const orderLabelNote = document.getElementById('order-label-note');
+  const btnCancelOrder = document.getElementById('btn-cancel-order');
+  const btnSubmitOrder = document.getElementById('btn-submit-order');
+
+  if (orderTitle) orderTitle.textContent = isKm ? 'កត់ត្រាការកុម្ម៉ង់ថ្មី' : 'Record New Order';
+  if (orderSubtitle) orderSubtitle.textContent = isKm ? 'ការលក់ផ្ទាល់ខ្លួន និងក្រុម' : 'Personal Sales & Team Sync';
+  if (orderPasteTab) orderPasteTab.innerHTML = `<i data-lucide="clipboard-paste" class="w-3.5 h-3.5"></i><span>${isKm ? 'បិទភ្ជាប់ស្វ័យប្រវត្តិ' : 'Smart Paste'}</span>`;
+  if (orderFormTab) orderFormTab.innerHTML = `<i data-lucide="file-pen-line" class="w-3.5 h-3.5"></i><span>${isKm ? 'ទម្រង់រហ័ស' : 'Quick Form'}</span>`;
+  if (orderPastePrompt) orderPastePrompt.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i><span>${isKm ? 'បិទភ្ជាប់សារពីតេឡេក្រាម៖' : 'Paste message from Telegram / Bot:'}</span>`;
+  if (btnParse) btnParse.innerHTML = `<i data-lucide="wand-2" class="w-4 h-4"></i><span>${isKm ? 'អាន និងស្រង់ទិន្នន័យចូលទម្រង់' : 'Parse Data to Form'}</span>`;
+  if (orderLabelType) orderLabelType.textContent = isKm ? 'ប្រភេទការលក់:' : 'Order Type:';
+  if (btnTypeStdText) btnTypeStdText.textContent = isKm ? 'ការលក់ធម្មតា' : 'Standard Order';
+  if (btnTypeRwdText) btnTypeRwdText.textContent = isKm ? '🎁 លក់រង្វាន់ (ថ្លៃដើម $0)' : '🎁 Reward Order ($0 Cost)';
+  if (orderTypeDesc) orderTypeDesc.textContent = isKm ? 'គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។' : 'Standard stock cost ($24/box) with official Order ID.';
+  if (orderLabelId) orderLabelId.textContent = isKm ? 'លេខកុម្ម៉ង់:' : 'Order ID:';
+  if (orderLabelDate) orderLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ:' : 'Order Date:';
+  if (orderLabelSeller) orderLabelSeller.textContent = isKm ? 'ឈ្មោះអ្នកលក់:' : 'Seller Name:';
+  if (orderLabelSellerPhone) orderLabelSellerPhone.textContent = isKm ? 'លេខទូរសព្ទអ្នកលក់:' : 'Seller Phone:';
+  if (orderCustSection) orderCustSection.innerHTML = `<i data-lucide="user" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'ព័ត៌មានអតិថិជន:' : 'Customer Information:'}</span>`;
+  if (orderCustName) orderCustName.textContent = isKm ? 'ឈ្មោះអតិថិជន (ហ្វេសប៊ុក):' : 'Customer Name (Facebook):';
+  if (orderCustPhone) orderCustPhone.textContent = isKm ? 'លេខទូរសព្ទអ្នកទទួល:' : 'Receiver Phone:';
+  if (orderLocation) orderLocation.textContent = isKm ? 'អាសយដ្ឋានដឹកជញ្ជូន:' : 'Delivery Address:';
+  if (orderProducts) orderProducts.innerHTML = `<i data-lucide="boxes" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'មុខទំនិញ & ចំនួនប្រអប់:' : 'Products & Quantity:'}</span>`;
+  if (orderExtraBtn) orderExtraBtn.textContent = isKm ? '+ បង្ហាញមុខទំនិញបន្ថែម' : '+ Show Extra Products (KN, PDO, Free)';
+  if (orderDelivSection) orderDelivSection.innerHTML = `<i data-lucide="truck" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'សេវាដឹកជញ្ជូន & ទឹកប្រាក់:' : 'Delivery & Financials:'}</span>`;
+  if (orderDelivLabel) orderDelivLabel.textContent = isKm ? 'ក្រុមហ៊ុនដឹកជញ្ជូន:' : 'Shipping Carrier:';
+  if (orderShipLabel) orderShipLabel.textContent = isKm ? 'ថ្លៃដឹកជញ្ជូន ($):' : 'Shipping Fee ($):';
+  if (orderPriceRaw) orderPriceRaw.textContent = isKm ? 'តម្លៃលក់ (៛ ឬ បាត):' : 'Sale Price (KHR / THB):';
+  if (orderTotalUsd) orderTotalUsd.textContent = isKm ? 'តម្លៃសរុប ($ ដុល្លារ):' : 'Total Amount ($ USD):';
+  if (orderStockText) orderStockText.textContent = isKm ? 'ថ្លៃដើមស្តុក:' : 'Stock Cost:';
+  if (orderProfitText) orderProfitText.textContent = isKm ? 'ប្រាក់ចំណេញ:' : 'Net Profit:';
+  if (orderLabelNote) orderLabelNote.textContent = isKm ? 'ចំណាំបន្ថែម (ស្រេចចិត្ត):' : 'Note (Optional):';
+  if (btnCancelOrder) btnCancelOrder.textContent = isKm ? 'បោះបង់' : 'Cancel';
+  if (btnSubmitOrder) btnSubmitOrder.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>${isKm ? 'បញ្ជូនចូលការលក់ផ្ទាល់ខ្លួន 🚀' : 'Submit to Personal Sales 🚀'}</span>`;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+window.updateDeliveryShippingDefault = updateDeliveryShippingDefault;
+window.updateModalLanguage = updateModalLanguage;
+
 
 
 
