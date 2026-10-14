@@ -944,7 +944,7 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
@@ -955,6 +955,7 @@ function handleBackNavigation() {
         const det = document.getElementById('sales-detail-view');
         if (det) det.classList.add('hidden');
       }
+      setDockVisible(true);
       if (navigator.vibrate) navigator.vibrate(15);
       return true;
     }
@@ -1195,7 +1196,26 @@ function setupSwipeToBack() {
   });
 }
 
+function isDialogModalOpen() {
+  const ids = [
+    'edit-profile-modal',
+    'profile-sub-modal',
+    'qr-photos-modal',
+    'change-pin-modal',
+    'shortcut-modal',
+    'about-modal',
+    'attendance-modal',
+    'global-search-modal',
+    'profile-settings-search-modal'
+  ];
+  return ids.some(id => {
+    const el = document.getElementById(id);
+    return el && !el.classList.contains('hidden');
+  });
+}
+
 function setDockVisible(visible) {
+  if (visible && isDialogModalOpen()) return;
   const dock = document.getElementById('bottom-dock');
   const dockBlur = document.getElementById('dock-blur-backdrop');
   if (visible) {
@@ -1232,9 +1252,11 @@ function hookScrollableForDock(el, isMain = false) {
     }
     // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock
     else if (diff < -6 || currentScrollTop <= 15) {
-      setDockVisible(true);
-      if (isMain && filterBar && appState.currentView === 'dashboard') {
-        filterBar.classList.remove('filter-hidden');
+      if (!isDialogModalOpen()) {
+        setDockVisible(true);
+        if (isMain && filterBar && appState.currentView === 'dashboard') {
+          filterBar.classList.remove('filter-hidden');
+        }
       }
     }
 
@@ -1248,10 +1270,11 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // 4. When scrolling stops / screen is still -> Smoothly restore Dock (except when deep inside profile drawer)
+    // 4. When scrolling stops / screen is still -> Smoothly restore Dock (except when deep inside profile drawer or in dialog modal)
     clearTimeout(scrollIdleTimer);
     scrollIdleTimer = setTimeout(() => {
       if (el.id === 'profile-drawer-content' && el.scrollTop > 25) return;
+      if (isDialogModalOpen()) return;
       setDockVisible(true);
     }, 450);
   }, { passive: true });
@@ -1343,6 +1366,7 @@ function openSearchBar() {
   const modal = document.getElementById('global-search-modal');
   const input = document.getElementById('global-search-input');
   if (modal) modal.classList.remove('hidden');
+  setDockVisible(false);
   if (input) {
     if (appState.currentView === 'learning') {
       input.placeholder = 'ស្វែងរកពាក្យអង់គ្លេស, អាន, ខ្មែរ (Vocabulary)...';
@@ -1362,6 +1386,7 @@ function closeSearchBar() {
   if (modal) modal.classList.add('hidden');
   const container = document.getElementById('search-results-container');
   if (container) container.innerHTML = '';
+  setDockVisible(true);
 }
 
 function highlightSearchText(text, query) {
@@ -4533,6 +4558,7 @@ function openAboutModal() {
   if (modal) {
     renderAboutModalContent();
     modal.classList.remove('hidden');
+    setDockVisible(false);
     if (navigator.vibrate) navigator.vibrate(12);
   }
 }
@@ -4544,6 +4570,7 @@ function closeAboutModal(e) {
   const modal = document.getElementById('about-modal');
   if (modal) {
     modal.classList.add('hidden');
+    setDockVisible(true);
   }
 }
 
@@ -4706,10 +4733,12 @@ function markAllNotificationsAsRead() {
 
 function openChangePinModal() {
   document.getElementById('change-pin-modal').classList.remove('hidden');
+  setDockVisible(false);
 }
 
 function closeChangePinModal() {
   document.getElementById('change-pin-modal').classList.add('hidden');
+  setDockVisible(true);
 }
 
 function saveNewPin() {
@@ -4816,10 +4845,12 @@ function openShortcutModal(e) {
     input.value = localStorage.getItem('sd_shortcut_url') || '';
   }
   document.getElementById('shortcut-modal')?.classList?.remove('hidden');
+  setDockVisible(false);
 }
 
 function closeShortcutModal() {
   document.getElementById('shortcut-modal')?.classList?.add('hidden');
+  setDockVisible(true);
 }
 
 function saveShortcutUrl() {
@@ -6408,6 +6439,7 @@ function openEditProfileModal() {
   setVal('edit-prof-phone', p.phone);
 
   document.getElementById('edit-profile-modal')?.classList?.remove('hidden');
+  setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -6503,6 +6535,7 @@ let activeQrSlotIdx = 0;
 function openQrPhotosModal() {
   renderQrPhotosModalBody();
   document.getElementById('qr-photos-modal')?.classList?.remove('hidden');
+  setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -7258,6 +7291,7 @@ function openProfileSubModal(type) {
   body.innerHTML = contentHTML;
 
   document.getElementById('profile-sub-modal')?.classList?.remove('hidden');
+  setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -7521,6 +7555,7 @@ function openProfileSettingsSearch() {
   const clearBtn = document.getElementById('profile-settings-search-clear-btn');
   if (modal) {
     modal.classList.remove('hidden');
+    setDockVisible(false);
     if (input) {
       input.value = '';
       setTimeout(() => input.focus(), 80);
@@ -7533,6 +7568,7 @@ function openProfileSettingsSearch() {
 function closeProfileSettingsSearch() {
   const modal = document.getElementById('profile-settings-search-modal');
   if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
 }
 
 function clearProfileSettingsSearch() {

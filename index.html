@@ -1818,9 +1818,9 @@
 
     <!-- ======================================================== -->
     <!-- iOS 17 Pro Fullscreen Heavy Blur Floating Search Modal    -->
-    <!-- Z-Index 50 Floating Overlay blurs everything behind it    -->
+    <!-- Z-Index 70 Floating Overlay blurs everything behind it    -->
     <!-- ======================================================== -->
-    <div id="global-search-modal" class="fixed inset-0 z-50 bg-[#070D18]/90 backdrop-blur-3xl hidden flex flex-col p-4 pt-6 transition-all duration-300">
+    <div id="global-search-modal" class="fixed inset-0 z-[70] bg-[#070D18]/90 backdrop-blur-3xl hidden flex flex-col p-4 pt-6 transition-all duration-300">
       
       <!-- Top iOS Capsule Search Bar & Independent Circular ✕ Button -->
       <div onclick="handleHeaderScrollToTop(event, 'search-results-container')" class="w-full max-w-md mx-auto flex items-center gap-3 mb-4 shrink-0 cursor-pointer">
@@ -1855,7 +1855,7 @@
     <!-- ======================================================== -->
     <!-- iOS Settings Style Search Modal (Profile Dashboard & Settings) -->
     <!-- ======================================================== -->
-    <div id="profile-settings-search-modal" class="fixed inset-0 z-50 bg-[#070D18]/92 backdrop-blur-3xl hidden flex flex-col p-4 pt-6 transition-all duration-300">
+    <div id="profile-settings-search-modal" class="fixed inset-0 z-[70] bg-[#070D18]/92 backdrop-blur-3xl hidden flex flex-col p-4 pt-6 transition-all duration-300">
       <!-- Top iOS Capsule Search Bar & Cancel Button -->
       <div onclick="handleHeaderScrollToTop(event, 'profile-settings-search-results')" class="w-full max-w-md mx-auto flex items-center gap-3 mb-4 shrink-0 cursor-pointer">
         <!-- iOS Pill Search Input -->
@@ -2346,14 +2346,14 @@
   </div>
 
   <!-- About Me Modal (ផ្ទាំងកាតអំពីខ្ញុំចំកណ្តាលពេញលេញ + Blur ផ្ទៃខាងក្រោយ + ប៉ះកន្លែងទំនេរដើម្បីបិទ) -->
-  <div id="about-modal" onclick="closeAboutModal(event)" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-300">
+  <div id="about-modal" onclick="closeAboutModal(event)" class="fixed inset-0 z-[70] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-300">
     <div id="about-modal-card" onclick="event.stopPropagation()" class="rounded-3xl bg-[#09111D] border border-white/10 p-5 shadow-2xl flex flex-col items-center text-center space-y-3.5 relative overflow-hidden max-w-xs w-full animate-fade-in">
       <!-- Populated dynamically by renderAboutModal() -->
     </div>
   </div>
 
   <!-- Passcode Change Modal -->
-  <div id="change-pin-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div id="change-pin-modal" class="fixed inset-0 z-[70] bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
     <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-6 max-w-xs w-full text-center relative shadow-2xl">
       <button onclick="closeChangePinModal()" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5">
         <i data-lucide="x" class="w-4 h-4"></i>
@@ -2374,7 +2374,7 @@
   </div>
 
   <!-- App Shortcut Customizer Modal -->
-  <div id="shortcut-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div id="shortcut-modal" class="fixed inset-0 z-[70] bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
     <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 max-w-xs w-full relative shadow-2xl">
       <button onclick="closeShortcutModal()" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5">
         <i data-lucide="x" class="w-4 h-4"></i>
@@ -2570,7 +2570,7 @@
   <!-- ======================================================== -->
   <!-- ATTENDANCE TRACKER MODAL (CheckinMe Style)               -->
   <!-- ======================================================== -->
-  <div id="attendance-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy">
+  <div id="attendance-modal" class="fixed inset-0 z-[70] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy">
     <div class="w-full max-w-md mx-auto flex flex-col h-full overflow-hidden">
       <!-- Top Bar -->
       <div class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 flex items-center justify-between gap-2">
@@ -2607,8 +2607,8 @@
   <!-- ======================================================== -->
   <!-- EDIT PROFILE & MEMBER INFO MODAL (Live, Study, Work...)  -->
   <!-- ======================================================== -->
-  <div id="edit-profile-modal" onclick="if(event.target === this) closeEditProfileModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-4">
-    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl max-h-[88vh] flex flex-col overflow-hidden w-full max-w-md mx-auto shadow-2xl">
+  <div id="edit-profile-modal" onclick="if(event.target === this) closeEditProfileModal()" class="fixed inset-0 z-[70] bg-[#070D18]/85 backdrop-blur-xl hidden flex items-center justify-center p-4 pb-8">
+    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl max-h-[84vh] flex flex-col overflow-hidden w-full max-w-md mx-auto shadow-2xl">
       <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
@@ -2734,8 +2734,8 @@
   <!-- ======================================================== -->
   <!-- QR CODE (PHOTOS) MODAL                                   -->
   <!-- ======================================================== -->
-  <div id="qr-photos-modal" onclick="if(event.target === this) closeQrPhotosModal()" class="fixed inset-0 z-50 bg-[#070D18]/85 backdrop-blur-xl hidden flex items-center justify-center p-4">
-    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl max-h-[88vh] flex flex-col overflow-hidden w-full max-w-sm mx-auto shadow-2xl">
+  <div id="qr-photos-modal" onclick="if(event.target === this) closeQrPhotosModal()" class="fixed inset-0 z-[70] bg-[#070D18]/85 backdrop-blur-xl hidden flex items-center justify-center p-4 pb-8">
+    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl max-h-[84vh] flex flex-col overflow-hidden w-full max-w-sm mx-auto shadow-2xl">
       <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
@@ -2763,8 +2763,8 @@
   <!-- ======================================================== -->
   <!-- UNIVERSAL PROFILE SUB-FEATURE MODAL                      -->
   <!-- ======================================================== -->
-  <div id="profile-sub-modal" onclick="if(event.target === this) closeProfileSubModal()" class="fixed inset-0 z-50 bg-[#070D18]/80 backdrop-blur-xl hidden flex items-center justify-center p-4">
-    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl max-h-[86vh] flex flex-col overflow-hidden w-full max-w-md mx-auto shadow-2xl">
+  <div id="profile-sub-modal" onclick="if(event.target === this) closeProfileSubModal()" class="fixed inset-0 z-[70] bg-[#070D18]/85 backdrop-blur-xl hidden flex items-center justify-center p-4 pb-8">
+    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl max-h-[84vh] flex flex-col overflow-hidden w-full max-w-md mx-auto shadow-2xl">
       <div id="profile-sub-modal-header" class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0">
         <!-- Injected dynamically -->
       </div>
@@ -2775,6 +2775,6 @@
   </div>
 
   <script src="dataService.js?v=5.3"></script>
-  <script src="app.js?v=5.5"></script>
+  <script src="app.js?v=5.6"></script>
 </body>
 </html>
