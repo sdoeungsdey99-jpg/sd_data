@@ -7712,6 +7712,12 @@ window.handleHeaderScrollToTop = handleHeaderScrollToTop;
 // =========================================================
 // NEW ORDER & SMART PARSER SYSTEM (Personal Sales & Team Sync)
 // =========================================================
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3nkhqs8_dzCOKgdsC3nWZJWUz6Lsegguu22PFws3eLlUm3yux33kSWgFnf4g_-OBW/exec';
+
+function getAppsScriptWebhookUrl() {
+  return localStorage.getItem('sd_apps_script_url') || DEFAULT_APPS_SCRIPT_URL;
+}
+
 let currentOrderMode = 'paste';
 let currentOrderType = 'standard';
 let currentOrderProducts = {
@@ -8079,14 +8085,14 @@ async function submitNewOrder() {
     localStorage.setItem('sd_local_orders', JSON.stringify(existing));
   } catch (_) {}
 
-  // 3. Send to Google Apps Script Webhook if configured
-  const webhookUrl = localStorage.getItem('sd_apps_script_url');
+  // 3. Send to Google Apps Script Webhook
+  const webhookUrl = getAppsScriptWebhookUrl();
   if (webhookUrl && webhookUrl.startsWith('http')) {
     try {
       await fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'add_order', data: newRecord })
       });
     } catch (e) {
@@ -8261,14 +8267,14 @@ async function submitNewExpense() {
     localStorage.setItem('sd_local_expenses', JSON.stringify(existing));
   } catch (_) {}
 
-  // 3. Send to Google Apps Script Webhook if configured
-  const webhookUrl = localStorage.getItem('sd_apps_script_url');
+  // 3. Send to Google Apps Script Webhook
+  const webhookUrl = getAppsScriptWebhookUrl();
   if (webhookUrl && webhookUrl.startsWith('http')) {
     try {
       await fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'add_expense', data: newExpense })
       });
     } catch (e) {

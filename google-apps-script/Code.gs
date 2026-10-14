@@ -12,6 +12,13 @@
  * ==============================================================================
  */
 
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'ok',
+    message: 'SD Dashboard Webhook is live and ready! 🚀'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
 function doPost(e) {
   var lock = LockService.getScriptLock();
   // រង់ចាំ lock រយៈពេលរហូតដល់ 30 វិនាទី ដើម្បីការពារការបញ្ជូនទិន្នន័យជាន់គ្នា (Concurrency Safety)

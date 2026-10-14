@@ -23,14 +23,16 @@
    - ចុច **Advanced** (នៅខាងឆ្វេងក្រោម) ➜ ចុច **Go to ... (unsafe)** ➜ ចុច **Allow**
 6. ចម្លងយក **Web app URL** (ដែលចាប់ផ្តើមដោយ `https://script.google.com/macros/s/.../exec`)
 
-## ៣. របៀបភ្ជាប់ URL នោះចូលក្នុង SD Dashboard
+## ៣. ស្ថានភាពភ្ជាប់ Web App URL ក្នុង SD Dashboard
 
-លោកគ្រូគ្រាន់តែបើក Dashboard លើ Browser រួចបើក Console ឬបញ្ចូលក្នុង LocalStorage៖
-```javascript
-localStorage.setItem('sd_apps_script_url', 'YOUR_WEB_APP_URL_HERE');
+✅ **បានភ្ជាប់រួចជាស្រេចក្នុងកូដ Dashboard (`app.js`):**
 ```
+https://script.google.com/macros/s/AKfycbx3nkhqs8_dzCOKgdsC3nWZJWUz6Lsegguu22PFws3eLlUm3yux33kSWgFnf4g_-OBW/exec
+```
+
 រាល់ពេលដែលលោកគ្រូ ឬក្រុមការងារចុច «បញ្ជូនការកុម្ម៉ង់» ឬ «កត់ត្រាការចំណាយ» លើ Dashboard នោះទិន្នន័យនឹងត្រូវសរសេរចូល Google Sheet ដោយស្វ័យប្រវត្តិតាមគោលការណ៍សុវត្ថិភាពទាំង ៤៖
 - ពិនិត្យភាពស្ទួន (Duplicate check)
 - ការពាររូបមន្ត (No., Total $, Stock, Profit)
 - រក្សាទុកកន្លែង Manual update (COD Status, Payment Date, Note)
 - បង្កើត `REC-XXXX` បន្តបន្ទាប់ដោយស្វ័យប្រវត្តិសម្រាប់ AppSheet
+
