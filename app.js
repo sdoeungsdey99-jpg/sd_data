@@ -11389,6 +11389,9 @@ function openNewOrderModal(mode = 'dock') {
     pasteInput.setAttribute('rows', '1');
   }
 
+  const orderTypeCard = document.getElementById('order-type-card');
+  const stockCapsuleBtn = document.getElementById('btn-order-stock-capsule');
+
   if (currentOrderEntryMode === 'telegram') {
     if (modalTitle) modalTitle.textContent = 'កត់ត្រាពី Telegram';
     if (modalSubtitle) modalSubtitle.textContent = 'ចូល Google Sheet ផ្ទាល់ខ្លួន';
@@ -11396,6 +11399,8 @@ function openNewOrderModal(mode = 'dock') {
     if (btnHeaderPass) btnHeaderPass.classList.remove('hidden');
     if (card3in1) card3in1.classList.add('hidden');
     if (syncToggle) syncToggle.checked = false; // Strictly OFF for telegram mode!
+    if (orderTypeCard) orderTypeCard.classList.remove('hidden');
+    if (stockCapsuleBtn) stockCapsuleBtn.classList.remove('hidden');
   } else {
     // Dock 3-in-1 Mode
     if (modalTitle) modalTitle.textContent = 'បញ្ចូលការកុម្ម៉ង់ថ្មី';
@@ -11404,6 +11409,8 @@ function openNewOrderModal(mode = 'dock') {
     if (btnHeaderPass) btnHeaderPass.classList.add('hidden');
     if (card3in1) card3in1.classList.add('hidden');
     if (syncToggle) syncToggle.checked = true; // Auto-sync active for 3-in-1
+    if (orderTypeCard) orderTypeCard.classList.add('hidden'); // Hidden in 3-in-1 dock mode as instructed!
+    if (stockCapsuleBtn) stockCapsuleBtn.classList.remove('hidden');
   }
 
   const profile = (typeof getProfileData === 'function') ? getProfileData() : {};
@@ -11582,7 +11589,7 @@ function clearOrderInput() {
 
   currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, emmi: 0, sgp: 0, free: 0 };
   updateProductQtyDisplay();
-  toggleExtraOrderProducts(false);
+  setOrderType('standard');
   calculateOrderFinancials();
   checkOrderSubmitValidation();
 
@@ -11596,8 +11603,19 @@ function switchOrderMode(mode) {
   checkOrderSubmitValidation();
 }
 
+function toggleOrderTypeCapsule() {
+  if (currentOrderType === 'standard') {
+    setOrderType('reward');
+    showToastNotification('🎁 ប្តូរទៅជា «លក់រង្វាន់» (ថ្លៃដើមស្តុក $0)');
+  } else {
+    setOrderType('standard');
+    showToastNotification('📦 ប្តូរទៅជា «ដាក់ចូលស្តុក» (គិតថ្លៃដើមស្តុក $24)');
+  }
+}
+
 function setOrderType(type) {
   currentOrderType = type;
+  const capsuleBtn = document.getElementById('btn-order-stock-capsule');
   const btnStd = document.getElementById('btn-type-standard');
   const btnRwd = document.getElementById('btn-type-reward');
   const desc = document.getElementById('order-type-desc');
@@ -11607,6 +11625,10 @@ function setOrderType(type) {
 
   if (type === 'reward') {
     const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+    if (capsuleBtn) {
+      capsuleBtn.className = 'px-2.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/50 text-[11px] font-bold text-amber-400 active:scale-95 transition flex items-center gap-1.5 shadow-sm';
+      capsuleBtn.innerHTML = `<i data-lucide="gift" class="w-3.5 h-3.5 text-amber-400"></i><span id="label-order-stock-capsule">លក់រង្វាន់ ($0)</span>`;
+    }
     if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-400';
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
     if (desc) desc.innerText = isMaster ? 'លក់រង្វាន់: មិនគិតថ្លៃដើមស្តុក ($0) និងកំណត់លេខអ្នកលក់ជា 097 859 5526 ស្វ័យប្រវត្តិ។' : 'លក់រង្វាន់: មិនគិតថ្លៃដើមស្តុក ($0)។';
@@ -11614,6 +11636,10 @@ function setOrderType(type) {
     if (noteInput && !noteInput.value) noteInput.value = 'លក់រង្វាន់';
     if (sellerPhoneInput && isMaster) sellerPhoneInput.value = '097 859 5526';
   } else {
+    if (capsuleBtn) {
+      capsuleBtn.className = 'px-2.5 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/40 text-[11px] font-bold text-orange-400 active:scale-95 transition flex items-center gap-1.5 shadow-sm';
+      capsuleBtn.innerHTML = `<i data-lucide="package-check" class="w-3.5 h-3.5 text-orange-400"></i><span id="label-order-stock-capsule">ដាក់ចូលស្តុក</span>`;
+    }
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-orange-500/20 border-orange-500 text-orange-400';
     if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
     if (desc) desc.innerText = 'គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។';
@@ -12155,6 +12181,7 @@ window.openNewOrderModal = openNewOrderModal;
 window.closeNewOrderModal = closeNewOrderModal;
 window.switchOrderMode = switchOrderMode;
 window.setOrderType = setOrderType;
+window.toggleOrderTypeCapsule = toggleOrderTypeCapsule;
 window.adjustProductQty = adjustProductQty;
 window.toggleExtraProducts = toggleExtraProducts;
 window.calculateOrderFinancials = calculateOrderFinancials;
