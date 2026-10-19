@@ -16,6 +16,7 @@
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'ok',
+    version: '2.0-sequential',
     message: 'SD Dashboard Webhook is live and ready! 🚀'
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -204,46 +205,52 @@ function insertDailyExpense(ss, exp) {
     return { status: 'error', message: 'Tab "Daily Expenses" not found!' };
   }
 
+  // ស្វែងរកជួរដេកទំនេរដំបូង (Sequential First Empty Row) ការពារកុំឱ្យរំលងជួរទទេ
   var dataRange = sheet.getDataRange();
   var values = dataRange.getValues();
   var numRows = values.length;
   var targetRow = -1;
 
   for (var r = 1; r < numRows; r++) {
-    var dateVal = values[r][0];
-    if (!dateVal || String(dateVal).trim() === '') {
+    var rowDate = values[r][0];
+    var rowDesc = values[r][1];
+    var rowAmt = values[r][3];
+    // បើ Col A, Col B និង Col D សុទ្ធតែទំនេរ នោះជាជួរទំនេរដំបូងពិតប្រាកដ
+    if ((!rowDate || String(rowDate).trim() === '') && 
+        (!rowDesc || String(rowDesc).trim() === '') && 
+        (rowAmt === '' || rowAmt === null || rowAmt === undefined)) {
       targetRow = r + 1;
       break;
     }
   }
 
+  // ប្រសិនបើគ្មានជួរទំនេរកណ្តាលទេ គឺដាក់នៅចុងទិន្នន័យ
   if (targetRow === -1) {
     targetRow = numRows + 1;
   }
 
+  // បំប្លែង Date Object ពិតប្រាកដ និងកំណត់ Format dd/MM/yyyy សុទ្ធ
+  // ការពារដាច់ខាតកុំឱ្យលោតសញ្ញា Invalid Date ដោយសារជាប់ម៉ោង HH:mm លើ Data Validation របស់ Google Sheet
   var dateObj = parseToDateObj(exp.date);
-  if (exp.time) {
-    var tParts = String(exp.time).split(':');
-    if (tParts.length >= 2) {
-      dateObj.setHours(parseInt(tParts[0], 10), parseInt(tParts[1], 10), 0);
-      sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy HH:mm');
-    } else {
-      sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy');
-    }
-  } else {
-    sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy');
-  }
+  sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date
 
   sheet.getRange(targetRow, 2).setValue(exp.description || ''); // Col B: Description
   sheet.getRange(targetRow, 3).setValue(exp.category || 'ហូបចុក & ប្រចាំថ្ងៃ'); // Col C: Category
   sheet.getRange(targetRow, 4).setValue(Number(exp.amount || 0)); // Col D: Amount ($)
-  if (exp.note) {
-    sheet.getRange(targetRow, 5).setValue(exp.note); // Col E: Note (if any)
+
+  // ប្រសិនបើមានបញ្ជាក់ម៉ោង (Time) ដាក់ចូលក្នុង Col E (Note) ដើម្បីកុំឱ្យខូច Data Validation នៃ Col A
+  var noteText = exp.note || '';
+  if (exp.time) {
+    noteText = noteText ? (exp.time + ' - ' + noteText) : ('ម៉ោង ' + exp.time);
+  }
+  if (noteText) {
+    sheet.getRange(targetRow, 5).setValue(noteText); // Col E: Note
   }
 
   return {
     status: 'success',
     action: 'add_expense',
+    version: '2.0-sequential',
     row: targetRow,
     amount: exp.amount
   };

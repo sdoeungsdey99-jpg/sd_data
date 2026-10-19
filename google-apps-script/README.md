@@ -27,7 +27,7 @@
 
 ✅ **បានភ្ជាប់រួចជាស្រេចក្នុងកូដ Dashboard (`app.js`):**
 ```
-https://script.google.com/macros/s/AKfycbx3nkhqs8_dzCOKgdsC3nWZJWUz6Lsegguu22PFws3eLlUm3yux33kSWgFnf4g_-OBW/exec
+https://script.google.com/macros/s/AKfycbw_BgUgVS0le9DGv4LKAnuWFM-a3B0EKKcGRyfhjIRJ5f_78-GYgdhH5h8zweR8DYCU/exec
 ```
 
 រាល់ពេលដែលលោកគ្រូ ឬក្រុមការងារចុច «បញ្ជូនការកុម្ម៉ង់» ឬ «កត់ត្រាការចំណាយ» លើ Dashboard នោះទិន្នន័យនឹងត្រូវសរសេរចូល Google Sheet ដោយស្វ័យប្រវត្តិតាមគោលការណ៍សុវត្ថិភាពទាំង ៤៖

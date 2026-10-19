@@ -3,7 +3,23 @@
  * Real-time dynamic Google Sheet reader (Zero Hardcoding)
  */
 
-const SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+const DEFAULT_MASTER_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+
+function extractSheetId(input) {
+  if (!input) return '';
+  const s = String(input).trim();
+  const match = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (match) return match[1];
+  return s;
+}
+
+function getActiveSheetId() {
+  try {
+    const custom = localStorage.getItem('sd_custom_sheet_id');
+    if (custom && custom.trim().length > 15) return custom.trim();
+  } catch (_) {}
+  return DEFAULT_MASTER_SHEET_ID;
+}
 
 function cleanNumber(val) {
   if (val === null || val === undefined || val === '') return 0;
@@ -58,26 +74,56 @@ function ddmmyyyyToIso(ddmmyyyy) {
   return ddmmyyyy;
 }
 
-async function fetchGoogleSheetGViz(gid) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&gid=${gid}`;
-  const response = await fetch(url);
+async function fetchGoogleSheetGViz(param, sheetNameFallback) {
+  const sheetId = getActiveSheetId();
+  const isCustom = (sheetId !== DEFAULT_MASTER_SHEET_ID);
+  
+  const queryParam = (isCustom && sheetNameFallback)
+    ? `sheet=${encodeURIComponent(sheetNameFallback)}`
+    : (isNaN(param) ? `sheet=${encodeURIComponent(param)}` : `gid=${param}`);
+
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&${queryParam}`;
+  let response = await fetch(url);
+  
+  // Auto-fallback to sheet name if GID fails
+  if (!response.ok && sheetNameFallback) {
+    const retryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}`;
+    response = await fetch(retryUrl);
+  }
+
   if (!response.ok) {
-    throw new Error(`HTTP Error ${response.status} when fetching gid=${gid}`);
+    throw new Error(`HTTP Error ${response.status} when fetching ${queryParam}`);
   }
   const text = await response.text();
   const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);/);
   if (!match || !match[1]) {
-    throw new Error(`Invalid JSONP format for gid=${gid}`);
+    throw new Error(`Invalid JSONP format for ${queryParam}`);
   }
   return JSON.parse(match[1]);
 }
 
 // Fetch Google Sheet tab as raw CSV for 100% faithful cell extraction without GViz header stripping
-async function fetchGoogleSheetCSV(gid) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
-  const response = await fetch(url);
+async function fetchGoogleSheetCSV(param, sheetNameFallback) {
+  const sheetId = getActiveSheetId();
+  const isCustom = (sheetId !== DEFAULT_MASTER_SHEET_ID);
+
+  let url;
+  if (isCustom && sheetNameFallback) {
+    url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetNameFallback)}`;
+  } else if (!isNaN(param)) {
+    url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${param}`;
+  } else {
+    url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(param)}`;
+  }
+
+  let response = await fetch(url);
+  if (!response.ok && sheetNameFallback) {
+    const retryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetNameFallback)}`;
+    response = await fetch(retryUrl);
+  }
+
   if (!response.ok) {
-    throw new Error(`HTTP Error ${response.status} when fetching CSV gid=${gid}`);
+    throw new Error(`HTTP Error ${response.status} when fetching CSV ${param}`);
   }
   const text = await response.text();
   return parseCSV(text);
@@ -140,12 +186,12 @@ window.DataService = {
     }
 
     try {
-      const [psGviz, expGviz, bankCsvRows, teamGviz, teamSalesCsvRows] = await Promise.all([
-        fetchGoogleSheetGViz('1802751802'), // Personal Sales
-        fetchGoogleSheetGViz('1413782774'), // Daily Expenses
-        fetchGoogleSheetCSV('1381982614'),  // Bank & Cash Balance (CSV for 100% faithful cell extraction)
-        fetchGoogleSheetGViz('30391871'),   // Team Monthly View
-        fetchGoogleSheetCSV('608899183')    // Team Sales (Sheet containing dynamic monthly targets)
+      const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows] = await Promise.all([
+        fetchGoogleSheetGViz('1802751802', 'Personal Sales'),
+        fetchGoogleSheetCSV('1413782774', 'Daily Expenses'),
+        fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance'),
+        fetchGoogleSheetGViz('30391871', 'Team Monthly View'),
+        fetchGoogleSheetCSV('608899183', 'Team Sales')
       ]);
 
       // ==========================================
@@ -176,9 +222,7 @@ window.DataService = {
         const qtyYLP = cleanNumber(getCell(8));
         const qtyKN = cleanNumber(getCell(9));
         const qtyPDO = cleanNumber(getCell(10));
-        const freeQty = cleanNumber(getCell(11));
-        const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
-
+        const freeVal = cleanNumber(getCell(11));
         const thaiBaht = cleanNumber(getCell(12));
         const price = thaiBaht;
         const totalAmount = cleanNumber(getCell(13));
@@ -187,9 +231,26 @@ window.DataService = {
         const codStatus = String(getCell(16) || 'មិនទាន់ទូទាត់').trim();
         const profit = cleanNumber(getCell(19));
         const note = String(getCell(20) || '').trim();
-        const recordId = String(getCell(23) || `REC-${i}`).trim();
+        // Dynamic Record ID detection: checks Col 23, 22, 21 or fallback so deleting/keeping Col V never breaks
+        let recordId = '';
+        if (getCell(23) && String(getCell(23)).startsWith('REC-')) {
+          recordId = String(getCell(23)).trim();
+        } else if (getCell(22) && String(getCell(22)).startsWith('REC-')) {
+          recordId = String(getCell(22)).trim();
+        } else if (getCell(21) && String(getCell(21)).startsWith('REC-')) {
+          recordId = String(getCell(21)).trim();
+        } else {
+          recordId = String(getCell(23) || getCell(22) || `REC-${i}`).trim();
+        }
+
+        // Smart Rule: If note has [SG Pro], Free column holds legacy SG Pro cans
+        const isSGPro = note.includes('[SG Pro]');
+        const qtySG = isSGPro ? freeVal : 0;
+        const freeQty = isSGPro ? 0 : freeVal;
+        const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty + qtySG;
 
         const prodParts = [];
+        if (qtySG > 0) prodParts.push(qtySG > 1 ? `SG Pro (${qtySG})` : `SG Pro`);
         if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
         if (qtyPDO > 0) prodParts.push(qtyPDO > 1 ? `PDO (${qtyPDO})` : `PDO`);
         if (qtyYL > 0) prodParts.push(qtyYL > 1 ? `YL (${qtyYL})` : `YL`);
@@ -210,6 +271,7 @@ window.DataService = {
           qtyYLP,
           qtyKN,
           qtyPDO,
+          qtySG,
           freeQty,
           totalBoxQty,
           product,
@@ -225,37 +287,29 @@ window.DataService = {
       }
 
       // ==========================================
-      // 2. Process Daily Expenses
+      // 2. Process Daily Expenses (from CSV)
       // ==========================================
-      const expRows = expGviz.table.rows;
       const expenses = [];
-      for (let i = 1; i < expRows.length; i++) {
-        const cells = expRows[i].c;
-        if (!cells) continue;
-        const getCell = (idx) => (idx < cells.length && cells[idx] && cells[idx].v !== null && cells[idx].v !== undefined) ? cells[idx].v : '';
+      for (let i = 1; i < expCsvRows.length; i++) {
+        const r = expCsvRows[i];
+        if (!r || r.length < 4) continue;
 
-        const dateRaw = String(getCell(0) || '').trim();
+        const dateRaw = String(r[0] || '').trim();
         if (!dateRaw || dateRaw.toLowerCase() === 'date') continue;
 
         const ddmmyyyy = formatToDDMMYYYY(dateRaw);
         const isoDate = ddmmyyyyToIso(ddmmyyyy);
         if (!ddmmyyyy) continue;
 
-        const desc = String(getCell(1) || '').trim();
-        const cat = String(getCell(2) || 'ផ្សេងៗ').trim();
-        const amt = cleanNumber(getCell(3));
+        const desc = String(r[1] || '').trim();
+        const cat = String(r[2] || 'ផ្សេងៗ').trim();
+        const amt = cleanNumber(r[3]);
 
-        // Extract time if provided in Date(Y,M,D,H,M) or formatted cell
+        // Extract time if provided in cell
         let timeStr = '';
-        const timeMatch = dateRaw.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/);
+        const timeMatch = dateRaw.match(/(\d{1,2}:\d{2}(?:\s*[AP]M)?)/i);
         if (timeMatch) {
-          const hh = String(timeMatch[1]).padStart(2, '0');
-          const mm = String(timeMatch[2]).padStart(2, '0');
-          timeStr = `${hh}:${mm}`;
-        } else {
-          const fStr = (cells[0] && cells[0].f) ? String(cells[0].f) : '';
-          const strMatch = fStr.match(/(\d{1,2}:\d{2}(?:\s*[AP]M)?)/i);
-          if (strMatch) timeStr = strMatch[1];
+          timeStr = timeMatch[1];
         }
 
         expenses.push({
@@ -265,6 +319,7 @@ window.DataService = {
           description: desc,
           category: cat,
           amount: amt,
+          note: String(r[4] || '').trim(),
           rowIndex: i
         });
       }
@@ -401,13 +456,19 @@ window.DataService = {
           let sotheyBoost = 0;
           let rasungBoost = 0;
 
+          const sdeyDaily = [];
+          const sotheyDaily = [];
+          const rasungDaily = [];
+
           for (let r_i = mInfo.startDayRow; r_i <= mInfo.endDayRow && r_i < teamSalesCsvRows.length; r_i++) {
             const dayRow = teamSalesCsvRows[r_i];
             if (!dayRow) continue;
+            const dayStr = String(dayRow[0] || '').trim();
+            if (!dayStr) continue;
+
             const bVal = cleanNumber(dayRow[1]) || 0;
             sdeyBoost += bVal;
             if (bVal > 0) {
-              const dayStr = String(dayRow[0] || '').trim();
               let dateLabel = dayStr;
               if (/^\d+$/.test(dayStr)) {
                 dateLabel = `${dayStr}-Oct`;
@@ -427,11 +488,54 @@ window.DataService = {
             }
             sotheyBoost += cleanNumber(dayRow[9]) || 0;
             rasungBoost += cleanNumber(dayRow[17]) || 0;
+
             for (let s = 0; s < 5; s++) {
               sdeySets[s] += cleanNumber(dayRow[2 + s]) || 0;
               sotheySets[s] += cleanNumber(dayRow[10 + s]) || 0;
               rasungSets[s] += cleanNumber(dayRow[18 + s]) || 0;
             }
+
+            // Daily sales record for Sdey
+            sdeyDaily.push({
+              date: dayStr,
+              dayRowIndex: r_i,
+              boost: bVal,
+              set1: cleanNumber(dayRow[2]) || 0,
+              set2: cleanNumber(dayRow[3]) || 0,
+              set3: cleanNumber(dayRow[4]) || 0,
+              set4: cleanNumber(dayRow[5]) || 0,
+              set5: cleanNumber(dayRow[6]) || 0,
+              totalBoxes: cleanNumber(dayRow[7]) || 0,
+              orders: cleanNumber(dayRow[8]) || 0
+            });
+
+            // Daily sales record for Sothey
+            sotheyDaily.push({
+              date: dayStr,
+              dayRowIndex: r_i,
+              boost: cleanNumber(dayRow[9]) || 0,
+              set1: cleanNumber(dayRow[10]) || 0,
+              set2: cleanNumber(dayRow[11]) || 0,
+              set3: cleanNumber(dayRow[12]) || 0,
+              set4: cleanNumber(dayRow[13]) || 0,
+              set5: cleanNumber(dayRow[14]) || 0,
+              totalBoxes: cleanNumber(dayRow[15]) || 0,
+              orders: cleanNumber(dayRow[16]) || 0
+            });
+
+            // Daily sales record for Rasung
+            rasungDaily.push({
+              date: dayStr,
+              dayRowIndex: r_i,
+              boost: cleanNumber(dayRow[17]) || 0,
+              set1: cleanNumber(dayRow[18]) || 0,
+              set2: cleanNumber(dayRow[19]) || 0,
+              set3: cleanNumber(dayRow[20]) || 0,
+              set4: cleanNumber(dayRow[21]) || 0,
+              set5: cleanNumber(dayRow[22]) || 0,
+              totalBoxes: cleanNumber(dayRow[23]) || 0,
+              orders: cleanNumber(dayRow[24]) || 0
+            });
           }
 
           boostByMonth[mInfo.month] = sdeyBoost;
@@ -445,9 +549,11 @@ window.DataService = {
               set2: sdeySets[1],
               set3: sdeySets[2],
               set4: sdeySets[3],
+              set5: sdeySets[4],
               totalBoxes: sdeyBoxes,
               targetGoal: sdeyTarget,
-              targetPercent: sdeyTarget > 0 ? Math.min(100, (sdeyBoxes / sdeyTarget) * 100).toFixed(1) : '0.0'
+              targetPercent: sdeyTarget > 0 ? Math.min(100, (sdeyBoxes / sdeyTarget) * 100).toFixed(1) : '0.0',
+              dailySales: sdeyDaily
             },
             {
               name: 'ឆេង សុធី',
@@ -456,9 +562,11 @@ window.DataService = {
               set2: sotheySets[1],
               set3: sotheySets[2],
               set4: sotheySets[3],
+              set5: sotheySets[4],
               totalBoxes: sotheyBoxes,
               targetGoal: sotheyTarget,
-              targetPercent: sotheyTarget > 0 ? Math.min(100, (sotheyBoxes / sotheyTarget) * 100).toFixed(1) : '0.0'
+              targetPercent: sotheyTarget > 0 ? Math.min(100, (sotheyBoxes / sotheyTarget) * 100).toFixed(1) : '0.0',
+              dailySales: sotheyDaily
             },
             {
               name: 'ឆេង រ៉ាស៊ុង',
@@ -467,9 +575,11 @@ window.DataService = {
               set2: rasungSets[1],
               set3: rasungSets[2],
               set4: rasungSets[3],
+              set5: rasungSets[4],
               totalBoxes: rasungBoxes,
               targetGoal: rasungTarget,
-              targetPercent: rasungTarget > 0 ? Math.min(100, (rasungBoxes / rasungTarget) * 100).toFixed(1) : '0.0'
+              targetPercent: rasungTarget > 0 ? Math.min(100, (rasungBoxes / rasungTarget) * 100).toFixed(1) : '0.0',
+              dailySales: rasungDaily
             }
           ];
         }
@@ -599,5 +709,52 @@ window.DataService = {
 
   stopAutoReload() {
     if (this.pollTimer) clearInterval(this.pollTimer);
+  },
+
+  isUsingCustomSheet() {
+    return getActiveSheetId() !== DEFAULT_MASTER_SHEET_ID;
+  },
+
+  getActiveSheetId() {
+    return getActiveSheetId();
+  },
+
+  getCustomSheetId() {
+    try {
+      return localStorage.getItem('sd_custom_sheet_id') || '';
+    } catch (_) {
+      return '';
+    }
+  },
+
+  async setCustomSheetId(input) {
+    const cleanId = extractSheetId(input);
+    if (!cleanId || cleanId.length < 15) {
+      throw new Error('លេខសម្គាល់ Google Sheet ID មិនត្រឹមត្រូវឡើយ');
+    }
+    localStorage.setItem('sd_custom_sheet_id', cleanId);
+    return await this.fetchData(false);
+  },
+
+  async resetToMasterSheet() {
+    localStorage.removeItem('sd_custom_sheet_id');
+    return await this.fetchData(false);
+  },
+
+  async testSheetConnection(input) {
+    const cleanId = extractSheetId(input) || DEFAULT_MASTER_SHEET_ID;
+    const url = `https://docs.google.com/spreadsheets/d/${cleanId}/gviz/tq?tqx=out:json&headers=0&sheet=Personal%20Sales`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`HTTP Error ${res.status}: សូមពិនិត្យសិទ្ធិចែករំលែក (Anyone with link can view)`);
+    }
+    const text = await res.text();
+    const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);/);
+    if (!match || !match[1]) {
+      throw new Error('ទម្រង់ទិន្នន័យមិនស៊ីគ្នាឡើយ');
+    }
+    const parsed = JSON.parse(match[1]);
+    const rowCount = parsed?.table?.rows?.length || 0;
+    return { ok: true, sheetId: cleanId, rows: rowCount };
   }
 };

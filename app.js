@@ -206,27 +206,34 @@ const appState = {
   themeAccent: localStorage.getItem('sd_theme_accent') || 'orange', // 'blue' | 'coral' | 'orange' | 'amber' | 'emerald' | 'pink'
   cardLayout: localStorage.getItem('sd_card_layout') || '1', // '1' (standard) | '2' (finance) | '3' (sales)
   activeSettingsItem: null, // null | 'about' | 'accent' | 'fonts' | 'text_size' | 'wallpaper' | 'security'
-  pinEnabled: localStorage.getItem('sd_pin_enabled') !== 'false',
-  isLocked: localStorage.getItem('sd_pin_enabled') !== 'false' && !sessionStorage.getItem('sd_unlocked'),
+  pinEnabled: localStorage.getItem('sd_pin_enabled') === 'true', // Default: false (PIN lock screen turned OFF)
+  isLocked: localStorage.getItem('sd_pin_enabled') === 'true' && !sessionStorage.getItem('sd_unlocked'),
   enteredPin: '',
   correctPin: localStorage.getItem('sd_pin') || '1234',
-  lockWallpaper: localStorage.getItem('sd_lock_wallpaper') || 'wp-deep-mesh',
-  analyticsMonthKey: 'all', // 'all' or 'YYYY-MM'
+  analyticsMonthKey: null, // null defaults to latest month, or 'all', or 'YYYY-MM'
+  isAnalyticsDetailMinimized: true,
+  isAnalyticsTableMinimized: true,
+  analyticsTab: 'all', // 'all' | 'business' | 'expenses'
   hasReadNotifications: false,
   studyWordCount: 5,
   fontFamily: localStorage.getItem('sd_font') || 'font-kantumruy',
   textSize: localStorage.getItem('sd_text_size') || 'md',
-  hideSubtitles: localStorage.getItem('sd_hide_subtitles') === 'true',
+  hideSubtitles: localStorage.getItem('sd_hide_subtitles') !== 'false', // Default: true (Hide Subtitles is ON)
   notificationsEnabled: localStorage.getItem('sd_notif_enabled') !== 'false',
   profitNetBoostMode: false,
   cardVisibility: (() => {
     try {
       const saved = localStorage.getItem('sd_card_visibility');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.pureCash === undefined) parsed.pureCash = false;
+        if (parsed.autoHideEmpty === undefined) parsed.autoHideEmpty = false;
+        return parsed;
+      }
     } catch (_) {}
     return {
-      autoHideEmpty: true,
-      pureCash: true,
+      autoHideEmpty: false, // Default: false (Auto-hide empty cards turned OFF)
+      pureCash: false, // Default: false (Card 1 turned OFF)
       salesPerformance: true,
       netCash: true,
       expenses: true,
@@ -308,16 +315,17 @@ function resetAppSettings() {
   localStorage.removeItem('sd_card_visibility');
   localStorage.removeItem('sd_theme');
   localStorage.removeItem('sd_lock_wallpaper');
+  localStorage.removeItem('sd_pin_enabled');
 
   // Reset in appState
   appState.themeAccent = 'orange';
   appState.fontFamily = 'font-kantumruy';
   appState.textSize = 'md';
-  appState.hideSubtitles = false;
+  appState.hideSubtitles = true;
   appState.cardLayout = '1';
   appState.cardVisibility = {
-    autoHideEmpty: true,
-    pureCash: true,
+    autoHideEmpty: false,
+    pureCash: false,
     salesPerformance: true,
     netCash: true,
     expenses: true,
@@ -326,14 +334,18 @@ function resetAppSettings() {
   };
   appState.theme = 'dark';
   appState.lockWallpaper = 'wp-deep-mesh';
+  appState.pinEnabled = false;
+  appState.isLocked = false;
 
   // Apply to DOM
   applyThemeAccent('orange');
   applyAppFont('font-kantumruy');
   applyAppTextSize('md');
-  applyHideSubtitles(false);
+  applyHideSubtitles(true);
   applyTheme('dark');
   applyLockWallpaper('wp-deep-mesh');
+  const lockScreen = document.getElementById('lock-screen');
+  if (lockScreen) lockScreen.classList.add('hidden');
 
   if (navigator.vibrate) navigator.vibrate([15, 50, 15]);
   renderCurrentView();
@@ -569,19 +581,38 @@ document.addEventListener('DOMContentLoaded', () => {
   updateLockClock();
 
   // Listen to Online & Offline connection state changes
-  window.addEventListener('online', () => {
+  window.addEventListener('online', async () => {
+    showToastNotification('📡 មានអ៊ីនធឺណិតឡើងវិញ! កំពុង Sync ទិន្នន័យ...');
+    if (typeof syncOfflineQueue === 'function') await syncOfflineQueue();
     DataService.fetchData(false);
     checkOnlineOfflineStatus();
   });
   window.addEventListener('offline', () => {
+    showToastNotification('⚠️ ដាច់អ៊ីនធឺណិត! ប្រព័ន្ធបានបើក Offline Mode');
     checkOnlineOfflineStatus();
   });
   setInterval(checkOnlineOfflineStatus, 2000);
 
+  // Purge any legacy leftover demo notifications
+  try {
+    const rawNotifs = localStorage.getItem('sd_app_notifications');
+    if (rawNotifs) {
+      const list = JSON.parse(rawNotifs);
+      const cleaned = (Array.isArray(list)) ? list.filter(n => n && n.id !== 'notif-welcome' && n.id !== 'notif-offline-ready') : [];
+      localStorage.setItem('sd_app_notifications', JSON.stringify(cleaned));
+    }
+  } catch (_) {}
+
+  if (typeof updateNotifBadgeCount === 'function') updateNotifBadgeCount();
+
   const urlParams = new URLSearchParams(window.location.search);
-  if (!appState.pinEnabled || sessionStorage.getItem('sd_unlocked') === 'true' || urlParams.get('unlock') === '1') {
-    const lockScreen = document.getElementById('lock-screen');
-    if (lockScreen) lockScreen.classList.add('hidden');
+  const lockScreen = document.getElementById('lock-screen');
+  if (lockScreen) {
+    if (!appState.pinEnabled || sessionStorage.getItem('sd_unlocked') === 'true' || urlParams.get('unlock') === '1') {
+      lockScreen.classList.add('hidden');
+    } else {
+      lockScreen.classList.remove('hidden');
+    }
   }
 
   if (urlParams.get('theme')) {
@@ -800,9 +831,11 @@ function updateReloadBadge(service) {
   }
 
   if (notifBadge) {
-    const count = service.unreadNotifications.length;
+    const storedList = (typeof getStoredNotifications === 'function') ? getStoredNotifications() : [];
+    const storedUnread = storedList.filter(n => !n.isRead).length;
+    const count = (service.unreadNotifications ? service.unreadNotifications.length : 0) + storedUnread;
     if (count > 0 && !appState.hasReadNotifications) {
-      notifBadge.textContent = count;
+      notifBadge.textContent = count > 99 ? '99+' : count;
       notifBadge.classList.remove('hidden');
     } else {
       notifBadge.classList.add('hidden');
@@ -834,13 +867,18 @@ function checkOnlineOfflineStatus() {
   }
 }
 
-function manualReload() {
+async function manualReload() {
   const indicator = document.getElementById('pull-refresh-indicator');
   if (indicator) {
     indicator.style.height = '35px';
     setTimeout(() => {
       indicator.style.height = '0px';
     }, 800);
+  }
+  if (navigator.onLine && typeof syncOfflineQueue === 'function') {
+    try {
+      await syncOfflineQueue();
+    } catch (_) {}
   }
   DataService.fetchData(false);
 }
@@ -945,7 +983,7 @@ function handleBackNavigation() {
   // 1e. Close any other open modal if visible
   const openModals = [
     'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
-    'cod-modal', 'bank-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
+    'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
     const el = document.getElementById(id);
@@ -997,7 +1035,7 @@ function isAnyDrilldownModalOpen() {
   const modalIds = [
     'new-order-modal', 'new-expense-modal',
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
-    'cod-modal', 'bank-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
+    'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
     'profile-sub-modal', 'qr-photos-modal', 'edit-profile-modal',
     'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
@@ -1246,19 +1284,75 @@ function hookScrollableForDock(el, isMain = false) {
 
   el.addEventListener('scroll', () => {
     const currentScrollTop = el.scrollTop;
+
+    // 0. Suppress scroll-triggered layout shifts during accordion collapse / expand
+    if (window.__isTogglingAnalyticsCollapse) {
+      lastScrollTop = currentScrollTop;
+      return;
+    }
+
     const diff = currentScrollTop - lastScrollTop;
 
-    // 1. Scrolling content down (finger moving up) -> Smoothly hide Dock & Filter Bar
+    // Ignore abnormal layout-resize jumps (greater than 120px in a single tick)
+    if (Math.abs(diff) > 120) {
+      lastScrollTop = currentScrollTop;
+      return;
+    }
+
+    // Analytics Sticky Header: Locked style when scrolled
+    if (isMain && appState.currentView === 'analytics') {
+      const analyticsHeader = document.getElementById('analytics-sticky-header');
+      if (analyticsHeader) {
+        if (currentScrollTop > 10) {
+          if (!analyticsHeader.classList.contains('analytics-header-locked')) {
+            analyticsHeader.classList.add('analytics-header-locked');
+          }
+        } else if (currentScrollTop <= 2) {
+          if (analyticsHeader.classList.contains('analytics-header-locked')) {
+            analyticsHeader.classList.remove('analytics-header-locked');
+          }
+        }
+      }
+    }
+
+    // 1. Scrolling content down (finger moving up) -> Smoothly hide Dock & Filter Bar (Home & Analytics)
     if (diff > 8 && currentScrollTop > 30) {
       setDockVisible(false);
       if (isMain && filterBar) filterBar.classList.add('filter-hidden');
+      if (isMain && appState.currentView === 'analytics') {
+        const analyticsHeader = document.getElementById('analytics-sticky-header');
+        if (analyticsHeader && !analyticsHeader.classList.contains('filter-hidden')) {
+          const analyticsMenu = document.getElementById('analytics-view-dropdown-menu');
+          if (analyticsMenu) analyticsMenu.classList.add('hidden');
+          analyticsHeader.classList.add('filter-hidden');
+        }
+      }
+      if (el.id === 'expenses-modal-list') {
+        const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
+        if (expFilterBar && !expFilterBar.classList.contains('filter-hidden')) {
+          closeAllExpensesDropdowns();
+          expFilterBar.classList.add('filter-hidden');
+        }
+      }
     }
-    // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock
+    // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock & Filter Bar
     else if (diff < -6 || currentScrollTop <= 15) {
       if (!isDialogModalOpen()) {
         setDockVisible(true);
         if (isMain && filterBar && appState.currentView === 'dashboard') {
           filterBar.classList.remove('filter-hidden');
+        }
+        if (isMain && appState.currentView === 'analytics') {
+          const analyticsHeader = document.getElementById('analytics-sticky-header');
+          if (analyticsHeader && analyticsHeader.classList.contains('filter-hidden')) {
+            analyticsHeader.classList.remove('filter-hidden');
+          }
+        }
+        if (el.id === 'expenses-modal-list') {
+          const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
+          if (expFilterBar && expFilterBar.classList.contains('filter-hidden')) {
+            expFilterBar.classList.remove('filter-hidden');
+          }
         }
       }
     }
@@ -1298,6 +1392,7 @@ function setupSmartDockScroll() {
     'payables-modal-list',
     'all-customers-list',
     'profile-drawer-content',
+    'team-sets-modal-table-container',
     'search-results-container',
     'profile-settings-search-results'
   ];
@@ -1516,6 +1611,7 @@ function handleGlobalSearch(query) {
            (s.phone && s.phone.toLowerCase().includes(q)) ||
            (s.location && s.location.toLowerCase().includes(q)) ||
            (s.product && s.product.toLowerCase().includes(q)) ||
+           (s.note && s.note.toLowerCase().includes(q)) ||
            (s.date && s.date.toLowerCase().includes(q));
   });
 
@@ -1564,9 +1660,10 @@ function handleGlobalSearch(query) {
           ${matchedSales.slice(0, 30).map(item => `
             <div class="p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-orange-500/30 transition flex flex-col gap-1.5">
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="font-bold text-xs text-white">${highlightSearchText(item.customer, q)}</span>
                   <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 font-mono">${highlightSearchText(item.orderId, q)}</span>
+                  ${item.note && item.note.includes('[SG Pro]') ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/25 text-purple-300 font-bold border border-purple-500/40">SG Pro</span>' : ''}
                 </div>
                 <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.totalAmount)}</span>
               </div>
@@ -1574,6 +1671,7 @@ function handleGlobalSearch(query) {
                 <span>📍 ${highlightSearchText(item.location || '—', q)}</span>
                 <span>📞 ${highlightSearchText(item.phone || '—', q)}</span>
               </div>
+              ${item.note ? `<div class="text-[10px] text-slate-400 italic">📝 ${highlightSearchText(item.note, q)}</div>` : ''}
               <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
                 <span>កាលបរិច្ឆេទ: <strong class="text-white">${highlightSearchText(item.date, q)}</strong></span>
                 <span>ប្រអប់: <strong class="text-white">${item.totalBoxQty}</strong></span>
@@ -1647,6 +1745,7 @@ function closeAllModals() {
     'expenses-modal',
     'cod-modal',
     'bank-modal',
+    'team-sets-modal',
     'notif-modal',
     'all-customers-modal',
     'profile-drawer-modal',
@@ -1657,7 +1756,9 @@ function closeAllModals() {
     'change-pin-modal',
     'shortcut-modal',
     'global-search-modal',
-    'profile-settings-search-modal'
+    'profile-settings-search-modal',
+    'new-order-modal',
+    'new-expense-modal'
   ];
   modals.forEach(id => {
     const el = document.getElementById(id);
@@ -1668,9 +1769,11 @@ function closeAllModals() {
     drawerPanel.classList.remove('translate-x-0');
     drawerPanel.classList.add('-translate-x-full');
   }
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('dock-profile-active');
 }
 
-function switchView(viewName) {
+function switchView(viewName, shouldReload = false) {
   closeAllModals();
   if (viewName === 'profile') {
     openProfileDrawer();
@@ -1681,6 +1784,11 @@ function switchView(viewName) {
     appState.previousView = appState.currentView;
   }
   appState.currentView = viewName;
+  if (viewName === 'analytics') {
+    appState.analyticsMonthKey = null; // Always open into 1-month drill-down
+    appState.isAnalyticsDetailMinimized = true;
+    appState.isAnalyticsTableMinimized = true;
+  }
 
   const main = document.getElementById('main-content');
   if (main) {
@@ -1690,11 +1798,16 @@ function switchView(viewName) {
     } else {
       main.classList.remove('settings-view-active');
     }
+    if (viewName === 'analytics') {
+      main.classList.add('analytics-view-active');
+    } else {
+      main.classList.remove('analytics-view-active');
+    }
   }
 
   setDockVisible(true);
 
-  if (viewName === 'dashboard') {
+  if (viewName === 'dashboard' && shouldReload) {
     manualReload();
   }
 
@@ -1997,7 +2110,6 @@ function renderMonthDropdownMenu() {
   if (!menu) return;
 
   const isKm = appState.language === 'km';
-  const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
   const monthsList = [
     { num: 1, name: 'មករា', en: 'Jan' },
     { num: 2, name: 'កុម្ភៈ', en: 'Feb' },
@@ -2019,8 +2131,20 @@ function renderMonthDropdownMenu() {
     ? parseInt(appState.selectedMonthKey.split('-')[1], 10) 
     : currentMonthNum;
 
-  menu.innerHTML = monthsList.map(m => {
-    const isSelected = m.num === activeMonthNum;
+  const yearHeader = `
+    <div class="flex items-center justify-between pb-2 mb-1.5 border-b border-white/10 px-1">
+      <button type="button" onclick="navigateMonthPickerYear(-1, event)" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition" title="ឆ្នាំមុន">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
+      <span class="text-xs font-bold font-mono text-white">ឆ្នាំ ${monthPickerYear}</span>
+      <button type="button" onclick="navigateMonthPickerYear(1, event)" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition" title="ឆ្នាំបន្ទាប់">
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+  `;
+
+  menu.innerHTML = yearHeader + monthsList.map(m => {
+    const isSelected = m.num === activeMonthNum && String(monthPickerYear) === (appState.selectedMonthKey ? appState.selectedMonthKey.split('-')[0] : String(now.getFullYear()));
     return `
       <button onclick="selectMonthFilter(${m.num}, '${m.name}', event)" 
               class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-white bg-orange-500/20 border border-orange-500/30' : 'text-slate-300 hover:bg-white/10'}">
@@ -2038,13 +2162,14 @@ function selectMonthFilter(mNum, mKhmer, event) {
   const menu = document.getElementById('month-dropdown-menu');
   if (menu) menu.classList.add('hidden');
 
-  const yr = appState.selectedYear || (new Date()).getFullYear();
+  const yr = monthPickerYear || appState.selectedYear || (new Date()).getFullYear();
+  appState.selectedYear = yr;
   const paddedMonth = String(mNum).padStart(2, '0');
   appState.selectedMonthKey = `${yr}-${paddedMonth}`;
   
   const labelEl = document.getElementById('month-pill-label');
   if (labelEl) {
-    labelEl.textContent = `ខែ ${mNum}`;
+    labelEl.textContent = `(${paddedMonth}/${yr})`;
   }
 
   setPeriodFilter('month');
@@ -2211,6 +2336,14 @@ function renderCurrentView() {
       break;
     case 'analytics':
       container.innerHTML = getAnalyticsViewHTML();
+      setTimeout(() => {
+        const activeBtn = document.querySelector('#analytics-month-tabs .analytics-month-active');
+        const tabsRow = document.getElementById('analytics-month-tabs');
+        if (activeBtn && tabsRow) {
+          const offsetLeft = activeBtn.offsetLeft - (tabsRow.clientWidth / 2) + (activeBtn.clientWidth / 2);
+          tabsRow.scrollTo({ left: Math.max(0, offsetLeft), behavior: 'smooth' });
+        }
+      }, 50);
       break;
     case 'learning':
       container.innerHTML = getLearningViewHTML();
@@ -2259,6 +2392,20 @@ function updateStaticLabels() {
 function getDashboardViewHTML() {
   const d = DataService.data;
   if (!d) {
+    if (DataService.error) {
+      return `
+        <div class="py-20 flex flex-col items-center justify-center text-center px-4">
+          <div class="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mb-3 border border-rose-500/30">
+            <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+          </div>
+          <p class="text-sm font-bold text-white mb-1">មិនអាចទាញទិន្នន័យបានទេ</p>
+          <p class="text-xs text-rose-300 font-mono mb-4">${DataService.error}</p>
+          <button onclick="DataService.fetchData()" class="px-4 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold active:scale-95 transition shadow-lg shadow-orange-500/20">
+            ព្យាយាមម្តងទៀត (Retry)
+          </button>
+        </div>
+      `;
+    }
     return `
       <div class="py-24 flex flex-col items-center justify-center text-center">
         <div class="w-12 h-12 rounded-full border-4 border-orange-500/20 border-t-orange-500 animate-spin mb-4"></div>
@@ -2300,7 +2447,7 @@ function getDashboardViewHTML() {
     filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(targetMonth));
     filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonth));
     const parts = targetMonth.split('-');
-    activePeriodDisplay = `ខែ ${parts[1]}/${parts[0]}`;
+    activePeriodDisplay = `(${parts[1]}/${parts[0]})`;
   } else if (appState.periodFilter === 'year') {
     const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
     filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(targetYear));
@@ -2357,8 +2504,8 @@ function getDashboardViewHTML() {
     }
   } else if (appState.periodFilter === 'month') {
     const targetMonth = appState.selectedMonthKey || currentIsoMonth;
-    const mNum = targetMonth.split('-')[1] || '10';
-    dynamicExpenseTitle = isEn ? `Expenses (Month ${mNum})` : `ការចំណាយខែ ${mNum}`;
+    const parts = targetMonth.split('-');
+    dynamicExpenseTitle = isEn ? `Expenses (${parts[1]}/${parts[0]})` : `ការចំណាយ (${parts[1]}/${parts[0]})`;
   } else if (appState.periodFilter === 'year') {
     const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
     dynamicExpenseTitle = isEn ? `Expenses (${targetYear})` : `ការចំណាយឆ្នាំ ${targetYear}`;
@@ -2492,12 +2639,11 @@ function getDashboardViewHTML() {
             <span class="text-slate-400 text-[10px] leading-tight">
               ${t('totalBoxes')}:
             </span>
-            <!-- New Order Button inside Grid 1 (Replaces redundant View button) -->
+            <!-- New Data Entry Button inside Grid 1 (Icon only: pencil-line) -->
             <button onclick="event.stopPropagation(); openNewOrderModal()" 
-                    title="ចុចដើម្បីបង្កើត ឬកត់ត្រាការកុម្ម៉ង់ថ្មី (Smart Paste / Quick Form)"
-                    class="px-2 py-0.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 hover:text-white font-bold text-[10px] flex items-center gap-1 active:scale-95 transition shadow-sm">
-              <i data-lucide="plus" class="w-2.5 h-2.5"></i>
-              <span>${appState.language === 'en' ? 'Order' : 'កុម្ម៉ង់'}</span>
+                    title="បញ្ចូលទិន្នន័យការលក់ថ្មី (Smart Paste / Quick Form)"
+                    class="w-6 h-6 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 hover:text-white flex items-center justify-center active:scale-95 transition shadow-sm">
+              <i data-lucide="pencil-line" class="w-3.5 h-3.5"></i>
             </button>
           </div>
           <div class="flex items-baseline gap-1 mt-0.5">
@@ -2619,12 +2765,12 @@ function getDashboardViewHTML() {
             <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Expenses (${sortedFilteredExpenses.length} មុខ)</p>
           </div>
         </div>
-        <!-- Top-Right (+) Button: Quick Expense Direct Entry Modal -->
+        <!-- Top-Right Button: Quick Expense Direct Entry Modal -->
         <button onclick="event.stopPropagation(); openNewExpenseModal();" 
                 oncontextmenu="event.stopPropagation(); openExpenseShortcut();"
                 title="កត់ត្រាចំណាយថ្មី (Quick Expense)"
                 class="w-8 h-8 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 flex items-center justify-center active:scale-95 transition shadow-sm shrink-0">
-          <i data-lucide="plus" class="w-4 h-4"></i>
+          <i data-lucide="pencil-line" class="w-4 h-4"></i>
         </button>
       </div>
 
@@ -2709,19 +2855,22 @@ function getDashboardViewHTML() {
 
       <div class="space-y-2.5">
         ${currentTeamLeaders.map(tl => `
-          <div class="p-3 rounded-2xl bg-black/25 border border-white/5 flex flex-col gap-2">
+          <div class="p-3 rounded-2xl bg-black/25 border border-white/5 flex flex-col gap-2 cursor-pointer hover:border-blue-500/30 hover:bg-white/[0.04] active:scale-[0.99] transition group" onclick="openTeamSetsModal('${tl.name}', ${selectedMonthInt})">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-1.5">
-                <span class="font-bold text-xs text-white whitespace-nowrap">${tl.name}</span>
+                <span class="font-bold text-xs text-white whitespace-nowrap group-hover:text-blue-300 transition">${tl.name}</span>
                 ${tl.name === 'ស្តី ស្តើង' ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                 <!-- Leader Target Badge -->
                 <span class="px-1.5 py-0.5 rounded-md bg-white/5 text-[9px] text-slate-400 font-mono border border-white/5">
                   គោលដៅ: <strong class="text-blue-300">${tl.targetGoal || 100}</strong>
                 </span>
               </div>
-              <span class="font-mono text-xs font-bold ${tl.targetPercent >= 100 ? 'text-emerald-400' : 'text-orange-400'} whitespace-nowrap">
-                ${tl.totalBoxes} ${t('boxUnit')} (${tl.targetPercent}%)
-              </span>
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono text-xs font-bold ${tl.targetPercent >= 100 ? 'text-emerald-400' : 'text-orange-400'} whitespace-nowrap">
+                  ${tl.totalBoxes} ${t('boxUnit')} (${tl.targetPercent}%)
+                </span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition"></i>
+              </div>
             </div>
 
             <div class="flex items-center gap-1 text-[10px] text-slate-400">
@@ -2729,6 +2878,7 @@ function getDashboardViewHTML() {
               <span class="px-1.5 py-0.5 rounded bg-white/5">Set 2: <strong class="text-white">${tl.set2}</strong></span>
               <span class="px-1.5 py-0.5 rounded bg-white/5">Set 3: <strong class="text-white">${tl.set3}</strong></span>
               <span class="px-1.5 py-0.5 rounded bg-white/5">Set 4: <strong class="text-white">${tl.set4}</strong></span>
+              ${tl.set5 > 0 ? `<span class="px-1.5 py-0.5 rounded bg-white/5">Set 5: <strong class="text-white">${tl.set5}</strong></span>` : ''}
             </div>
 
             <div class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
@@ -2798,8 +2948,8 @@ function getDashboardViewHTML() {
   `;
 
   const cv = appState.cardVisibility || {
-    autoHideEmpty: true,
-    pureCash: true,
+    autoHideEmpty: false,
+    pureCash: false,
     salesPerformance: true,
     netCash: true,
     expenses: true,
@@ -2880,43 +3030,290 @@ function getDashboardViewHTML() {
 // ==========================================
 // 5. View: Analytics
 // ==========================================
+function setAnalyticsYear(year) {
+  appState.analyticsYear = year;
+  appState.analyticsMonthKey = null;
+  renderCurrentView();
+}
+
 function setAnalyticsMonth(monthKey) {
   appState.analyticsMonthKey = monthKey;
   renderCurrentView();
+
+  // Auto-scroll selected month into center view horizontally without page vertical shift
+  setTimeout(() => {
+    const activeBtn = document.querySelector('#analytics-month-tabs .analytics-month-active');
+    const tabsRow = document.getElementById('analytics-month-tabs');
+    if (activeBtn && tabsRow) {
+      const offsetLeft = activeBtn.offsetLeft - (tabsRow.clientWidth / 2) + (activeBtn.clientWidth / 2);
+      tabsRow.scrollTo({ left: Math.max(0, offsetLeft), behavior: 'smooth' });
+    }
+  }, 40);
+}
+
+function setAnalyticsTab(tab) {
+  appState.analyticsTab = tab;
+  renderCurrentView();
+}
+
+function toggleAnalyticsViewDropdown(event) {
+  if (event) {
+    event.stopPropagation();
+  }
+  const menu = document.getElementById('analytics-view-dropdown-menu');
+  if (menu) {
+    menu.classList.toggle('hidden');
+    if (!menu.classList.contains('hidden') && window.lucide) {
+      window.lucide.createIcons();
+    }
+  }
+}
+
+function selectAnalyticsTab(tab) {
+  appState.analyticsTab = tab;
+  const menu = document.getElementById('analytics-view-dropdown-menu');
+  if (menu) {
+    menu.classList.add('hidden');
+  }
+  renderCurrentView();
+}
+
+function toggleAnalyticsAnnualTable() {
+  appState.isAnalyticsTableMinimized = !appState.isAnalyticsTableMinimized;
+  const content = document.getElementById('analytics-annual-table-content');
+  const icon = document.getElementById('analytics-table-toggle-icon');
+  const label = document.getElementById('analytics-table-toggle-label');
+  const header = document.getElementById('analytics-annual-header');
+  const card = header?.closest('.ios-glass-card');
+  const main = document.getElementById('main-content');
+
+  if (content) {
+    window.__isTogglingAnalyticsCollapse = true;
+
+    content.classList.toggle('hidden');
+    const isHidden = content.classList.contains('hidden');
+    if (icon) {
+      icon.setAttribute('data-lucide', isHidden ? 'chevron-down' : 'chevron-up');
+    }
+    if (label) {
+      label.textContent = isHidden ? 'ពង្រីក' : 'បង្រួម';
+    }
+    if (window.lucide) window.lucide.createIcons();
+
+    // Keep Dock and Year Bar visible without oscillation
+    setDockVisible(true);
+    const analyticsHeader = document.getElementById('analytics-sticky-header');
+    if (analyticsHeader) {
+      analyticsHeader.classList.remove('filter-hidden');
+    }
+
+    if (isHidden && card) {
+      const cardRect = card.getBoundingClientRect();
+      if (cardRect.top < 50 || cardRect.top > window.innerHeight - 100) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    setTimeout(() => {
+      window.__isTogglingAnalyticsCollapse = false;
+    }, 350);
+  }
+}
+
+function toggleAnalyticsDetailTable() {
+  appState.isAnalyticsDetailMinimized = !appState.isAnalyticsDetailMinimized;
+  const content = document.getElementById('analytics-detail-list-content');
+  const icon = document.getElementById('analytics-detail-toggle-icon');
+  const label = document.getElementById('analytics-detail-toggle-label');
+  const header = document.getElementById('analytics-detail-header');
+  const card = header?.closest('.ios-glass-card');
+  const main = document.getElementById('main-content');
+
+  if (content) {
+    window.__isTogglingAnalyticsCollapse = true;
+
+    content.classList.toggle('hidden');
+    const isHidden = content.classList.contains('hidden');
+    if (icon) {
+      icon.setAttribute('data-lucide', isHidden ? 'chevron-down' : 'chevron-up');
+    }
+    if (label) {
+      label.textContent = isHidden ? 'ពង្រីក' : 'បង្រួម';
+    }
+    if (window.lucide) window.lucide.createIcons();
+
+    // Keep Dock and Year Bar visible without oscillation
+    setDockVisible(true);
+    const analyticsHeader = document.getElementById('analytics-sticky-header');
+    if (analyticsHeader) {
+      analyticsHeader.classList.remove('filter-hidden');
+    }
+
+    if (isHidden && card) {
+      const cardRect = card.getBoundingClientRect();
+      if (cardRect.top < 50 || cardRect.top > window.innerHeight - 100) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    setTimeout(() => {
+      window.__isTogglingAnalyticsCollapse = false;
+    }, 350);
+  }
+}
+
+window.toggleAnalyticsViewDropdown = toggleAnalyticsViewDropdown;
+window.selectAnalyticsTab = selectAnalyticsTab;
+window.toggleAnalyticsAnnualTable = toggleAnalyticsAnnualTable;
+window.toggleAnalyticsDetailTable = toggleAnalyticsDetailTable;
+window.setAnalyticsYear = setAnalyticsYear;
+window.setAnalyticsMonth = setAnalyticsMonth;
+window.setAnalyticsTab = setAnalyticsTab;
+
+if (typeof window !== 'undefined' && !window.__analyticsDropdownListenerAdded) {
+  window.__analyticsDropdownListenerAdded = true;
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('analytics-view-dropdown-menu');
+    const btn = document.getElementById('analytics-dropdown-btn');
+    if (menu && !menu.classList.contains('hidden')) {
+      if (!menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
+        menu.classList.add('hidden');
+      }
+    }
+  });
 }
 
 function getAnalyticsViewHTML() {
   const d = DataService.data;
   if (!d) return '<p class="text-xs text-slate-400 text-center py-20">Loading Diagram...</p>';
 
+  const currentTab = appState.analyticsTab || 'all';
+  const isEn = appState.language === 'en';
+  const isKm = !isEn;
+
   const monthlyStats = {};
   d.personalSales.forEach(s => {
     const mo = s.isoDate.substring(0, 7);
-    if (!monthlyStats[mo]) monthlyStats[mo] = { revenue: 0, profit: 0, qty: 0 };
+    if (!monthlyStats[mo]) monthlyStats[mo] = { revenue: 0, profit: 0, expense: 0, qty: 0, salesCount: 0, expCount: 0, boost: 0 };
     monthlyStats[mo].revenue += s.totalAmount || 0;
     monthlyStats[mo].profit += s.profit || 0;
     monthlyStats[mo].qty += s.totalBoxQty || 0;
+    monthlyStats[mo].salesCount += 1;
+  });
+
+  (d.expenses || []).forEach(e => {
+    if (!e.isoDate) return;
+    const mo = e.isoDate.substring(0, 7);
+    if (!monthlyStats[mo]) monthlyStats[mo] = { revenue: 0, profit: 0, expense: 0, qty: 0, salesCount: 0, expCount: 0, boost: 0 };
+    monthlyStats[mo].expense += e.amount || 0;
+    monthlyStats[mo].expCount += 1;
   });
 
   const months = Object.keys(monthlyStats).sort();
-  const maxRevenue = Math.max(...months.map(m => monthlyStats[m].revenue), 100);
+  const allYears = [...new Set([...months.map(m => m.split('-')[0]), '2025', '2026', '2027'])].sort((a,b) => parseInt(a,10) - parseInt(b,10));
+  const currentActiveYear = appState.analyticsYear || (allYears.includes('2026') ? '2026' : (allYears[0] || '2026'));
+  appState.analyticsYear = currentActiveYear;
 
-  // Month selector buttons
-  const isAll = appState.analyticsMonthKey === 'all' || !appState.analyticsMonthKey;
-  const activeMonth = isAll ? 'all' : appState.analyticsMonthKey;
+  // Add boost for months in 2026
+  months.forEach(m => {
+    const parts = m.split('-');
+    if (parts[0] === '2026' && d.boostByMonth) {
+      const mInt = parseInt(parts[1], 10);
+      monthlyStats[m].boost = d.boostByMonth[mInt] || 0;
+    }
+  });
 
-  const monthTabsHtml = `
-    <div class="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
-      <button onclick="setAnalyticsMonth('all')" 
-              class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
-        ✨ ពេញមួយឆ្នាំ
+  const displayMonths = allYears.length > 1 ? months.filter(m => m.startsWith(currentActiveYear)) : months;
+  
+  // Default to 1 month (latest month of the active year, e.g. '2026-10') unless explicitly set to 'all'
+  let currentActiveMonthKey = appState.analyticsMonthKey;
+  if (!currentActiveMonthKey) {
+    currentActiveMonthKey = displayMonths.length > 0 ? displayMonths[displayMonths.length - 1] : 'all';
+    appState.analyticsMonthKey = currentActiveMonthKey;
+  }
+  const isAll = currentActiveMonthKey === 'all';
+  const activeMonth = currentActiveMonthKey;
+
+  // Tab metadata
+  let activeTabLabel = 'ទិដ្ឋភាពរួម';
+  let activeTabIcon = 'layers';
+  if (currentTab === 'business') {
+    activeTabLabel = 'អាជីវកម្ម';
+    activeTabIcon = 'briefcase';
+  } else if (currentTab === 'expenses') {
+    activeTabLabel = 'ចំណាយផ្ទាល់ខ្លួន';
+    activeTabIcon = 'receipt';
+  }
+
+  // 1. Slim Sticky Header: ONLY Year Selector & Perspective Dropdown (Locks against Profile Bar)
+  const stickyYearHeaderHtml = `
+    <div id="analytics-sticky-header" class="sticky top-0 z-40 w-full bg-[#070D18]/94 backdrop-blur-2xl px-3.5 pt-2 pb-2 border-b border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
+      <div class="flex items-center justify-between gap-2">
+        <!-- Year Selector -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          <span class="text-xs font-bold text-slate-300 mr-0.5 whitespace-nowrap">${isEn ? 'Year:' : 'ឆ្នាំ:'}</span>
+          ${allYears.map(y => `
+            <button onclick="setAnalyticsYear('${y}')" class="h-7 px-2.5 rounded-full text-xs font-bold font-mono transition active:scale-95 flex items-center justify-center ${currentActiveYear === y ? 'bg-orange-500/20 text-orange-400 border border-orange-500/40 shadow-sm' : 'bg-white/5 text-slate-400 hover:text-white border border-white/5'}">
+              ${y}
+            </button>
+          `).join('')}
+        </div>
+
+        <!-- Perspective Dropdown -->
+        <div class="relative shrink-0">
+          <button id="analytics-dropdown-btn" onclick="toggleAnalyticsViewDropdown(event)" 
+                  class="h-7 px-2.5 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-xs font-semibold text-slate-200 transition active:scale-95 shadow-sm flex items-center gap-1.5">
+            <i data-lucide="${activeTabIcon}" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+            <span class="max-w-[105px] truncate">${activeTabLabel}</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 shrink-0"></i>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div id="analytics-view-dropdown-menu" 
+               class="hidden absolute right-0 top-full mt-1.5 w-48 rounded-2xl bg-[#0A1222]/95 backdrop-blur-2xl border border-white/15 shadow-2xl p-1.5 z-50">
+            <button onclick="selectAnalyticsTab('all')" 
+                    class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition ${currentTab === 'all' ? 'bg-orange-500/20 text-orange-300 font-bold' : 'text-slate-300 hover:bg-white/5'}">
+              <span class="flex items-center gap-2">
+                <i data-lucide="layers" class="w-3.5 h-3.5 text-orange-400"></i>
+                <span>ទិដ្ឋភាពរួម</span>
+              </span>
+              ${currentTab === 'all' ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400"></i>' : ''}
+            </button>
+            <button onclick="selectAnalyticsTab('business')" 
+                    class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition ${currentTab === 'business' ? 'bg-orange-500/20 text-orange-300 font-bold' : 'text-slate-300 hover:bg-white/5'}">
+              <span class="flex items-center gap-2">
+                <i data-lucide="briefcase" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>អាជីវកម្ម</span>
+              </span>
+              ${currentTab === 'business' ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400"></i>' : ''}
+            </button>
+            <button onclick="selectAnalyticsTab('expenses')" 
+                    class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition ${currentTab === 'expenses' ? 'bg-orange-500/20 text-orange-300 font-bold' : 'text-slate-300 hover:bg-white/5'}">
+              <span class="flex items-center gap-2">
+                <i data-lucide="receipt" class="w-3.5 h-3.5 text-rose-400"></i>
+                <span>ចំណាយផ្ទាល់ខ្លួន</span>
+              </span>
+              ${currentTab === 'expenses' ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400"></i>' : ''}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 2. Unlocked Month Tabs Row (Scrolls with page content)
+  const monthTabsUnlockedHtml = `
+    <div id="analytics-month-tabs" class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none no-scrollbar" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
+      <button onclick="setAnalyticsMonth('all')" id="btn-month-all" 
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        ✨ ពេញ ១ ឆ្នាំ
       </button>
-      ${months.map(m => {
+      ${displayMonths.map(m => {
         const parts = m.split('-');
         const isSelected = activeMonth === m;
         return `
-          <button onclick="setAnalyticsMonth('${m}')" 
-                  class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+          <button onclick="setAnalyticsMonth('${m}')" id="btn-month-${m}" 
+                  class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
             ខែ ${parts[1]}
           </button>
         `;
@@ -2924,18 +3321,23 @@ function getAnalyticsViewHTML() {
     </div>
   `;
 
-  // Render Daily Drill-down if a specific month is selected
+  // ==========================================
+  // CASE A: Render Daily Drill-down if Month Selected
+  // ==========================================
   if (!isAll) {
     const monthSales = d.personalSales.filter(s => s.isoDate.startsWith(activeMonth));
+    const monthExpenses = (d.expenses || []).filter(e => e.isoDate && e.isoDate.startsWith(activeMonth));
     const parts = activeMonth.split('-');
-    const monthTitle = `ខែ ${parts[1]}/${parts[0]}`;
+    const mNum = parseInt(parts[1], 10);
+    const monthBoost = (parts[0] === '2026' && d.boostByMonth) ? (d.boostByMonth[mNum] || 0) : 0;
+    const monthTitle = `${parts[1]}/${parts[0]}`;
 
     // Group by day
     const dailyMap = {};
     monthSales.forEach(s => {
       const dayIso = s.isoDate;
       if (!dailyMap[dayIso]) {
-        dailyMap[dayIso] = { date: s.date, isoDate: dayIso, revenue: 0, profit: 0, qty: 0, count: 0 };
+        dailyMap[dayIso] = { date: s.date, isoDate: dayIso, revenue: 0, profit: 0, expense: 0, qty: 0, count: 0, expItems: [] };
       }
       dailyMap[dayIso].revenue += s.totalAmount || 0;
       dailyMap[dayIso].profit += s.profit || 0;
@@ -2943,200 +3345,1179 @@ function getAnalyticsViewHTML() {
       dailyMap[dayIso].count += 1;
     });
 
+    monthExpenses.forEach(e => {
+      const dayIso = e.isoDate;
+      if (!dailyMap[dayIso]) {
+        dailyMap[dayIso] = { date: e.date, isoDate: dayIso, revenue: 0, profit: 0, expense: 0, qty: 0, count: 0, expItems: [] };
+      }
+      dailyMap[dayIso].expense += e.amount || 0;
+      dailyMap[dayIso].expItems.push(e);
+    });
+
     const daysSorted = Object.keys(dailyMap).sort(); // chronological
-    const maxDailyRevenue = Math.max(...daysSorted.map(day => dailyMap[day].revenue), 10);
     const monthTotalRevenue = daysSorted.reduce((sum, day) => sum + dailyMap[day].revenue, 0);
+    const monthTotalExpense = daysSorted.reduce((sum, day) => sum + dailyMap[day].expense, 0);
     const monthTotalProfit = daysSorted.reduce((sum, day) => sum + dailyMap[day].profit, 0);
     const monthTotalBoxes = daysSorted.reduce((sum, day) => sum + dailyMap[day].qty, 0);
+    const netBusinessProfit = monthTotalProfit - monthBoost;
+    const trueNetPocket = netBusinessProfit - monthTotalExpense;
+
+    // Calculate max scale based on active tab
+    let maxDailyVal = 10;
+    if (currentTab === 'expenses') {
+      maxDailyVal = Math.max(...daysSorted.map(day => dailyMap[day].expense), 10);
+    } else if (currentTab === 'business') {
+      maxDailyVal = Math.max(...daysSorted.map(day => dailyMap[day].revenue), 10);
+    } else {
+      maxDailyVal = Math.max(...daysSorted.map(day => Math.max(dailyMap[day].revenue, dailyMap[day].expense)), 10);
+    }
+
+    // Animated SVG Runner
+    let dailySvgRunner = '';
+    const dailyW = Math.max(daysSorted.length * 40, 300);
+    if (daysSorted.length > 1) {
+      const colW = dailyW / daysSorted.length;
+      const pts = daysSorted.map((dIso, idx) => {
+        const item = dailyMap[dIso];
+        const val = currentTab === 'expenses' ? item.expense : item.revenue;
+        const rH = Math.max(10, Math.round((val / maxDailyVal) * 95));
+        const x = Math.round((idx + 0.5) * colW);
+        const y = Math.round(145 - rH);
+        return { x, y };
+      });
+      let pathD = '';
+      pts.forEach((p, i) => {
+        if (i === 0) pathD += `M ${p.x} ${p.y}`;
+        else {
+          const prev = pts[i - 1];
+          const midX = prev.x + (p.x - prev.x) / 2;
+          pathD += ` C ${midX} ${prev.y}, ${midX} ${p.y}, ${p.x} ${p.y}`;
+        }
+      });
+
+      const gradColor1 = currentTab === 'expenses' ? '#F43F5E' : '#10B981';
+      const gradColor2 = currentTab === 'expenses' ? '#FB7185' : '#34D399';
+      const gradColor3 = currentTab === 'expenses' ? '#FDA4AF' : '#6EE7B7';
+
+      dailySvgRunner = `
+        <svg class="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible" style="min-width: ${dailyW}px;">
+          <defs>
+            <linearGradient id="dailyTrendGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="${gradColor1}" stop-opacity="0.25" />
+              <stop offset="50%" stop-color="${gradColor2}" stop-opacity="0.85" />
+              <stop offset="100%" stop-color="${gradColor3}" stop-opacity="1" />
+            </linearGradient>
+            <filter id="dailyGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <path id="daily-trend-line" d="${pathD}" fill="none" stroke="url(#dailyTrendGrad)" stroke-width="2" stroke-dasharray="4,3" opacity="0.85" />
+          <g filter="url(#dailyGlow)">
+            <circle r="4" fill="${gradColor1}">
+              <animate attributeName="r" values="3;6;3" dur="1.2s" repeatCount="indefinite" />
+            </circle>
+            <circle r="2" fill="#FFF" />
+            <path d="M -5 -3 L 3 0 L -5 3 Z" fill="${gradColor3}" />
+            <animateMotion dur="4s" repeatCount="indefinite" rotate="auto">
+              <mpath href="#daily-trend-line" />
+            </animateMotion>
+          </g>
+        </svg>
+      `;
+    }
+
+    // Dynamic Header Title & Subtitle based on Tab
+    let headerSubtitle = 'ទិដ្ឋភាពរួម (លក់, Boost & ចំណាយ)';
+    let cardPillText = 'Daily Trend';
+    if (currentTab === 'business') {
+      headerSubtitle = 'អាជីវកម្ម';
+      cardPillText = 'Business Daily';
+    } else if (currentTab === 'expenses') {
+      headerSubtitle = 'ចំណាយផ្ទាល់ខ្លួន';
+      cardPillText = 'Expenses Daily';
+    }
+
+    // KPI Summary Grid per Tab (2 Square iPhone Widgets with middle divider line & auto-resize font)
+    let kpiGridHtml = '';
+    let monthBottomBannerHtml = '';
+    if (currentTab === 'all') {
+      kpiGridHtml = `
+        <div class="grid grid-cols-2 gap-2 sm:gap-2.5 mb-2.5">
+          <!-- Widget 1: Inflows & Profit -->
+          <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណូលលក់</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-emerald-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${formatUSD(monthTotalRevenue)}
+              </span>
+            </div>
+            <div class="border-t border-white/10 my-2.5"></div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណេញដុល</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-blue-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${formatUSD(monthTotalProfit)}
+              </span>
+            </div>
+          </div>
+
+          <!-- Widget 2: Boost & Expenses -->
+          <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">${isEn ? 'Boost Amount' : 'ចំនួនលុយ Boost'}</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-amber-300 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${monthBoost > 0 ? '-' + formatUSD(monthBoost) : '$0.00'}
+              </span>
+            </div>
+            <div class="border-t border-white/10 my-2.5"></div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណាយផ្ទាល់ខ្លួន</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-sm shadow-rose-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-rose-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                -${formatUSD(monthTotalExpense)}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+      monthBottomBannerHtml = `
+        <!-- True Net Pocket Cash Highlight (placed at bottom of card) -->
+        <div class="p-2.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-500/30 flex items-center justify-between mt-3">
+          <div class="min-w-0 pr-2">
+            <span class="text-xs font-bold text-emerald-300 block leading-tight truncate">💵 លទ្ធផលសរុបប្រចាំខែ ${parts[1]}</span>
+            <span class="text-[9.5px] text-slate-400 font-mono block leading-tight mt-0.5 truncate">(ចំណេញដុល ${formatUSD(monthTotalProfit)} - Boost ${formatUSD(monthBoost)}) - ចំណាយ ${formatUSD(monthTotalExpense)}</span>
+          </div>
+          <span class="font-mono text-sm sm:text-base font-extrabold ${trueNetPocket >= 0 ? 'text-emerald-400' : 'text-rose-400'} shrink-0">${formatUSD(trueNetPocket)}</span>
+        </div>
+      `;
+    } else if (currentTab === 'business') {
+      kpiGridHtml = `
+        <div class="grid grid-cols-2 gap-2 sm:gap-2.5 mb-2.5">
+          <!-- Widget 1: Revenue & Profit -->
+          <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណូលលក់</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-emerald-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${formatUSD(monthTotalRevenue)}
+              </span>
+            </div>
+            <div class="border-t border-white/10 my-2.5"></div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណេញដុល</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-blue-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${formatUSD(monthTotalProfit)}
+              </span>
+            </div>
+          </div>
+
+          <!-- Widget 2: Boost & Business Net -->
+          <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">${isEn ? 'Boost Amount' : 'ចំនួនលុយ Boost'}</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-amber-300 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${monthBoost > 0 ? '-' + formatUSD(monthBoost) : '$0.00'}
+              </span>
+            </div>
+            <div class="border-t border-white/10 my-2.5"></div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណេញសុទ្ធអាជីវកម្ម</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-400 shadow-sm shadow-teal-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-teal-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${formatUSD(netBusinessProfit)}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+      monthBottomBannerHtml = `
+        <!-- Volume Sub-banner (placed at bottom of card) -->
+        <div class="p-2.5 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-between mt-3">
+          <div class="min-w-0 pr-2">
+            <span class="text-xs font-bold text-blue-300 block leading-tight truncate">📦 ទិន្នផលលក់ក្នុងខែ</span>
+            <span class="text-[9.5px] text-slate-400 font-mono block leading-tight mt-0.5 truncate">លក់បាន ${monthTotalBoxes} ប្រអប់ • ${monthSales.length} Orders</span>
+          </div>
+          <span class="font-mono text-xs font-bold text-blue-300 shrink-0">មធ្យម ${(monthTotalBoxes / Math.max(monthSales.length, 1)).toFixed(1)} ប្រអប់/order</span>
+        </div>
+      `;
+    } else {
+      // expenses
+      kpiGridHtml = `
+        <div class="grid grid-cols-2 gap-2 sm:gap-2.5 mb-2.5">
+          <!-- Widget 1: Total & Count -->
+          <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណាយសរុប</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-sm shadow-rose-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-rose-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${formatUSD(monthTotalExpense)}
+              </span>
+            </div>
+            <div class="border-t border-white/10 my-2.5"></div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំនួនដងចំណាយ</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shadow-sm shadow-slate-300/50"></span>
+              </div>
+              <span class="font-mono font-bold text-slate-200 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${monthExpenses.length} ដង
+              </span>
+            </div>
+          </div>
+
+          <!-- Widget 2: Daily Avg & Max Single Expense -->
+          <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">មធ្យមភាគ/ថ្ងៃ</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-amber-300 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${formatUSD(daysSorted.length > 0 ? monthTotalExpense / daysSorted.length : 0)}
+              </span>
+            </div>
+            <div class="border-t border-white/10 my-2.5"></div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណាយធំបំផុត</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-orange-400 shadow-sm shadow-orange-400/50"></span>
+              </div>
+              <span class="font-mono font-bold text-orange-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${formatUSD(monthExpenses.length > 0 ? Math.max(...monthExpenses.map(e => e.amount || 0)) : 0)}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+      monthBottomBannerHtml = `
+        <!-- Expense Status Sub-banner (placed at bottom of card) -->
+        <div class="p-2.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between mt-3">
+          <div class="min-w-0 pr-2">
+            <span class="text-xs font-bold text-rose-300 block leading-tight truncate">🧾 ការចំណាយផ្ទាល់ខ្លួនប្រចាំខែ</span>
+            <span class="text-[9.5px] text-slate-400 font-mono block leading-tight mt-0.5 truncate">${monthExpenses.length} ប្រតិបត្តិការចំណាយក្នុងខែ ${parts[1]}</span>
+          </div>
+          <span class="font-mono text-xs font-bold text-rose-300 shrink-0">សរុប ${formatUSD(monthTotalExpense)}</span>
+        </div>
+      `;
+    }
+
+    // Chart Bars Html per Tab
+    let chartBarsHtml = '';
+    let chartLegendHtml = '';
+    if (currentTab === 'all') {
+      chartLegendHtml = '<span class="text-emerald-400">🟢 ចំណូល</span> | <span class="text-rose-400">🔴 ចំណាយ</span>';
+      chartBarsHtml = daysSorted.map(dayIso => {
+        const item = dailyMap[dayIso];
+        const dayNum = parseInt(dayIso.split('-')[2], 10);
+        const revHeight = Math.max(10, Math.round((item.revenue / maxDailyVal) * 95));
+        const expHeight = item.expense > 0 ? Math.max(6, Math.round((item.expense / maxDailyVal) * 95)) : 0;
+        return `
+          <div class="flex-1 min-w-[32px] max-w-[42px] flex flex-col items-center gap-1 group select-none relative z-20">
+            <span class="text-[7.5px] font-mono font-bold text-amber-300 block text-center leading-none">
+              $${Math.round(item.revenue)}
+            </span>
+            <div class="w-full flex items-end justify-center gap-0.5 h-[105px]">
+              <div class="w-1/2 rounded-t-md bg-gradient-to-t from-emerald-600 to-teal-400 shadow-sm shadow-emerald-500/20" 
+                   style="height: ${revHeight}px" title="ចំណូល: ${formatUSD(item.revenue)}"></div>
+              ${expHeight > 0 ? `
+                <div class="w-1/2 rounded-t-md bg-gradient-to-t from-rose-600 to-red-400 shadow-sm shadow-rose-500/20" 
+                     style="height: ${expHeight}px" title="ចំណាយ: ${formatUSD(item.expense)}"></div>
+              ` : '<div class="w-1/2"></div>'}
+            </div>
+            <span class="text-[9.5px] text-slate-300 font-mono font-semibold">${dayNum}</span>
+          </div>
+        `;
+      }).join('');
+    } else if (currentTab === 'business') {
+      chartLegendHtml = '<span class="text-emerald-400">🟢 ចំណូលលក់</span>';
+      chartBarsHtml = daysSorted.map(dayIso => {
+        const item = dailyMap[dayIso];
+        const dayNum = parseInt(dayIso.split('-')[2], 10);
+        const revHeight = item.revenue > 0 ? Math.max(10, Math.round((item.revenue / maxDailyVal) * 95)) : 4;
+        return `
+          <div class="flex-1 min-w-[32px] max-w-[42px] flex flex-col items-center gap-1 group select-none relative z-20">
+            <span class="text-[7.5px] font-mono font-bold text-emerald-400 block text-center leading-none">
+              $${Math.round(item.revenue)}
+            </span>
+            <div class="w-full flex items-end justify-center h-[105px]">
+              <div class="w-3/4 rounded-t-md bg-gradient-to-t from-emerald-600 to-teal-400 shadow-sm shadow-emerald-500/20" 
+                   style="height: ${revHeight}px" title="លក់បាន: ${formatUSD(item.revenue)} (${item.qty} ប្រអប់)"></div>
+            </div>
+            <span class="text-[9.5px] text-slate-300 font-mono font-semibold">${dayNum}</span>
+          </div>
+        `;
+      }).join('');
+    } else {
+      // expenses
+      chartLegendHtml = '<span class="text-rose-400">🔴 ចំណាយផ្ទាល់ខ្លួន</span>';
+      chartBarsHtml = daysSorted.map(dayIso => {
+        const item = dailyMap[dayIso];
+        const dayNum = parseInt(dayIso.split('-')[2], 10);
+        const expHeight = item.expense > 0 ? Math.max(8, Math.round((item.expense / maxDailyVal) * 95)) : 4;
+        return `
+          <div class="flex-1 min-w-[32px] max-w-[42px] flex flex-col items-center gap-1 group select-none relative z-20">
+            <span class="text-[7.5px] font-mono font-bold text-rose-400 block text-center leading-none">
+              $${Math.round(item.expense)}
+            </span>
+            <div class="w-full flex items-end justify-center h-[105px]">
+              <div class="w-3/4 rounded-t-md bg-gradient-to-t from-rose-600 to-red-400 shadow-sm shadow-rose-500/20" 
+                   style="height: ${expHeight}px" title="ចំណាយ: ${formatUSD(item.expense)}"></div>
+            </div>
+            <span class="text-[9.5px] text-slate-300 font-mono font-semibold">${dayNum}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Detail List per Tab (Minimizable / Collapsible: Shows 1 Day initially & when collapsed)
+    const isDetailMinimized = !!appState.isAnalyticsDetailMinimized;
+    let detailListHtml = '';
+    const sortedDays = [...daysSorted].reverse();
+    const firstDayIso = sortedDays[0];
+    const remainingDays = sortedDays.slice(1);
+
+    const renderDayAllItem = (dayIso) => {
+      const item = dailyMap[dayIso];
+      const curIdx = daysSorted.indexOf(dayIso);
+      const prevIso = curIdx > 0 ? daysSorted[curIdx - 1] : null;
+      const prevItem = prevIso ? dailyMap[prevIso] : null;
+      let trendBadge = '<span class="text-slate-400 text-[10px]">—</span>';
+      if (prevItem) {
+        const diff = item.revenue - prevItem.revenue;
+        if (diff > 0) {
+          trendBadge = `<span class="text-emerald-400 text-[10px] font-mono font-bold">▲ +${formatUSD(diff)}</span>`;
+        } else if (diff < 0) {
+          trendBadge = `<span class="text-rose-400 text-[10px] font-mono font-bold">▼ -${formatUSD(Math.abs(diff))}</span>`;
+        } else {
+          trendBadge = `<span class="text-slate-400 text-[10px] font-mono">■ ស្មើ</span>`;
+        }
+      }
+
+      return `
+        <div class="p-3 rounded-2xl bg-black/25 border border-white/5 hover:border-white/10 transition space-y-1.5">
+          <!-- Top Row: Day badge, Date, Orders count & Revenue -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-orange-500/30">
+                ${dayIso.split('-')[2]}
+              </span>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-white flex items-center gap-1.5 truncate">
+                  <span>${item.date || dayIso}</span>
+                  <span class="text-[10px] font-normal text-slate-400 font-mono shrink-0">(${item.count} orders)</span>
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">
+                  លក់បាន: <span class="text-slate-200 font-bold">${item.qty} ប្រអប់</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="font-mono text-sm text-emerald-400 font-bold block">${formatUSD(item.revenue)}</span>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Expense, Profit, and Trend vs Yesterday -->
+          <div class="flex items-center justify-between text-[10px] font-mono pt-1.5 border-t border-white/5 text-slate-400">
+            <div class="flex items-center gap-2 flex-wrap">
+              ${item.expense > 0 ? `<span class="text-rose-400">ចំណាយ: -${formatUSD(item.expense)}</span>` : '<span class="text-slate-500">គ្មានចំណាយ</span>'}
+              <span class="text-slate-600">•</span>
+              <span class="text-blue-400 font-medium">ចំណេញ: ${formatUSD(item.profit)}</span>
+            </div>
+            <div class="shrink-0">
+              ${trendBadge}
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    const renderDayBizItem = (dayIso) => {
+      const item = dailyMap[dayIso];
+      return `
+        <div class="p-3 rounded-2xl bg-black/25 border border-white/5 hover:border-white/10 transition space-y-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-blue-500/30">
+                ${dayIso.split('-')[2]}
+              </span>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-white flex items-center gap-1.5 truncate">
+                  <span>${item.date || dayIso}</span>
+                  <span class="text-[10px] font-normal text-slate-400 font-mono shrink-0">(${item.count} orders)</span>
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">
+                  លក់បាន: <span class="text-slate-200 font-bold">${item.qty} ប្រអប់</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="font-mono text-sm text-emerald-400 font-bold block">${formatUSD(item.revenue)}</span>
+              <span class="text-[10.5px] text-blue-400 font-mono block mt-0.5">ចំណេញ ${formatUSD(item.profit)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    const sortedExpenses = [...monthExpenses].reverse();
+    const firstExp = sortedExpenses[0];
+    const remainingExp = sortedExpenses.slice(1);
+
+    const renderExpItem = (e) => `
+      <div class="flex items-center justify-between p-3 rounded-2xl bg-black/25 border border-white/5 hover:border-white/10 transition">
+        <div class="flex items-center gap-2.5 min-w-0 pr-2">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 font-bold text-xs flex items-center justify-center shrink-0 border border-rose-500/30">
+            <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0">
+            <span class="text-xs font-semibold text-white block truncate leading-tight">${e.category || e.description || 'ចំណាយទូទៅ'}</span>
+            <span class="text-[10px] text-slate-400 font-mono block truncate mt-0.5">${e.date || e.isoDate} ${e.note ? '• ' + e.note : ''}</span>
+          </div>
+        </div>
+        <div class="text-right shrink-0 pl-1">
+          <span class="font-mono text-xs font-bold text-rose-400">-${formatUSD(e.amount)}</span>
+        </div>
+      </div>
+    `;
+
+    if (currentTab === 'all') {
+      detailListHtml = `
+        <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10">
+          <div id="analytics-detail-header" class="flex items-center justify-between mb-3 cursor-pointer select-none" onclick="toggleAnalyticsDetailTable()">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs uppercase text-white leading-tight">
+                  ការប្រែប្រួលឡើង-ចុះប្រចាំថ្ងៃ (${daysSorted.length} ថ្ងៃ)
+                </h4>
+                <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Daily Revenue & Expense Breakdown</p>
+              </div>
+            </div>
+            ${remainingDays.length > 0 ? `
+              <div class="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-white px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 transition active:scale-95 shrink-0">
+                <span id="analytics-detail-toggle-label">${isDetailMinimized ? 'ពង្រីក' : 'បង្រួម'}</span>
+                <i id="analytics-detail-toggle-icon" data-lucide="${isDetailMinimized ? 'chevron-down' : 'chevron-up'}" class="w-3.5 h-3.5"></i>
+              </div>
+            ` : ''}
+          </div>
+          ${firstDayIso ? renderDayAllItem(firstDayIso) : '<div class="py-6 text-center text-slate-400 text-xs">មិនមានទិន្នន័យ</div>'}
+          ${remainingDays.length > 0 ? `
+            <div id="analytics-detail-list-content" class="${isDetailMinimized ? 'hidden' : 'space-y-2 mt-2'}">
+              ${remainingDays.map(renderDayAllItem).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    } else if (currentTab === 'business') {
+      detailListHtml = `
+        <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10">
+          <div id="analytics-detail-header" class="flex items-center justify-between mb-3 cursor-pointer select-none" onclick="toggleAnalyticsDetailTable()">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
+                <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs uppercase text-white leading-tight">
+                  ទិន្នន័យលក់លម្អិតតាមថ្ងៃ (${daysSorted.length} ថ្ងៃ)
+                </h4>
+                <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Business Sales & Profit Per Day</p>
+              </div>
+            </div>
+            ${remainingDays.length > 0 ? `
+              <div class="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-white px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 transition active:scale-95 shrink-0">
+                <span id="analytics-detail-toggle-label">${isDetailMinimized ? 'ពង្រីក' : 'បង្រួម'}</span>
+                <i id="analytics-detail-toggle-icon" data-lucide="${isDetailMinimized ? 'chevron-down' : 'chevron-up'}" class="w-3.5 h-3.5"></i>
+              </div>
+            ` : ''}
+          </div>
+          ${firstDayIso ? renderDayBizItem(firstDayIso) : '<div class="py-6 text-center text-slate-400 text-xs">មិនមានទិន្នន័យ</div>'}
+          ${remainingDays.length > 0 ? `
+            <div id="analytics-detail-list-content" class="${isDetailMinimized ? 'hidden' : 'space-y-2 mt-2'}">
+              ${remainingDays.map(renderDayBizItem).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    } else {
+      // expenses
+      detailListHtml = `
+        <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10">
+          <div id="analytics-detail-header" class="flex items-center justify-between mb-3 cursor-pointer select-none" onclick="toggleAnalyticsDetailTable()">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
+                <i data-lucide="receipt" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs uppercase text-white leading-tight">
+                  តារាងចំណាយផ្ទាល់ខ្លួនពេញលេញ (${monthExpenses.length} មុខ)
+                </h4>
+                <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">All Personal Expense Items</p>
+              </div>
+            </div>
+            ${remainingExp.length > 0 ? `
+              <div class="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-white px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 transition active:scale-95 shrink-0">
+                <span id="analytics-detail-toggle-label">${isDetailMinimized ? 'ពង្រីក' : 'បង្រួម'}</span>
+                <i id="analytics-detail-toggle-icon" data-lucide="${isDetailMinimized ? 'chevron-down' : 'chevron-up'}" class="w-3.5 h-3.5"></i>
+              </div>
+            ` : ''}
+          </div>
+          ${firstExp ? renderExpItem(firstExp) : `
+            <div class="py-8 text-center text-slate-400 text-xs">
+              មិនមានការចំណាយសម្រាប់ខែនេះទេ
+            </div>
+          `}
+          ${remainingExp.length > 0 ? `
+            <div id="analytics-detail-list-content" class="${isDetailMinimized ? 'hidden' : 'space-y-2 mt-2'}">
+              ${remainingExp.map(renderExpItem).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
 
     return `
-      <div class="space-y-4">
-        <!-- Month Selector Pills -->
-        ${monthTabsHtml}
+      ${stickyYearHeaderHtml}
+      <div class="space-y-3.5 px-3.5 pt-2.5 pb-6">
+        <!-- Unlocked Month Tabs (Scrolls away with content) -->
+        ${monthTabsUnlockedHtml}
 
         <!-- Month Hero Card -->
-        <div class="ios-glass-card rounded-3xl p-5 border border-white/10 relative overflow-hidden">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2.5">
+        <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 relative overflow-hidden">
+          <div class="flex items-center justify-between mb-3 gap-1.5">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
               <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
                 <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
               </div>
-              <div>
-                <div class="flex items-center gap-2">
-                  <h3 class="font-bold text-xs uppercase text-white leading-tight">${monthTitle} - ការវិភាគតាមថ្ងៃ</h3>
-                  <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">Daily Trend</span>
-                </div>
-                <p class="text-[10px] text-slate-400 mt-0.5 leading-tight card-subtitle">តាមដានកំណើនឡើងចុះនៃការលក់ប្រចាំថ្ងៃ</p>
+              <div class="min-w-0">
+                <h3 class="font-bold text-xs uppercase text-white leading-tight truncate">${monthTitle}</h3>
+                <p class="text-[9.5px] text-slate-400 mt-0.5 leading-tight card-subtitle truncate">${headerSubtitle}</p>
               </div>
             </div>
-            <button onclick="setAnalyticsMonth('all')" class="text-xs text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1 shrink-0">
-              <span>ពេញមួយឆ្នាំ</span>
-              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
 
-          <!-- Quick Month Stats Grid -->
-          <div class="grid grid-cols-3 gap-2 mb-4">
-            <div class="p-2.5 rounded-2xl bg-black/30 border border-white/5 text-center">
-              <span class="text-[10px] text-slate-400 block mb-0.5">ចំណូលសរុប</span>
-              <span class="font-mono text-xs font-bold text-emerald-400">${formatUSD(monthTotalRevenue)}</span>
+            <!-- Capsule Pill -->
+            <div class="shrink-0 flex items-center justify-center px-1">
+              <span class="px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[10px] font-bold whitespace-nowrap shadow-sm">
+                ${cardPillText}
+              </span>
             </div>
-            <div class="p-2.5 rounded-2xl bg-black/30 border border-white/5 text-center">
-              <span class="text-[10px] text-slate-400 block mb-0.5">ចំណេញដុល</span>
-              <span class="font-mono text-xs font-bold text-blue-400">${formatUSD(monthTotalProfit)}</span>
-            </div>
-            <div class="p-2.5 rounded-2xl bg-black/30 border border-white/5 text-center">
-              <span class="text-[10px] text-slate-400 block mb-0.5">លក់បាន</span>
-              <span class="font-mono text-xs font-bold text-amber-300">${monthTotalBoxes} ប្រអប់</span>
+
+            <div class="flex-1 flex justify-end shrink-0">
+              <button onclick="setAnalyticsMonth('all')" class="text-xs text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-0.5 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 active:scale-95 transition">
+                <span>ពេញ ១ ឆ្នាំ</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              </button>
             </div>
           </div>
 
-          <!-- Daily Bar Chart (Horizontal Scrolling if many days) -->
-          <div class="overflow-x-auto pb-2 scrollbar-none">
-            <div class="h-48 min-w-[280px] flex items-end gap-2 pt-6 pb-2 px-1 border-b border-white/10">
-              ${daysSorted.map((dayIso, idx) => {
-                const item = dailyMap[dayIso];
-                const dayNum = dayIso.split('-')[2];
-                const barHeight = Math.max(14, Math.round((item.revenue / maxDailyRevenue) * 120));
-                const prevItem = idx > 0 ? dailyMap[daysSorted[idx - 1]] : null;
-                const isUp = prevItem ? item.revenue >= prevItem.revenue : true;
-                return `
-                  <div class="flex-1 min-w-[28px] flex flex-col items-center gap-1 group">
-                    <span class="text-[7.5px] font-mono font-bold text-amber-300 block text-center leading-none">
-                      $${Math.round(item.revenue)}
-                    </span>
-                    <div class="w-full max-w-[20px] rounded-t-md ${isUp ? 'bg-gradient-to-t from-emerald-600 to-teal-400' : 'bg-gradient-to-t from-rose-600 to-amber-500'} shadow-md transition-all group-hover:scale-110" 
-                         style="height: ${barHeight}px"></div>
-                    <span class="text-[9px] text-slate-300 font-mono font-semibold">${dayNum}</span>
-                  </div>
-                `;
-              }).join('')}
+          <!-- Dynamic KPI Grid (Top) -->
+          ${kpiGridHtml}
+
+          <!-- Daily Chart with Touch-friendly Smooth Horizontal Scroll on iPhone 17 Pro (Middle) -->
+          <div class="space-y-1.5 mt-3">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5 flex-wrap">
+                <i data-lucide="bar-chart" class="w-3 h-3 text-orange-400"></i>
+                <span>ក្រាហ្វិកប្រចាំថ្ងៃ (${daysSorted.length} ថ្ងៃ)</span>
+                <span class="text-[9px] text-slate-400">• ${chartLegendHtml}</span>
+              </span>
+              <span class="text-[9px] text-orange-400 font-mono">← អូសឆ្វេង-ស្តាំ →</span>
+            </div>
+            
+            <div class="overflow-x-auto pb-3 pt-2 no-scrollbar rounded-2xl bg-black/20 border border-white/5" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
+              <div class="h-44 flex items-end gap-2 px-3 pb-2 pt-6 relative" style="min-width: ${dailyW}px;">
+                ${dailySvgRunner}
+                ${chartBarsHtml}
+              </div>
             </div>
           </div>
+
+          <!-- True Net Pocket Cash / Volume / Expense Highlight (Bottom of Card) -->
+          ${monthBottomBannerHtml}
         </div>
 
-        <!-- Daily Trend Ups & Downs List (Reverse: Latest Day First) -->
-        <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
-          <div class="flex items-center gap-2.5 mb-3">
-            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
-              <i data-lucide="trending-up" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h4 class="font-bold text-xs uppercase text-white leading-tight">
-                ការប្រែប្រួលឡើង-ចុះប្រចាំថ្ងៃ (${daysSorted.length} ថ្ងៃ)
-              </h4>
-              <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Daily Revenue Comparison</p>
-            </div>
-          </div>
-          <div class="space-y-2">
-            ${[...daysSorted].reverse().map(dayIso => {
-              const item = dailyMap[dayIso];
-              const curIdx = daysSorted.indexOf(dayIso);
-              const prevIso = curIdx > 0 ? daysSorted[curIdx - 1] : null;
-              const prevItem = prevIso ? dailyMap[prevIso] : null;
-              let trendBadge = '<span class="text-slate-400 text-[10px]">—</span>';
-              if (prevItem) {
-                const diff = item.revenue - prevItem.revenue;
-                if (diff > 0) {
-                  trendBadge = `<span class="text-emerald-400 text-[10px] font-mono font-bold">▲ +${formatUSD(diff)}</span>`;
-                } else if (diff < 0) {
-                  trendBadge = `<span class="text-rose-400 text-[10px] font-mono font-bold">▼ -${formatUSD(Math.abs(diff))}</span>`;
-                } else {
-                  trendBadge = `<span class="text-slate-400 text-[10px] font-mono">■ ស្មើ</span>`;
-                }
-              }
-
-              return `
-                <div class="flex items-center justify-between p-3 rounded-2xl bg-black/25 border border-white/5">
-                  <div class="flex items-center gap-2.5">
-                    <span class="w-7 h-7 rounded-xl bg-orange-500/20 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-                      ${dayIso.split('-')[2]}
-                    </span>
-                    <div>
-                      <span class="text-xs font-semibold text-white block">${item.date || dayIso}</span>
-                      <span class="text-[10px] text-slate-400 font-mono">${item.qty} ប្រអប់ (${item.count} orders)</span>
-                    </div>
-                  </div>
-                  <div class="text-right flex flex-col items-end">
-                    <span class="font-mono text-xs text-emerald-400 font-bold">${formatUSD(item.revenue)}</span>
-                    <div class="flex items-center gap-1.5 mt-0.5">
-                      <span class="text-[10px] text-blue-400 font-mono">ចំណេញ ${formatUSD(item.profit)}</span>
-                      ${trendBadge}
-                    </div>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        </div>
+        <!-- Detail Breakdown List -->
+        ${detailListHtml}
       </div>
     `;
   }
 
-  // Otherwise, render full year 2026 Overview
-  return `
-    <div class="space-y-4">
-      <!-- Month Selector Pills -->
-      ${monthTabsHtml}
+  // ==========================================
+  // CASE B: Full Year Overview
+  // ==========================================
+  const yearSales = d.personalSales.filter(s => s.isoDate.startsWith(currentActiveYear));
+  const yearExpenses = (d.expenses || []).filter(e => e.isoDate && e.isoDate.startsWith(currentActiveYear));
+  const yearBoost = (currentActiveYear === '2026' && d.boostByMonth) ? Object.values(d.boostByMonth).reduce((sum, v) => sum + (v || 0), 0) : 0;
 
-      <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
-        <div class="flex items-center justify-between mb-4">
+  const yearRevenue = displayMonths.reduce((sum, m) => sum + monthlyStats[m].revenue, 0);
+  const yearProfit = displayMonths.reduce((sum, m) => sum + monthlyStats[m].profit, 0);
+  const yearExpense = displayMonths.reduce((sum, m) => sum + monthlyStats[m].expense, 0);
+  const yearBoxes = displayMonths.reduce((sum, m) => sum + monthlyStats[m].qty, 0);
+  const netBusinessProfit = yearProfit - yearBoost;
+  const trueNetPocket = netBusinessProfit - yearExpense;
+
+  // Max revenue or expense for chart scaling
+  let maxRevenue = 100;
+  if (currentTab === 'expenses') {
+    maxRevenue = Math.max(...displayMonths.map(m => monthlyStats[m].expense), 100);
+  } else if (currentTab === 'business') {
+    maxRevenue = Math.max(...displayMonths.map(m => monthlyStats[m].revenue), 100);
+  } else {
+    maxRevenue = Math.max(...displayMonths.map(m => Math.max(monthlyStats[m].revenue, monthlyStats[m].expense)), 100);
+  }
+
+  // Animated SVG Trend Polyline with runner arrow for Annual chart
+  let annualSvgRunner = '';
+  if (displayMonths.length > 1) {
+    const svgW = 1000;
+    const colW = svgW / displayMonths.length;
+    const pts = displayMonths.map((m, idx) => {
+      const stat = monthlyStats[m];
+      const val = currentTab === 'expenses' ? stat.expense : stat.revenue;
+      const rH = Math.max(12, Math.round((val / maxRevenue) * 135));
+      const x = Math.round((idx + 0.5) * colW);
+      const y = Math.round(180 - rH);
+      return { x, y };
+    });
+    let pathD = '';
+    pts.forEach((p, i) => {
+      if (i === 0) pathD += `M ${p.x} ${p.y}`;
+      else {
+        const prev = pts[i - 1];
+        const midX = prev.x + (p.x - prev.x) / 2;
+        pathD += ` C ${midX} ${prev.y}, ${midX} ${p.y}, ${p.x} ${p.y}`;
+      }
+    });
+
+    const gradColor1 = currentTab === 'expenses' ? '#F43F5E' : '#F97316';
+    const gradColor2 = currentTab === 'expenses' ? '#FB7185' : '#FB923C';
+    const gradColor3 = currentTab === 'expenses' ? '#FDA4AF' : '#FBBF24';
+
+    annualSvgRunner = `
+      <svg viewBox="0 0 1000 224" preserveAspectRatio="none" class="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible">
+        <defs>
+          <linearGradient id="annualTrendGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="${gradColor1}" stop-opacity="0.25" />
+            <stop offset="50%" stop-color="${gradColor2}" stop-opacity="0.85" />
+            <stop offset="100%" stop-color="${gradColor3}" stop-opacity="1" />
+          </linearGradient>
+          <filter id="annualGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <path id="annual-trend-line" d="${pathD}" fill="none" stroke="url(#annualTrendGrad)" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.85" />
+        <g filter="url(#annualGlow)">
+          <circle r="5" fill="${gradColor1}">
+            <animate attributeName="r" values="3.5;7;3.5" dur="1.2s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.2s" repeatCount="indefinite" />
+          </circle>
+          <circle r="2.5" fill="#FFF" />
+          <path d="M -5 -3 L 3 0 L -5 3 Z" fill="${gradColor3}" />
+          <animateMotion dur="4s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#annual-trend-line" />
+          </animateMotion>
+        </g>
+      </svg>
+    `;
+  }
+
+  // Annual Headers per Tab
+  let annualTitle = `ពេញ ១ ឆ្នាំ ${currentActiveYear}`;
+  let annualSubtitle = 'ប្រៀបធៀបចំណូល vs ចំណាយតាមខែ';
+  let annualPill = 'Annual Trend';
+  if (currentTab === 'business') {
+    annualTitle = `អាជីវកម្មពេញ ១ ឆ្នាំ ${currentActiveYear}`;
+    annualSubtitle = 'អាជីវកម្ម';
+    annualPill = 'Annual Business';
+  } else if (currentTab === 'expenses') {
+    annualTitle = `ចំណាយផ្ទាល់ខ្លួនពេញ ១ ឆ្នាំ ${currentActiveYear}`;
+    annualSubtitle = 'ចំណាយផ្ទាល់ខ្លួន';
+    annualPill = 'Annual Expenses';
+  }
+
+  // Annual KPI Summary Cards (2 Square iPhone Widgets with middle divider line & auto-resize font)
+  let annualKpiHtml = '';
+  let annualBottomBannerHtml = '';
+  if (currentTab === 'all') {
+    annualKpiHtml = `
+      <div class="grid grid-cols-2 gap-2 sm:gap-2.5 mb-2.5">
+        <!-- Widget 1: Inflows & Profit -->
+        <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណូលលក់សរុប</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-emerald-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${formatUSD(yearRevenue)}
+            </span>
+          </div>
+          <div class="border-t border-white/10 my-2.5"></div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណេញដុលសរុប</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-blue-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${formatUSD(yearProfit)}
+            </span>
+          </div>
+        </div>
+
+        <!-- Widget 2: Boost & Expenses -->
+        <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">${isEn ? 'Boost Amount' : 'ចំនួនលុយ Boost'}</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-amber-300 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${yearBoost > 0 ? '-' + formatUSD(yearBoost) : '$0.00'}
+            </span>
+          </div>
+          <div class="border-t border-white/10 my-2.5"></div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណាយផ្ទាល់ខ្លួន</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-sm shadow-rose-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-rose-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              -${formatUSD(yearExpense)}
+            </span>
+          </div>
+        </div>
+      </div>
+    `;
+    annualBottomBannerHtml = `
+      <!-- Net Pocket Cash Banner (placed at bottom of card) -->
+      <div class="p-2.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-500/30 flex items-center justify-between mt-3">
+        <div class="min-w-0 pr-2">
+          <span class="text-xs font-bold text-emerald-300 block leading-tight truncate">💵 លទ្ធផលសរុបប្រចាំឆ្នាំ ${currentActiveYear}</span>
+          <span class="text-[9.5px] text-slate-400 font-mono block leading-tight mt-0.5 truncate">(ចំណេញដុល ${formatUSD(yearProfit)} - Boost ${formatUSD(yearBoost)}) - ចំណាយ ${formatUSD(yearExpense)}</span>
+        </div>
+        <span class="font-mono text-sm sm:text-base font-extrabold ${trueNetPocket >= 0 ? 'text-emerald-400' : 'text-rose-400'} shrink-0">${formatUSD(trueNetPocket)}</span>
+      </div>
+    `;
+  } else if (currentTab === 'business') {
+    annualKpiHtml = `
+      <div class="grid grid-cols-2 gap-2 sm:gap-2.5 mb-2.5">
+        <!-- Widget 1: Revenue & Profit -->
+        <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណូលលក់សរុប</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-emerald-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${formatUSD(yearRevenue)}
+            </span>
+          </div>
+          <div class="border-t border-white/10 my-2.5"></div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណេញដុល</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-blue-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${formatUSD(yearProfit)}
+            </span>
+          </div>
+        </div>
+
+        <!-- Widget 2: Boost & Business Net -->
+        <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">${isEn ? 'Boost Amount' : 'ចំនួនលុយ Boost'}</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-amber-300 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${yearBoost > 0 ? '-' + formatUSD(yearBoost) : '$0.00'}
+            </span>
+          </div>
+          <div class="border-t border-white/10 my-2.5"></div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណេញសុទ្ធអាជីវកម្ម</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-teal-400 shadow-sm shadow-teal-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-teal-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${formatUSD(netBusinessProfit)}
+            </span>
+          </div>
+        </div>
+      </div>
+    `;
+    annualBottomBannerHtml = `
+      <!-- Volume Sub-banner (placed at bottom of card) -->
+      <div class="p-2.5 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-between mt-3">
+        <div class="min-w-0 pr-2">
+          <span class="text-xs font-bold text-blue-300 block leading-tight truncate">📦 ទិន្នផលលក់សរុប</span>
+          <span class="text-[9.5px] text-slate-400 font-mono block leading-tight mt-0.5 truncate">លក់បានសរុប ${yearBoxes} ប្រអប់ • ${yearSales.length} Orders</span>
+        </div>
+        <span class="font-mono text-xs font-bold text-blue-300 shrink-0">មធ្យម ${(yearBoxes / Math.max(yearSales.length, 1)).toFixed(1)} ប្រអប់/order</span>
+      </div>
+    `;
+  } else {
+    // expenses
+    const maxExpMonthKey = displayMonths.reduce((maxM, m) => (monthlyStats[m]?.expense || 0) > (monthlyStats[maxM]?.expense || 0) ? m : maxM, displayMonths[0] || '');
+    const maxExpMonthName = maxExpMonthKey ? `ខែ ${maxExpMonthKey.split('-')[1]}` : '—';
+    annualKpiHtml = `
+      <div class="grid grid-cols-2 gap-2 sm:gap-2.5 mb-2.5">
+        <!-- Widget 1: Total & Count -->
+        <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណាយសរុប</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-sm shadow-rose-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-rose-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${formatUSD(yearExpense)}
+            </span>
+          </div>
+          <div class="border-t border-white/10 my-2.5"></div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំនួនដងចំណាយ</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shadow-sm shadow-slate-300/50"></span>
+            </div>
+            <span class="font-mono font-bold text-slate-200 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${yearExpenses.length} ដង
+            </span>
+          </div>
+        </div>
+
+        <!-- Widget 2: Monthly Avg & Max Month -->
+        <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">មធ្យមភាគ/ខែ</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-amber-300 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${formatUSD(displayMonths.length > 0 ? yearExpense / displayMonths.length : 0)}
+            </span>
+          </div>
+          <div class="border-t border-white/10 my-2.5"></div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ខែចំណាយច្រើនបំផុត</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-orange-400 shadow-sm shadow-orange-400/50"></span>
+            </div>
+            <span class="font-mono font-bold text-orange-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+              ${maxExpMonthName}
+            </span>
+          </div>
+        </div>
+      </div>
+    `;
+    annualBottomBannerHtml = `
+      <!-- Annual Expense Sub-banner (placed at bottom of card) -->
+      <div class="p-2.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between mt-3">
+        <div class="min-w-0 pr-2">
+          <span class="text-xs font-bold text-rose-300 block leading-tight truncate">🧾 ការចំណាយផ្ទាល់ខ្លួនប្រចាំឆ្នាំ ${currentActiveYear}</span>
+          <span class="text-[9.5px] text-slate-400 font-mono block leading-tight mt-0.5 truncate">សរុប ${yearExpenses.length} ប្រតិបត្តិការចំណាយ</span>
+        </div>
+        <span class="font-mono text-xs font-bold text-rose-300 shrink-0">${formatUSD(yearExpense)}</span>
+      </div>
+    `;
+  }
+
+  // Annual Chart Legend & Bars
+  let annualLegend = '<span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-gradient-to-t from-orange-500 to-amber-400"></span> 🟢 ចំណូល</span> <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-gradient-to-t from-rose-600 to-red-400"></span> 🔴 ចំណាយ</span>';
+  if (currentTab === 'business') {
+    annualLegend = '<span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-gradient-to-t from-emerald-500 to-teal-400"></span> 🟢 ចំណូលលក់</span>';
+  } else if (currentTab === 'expenses') {
+    annualLegend = '<span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-gradient-to-t from-rose-600 to-red-400"></span> 🔴 ចំណាយផ្ទាល់ខ្លួន</span>';
+  }
+
+  let annualBarsHtml = '';
+  if (currentTab === 'all') {
+    annualBarsHtml = displayMonths.map(m => {
+      const stat = monthlyStats[m];
+      const revHeight = Math.max(12, Math.round((stat.revenue / maxRevenue) * 135));
+      const expHeight = stat.expense > 0 ? Math.max(8, Math.round((stat.expense / maxRevenue) * 135)) : 0;
+      const parts = m.split('-');
+      return `
+        <div onclick="setAnalyticsMonth('${m}')" class="flex-1 min-w-[36px] flex flex-col items-center gap-1 group cursor-pointer select-none relative z-20">
+          <span class="text-[7.5px] font-mono font-bold text-amber-300 tracking-tighter block text-center leading-none">
+            $${Math.round(stat.revenue)}
+          </span>
+          <div class="w-full flex items-end justify-center gap-0.5 h-[140px]">
+            <div class="w-1/2 max-w-[14px] rounded-t-lg bg-gradient-to-t from-orange-600 via-amber-500 to-orange-400 shadow-md transition-all group-hover:scale-105" 
+                 style="height: ${revHeight}px" title="ចំណូល: ${formatUSD(stat.revenue)}"></div>
+            ${expHeight > 0 ? `
+              <div class="w-1/2 max-w-[14px] rounded-t-lg bg-gradient-to-t from-rose-600 to-red-400 shadow-md transition-all group-hover:scale-105" 
+                   style="height: ${expHeight}px" title="ចំណាយ: ${formatUSD(stat.expense)}"></div>
+            ` : '<div class="w-1/2 max-w-[14px]"></div>'}
+          </div>
+          <span class="text-[9.5px] text-slate-300 font-mono font-semibold">ខែ ${parts[1]}</span>
+        </div>
+      `;
+    }).join('');
+  } else if (currentTab === 'business') {
+    annualBarsHtml = displayMonths.map(m => {
+      const stat = monthlyStats[m];
+      const revHeight = stat.revenue > 0 ? Math.max(12, Math.round((stat.revenue / maxRevenue) * 135)) : 6;
+      const parts = m.split('-');
+      return `
+        <div onclick="setAnalyticsMonth('${m}')" class="flex-1 min-w-[36px] flex flex-col items-center gap-1 group cursor-pointer select-none relative z-20">
+          <span class="text-[7.5px] font-mono font-bold text-emerald-400 tracking-tighter block text-center leading-none">
+            $${Math.round(stat.revenue)}
+          </span>
+          <div class="w-full flex items-end justify-center h-[140px]">
+            <div class="w-3/4 max-w-[20px] rounded-t-lg bg-gradient-to-t from-emerald-600 via-teal-500 to-emerald-400 shadow-md transition-all group-hover:scale-105" 
+                 style="height: ${revHeight}px" title="លក់បាន: ${formatUSD(stat.revenue)} (${stat.qty} ប្រអប់)"></div>
+          </div>
+          <span class="text-[9.5px] text-slate-300 font-mono font-semibold">ខែ ${parts[1]}</span>
+        </div>
+      `;
+    }).join('');
+  } else {
+    // expenses
+    annualBarsHtml = displayMonths.map(m => {
+      const stat = monthlyStats[m];
+      const expHeight = stat.expense > 0 ? Math.max(12, Math.round((stat.expense / maxRevenue) * 135)) : 6;
+      const parts = m.split('-');
+      return `
+        <div onclick="setAnalyticsMonth('${m}')" class="flex-1 min-w-[36px] flex flex-col items-center gap-1 group cursor-pointer select-none relative z-20">
+          <span class="text-[7.5px] font-mono font-bold text-rose-400 tracking-tighter block text-center leading-none">
+            $${Math.round(stat.expense)}
+          </span>
+          <div class="w-full flex items-end justify-center h-[140px]">
+            <div class="w-3/4 max-w-[20px] rounded-t-lg bg-gradient-to-t from-rose-600 via-red-500 to-rose-400 shadow-md transition-all group-hover:scale-105" 
+                 style="height: ${expHeight}px" title="ចំណាយ: ${formatUSD(stat.expense)}"></div>
+          </div>
+          <span class="text-[9.5px] text-slate-300 font-mono font-semibold">ខែ ${parts[1]}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Annual Table / Breakdown per Tab (Minimizable / Collapsible: Shows 1 Month initially & when collapsed)
+  const isTableMinimized = !!appState.isAnalyticsTableMinimized;
+  let annualTableHtml = '';
+  const allMonthsDesc = displayMonths.slice(-12).reverse();
+  const firstMonthKey = allMonthsDesc[0];
+  const remainingMonthKeys = allMonthsDesc.slice(1);
+
+  const renderMonthAllRow = (m) => {
+    const parts = m.split('-');
+    const stat = monthlyStats[m];
+    return `
+      <div onclick="setAnalyticsMonth('${m}')" class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5 hover:border-orange-500/30 cursor-pointer transition">
+        <div>
+          <span class="text-xs font-semibold text-white block">ខែ ${parts[1]} (${parts[0]})</span>
+          <span class="text-[10px] text-slate-400 font-mono">${stat.qty} ${t('boxUnit')}</span>
+        </div>
+        <div class="text-right flex flex-col items-end">
+          <span class="font-mono text-xs text-emerald-400 font-bold block">${formatUSD(stat.revenue)}</span>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            ${stat.expense > 0 ? `<span class="text-[10px] text-rose-400 font-mono">ចំណាយ -${formatUSD(stat.expense)}</span>` : ''}
+            <span class="text-[10px] text-blue-400 font-mono">ចំណេញ ${formatUSD(stat.profit)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  const renderMonthBizRow = (m) => {
+    const parts = m.split('-');
+    const stat = monthlyStats[m];
+    const mNetProf = stat.profit - stat.boost;
+    return `
+      <div onclick="setAnalyticsMonth('${m}')" class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5 hover:border-orange-500/30 cursor-pointer transition">
+        <div>
+          <span class="text-xs font-semibold text-white block">ខែ ${parts[1]} (${parts[0]})</span>
+          <span class="text-[10px] text-slate-400 font-mono">${stat.qty} ${t('boxUnit')} • ${stat.salesCount || 0} orders</span>
+        </div>
+        <div class="text-right flex flex-col items-end">
+          <span class="font-mono text-xs text-emerald-400 font-bold block">${formatUSD(stat.revenue)}</span>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            ${stat.boost > 0 ? `<span class="text-[10px] text-amber-300 font-mono">Boost -${formatUSD(stat.boost)}</span>` : ''}
+            <span class="text-[10px] text-teal-400 font-mono">សុទ្ធ ${formatUSD(mNetProf)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  const renderMonthExpRow = (m) => {
+    const parts = m.split('-');
+    const stat = monthlyStats[m];
+    return `
+      <div onclick="setAnalyticsMonth('${m}')" class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5 hover:border-rose-500/30 cursor-pointer transition">
+        <div>
+          <span class="text-xs font-semibold text-white block">ខែ ${parts[1]} (${parts[0]})</span>
+          <span class="text-[10px] text-slate-400 font-mono">${stat.expCount || 0} ប្រតិបត្តិការចំណាយ</span>
+        </div>
+        <div class="text-right">
+          <span class="font-mono text-xs text-rose-400 font-bold block">-${formatUSD(stat.expense)}</span>
+        </div>
+      </div>
+    `;
+  };
+
+  if (currentTab === 'all') {
+    annualTableHtml = `
+      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10">
+        <div class="flex items-center justify-between mb-3 cursor-pointer select-none" onclick="toggleAnalyticsAnnualTable()">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
+              <i data-lucide="calendar" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-xs uppercase text-white leading-tight">តារាងសង្ខេបចំណូល-ចំណាយតាមខែ</h4>
+              <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Monthly Revenue, Expense & Profit</p>
+            </div>
+          </div>
+          ${remainingMonthKeys.length > 0 ? `
+            <div class="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-white px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 transition active:scale-95 shrink-0">
+              <span id="analytics-table-toggle-label">${isTableMinimized ? 'ពង្រីក' : 'បង្រួម'}</span>
+              <i id="analytics-table-toggle-icon" data-lucide="${isTableMinimized ? 'chevron-down' : 'chevron-up'}" class="w-3.5 h-3.5"></i>
+            </div>
+          ` : ''}
+        </div>
+        ${firstMonthKey ? renderMonthAllRow(firstMonthKey) : '<div class="py-6 text-center text-slate-400 text-xs">មិនមានទិន្នន័យ</div>'}
+        ${remainingMonthKeys.length > 0 ? `
+          <div id="analytics-annual-table-content" class="${isTableMinimized ? 'hidden' : 'space-y-2 mt-2'}">
+            ${remainingMonthKeys.map(renderMonthAllRow).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  } else if (currentTab === 'business') {
+    annualTableHtml = `
+      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10">
+        <div class="flex items-center justify-between mb-3 cursor-pointer select-none" onclick="toggleAnalyticsAnnualTable()">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
+              <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-xs uppercase text-white leading-tight">តារាងទិន្នន័យអាជីវកម្មតាមខែ</h4>
+              <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Monthly Sales, Orders & Profit</p>
+            </div>
+          </div>
+          ${remainingMonthKeys.length > 0 ? `
+            <div class="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-white px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 transition active:scale-95 shrink-0">
+              <span id="analytics-table-toggle-label">${isTableMinimized ? 'ពង្រីក' : 'បង្រួម'}</span>
+              <i id="analytics-table-toggle-icon" data-lucide="${isTableMinimized ? 'chevron-down' : 'chevron-up'}" class="w-3.5 h-3.5"></i>
+            </div>
+          ` : ''}
+        </div>
+        ${firstMonthKey ? renderMonthBizRow(firstMonthKey) : '<div class="py-6 text-center text-slate-400 text-xs">មិនមានទិន្នន័យ</div>'}
+        ${remainingMonthKeys.length > 0 ? `
+          <div id="analytics-annual-table-content" class="${isTableMinimized ? 'hidden' : 'space-y-2 mt-2'}">
+            ${remainingMonthKeys.map(renderMonthBizRow).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  } else {
+    // expenses
+    annualTableHtml = `
+      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10">
+        <div class="flex items-center justify-between mb-3 cursor-pointer select-none" onclick="toggleAnalyticsAnnualTable()">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
+              <i data-lucide="receipt" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-xs uppercase text-white leading-tight">តារាងសង្ខេបការចំណាយផ្ទាល់ខ្លួនតាមខែ</h4>
+              <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Monthly Expense Breakdown</p>
+            </div>
+          </div>
+          ${remainingMonthKeys.length > 0 ? `
+            <div class="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-white px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 transition active:scale-95 shrink-0">
+              <span id="analytics-table-toggle-label">${isTableMinimized ? 'ពង្រីក' : 'បង្រួម'}</span>
+              <i id="analytics-table-toggle-icon" data-lucide="${isTableMinimized ? 'chevron-down' : 'chevron-up'}" class="w-3.5 h-3.5"></i>
+            </div>
+          ` : ''}
+        </div>
+        ${firstMonthKey ? renderMonthExpRow(firstMonthKey) : '<div class="py-6 text-center text-slate-400 text-xs">មិនមានការចំណាយឡើយ</div>'}
+        ${remainingMonthKeys.length > 0 ? `
+          <div id="analytics-annual-table-content" class="${isTableMinimized ? 'hidden' : 'space-y-2 mt-2'}">
+            ${remainingMonthKeys.map(renderMonthExpRow).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  return `
+    ${stickyYearHeaderHtml}
+    <div class="space-y-3.5 px-3.5 pt-2.5 pb-6">
+      <!-- Unlocked Month Tabs (Scrolls away with content) -->
+      ${monthTabsUnlockedHtml}
+
+      <!-- Year Hero Card -->
+      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-3.5">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
               <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
             </div>
             <div>
-              <h3 class="font-bold text-xs uppercase text-white leading-tight">${t('diagramTitle')}</h3>
-              <p class="text-[10px] text-slate-400 leading-tight mt-0.5 card-subtitle">${t('diagramSubtitle')}</p>
+              <h3 class="font-bold text-xs uppercase text-white leading-tight">${annualTitle}</h3>
+              <p class="text-[10px] text-slate-400 leading-tight mt-0.5 card-subtitle">${annualSubtitle}</p>
             </div>
           </div>
-          <span class="px-2.5 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-semibold shrink-0">${new Date().getFullYear()} Trend</span>
+          <span class="px-2.5 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-semibold shrink-0">${annualPill}</span>
         </div>
 
-        <div class="h-56 w-full flex items-end gap-2 pt-8 pb-3 px-1 border-b border-white/10">
-          ${months.map(m => {
-            const stat = monthlyStats[m];
-            const revHeight = Math.max(16, Math.round((stat.revenue / maxRevenue) * 140));
-            const moName = m.split('-')[1];
-            return `
-              <div onclick="setAnalyticsMonth('${m}')" class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
-                <span class="text-[8px] font-mono font-bold text-amber-300 tracking-tighter block text-center leading-none">
-                  $${Math.round(stat.revenue)}
-                </span>
-                <div class="w-full max-w-[26px] rounded-t-lg bg-gradient-to-t from-orange-600 via-amber-500 to-orange-400 shadow-lg transition-all group-hover:scale-105" 
-                     style="height: ${revHeight}px"></div>
-                <span class="text-[10px] text-slate-300 font-mono font-semibold">${appState.language === 'en' ? 'M' : 'ខែ'}${moName}</span>
-              </div>
-            `;
-          }).join('')}
+        <!-- Annual KPI Summary (Top) -->
+        ${annualKpiHtml}
+
+        <!-- Annual Chart in the Middle -->
+        <div class="mt-3">
+          <div class="flex items-center gap-3 px-1 mb-2 text-[10px] text-slate-400 font-semibold">
+            ${annualLegend}
+          </div>
+
+          <div class="h-56 w-full flex items-end gap-2 pt-8 pb-3 px-1 border-b border-white/10 overflow-x-auto no-scrollbar relative">
+            ${annualSvgRunner}
+            ${annualBarsHtml}
+          </div>
         </div>
+
+        <!-- Annual Bottom Banner (Cash in Pocket / Volume / Expense) placed at bottom of card -->
+        ${annualBottomBannerHtml}
       </div>
 
-      <div class="ios-glass-card rounded-3xl p-5 border border-white/10">
-        <div class="flex items-center gap-2.5 mb-3">
-          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
-            <i data-lucide="calendar" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-xs uppercase text-white leading-tight">${appState.language === 'en' ? 'Monthly Summary Table' : 'តារាងសង្ខេបចំណូល-ចំណេញតាមខែ'}</h4>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Monthly Revenue & Profit</p>
-          </div>
-        </div>
-        <div class="space-y-2">
-          ${months.slice(-6).reverse().map(m => `
-            <div onclick="setAnalyticsMonth('${m}')" class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5 hover:border-orange-500/30 cursor-pointer transition">
-              <div>
-                <span class="text-xs font-semibold text-white block">${appState.language === 'en' ? 'Month' : 'ខែ'} ${m.split('-')[1]}/${m.split('-')[0]}</span>
-                <span class="text-[10px] text-slate-400 font-mono">${monthlyStats[m].qty} ${t('boxUnit')}</span>
-              </div>
-              <div class="text-right">
-                <span class="font-mono text-xs text-emerald-400 font-bold block">${formatUSD(monthlyStats[m].revenue)}</span>
-                <span class="text-[10px] text-blue-400 font-mono">${formatUSD(monthlyStats[m].profit)}</span>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
+      <!-- Annual Breakdown Table (Minimizable) -->
+      ${annualTableHtml}
     </div>
   `;
 }
@@ -4033,9 +5414,9 @@ function getSettingsViewHTML() {
                   </div>
                   <button type="button" 
                           onclick="event.stopPropagation(); toggleCardVisibility('autoHideEmpty');"
-                          class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${(appState.cardVisibility?.autoHideEmpty !== false) ? 'bg-teal-500' : 'bg-slate-700'}"
-                          role="switch" aria-checked="${(appState.cardVisibility?.autoHideEmpty !== false)}">
-                    <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${(appState.cardVisibility?.autoHideEmpty !== false) ? 'translate-x-5' : 'translate-x-0'}"></div>
+                          class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${(appState.cardVisibility?.autoHideEmpty === true) ? 'bg-teal-500' : 'bg-slate-700'}"
+                          role="switch" aria-checked="${(appState.cardVisibility?.autoHideEmpty === true)}">
+                    <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${(appState.cardVisibility?.autoHideEmpty === true) ? 'translate-x-5' : 'translate-x-0'}"></div>
                   </button>
                 </div>
 
@@ -4129,9 +5510,10 @@ function openPersonalSalesModal() {
   listEl.innerHTML = sortedSales.slice(0, 50).map(item => `
     <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-1.5 flex-wrap">
           <span class="font-bold text-xs text-white">${item.customer}</span>
           <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 font-mono">${item.orderId}</span>
+          ${item.note && item.note.includes('[SG Pro]') ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/25 text-purple-300 font-bold border border-purple-500/40">SG Pro</span>' : ''}
         </div>
         <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.totalAmount)}</span>
       </div>
@@ -4139,6 +5521,7 @@ function openPersonalSalesModal() {
         <span>📍 ${item.location || '—'}</span>
         <span>📞 ${item.phone || '—'}</span>
       </div>
+      ${item.note ? `<div class="text-[10px] text-slate-400 italic">📝 ${item.note}</div>` : ''}
       <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
         <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
         <span>ប្រអប់: <strong class="text-white">${item.totalBoxQty}</strong></span>
@@ -4346,73 +5729,908 @@ function closeBankModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-function openExpensesModal(forceMonthly = false) {
+// ==========================================
+// Team Member Daily Sets Drilldown Modal
+// ==========================================
+let currentTeamSetsFilterOnlySales = false;
+let currentTeamSetsSearchQuery = '';
+let activeTeamSetsLeader = null;
+let activeTeamSetsMonthNum = null;
+
+function openTeamSetsModal(leaderName, monthNum) {
   const d = DataService.data;
   if (!d) return;
 
-  const modal = document.getElementById('expenses-modal');
-  const listEl = document.getElementById('expenses-modal-list');
-  const subtitle = document.getElementById('expenses-modal-subtitle');
+  const modal = document.getElementById('team-sets-modal');
+  if (!modal) return;
+
+  const targetMonth = monthNum || parseInt((appState.selectedMonthKey || '2026-10').split('-')[1], 10) || 10;
+  activeTeamSetsMonthNum = targetMonth;
+
+  const leaders = (d.teamLeadersByMonth && d.teamLeadersByMonth[targetMonth]) || d.teamLeaders || [];
+  const leader = leaders.find(l => l.name === leaderName) || leaders[0];
+  if (!leader) return;
+
+  activeTeamSetsLeader = leader;
+  currentTeamSetsFilterOnlySales = false;
+  currentTeamSetsSelectedDay = null;
+
+  renderTeamSetsModalContent();
+
+  modal.classList.remove('hidden');
+
+  // Activate dock behavior exactly like Profile dashboard
+  const dock = document.getElementById('bottom-dock');
+  if (dock) {
+    dock.classList.add('dock-profile-active');
+  }
+  setDockVisible(true);
+
+  const container = document.getElementById('team-sets-modal-table-container');
+  if (container) {
+    container.scrollTop = 0;
+    if (typeof hookScrollableForDock === 'function') hookScrollableForDock(container, false);
+  }
+  if (window.lucide) window.lucide.createIcons();
+  if (navigator.vibrate) navigator.vibrate(12);
+}
+
+function closeTeamSetsModal() {
+  const modal = document.getElementById('team-sets-modal');
+  if (modal) modal.classList.add('hidden');
+
+  const dock = document.getElementById('bottom-dock');
+  if (dock) {
+    dock.classList.remove('dock-profile-active');
+  }
+}
+
+let currentTeamSetsSelectedDay = null;
+
+function toggleTeamSetsFilterOnlySales() {
+  currentTeamSetsFilterOnlySales = !currentTeamSetsFilterOnlySales;
+  renderTeamSetsModalContent();
+}
+
+function selectTeamSetsFilterSales(onlySales, event) {
+  if (event) event.stopPropagation();
+  currentTeamSetsSelectedDay = null;
+  currentTeamSetsFilterOnlySales = onlySales;
+  const menu = document.getElementById('team-sets-date-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+  renderTeamSetsModalContent();
+}
+
+function toggleTeamSetsDateDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('team-sets-date-dropdown-menu');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  if (isHidden) {
+    renderTeamSetsMiniCalendar();
+    menu.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function selectTeamSetsCalendarDay(day, event) {
+  if (event) event.stopPropagation();
+  currentTeamSetsSelectedDay = day;
+  currentTeamSetsFilterOnlySales = false;
+  const menu = document.getElementById('team-sets-date-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+  renderTeamSetsModalContent();
+}
+
+function renderTeamSetsMiniCalendar() {
+  const menu = document.getElementById('team-sets-date-dropdown-menu');
+  if (!menu || !activeTeamSetsLeader) return;
+
+  const isKm = (appState && appState.language) !== 'en';
+  const mNum = activeTeamSetsMonthNum || 10;
+  const year = 2026;
+  const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const enMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthTitle = isKm ? `ខែ ${khmerMonths[mNum - 1]} ${year}` : `${enMonths[mNum - 1]} ${year}`;
+
+  const firstDayOfWeek = new Date(year, mNum - 1, 1).getDay(); // 0 (Sun) to 6 (Sat)
+  const daysInMonth = new Date(year, mNum, 0).getDate();
+
+  // Find which days have sales in activeTeamSetsLeader.dailySales
+  const salesDaysSet = new Set();
+  (activeTeamSetsLeader.dailySales || []).forEach(r => {
+    if ((r.totalBoxes || 0) > 0 || (r.orders || 0) > 0) {
+      const dNum = parseInt(r.date, 10);
+      if (!isNaN(dNum)) salesDaysSet.add(dNum);
+    }
+  });
+
+  let daysGridHtml = '';
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    daysGridHtml += `<div class="h-7"></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isSelected = currentTeamSetsSelectedDay === day;
+    const hasSales = salesDaysSet.has(day);
+
+    let cellClasses = 'h-7 rounded-lg flex items-center justify-center text-xs font-semibold cursor-pointer active:scale-95 transition ';
+    if (isSelected) {
+      cellClasses += 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30';
+    } else if (hasSales) {
+      cellClasses += 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 hover:bg-emerald-500/30';
+    } else {
+      cellClasses += 'text-slate-300 hover:bg-white/10';
+    }
+
+    daysGridHtml += `
+      <button type="button" onclick="selectTeamSetsCalendarDay(${day}, event)" class="${cellClasses}" title="${isKm ? `ថ្ងៃទី ${day}` : `Day ${day}`}">
+        ${day}
+      </button>
+    `;
+  }
+
+  const isAllDaysActive = (!currentTeamSetsFilterOnlySales && currentTeamSetsSelectedDay === null);
+  const isSalesOnlyActive = (currentTeamSetsFilterOnlySales && currentTeamSetsSelectedDay === null);
+
+  menu.innerHTML = `
+    <!-- Header with Month Title and [គ្រប់ថ្ងៃ] & [ថ្ងៃមានលក់] buttons -->
+    <div class="flex items-center justify-between pb-2 border-b border-white/10 mb-2 gap-1.5">
+      <span class="text-xs font-bold text-white tracking-wide font-sans shrink-0">
+        ${monthTitle}
+      </span>
+      <div class="flex items-center gap-1 shrink-0">
+        <button type="button" onclick="selectTeamSetsFilterSales(false, event)" 
+                class="px-2 py-0.5 rounded-lg text-[10.5px] font-semibold transition active:scale-95 ${isAllDaysActive ? 'bg-orange-500 text-white font-bold shadow-sm' : 'bg-white/5 text-slate-300 hover:text-white border border-white/10'}">
+          ${isKm ? 'គ្រប់ថ្ងៃ' : 'All Days'}
+        </button>
+        <button type="button" onclick="selectTeamSetsFilterSales(true, event)" 
+                class="px-2 py-0.5 rounded-lg text-[10.5px] font-semibold transition active:scale-95 ${isSalesOnlyActive ? 'bg-amber-500 text-white font-bold shadow-sm' : 'bg-white/5 text-slate-300 hover:text-white border border-white/10'}">
+          ${isKm ? 'ថ្ងៃមានលក់' : 'Sales Days'}
+        </button>
+      </div>
+    </div>
+
+    <!-- Weekdays Header -->
+    <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400 font-semibold mb-1">
+      ${isKm ? `
+        <span>អា</span><span>ច</span><span>អ</span><span>ព</span><span>ព្រ</span><span>សុ</span><span>ស</span>
+      ` : `
+        <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+      `}
+    </div>
+
+    <!-- Days Grid -->
+    <div class="grid grid-cols-7 gap-1 text-center">
+      ${daysGridHtml}
+    </div>
+
+    <!-- Footer Legend & Reset -->
+    <div class="mt-2 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-400">
+      <span class="flex items-center gap-1">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+        <span>${isKm ? 'ថ្ងៃមានលក់' : 'Sales Days'}</span>
+      </span>
+      ${currentTeamSetsSelectedDay !== null ? `
+        <button type="button" onclick="selectTeamSetsFilterSales(false, event)" class="text-orange-400 hover:underline font-medium">
+          ${isKm ? 'បង្ហាញគ្រប់ថ្ងៃ' : 'Show All'}
+        </button>
+      ` : ''}
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+window.toggleTeamSetsDateDropdown = toggleTeamSetsDateDropdown;
+window.selectTeamSetsCalendarDay = selectTeamSetsCalendarDay;
+window.selectTeamSetsFilterSales = selectTeamSetsFilterSales;
+window.toggleTeamSetsFilterOnlySales = toggleTeamSetsFilterOnlySales;
+
+if (typeof window !== 'undefined' && !window.__teamSetsDateDropdownListenerAdded) {
+  window.__teamSetsDateDropdownListenerAdded = true;
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('team-sets-date-dropdown-menu');
+    if (menu && !menu.classList.contains('hidden')) {
+      if (!menu.contains(e.target) && !e.target.closest('button[onclick*="toggleTeamSetsDateDropdown"]')) {
+        menu.classList.add('hidden');
+      }
+    }
+  });
+}
+
+function formatShortDateNoYear(dateStr) {
+  if (!dateStr) return '';
+  const str = String(dateStr).trim();
+  const m1 = str.match(/^(\d{1,2})[-/]([A-Za-z]+)[-/]\d{2,4}$/);
+  if (m1) {
+    return `${m1[1].padStart(2, '0')}-${m1[2]}`;
+  }
+  const m2 = str.match(/^\d{4}[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (m2) {
+    return `${m2[2].padStart(2, '0')}-${m2[1].padStart(2, '0')}`;
+  }
+  const m3 = str.match(/^(\d{1,2})[-/](\d{1,2})[-/]\d{2,4}$/);
+  if (m3) {
+    return `${m3[1].padStart(2, '0')}-${m3[2].padStart(2, '0')}`;
+  }
+  return str.replace(/[-/]\d{4}$/, '');
+}
+
+function renderTeamSetsModalContent() {
+  if (!activeTeamSetsLeader) return;
+  const leader = activeTeamSetsLeader;
+  const isKm = (appState && appState.language) !== 'en';
+
+  // 1. Title & Subtitle
+  const titleEl = document.getElementById('team-sets-modal-title');
+  if (titleEl) {
+    titleEl.innerHTML = `
+      <span>${leader.name}</span>
+      ${leader.name === 'ស្តី ស្តើង' ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain inline shrink-0">' : ''}
+    `;
+  }
+
+  const subtitleEl = document.getElementById('team-sets-modal-subtitle');
+  if (subtitleEl) {
+    const moStr = String(activeTeamSetsMonthNum).padStart(2, '0');
+    subtitleEl.textContent = isKm ? `តារាងលម្អិតឈុតប្រចាំថ្ងៃ (${moStr}/2026)` : `Daily Set Breakdown (${moStr}/2026)`;
+  }
+
+  // 2. Summary Row - 2-Row Layout (Title on Top, Amount Below, No Capsule, No Dividers, 3-Color Gradient)
+  const summaryEl = document.getElementById('team-sets-modal-summary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="px-3.5 py-2.5 border-b border-white/10 bg-black/40 shrink-0">
+        <!-- 3-Color Gradient Summary Bar (2-Row Layout, No Capsule, No Dividers) -->
+        <div class="w-full rounded-2xl bg-gradient-to-r from-blue-600/20 via-emerald-600/20 to-purple-600/20 border border-white/15 backdrop-blur-2xl py-2.5 px-2 shadow-lg grid grid-cols-3 gap-1 select-none">
+          
+          <!-- Column 1: Goal (គោលដៅ) -->
+          <div class="flex flex-col items-center justify-center text-center">
+            <div class="flex items-center justify-center gap-1 text-[11px] font-semibold text-blue-300 mb-0.5">
+              <i data-lucide="target" class="w-3.5 h-3.5 text-blue-400 shrink-0"></i>
+              <span>${isKm ? 'គោលដៅ' : 'Goal'}</span>
+            </div>
+            <div class="font-mono font-bold text-base text-white leading-tight">
+              ${leader.targetGoal || 100}
+            </div>
+          </div>
+
+          <!-- Column 2: Sold & Percent (លក់បាន & ភាគរយ) -->
+          <div class="flex flex-col items-center justify-center text-center">
+            <div class="flex items-center justify-center gap-1 text-[11px] font-semibold text-emerald-300 mb-0.5">
+              <i data-lucide="package-check" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+              <span>${isKm ? 'លក់បាន' : 'Sold'}</span>
+            </div>
+            <div class="font-mono font-bold text-base text-white leading-tight flex items-baseline justify-center gap-1">
+              <span>${leader.totalBoxes || 0}</span>
+              <span class="text-[10.5px] text-emerald-400 font-semibold font-mono">(${leader.targetPercent || 0}%)</span>
+            </div>
+          </div>
+
+          <!-- Column 3: Boost (លុយ Boost) -->
+          <div class="flex flex-col items-center justify-center text-center">
+            <div class="flex items-center justify-center gap-1 text-[11px] font-semibold text-purple-300 mb-0.5">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5 text-purple-400 shrink-0"></i>
+              <span>Boost</span>
+            </div>
+            <div class="font-mono font-bold text-base text-white leading-tight">
+              $${(leader.boost || 0).toFixed(2)}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    `;
+  }
+
+  // 3. Rows filtering
+  let rows = leader.dailySales || [];
+  if (currentTeamSetsFilterOnlySales) {
+    rows = rows.filter(r => (r.totalBoxes > 0 || r.orders > 0 || r.boost > 0));
+  }
+  if (currentTeamSetsSelectedDay !== null) {
+    const targetDay = currentTeamSetsSelectedDay;
+    rows = rows.filter(r => {
+      const dNum = parseInt(r.date, 10);
+      if (!isNaN(dNum) && dNum === targetDay) return true;
+      if (r.date.startsWith(targetDay + '-') || r.date.startsWith(targetDay + '/') || r.date.startsWith(String(targetDay).padStart(2, '0') + '-')) return true;
+      return false;
+    });
+  }
+
+  const container = document.getElementById('team-sets-modal-table-container');
+  if (!container) return;
+
+  if (rows.length === 0) {
+    container.innerHTML = `
+      <div class="py-16 text-center text-slate-400 text-xs flex flex-col items-center justify-center gap-2">
+        <div class="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 text-slate-400 mb-1">
+          <i data-lucide="inbox" class="w-5 h-5"></i>
+        </div>
+        <p class="font-medium text-slate-300">${isKm ? 'ពុំមានទិន្នន័យត្រូវតាមលក្ខខណ្ឌស្វែងរកឡើយ' : 'No data matching filter'}</p>
+        <p class="text-[11px] text-slate-500">${isKm ? 'សាកល្បងចុចលើ "គ្រប់ថ្ងៃ"' : 'Try selecting "All Days"'}</p>
+      </div>
+    `;
+  } else {
+    const sumSet1 = rows.reduce((s, r) => s + (r.set1 || 0), 0);
+    const sumSet2 = rows.reduce((s, r) => s + (r.set2 || 0), 0);
+    const sumSet3 = rows.reduce((s, r) => s + (r.set3 || 0), 0);
+    const sumSet4 = rows.reduce((s, r) => s + (r.set4 || 0), 0);
+    const sumSet5 = rows.reduce((s, r) => s + (r.set5 || 0), 0);
+    const sumBoxes = rows.reduce((s, r) => s + (r.totalBoxes || 0), 0);
+    const sumBoost = rows.reduce((s, r) => s + (r.boost || 0), 0);
+
+    let dateBtnLabel = isKm ? 'ថ្ងៃទី' : 'Date';
+    let hasActiveDateFilter = false;
+
+    if (currentTeamSetsSelectedDay !== null) {
+      dateBtnLabel = isKm ? `ថ្ងៃ ${currentTeamSetsSelectedDay}` : `Day ${currentTeamSetsSelectedDay}`;
+      hasActiveDateFilter = true;
+    } else if (currentTeamSetsFilterOnlySales) {
+      dateBtnLabel = isKm ? 'ថ្ងៃមានលក់' : 'Sales Days';
+      hasActiveDateFilter = true;
+    }
+
+    const displaySet1 = hasActiveDateFilter ? sumSet1 : (leader.set1 || sumSet1 || 0);
+    const displaySet2 = hasActiveDateFilter ? sumSet2 : (leader.set2 || sumSet2 || 0);
+    const displaySet3 = hasActiveDateFilter ? sumSet3 : (leader.set3 || sumSet3 || 0);
+    const displaySet4 = hasActiveDateFilter ? sumSet4 : (leader.set4 || sumSet4 || 0);
+    const displaySet5 = hasActiveDateFilter ? sumSet5 : (leader.set5 || sumSet5 || 0);
+    const displayBoxes = hasActiveDateFilter ? sumBoxes : (leader.totalBoxes || sumBoxes || 0);
+    const displayBoost = hasActiveDateFilter ? sumBoost : (leader.boost || sumBoost || 0);
+
+    container.innerHTML = `
+      <table class="w-full text-left text-xs whitespace-nowrap table-auto">
+        <thead class="sticky top-0 z-20 bg-[#070D18]/95 backdrop-blur-xl border-t border-b border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.6)]">
+          <tr class="text-slate-400 text-xs font-bold">
+            <th class="py-2 px-1 font-bold text-slate-300 relative select-none text-center align-middle">
+              <div class="flex items-center justify-center relative">
+                <button type="button" onclick="toggleTeamSetsDateDropdown(event)" 
+                        class="h-7 min-w-[70px] px-2 rounded-xl ${hasActiveDateFilter ? 'bg-orange-500/20 text-orange-300 font-bold border border-orange-500/40 shadow-sm' : 'bg-black/40 hover:bg-black/60 text-slate-200 border border-white/15 shadow-sm'} active:scale-95 transition flex items-center justify-center gap-1" title="${isKm ? 'ជ្រើសរើសថ្ងៃ' : 'Select Day'}">
+                  <span class="text-[11px] font-bold leading-none text-center">${dateBtnLabel}</span>
+                  <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 shrink-0"></i>
+                </button>
+
+                <!-- Mini Calendar Dropdown Popover (Aligned to left on mobile) -->
+                <div id="team-sets-date-dropdown-menu" 
+                     class="hidden absolute left-0 top-full mt-1.5 w-64 rounded-2xl bg-[#0B1528]/95 backdrop-blur-2xl border border-white/15 shadow-2xl p-3 z-50 animate-fade-in font-sans text-xs text-left">
+                </div>
+              </div>
+            </th>
+            <th class="py-2 px-1 text-center">
+              <div class="flex flex-col items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
+                  ${displaySet1}
+                </span>
+                <span class="font-bold text-[10.5px] text-amber-300/90 whitespace-nowrap">${isKm ? 'ឈុត ១' : 'Set 1'}</span>
+              </div>
+            </th>
+            <th class="py-2 px-1 text-center">
+              <div class="flex flex-col items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
+                  ${displaySet2}
+                </span>
+                <span class="font-bold text-[10.5px] text-emerald-300/90 whitespace-nowrap">${isKm ? 'ឈុត ២' : 'Set 2'}</span>
+              </div>
+            </th>
+            <th class="py-2 px-1 text-center">
+              <div class="flex flex-col items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
+                  ${displaySet3}
+                </span>
+                <span class="font-bold text-[10.5px] text-blue-300/90 whitespace-nowrap">${isKm ? 'ឈុត ៣' : 'Set 3'}</span>
+              </div>
+            </th>
+            <th class="py-2 px-1 text-center">
+              <div class="flex flex-col items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded-full bg-pink-500/20 border border-pink-500/40 text-pink-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
+                  ${displaySet5}
+                </span>
+                <span class="font-bold text-[10.5px] text-pink-300/90 whitespace-nowrap">${isKm ? 'ឈុត ៥' : 'Set 5'}</span>
+              </div>
+            </th>
+            <th class="py-2 px-1 text-center">
+              <div class="flex flex-col items-center justify-center gap-1">
+                <span class="h-6 px-2 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
+                  ${displayBoxes}
+                </span>
+                <span class="font-bold text-[10.5px] text-emerald-400 whitespace-nowrap">${isKm ? 'សរុប' : 'Total'}</span>
+              </div>
+            </th>
+            <th class="py-2 px-1 text-center">
+              <div class="flex flex-col items-center justify-center gap-1">
+                <span class="h-6 px-2 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-mono font-bold text-[10px] flex items-center justify-center shadow-sm">
+                  $${displayBoost.toFixed(0)}
+                </span>
+                <span class="font-bold text-[10.5px] text-purple-300 whitespace-nowrap">Boost</span>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5 font-mono">
+          ${rows.map(r => {
+            const hasSales = (r.totalBoxes || 0) > 0;
+            return `
+              <tr class="${hasSales ? 'bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]' : 'hover:bg-white/[0.02]'} transition">
+                <td class="py-2 px-1 text-center font-mono font-bold text-[11px] ${hasSales ? 'text-white' : 'text-slate-400'}">
+                  <span>${formatShortDateNoYear(r.date)}</span>
+                </td>
+                <td class="py-2 px-1 text-center">
+                  ${(r.set1 || 0) > 0 ? `<span class="inline-block px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10.5px]">${r.set1}</span>` : '<span class="text-slate-600">—</span>'}
+                </td>
+                <td class="py-2 px-1 text-center">
+                  ${(r.set2 || 0) > 0 ? `<span class="inline-block px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10.5px]">${r.set2}</span>` : '<span class="text-slate-600">—</span>'}
+                </td>
+                <td class="py-2 px-1 text-center">
+                  ${(r.set3 || 0) > 0 ? `<span class="inline-block px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold text-[10.5px]">${r.set3}</span>` : '<span class="text-slate-600">—</span>'}
+                </td>
+                <td class="py-2 px-1 text-center">
+                  ${(r.set5 || 0) > 0 ? `<span class="inline-block px-1.5 py-0.5 rounded bg-pink-500/20 text-pink-300 font-bold text-[10.5px]">${r.set5}</span>` : '<span class="text-slate-600">—</span>'}
+                </td>
+                <td class="py-2 px-1 text-center font-bold text-xs ${hasSales ? 'text-emerald-400' : 'text-slate-500'}">
+                  ${hasSales ? `${r.totalBoxes}` : '—'}
+                </td>
+                <td class="py-2 px-1 text-center text-[11px] ${(r.boost || 0) > 0 ? 'text-purple-300 font-semibold' : 'text-slate-600'}">
+                  ${(r.boost || 0) > 0 ? `$${r.boost.toFixed(2)}` : '—'}
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+        <tfoot>
+          <tr class="text-xs font-bold border-t border-white/10 bg-black/40 text-white font-mono">
+            <td class="py-2 px-1 text-center font-sans text-[11px]">${isKm ? `សរុប (${rows.length} ថ្ងៃ)` : `Total (${rows.length} days)`}</td>
+            <td class="py-2 px-1 text-center text-amber-300 text-[11px]">${sumSet1}</td>
+            <td class="py-2 px-1 text-center text-emerald-300 text-[11px]">${sumSet2}</td>
+            <td class="py-2 px-1 text-center text-blue-300 text-[11px]">${sumSet3}</td>
+            <td class="py-2 px-1 text-center text-pink-300 text-[11px]">${sumSet5}</td>
+            <td class="py-2 px-1 text-center text-emerald-400 font-bold text-[11px]">${sumBoxes} ${isKm ? 'ប្រអប់' : 'boxes'}</td>
+            <td class="py-2 px-1 text-center text-purple-300 text-[11px]">${sumBoost > 0 ? '$' + sumBoost.toFixed(2) : '—'}</td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
+  }
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+let expensesFilterState = {
+  mode: 'all', // 'day' | 'month' | 'year' | 'all'
+  selectedDate: '', // 'YYYY-MM-DD'
+  selectedMonth: '', // 'YYYY-MM'
+  selectedYear: '', // 'YYYY'
+  calYear: new Date().getFullYear(),
+  calMonth: new Date().getMonth() + 1,
+  isSearchOpen: false
+};
+
+let currentLoadedExpenses = [];
+
+function toggleExpensesSearch() {
+  const container = document.getElementById('expenses-modal-search-container');
+  const input = document.getElementById('expenses-modal-search-input');
+  const toggleBtn = document.getElementById('expenses-modal-search-toggle-btn');
+  if (!container) return;
+
+  const isHidden = container.classList.contains('hidden');
+  if (isHidden) {
+    container.classList.remove('hidden');
+    expensesFilterState.isSearchOpen = true;
+    if (toggleBtn) {
+      toggleBtn.classList.add('bg-orange-500/20', 'text-white', 'border-orange-500/40');
+      toggleBtn.classList.remove('bg-white/5', 'text-orange-400', 'border-white/10');
+    }
+    if (input) {
+      input.focus();
+    }
+  } else {
+    container.classList.add('hidden');
+    expensesFilterState.isSearchOpen = false;
+    if (toggleBtn) {
+      toggleBtn.classList.remove('bg-orange-500/20', 'text-white', 'border-orange-500/40');
+      toggleBtn.classList.add('bg-white/5', 'text-orange-400', 'border-white/10');
+    }
+    if (input && input.value) {
+      input.value = '';
+      const clearBtn = document.getElementById('expenses-modal-clear-search');
+      if (clearBtn) clearBtn.classList.add('hidden');
+      applyExpensesFilterAndRender();
+    }
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeAllExpensesDropdowns(except = null) {
+  const backdrop = document.getElementById('expenses-dropdown-backdrop');
+  if (except !== 'day') {
+    const d = document.getElementById('expenses-day-dropdown-menu');
+    if (d) d.classList.add('hidden');
+  }
+  if (except !== 'month') {
+    const m = document.getElementById('expenses-month-dropdown-menu');
+    if (m) m.classList.add('hidden');
+  }
+  if (except !== 'year') {
+    const y = document.getElementById('expenses-year-dropdown-menu');
+    if (y) y.classList.add('hidden');
+  }
+  if (!except && backdrop) {
+    backdrop.classList.add('hidden');
+  }
+}
+
+function toggleExpensesDayDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('expenses-day-dropdown-menu');
+  const backdrop = document.getElementById('expenses-dropdown-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  closeAllExpensesDropdowns('day');
+  if (isHidden) {
+    renderExpensesMiniCalendar();
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+function getYesterdayIso() {
+  const y = new Date();
+  y.setDate(y.getDate() - 1);
+  return getLocalIsoDate(y);
+}
+
+function renderExpensesMiniCalendar() {
+  const menu = document.getElementById('expenses-day-dropdown-menu');
+  if (!menu) return;
+
+  const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const monthTitle = `${khmerMonths[expensesFilterState.calMonth - 1]} ${expensesFilterState.calYear}`;
+
+  const now = new Date();
+  const realTodayIso = getLocalIsoDate(now);
+  const selectedIso = expensesFilterState.selectedDate || realTodayIso;
+
+  // Days in month
+  const firstDayOfWeek = new Date(expensesFilterState.calYear, expensesFilterState.calMonth - 1, 1).getDay();
+  const daysInMonth = new Date(expensesFilterState.calYear, expensesFilterState.calMonth, 0).getDate();
+
+  // Check which days have expenses in this calendar month
+  const d = DataService.data;
+  const expenseDaysSet = new Set();
+  if (d && d.expenses) {
+    const prefix = `${expensesFilterState.calYear}-${String(expensesFilterState.calMonth).padStart(2, '0')}`;
+    d.expenses.forEach(e => {
+      if (e.isoDate && e.isoDate.startsWith(prefix)) {
+        expenseDaysSet.add(e.isoDate);
+      }
+    });
+  }
+
+  let daysGridHtml = '';
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    daysGridHtml += `<div class="h-8"></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayStr = String(day).padStart(2, '0');
+    const monthStr = String(expensesFilterState.calMonth).padStart(2, '0');
+    const thisDateIso = `${expensesFilterState.calYear}-${monthStr}-${dayStr}`;
+
+    const isSelected = expensesFilterState.mode === 'day' && thisDateIso === selectedIso;
+    const isToday = thisDateIso === realTodayIso;
+    const hasExpenses = expenseDaysSet.has(thisDateIso);
+
+    let cellClasses = 'relative h-8 rounded-full flex flex-col items-center justify-center text-xs font-semibold cursor-pointer active:scale-95 transition ';
+    if (isSelected) {
+      cellClasses += 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30';
+    } else if (isToday) {
+      cellClasses += 'border border-orange-500/60 text-orange-400 hover:bg-orange-500/20';
+    } else {
+      cellClasses += 'text-slate-200 hover:bg-white/10';
+    }
+
+    daysGridHtml += `
+      <button onclick="selectExpensesCalendarDay('${thisDateIso}', event)" class="${cellClasses}">
+        <span>${day}</span>
+        ${hasExpenses ? `<span class="w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-rose-400'} absolute bottom-0.5"></span>` : ''}
+      </button>
+    `;
+  }
+
+  menu.innerHTML = `
+    <!-- Header: Month Year + Prev/Next Arrow Buttons -->
+    <div class="flex items-center justify-between pb-2 border-b border-white/10">
+      <button onclick="navigateExpensesCalendarMonth(-1, event)" 
+              class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-90">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
+
+      <span class="text-xs font-bold text-white tracking-wide font-sans">
+        ${monthTitle}
+      </span>
+
+      <button onclick="navigateExpensesCalendarMonth(1, event)" 
+              class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-90">
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Quick Pick Shortcuts (Today / Yesterday) -->
+    <div class="grid grid-cols-2 gap-1.5 pb-2 border-b border-white/10">
+      <button onclick="selectExpensesQuickDay('today', event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${expensesFilterState.mode === 'day' && expensesFilterState.selectedDate === realTodayIso ? 'bg-orange-500 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        ☀️ ថ្ងៃនេះ
+      </button>
+      <button onclick="selectExpensesQuickDay('yesterday', event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${expensesFilterState.mode === 'day' && expensesFilterState.selectedDate === getYesterdayIso() ? 'bg-orange-500 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        🌙 ម្សិលមិញ
+      </button>
+    </div>
+
+    <!-- Weekday Headers -->
+    <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+      <span>អា</span><span>ច</span><span>អ</span><span>ព</span><span>ព្រ</span><span>សុ</span><span>ស</span>
+    </div>
+
+    <!-- Calendar Days Grid (7 cols) -->
+    <div class="grid grid-cols-7 gap-1 text-center">
+      ${daysGridHtml}
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function navigateExpensesCalendarMonth(delta, event) {
+  if (event) event.stopPropagation();
+  expensesFilterState.calMonth += delta;
+  if (expensesFilterState.calMonth < 1) {
+    expensesFilterState.calMonth = 12;
+    expensesFilterState.calYear--;
+  } else if (expensesFilterState.calMonth > 12) {
+    expensesFilterState.calMonth = 1;
+    expensesFilterState.calYear++;
+  }
+  renderExpensesMiniCalendar();
+}
+
+function selectExpensesCalendarDay(isoDate, event) {
+  if (event) event.stopPropagation();
+  closeAllExpensesDropdowns();
+  expensesFilterState.mode = 'day';
+  expensesFilterState.selectedDate = isoDate;
+  applyExpensesFilterAndRender();
+}
+
+function selectExpensesQuickDay(type, event) {
+  if (event) event.stopPropagation();
+  closeAllExpensesDropdowns();
+  expensesFilterState.mode = 'day';
+  if (type === 'today') {
+    expensesFilterState.selectedDate = getLocalIsoDate(new Date());
+  } else if (type === 'yesterday') {
+    expensesFilterState.selectedDate = getYesterdayIso();
+  }
+  const parts = expensesFilterState.selectedDate.split('-');
+  expensesFilterState.calYear = parseInt(parts[0], 10);
+  expensesFilterState.calMonth = parseInt(parts[1], 10);
+  applyExpensesFilterAndRender();
+}
+
+function toggleExpensesMonthDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('expenses-month-dropdown-menu');
+  const backdrop = document.getElementById('expenses-dropdown-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  closeAllExpensesDropdowns('month');
+  if (isHidden) {
+    renderExpensesMonthDropdown();
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+function renderExpensesMonthDropdown() {
+  const menu = document.getElementById('expenses-month-dropdown-menu');
+  if (!menu) return;
+
+  const monthsList = [
+    { num: 1, name: 'មករា', en: 'Jan' },
+    { num: 2, name: 'កុម្ភៈ', en: 'Feb' },
+    { num: 3, name: 'មីនា', en: 'Mar' },
+    { num: 4, name: 'មេសា', en: 'Apr' },
+    { num: 5, name: 'ឧសភា', en: 'May' },
+    { num: 6, name: 'មិថុនា', en: 'Jun' },
+    { num: 7, name: 'កក្កដា', en: 'Jul' },
+    { num: 8, name: 'សីហា', en: 'Aug' },
+    { num: 9, name: 'កញ្ញា', en: 'Sep' },
+    { num: 10, name: 'តុលា', en: 'Oct' },
+    { num: 11, name: 'វិច្ឆិកា', en: 'Nov' },
+    { num: 12, name: 'ធ្នូ', en: 'Dec' }
+  ];
+
+  const now = new Date();
+  const currentMonthNum = now.getMonth() + 1;
+  const activeMonthKey = expensesFilterState.selectedMonth || `${expensesFilterState.calYear}-${String(currentMonthNum).padStart(2, '0')}`;
+  const activeYearStr = activeMonthKey.split('-')[0];
+  const activeMonthNum = parseInt(activeMonthKey.split('-')[1], 10);
+
+  const yearHeader = `
+    <div class="flex items-center justify-between pb-2 mb-1.5 border-b border-white/10 px-1">
+      <button type="button" onclick="navigateExpensesMonthYear(-1, event)" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition" title="ឆ្នាំមុន">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
+      <span class="text-xs font-bold font-mono text-white">ឆ្នាំ ${expensesFilterState.calYear}</span>
+      <button type="button" onclick="navigateExpensesMonthYear(1, event)" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition" title="ឆ្នាំបន្ទាប់">
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+  `;
+
+  menu.innerHTML = yearHeader + monthsList.map(m => {
+    const isSelected = expensesFilterState.mode === 'month' && m.num === activeMonthNum && String(expensesFilterState.calYear) === activeYearStr;
+    return `
+      <button onclick="selectExpensesMonth(${m.num}, event)" 
+              class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-white bg-orange-500/20 border border-orange-500/30' : 'text-slate-300 hover:bg-white/10'}">
+        <span>${String(m.num).padStart(2, '0')} ${m.name}</span>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function navigateExpensesMonthYear(delta, event) {
+  if (event) event.stopPropagation();
+  expensesFilterState.calYear += delta;
+  renderExpensesMonthDropdown();
+}
+
+function selectExpensesMonth(mNum, event) {
+  if (event) event.stopPropagation();
+  closeAllExpensesDropdowns();
+  const paddedMonth = String(mNum).padStart(2, '0');
+  expensesFilterState.mode = 'month';
+  expensesFilterState.selectedMonth = `${expensesFilterState.calYear}-${paddedMonth}`;
+  applyExpensesFilterAndRender();
+}
+
+function toggleExpensesYearDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('expenses-year-dropdown-menu');
+  const backdrop = document.getElementById('expenses-dropdown-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  closeAllExpensesDropdowns('year');
+  if (isHidden) {
+    renderExpensesYearDropdown();
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+function renderExpensesYearDropdown() {
+  const menu = document.getElementById('expenses-year-dropdown-menu');
+  if (!menu) return;
+
+  const currentYear = (new Date()).getFullYear();
+  const years = [2028, 2027, 2026, 2025];
+  const activeYear = expensesFilterState.selectedYear ? parseInt(expensesFilterState.selectedYear, 10) : currentYear;
+
+  menu.innerHTML = years.map(y => {
+    const isSelected = expensesFilterState.mode === 'year' && y === activeYear;
+    return `
+      <button onclick="selectExpensesYear(${y}, event)" 
+              class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-white bg-orange-500/20 border border-orange-500/30' : 'text-slate-300 hover:bg-white/10'}">
+        <span>ឆ្នាំ ${y}</span>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function selectExpensesYear(y, event) {
+  if (event) event.stopPropagation();
+  closeAllExpensesDropdowns();
+  expensesFilterState.mode = 'year';
+  expensesFilterState.selectedYear = String(y);
+  expensesFilterState.calYear = y;
+  applyExpensesFilterAndRender();
+}
+
+function setExpensesPeriodFilter(mode, val, event) {
+  if (event) event.stopPropagation();
+  closeAllExpensesDropdowns();
+  expensesFilterState.mode = mode;
+  applyExpensesFilterAndRender();
+}
+
+function applyExpensesFilterAndRender() {
+  const d = DataService.data;
+  if (!d) return;
 
   const now = new Date();
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
 
-  let filteredExpenses = d.expenses || [];
+  const btnDay = document.getElementById('expenses-filter-btn-day');
+  const btnMonth = document.getElementById('expenses-filter-btn-month');
+  const btnYear = document.getElementById('expenses-filter-btn-year');
+  const btnAll = document.getElementById('expenses-filter-btn-all');
+
+  const lblDay = document.getElementById('expenses-day-pill-label');
+  const lblMonth = document.getElementById('expenses-month-pill-label');
+  const lblYear = document.getElementById('expenses-year-pill-label');
+  const subtitle = document.getElementById('expenses-modal-subtitle');
+
+  const activeBtnClasses = ['accent-solid-btn', 'shadow-md', 'text-white'];
+  const inactiveBtnClasses = ['text-slate-400', 'hover:text-white'];
+
+  function setPillActive(btn) {
+    [btnDay, btnMonth, btnYear, btnAll].forEach(b => {
+      if (!b) return;
+      if (b === btn) {
+        b.classList.add(...activeBtnClasses);
+        b.classList.remove(...inactiveBtnClasses);
+      } else {
+        b.classList.remove(...activeBtnClasses);
+        b.classList.add(...inactiveBtnClasses);
+      }
+    });
+  }
+
+  let filtered = d.expenses || [];
   let periodLabel = 'ទាំងអស់';
 
-  // Determine current active target month from selected month pill or date filter
-  let targetMonthKey = currentIsoMonth;
-  if (appState.periodFilter === 'month') {
-    targetMonthKey = appState.selectedMonthKey || currentIsoMonth;
-  } else if (appState.periodFilter === 'today') {
-    if (appState.daySubFilter === 'specific' && appState.specificDate) {
-      targetMonthKey = appState.specificDate.slice(0, 7);
-    } else if (appState.daySubFilter === 'yesterday') {
-      const yDate = new Date();
-      yDate.setDate(yDate.getDate() - 1);
-      targetMonthKey = getLocalIsoDate(yDate).slice(0, 7);
-    } else {
-      targetMonthKey = currentIsoMonth;
-    }
-  } else if (appState.periodFilter === 'custom' && appState.customStartDate) {
-    targetMonthKey = appState.customStartDate.slice(0, 7);
-  }
-
-  // If forceMonthly is true (clicked from monthly summary card List icon) OR periodFilter === 'month'
-  if (forceMonthly || appState.periodFilter === 'month') {
-    filteredExpenses = (d.expenses || []).filter(e => e.isoDate && e.isoDate.startsWith(targetMonthKey));
-    const parts = targetMonthKey.split('-');
+  if (expensesFilterState.mode === 'day') {
+    setPillActive(btnDay);
+    const targetDay = expensesFilterState.selectedDate || currentIsoDay;
+    filtered = (d.expenses || []).filter(e => e.isoDate === targetDay);
+    const dayNum = targetDay.slice(8, 10);
+    if (lblDay) lblDay.textContent = `ថ្ងៃទី ${parseInt(dayNum, 10)}`;
+    periodLabel = `ថ្ងៃ ${displayDDMMYYYY(targetDay)}`;
+  } else if (expensesFilterState.mode === 'month') {
+    setPillActive(btnMonth);
+    const targetMonth = expensesFilterState.selectedMonth || currentIsoMonth;
+    filtered = (d.expenses || []).filter(e => e.isoDate && e.isoDate.startsWith(targetMonth));
+    const parts = targetMonth.split('-');
+    if (lblMonth) lblMonth.textContent = `ខែ ${parseInt(parts[1], 10)}`;
     periodLabel = `ខែ ${parts[1]}/${parts[0]}`;
+  } else if (expensesFilterState.mode === 'year') {
+    setPillActive(btnYear);
+    const targetYear = expensesFilterState.selectedYear || currentIsoYear;
+    filtered = (d.expenses || []).filter(e => e.isoDate && e.isoDate.startsWith(targetYear));
+    if (lblYear) lblYear.textContent = `ឆ្នាំ ${targetYear}`;
+    periodLabel = `ឆ្នាំ ${targetYear}`;
   } else {
-    // Normal drill-down from day/period filter
-    if (appState.periodFilter === 'today') {
-      if (appState.daySubFilter === 'specific' && appState.specificDate) {
-        filteredExpenses = (d.expenses || []).filter(e => e.isoDate === appState.specificDate);
-        periodLabel = `ថ្ងៃ ${displayDDMMYYYY(appState.specificDate)}`;
-      } else if (appState.daySubFilter === 'yesterday') {
-        const yDate = new Date();
-        yDate.setDate(yDate.getDate() - 1);
-        const yesterdayIsoDay = getLocalIsoDate(yDate);
-        filteredExpenses = (d.expenses || []).filter(e => e.isoDate === yesterdayIsoDay);
-        periodLabel = `ម្សិលមិញ (${displayDDMMYYYY(yesterdayIsoDay)})`;
-      } else {
-        filteredExpenses = (d.expenses || []).filter(e => e.isoDate === currentIsoDay);
-        periodLabel = `ថ្ងៃនេះ (${displayDDMMYYYY(currentIsoDay)})`;
-      }
-    } else if (appState.periodFilter === 'year') {
-      const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
-      filteredExpenses = (d.expenses || []).filter(e => e.isoDate && e.isoDate.startsWith(targetYear));
-      periodLabel = `ឆ្នាំ ${targetYear}`;
-    } else if (appState.periodFilter === 'custom' && appState.customStartDate && appState.customEndDate) {
-      filteredExpenses = (d.expenses || []).filter(e => e.isoDate >= appState.customStartDate && e.isoDate <= appState.customEndDate);
-      periodLabel = `${displayDDMMYYYY(appState.customStartDate)} ➔ ${displayDDMMYYYY(appState.customEndDate)}`;
-    }
+    // Mode is 'all'
+    setPillActive(btnAll);
+    if (lblDay) lblDay.textContent = 'ថ្ងៃទី';
+    if (lblMonth) lblMonth.textContent = 'ខែ';
+    if (lblYear) lblYear.textContent = 'ឆ្នាំ';
+    periodLabel = 'ទាំងអស់';
   }
 
-  // Strict sorting from latest to earliest (Day 31 ➔ 01, Month 12 ➔ 01, latest row first)
-  const sortedExpenses = [...filteredExpenses].sort((a, b) => {
+  // Strict sorting from latest to earliest (Day 31 ➔ 01, Year latest ➔ earliest, highest rowIndex first)
+  const sortedExpenses = [...filtered].sort((a, b) => {
     const cmp = (b.isoDate || '').localeCompare(a.isoDate || '');
     if (cmp !== 0) return cmp;
     return (b.rowIndex || 0) - (a.rowIndex || 0);
@@ -4420,44 +6638,113 @@ function openExpensesModal(forceMonthly = false) {
   const totalAmount = sortedExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
   if (subtitle) {
-    subtitle.textContent = `ការចំណាយតាម ${periodLabel} (${sortedExpenses.length} មុខ) - សរុប ${formatUSD(totalAmount)}`;
+    subtitle.textContent = periodLabel === 'ទាំងអស់'
+      ? `ការចំណាយទាំងអស់ (${sortedExpenses.length} មុខ)`
+      : `ការចំណាយតាម ${periodLabel} (${sortedExpenses.length} មុខ)`;
   }
 
-  if (listEl) {
-    listEl.innerHTML = sortedExpenses.map((item, idx) => `
-      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-              ${idx + 1}
-            </span>
-            <span class="font-bold text-xs text-white">${item.description || item.category}</span>
-          </div>
-          <span class="font-mono text-rose-400 font-bold text-xs">${formatUSD(item.amount)}</span>
-        </div>
-        <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
-          <div class="flex items-center gap-2">
-            <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
-            ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
-          </div>
-          <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
-        </div>
-      </div>
-    `).join('') || `<p class="text-xs text-slate-400 text-center py-6">គ្មានទិន្នន័យចំណាយសម្រាប់ពេលនេះទេ</p>`;
+  currentLoadedExpenses = sortedExpenses;
+
+  // If search query is currently active in the input, apply search filter
+  const searchInput = document.getElementById('expenses-modal-search-input');
+  if (searchInput && searchInput.value.trim()) {
+    filterExpensesModalList();
+  } else {
+    renderExpensesModalRows(currentLoadedExpenses);
   }
 
-  const footer = document.getElementById('expenses-modal-footer');
-  if (footer) {
-    footer.innerHTML = `
-      <div class="text-slate-300 font-semibold text-xs">
-        ចំនួនសរុប: ${sortedExpenses.length} មុខ
-      </div>
-      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right">
-        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
-        <span>${formatUSD(totalAmount)}</span>
-      </div>
-    `;
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function openExpensesModal(mode = false) {
+  const d = DataService.data;
+  if (!d) return;
+
+  const modal = document.getElementById('expenses-modal');
+  const listEl = document.getElementById('expenses-modal-list');
+
+  const now = new Date();
+  const currentIsoDay = getLocalIsoDate(now);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  const currentIsoYear = currentIsoDay.slice(0, 4);
+
+  // Initialize expensesFilterState based on mode or appState
+  if (mode === 'all') {
+    expensesFilterState.mode = 'all';
+    expensesFilterState.selectedDate = currentIsoDay;
+    expensesFilterState.selectedMonth = currentIsoMonth;
+    expensesFilterState.selectedYear = currentIsoYear;
+    expensesFilterState.calYear = now.getFullYear();
+    expensesFilterState.calMonth = now.getMonth() + 1;
+  } else if (mode === true || mode === 'month') {
+    expensesFilterState.mode = 'month';
+    expensesFilterState.selectedMonth = appState.selectedMonthKey || currentIsoMonth;
+    const parts = expensesFilterState.selectedMonth.split('-');
+    expensesFilterState.calYear = parseInt(parts[0], 10);
+    expensesFilterState.calMonth = parseInt(parts[1], 10);
+  } else if (mode === 'year') {
+    expensesFilterState.mode = 'year';
+    expensesFilterState.selectedYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
+    expensesFilterState.calYear = parseInt(expensesFilterState.selectedYear, 10);
+  } else if (mode === 'day') {
+    expensesFilterState.mode = 'day';
+    if (appState.daySubFilter === 'specific' && appState.specificDate) {
+      expensesFilterState.selectedDate = appState.specificDate;
+    } else if (appState.daySubFilter === 'yesterday') {
+      expensesFilterState.selectedDate = getYesterdayIso();
+    } else {
+      expensesFilterState.selectedDate = currentIsoDay;
+    }
+    const parts = expensesFilterState.selectedDate.split('-');
+    expensesFilterState.calYear = parseInt(parts[0], 10);
+    expensesFilterState.calMonth = parseInt(parts[1], 10);
+  } else {
+    // Default drill-down based on current appState
+    if (appState.periodFilter === 'month') {
+      expensesFilterState.mode = 'month';
+      expensesFilterState.selectedMonth = appState.selectedMonthKey || currentIsoMonth;
+      const parts = expensesFilterState.selectedMonth.split('-');
+      expensesFilterState.calYear = parseInt(parts[0], 10);
+      expensesFilterState.calMonth = parseInt(parts[1], 10);
+    } else if (appState.periodFilter === 'year') {
+      expensesFilterState.mode = 'year';
+      expensesFilterState.selectedYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
+      expensesFilterState.calYear = parseInt(expensesFilterState.selectedYear, 10);
+    } else {
+      // today / specific / yesterday / custom
+      expensesFilterState.mode = 'day';
+      if (appState.daySubFilter === 'specific' && appState.specificDate) {
+        expensesFilterState.selectedDate = appState.specificDate;
+      } else if (appState.daySubFilter === 'yesterday') {
+        expensesFilterState.selectedDate = getYesterdayIso();
+      } else {
+        expensesFilterState.selectedDate = currentIsoDay;
+      }
+      const parts = expensesFilterDateParts(expensesFilterState.selectedDate);
+      expensesFilterState.calYear = parts.year;
+      expensesFilterState.calMonth = parts.month;
+    }
   }
+
+  // Ensure search is collapsed initially
+  const searchContainer = document.getElementById('expenses-modal-search-container');
+  const searchInput = document.getElementById('expenses-modal-search-input');
+  const clearBtn = document.getElementById('expenses-modal-clear-search');
+  const searchToggleBtn = document.getElementById('expenses-modal-search-toggle-btn');
+  if (searchContainer) searchContainer.classList.add('hidden');
+  if (searchInput) searchInput.value = '';
+  if (clearBtn) clearBtn.classList.add('hidden');
+  if (searchToggleBtn) {
+    searchToggleBtn.classList.remove('bg-orange-500/20', 'text-white', 'border-orange-500/40');
+    searchToggleBtn.classList.add('bg-white/5', 'text-orange-400', 'border-white/10');
+  }
+  expensesFilterState.isSearchOpen = false;
+
+  closeAllExpensesDropdowns();
+  applyExpensesFilterAndRender();
+
+  const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
+  if (expFilterBar) expFilterBar.classList.remove('filter-hidden');
 
   modal.classList.remove('hidden');
   setDockVisible(true);
@@ -4466,9 +6753,132 @@ function openExpensesModal(forceMonthly = false) {
   if (window.lucide) window.lucide.createIcons();
 }
 
-function closeExpensesModal() {
-  document.getElementById('expenses-modal').classList.add('hidden');
+function expensesFilterDateParts(iso) {
+  if (!iso) {
+    const d = new Date();
+    return { year: d.getFullYear(), month: d.getMonth() + 1 };
+  }
+  const parts = iso.split('-');
+  return { year: parseInt(parts[0], 10), month: parseInt(parts[1], 10) };
 }
+
+function renderExpensesModalRows(items) {
+  const listEl = document.getElementById('expenses-modal-list');
+  const footer = document.getElementById('expenses-modal-footer');
+  if (!listEl) return;
+  const totalAmount = items.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+  if (footer) {
+    footer.innerHTML = `
+      <div class="text-slate-300 font-semibold text-xs">
+        ចំនួនសរុប: ${items.length} មុខ
+      </div>
+      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right">
+        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
+        <span>${formatUSD(totalAmount)}</span>
+      </div>
+    `;
+  }
+
+  if (items.length === 0) {
+    listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">មិនមានទិន្នន័យចំណាយត្រូវគ្នានឹងការស្វែងរកទេ</p>`;
+    return;
+  }
+
+  listEl.innerHTML = items.map((item, idx) => `
+    <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 hover:border-rose-500/20 transition">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+            ${idx + 1}
+          </span>
+          <span class="font-bold text-xs text-white">${item.description || item.category}</span>
+        </div>
+        <span class="font-mono text-rose-400 font-bold text-xs">${formatUSD(item.amount)}</span>
+      </div>
+      <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
+        <div class="flex items-center gap-2">
+          <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
+          ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
+        </div>
+        <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterExpensesModalList() {
+  const input = document.getElementById('expenses-modal-search-input');
+  const clearBtn = document.getElementById('expenses-modal-clear-search');
+  if (!input) return;
+  const q = input.value.trim().toLowerCase();
+  if (clearBtn) {
+    if (q) clearBtn.classList.remove('hidden');
+    else clearBtn.classList.add('hidden');
+  }
+
+  if (!q) {
+    renderExpensesModalRows(currentLoadedExpenses);
+    return;
+  }
+
+  const matched = currentLoadedExpenses.filter(e => {
+    return (e.description && e.description.toLowerCase().includes(q)) ||
+           (e.category && e.category.toLowerCase().includes(q)) ||
+           (e.date && e.date.toLowerCase().includes(q)) ||
+           (String(e.amount).includes(q));
+  });
+
+  renderExpensesModalRows(matched);
+}
+
+function clearExpensesModalSearch() {
+  const input = document.getElementById('expenses-modal-search-input');
+  const clearBtn = document.getElementById('expenses-modal-clear-search');
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+  if (clearBtn) clearBtn.classList.add('hidden');
+  renderExpensesModalRows(currentLoadedExpenses);
+}
+
+function closeExpensesModal() {
+  closeAllExpensesDropdowns();
+  const searchContainer = document.getElementById('expenses-modal-search-container');
+  if (searchContainer) searchContainer.classList.add('hidden');
+  const searchToggleBtn = document.getElementById('expenses-modal-search-toggle-btn');
+  if (searchToggleBtn) {
+    searchToggleBtn.classList.remove('bg-orange-500/20', 'text-white', 'border-orange-500/40');
+    searchToggleBtn.classList.add('bg-white/5', 'text-orange-400', 'border-white/10');
+  }
+  const modal = document.getElementById('expenses-modal');
+  if (modal) modal.classList.add('hidden');
+
+  // ចុច Back ពីបញ្ជីចំណាយពេញ ត្រឡប់មកមុខងារចម្បង (Profile Drawer) ដូចបញ្ជីអតិថិជន
+  openProfileDrawer();
+}
+
+// Close expenses dropdowns if clicked outside
+document.addEventListener('click', (e) => {
+  const dayMenu = document.getElementById('expenses-day-dropdown-menu');
+  const dayBtn = document.getElementById('expenses-filter-btn-day');
+  const monthMenu = document.getElementById('expenses-month-dropdown-menu');
+  const monthBtn = document.getElementById('expenses-filter-btn-month');
+  const yearMenu = document.getElementById('expenses-year-dropdown-menu');
+  const yearBtn = document.getElementById('expenses-filter-btn-year');
+
+  const clickedInside = (dayMenu && dayMenu.contains(e.target)) ||
+                        (dayBtn && dayBtn.contains(e.target)) ||
+                        (monthMenu && monthMenu.contains(e.target)) ||
+                        (monthBtn && monthBtn.contains(e.target)) ||
+                        (yearMenu && yearMenu.contains(e.target)) ||
+                        (yearBtn && yearBtn.contains(e.target));
+
+  if (!clickedInside) {
+    closeAllExpensesDropdowns();
+  }
+});
 
 function renderAboutModalContent() {
   const isKm = appState.language === 'km';
@@ -4578,6 +6988,198 @@ function closeAboutModal(e) {
   }
 }
 
+// ==========================================
+// iOS Notification Center System (Full Engine)
+// ==========================================
+function getStoredNotifications() {
+  try {
+    const raw = localStorage.getItem('sd_app_notifications');
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        return list.filter(n => n && n.id !== 'notif-welcome' && n.id !== 'notif-offline-ready');
+      }
+    }
+  } catch (_) {}
+  return [];
+}
+
+function saveStoredNotifications(list) {
+  try {
+    localStorage.setItem('sd_app_notifications', JSON.stringify(list));
+  } catch (_) {}
+  updateNotifBadgeCount();
+}
+
+function updateNotifBadgeCount() {
+  const notifBadge = document.getElementById('notif-badge');
+  if (!notifBadge) return;
+  const list = getStoredNotifications();
+  const unreadCount = list.filter(n => !n.isRead).length;
+  if (unreadCount > 0 && !appState.hasReadNotifications) {
+    notifBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+    notifBadge.classList.remove('hidden');
+  } else {
+    notifBadge.classList.add('hidden');
+  }
+}
+
+function addAppNotification(item) {
+  const list = getStoredNotifications();
+  const now = new Date();
+  const newNotif = {
+    id: item.id || `notif-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+    type: item.type || 'system',
+    title: item.title || 'ការជូនដំណឹងថ្មី',
+    content: item.content || '',
+    time: item.time || now.toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit' }),
+    date: item.date || now.toLocaleDateString('km-KH', { day: '2-digit', month: 'short' }),
+    tag: item.tag || 'ថ្មី',
+    color: item.color || 'orange',
+    icon: item.icon || (item.type === 'order' ? 'package' : item.type === 'expense' ? 'receipt' : item.type === 'sync' ? 'refresh-cw' : 'bell'),
+    isRead: false
+  };
+  list.unshift(newNotif);
+  if (list.length > 50) list.pop();
+  saveStoredNotifications(list);
+  appState.hasReadNotifications = false;
+
+  const modal = document.getElementById('notif-modal');
+  if (modal && !modal.classList.contains('hidden') && DataService.data) {
+    renderNotificationsFeed(DataService.data);
+  }
+}
+
+function deleteNotification(id) {
+  let list = getStoredNotifications();
+  list = list.filter(n => n.id !== id);
+  saveStoredNotifications(list);
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+  if (DataService.data) renderNotificationsFeed(DataService.data);
+}
+
+function clearAllNotifications() {
+  saveStoredNotifications([]);
+  appState.hasReadNotifications = true;
+  if (typeof DataService !== 'undefined' && DataService.unreadNotifications) {
+    DataService.unreadNotifications = [];
+  }
+  document.getElementById('notif-badge')?.classList?.add('hidden');
+  if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch (_) {}
+  if (DataService.data) renderNotificationsFeed(DataService.data);
+  updateNotifBadgeCount();
+  showToastNotification('បានសម្អាតការជូនដំណឹងទាំងអស់ ✓');
+}
+
+function markAllNotificationsAsRead() {
+  const list = getStoredNotifications();
+  list.forEach(n => { n.isRead = true; });
+  saveStoredNotifications(list);
+  appState.hasReadNotifications = true;
+  document.getElementById('notif-badge')?.classList?.add('hidden');
+  if (DataService.data) renderNotificationsFeed(DataService.data);
+  showToastNotification('បានសម្គាល់ថាបានអានទាំងអស់ ✓');
+}
+
+// ==========================================
+// Offline Mode Auto-Sync Queue System
+// ==========================================
+function getOfflineSyncQueue() {
+  try {
+    const raw = localStorage.getItem('sd_pending_offline_sync');
+    if (raw) {
+      const q = JSON.parse(raw);
+      return {
+        orders: Array.isArray(q.orders) ? q.orders : [],
+        expenses: Array.isArray(q.expenses) ? q.expenses : []
+      };
+    }
+  } catch (_) {}
+  return { orders: [], expenses: [] };
+}
+
+function saveOfflineSyncQueue(queue) {
+  try {
+    localStorage.setItem('sd_pending_offline_sync', JSON.stringify(queue));
+  } catch (_) {}
+}
+
+function queueOfflineOrder(order) {
+  const queue = getOfflineSyncQueue();
+  queue.orders.push(order);
+  saveOfflineSyncQueue(queue);
+}
+
+function queueOfflineExpense(expense) {
+  const queue = getOfflineSyncQueue();
+  queue.expenses.push(expense);
+  saveOfflineSyncQueue(queue);
+}
+
+async function syncOfflineQueue() {
+  if (!navigator.onLine) return;
+  const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function') ? getAppsScriptWebhookUrl() : '';
+  if (!webhookUrl || !webhookUrl.startsWith('http')) return;
+
+  const queue = getOfflineSyncQueue();
+  const totalOrders = queue.orders.length;
+  const totalExpenses = queue.expenses.length;
+  if (totalOrders === 0 && totalExpenses === 0) return;
+
+  console.log(`[Offline Sync] Starting auto-sync for ${totalOrders} orders, ${totalExpenses} expenses...`);
+
+  let syncedOrders = 0;
+  const remainingOrders = [];
+  for (const order of queue.orders) {
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'add_order', data: order })
+      });
+      syncedOrders++;
+    } catch (err) {
+      console.warn('Failed to sync order, retaining in queue:', err);
+      remainingOrders.push(order);
+    }
+  }
+
+  let syncedExpenses = 0;
+  const remainingExpenses = [];
+  for (const exp of queue.expenses) {
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'add_expense', data: exp })
+      });
+      syncedExpenses++;
+    } catch (err) {
+      console.warn('Failed to sync expense, retaining in queue:', err);
+      remainingExpenses.push(exp);
+    }
+  }
+
+  queue.orders = remainingOrders;
+  queue.expenses = remainingExpenses;
+  saveOfflineSyncQueue(queue);
+
+  const totalSynced = syncedOrders + syncedExpenses;
+  if (totalSynced > 0) {
+    showToastNotification(`🔄 បានធ្វើសមកាលកម្ម ${totalSynced} កំណត់ត្រា (Offline ➔ Sheets) ជោគជ័យ!`);
+    addAppNotification({
+      type: 'sync',
+      title: '🔄 សមកាលកម្ម Offline ជោគជ័យ',
+      content: `បានបញ្ជូន ${totalSynced} កំណត់ត្រា (${syncedOrders} កុម្ម៉ង់, ${syncedExpenses} ចំណាយ) ចូលទៅក្នុង Google Sheet រួចរាល់។`,
+      tag: 'Auto-Synced ✓',
+      color: 'emerald',
+      icon: 'refresh-cw'
+    });
+  }
+}
+
 function renderNotificationsFeed(d) {
   const feedList = document.getElementById('notif-feed-list');
   if (!d || !feedList) return;
@@ -4586,130 +7188,95 @@ function renderNotificationsFeed(d) {
   const currentTimeStr = new Date().toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit' });
   const currentDateStr = new Date().toLocaleDateString('km-KH', { day: '2-digit', month: 'short', year: 'numeric' });
 
-  // 1. Team Sales Boost Updates
-  const boostEntries = (d.recentBoostEntries && d.recentBoostEntries.length > 0)
-    ? d.recentBoostEntries.slice(-2)
-    : [
-        { row: 'B298', dateLabel: '12-Oct', amount: 270.05, leader: 'ស្តី ស្តើង' },
-        { row: 'B299', dateLabel: '13-Oct', amount: 225.80, leader: 'ស្តី ស្តើង' }
-      ];
-  const totalBoostAlert = boostEntries.reduce((sum, e) => sum + (e.amount || 0), 0);
-  const rowNames = boostEntries.map(e => e.row).join(', ');
+  // 1. Stored Real Notifications List
+  const storedList = getStoredNotifications();
+  let eventsHTML = '';
 
-  const teamSalesAlertHTML = `
-    <div class="p-3.5 rounded-2xl bg-[#132238] border border-amber-500/20 text-xs text-slate-300 space-y-2 shadow-lg">
-      <div class="flex items-center justify-between">
-        <span class="font-bold text-amber-400 flex items-center gap-1.5 text-[12px]">
-          <span>⚡️</span> [Update Alert] Team Sales
-        </span>
-        <span class="text-[9.5px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 font-mono font-semibold">Live Alert</span>
-      </div>
-      <div class="text-[11px] text-slate-300 leading-relaxed space-y-1">
-        <p class="text-slate-400 font-mono text-[10px]">⏰ ម៉ោង ${currentTimeStr}: បច្ចុប្បន្នភាព ចំណាយ Boost (${rowNames})</p>
-        <div class="pl-2 border-l-2 border-amber-500/40 space-y-0.5 font-mono text-[11px]">
-          ${boostEntries.map(e => `<div>• ${e.dateLabel}: <span class="text-white font-bold">$${formatUSD(e.amount).replace('$', '')}</span></div>`).join('')}
+  if (storedList.length === 0) {
+    eventsHTML = `
+      <div class="py-8 px-4 text-center flex flex-col items-center justify-center space-y-3 bg-[#101D32]/50 rounded-2xl border border-white/5">
+        <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
+          <i data-lucide="bell-off" class="w-6 h-6 text-orange-400/80"></i>
         </div>
-        <p class="font-semibold text-white pt-1">👉 សរុប: <span class="text-amber-400 font-mono font-bold">${formatUSD(totalBoostAlert)}</span> <span class="text-slate-400 text-[10px] font-normal">(ដោយ: ស្តី ស្តើង)</span></p>
+        <div class="space-y-1">
+          <h4 class="text-sm font-bold text-white">គ្មានការជូនដំណឹងថ្មីឡើយ ✨</h4>
+          <p class="text-xs text-slate-400 max-w-xs leading-relaxed">
+            រាល់ការកត់ត្រាការលក់ ចំណាយ និងការ Sync ពេលដាច់អ៊ីនធឺណិត នឹងបង្ហាញនៅទីនេះ។
+          </p>
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  } else {
+    eventsHTML = `
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">សេចក្តីជូនដំណឹង និងប្រតិបត្តិការ (${storedList.length})</span>
+        </div>
+        ${storedList.map(item => {
+          const colorStyles = {
+            orange: 'border-orange-500/25 bg-orange-500/10 text-orange-400',
+            rose: 'border-rose-500/25 bg-rose-500/10 text-rose-400',
+            emerald: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-400',
+            amber: 'border-amber-500/25 bg-amber-500/10 text-amber-400',
+            indigo: 'border-indigo-500/25 bg-indigo-500/10 text-indigo-400',
+            blue: 'border-blue-500/25 bg-blue-500/10 text-blue-400'
+          }[item.color || 'orange'] || 'border-orange-500/25 bg-orange-500/10 text-orange-400';
 
-  // 2. Personal Sales Updates
-  const latestSales = (d.personalSales || []).slice(0, 2);
-  const salesAlertHTML = `
-    <div class="p-3.5 rounded-2xl bg-[#132238] border border-orange-500/20 text-xs text-slate-300 space-y-2 shadow-lg">
-      <div class="flex items-center justify-between">
-        <span class="font-bold text-orange-400 flex items-center gap-1.5 text-[12px]">
-          <span>📦</span> [Update Alert] Personal Sales
-        </span>
-        <span class="text-[9.5px] text-slate-400 font-mono">${currentDateStr}</span>
-      </div>
-      <div class="text-[11px] text-slate-300 leading-relaxed space-y-1">
-        <p class="text-slate-400 font-mono text-[10px]">⏰ ម៉ោង ${currentTimeStr}: មានកុម្ម៉ង់លក់រាយសរុប ${d.personalSales.length} លើក</p>
-        <div class="pl-2 border-l-2 border-orange-500/40 space-y-1">
-          ${latestSales.map(s => `
-            <div class="text-[10.5px]">
-              • <strong class="text-white">${s.customer || 'អតិថិជន'}</strong>: 
-              <span class="text-slate-300">${s.productDetails || s.details || `${s.totalBoxQty || 1} ប្រអប់`}</span>
-              ➔ <span class="text-orange-400 font-mono font-bold">${formatUSD(s.totalAmount || 0)}</span>
+          return `
+            <div class="group relative p-3.5 rounded-2xl bg-[#132238] border border-white/10 hover:border-white/20 transition-all text-xs text-slate-300 space-y-2 shadow-lg ${item.isRead ? 'opacity-80' : 'border-l-4 border-l-orange-500'}">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 rounded-xl ${colorStyles} flex items-center justify-center shrink-0 border">
+                    <i data-lucide="${item.icon || 'bell'}" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-white text-[12px] truncate">${item.title}</h4>
+                    <span class="text-[9.5px] text-slate-400 font-mono">${item.date} • ${item.time}</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <span class="text-[9px] px-2 py-0.5 rounded-full font-mono font-semibold ${colorStyles}">
+                    ${item.tag}
+                  </span>
+                  <button onclick="deleteNotification('${item.id}')" 
+                          class="w-6 h-6 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 flex items-center justify-center transition active:scale-90" 
+                          title="លុបការជូនដំណឹងនេះ">
+                    <i data-lucide="x" class="w-3 h-3"></i>
+                  </button>
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-300 leading-relaxed pl-9">${item.content}</p>
             </div>
-          `).join('')}
-        </div>
+          `;
+        }).join('')}
       </div>
-    </div>
-  `;
+    `;
+  }
 
-  // 3. Daily Expenses Updates
-  const latestExpenses = (d.expenses || []).slice(0, 2);
-  const expensesAlertHTML = `
-    <div class="p-3.5 rounded-2xl bg-[#132238] border border-rose-500/20 text-xs text-slate-300 space-y-2 shadow-lg">
-      <div class="flex items-center justify-between">
-        <span class="font-bold text-rose-400 flex items-center gap-1.5 text-[12px]">
-          <span>🧾</span> [Update Alert] Daily Expenses
-        </span>
-        <span class="text-[9.5px] text-slate-400 font-mono">${currentDateStr}</span>
-      </div>
-      <div class="text-[11px] text-slate-300 leading-relaxed space-y-1">
-        <p class="text-slate-400 font-mono text-[10px]">⏰ ម៉ោង ${currentTimeStr}: កត់ត្រាចំណាយប្រតិបត្តិការសរុប ${d.expenses.length} មុខ</p>
-        <div class="pl-2 border-l-2 border-rose-500/40 space-y-1">
-          ${latestExpenses.map(e => `
-            <div class="text-[10.5px]">
-              • <strong class="text-white">${e.description || 'ចំណាយទូទៅ'}</strong> (${e.isoDate || ''}): 
-              <span class="text-rose-400 font-mono font-bold">${formatUSD(e.amount || 0)}</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    </div>
-  `;
-
-  // 4. Bank & Cash Balance Update
-  const bankAlertHTML = `
-    <div class="p-3.5 rounded-2xl bg-[#132238] border border-emerald-500/20 text-xs text-slate-300 space-y-2 shadow-lg">
-      <div class="flex items-center justify-between">
-        <span class="font-bold text-emerald-400 flex items-center gap-1.5 text-[12px]">
-          <span>🏦</span> [Update Alert] Bank & Cash Balance
-        </span>
-        <span class="text-[9.5px] text-emerald-400 font-mono font-semibold">Active</span>
-      </div>
-      <div class="text-[11px] text-slate-300 leading-relaxed space-y-1 font-mono">
-        <div class="grid grid-cols-2 gap-2 text-[10.5px] pt-0.5">
-          <div class="p-1.5 rounded-lg bg-black/20 border border-white/5">
-            <span class="text-slate-400 block text-[9.5px]">ABA USD:</span>
-            <span class="text-emerald-400 font-bold">${formatUSD(d.bank.abaUsd || 0)}</span>
-          </div>
-          <div class="p-1.5 rounded-lg bg-black/20 border border-white/5">
-            <span class="text-slate-400 block text-[9.5px]">ACLEDA KHR:</span>
-            <span class="text-amber-400 font-bold">${formatKHR(d.bank.acledaKhr || 0)}</span>
-          </div>
-        </div>
-        <p class="text-[10px] text-slate-400 font-sans pt-1">
-          👉 សរុបទឹកប្រាក់សុទ្ធក្នុងដៃ: <strong class="text-white font-mono">${formatUSD(d.bank.pureUsdTotal)}</strong> | <strong class="text-amber-400 font-mono">${formatKHR(d.bank.pureKhrTotal)}</strong>
-        </p>
-      </div>
-    </div>
-  `;
-
-  // 5. Team Announcements (ដំណឹងក្រុម) - Prepared for upcoming Google Sheet tab
+  // Announcements (if available from Sheet)
   let announcementsHTML = '';
   const announcements = d.announcements || [];
   if (announcements.length > 0) {
-    announcementsHTML = announcements.map(a => `
-      <div class="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-950/70 to-purple-950/70 border border-indigo-500/30 text-xs text-slate-200 space-y-1.5 shadow-xl relative overflow-hidden">
-        <div class="flex items-center justify-between">
-          <span class="font-bold text-indigo-300 flex items-center gap-1.5 text-[12px]">
-            <span>📢</span> ដំណឹង (Announcements)
-          </span>
-          <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">${a.date || 'Today'}</span>
-        </div>
-        <h4 class="font-bold text-white text-xs">${a.title}</h4>
-        <p class="text-[11px] text-slate-300 leading-relaxed">${a.content}</p>
-        <p class="text-[9.5px] text-slate-400 font-mono pt-1 text-right">— ${a.author}</p>
+    announcementsHTML = `
+      <div class="space-y-2.5 mb-2.5">
+        ${announcements.map(a => `
+          <div class="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-950/70 to-purple-950/70 border border-indigo-500/30 text-xs text-slate-200 space-y-1.5 shadow-xl relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-indigo-300 flex items-center gap-1.5 text-[12px]">
+                <span>📢</span> ដំណឹង (Announcements)
+              </span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">${a.date || 'Today'}</span>
+            </div>
+            <h4 class="font-bold text-white text-xs">${a.title}</h4>
+            <p class="text-[11px] text-slate-300 leading-relaxed">${a.content}</p>
+            <p class="text-[9.5px] text-slate-400 font-mono pt-1 text-right">— ${a.author}</p>
+          </div>
+        `).join('')}
       </div>
-    `).join('');
+    `;
   }
 
-  feedList.innerHTML = announcementsHTML + teamSalesAlertHTML + salesAlertHTML + expensesAlertHTML + bankAlertHTML;
+  feedList.innerHTML = announcementsHTML + eventsHTML;
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -4727,12 +7294,6 @@ function toggleNotificationsModal() {
     modal.classList.add('hidden');
   }
   if (window.lucide) window.lucide.createIcons();
-}
-
-function markAllNotificationsAsRead() {
-  appState.hasReadNotifications = true;
-  document.getElementById('notif-badge')?.classList?.add('hidden');
-  document.getElementById('notif-modal')?.classList?.add('hidden');
 }
 
 function openChangePinModal() {
@@ -4776,10 +7337,14 @@ function applyTheme(theme) {
     if (effectiveTheme === 'light') {
       document.documentElement.classList.add('light-theme');
       document.body.classList.add('light-theme');
+      document.documentElement.style.colorScheme = 'light';
+      document.body.style.colorScheme = 'light';
       if (metaTheme) metaTheme.setAttribute('content', '#FFFFFF');
     } else {
       document.documentElement.classList.remove('light-theme');
       document.body.classList.remove('light-theme');
+      document.documentElement.style.colorScheme = 'dark';
+      document.body.style.colorScheme = 'dark';
       if (metaTheme) metaTheme.setAttribute('content', '#070D18');
     }
 
@@ -4803,10 +7368,14 @@ function applyTheme(theme) {
     if (isLight) {
       document.documentElement.classList.add('light-theme');
       document.body.classList.add('light-theme');
+      document.documentElement.style.colorScheme = 'light';
+      document.body.style.colorScheme = 'light';
       if (metaTheme) metaTheme.setAttribute('content', '#FFFFFF');
     } else {
       document.documentElement.classList.remove('light-theme');
       document.body.classList.remove('light-theme');
+      document.documentElement.style.colorScheme = 'dark';
+      document.body.style.colorScheme = 'dark';
       if (metaTheme) metaTheme.setAttribute('content', '#070D18');
     }
   }
@@ -4871,24 +7440,145 @@ function saveShortcutUrl() {
 // Celestial Home Icon Glow Switcher (✨ -> ☀️ -> 🌙 Loop)
 // ==========================================
 let currentCelestialIndex = 0; // 0: ✨ sparkle, 1: ☀️ ray, 2: 🌙 moon
+let lastHomeTapTime = 0;
 
 function handleHomeClick(e) {
-  closeAllModals();
-  const dock = document.getElementById('bottom-dock');
-  if (dock) dock.classList.remove('dock-hidden');
+  const now = Date.now();
+  const drawerModal = document.getElementById('profile-drawer-modal');
+  const drawerPanel = document.getElementById('profile-drawer-panel');
+  const isDrawerOpen = (drawerModal && !drawerModal.classList.contains('hidden')) || 
+                       (drawerPanel && drawerPanel.classList.contains('translate-x-0'));
 
-  // Tap Home to cycle celestial icons AND reload/refresh data smoothly to top!
-  if (appState.currentView === 'dashboard') {
+  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden)');
+
+  // Case 1: If Profile Drawer or any Modal is open ➔ Single tap smoothly dismisses it to reveal dashboard instantly (ZERO network reload)
+  if (isDrawerOpen || openModal) {
+    closeProfileDrawer();
+    closeAllModals();
+    const dock = document.getElementById('bottom-dock');
+    if (dock) {
+      dock.classList.remove('dock-hidden');
+      dock.classList.remove('dock-profile-active');
+    }
+    if (appState.currentView !== 'dashboard') {
+      switchView('dashboard', false);
+    }
+    if (navigator.vibrate) navigator.vibrate(10);
+    return;
+  }
+
+  // Case 2: If currently on another tab (Analytics, Learning, Settings) ➔ Single tap switches to Dashboard instantly from memory (ZERO reload)
+  if (appState.currentView !== 'dashboard') {
+    switchView('dashboard', false);
+    return;
+  }
+
+  // Case 3: Already on Dashboard ➔ Distinguish Single Tap (Scroll to Top) vs Double Tap (Reload Data)
+  const timeDiff = now - lastHomeTapTime;
+  lastHomeTapTime = now;
+
+  if (timeDiff > 0 && timeDiff < 350) {
+    // 👆👆 DOUBLE TAP (within 350ms): Manual Reload data from Google Sheet!
+    lastHomeTapTime = 0; // reset
+    if (navigator.vibrate) navigator.vibrate([15, 50, 15]);
     cycleHomeCelestialGlow();
     const main = document.getElementById('main-content');
-    if (main) {
-      main.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
     manualReload();
   } else {
-    switchView('dashboard');
+    // 👆 SINGLE TAP: Smooth scroll to top, cycle micro glow gently, instant reveal
+    cycleHomeCelestialGlow();
+    const main = document.getElementById('main-content');
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
+
+let lastAnalyticsTapTime = 0;
+
+function handleAnalyticsClick(e) {
+  const now = Date.now();
+  closeProfileDrawer();
+  closeAllModals();
+
+  const dock = document.getElementById('bottom-dock');
+  if (dock) {
+    dock.classList.remove('dock-hidden');
+    dock.classList.remove('dock-profile-active');
+  }
+
+  // Case 1: If currently on another tab -> Single tap switches to Analytics
+  if (appState.currentView !== 'analytics') {
+    switchView('analytics', false);
+    return;
+  }
+
+  // Case 2: Already on Analytics -> Distinguish Single Tap (Scroll to Top) vs Double Tap (Reload Data)
+  const timeDiff = now - lastAnalyticsTapTime;
+  lastAnalyticsTapTime = now;
+
+  if (timeDiff > 0 && timeDiff < 350) {
+    // 👆👆 DOUBLE TAP: Manual Reload data from Google Sheet!
+    lastAnalyticsTapTime = 0;
+    if (navigator.vibrate) navigator.vibrate([15, 50, 15]);
+    const main = document.getElementById('main-content');
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+    const analyticsHeader = document.getElementById('analytics-sticky-header');
+    if (analyticsHeader) analyticsHeader.classList.remove('filter-hidden');
+    setDockVisible(true);
+    manualReload();
+  } else {
+    // 👆 SINGLE TAP: Smooth scroll to top & restore header & dock
+    const main = document.getElementById('main-content');
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+    const analyticsHeader = document.getElementById('analytics-sticky-header');
+    if (analyticsHeader) analyticsHeader.classList.remove('filter-hidden');
+    setDockVisible(true);
+    if (navigator.vibrate) navigator.vibrate(10);
+  }
+}
+
+let lastLearningTapTime = 0;
+
+function handleLearningClick(e) {
+  const now = Date.now();
+  closeProfileDrawer();
+  closeAllModals();
+
+  const dock = document.getElementById('bottom-dock');
+  if (dock) {
+    dock.classList.remove('dock-hidden');
+    dock.classList.remove('dock-profile-active');
+  }
+
+  // Case 1: If currently on another tab -> Single tap switches to Learning
+  if (appState.currentView !== 'learning') {
+    switchView('learning', false);
+    return;
+  }
+
+  // Case 2: Already on Learning -> Distinguish Single Tap (Scroll to Top) vs Double Tap (Reload Data)
+  const timeDiff = now - lastLearningTapTime;
+  lastLearningTapTime = now;
+
+  if (timeDiff > 0 && timeDiff < 350) {
+    // 👆👆 DOUBLE TAP: Manual Reload data from Google Sheet!
+    lastLearningTapTime = 0;
+    if (navigator.vibrate) navigator.vibrate([15, 50, 15]);
+    const main = document.getElementById('main-content');
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+    setDockVisible(true);
+    manualReload();
+  } else {
+    // 👆 SINGLE TAP: Smooth scroll to top & restore dock
+    const main = document.getElementById('main-content');
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+    setDockVisible(true);
+    if (navigator.vibrate) navigator.vibrate(10);
+  }
+}
+
+window.handleAnalyticsClick = handleAnalyticsClick;
+window.handleLearningClick = handleLearningClick;
 
 // Native iOS Tap Status Bar / Header / Static Empty Area to Scroll To Top
 function handleHeaderScrollToTop(e, targetId = null) {
@@ -4932,6 +7622,10 @@ function handleHeaderScrollToTop(e, targetId = null) {
       const summaryEl = document.getElementById('all-customers-summary');
       if (summaryEl) summaryEl.classList.remove('summary-collapsed');
     }
+    if (target.id === 'expenses-modal-list') {
+      const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
+      if (expFilterBar) expFilterBar.classList.remove('filter-hidden');
+    }
   }
   if (navigator.vibrate) {
     try { navigator.vibrate(10); } catch (_) {}
@@ -4973,6 +7667,7 @@ function toggleModalContextMenu(modalType, event) {
   closeAllModalContextMenus();
   if (isHidden) {
     menu.classList.remove('hidden');
+    document.querySelectorAll('.modal-context-backdrop').forEach(el => el.classList.remove('hidden'));
     // Update labels based on appState.language
     const isKm = appState.language === 'km';
     menu.querySelectorAll('.action-label-pdf').forEach(el => el.textContent = isKm ? 'រក្សាទុកជា PDF' : 'Save as PDF');
@@ -4982,7 +7677,8 @@ function toggleModalContextMenu(modalType, event) {
 }
 
 function closeAllModalContextMenus() {
-  ['sales', 'payables', 'expenses', 'cod', 'bank'].forEach(type => {
+  document.querySelectorAll('.modal-context-backdrop').forEach(el => el.classList.add('hidden'));
+  ['sales', 'payables', 'expenses', 'cod', 'bank', 'teamsets'].forEach(type => {
     const m = document.getElementById(`modal-menu-${type}`);
     if (m) m.classList.add('hidden');
   });
@@ -5012,7 +7708,7 @@ function handleModalMenuAction(modalType, action) {
   }
 }
 
-function getModalContentText(modalType) {
+function getModalShareText(modalType) {
   const d = DataService.data;
   if (!d) return '';
   const isKm = appState.language === 'km';
@@ -5090,6 +7786,20 @@ function getModalContentText(modalType) {
       txt += `${i + 1}. ${a.name} | ${bStr}\n`;
     });
     return txt;
+  } else if (modalType === 'teamsets' && activeTeamSetsLeader) {
+    const l = activeTeamSetsLeader;
+    const moStr = String(activeTeamSetsMonthNum).padStart(2, '0');
+    let txt = `👥 គោលដៅ និងការលក់តាមឈុត: ${l.name} (${moStr}/2026)\n`;
+    txt += `------------------------------------\n`;
+    txt += `🎯 គោលដៅ: ${l.targetGoal || 100} ប្រអប់ | 📦 លក់បាន: ${l.totalBoxes} (${l.targetPercent}%)\n`;
+    txt += `ឈុត ១: ${l.set1 || 0} | ឈុត ២: ${l.set2 || 0} | ឈុត ៣: ${l.set3 || 0} | ឈុត ៤: ${l.set4 || 0}${(l.set5 || 0) > 0 ? ` | ឈុត ៥: ${l.set5}` : ''}\n`;
+    if ((l.boost || 0) > 0) txt += `Boost: $${l.boost.toFixed(2)}\n`;
+    txt += `------------------------------------\n`;
+    const daysWithSales = (l.dailySales || []).filter(r => (r.totalBoxes || 0) > 0);
+    daysWithSales.forEach(r => {
+      txt += `${r.date}: ${r.totalBoxes} ប្រអប់ (Set1:${r.set1}, Set2:${r.set2}, Set3:${r.set3}, Set4:${r.set4}${(r.set5 || 0) > 0 ? `, Set5:${r.set5}` : ''})\n`;
+    });
+    return txt;
   }
   return '';
 }
@@ -5100,7 +7810,8 @@ function exportModalToPDF(modalType) {
     payables: 'payables-modal',
     expenses: 'expenses-modal',
     cod: 'cod-modal',
-    bank: 'bank-modal'
+    bank: 'bank-modal',
+    teamsets: 'team-sets-modal'
   };
   const modalEl = document.getElementById(modalIdMap[modalType]);
   if (!modalEl) return;
@@ -5163,13 +7874,18 @@ function fallbackCopyText(text) {
 }
 
 function showToastNotification(msg) {
+  const existing = document.getElementById('app-active-toast');
+  if (existing) existing.remove();
+
   const toast = document.createElement('div');
-  toast.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-full shadow-2xl z-[999] animate-bounce';
-  toast.textContent = msg;
+  toast.id = 'app-active-toast';
+  toast.className = 'fixed top-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-slate-900/95 border border-emerald-500/60 text-emerald-400 font-bold text-xs rounded-full shadow-2xl backdrop-blur-xl z-[9999] flex items-center gap-2 shadow-emerald-500/20 animate-fade-in pointer-events-none select-none transition-all duration-300';
+  toast.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>${msg}</span>`;
   document.body.appendChild(toast);
   setTimeout(() => {
-    toast.remove();
-  }, 2200);
+    toast.classList.add('opacity-0', '-translate-y-2');
+    setTimeout(() => { toast.remove(); }, 300);
+  }, 1800);
 }
 
 // =========================================================
@@ -5793,6 +8509,12 @@ function openProfileDrawer() {
   renderProfileDrawerContent();
   modal.classList.remove('hidden');
 
+  // Dim the active dock tab so user clearly sees Profile Drawer (Screen 2) is open
+  const dock = document.getElementById('bottom-dock');
+  if (dock) {
+    dock.classList.add('dock-profile-active');
+  }
+
   // Show Tab Dock initially when opening Profile Dashboard, and let scrolling auto-hide it dynamically
   setDockVisible(true);
   const scrollEl = document.getElementById('profile-drawer-content');
@@ -5820,6 +8542,12 @@ function closeProfileDrawer() {
 
   panel.classList.remove('translate-x-0');
   panel.classList.add('-translate-x-full');
+
+  // Restore normal active tab brightness on bottom dock
+  const dock = document.getElementById('bottom-dock');
+  if (dock) {
+    dock.classList.remove('dock-profile-active');
+  }
 
   // Reset text morphing to default ID state
   const idEl = document.getElementById('drawer-prof-id');
@@ -5988,20 +8716,20 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 6. កូដទទួលប្រាក់ (Payment QR) -->
-        <div onclick="closeProfileDrawer(); openQrPhotosModal();" 
-             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-purple-500/40">
+        <!-- 6. តារាងចំណាយ (Expenses Master Table) -->
+        <div onclick="closeProfileDrawer(); openExpensesModal('all');" 
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-rose-500/40">
           <div class="flex items-center justify-between mb-1.5">
-            <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
-              <i data-lucide="qr-code" class="w-4 h-4"></i>
+            <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
+              <i data-lucide="receipt" class="w-4 h-4"></i>
             </div>
-            <span class="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 font-mono font-bold text-[10px]">
-              ${uploadedQrCount}/4 ${isEn ? 'Photos' : 'រូប'}
+            <span class="px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-[10px]">
+              ${(d.expenses || []).length} ${isEn ? 'Items' : 'មុខ'}
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Payment QR' : 'កូដទទួលប្រាក់'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Scan QR photo' : 'ស្កេនរូបភាព QR'}</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Expenses Table' : 'តារាងចំណាយ'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Filter by day, month, year' : 'ត្រងតាមថ្ងៃ ខែ ឆ្នាំ & Search'}</p>
           </div>
         </div>
 
@@ -6055,6 +8783,24 @@ function renderProfileDrawerContent() {
           <div class="min-w-0">
             <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Settings' : 'ការកំណត់'}</h4>
             <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Colors, fonts, text sizes, wallpapers' : 'ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ, ផ្ទាំងរូបភាព'}</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+      </div>
+
+      <!-- 1.5. ភ្ជាប់ Google Sheet ផ្ទាល់ខ្លួន (Custom Sheet Sync) -->
+      <div onclick="closeProfileDrawer(); openProfileSubModal('custom_sheet');" 
+           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
+          <div class="settings-icon-box w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-indigo-400"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Custom Google Sheet' : 'Google Sheet ផ្ទាល់ខ្លួន'}</h4>
+              ${(typeof DataService !== 'undefined' && DataService.isUsingCustomSheet && DataService.isUsingCustomSheet()) ? '<span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">ភ្ជាប់រួច</span>' : ''}
+            </div>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Sync team member private sheet' : 'ភ្ជាប់ទិន្នន័យពី Sheet របស់កូនក្រុម'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -6838,6 +9584,7 @@ function toggleCustomerOrderHistory(encodedKey) {
 function getOrderProductSummary(o) {
   if (o.product && o.product !== 'ទំនិញ') return o.product;
   const parts = [];
+  if (o.qtySG > 0) parts.push(o.qtySG > 1 ? `SG Pro (${o.qtySG})` : `SG Pro`);
   if (o.qtyKN > 0) parts.push(o.qtyKN > 1 ? `KN (${o.qtyKN})` : `KN`);
   if (o.qtyPDO > 0) parts.push(o.qtyPDO > 1 ? `PDO (${o.qtyPDO})` : `PDO`);
   if (o.qtyYL > 0) parts.push(o.qtyYL > 1 ? `YL (${o.qtyYL})` : `YL`);
@@ -7054,6 +9801,85 @@ function switchBookNotesTab(tab) {
   openProfileSubModal('book_notes');
 }
 
+async function saveCustomGoogleSheetId() {
+  const input = document.getElementById('custom-sheet-input');
+  const val = input ? input.value.trim() : '';
+  const statusEl = document.getElementById('custom-sheet-status-box');
+  
+  if (!val) {
+    showToastNotification('សូមបញ្ចូល Google Sheet ID ឬ Link');
+    return;
+  }
+  
+  if (statusEl) {
+    statusEl.innerHTML = `<span class="text-amber-400 font-mono text-xs flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងភ្ជាប់ និងទាញទិន្នន័យ...</span>`;
+    if (window.lucide) window.lucide.createIcons();
+  }
+  
+  try {
+    await DataService.setCustomSheetId(val);
+    showToastNotification('បានភ្ជាប់ទៅ Google Sheet ផ្ទាល់ខ្លួនជោគជ័យ! 🎉');
+    if (typeof renderCurrentView === 'function') renderCurrentView();
+    renderProfileDrawerContent();
+    openProfileSubModal('custom_sheet');
+  } catch (err) {
+    if (statusEl) {
+      statusEl.innerHTML = `<span class="text-rose-400 text-xs font-semibold">❌ បរាជ័យ៖ ${err.message}</span>`;
+    }
+    showToastNotification('មិនអាចភ្ជាប់បានឡើយ៖ ' + err.message);
+  }
+}
+
+async function testCustomGoogleSheetConnection() {
+  const input = document.getElementById('custom-sheet-input');
+  const val = input ? input.value.trim() : '';
+  const statusEl = document.getElementById('custom-sheet-status-box');
+  
+  if (!val) {
+    showToastNotification('សូមបញ្ចូល Google Sheet ID ឬ Link ដើម្បីតេស្ត');
+    return;
+  }
+  
+  if (statusEl) {
+    statusEl.innerHTML = `<span class="text-sky-400 font-mono text-xs flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងពិនិត្យការតភ្ជាប់...</span>`;
+    if (window.lucide) window.lucide.createIcons();
+  }
+  
+  try {
+    const res = await DataService.testSheetConnection(val);
+    if (statusEl) {
+      statusEl.innerHTML = `<span class="text-emerald-400 text-xs font-bold flex items-center gap-1.5">✅ ការតភ្ជាប់ជោគជ័យ! រកឃើញទិន្នន័យ ${res.rows} ជួរ។</span>`;
+    }
+    showToastNotification('ការតភ្ជាប់ជោគជ័យ ១០០%!');
+  } catch (err) {
+    if (statusEl) {
+      statusEl.innerHTML = `<span class="text-rose-400 text-xs font-semibold">❌ ${err.message}</span>`;
+    }
+    showToastNotification('ការតភ្ជាប់មិនជោគជ័យឡើយ');
+  }
+}
+
+async function resetCustomGoogleSheetToMaster() {
+  const statusEl = document.getElementById('custom-sheet-status-box');
+  if (statusEl) {
+    statusEl.innerHTML = `<span class="text-amber-400 font-mono text-xs flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងប្តូរទៅ Master Sheet...</span>`;
+    if (window.lucide) window.lucide.createIcons();
+  }
+  try {
+    await DataService.resetToMasterSheet();
+    showToastNotification('បានត្រឡប់ទៅ Master Sheet ដើមវិញជោគជ័យ!');
+    if (typeof renderCurrentView === 'function') renderCurrentView();
+    renderProfileDrawerContent();
+    openProfileSubModal('custom_sheet');
+  } catch (err) {
+    showToastNotification('មានបញ្ហា៖ ' + err.message);
+  }
+}
+
+window.saveCustomGoogleSheetId = saveCustomGoogleSheetId;
+window.testCustomGoogleSheetConnection = testCustomGoogleSheetConnection;
+window.resetCustomGoogleSheetToMaster = resetCustomGoogleSheetToMaster;
+
 function closeProfileSubModal() {
   document.getElementById('profile-sub-modal')?.classList?.add('hidden');
   openProfileDrawer();
@@ -7069,7 +9895,82 @@ function openProfileSubModal(type) {
   let icon = 'sparkles';
   let contentHTML = '';
 
-  if (type === 'privacy') {
+  if (type === 'custom_sheet') {
+    const isCustom = (typeof DataService !== 'undefined' && DataService.isUsingCustomSheet && DataService.isUsingCustomSheet());
+    const currentId = (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+    const savedCustomId = (typeof DataService !== 'undefined' && DataService.getCustomSheetId) ? DataService.getCustomSheetId() : '';
+    title = 'Google Sheet ផ្ទាល់ខ្លួន (Sheet Sync)';
+    sub = 'ដំណើរការ Dashboard ដោយប្រើប្រាស់ទិន្នន័យរបស់កូនក្រុម';
+    icon = 'file-spreadsheet';
+
+    contentHTML = `
+      <div class="space-y-3 select-none">
+        <!-- Status Card -->
+        <div class="p-3.5 rounded-2xl ${isCustom ? 'bg-indigo-500/10 border border-indigo-500/25' : 'bg-blue-500/10 border border-blue-500/25'} space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">ស្ថានភាពទិន្នន័យបច្ចុប្បន្ន</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${isCustom ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'}">
+              ${isCustom ? '✅ Sheet ផ្ទាល់ខ្លួន (Custom)' : '🏢 Master Sheet (ស្តី ស្តើង)'}
+            </span>
+          </div>
+          <p class="text-xs font-mono text-slate-200 truncate pt-0.5" title="${currentId}">
+            ID: <span class="text-amber-300 font-bold">${currentId}</span>
+          </p>
+        </div>
+
+        <!-- Input Box -->
+        <div class="space-y-2 p-3.5 rounded-2xl bg-black/40 border border-white/10">
+          <label class="block text-xs font-bold text-white">
+            បិទភ្ជាប់ Google Sheet ID ឬ Link របស់អ្នក៖
+          </label>
+          <div class="relative">
+            <input type="text" id="custom-sheet-input" value="${savedCustomId}" 
+                   placeholder="https://docs.google.com/spreadsheets/d/.../edit" 
+                   class="w-full text-xs font-mono bg-black/50 border border-white/10 rounded-xl p-3 pr-8 text-white focus:outline-none focus:border-indigo-500 transition">
+            <button type="button" onclick="document.getElementById('custom-sheet-input').value = ''" 
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs">✕</button>
+          </div>
+          
+          <div id="custom-sheet-status-box" class="min-h-[20px] pt-0.5"></div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button onclick="testCustomGoogleSheetConnection()" 
+                    class="py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5 shadow-sm">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>តេស្តការតភ្ជាប់</span>
+            </button>
+            <button onclick="saveCustomGoogleSheetId()" 
+                    class="py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/30">
+              <i data-lucide="link" class="w-3.5 h-3.5"></i>
+              <span>រក្សាទុក & ភ្ជាប់</span>
+            </button>
+          </div>
+
+          ${isCustom ? `
+            <button onclick="resetCustomGoogleSheetToMaster()" 
+                    class="w-full mt-2 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5">
+              <i data-lucide="undo" class="w-3.5 h-3.5"></i>
+              <span>ត្រឡប់ទៅ Master Sheet ដើមវិញ</span>
+            </button>
+          ` : ''}
+        </div>
+
+        <!-- Guide for Members (Step by Step) -->
+        <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2 text-xs">
+          <h4 class="font-bold text-amber-400 flex items-center gap-1.5">
+            <i data-lucide="info" class="w-4 h-4"></i>
+            <span>របៀបបង្កើត Google Sheet ផ្ទាល់ខ្លួនសម្រាប់កូនក្រុម៖</span>
+          </h4>
+          <ol class="space-y-1.5 text-slate-300 text-[11px] list-decimal list-inside leading-relaxed pl-1">
+            <li>បើក <strong>Master Google Sheet</strong> របស់ក្រុមការងារ។</li>
+            <li>ចុច Menu <strong>File (ឯកសារ)</strong> ➔ ជ្រើសរើស <strong>Make a copy (បង្កើតច្បាប់ចម្លង)</strong> ទៅកាន់ Google Drive ផ្ទាល់ខ្លួនរបស់អ្នក។</li>
+            <li>ចុចប៊ូតុង <strong>Share (ចែករំលែក)</strong> ខាងលើស្តាំ ➔ ប្តូរទៅជា <strong>«Anyone with the link can view (អ្នកមានតំណភ្ជាប់អាចមើលបាន)»</strong>។</li>
+            <li>ចម្លងយក Link នៃ Sheet នោះ មកបិទភ្ជាប់ក្នុងប្រអប់ខាងលើ រួចចុច <strong>«រក្សាទុក & ភ្ជាប់»</strong> ជាការស្រេច!</li>
+          </ol>
+        </div>
+      </div>
+    `;
+  } else if (type === 'privacy') {
     const p = getProfileData();
     title = 'ឯកជនភាព (Privacy)';
     sub = 'សិទ្ធិគ្រប់គ្រងការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន';
@@ -7681,8 +10582,8 @@ function executeProfileSettingsAction(itemId) {
 function toggleCardVisibility(cardKey) {
   if (!appState.cardVisibility) {
     appState.cardVisibility = {
-      autoHideEmpty: true,
-      pureCash: true,
+      autoHideEmpty: false,
+      pureCash: false,
       salesPerformance: true,
       netCash: true,
       expenses: true,
@@ -7690,7 +10591,11 @@ function toggleCardVisibility(cardKey) {
       tools: true
     };
   }
-  appState.cardVisibility[cardKey] = (appState.cardVisibility[cardKey] === false) ? true : false;
+  if (cardKey === 'autoHideEmpty') {
+    appState.cardVisibility.autoHideEmpty = (appState.cardVisibility.autoHideEmpty === true) ? false : true;
+  } else {
+    appState.cardVisibility[cardKey] = (appState.cardVisibility[cardKey] === false) ? true : false;
+  }
   try {
     localStorage.setItem('sd_card_visibility', JSON.stringify(appState.cardVisibility));
   } catch (_) {}
@@ -7708,18 +10613,28 @@ window.executeProfileSettingsAction = executeProfileSettingsAction;
 window.toggleProfitNetBoost = toggleProfitNetBoost;
 window.handleUniversalSwipeBack = handleBackNavigation;
 window.handleHeaderScrollToTop = handleHeaderScrollToTop;
+window.toggleTeamSetsSearchBar = typeof toggleTeamSetsSearchBar !== 'undefined' ? toggleTeamSetsSearchBar : null;
+window.toggleTeamSetsFilterOnlySales = toggleTeamSetsFilterOnlySales;
+window.openTeamSetsModal = openTeamSetsModal;
+window.closeTeamSetsModal = closeTeamSetsModal;
 
-// =========================================================
-// NEW ORDER & SMART PARSER SYSTEM (Personal Sales & Team Sync)
-// =========================================================
-const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3nkhqs8_dzCOKgdsC3nWZJWUz6Lsegguu22PFws3eLlUm3yux33kSWgFnf4g_-OBW/exec';
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_BgUgVS0le9DGv4LKAnuWFM-a3B0EKKcGRyfhjIRJ5f_78-GYgdhH5h8zweR8DYCU/exec';
 
 function getAppsScriptWebhookUrl() {
-  return localStorage.getItem('sd_apps_script_url') || DEFAULT_APPS_SCRIPT_URL;
+  const saved = localStorage.getItem('sd_apps_script_url');
+  if (!saved || saved.includes('AKfycbx3nkhqs8')) {
+    localStorage.setItem('sd_apps_script_url', DEFAULT_APPS_SCRIPT_URL);
+    return DEFAULT_APPS_SCRIPT_URL;
+  }
+  return saved;
 }
+try {
+  localStorage.setItem('sd_apps_script_url', DEFAULT_APPS_SCRIPT_URL);
+} catch (_) {}
 
 let currentOrderMode = 'paste';
 let currentOrderType = 'standard';
+let currentOrderCurrency = 'KHR';
 let currentOrderProducts = {
   yl: 1,
   ylp: 1,
@@ -7727,6 +10642,268 @@ let currentOrderProducts = {
   pdo: 0,
   free: 0
 };
+
+function cleanNumber(val) {
+  if (val === null || val === undefined) return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  const cleaned = String(val).replace(/,/g, '').replace(/[^\d.-]/g, '').trim();
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
+let miniCalYear = 2026;
+let miniCalMonth = 9; // 0-indexed (9 = October)
+let miniCalSelectedDay = 15;
+
+const MONTH_NAMES_EN = [
+  'OCTOBER', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+  'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+];
+
+function updateOrderDateDisplay(isoDate) {
+  if (!isoDate) {
+    const now = new Date();
+    isoDate = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(now) : now.toISOString().slice(0, 10);
+  }
+  let ddmmyyyy = isoDate;
+  const parts = String(isoDate).split('-');
+  if (parts.length === 3) {
+    ddmmyyyy = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    miniCalYear = parseInt(parts[0], 10);
+    miniCalMonth = parseInt(parts[1], 10) - 1;
+    miniCalSelectedDay = parseInt(parts[2], 10);
+  }
+  const textInput = document.getElementById('order-field-date-text');
+  if (textInput) textInput.value = ddmmyyyy;
+  const hiddenInp = document.getElementById('order-field-date');
+  if (hiddenInp) hiddenInp.value = isoDate;
+}
+
+function onOrderDateTextInput(val) {
+  const raw = (val || '').trim();
+  const ddmmyyyy = raw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+  if (ddmmyyyy) {
+    const dy = ddmmyyyy[1].padStart(2, '0');
+    const mo = ddmmyyyy[2].padStart(2, '0');
+    const yr = ddmmyyyy[3];
+    const iso = `${yr}-${mo}-${dy}`;
+    const hiddenInp = document.getElementById('order-field-date');
+    if (hiddenInp) hiddenInp.value = iso;
+    miniCalSelectedDay = parseInt(dy, 10);
+    miniCalMonth = parseInt(mo, 10) - 1;
+    miniCalYear = parseInt(yr, 10);
+  }
+}
+
+function toggleOrderMiniCalendar(e) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  const popup = document.getElementById('order-mini-calendar-popup');
+  if (!popup) return;
+  const isHidden = popup.classList.contains('hidden');
+  if (isHidden) {
+    syncMiniCalDateFromInput();
+    renderOrderMiniCalendar();
+    popup.classList.remove('hidden');
+    setTimeout(() => {
+      document.addEventListener('click', closeMiniCalendarOnClickOutside);
+    }, 10);
+  } else {
+    popup.classList.add('hidden');
+    document.removeEventListener('click', closeMiniCalendarOnClickOutside);
+  }
+}
+
+function closeMiniCalendarOnClickOutside(e) {
+  const popup = document.getElementById('order-mini-calendar-popup');
+  const btn = document.getElementById('btn-toggle-mini-calendar');
+  if (popup && !popup.contains(e.target) && btn && !btn.contains(e.target)) {
+    popup.classList.add('hidden');
+    document.removeEventListener('click', closeMiniCalendarOnClickOutside);
+  }
+}
+
+function syncMiniCalDateFromInput() {
+  const textInput = document.getElementById('order-field-date-text');
+  const raw = (textInput?.value || '').trim();
+  const ddmmyyyy = raw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+  if (ddmmyyyy) {
+    miniCalSelectedDay = parseInt(ddmmyyyy[1], 10);
+    miniCalMonth = parseInt(ddmmyyyy[2], 10) - 1;
+    miniCalYear = parseInt(ddmmyyyy[3], 10);
+  } else {
+    const hiddenInp = document.getElementById('order-field-date');
+    if (hiddenInp && /^\d{4}-\d{2}-\d{2}$/.test(hiddenInp.value)) {
+      const p = hiddenInp.value.split('-');
+      miniCalYear = parseInt(p[0], 10);
+      miniCalMonth = parseInt(p[1], 10) - 1;
+      miniCalSelectedDay = parseInt(p[2], 10);
+    }
+  }
+}
+
+function changeMiniCalMonth(delta, e) {
+  if (e) e.stopPropagation();
+  miniCalMonth += delta;
+  if (miniCalMonth < 0) {
+    miniCalMonth = 11;
+    miniCalYear -= 1;
+  } else if (miniCalMonth > 11) {
+    miniCalMonth = 0;
+    miniCalYear += 1;
+  }
+  renderOrderMiniCalendar();
+}
+
+function selectMiniCalDay(day, e) {
+  if (e) e.stopPropagation();
+  miniCalSelectedDay = day;
+
+  const dy = String(day).padStart(2, '0');
+  const mo = String(miniCalMonth + 1).padStart(2, '0');
+  const yr = miniCalYear;
+  const ddmmyyyy = `${dy}/${mo}/${yr}`;
+  const iso = `${yr}-${mo}-${dy}`;
+
+  const textInput = document.getElementById('order-field-date-text');
+  if (textInput) textInput.value = ddmmyyyy;
+
+  const hiddenInp = document.getElementById('order-field-date');
+  if (hiddenInp) hiddenInp.value = iso;
+
+  renderOrderMiniCalendar();
+
+  setTimeout(() => {
+    const popup = document.getElementById('order-mini-calendar-popup');
+    if (popup) popup.classList.add('hidden');
+    document.removeEventListener('click', closeMiniCalendarOnClickOutside);
+  }, 120);
+
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function renderOrderMiniCalendar() {
+  const popup = document.getElementById('order-mini-calendar-popup');
+  if (!popup) return;
+
+  const monthNames = [
+    'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+    'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+  ];
+  const monthName = monthNames[miniCalMonth] || 'OCTOBER';
+  const firstDay = new Date(miniCalYear, miniCalMonth, 1).getDay(); // 0 = Sun
+  const daysInMonth = new Date(miniCalYear, miniCalMonth + 1, 0).getDate();
+
+  let html = `
+    <!-- Header with Red Month Name and Navigation -->
+    <div class="flex items-center justify-between mb-3 px-1">
+      <span class="text-xs font-black tracking-wider text-[#FF453A] uppercase font-sans">
+        ${monthName}
+      </span>
+      <div class="flex items-center gap-1.5">
+        <button type="button" onclick="changeMiniCalMonth(-1, event)" class="w-6 h-6 rounded-full hover:bg-white/10 active:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition">‹</button>
+        <span class="text-[10px] text-slate-400 font-mono">${miniCalYear}</span>
+        <button type="button" onclick="changeMiniCalMonth(1, event)" class="w-6 h-6 rounded-full hover:bg-white/10 active:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition">›</button>
+      </div>
+    </div>
+
+    <!-- Day Headers: S M T W T F S -->
+    <div class="grid grid-cols-7 text-center mb-1 text-[11px] font-bold text-slate-400 font-sans">
+      <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+    </div>
+
+    <!-- Days Grid -->
+    <div class="grid grid-cols-7 gap-y-1 text-center font-sans text-xs">
+  `;
+
+  // Empty leading slots
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div></div>`;
+  }
+
+  // Days in month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isSelected = (d === miniCalSelectedDay);
+    if (isSelected) {
+      html += `
+        <div class="flex items-center justify-center py-0.5">
+          <button type="button" onclick="selectMiniCalDay(${d}, event)" 
+                  class="w-7 h-7 rounded-full bg-[#FF453A] text-white font-black flex items-center justify-center shadow-lg shadow-red-500/40 active:scale-90 transition">
+            ${d}
+          </button>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="flex items-center justify-center py-0.5">
+          <button type="button" onclick="selectMiniCalDay(${d}, event)" 
+                  class="w-7 h-7 rounded-full text-white font-bold hover:bg-white/15 active:bg-white/25 active:scale-90 flex items-center justify-center transition">
+            ${d}
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  html += `</div>`;
+  popup.innerHTML = html;
+}
+
+function openOrderDatePicker() {
+  toggleOrderMiniCalendar();
+}
+
+function setOrderCurrency(curr) {
+  currentOrderCurrency = curr || 'KHR';
+  const btnKhr = document.getElementById('curr-btn-khr');
+  const btnThb = document.getElementById('curr-btn-thb');
+  const btnUsd = document.getElementById('curr-btn-usd');
+
+  const activeCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition bg-orange-500 text-white shadow-sm flex items-center justify-center';
+  const inactiveCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center';
+
+  if (btnKhr) btnKhr.className = (currentOrderCurrency === 'KHR' ? activeCls : inactiveCls);
+  if (btnThb) btnThb.className = (currentOrderCurrency === 'THB' ? activeCls : inactiveCls);
+  if (btnUsd) btnUsd.className = (currentOrderCurrency === 'USD' ? activeCls : inactiveCls);
+
+  onPriceRawInput(false);
+}
+
+function onPriceRawInput(isTyping = false) {
+  const priceRawInput = document.getElementById('order-field-price-raw');
+  const totalUsdInput = document.getElementById('order-field-total-usd');
+  const raw = cleanNumber(priceRawInput?.value);
+
+  if (!raw || raw <= 0) {
+    if (totalUsdInput) totalUsdInput.value = '';
+    calculateOrderFinancials();
+    return;
+  }
+
+  // ពេលវាយបញ្ចូល បើទឹកប្រាក់ធំជាង ឬស្មើ 10,000 កំណត់ស្វ័យប្រវត្តិជាប្រាក់រៀល (KHR)
+  if (isTyping && raw >= 10000 && currentOrderCurrency !== 'KHR') {
+    setOrderCurrency('KHR');
+    return;
+  }
+
+  let totalUsd = 0;
+  if (currentOrderCurrency === 'KHR') {
+    // 360,000៛ / 4000 = $90.00
+    totalUsd = raw / 4000;
+  } else if (currentOrderCurrency === 'THB') {
+    // រូបមន្តពិតតាម Google Sheet Col N: (M * 0.97) / 35.6
+    totalUsd = (raw * 0.97) / 35.6;
+  } else if (currentOrderCurrency === 'USD') {
+    totalUsd = raw;
+  }
+
+  if (totalUsdInput) {
+    totalUsdInput.value = totalUsd.toFixed(2);
+  }
+  calculateOrderFinancials();
+}
 
 function openNewOrderModal() {
   const modal = document.getElementById('new-order-modal');
@@ -7738,18 +10915,16 @@ function openNewOrderModal() {
   const dateInput = document.getElementById('order-field-date');
   const orderIdInput = document.getElementById('order-field-id');
 
-  const now = new Date();
-  const d = String(now.getDate()).padStart(2, '0');
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const y = now.getFullYear();
-  const todayStr = `${d}/${m}/${y}`;
+  const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
 
   if (sellerInput) sellerInput.value = profile.name || 'ស្ដី ស្ដើង';
-  // ផ្ទៃលេខទូរសព្ទអ្នកលក់ទុកទទេរស្អាតសិន (រំលង)
   if (sellerPhoneInput) sellerPhoneInput.value = '';
-  if (dateInput) dateInput.value = todayStr;
+  if (dateInput) {
+    dateInput.value = todayIso;
+    updateOrderDateDisplay(todayIso);
+  }
 
-  if (orderIdInput && !orderIdInput.value) {
+  if (orderIdInput && (!orderIdInput.value || orderIdInput.value === '#')) {
     let nextId = '#3137';
     if (DataService.data && DataService.data.personalSales && DataService.data.personalSales.length > 0) {
       const topOrder = DataService.data.personalSales.find(o => o.orderId && o.orderId.startsWith('#'));
@@ -7764,7 +10939,7 @@ function openNewOrderModal() {
   currentOrderProducts = { yl: 1, ylp: 1, kn: 0, pdo: 0, free: 0 };
   updateProductQtyDisplay();
   setOrderType('standard');
-  switchOrderMode('paste');
+  setOrderCurrency('KHR');
   if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
   if (typeof updateModalLanguage === 'function') updateModalLanguage();
   checkOrderSubmitValidation();
@@ -7777,7 +10952,10 @@ function openNewOrderModal() {
 
 function closeNewOrderModal() {
   const modal = document.getElementById('new-order-modal');
-  if (modal) modal.classList.add('hidden');
+  if (!modal) return;
+  const miniCalPopup = document.getElementById('order-mini-calendar-popup');
+  if (miniCalPopup) miniCalPopup.classList.add('hidden');
+  modal.classList.add('hidden');
   setDockVisible(true);
 }
 
@@ -7789,7 +10967,7 @@ function checkOrderSubmitValidation() {
   const btn = document.getElementById('btn-submit-order');
   if (!btn) return;
 
-  // បើមិនអាចបញ្ជូនបាន (0 ប្រអប់ ឬលេខទូរស័ព្ទតិចជាង ៨ ខ្ទង់) គឺមិនគួរបង្ហាញ Button ទេ
+  // បើមិនអាចបញ្ជូនបាន (0 ប្រអប់ ឬលេខទូរស័ព្ទតិចជាង ៨ ខ្ទង់) គឺមិនបង្ហាញ Button
   const isReady = (totalBoxes > 0 && phone.length >= 8);
   if (isReady) {
     btn.classList.remove('hidden');
@@ -7803,6 +10981,18 @@ function checkOrderSubmitValidation() {
 function clearOrderInput() {
   const pasteInput = document.getElementById('order-paste-input');
   if (pasteInput) pasteInput.value = '';
+
+  const idInput = document.getElementById('order-field-id');
+  if (idInput) idInput.value = '';
+
+  const dateInput = document.getElementById('order-field-date');
+  const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
+  if (dateInput) dateInput.value = todayIso;
+  updateOrderDateDisplay(todayIso);
+
+  const profile = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const sellerInput = document.getElementById('order-field-seller');
+  if (sellerInput) sellerInput.value = profile.name || 'ស្ដី ស្ដើង';
 
   const custInput = document.getElementById('order-field-customer');
   if (custInput) custInput.value = '';
@@ -7819,43 +11009,33 @@ function clearOrderInput() {
   const sellerPhoneInput = document.getElementById('order-field-seller-phone');
   if (sellerPhoneInput) sellerPhoneInput.value = '';
 
+  const deliveryInput = document.getElementById('order-field-delivery');
+  if (deliveryInput) deliveryInput.value = 'VET (COD)';
+
+  const shipInput = document.getElementById('order-field-ship');
+  if (shipInput) shipInput.value = '';
+
+  const priceRawInput = document.getElementById('order-field-price-raw');
+  if (priceRawInput) priceRawInput.value = '';
+
+  const totalUsdInput = document.getElementById('order-field-total-usd');
+  if (totalUsdInput) totalUsdInput.value = '';
+
+  setOrderCurrency('KHR');
+
   currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, free: 0 };
   updateProductQtyDisplay();
   calculateOrderFinancials();
   checkOrderSubmitValidation();
 
-  showToastNotification('បានសម្អាតទម្រង់រួចរាល់! 🧹');
+  showToastNotification('សម្អាតជោគជ័យ ✓');
   if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
 }
 
 function switchOrderMode(mode) {
+  // Retained for backward compatibility
   currentOrderMode = mode;
-  const pasteTab = document.getElementById('order-mode-paste-tab');
-  const formTab = document.getElementById('order-mode-form-tab');
-  const pastePanel = document.getElementById('order-paste-panel');
-  const formPanel = document.getElementById('order-form-panel');
-
-  if (mode === 'paste') {
-    if (pasteTab) {
-      pasteTab.className = 'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-orange-500 text-white shadow-lg shadow-orange-500/30';
-    }
-    if (formTab) {
-      formTab.className = 'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white';
-    }
-    if (pastePanel) pastePanel.classList.remove('hidden');
-    if (formPanel) formPanel.classList.add('hidden');
-  } else {
-    if (formTab) {
-      formTab.className = 'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-orange-500 text-white shadow-lg shadow-orange-500/30';
-    }
-    if (pasteTab) {
-      pasteTab.className = 'flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white';
-    }
-    if (pastePanel) pastePanel.classList.add('hidden');
-    if (formPanel) formPanel.classList.remove('hidden');
-  }
   checkOrderSubmitValidation();
-  if (window.lucide) window.lucide.createIcons();
 }
 
 function setOrderType(type) {
@@ -7870,10 +11050,9 @@ function setOrderType(type) {
   if (type === 'reward') {
     if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-400';
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
-    if (desc) desc.innerText = '🎁 លក់រង្វាន់: មិនគិតថ្លៃដើមស្តុក ($0) និងកំណត់លេខអ្នកលក់ជា 097 859 5526 ស្វ័យប្រវត្តិ។';
+    if (desc) desc.innerText = 'លក់រង្វាន់: មិនគិតថ្លៃដើមស្តុក ($0) និងកំណត់លេខអ្នកលក់ជា 097 859 5526 ស្វ័យប្រវត្តិ។';
     if (orderIdGroup) orderIdGroup.classList.add('opacity-40', 'pointer-events-none');
     if (noteInput && !noteInput.value) noteInput.value = 'លក់រង្វាន់';
-    // លក់រង្វាន់: លេខអ្នកលក់គឺត្រូវតែ 097 859 5526
     if (sellerPhoneInput) sellerPhoneInput.value = '097 859 5526';
   } else {
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-orange-500/20 border-orange-500 text-orange-400';
@@ -7900,18 +11079,28 @@ function adjustProductQty(prod, delta) {
 
 function updateProductQtyDisplay() {
   const prods = ['yl', 'ylp', 'kn', 'pdo', 'free'];
+  // 6 កម្រិតស្មើគ្នាតាម iOS Volume Bar (0% -> 17% -> 34% -> 50% -> 68% -> 85% -> 100%)
+  const steps = [0, 17, 34, 50, 68, 85, 100];
+
   prods.forEach(p => {
     const qty = currentOrderProducts[p] || 0;
     const el = document.getElementById(`qty-disp-${p}`);
     if (el) el.innerText = qty;
 
-    // ឈ្មោះផលិតផល ត្រូវហាយឡាយផ្ទៃរបស់របារ ពីឆ្វេងមកស្តាំ តាមចំនួន
+    const fillBar = document.getElementById(`fill-bar-${p}`);
+    if (fillBar) {
+      const pct = qty >= 6 ? 100 : (steps[qty] || 0);
+      fillBar.style.width = `${pct}%`;
+    }
+
     const card = document.getElementById(`product-card-${p}`);
     if (card) {
       if (qty > 0) {
-        card.className = "flex items-center justify-between p-2.5 rounded-xl border transition-all duration-300 bg-gradient-to-r from-orange-500/25 via-amber-500/15 to-orange-500/10 border-orange-500/50 shadow-sm";
+        card.classList.add('border-white/25');
+        card.classList.remove('border-white/10');
       } else {
-        card.className = "flex items-center justify-between p-2.5 rounded-xl border transition-all duration-300 bg-white/5 border-white/5";
+        card.classList.remove('border-white/25');
+        card.classList.add('border-white/10');
       }
     }
   });
@@ -7948,18 +11137,9 @@ function calculateOrderFinancials() {
                     (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0);
 
   const totalUsdInput = document.getElementById('order-field-total-usd');
-  const priceRawInput = document.getElementById('order-field-price-raw');
   const shipInput = document.getElementById('order-field-ship');
 
-  const rawVal = cleanNumber(priceRawInput?.value);
-  let totalUsd = cleanNumber(totalUsdInput?.value);
-
-  // ប្រសិនបើតម្លៃបាត/រៀលធំជាង 10,000 គណនាតាមរូបមន្តសរុបស្វ័យប្រវត្តិ
-  if (rawVal > 10000 && (!totalUsd || totalUsd <= 0)) {
-    totalUsd = (rawVal * 0.97) / 35.6; // ស្តង់ដារពិតរបស់ Sheet
-    if (totalUsdInput) totalUsdInput.value = totalUsd.toFixed(2);
-  }
-
+  const totalUsd = cleanNumber(totalUsdInput?.value) || 0;
   const shipFee = cleanNumber(shipInput?.value) || 0;
 
   let stockCost = 0;
@@ -7979,36 +11159,48 @@ function calculateOrderFinancials() {
 }
 
 async function pasteClipboardToOrderInput() {
+  const btn = document.getElementById('btn-header-pass');
+  if (btn) {
+    btn.classList.add('scale-90', 'bg-emerald-600');
+    setTimeout(() => {
+      btn.classList.remove('scale-90', 'bg-emerald-600');
+    }, 200);
+  }
+
+  const input = document.getElementById('order-paste-input');
+
+  // 1. បើមានអត្ថបទស្រាប់ក្នុងប្រអប់ Parse ភ្លាមៗ (ចុចតែ ១ ដង)
+  if (input && input.value.trim().length > 10) {
+    parsePastedOrderText(false);
+    return;
+  }
+
+  // 2. បើប្រអប់ទំនេរ អានពី Clipboard មក Parse
   try {
-    let text = '';
     if (navigator.clipboard && navigator.clipboard.readText) {
-      text = await navigator.clipboard.readText();
-    }
-    const input = document.getElementById('order-paste-input');
-    if (text && input) {
-      input.value = text;
-      parsePastedOrderText();
-      showToastNotification('បាន Pass និងស្រង់ទិន្នន័យដោយស្វ័យប្រវត្តិ! 🚀');
-    } else if (input && input.value.trim()) {
-      parsePastedOrderText();
-    } else {
-      showToastNotification('សូមចម្លងសារពី Telegram ឬបិទភ្ជាប់ក្នុងប្រអប់!');
+      const text = await navigator.clipboard.readText();
+      if (text && text.trim()) {
+        if (input) input.value = text;
+        parsePastedOrderText(false);
+        return;
+      }
     }
   } catch (e) {
-    const input = document.getElementById('order-paste-input');
-    if (input && input.value.trim()) {
-      parsePastedOrderText();
-    } else {
-      showToastNotification('សូមចុចបិទភ្ជាប់ (Paste) ក្នុងប្រអប់អត្ថបទ');
-    }
+    console.warn('Clipboard read error:', e);
+  }
+
+  if (input && input.value.trim()) {
+    parsePastedOrderText(false);
+  } else {
+    showToastNotification('សូមចម្លងសារ ឬចុចបិទភ្ជាប់ក្នុងប្រអប់');
   }
 }
 
-function parsePastedOrderText() {
+function parsePastedOrderText(silent = false) {
   const input = document.getElementById('order-paste-input');
   const text = (input?.value || '').trim();
   if (!text) {
-    showToastNotification('សូមបិទភ្ជាប់អត្ថបទសារពី Telegram ជាមុនសិន!');
+    if (!silent) showToastNotification('សូមបិទភ្ជាប់អត្ថបទសារជាមុនសិន!');
     return;
   }
 
@@ -8023,22 +11215,49 @@ function parsePastedOrderText() {
   const sellerNo = extract(/(?:លេខអ្នកលក់\(Seller No\)|Seller No|លេខអ្នកលក់)[:\s]*([^\n\r]+)/i);
   const ylQty = extract(/\[Yong Liang\][:\s]*(\d+)/i) || extract(/Yong Liang[:\s]*(\d+)/i);
   const ylpQty = extract(/\[Yong Liang Plus\][:\s]*(\d+)/i) || extract(/Yong Liang Plus[:\s]*(\d+)/i);
-  const knQty = extract(/\[KN\][:\s]*(\d+)/i) || extract(/KN[:\s]*(\d+)/i) || extract(/\[Kidney Pro\][:\s]*(\d+)/i);
-  const pdoQty = extract(/\[P D\.O\][:\s]*(\d+)/i) || extract(/P D\.O[:\s]*(\d+)/i) || extract(/\[Pro D\.O\][:\s]*(\d+)/i);
-  const freeQty = extract(/\[Free\][:\s]*(\d+)/i) || extract(/Free[:\s]*(\d+)/i);
+  const knQty = extract(/\[KN\][:\s]*(\d+)/i) || extract(/KN[:\s]*(\d+)/i) || extract(/\[Kidney Pro\][:\s]*(\d+)/i) || extract(/Kidney Pro[:\s]*(\d+)/i);
+  const pdoQty = extract(/\[P D\.O\][:\s]*(\d+)/i) || extract(/P D\.O[:\s]*(\d+)/i) || extract(/\[Pro D\.O\][:\s]*(\d+)/i) || extract(/Pro D\.O[:\s]*(\d+)/i);
+  const freeQty = extract(/\[Free\][:\s]*(\d+)/i) || extract(/Free[:\s]*(\d+)/i) || extract(/\[ថែម\][:\s]*(\d+)/i) || extract(/ថែម[:\s]*(\d+)/i);
   const priceRaw = extract(/(?:តម្លៃ\(Price\)|Price|តម្លៃ)[:\s]*(\d+[\d,\.]*)/i);
   const receiverNo = extract(/(?:លេខអ្នកទទួល\(Receiver No\)|Receiver No|លេខអ្នកទទួល)[:\s]*([^\n\r]+)/i);
   const address = extract(/(?:អាសយដ្ឋាន\(Address\)|Address|អាសយដ្ឋាន|Location)[:\s]*([^\n\r]+)/i);
   const delivery = extract(/(?:ដឹកជញ្ជូនតាម\(Delivery\)|Delivery|ដឹកជញ្ជូនតាម)[:\s]*([^\n\r]+)/i);
 
-  if (orderId) document.getElementById('order-field-id').value = orderId.startsWith('#') ? orderId : `#${orderId}`;
-  if (dateRaw) {
-    const formatted = formatToDDMMYYYY(dateRaw);
-    document.getElementById('order-field-date').value = formatted || dateRaw;
+  if (orderId) {
+    const idField = document.getElementById('order-field-id');
+    if (idField) idField.value = orderId.startsWith('#') ? orderId : `#${orderId}`;
   }
-  if (seller) document.getElementById('order-field-seller').value = seller;
-  if (receiverNo) document.getElementById('order-field-phone').value = receiverNo;
-  if (address) document.getElementById('order-field-location').value = address;
+
+  if (dateRaw) {
+    let iso = '';
+    const ddmmyyyy = dateRaw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+    if (ddmmyyyy) {
+      iso = `${ddmmyyyy[3]}-${ddmmyyyy[2].padStart(2, '0')}-${ddmmyyyy[1].padStart(2, '0')}`;
+    } else {
+      const d = new Date(dateRaw);
+      if (!isNaN(d.getTime())) {
+        iso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(d) : d.toISOString().slice(0, 10);
+      }
+    }
+    const dateField = document.getElementById('order-field-date');
+    if (dateField && iso) {
+      dateField.value = iso;
+      updateOrderDateDisplay(iso);
+    }
+  }
+
+  if (seller) {
+    const sField = document.getElementById('order-field-seller');
+    if (sField) sField.value = seller;
+  }
+  if (receiverNo) {
+    const rField = document.getElementById('order-field-phone');
+    if (rField) rField.value = receiverNo;
+  }
+  if (address) {
+    const aField = document.getElementById('order-field-location');
+    if (aField) aField.value = address;
+  }
 
   // មុខទំនិញ
   currentOrderProducts.yl = ylQty ? parseInt(ylQty) : 0;
@@ -8052,9 +11271,15 @@ function parsePastedOrderText() {
     const priceInput = document.getElementById('order-field-price-raw');
     const totalInput = document.getElementById('order-field-total-usd');
     if (priceInput) priceInput.value = num;
-    if (num > 1000) {
+
+    if (num >= 10000) {
+      setOrderCurrency('KHR');
+      if (totalInput) totalInput.value = (num / 4000).toFixed(2);
+    } else if (num >= 500) {
+      setOrderCurrency('THB');
       if (totalInput) totalInput.value = ((num * 0.97) / 35.6).toFixed(2);
-    } else if (num > 0 && num <= 1000) {
+    } else if (num > 0) {
+      setOrderCurrency('USD');
       if (totalInput) totalInput.value = num.toFixed(2);
     }
   }
@@ -8062,22 +11287,27 @@ function parsePastedOrderText() {
   if (delivery) {
     const sel = document.getElementById('order-field-delivery');
     if (sel) {
-      for (let i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].value.toLowerCase().includes(delivery.toLowerCase()) || 
-            delivery.toLowerCase().includes(sel.options[i].value.toLowerCase())) {
-          sel.selectedIndex = i;
-          break;
-        }
+      const dLower = delivery.toLowerCase();
+      if (dLower.includes('vet') && dLower.includes('cod')) {
+        sel.value = 'VET (COD)';
+      } else if (dLower.includes('j&t') && dLower.includes('cod')) {
+        sel.value = 'J&T (COD)';
+      } else if (dLower.includes('thai') || dLower.includes('ថៃ')) {
+        sel.value = (dLower.includes('❌') || dLower.includes('no') || dLower.includes('មិន')) ? 'Thai ❌COD' : 'Thai ✅COD';
+      } else if (dLower.includes('vet')) {
+        sel.value = 'VET Express';
+      } else if (dLower.includes('j&t') || dLower.includes('jt')) {
+        sel.value = 'J&T Cambodia';
+      } else if (dLower.includes('motor') || dLower.includes('ម៉ូតូ') || dLower.includes('moto')) {
+        sel.value = 'Motor ក្រុមហ៊ុន';
       }
     }
   }
 
-  // ហៅអនុគមន៍កំណត់សេវាដឹកជញ្ជូន និងលេខទូរស័ព្ទ VET COD
   if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
 
-  // បើមាន sellerNo ពីមុន តែ delivery មិនមែន VET COD ប្រើ sellerNo
   const currentDeliv = document.getElementById('order-field-delivery')?.value || '';
-  if (sellerNo && currentDeliv !== 'VET(COD)') {
+  if (sellerNo && currentDeliv !== 'VET (COD)') {
     const phoneInput = document.getElementById('order-field-seller-phone');
     if (phoneInput) phoneInput.value = sellerNo;
   }
@@ -8086,9 +11316,10 @@ function parsePastedOrderText() {
   calculateOrderFinancials();
   checkOrderSubmitValidation();
 
-  switchOrderMode('form');
-  showToastNotification('ទាញស្រង់ទិន្នន័យពីសារបានជោគជ័យ! 🎉');
-  if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+  if (!silent) {
+    showToastNotification('Pass ជោគជ័យ ✓');
+    if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+  }
 }
 
 async function submitNewOrder() {
@@ -8096,20 +11327,41 @@ async function submitNewOrder() {
 
   const isReward = (currentOrderType === 'reward');
   const orderId = isReward ? '' : getVal('order-field-id');
-  const date = getVal('order-field-date') || formatToDDMMYYYY(new Date());
+  
+  // Format date to DD/MM/YYYY for Google Sheet
+  const dateText = getVal('order-field-date-text');
+  const dateRaw = dateText || getVal('order-field-date');
+  let date = dateRaw;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateRaw)) {
+    const p = dateRaw.split('-');
+    date = `${p[2]}/${p[1]}/${p[0]}`;
+  } else if (!date) {
+    const now = new Date();
+    date = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+  }
+
   const seller = getVal('order-field-seller') || 'ស្ដី ស្ដើង';
   const phone = getVal('order-field-phone');
   const location = getVal('order-field-location');
-  const customer = getVal('order-field-customer'); // រំលង/ទុកទំនេរបាន
-  const delivery = getVal('order-field-delivery') || 'VET(COD)';
+  const customer = getVal('order-field-customer');
+  const delivery = getVal('order-field-delivery') || 'VET (COD)';
   const totalUsd = cleanNumber(getVal('order-field-total-usd')) || 90.00;
   const shipFee = cleanNumber(getVal('order-field-ship')) || 3.00;
   const priceRaw = cleanNumber(getVal('order-field-price-raw')) || 360000;
   const note = getVal('order-field-note') || (isReward ? 'លក់រង្វាន់' : '');
 
-  // លេខអ្នកលក់: បើ VET(COD) ឬ លក់រង្វាន់ ត្រូវតែជា 097 859 5526
+  // គណនាប្រាក់បាត (Thai Baht) សម្រាប់ Col M ក្នុង Google Sheet ដើម្បីកុំឲ្យខូចរូបមន្ត Col N
+  let thaiBaht = priceRaw;
+  if (currentOrderCurrency === 'KHR') {
+    // បើសិនជាប្រាក់រៀល (360,000៛) បំប្លែងទៅបាត (3303฿) ដើម្បីឲ្យរូបមន្ត Col N ស្មើ $90.00 គត់
+    thaiBaht = Math.round((totalUsd * 35.6) / 0.97);
+  } else if (currentOrderCurrency === 'USD') {
+    thaiBaht = Math.round((totalUsd * 35.6) / 0.97);
+  }
+
+  // លេខអ្នកលក់: បើ VET (COD) ឬ លក់រង្វាន់ ត្រូវតែជា 097 859 5526
   let sellerPhone = getVal('order-field-seller-phone');
-  if (delivery === 'VET(COD)' || isReward) {
+  if (delivery === 'VET (COD)' || isReward) {
     sellerPhone = '097 859 5526';
   }
 
@@ -8118,12 +11370,12 @@ async function submitNewOrder() {
                      (currentOrderProducts.free || 0);
 
   if (totalBoxes === 0) {
-    showToastNotification('សូមជ្រើសរើសចំនួនប្រអប់ទំនិញយ៉ាងហោចណាស់ ១ ប្រអប់!');
+    showToastNotification('សូមជ្រើសរើសចំនួនប្រអប់ទំនិញ!');
     return;
   }
 
   if (!phone || phone.replace(/[\s\-\.]/g, '').length < 8) {
-    showToastNotification('សូមបញ្ចូលលេខទូរសព្ទអ្នកទទួលឱ្យបានត្រឹមត្រូវ!');
+    showToastNotification('សូមបញ្ចូលលេខទូរសព្ទអ្នកទទួល!');
     return;
   }
 
@@ -8156,7 +11408,7 @@ async function submitNewOrder() {
 
   const newRecord = {
     date: date,
-    isoDate: ddmmyyyyToIso(date),
+    isoDate: /^\d{4}-\d{2}-\d{2}$/.test(dateRaw) ? dateRaw : (typeof ddmmyyyyToIso === 'function' ? ddmmyyyyToIso(date) : date),
     orderId: orderId,
     recordId: `REC-${Date.now().toString().slice(-4)}`,
     customer: customer,
@@ -8172,7 +11424,7 @@ async function submitNewOrder() {
     totalBoxQty: totalBoxes,
     product: productSummary,
     price: priceRaw,
-    thaiBaht: priceRaw,
+    thaiBaht: thaiBaht,
     totalAmount: totalUsd,
     shipFee: shipFee,
     deliveryMethod: delivery,
@@ -8195,9 +11447,11 @@ async function submitNewOrder() {
     localStorage.setItem('sd_local_orders', JSON.stringify(existing));
   } catch (_) {}
 
-  // 3. Send to Google Apps Script Webhook
+  // 3. Send to Google Apps Script Webhook or Queue Offline
   const webhookUrl = getAppsScriptWebhookUrl();
-  if (webhookUrl && webhookUrl.startsWith('http')) {
+  let syncSuccess = false;
+
+  if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
     try {
       await fetch(webhookUrl, {
         method: 'POST',
@@ -8205,9 +11459,40 @@ async function submitNewOrder() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'add_order', data: newRecord })
       });
+      syncSuccess = true;
     } catch (e) {
-      console.warn('Webhook POST error (fallback to local):', e);
+      console.warn('Webhook POST error (fallback to local & offline queue):', e);
+      syncSuccess = false;
     }
+  }
+
+  if (syncSuccess) {
+    if (typeof addAppNotification === 'function') {
+      addAppNotification({
+        type: 'order',
+        title: `កុម្ម៉ង់ថ្មី: ${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
+        content: `${productSummary} | ចំនួន ${totalBoxes} ប្រអប់ | សរុប: $${formatUSD(totalUsd).replace('$', '')} | ដឹក: ${delivery}`,
+        tag: 'Google Sheet ✓',
+        color: 'orange',
+        icon: 'package'
+      });
+    }
+    showToastNotification('បញ្ជូនចូល Google Sheet ជោគជ័យ 🚀');
+  } else {
+    if (typeof queueOfflineOrder === 'function') {
+      queueOfflineOrder(newRecord);
+    }
+    if (typeof addAppNotification === 'function') {
+      addAppNotification({
+        type: 'order',
+        title: `[Offline] បានរក្សាទុកក្នុងម៉ាស៊ីន: ${customer || 'អតិថិជន'}`,
+        content: `${productSummary} | ចំនួន ${totalBoxes} ប្រអប់ | សរុប: $${formatUSD(totalUsd).replace('$', '')} (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)`,
+        tag: 'Offline Queued ⏳',
+        color: 'amber',
+        icon: 'cloud-off'
+      });
+    }
+    showToastNotification('📡 បានរក្សាទុកក្នុងទូរសព្ទ (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)!');
   }
 
   // 4. Update UI live and clear input
@@ -8220,7 +11505,6 @@ async function submitNewOrder() {
     btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូលការលក់ផ្ទាល់ខ្លួន 🚀</span>`;
   }
 
-  showToastNotification(`កត់ត្រាការកុម្ម៉ង់ ${orderId || 'រង្វាន់'} ចូល Personal Sales ជោគជ័យ! 🎉`);
   if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
 }
 
@@ -8236,10 +11520,239 @@ window.parsePastedOrderText = parsePastedOrderText;
 window.submitNewOrder = submitNewOrder;
 window.checkOrderSubmitValidation = checkOrderSubmitValidation;
 window.clearOrderInput = clearOrderInput;
+window.setOrderCurrency = setOrderCurrency;
+window.onPriceRawInput = onPriceRawInput;
+window.updateOrderDateDisplay = updateOrderDateDisplay;
+window.openOrderDatePicker = openOrderDatePicker;
+window.toggleOrderMiniCalendar = toggleOrderMiniCalendar;
+window.changeMiniCalMonth = changeMiniCalMonth;
+window.selectMiniCalDay = selectMiniCalDay;
+window.onOrderDateTextInput = onOrderDateTextInput;
 
 // ==========================================
-// Quick Expense Modal Logic (In-App Entry)
+// Quick Expense Modal Logic (In-App Entry) & Mini Calendar
 // ==========================================
+let currentExpenseCurrency = 'USD';
+let expenseMiniCalYear = 2026;
+let expenseMiniCalMonth = 9; // Oct (0-indexed)
+let expenseMiniCalSelectedDay = 16;
+
+function toggleExpenseMiniCalendar(e) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  const popup = document.getElementById('expense-mini-calendar-popup');
+  if (!popup) return;
+  const isHidden = popup.classList.contains('hidden');
+  if (isHidden) {
+    syncExpenseMiniCalDateFromInput();
+    renderExpenseMiniCalendar();
+    popup.classList.remove('hidden');
+    setTimeout(() => {
+      document.addEventListener('click', closeExpenseMiniCalendarOnClickOutside);
+    }, 10);
+  } else {
+    popup.classList.add('hidden');
+    document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside);
+  }
+}
+
+function closeExpenseMiniCalendarOnClickOutside(e) {
+  const popup = document.getElementById('expense-mini-calendar-popup');
+  const btn = document.getElementById('btn-toggle-expense-mini-calendar');
+  if (popup && !popup.contains(e.target) && btn && !btn.contains(e.target)) {
+    popup.classList.add('hidden');
+    document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside);
+  }
+}
+
+function syncExpenseMiniCalDateFromInput() {
+  const textInput = document.getElementById('expense-field-date-text');
+  const raw = (textInput?.value || '').trim();
+  const ddmmyyyy = raw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+  if (ddmmyyyy) {
+    expenseMiniCalSelectedDay = parseInt(ddmmyyyy[1], 10);
+    expenseMiniCalMonth = parseInt(ddmmyyyy[2], 10) - 1;
+    expenseMiniCalYear = parseInt(ddmmyyyy[3], 10);
+  } else {
+    const hiddenInp = document.getElementById('expense-field-date');
+    if (hiddenInp && /^\d{4}-\d{2}-\d{2}$/.test(hiddenInp.value)) {
+      const p = hiddenInp.value.split('-');
+      expenseMiniCalYear = parseInt(p[0], 10);
+      expenseMiniCalMonth = parseInt(p[1], 10) - 1;
+      expenseMiniCalSelectedDay = parseInt(p[2], 10);
+    }
+  }
+}
+
+function changeExpenseMiniCalMonth(delta, e) {
+  if (e) e.stopPropagation();
+  expenseMiniCalMonth += delta;
+  if (expenseMiniCalMonth < 0) {
+    expenseMiniCalMonth = 11;
+    expenseMiniCalYear -= 1;
+  } else if (expenseMiniCalMonth > 11) {
+    expenseMiniCalMonth = 0;
+    expenseMiniCalYear += 1;
+  }
+  renderExpenseMiniCalendar();
+}
+
+function selectExpenseMiniCalDay(day, e) {
+  if (e) e.stopPropagation();
+  expenseMiniCalSelectedDay = day;
+
+  const dy = String(day).padStart(2, '0');
+  const mo = String(expenseMiniCalMonth + 1).padStart(2, '0');
+  const yr = expenseMiniCalYear;
+  const ddmmyyyy = `${dy}/${mo}/${yr}`;
+  const iso = `${yr}-${mo}-${dy}`;
+
+  const textInput = document.getElementById('expense-field-date-text');
+  if (textInput) textInput.value = ddmmyyyy;
+
+  const hiddenInp = document.getElementById('expense-field-date');
+  if (hiddenInp) hiddenInp.value = iso;
+
+  renderExpenseMiniCalendar();
+
+  setTimeout(() => {
+    const popup = document.getElementById('expense-mini-calendar-popup');
+    if (popup) popup.classList.add('hidden');
+    document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside);
+  }, 120);
+
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function renderExpenseMiniCalendar() {
+  const popup = document.getElementById('expense-mini-calendar-popup');
+  if (!popup) return;
+
+  const monthNames = [
+    'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+    'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+  ];
+  const monthName = monthNames[expenseMiniCalMonth] || 'OCTOBER';
+  const firstDay = new Date(expenseMiniCalYear, expenseMiniCalMonth, 1).getDay();
+  const daysInMonth = new Date(expenseMiniCalYear, expenseMiniCalMonth + 1, 0).getDate();
+
+  let html = `
+    <!-- Header with Rose Month Name and Navigation -->
+    <div class="flex items-center justify-between mb-3 px-1">
+      <span class="text-xs font-black tracking-wider text-rose-500 uppercase font-sans">
+        ${monthName}
+      </span>
+      <div class="flex items-center gap-1.5">
+        <button type="button" onclick="changeExpenseMiniCalMonth(-1, event)" class="w-6 h-6 rounded-full hover:bg-white/10 active:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition">‹</button>
+        <span class="text-[10px] text-slate-400 font-mono">${expenseMiniCalYear}</span>
+        <button type="button" onclick="changeExpenseMiniCalMonth(1, event)" class="w-6 h-6 rounded-full hover:bg-white/10 active:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition">›</button>
+      </div>
+    </div>
+
+    <!-- Day Headers: S M T W T F S -->
+    <div class="grid grid-cols-7 text-center mb-1 text-[11px] font-bold text-slate-400 font-sans">
+      <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+    </div>
+
+    <!-- Days Grid -->
+    <div class="grid grid-cols-7 gap-y-1 text-center font-sans text-xs">
+  `;
+
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isSelected = (d === expenseMiniCalSelectedDay);
+    if (isSelected) {
+      html += `
+        <div class="flex items-center justify-center py-0.5">
+          <button type="button" onclick="selectExpenseMiniCalDay(${d}, event)" 
+                  class="w-7 h-7 rounded-full bg-rose-500 text-white font-black flex items-center justify-center shadow-lg shadow-rose-500/40 active:scale-90 transition">
+            ${d}
+          </button>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="flex items-center justify-center py-0.5">
+          <button type="button" onclick="selectExpenseMiniCalDay(${d}, event)" 
+                  class="w-7 h-7 rounded-full text-white font-bold hover:bg-white/15 active:bg-white/25 active:scale-90 flex items-center justify-center transition">
+            ${d}
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  html += `</div>`;
+  popup.innerHTML = html;
+}
+
+function onExpenseDateTextInput(val) {
+  const ddmmyyyy = (val || '').trim().match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+  if (ddmmyyyy) {
+    const dy = ddmmyyyy[1].padStart(2, '0');
+    const mo = ddmmyyyy[2].padStart(2, '0');
+    const yr = ddmmyyyy[3];
+    const iso = `${yr}-${mo}-${dy}`;
+    const hiddenInp = document.getElementById('expense-field-date');
+    if (hiddenInp) hiddenInp.value = iso;
+    expenseMiniCalSelectedDay = parseInt(dy, 10);
+    expenseMiniCalMonth = parseInt(mo, 10) - 1;
+    expenseMiniCalYear = parseInt(yr, 10);
+  }
+}
+
+function setExpenseCurrency(curr) {
+  currentExpenseCurrency = curr || 'USD';
+  const btnUsd = document.getElementById('exp-curr-btn-usd');
+  const btnKhr = document.getElementById('exp-curr-btn-khr');
+  const symEl = document.getElementById('expense-currency-symbol');
+  const amtInput = document.getElementById('expense-field-amount');
+  const hintEl = document.getElementById('expense-khr-convert-hint');
+
+  const activeCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition bg-rose-500 text-white shadow-sm flex items-center justify-center';
+  const inactiveCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center';
+
+  if (btnUsd) btnUsd.className = (currentExpenseCurrency === 'USD' ? activeCls : inactiveCls);
+  if (btnKhr) btnKhr.className = (currentExpenseCurrency === 'KHR' ? activeCls : inactiveCls);
+
+  if (currentExpenseCurrency === 'KHR') {
+    if (symEl) symEl.textContent = '៛';
+    if (amtInput) amtInput.placeholder = '10000';
+    if (hintEl) hintEl.classList.remove('hidden');
+  } else {
+    if (symEl) symEl.textContent = '$';
+    if (amtInput) amtInput.placeholder = '0.00';
+    if (hintEl) hintEl.classList.add('hidden');
+  }
+
+  onExpenseAmountInput();
+}
+
+function onExpenseAmountInput() {
+  const amtInput = document.getElementById('expense-field-amount');
+  const hintVal = document.getElementById('expense-khr-converted-usd');
+  const hintEl = document.getElementById('expense-khr-convert-hint');
+  const val = parseFloat(amtInput?.value || '0');
+
+  // Auto detect if user pasted huge riel into USD
+  if (currentExpenseCurrency === 'USD' && val >= 10000) {
+    setExpenseCurrency('KHR');
+    return;
+  }
+
+  if (currentExpenseCurrency === 'KHR') {
+    if (hintEl) hintEl.classList.remove('hidden');
+    const usdVal = (val / 4000).toFixed(2);
+    if (hintVal) hintVal.textContent = `$${usdVal}`;
+  } else {
+    if (hintEl) hintEl.classList.add('hidden');
+  }
+}
 
 function openNewExpenseModal() {
   const modal = document.getElementById('new-expense-modal');
@@ -8250,24 +11763,33 @@ function openNewExpenseModal() {
   const mo = String(now.getMonth() + 1).padStart(2, '0');
   const yr = now.getFullYear();
   const ddmmyyyy = `${dy}/${mo}/${yr}`;
+  const iso = `${yr}-${mo}-${dy}`;
 
   const hh = String(now.getHours()).padStart(2, '0');
   const mm = String(now.getMinutes()).padStart(2, '0');
   const timeStr = `${hh}:${mm}`;
 
-  const dateInput = document.getElementById('expense-field-date');
+  const dateTextInput = document.getElementById('expense-field-date-text');
+  const hiddenDateInput = document.getElementById('expense-field-date');
   const timeInput = document.getElementById('expense-field-time');
   const descInput = document.getElementById('expense-field-desc');
   const catInput = document.getElementById('expense-field-category');
   const amtInput = document.getElementById('expense-field-amount');
   const noteInput = document.getElementById('expense-field-note');
 
-  if (dateInput) dateInput.value = ddmmyyyy;
+  if (dateTextInput) dateTextInput.value = ddmmyyyy;
+  if (hiddenDateInput) hiddenDateInput.value = iso;
   if (timeInput) timeInput.value = timeStr;
   if (descInput) descInput.value = '';
   if (catInput) catInput.value = 'ហូបចុក & ប្រចាំថ្ងៃ';
   if (amtInput) amtInput.value = '';
   if (noteInput) noteInput.value = '';
+
+  expenseMiniCalSelectedDay = parseInt(dy, 10);
+  expenseMiniCalMonth = parseInt(mo, 10) - 1;
+  expenseMiniCalYear = yr;
+
+  setExpenseCurrency('USD');
 
   if (typeof updateModalLanguage === 'function') updateModalLanguage();
 
@@ -8319,7 +11841,8 @@ async function submitNewExpense() {
   const desc = (descInput?.value || '').trim();
   const rawAmt = parseFloat(amtInput?.value || '0');
   const cat = (catInput?.value || 'ហូបចុក & ប្រចាំថ្ងៃ').trim();
-  const dateStr = (dateInput?.value || '').trim();
+  const dateTextInput = document.getElementById('expense-field-date-text');
+  const dateStr = (dateTextInput?.value || dateInput?.value || '').trim();
   const timeStr = (timeInput?.value || '').trim();
   const note = (noteInput?.value || '').trim();
 
@@ -8330,9 +11853,18 @@ async function submitNewExpense() {
   }
 
   if (isNaN(rawAmt) || rawAmt <= 0) {
-    showToastNotification('សូមបញ្ចូលចំនួនទឹកប្រាក់ ($) ឲ្យបានត្រឹមត្រូវ! 💰');
+    showToastNotification('សូមបញ្ចូលចំនួនទឹកប្រាក់ឲ្យបានត្រឹមត្រូវ! 💰');
     if (amtInput) amtInput.focus();
     return;
+  }
+
+  // Handle KHR to USD conversion
+  let finalUsd = rawAmt;
+  let finalNote = note;
+  if (currentExpenseCurrency === 'KHR') {
+    finalUsd = parseFloat((rawAmt / 4000).toFixed(2));
+    const khrFormatted = Math.round(rawAmt).toLocaleString();
+    finalNote = finalNote ? `${finalNote} (${khrFormatted}៛)` : `(${khrFormatted}៛)`;
   }
 
   // Format date correctly
@@ -8362,8 +11894,8 @@ async function submitNewExpense() {
     time: timeStr,
     description: desc,
     category: cat,
-    amount: rawAmt,
-    note: note,
+    amount: finalUsd,
+    note: finalNote,
     rowIndex: (DataService.data && Array.isArray(DataService.data.expenses)) ? DataService.data.expenses.length + 1 : 1
   };
 
@@ -8380,9 +11912,11 @@ async function submitNewExpense() {
     localStorage.setItem('sd_local_expenses', JSON.stringify(existing));
   } catch (_) {}
 
-  // 3. Send to Google Apps Script Webhook
+  // 3. Send to Google Apps Script Webhook or Queue Offline
   const webhookUrl = getAppsScriptWebhookUrl();
-  if (webhookUrl && webhookUrl.startsWith('http')) {
+  let expSyncSuccess = false;
+
+  if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
     try {
       await fetch(webhookUrl, {
         method: 'POST',
@@ -8390,9 +11924,40 @@ async function submitNewExpense() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'add_expense', data: newExpense })
       });
+      expSyncSuccess = true;
     } catch (e) {
-      console.warn('Expense Webhook POST error (fallback to local):', e);
+      console.warn('Expense Webhook POST error (fallback to local & offline queue):', e);
+      expSyncSuccess = false;
     }
+  }
+
+  if (expSyncSuccess) {
+    if (typeof addAppNotification === 'function') {
+      addAppNotification({
+        type: 'expense',
+        title: `កត់ត្រាចំណាយ: ${desc}`,
+        content: `${cat} | ចំនួន: $${finalUsd.toFixed(2)} ${timeStr ? '(' + timeStr + ')' : ''}`,
+        tag: 'Google Sheet ✓',
+        color: 'rose',
+        icon: 'receipt'
+      });
+    }
+    showToastNotification(`កត់ត្រាចំណាយ "${desc}" ($${finalUsd.toFixed(2)}) ជោគជ័យ! 💸`);
+  } else {
+    if (typeof queueOfflineExpense === 'function') {
+      queueOfflineExpense(newExpense);
+    }
+    if (typeof addAppNotification === 'function') {
+      addAppNotification({
+        type: 'expense',
+        title: `[Offline] ចំណាយក្នុងម៉ាស៊ីន: ${desc}`,
+        content: `${cat} | ចំនួន: $${finalUsd.toFixed(2)} (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)`,
+        tag: 'Offline Queued ⏳',
+        color: 'amber',
+        icon: 'cloud-off'
+      });
+    }
+    showToastNotification(`📡 បានរក្សាទុកក្នុងទូរសព្ទ (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)!`);
   }
 
   // 4. Update UI live
@@ -8410,7 +11975,6 @@ async function submitNewExpense() {
     btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>រក្សាទុកចំណាយ 💸</span>`;
   }
 
-  showToastNotification(`កត់ត្រាចំណាយ "${desc}" ($${rawAmt.toFixed(2)}) ជោគជ័យ! 💸`);
   if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
 }
 
@@ -8419,6 +11983,12 @@ window.closeNewExpenseModal = closeNewExpenseModal;
 window.applyExpensePreset = applyExpensePreset;
 window.setExpenseAmount = setExpenseAmount;
 window.submitNewExpense = submitNewExpense;
+window.toggleExpenseMiniCalendar = toggleExpenseMiniCalendar;
+window.changeExpenseMiniCalMonth = changeExpenseMiniCalMonth;
+window.selectExpenseMiniCalDay = selectExpenseMiniCalDay;
+window.onExpenseDateTextInput = onExpenseDateTextInput;
+window.setExpenseCurrency = setExpenseCurrency;
+window.onExpenseAmountInput = onExpenseAmountInput;
 
 // ==========================================
 // Delivery Shipping Auto-Defaults (Customizable)
@@ -8434,15 +12004,17 @@ function updateDeliveryShippingDefault() {
 
   if (val.includes('Thai')) {
     shipInput.value = '5.50';
-  } else if (val.includes('VET(COD)')) {
+  } else if (val === 'VET (COD)') {
     shipInput.value = '3.00';
     // លក្ខណត្រង់ក្រុមហ៊ុនដឹកជញ្ជូន បើជ្រើសយក VET(COD) ត្រូវលោតបំពេញលេខ 097 859 5526 ជានិច្ច
     if (sellerPhoneInput) sellerPhoneInput.value = '097 859 5526';
-  } else if (val === 'VET') {
+  } else if (val === 'J&T (COD)') {
+    shipInput.value = '3.00';
+  } else if (val === 'VET Express') {
     shipInput.value = '2.50';
-  } else if (val === 'Delivery COD') {
+  } else if (val === 'J&T Cambodia') {
     shipInput.value = '2.50';
-  } else if (val === 'Moto') {
+  } else if (val === 'Motor ក្រុមហ៊ុន') {
     shipInput.value = '2.00';
   }
   calculateOrderFinancials();
@@ -8490,10 +12062,7 @@ function updateModalLanguage() {
   const orderTitle = document.getElementById('order-modal-title');
   const orderSubtitle = document.getElementById('order-modal-subtitle');
   const orderBtnClear = document.getElementById('order-btn-clear-text');
-  const orderPasteTab = document.getElementById('order-mode-paste-tab');
-  const orderFormTab = document.getElementById('order-mode-form-tab');
   const orderPastePrompt = document.getElementById('order-label-paste-prompt');
-  const btnParse = document.getElementById('btn-parse-paste');
   const orderLabelType = document.getElementById('order-label-type');
   const btnTypeStdText = document.getElementById('btn-type-standard-text');
   const btnTypeRwdText = document.getElementById('btn-type-reward-text');
@@ -8520,28 +12089,25 @@ function updateModalLanguage() {
   if (orderTitle) orderTitle.textContent = isKm ? 'កត់ត្រាការកុម្ម៉ង់ថ្មី' : 'Record New Order';
   if (orderSubtitle) orderSubtitle.textContent = isKm ? 'ការលក់ផ្ទាល់ខ្លួន និងក្រុម' : 'Personal Sales & Team Sync';
   if (orderBtnClear) orderBtnClear.textContent = isKm ? 'សម្អាត' : 'Clear';
-  if (orderPasteTab) orderPasteTab.innerHTML = `<i data-lucide="clipboard-paste" class="w-3.5 h-3.5"></i><span>${isKm ? 'បិទភ្ជាប់ស្វ័យប្រវត្តិ' : 'Smart Paste'}</span>`;
-  if (orderFormTab) orderFormTab.innerHTML = `<i data-lucide="file-pen-line" class="w-3.5 h-3.5"></i><span>${isKm ? 'ទម្រង់រហ័ស' : 'Quick Form'}</span>`;
-  if (orderPastePrompt) orderPastePrompt.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i><span>${isKm ? 'បិទភ្ជាប់សារពីតេឡេក្រាម៖' : 'Paste message from Telegram / Bot:'}</span>`;
-  if (btnParse) btnParse.innerHTML = `<i data-lucide="wand-2" class="w-4 h-4"></i><span>${isKm ? 'អាន និងស្រង់ទិន្នន័យចូលទម្រង់' : 'Parse Data to Form'}</span>`;
+  if (orderPastePrompt) orderPastePrompt.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i><span>${isKm ? 'សារពី Telegram:' : 'Telegram Message:'}</span>`;
   if (orderLabelType) orderLabelType.textContent = isKm ? 'ប្រភេទការលក់:' : 'Order Type:';
   if (btnTypeStdText) btnTypeStdText.textContent = isKm ? 'ការលក់ធម្មតា' : 'Standard Order';
-  if (btnTypeRwdText) btnTypeRwdText.textContent = isKm ? '🎁 លក់រង្វាន់ (ថ្លៃដើម $0)' : '🎁 Reward Order ($0 Cost)';
+  if (btnTypeRwdText) btnTypeRwdText.textContent = isKm ? 'លក់រង្វាន់ (ថ្លៃដើម $0)' : 'Reward Order ($0 Cost)';
   if (orderTypeDesc) orderTypeDesc.textContent = isKm ? 'គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។' : 'Standard stock cost ($24/box) with official Order ID.';
   if (orderLabelId) orderLabelId.textContent = isKm ? 'លេខកុម្ម៉ង់:' : 'Order ID:';
-  if (orderLabelDate) orderLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ (dd/mm/yyyy):' : 'Date (dd/mm/yyyy):';
+  if (orderLabelDate) orderLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ:' : 'Date:';
   if (orderLabelSeller) orderLabelSeller.textContent = isKm ? 'ឈ្មោះអ្នកលក់:' : 'Seller Name:';
   if (orderLabelSellerPhone) orderLabelSellerPhone.textContent = isKm ? 'លេខទូរសព្ទអ្នកលក់:' : 'Seller Phone:';
   if (orderCustSection) orderCustSection.innerHTML = `<i data-lucide="user" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'ព័ត៌មានអតិថិជន:' : 'Customer Information:'}</span>`;
-  if (orderCustName) orderCustName.textContent = isKm ? 'ឈ្មោះអតិថិជន (ហ្វេសប៊ុក):' : 'Customer Name (Facebook):';
+  if (orderCustName) orderCustName.textContent = isKm ? 'ឈ្មោះអតិថិជន:' : 'Customer Name:';
   if (orderCustPhone) orderCustPhone.innerHTML = `${isKm ? 'លេខទូរសព្ទអ្នកទទួល:' : 'Receiver Phone:'} <span class="text-rose-400">*</span>`;
   if (orderLocation) orderLocation.textContent = isKm ? 'អាសយដ្ឋានដឹកជញ្ជូន:' : 'Delivery Address:';
   if (orderProducts) orderProducts.innerHTML = `<i data-lucide="boxes" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'មុខទំនិញ & ចំនួនប្រអប់:' : 'Products & Quantity:'}</span>`;
   if (orderDelivSection) orderDelivSection.innerHTML = `<i data-lucide="truck" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'សេវាដឹកជញ្ជូន & ទឹកប្រាក់:' : 'Delivery & Financials:'}</span>`;
   if (orderDelivLabel) orderDelivLabel.textContent = isKm ? 'ក្រុមហ៊ុនដឹកជញ្ជូន:' : 'Shipping Carrier:';
   if (orderShipLabel) orderShipLabel.textContent = isKm ? 'ថ្លៃដឹកជញ្ជូន ($):' : 'Shipping Fee ($):';
-  if (orderPriceRaw) orderPriceRaw.textContent = isKm ? 'តម្លៃលក់ (៛ ឬ បាត):' : 'Sale Price (KHR / THB):';
-  if (orderTotalUsd) orderTotalUsd.textContent = isKm ? 'តម្លៃសរុប ($ Auto):' : 'Total Amount ($ Auto):';
+  if (orderPriceRaw) orderPriceRaw.textContent = isKm ? 'តម្លៃលក់:' : 'Sale Price:';
+  if (orderTotalUsd) orderTotalUsd.textContent = isKm ? 'តម្លៃសរុប ($):' : 'Total Amount ($):';
   if (orderStockText) orderStockText.textContent = isKm ? 'ថ្លៃដើមស្តុក:' : 'Stock Cost:';
   if (orderProfitText) orderProfitText.textContent = isKm ? 'ប្រាក់ចំណេញ:' : 'Net Profit:';
   if (orderLabelNote) orderLabelNote.textContent = isKm ? 'ចំណាំបន្ថែម (ស្រេចចិត្ត):' : 'Note (Optional):';
@@ -8553,6 +12119,36 @@ function updateModalLanguage() {
 window.updateDeliveryShippingDefault = updateDeliveryShippingDefault;
 window.updateModalLanguage = updateModalLanguage;
 
+// Export Notification Center & Offline Sync Functions
+window.getStoredNotifications = getStoredNotifications;
+window.saveStoredNotifications = saveStoredNotifications;
+window.addAppNotification = addAppNotification;
+window.deleteNotification = deleteNotification;
+window.clearAllNotifications = clearAllNotifications;
+window.markAllNotificationsAsRead = markAllNotificationsAsRead;
+window.getOfflineSyncQueue = getOfflineSyncQueue;
+window.syncOfflineQueue = syncOfflineQueue;
+window.queueOfflineOrder = queueOfflineOrder;
+window.queueOfflineExpense = queueOfflineExpense;
 
-
-
+// Export Expenses Filter & Search Functions
+window.expensesFilterState = expensesFilterState;
+window.toggleExpensesSearch = toggleExpensesSearch;
+window.toggleExpensesDayDropdown = toggleExpensesDayDropdown;
+window.renderExpensesMiniCalendar = renderExpensesMiniCalendar;
+window.navigateExpensesCalendarMonth = navigateExpensesCalendarMonth;
+window.selectExpensesCalendarDay = selectExpensesCalendarDay;
+window.selectExpensesQuickDay = selectExpensesQuickDay;
+window.toggleExpensesMonthDropdown = toggleExpensesMonthDropdown;
+window.renderExpensesMonthDropdown = renderExpensesMonthDropdown;
+window.navigateExpensesMonthYear = navigateExpensesMonthYear;
+window.selectExpensesMonth = selectExpensesMonth;
+window.toggleExpensesYearDropdown = toggleExpensesYearDropdown;
+window.renderExpensesYearDropdown = renderExpensesYearDropdown;
+window.selectExpensesYear = selectExpensesYear;
+window.setExpensesPeriodFilter = setExpensesPeriodFilter;
+window.applyExpensesFilterAndRender = applyExpensesFilterAndRender;
+window.openExpensesModal = openExpensesModal;
+window.closeExpensesModal = closeExpensesModal;
+window.filterExpensesModalList = filterExpensesModalList;
+window.clearExpensesModalSearch = clearExpensesModalSearch;
