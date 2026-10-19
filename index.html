@@ -2372,10 +2372,11 @@
             <i data-lucide="search" class="w-4 h-4"></i>
           </button>
 
-          <!-- New Expense Button -->
-          <button onclick="openNewExpenseModal()" class="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 font-bold text-xs flex items-center gap-1 active:scale-95 transition shadow-sm" title="កត់ត្រាចំណាយថ្មី">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-            <span>+ ចំណាយ</span>
+          <!-- New Expense Icon Button (matching Grid 1 style: pencil-line icon only) -->
+          <button onclick="openNewExpenseModal()" 
+                  class="w-8 h-8 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 flex items-center justify-center active:scale-95 transition shadow-sm shrink-0" 
+                  title="កត់ត្រាចំណាយថ្មី">
+            <i data-lucide="pencil-line" class="w-4 h-4"></i>
           </button>
 
           <!-- Context Menu Button -->
@@ -3153,9 +3154,8 @@
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-          <button type="button" id="btn-order-stock-capsule" onclick="toggleOrderTypeCapsule()" class="px-2.5 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/40 text-[11px] font-bold text-orange-400 active:scale-95 transition flex items-center gap-1.5 shadow-sm" title="ប្តូរប្រភេទការលក់">
-            <i data-lucide="package-check" class="w-3.5 h-3.5"></i>
-            <span id="label-order-stock-capsule">ដាក់ចូលស្តុក</span>
+          <button type="button" id="btn-order-stock-capsule" onclick="toggleOrderTypeCapsule()" class="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/40 text-xs font-bold text-orange-400 active:scale-95 transition flex items-center justify-center shadow-sm" title="ប្តូរប្រភេទការលក់">
+            <span id="label-order-stock-capsule">ស្តុក</span>
           </button>
           <button type="button" onclick="clearOrderInput()" class="px-2.5 py-1.5 rounded-full text-slate-400 hover:text-rose-400 bg-white/5 border border-white/10 text-[11px] font-semibold active:scale-95 transition flex items-center gap-1.5" title="សម្អាតទិន្នន័យ">
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
@@ -3825,6 +3825,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=13.8"></script>
+  <script src="app.js?v=13.9"></script>
 </body>
 </html>

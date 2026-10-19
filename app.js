@@ -11952,9 +11952,9 @@ function setOrderType(type) {
     const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
     if (capsuleBtn) {
       const isTele = (currentOrderEntryMode === 'telegram');
-      capsuleBtn.className = 'px-2.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/50 text-[11px] font-bold text-amber-400 active:scale-95 transition flex items-center gap-1.5 shadow-sm' + (isTele ? ' hidden' : '');
+      capsuleBtn.className = 'px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/50 text-xs font-bold text-amber-400 active:scale-95 transition flex items-center justify-center shadow-sm' + (isTele ? ' hidden' : '');
       capsuleBtn.style.display = isTele ? 'none' : '';
-      capsuleBtn.innerHTML = `<i data-lucide="gift" class="w-3.5 h-3.5 text-amber-400"></i><span id="label-order-stock-capsule">លក់រង្វាន់ ($0)</span>`;
+      capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">រង្វាន់</span>`;
     }
     if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-400';
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
@@ -11965,9 +11965,9 @@ function setOrderType(type) {
   } else {
     if (capsuleBtn) {
       const isTele = (currentOrderEntryMode === 'telegram');
-      capsuleBtn.className = 'px-2.5 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/40 text-[11px] font-bold text-orange-400 active:scale-95 transition flex items-center gap-1.5 shadow-sm' + (isTele ? ' hidden' : '');
+      capsuleBtn.className = 'px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/40 text-xs font-bold text-orange-400 active:scale-95 transition flex items-center justify-center shadow-sm' + (isTele ? ' hidden' : '');
       capsuleBtn.style.display = isTele ? 'none' : '';
-      capsuleBtn.innerHTML = `<i data-lucide="package-check" class="w-3.5 h-3.5 text-orange-400"></i><span id="label-order-stock-capsule">ដាក់ចូលស្តុក</span>`;
+      capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ស្តុក</span>`;
     }
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-orange-500/20 border-orange-500 text-orange-400';
     if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
