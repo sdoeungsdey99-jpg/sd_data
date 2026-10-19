@@ -17,6 +17,7 @@
  * ដំណើរការមុខងារនេះ ១ ដង (ចុច Run) ដើម្បីឱ្យ Google សួរទាមទារសិទ្ធិ (Authorize) ចូលទៅកាន់ Google Sheets ដទៃទៀត
  */
 function authorizeExternalSheets() {
+  DriveApp.getRootFolder();
   var testId = '1ewZpP5q63bvEEui2ARrKnFTE2tjTJKr2cU84rtLclis';
   var ss = SpreadsheetApp.openById(testId);
   Logger.log('ជោគជ័យក្នុងការតភ្ជាប់ទៅកាន់តារាង៖ ' + ss.getName());
