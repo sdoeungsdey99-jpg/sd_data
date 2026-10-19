@@ -18,7 +18,7 @@ function getActiveSheetId() {
     const custom = localStorage.getItem('sd_custom_sheet_id');
     if (custom && custom.trim().length > 15) return custom.trim();
   } catch (_) {}
-  return DEFAULT_MASTER_SHEET_ID;
+  return '';
 }
 
 function cleanNumber(val) {
@@ -179,6 +179,15 @@ window.DataService = {
   },
 
   async fetchData(silent = false) {
+    const sheetId = getActiveSheetId();
+    if (!sheetId) {
+      this.isLoading = false;
+      this.data = null;
+      this.error = null;
+      this.notify();
+      return null;
+    }
+
     if (!silent) {
       this.isLoading = true;
       this.error = null;
@@ -736,8 +745,32 @@ window.DataService = {
     return await this.fetchData(false);
   },
 
+  hasActiveSheet() {
+    const id = getActiveSheetId();
+    return Boolean(id && id.length > 15);
+  },
+
+  isMasterSheet() {
+    return getActiveSheetId() === DEFAULT_MASTER_SHEET_ID;
+  },
+
+  getMasterSheetId() {
+    return DEFAULT_MASTER_SHEET_ID;
+  },
+
+  disconnectSheet() {
+    try {
+      localStorage.removeItem('sd_custom_sheet_id');
+      localStorage.removeItem('sd_profile_data');
+    } catch (_) {}
+    this.data = null;
+    this.isLoading = false;
+    this.error = null;
+    this.notify();
+  },
+
   async resetToMasterSheet() {
-    localStorage.removeItem('sd_custom_sheet_id');
+    localStorage.setItem('sd_custom_sheet_id', DEFAULT_MASTER_SHEET_ID);
     return await this.fetchData(false);
   },
 
@@ -751,7 +784,7 @@ window.DataService = {
     const text = await res.text();
     const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);/);
     if (!match || !match[1]) {
-      throw new Error('ទម្រង់ទិន្នន័យមិនស៊ីគ្នាឡើយ');
+      throw new Error('ទម្រង់ទិន្នន័យមិនស៊ីគ្នាឡើយ (សូមប្រាកដថាបានបង្កើតពី Template គំរូ)');
     }
     const parsed = JSON.parse(match[1]);
     const rowCount = parsed?.table?.rows?.length || 0;

@@ -623,11 +623,20 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSmartDockScroll();
   setupSwipeToBack();
 
+  checkOnboardingGate();
+  syncHeaderProfileUI();
+
   DataService.subscribe(onDataUpdated);
-  DataService.fetchData();
-  DataService.startAutoReload(5);
+  if (DataService.hasActiveSheet()) {
+    DataService.fetchData();
+    DataService.startAutoReload(5);
+  }
 
   renderCurrentView();
+
+  if (urlParams.get('master') === '1') {
+    openMasterAdminPinModal();
+  }
 
   if (urlParams.get('view')) {
     switchView(urlParams.get('view'));
@@ -7915,32 +7924,39 @@ const DEFAULT_PROFILE_DATA = {
   }
 };
 
+const DEFAULT_GUEST_PROFILE_DATA = {
+  name: 'សមាជិកក្រុមការងារ',
+  memberId: 'ID: SD-MEMBER',
+  subtitle: 'SD Team Member',
+  avatar: 'vst-logo.png',
+  work: 'ផ្នែកលក់ & ទីផ្សារ (Sales & Marketing)',
+  study: 'SD Team',
+  live: 'រាជធានីភ្នំពេញ',
+  from: 'ព្រះរាជាណាចក្រកម្ពុជា',
+  status: 'សកម្មក្នុងការងារ',
+  birthday: '',
+  phone: '',
+  privacy: {
+    showWork: true,
+    showStudy: true,
+    showLive: true,
+    showFrom: true,
+    showStatus: true,
+    showBirth: false,
+    showPhone: false
+  }
+};
+
 function getProfileData() {
   try {
     const raw = localStorage.getItem('sd_profile_data');
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Seamlessly migrate back to user personal profile
-      if (parsed.name === 'ប៊ិច នោរ៉ា' || parsed.name === 'វណ្ណ ស៊ីថា' || parsed.memberId === 'MANAGING DIRECTOR' || parsed.memberId === 'FOUNDER & CEO') {
-        const migrated = {
-          ...DEFAULT_PROFILE_DATA,
-          ...parsed,
-          name: 'ស្តី ស្តើង',
-          memberId: 'ID: SD-0001',
-          subtitle: 'SDEY SDOEUNG',
-          avatar: 'profile.png',
-          work: 'ស្ថាបនិក & អ្នកគ្រប់គ្រងនៅ SD Data',
-          study: 'ជីវិតជាការរៀនសូត្រ (Life is Learning)',
-          status: 'កំពុងអភិវឌ្ឍអាជីវកម្ម'
-        };
-        localStorage.setItem('sd_profile_data', JSON.stringify(migrated));
-        return migrated;
-      }
       return {
-        ...DEFAULT_PROFILE_DATA,
+        ...DEFAULT_GUEST_PROFILE_DATA,
         ...parsed,
         privacy: {
-          ...DEFAULT_PROFILE_DATA.privacy,
+          ...DEFAULT_GUEST_PROFILE_DATA.privacy,
           ...(parsed.privacy || {})
         }
       };
@@ -7948,7 +7964,11 @@ function getProfileData() {
   } catch (e) {
     console.warn('Error reading sd_profile_data:', e);
   }
-  return { ...DEFAULT_PROFILE_DATA, privacy: { ...DEFAULT_PROFILE_DATA.privacy } };
+  
+  if (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet()) {
+    return { ...DEFAULT_PROFILE_DATA, privacy: { ...DEFAULT_PROFILE_DATA.privacy } };
+  }
+  return { ...DEFAULT_GUEST_PROFILE_DATA, privacy: { ...DEFAULT_GUEST_PROFILE_DATA.privacy } };
 }
 
 function syncHeaderProfileUI() {
@@ -7956,9 +7976,19 @@ function syncHeaderProfileUI() {
   const avatarEl = document.getElementById('header-profile-avatar');
   const nameEl = document.getElementById('header-profile-name');
   const subEl = document.getElementById('header-profile-sub');
-  if (avatarEl) avatarEl.src = p.avatar || 'profile.png';
-  if (nameEl) nameEl.textContent = p.name || 'ស្តី ស្តើង';
-  if (subEl) subEl.textContent = p.subtitle || 'SDEY SDOEUNG';
+  const badgeEl = document.getElementById('header-profile-badge');
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+
+  if (avatarEl) avatarEl.src = p.avatar || (isMaster ? 'profile.png' : 'vst-logo.png');
+  if (nameEl) nameEl.textContent = p.name || (isMaster ? 'ស្តី ស្តើង' : 'SD Data');
+  if (subEl) subEl.textContent = p.subtitle || (isMaster ? 'SDEY SDOEUNG' : 'Smart Business Hub');
+  if (badgeEl) {
+    if (isMaster) {
+      badgeEl.classList.remove('hidden');
+    } else {
+      badgeEl.classList.add('hidden');
+    }
+  }
 }
 
 function getAllUniqueCustomers() {
@@ -9860,25 +9890,158 @@ async function testCustomGoogleSheetConnection() {
 }
 
 async function resetCustomGoogleSheetToMaster() {
-  const statusEl = document.getElementById('custom-sheet-status-box');
-  if (statusEl) {
-    statusEl.innerHTML = `<span class="text-amber-400 font-mono text-xs flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងប្តូរទៅ Master Sheet...</span>`;
+  disconnectCustomSheet();
+}
+
+function checkOnboardingGate() {
+  const gate = document.getElementById('onboarding-gate');
+  const dock = document.getElementById('smart-dock');
+  if (!gate) return;
+  if (!window.DataService || !window.DataService.hasActiveSheet()) {
+    gate.classList.remove('hidden');
+    if (dock) dock.classList.add('hidden');
+  } else {
+    gate.classList.add('hidden');
+    if (dock) dock.classList.remove('hidden');
+  }
+}
+
+async function submitOnboardingConnection() {
+  const nameInput = document.getElementById('onboard-member-name');
+  const urlInput = document.getElementById('onboard-sheet-url');
+  const statusBox = document.getElementById('onboard-status-box');
+
+  const name = nameInput ? nameInput.value.trim() : '';
+  const url = urlInput ? urlInput.value.trim() : '';
+
+  if (!url) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូល Link Google Sheet របស់អ្នក</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    return;
+  }
+
+  const cleanId = (typeof extractSheetId === 'function') ? extractSheetId(url) : (url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/) ? url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)[1] : url);
+  if (!cleanId || cleanId.length < 15) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Link ឬ Sheet ID មិនត្រឹមត្រូវឡើយ</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    return;
+  }
+
+  if (statusBox) {
+    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងពិនិត្យការតភ្ជាប់ទៅកាន់ Google Sheet...</span>';
     if (window.lucide) window.lucide.createIcons();
   }
+
   try {
-    await DataService.resetToMasterSheet();
-    showToastNotification('បានត្រឡប់ទៅ Master Sheet ដើមវិញជោគជ័យ!');
-    if (typeof renderCurrentView === 'function') renderCurrentView();
-    renderProfileDrawerContent();
-    openProfileSubModal('custom_sheet');
+    const res = await DataService.testSheetConnection(cleanId);
+    localStorage.setItem('sd_custom_sheet_id', cleanId);
+    
+    const memberName = name || 'សមាជិកក្រុមការងារ';
+    const memberProfile = {
+      name: memberName,
+      memberId: 'ID: SD-' + Math.floor(1000 + Math.random() * 9000),
+      subtitle: `${memberName} • សមាជិកក្រុម`,
+      avatar: 'vst-logo.png',
+      work: 'ផ្នែកលក់ & ទីផ្សារ (Sales & Marketing)',
+      study: 'SD Team',
+      live: 'រាជធានីភ្នំពេញ',
+      from: 'ព្រះរាជាណាចក្រកម្ពុជា',
+      status: 'សកម្មក្នុងការងារ',
+      birthday: '',
+      phone: '',
+      privacy: {
+        showWork: true,
+        showStudy: true,
+        showLive: true,
+        showFrom: true,
+        showStatus: true,
+        showBirth: false,
+        showPhone: false
+      }
+    };
+    localStorage.setItem('sd_profile_data', JSON.stringify(memberProfile));
+    
+    syncHeaderProfileUI();
+    checkOnboardingGate();
+    
+    showToastNotification(`🎉 ភ្ជាប់ជោគជ័យ! សូមស្វាគមន៍ ${memberName}`);
+    await DataService.fetchData(false);
+    renderCurrentView();
   } catch (err) {
-    showToastNotification('មានបញ្ហា៖ ' + err.message);
+    if (statusBox) {
+      statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>${err.message || 'មិនអាចភ្ជាប់បានទេ សូមពិនិត្យសិទ្ធិ Share (Anyone with link can view)'}</span></span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
   }
+}
+
+function openMasterAdminPinModal() {
+  const m = document.getElementById('master-pin-modal');
+  const input = document.getElementById('master-pin-input');
+  const err = document.getElementById('master-pin-err');
+  if (err) err.classList.add('hidden');
+  if (input) input.value = '';
+  if (m) m.classList.remove('hidden');
+  if (input) setTimeout(() => input.focus(), 100);
+}
+
+function closeMasterPinModal() {
+  const m = document.getElementById('master-pin-modal');
+  if (m) m.classList.add('hidden');
+}
+
+async function submitMasterPin() {
+  const input = document.getElementById('master-pin-input');
+  const err = document.getElementById('master-pin-err');
+  const pin = input ? input.value.trim() : '';
+
+  if (pin === '2026' || pin === 'sd2026' || pin === '1234') {
+    closeMasterPinModal();
+    const masterId = (typeof DataService !== 'undefined' && DataService.getMasterSheetId) ? DataService.getMasterSheetId() : '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+    localStorage.setItem('sd_custom_sheet_id', masterId);
+    localStorage.setItem('sd_profile_data', JSON.stringify(DEFAULT_PROFILE_DATA));
+    syncHeaderProfileUI();
+    checkOnboardingGate();
+    showToastNotification('🔓 ស្វាគមន៍ការចូលប្រើប្រាស់ជា Master Admin (ស្តី ស្តើង)');
+    await DataService.fetchData(false);
+    renderCurrentView();
+  } else {
+    if (err) {
+      err.textContent = 'លេខកូដមិនត្រឹមត្រូវឡើយ';
+      err.classList.remove('hidden');
+    }
+  }
+}
+
+function disconnectCustomSheet() {
+  if (window.DataService && typeof window.DataService.disconnectSheet === 'function') {
+    window.DataService.disconnectSheet();
+  } else {
+    try {
+      localStorage.removeItem('sd_custom_sheet_id');
+      localStorage.removeItem('sd_profile_data');
+    } catch (_) {}
+  }
+  document.getElementById('profile-sub-modal')?.classList?.add('hidden');
+  document.getElementById('profile-dashboard-drawer')?.classList?.add('translate-x-full');
+  syncHeaderProfileUI();
+  checkOnboardingGate();
+  showToastNotification('បានផ្តាច់ការតភ្ជាប់ Sheet រួចរាល់');
 }
 
 window.saveCustomGoogleSheetId = saveCustomGoogleSheetId;
 window.testCustomGoogleSheetConnection = testCustomGoogleSheetConnection;
 window.resetCustomGoogleSheetToMaster = resetCustomGoogleSheetToMaster;
+window.checkOnboardingGate = checkOnboardingGate;
+window.submitOnboardingConnection = submitOnboardingConnection;
+window.openMasterAdminPinModal = openMasterAdminPinModal;
+window.closeMasterPinModal = closeMasterPinModal;
+window.submitMasterPin = submitMasterPin;
+window.disconnectCustomSheet = disconnectCustomSheet;
 
 function closeProfileSubModal() {
   document.getElementById('profile-sub-modal')?.classList?.add('hidden');
@@ -9896,8 +10059,9 @@ function openProfileSubModal(type) {
   let contentHTML = '';
 
   if (type === 'custom_sheet') {
-    const isCustom = (typeof DataService !== 'undefined' && DataService.isUsingCustomSheet && DataService.isUsingCustomSheet());
-    const currentId = (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+    const isCustom = (typeof DataService !== 'undefined' && DataService.hasActiveSheet && !DataService.isMasterSheet());
+    const isMaster = (typeof DataService !== 'undefined' && DataService.isMasterSheet && DataService.isMasterSheet());
+    const currentId = (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '';
     const savedCustomId = (typeof DataService !== 'undefined' && DataService.getCustomSheetId) ? DataService.getCustomSheetId() : '';
     title = 'Google Sheet ផ្ទាល់ខ្លួន (Sheet Sync)';
     sub = 'ដំណើរការ Dashboard ដោយប្រើប្រាស់ទិន្នន័យរបស់កូនក្រុម';
@@ -9906,15 +10070,15 @@ function openProfileSubModal(type) {
     contentHTML = `
       <div class="space-y-3 select-none">
         <!-- Status Card -->
-        <div class="p-3.5 rounded-2xl ${isCustom ? 'bg-indigo-500/10 border border-indigo-500/25' : 'bg-blue-500/10 border border-blue-500/25'} space-y-1.5">
+        <div class="p-3.5 rounded-2xl ${isCustom ? 'bg-indigo-500/10 border border-indigo-500/25' : (isMaster ? 'bg-blue-500/10 border border-blue-500/25' : 'bg-slate-500/10 border border-slate-500/25')} space-y-1.5">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">ស្ថានភាពទិន្នន័យបច្ចុប្បន្ន</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${isCustom ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'}">
-              ${isCustom ? '✅ Sheet ផ្ទាល់ខ្លួន (Custom)' : '🏢 Master Sheet (ស្តី ស្តើង)'}
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${isCustom ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (isMaster ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-slate-500/20 text-slate-400 border border-slate-500/30')}">
+              ${isMaster ? '🏢 Master Sheet (ស្តី ស្តើង)' : (isCustom ? '✅ Sheet ផ្ទាល់ខ្លួន (Custom)' : '⚠️ មិនទាន់ភ្ជាប់')}
             </span>
           </div>
           <p class="text-xs font-mono text-slate-200 truncate pt-0.5" title="${currentId}">
-            ID: <span class="text-amber-300 font-bold">${currentId}</span>
+            ID: <span class="text-amber-300 font-bold">${currentId || 'គ្មាន'}</span>
           </p>
         </div>
 
@@ -9928,7 +10092,7 @@ function openProfileSubModal(type) {
                    placeholder="https://docs.google.com/spreadsheets/d/.../edit" 
                    class="w-full text-xs font-mono bg-black/50 border border-white/10 rounded-xl p-3 pr-8 text-white focus:outline-none focus:border-indigo-500 transition">
             <button type="button" onclick="document.getElementById('custom-sheet-input').value = ''" 
-                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs">✕</button>
+                     class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs">✕</button>
           </div>
           
           <div id="custom-sheet-status-box" class="min-h-[20px] pt-0.5"></div>
@@ -9947,12 +10111,18 @@ function openProfileSubModal(type) {
           </div>
 
           ${isCustom ? `
-            <button onclick="resetCustomGoogleSheetToMaster()" 
+            <button onclick="disconnectCustomSheet()" 
                     class="w-full mt-2 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5">
-              <i data-lucide="undo" class="w-3.5 h-3.5"></i>
-              <span>ត្រឡប់ទៅ Master Sheet ដើមវិញ</span>
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+              <span>ផ្តាច់ការតភ្ជាប់ Sheet (Disconnect)</span>
             </button>
-          ` : ''}
+          ` : (isMaster ? `
+            <button onclick="disconnectCustomSheet()" 
+                    class="w-full mt-2 py-2 rounded-xl bg-slate-700/50 hover:bg-slate-700 border border-white/10 text-slate-300 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+              <span>ចាកចេញពី Master Admin (Logout)</span>
+            </button>
+          ` : '')}
         </div>
 
         <!-- Guide for Members (Step by Step) -->
