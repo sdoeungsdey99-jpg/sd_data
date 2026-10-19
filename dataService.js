@@ -741,6 +741,10 @@ window.DataService = {
     if (!cleanId || cleanId.length < 15) {
       throw new Error('លេខសម្គាល់ Google Sheet ID មិនត្រឹមត្រូវឡើយ');
     }
+    try {
+      localStorage.removeItem('sd_local_orders');
+      localStorage.removeItem('sd_local_expenses');
+    } catch (_) {}
     localStorage.setItem('sd_custom_sheet_id', cleanId);
     return await this.fetchData(false);
   },
@@ -762,6 +766,8 @@ window.DataService = {
     try {
       localStorage.removeItem('sd_custom_sheet_id');
       localStorage.removeItem('sd_profile_data');
+      localStorage.removeItem('sd_local_orders');
+      localStorage.removeItem('sd_local_expenses');
     } catch (_) {}
     this.data = null;
     this.isLoading = false;

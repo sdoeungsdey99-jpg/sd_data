@@ -7925,12 +7925,12 @@ const DEFAULT_PROFILE_DATA = {
 };
 
 const DEFAULT_GUEST_PROFILE_DATA = {
-  name: 'សមាជិកក្រុមការងារ',
-  memberId: 'ID: SD-MEMBER',
-  subtitle: 'SD Team Member',
-  avatar: 'vst-logo.png',
-  work: 'ផ្នែកលក់ & ទីផ្សារ (Sales & Marketing)',
-  study: 'SD Team',
+  name: 'សមាជិក Bostar',
+  memberId: 'ID: BG-001',
+  subtitle: 'BostarGroup Member',
+  avatar: 'bostar-logo.png',
+  work: 'សមាជិកក្រុម BostarGroup',
+  study: 'BostarGroup',
   live: 'រាជធានីភ្នំពេញ',
   from: 'ព្រះរាជាណាចក្រកម្ពុជា',
   status: 'សកម្មក្នុងការងារ',
@@ -7948,10 +7948,15 @@ const DEFAULT_GUEST_PROFILE_DATA = {
 };
 
 function getProfileData() {
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   try {
     const raw = localStorage.getItem('sd_profile_data');
     if (raw) {
       const parsed = JSON.parse(raw);
+      // If not in Master Sheet mode, prevent lingering Master Admin personal info
+      if (!isMaster && (parsed.name === 'ស្តី ស្តើង' || parsed.phone === '096 212 9261' || parsed.phone === '097 859 5526')) {
+        return { ...DEFAULT_GUEST_PROFILE_DATA, privacy: { ...DEFAULT_GUEST_PROFILE_DATA.privacy } };
+      }
       return {
         ...DEFAULT_GUEST_PROFILE_DATA,
         ...parsed,
@@ -7965,7 +7970,7 @@ function getProfileData() {
     console.warn('Error reading sd_profile_data:', e);
   }
   
-  if (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet()) {
+  if (isMaster) {
     return { ...DEFAULT_PROFILE_DATA, privacy: { ...DEFAULT_PROFILE_DATA.privacy } };
   }
   return { ...DEFAULT_GUEST_PROFILE_DATA, privacy: { ...DEFAULT_GUEST_PROFILE_DATA.privacy } };
@@ -7979,9 +7984,9 @@ function syncHeaderProfileUI() {
   const badgeEl = document.getElementById('header-profile-badge');
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
 
-  if (avatarEl) avatarEl.src = p.avatar || (isMaster ? 'profile.png' : 'vst-logo.png');
-  if (nameEl) nameEl.textContent = p.name || (isMaster ? 'ស្តី ស្តើង' : 'SD Data');
-  if (subEl) subEl.textContent = p.subtitle || (isMaster ? 'SDEY SDOEUNG' : 'Smart Business Hub');
+  if (avatarEl) avatarEl.src = isMaster ? (p.avatar || 'profile.png') : (p.avatar || 'bostar-logo.png');
+  if (nameEl) nameEl.textContent = isMaster ? (p.name || 'ស្តី ស្តើង') : (p.name || 'BostarGroup');
+  if (subEl) subEl.textContent = isMaster ? (p.subtitle || 'SDEY SDOEUNG') : (p.subtitle || 'Bostar Sales & Finance');
   if (badgeEl) {
     if (isMaster) {
       badgeEl.classList.remove('hidden');
@@ -9282,19 +9287,20 @@ function saveProfileData() {
   const current = getProfileData();
   const getVal = (id) => (document.getElementById(id)?.value || '').trim();
 
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   const updated = {
     ...current,
-    avatar: tempAvatarDataUrl || current.avatar || 'profile.png',
-    name: getVal('edit-prof-name') || 'ស្តី ស្តើង',
-    memberId: getVal('edit-prof-id') || 'ID: SD-0001',
-    subtitle: getVal('edit-prof-sub') || 'SDEY SDOEUNG',
-    work: getVal('edit-prof-work'),
-    study: getVal('edit-prof-study'),
+    avatar: tempAvatarDataUrl || current.avatar || (isMaster ? 'profile.png' : 'bostar-logo.png'),
+    name: getVal('edit-prof-name') || (isMaster ? 'ស្តី ស្តើង' : 'សមាជិក Bostar'),
+    memberId: getVal('edit-prof-id') || (isMaster ? 'ID: SD-0001' : 'ID: BG-001'),
+    subtitle: getVal('edit-prof-sub') || (isMaster ? 'SDEY SDOEUNG' : 'BostarGroup Member'),
+    work: getVal('edit-prof-work') || (isMaster ? current.work : 'សមាជិកក្រុម BostarGroup'),
+    study: getVal('edit-prof-study') || (isMaster ? current.study : 'BostarGroup'),
     live: getVal('edit-prof-live'),
     from: getVal('edit-prof-from'),
     status: getVal('edit-prof-status'),
-    birthday: getVal('edit-prof-birthday') || '១៥ មករា ២០០០',
-    phone: getVal('edit-prof-phone')
+    birthday: getVal('edit-prof-birthday') || '',
+    phone: getVal('edit-prof-phone') || ''
   };
 
   try {
@@ -9938,16 +9944,20 @@ async function submitOnboardingConnection() {
 
   try {
     const res = await DataService.testSheetConnection(cleanId);
+    try {
+      localStorage.removeItem('sd_local_orders');
+      localStorage.removeItem('sd_local_expenses');
+    } catch (_) {}
     localStorage.setItem('sd_custom_sheet_id', cleanId);
     
-    const memberName = name || 'សមាជិកក្រុមការងារ';
+    const memberName = name || 'សមាជិក Bostar';
     const memberProfile = {
       name: memberName,
-      memberId: 'ID: SD-' + Math.floor(1000 + Math.random() * 9000),
-      subtitle: `${memberName} • សមាជិកក្រុម`,
-      avatar: 'vst-logo.png',
-      work: 'ផ្នែកលក់ & ទីផ្សារ (Sales & Marketing)',
-      study: 'SD Team',
+      memberId: 'ID: BG-' + Math.floor(100 + Math.random() * 900),
+      subtitle: name ? `${memberName} • BostarGroup` : 'BostarGroup Member',
+      avatar: 'bostar-logo.png',
+      work: 'សមាជិកក្រុម BostarGroup',
+      study: 'BostarGroup',
       live: 'រាជធានីភ្នំពេញ',
       from: 'ព្រះរាជាណាចក្រកម្ពុជា',
       status: 'សកម្មក្នុងការងារ',
@@ -11087,8 +11097,13 @@ function openNewOrderModal() {
 
   const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
 
-  if (sellerInput) sellerInput.value = profile.name || 'ស្ដី ស្ដើង';
-  if (sellerPhoneInput) sellerPhoneInput.value = '';
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+  if (sellerInput) {
+    sellerInput.value = isMaster ? (profile.name || 'ស្ដី ស្ដើង') : (profile.name && profile.name !== 'សមាជិក Bostar' && profile.name !== 'សមាជិកក្រុមការងារ' ? profile.name : '');
+  }
+  if (sellerPhoneInput) {
+    sellerPhoneInput.value = isMaster ? (profile.phone || '097 859 5526') : (profile.phone || '');
+  }
   if (dateInput) {
     dateInput.value = todayIso;
     updateOrderDateDisplay(todayIso);
@@ -11161,8 +11176,11 @@ function clearOrderInput() {
   updateOrderDateDisplay(todayIso);
 
   const profile = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   const sellerInput = document.getElementById('order-field-seller');
-  if (sellerInput) sellerInput.value = profile.name || 'ស្ដី ស្ដើង';
+  if (sellerInput) {
+    sellerInput.value = isMaster ? (profile.name || 'ស្ដី ស្ដើង') : (profile.name && profile.name !== 'សមាជិក Bostar' && profile.name !== 'សមាជិកក្រុមការងារ' ? profile.name : '');
+  }
 
   const custInput = document.getElementById('order-field-customer');
   if (custInput) custInput.value = '';
@@ -11177,7 +11195,9 @@ function clearOrderInput() {
   if (noteInput) noteInput.value = '';
 
   const sellerPhoneInput = document.getElementById('order-field-seller-phone');
-  if (sellerPhoneInput) sellerPhoneInput.value = '';
+  if (sellerPhoneInput) {
+    sellerPhoneInput.value = isMaster ? (profile.phone || '097 859 5526') : (profile.phone || '');
+  }
 
   const deliveryInput = document.getElementById('order-field-delivery');
   if (deliveryInput) deliveryInput.value = 'VET (COD)';
@@ -11218,12 +11238,13 @@ function setOrderType(type) {
   const sellerPhoneInput = document.getElementById('order-field-seller-phone');
 
   if (type === 'reward') {
+    const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
     if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-400';
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
-    if (desc) desc.innerText = 'លក់រង្វាន់: មិនគិតថ្លៃដើមស្តុក ($0) និងកំណត់លេខអ្នកលក់ជា 097 859 5526 ស្វ័យប្រវត្តិ។';
+    if (desc) desc.innerText = isMaster ? 'លក់រង្វាន់: មិនគិតថ្លៃដើមស្តុក ($0) និងកំណត់លេខអ្នកលក់ជា 097 859 5526 ស្វ័យប្រវត្តិ។' : 'លក់រង្វាន់: មិនគិតថ្លៃដើមស្តុក ($0)។';
     if (orderIdGroup) orderIdGroup.classList.add('opacity-40', 'pointer-events-none');
     if (noteInput && !noteInput.value) noteInput.value = 'លក់រង្វាន់';
-    if (sellerPhoneInput) sellerPhoneInput.value = '097 859 5526';
+    if (sellerPhoneInput && isMaster) sellerPhoneInput.value = '097 859 5526';
   } else {
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-orange-500/20 border-orange-500 text-orange-400';
     if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
@@ -11510,7 +11531,10 @@ async function submitNewOrder() {
     date = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
   }
 
-  const seller = getVal('order-field-seller') || 'ស្ដី ស្ដើង';
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+  const activeProf = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const defaultSeller = isMaster ? 'ស្ដី ស្ដើង' : (activeProf.name || 'សមាជិក Bostar');
+  const seller = getVal('order-field-seller') || defaultSeller;
   const phone = getVal('order-field-phone');
   const location = getVal('order-field-location');
   const customer = getVal('order-field-customer');
@@ -11529,9 +11553,9 @@ async function submitNewOrder() {
     thaiBaht = Math.round((totalUsd * 35.6) / 0.97);
   }
 
-  // លេខអ្នកលក់: បើ VET (COD) ឬ លក់រង្វាន់ ត្រូវតែជា 097 859 5526
+  // លេខអ្នកលក់: បើ Master Admin ហើយជា VET (COD) ឬ លក់រង្វាន់ កំណត់ជា 097 859 5526
   let sellerPhone = getVal('order-field-seller-phone');
-  if (delivery === 'VET (COD)' || isReward) {
+  if (isMaster && !sellerPhone && (delivery === 'VET (COD)' || isReward)) {
     sellerPhone = '097 859 5526';
   }
 
@@ -11627,7 +11651,11 @@ async function submitNewOrder() {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'add_order', data: newRecord })
+        body: JSON.stringify({
+          action: 'add_order',
+          sheetId: (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '',
+          data: newRecord
+        })
       });
       syncSuccess = true;
     } catch (e) {
@@ -12092,7 +12120,11 @@ async function submitNewExpense() {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'add_expense', data: newExpense })
+        body: JSON.stringify({
+          action: 'add_expense',
+          sheetId: (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '',
+          data: newExpense
+        })
       });
       expSyncSuccess = true;
     } catch (e) {
@@ -12176,8 +12208,10 @@ function updateDeliveryShippingDefault() {
     shipInput.value = '5.50';
   } else if (val === 'VET (COD)') {
     shipInput.value = '3.00';
-    // លក្ខណត្រង់ក្រុមហ៊ុនដឹកជញ្ជូន បើជ្រើសយក VET(COD) ត្រូវលោតបំពេញលេខ 097 859 5526 ជានិច្ច
-    if (sellerPhoneInput) sellerPhoneInput.value = '097 859 5526';
+    const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+    if (isMaster && sellerPhoneInput && !sellerPhoneInput.value) {
+      sellerPhoneInput.value = '097 859 5526';
+    }
   } else if (val === 'J&T (COD)') {
     shipInput.value = '3.00';
   } else if (val === 'VET Express') {

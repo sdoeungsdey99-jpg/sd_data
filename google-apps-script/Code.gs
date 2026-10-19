@@ -43,7 +43,8 @@ function doPost(e) {
     var payload = JSON.parse(e.postData.contents);
     var action = payload.action;
     var data = payload.data;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var targetSheetId = (payload.sheetId && String(payload.sheetId).length > 15) ? String(payload.sheetId).trim() : null;
+    var ss = targetSheetId ? SpreadsheetApp.openById(targetSheetId) : SpreadsheetApp.getActiveSpreadsheet();
 
     if (action === 'add_order') {
       var result = insertPersonalSalesOrder(ss, data);
