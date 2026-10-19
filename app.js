@@ -1908,6 +1908,21 @@ function switchView(viewName, shouldReload = false) {
 let calendarViewYear = (new Date()).getFullYear();
 let calendarViewMonth = (new Date()).getMonth() + 1; // 1-12
 
+function updateFilterBackdrop() {
+  const backdrop = document.getElementById('filter-dropdown-backdrop');
+  if (!backdrop) return;
+  const anyOpen = ['day-dropdown-menu', 'month-dropdown-menu', 'year-dropdown-menu'].some(id => {
+    const el = document.getElementById(id);
+    return el && !el.classList.contains('hidden');
+  });
+  if (anyOpen) {
+    backdrop.classList.remove('hidden');
+  } else {
+    backdrop.classList.add('hidden');
+  }
+}
+window.updateFilterBackdrop = updateFilterBackdrop;
+
 function toggleDayDropdown(event) {
   if (event) event.stopPropagation();
   closeAllFilterDropdowns('day');
@@ -1916,6 +1931,7 @@ function toggleDayDropdown(event) {
   if (menu) {
     menu.classList.toggle('hidden');
   }
+  updateFilterBackdrop();
 }
 
 function renderMiniCalendar() {
@@ -2104,6 +2120,7 @@ function toggleMonthDropdown(event) {
   if (menu) {
     menu.classList.toggle('hidden');
   }
+  updateFilterBackdrop();
 }
 
 let monthPickerYear = (new Date()).getFullYear();
@@ -2192,6 +2209,7 @@ function toggleYearDropdown(event) {
   if (menu) {
     menu.classList.toggle('hidden');
   }
+  updateFilterBackdrop();
 }
 
 function renderYearDropdownMenu() {
@@ -2245,6 +2263,7 @@ function closeAllFilterDropdowns(except = '') {
     const yearMenu = document.getElementById('year-dropdown-menu');
     if (yearMenu) yearMenu.classList.add('hidden');
   }
+  updateFilterBackdrop();
 }
 
 // Close dropdowns if clicked outside
@@ -2496,7 +2515,7 @@ function getDashboardViewHTML() {
   const monthlyExpensesList = d.expenses.filter(e => e.isoDate.startsWith(targetMonthKey));
   const monthlyTotalExpenseAmt = monthlyExpensesList.reduce((sum, e) => sum + (e.amount || 0), 0);
   const monthlyBoostAmt = (d.boostByMonth && d.boostByMonth[selectedMonthInt]) || 0;
-  const monthlyBudgetGoal = 450.0;
+  const monthlyBudgetGoal = parseFloat(localStorage.getItem('sd_monthly_budget')) || 450.0;
   const remainingBudget = monthlyBudgetGoal - monthlyTotalExpenseAmt;
 
   // Dynamic Expense Card Title based on selected Day / Month / Year
@@ -2649,8 +2668,8 @@ function getDashboardViewHTML() {
               ${t('totalBoxes')}:
             </span>
             <!-- New Data Entry Button inside Grid 1 (Icon only: pencil-line) -->
-            <button onclick="event.stopPropagation(); openNewOrderModal()" 
-                    title="បញ្ចូលទិន្នន័យការលក់ថ្មី (Smart Paste / Quick Form)"
+            <button onclick="event.stopPropagation(); openNewOrderModal('telegram')" 
+                    title="កត់ត្រាការលក់ពី Telegram ចូល Sheet ផ្ទាល់ខ្លួន"
                     class="w-6 h-6 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 hover:text-white flex items-center justify-center active:scale-95 transition shadow-sm">
               <i data-lucide="pencil-line" class="w-3.5 h-3.5"></i>
             </button>
@@ -2811,18 +2830,19 @@ function getDashboardViewHTML() {
         <span class="font-mono text-rose-400 font-bold text-sm">${formatUSD(totalExpenseAmt)}</span>
       </div>
 
-      <!-- Transferred Monthly Expense Budget Bar (កំណត់ចំណាយ 450$/ខែ) -->
-      <div onclick="event.stopPropagation(); openExpensesModal(true);"
-           title="មើលតារាងចំណាយពេញមួយខែ ${selectedMonthNum}"
-           class="mt-2.5 p-2.5 rounded-xl bg-gradient-to-r from-rose-950/40 via-black/30 to-emerald-950/40 border border-white/10 flex items-center justify-between cursor-pointer hover:border-white/20 transition">
-        <div class="flex items-center gap-1.5">
+      <!-- Transferred Monthly Expense Budget Bar (កំណត់ចំណាយ ${monthlyBudgetGoal}$/ខែ) -->
+      <div class="mt-2.5 p-2.5 rounded-xl bg-gradient-to-r from-rose-950/40 via-black/30 to-emerald-950/40 border border-white/10 flex items-center justify-between transition">
+        <div onclick="event.stopPropagation(); openEditBudgetModal()" 
+             title="ចុចដើម្បីកែប្រែគោលដៅចំណាយប្រចាំខែ"
+             class="flex items-center gap-1.5 cursor-pointer hover:opacity-80 active:scale-95 transition py-0.5">
           <i data-lucide="target" class="w-3.5 h-3.5 text-rose-400 shrink-0"></i>
-          <span class="text-xs text-slate-300 font-semibold">កំណត់ចំណាយ 450$/ខែ</span>
+          <span class="text-xs text-slate-300 font-semibold underline decoration-white/20 underline-offset-2">កំណត់ចំណាយ ${monthlyBudgetGoal}$/ខែ</span>
         </div>
 
         <div class="flex items-center gap-2">
           <!-- Remaining Budget text -->
-          <span class="text-sm font-bold font-mono ${remainingBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+          <span onclick="event.stopPropagation(); openExpensesModal(true)" 
+                class="text-sm font-bold font-mono cursor-pointer ${remainingBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
             ${remainingBudget >= 0 ? `សល់ ${formatUSD(remainingBudget)}` : `លើស ${formatUSD(Math.abs(remainingBudget))}`}
           </span>
 
@@ -3371,6 +3391,10 @@ function getAnalyticsViewHTML() {
     const netBusinessProfit = monthTotalProfit - monthBoost;
     const trueNetPocket = netBusinessProfit - monthTotalExpense;
 
+    const isAnalyticsNetProfit = (appState.analyticsProfitMode === 'net');
+    const displayedAnalyticsProfit = isAnalyticsNetProfit ? netBusinessProfit : monthTotalProfit;
+    const displayedAnalyticsProfitLabel = isAnalyticsNetProfit ? 'ចំណេញសុទ្ធ (-Boost)' : 'ចំណេញដុល';
+
     // Calculate max scale based on active tab
     let maxDailyVal = 10;
     if (currentTab === 'expenses') {
@@ -3468,13 +3492,13 @@ function getAnalyticsViewHTML() {
               </span>
             </div>
             <div class="border-t border-white/10 my-2.5"></div>
-            <div>
+            <div onclick="toggleAnalyticsProfitMode()" class="cursor-pointer hover:opacity-80 active:scale-95 transition" title="ចុចដើម្បីប្តូររវាង ចំណេញដុល និង ចំណេញសុទ្ធ">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណេញដុល</span>
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></span>
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">${displayedAnalyticsProfitLabel}</span>
+                <span class="w-1.5 h-1.5 rounded-full ${isAnalyticsNetProfit ? 'bg-cyan-400 shadow-sm shadow-cyan-400/50' : 'bg-blue-400 shadow-sm shadow-blue-400/50'}"></span>
               </div>
-              <span class="font-mono font-bold text-blue-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
-                ${formatUSD(monthTotalProfit)}
+              <span class="font-mono font-bold ${isAnalyticsNetProfit ? 'text-cyan-400' : 'text-blue-400'} block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${formatUSD(displayedAnalyticsProfit)}
               </span>
             </div>
           </div>
@@ -3528,13 +3552,13 @@ function getAnalyticsViewHTML() {
               </span>
             </div>
             <div class="border-t border-white/10 my-2.5"></div>
-            <div>
+            <div onclick="toggleAnalyticsProfitMode()" class="cursor-pointer hover:opacity-80 active:scale-95 transition" title="ចុចដើម្បីប្តូររវាង ចំណេញដុល និង ចំណេញសុទ្ធ">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">ចំណេញដុល</span>
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></span>
+                <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">${displayedAnalyticsProfitLabel}</span>
+                <span class="w-1.5 h-1.5 rounded-full ${isAnalyticsNetProfit ? 'bg-cyan-400 shadow-sm shadow-cyan-400/50' : 'bg-blue-400 shadow-sm shadow-blue-400/50'}"></span>
               </div>
-              <span class="font-mono font-bold text-blue-400 block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
-                ${formatUSD(monthTotalProfit)}
+              <span class="font-mono font-bold ${isAnalyticsNetProfit ? 'text-cyan-400' : 'text-blue-400'} block tracking-tight leading-tight whitespace-nowrap" style="font-size: clamp(0.9rem, 3.8vw, 1.25rem);">
+                ${formatUSD(displayedAnalyticsProfit)}
               </span>
             </div>
           </div>
@@ -6648,8 +6672,8 @@ function applyExpensesFilterAndRender() {
 
   if (subtitle) {
     subtitle.textContent = periodLabel === 'ទាំងអស់'
-      ? `ការចំណាយទាំងអស់ (${sortedExpenses.length} មុខ)`
-      : `ការចំណាយតាម ${periodLabel} (${sortedExpenses.length} មុខ)`;
+      ? `ចំណាយទាំងអស់ (${sortedExpenses.length} មុខ)`
+      : `ចំណាយតាម ${periodLabel} (${sortedExpenses.length} មុខ)`;
   }
 
   currentLoadedExpenses = sortedExpenses;
@@ -10820,7 +10844,6 @@ const COMPANY_GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd_hP3
 const BOSTAR_TEAM_SELLERS = [
   { km: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung' },
   { km: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung' },
-  { km: 'ស្តី ស្តើង', en: 'Sdey Sdoeung' },
   { km: 'ញែក សុគន្ធ', en: 'Nhek Sokun' },
   { km: 'អយ ស្រីនី', en: 'Oy Sreyny' },
   { km: 'ផាត់ ណាវី', en: 'Phat Navy' },
@@ -10854,8 +10877,7 @@ const BOSTAR_TEAM_SELLERS = [
   { km: 'ជុន ថាវី', en: 'Chun Thavy' },
   { km: 'ងេន សុខា', en: 'Ngen Sokha' },
   { km: 'សុមុន្នី ស្រីណុច', en: 'Somony Sreynoch' },
-  { km: 'ម៉ន សីហាក់', en: 'Morn Seyhak' },
-  { km: 'សុង ស្រឡែន', en: 'Song Sreylen' }
+  { km: 'ម៉ន សីហាក់', en: 'Morn Seyhak' }
 ];
 
 function getSellerLatinName(kmName) {
@@ -10877,6 +10899,100 @@ function onSellerNameChange(val) {
     } catch (_) {}
   }
 }
+
+function formatKhmerPhone(raw) {
+  if (!raw) return '';
+  let digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('855')) {
+    digits = '0' + digits.slice(3);
+  }
+  if (!digits.startsWith('0') && digits.length >= 8) {
+    digits = '0' + digits;
+  }
+  if (digits.length <= 3) {
+    return digits;
+  } else if (digits.length <= 6) {
+    return `${digits.slice(0, 3)} ${digits.slice(3)}`;
+  } else if (digits.length <= 9) {
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  } else {
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 10)}`;
+  }
+}
+window.formatKhmerPhone = formatKhmerPhone;
+
+let isExtraOrderProductsOpen = false;
+
+function toggleExtraOrderProducts(forceState) {
+  const container = document.getElementById('order-extra-products-container');
+  const icon = document.getElementById('icon-toggle-extra-products');
+  const label = document.getElementById('label-toggle-extra-products');
+  if (!container) return;
+
+  if (typeof forceState === 'boolean') {
+    isExtraOrderProductsOpen = forceState;
+  } else {
+    isExtraOrderProductsOpen = !isExtraOrderProductsOpen;
+  }
+
+  if (isExtraOrderProductsOpen) {
+    container.classList.remove('hidden');
+    if (icon) icon.style.transform = 'rotate(180deg)';
+    if (label) label.innerHTML = `<i data-lucide="minus-circle" class="w-3.5 h-3.5 text-orange-400"></i><span>លាក់មុខទំនិញបន្ថែម (Emmi, S.G Pro)</span>`;
+  } else {
+    container.classList.add('hidden');
+    if (icon) icon.style.transform = 'rotate(0deg)';
+    if (label) label.innerHTML = `<i data-lucide="plus-circle" class="w-3.5 h-3.5 text-orange-400"></i><span>មុខទំនិញបន្ថែម (Emmi, S.G Pro)</span>`;
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+window.toggleExtraOrderProducts = toggleExtraOrderProducts;
+
+function initProductSwipeGestures() {
+  const cards = document.querySelectorAll('.product-swipe-item');
+  cards.forEach(card => {
+    if (card._swipeInitialized) return;
+    card._swipeInitialized = true;
+
+    let startX = 0;
+    let startY = 0;
+    let isSwiping = false;
+    const prodKey = card.getAttribute('data-prod-key');
+    if (!prodKey) return;
+
+    card.addEventListener('touchstart', (e) => {
+      if (e.target.closest('button')) return;
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      isSwiping = true;
+    }, { passive: true });
+
+    card.addEventListener('touchmove', (e) => {
+      if (!isSwiping || e.target.closest('button')) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+
+      if (Math.abs(deltaX) > 38 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+        if (deltaX > 0) {
+          adjustProductQty(prodKey, 1);
+        } else {
+          adjustProductQty(prodKey, -1);
+        }
+        if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+        startX = touch.clientX;
+        startY = touch.clientY;
+      }
+    }, { passive: true });
+
+    card.addEventListener('touchend', () => {
+      isSwiping = false;
+    }, { passive: true });
+  });
+}
+window.initProductSwipeGestures = initProductSwipeGestures;
 
 async function submitToCompanyGoogleForm(orderData) {
   try {
@@ -11249,21 +11365,47 @@ function onPriceRawInput(isTyping = false) {
   calculateOrderFinancials();
 }
 
-function openNewOrderModal() {
+let currentOrderEntryMode = 'dock'; // 'dock' (3-in-1 fresh order) or 'telegram' (paste from telegram to personal sheet only)
+
+function openNewOrderModal(mode = 'dock') {
+  currentOrderEntryMode = mode || 'dock';
   const modal = document.getElementById('new-order-modal');
   if (!modal) return;
+
+  const modalTitle = document.getElementById('order-modal-title');
+  const modalSubtitle = document.getElementById('order-modal-subtitle');
+  const pasteBox = document.getElementById('order-paste-box');
+  const btnHeaderPass = document.getElementById('btn-header-pass');
+  const card3in1 = document.getElementById('order-3in1-card');
+  const syncToggle = document.getElementById('order-field-sync-company-form');
+
+  if (currentOrderEntryMode === 'telegram') {
+    if (modalTitle) modalTitle.textContent = 'កត់ត្រាពី Telegram';
+    if (modalSubtitle) modalSubtitle.textContent = 'ចូល Google Sheet ផ្ទាល់ខ្លួន';
+    if (pasteBox) pasteBox.classList.remove('hidden');
+    if (btnHeaderPass) btnHeaderPass.classList.remove('hidden');
+    if (card3in1) card3in1.classList.add('hidden');
+    if (syncToggle) syncToggle.checked = false; // Strictly OFF for telegram mode!
+  } else {
+    // Dock 3-in-1 Mode
+    if (modalTitle) modalTitle.textContent = 'បញ្ចូលការកុម្ម៉ង់ថ្មី';
+    if (modalSubtitle) modalSubtitle.textContent = 'Sync ផ្ទាល់ខ្លួន & ក្រុមហ៊ុន';
+    if (pasteBox) pasteBox.classList.add('hidden');
+    if (btnHeaderPass) btnHeaderPass.classList.add('hidden');
+    if (card3in1) card3in1.classList.add('hidden');
+    if (syncToggle) syncToggle.checked = true; // Auto-sync active for 3-in-1
+  }
 
   const profile = (typeof getProfileData === 'function') ? getProfileData() : {};
   const sellerInput = document.getElementById('order-field-seller');
   const sellerPhoneInput = document.getElementById('order-field-seller-phone');
+  const customerPhoneInput = document.getElementById('order-field-phone');
   const dateInput = document.getElementById('order-field-date');
   const orderIdInput = document.getElementById('order-field-id');
 
   const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
-
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   
-  // Default to test seller requested by Brother Sdoeung: 'ឆេង រ៉ាស៊ុង' (or last remembered seller)
   const savedSeller = localStorage.getItem('sd_last_seller') || 'ឆេង រ៉ាស៊ុង';
   if (sellerInput) {
     sellerInput.value = savedSeller;
@@ -11272,7 +11414,11 @@ function openNewOrderModal() {
   
   const savedSellerPhone = localStorage.getItem('sd_last_seller_phone');
   if (sellerPhoneInput) {
-    sellerPhoneInput.value = savedSellerPhone || (isMaster ? (profile.phone || '097 859 5526') : (profile.phone || ''));
+    sellerPhoneInput.value = formatKhmerPhone(savedSellerPhone || (isMaster ? (profile.phone || '097 859 5526') : (profile.phone || '')));
+  }
+
+  if (customerPhoneInput && customerPhoneInput.value) {
+    customerPhoneInput.value = formatKhmerPhone(customerPhoneInput.value);
   }
 
   if (dateInput) {
@@ -11280,26 +11426,41 @@ function openNewOrderModal() {
     updateOrderDateDisplay(todayIso);
   }
 
-  if (orderIdInput && (!orderIdInput.value || orderIdInput.value === '#')) {
-    let nextId = '#3137';
-    if (DataService.data && DataService.data.personalSales && DataService.data.personalSales.length > 0) {
-      const topOrder = DataService.data.personalSales.find(o => o.orderId && o.orderId.startsWith('#'));
-      if (topOrder) {
-        const num = parseInt(topOrder.orderId.replace('#', ''));
-        if (!isNaN(num)) nextId = `#${num + 1}`;
-      }
-    }
-    orderIdInput.value = nextId;
+  // Order ID: Leave empty by default with placeholder '#' (no auto-increment, as instructed by Brother Sdoeung)
+  if (orderIdInput) {
+    orderIdInput.value = '';
+    orderIdInput.placeholder = '#';
   }
 
-  // Ensure Auto-Sync to Company Form toggle is checked by default
-  const syncToggle = document.getElementById('order-field-sync-company-form');
-  if (syncToggle) syncToggle.checked = true;
+  // Attach phone formatting listeners
+  if (sellerPhoneInput && !sellerPhoneInput._phoneFormatBound) {
+    sellerPhoneInput._phoneFormatBound = true;
+    sellerPhoneInput.addEventListener('input', (e) => {
+      e.target.value = formatKhmerPhone(e.target.value);
+    });
+  }
+  if (customerPhoneInput && !customerPhoneInput._phoneFormatBound) {
+    customerPhoneInput._phoneFormatBound = true;
+    customerPhoneInput.addEventListener('input', (e) => {
+      e.target.value = formatKhmerPhone(e.target.value);
+      checkOrderSubmitValidation();
+    });
+  }
 
+  // Reset products: Yong Liang: 1, Yong Liang Plus: 1, others: 0
   currentOrderProducts = { yl: 1, ylp: 1, kn: 0, pdo: 0, emmi: 0, sgp: 0, free: 0 };
   updateProductQtyDisplay();
   setOrderType('standard');
-  setOrderCurrency('KHR');
+  
+  // Default currency to THB (฿) as requested
+  setOrderCurrency('THB');
+
+  // Collapse extra products by default
+  toggleExtraOrderProducts(false);
+
+  // Initialize swipe gestures on product cards
+  setTimeout(initProductSwipeGestures, 50);
+
   if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
   if (typeof updateModalLanguage === 'function') updateModalLanguage();
   checkOrderSubmitValidation();
@@ -11344,7 +11505,10 @@ function clearOrderInput() {
   if (pasteInput) pasteInput.value = '';
 
   const idInput = document.getElementById('order-field-id');
-  if (idInput) idInput.value = '';
+  if (idInput) {
+    idInput.value = '';
+    idInput.placeholder = '#';
+  }
 
   const dateInput = document.getElementById('order-field-date');
   const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
@@ -11373,7 +11537,7 @@ function clearOrderInput() {
   const savedSellerPhone = localStorage.getItem('sd_last_seller_phone');
   const sellerPhoneInput = document.getElementById('order-field-seller-phone');
   if (sellerPhoneInput) {
-    sellerPhoneInput.value = savedSellerPhone || '';
+    sellerPhoneInput.value = formatKhmerPhone(savedSellerPhone || '');
   }
 
   const deliveryInput = document.getElementById('order-field-delivery');
@@ -11388,10 +11552,11 @@ function clearOrderInput() {
   const totalUsdInput = document.getElementById('order-field-total-usd');
   if (totalUsdInput) totalUsdInput.value = '';
 
-  setOrderCurrency('KHR');
+  setOrderCurrency('THB');
 
   currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, emmi: 0, sgp: 0, free: 0 };
   updateProductQtyDisplay();
+  toggleExtraOrderProducts(false);
   calculateOrderFinancials();
   checkOrderSubmitValidation();
 
@@ -11627,7 +11792,7 @@ function parsePastedOrderText(silent = false) {
   }
   if (receiverNo) {
     const rField = document.getElementById('order-field-phone');
-    if (rField) rField.value = receiverNo;
+    if (rField) rField.value = formatKhmerPhone(receiverNo);
   }
   if (address) {
     const aField = document.getElementById('order-field-location');
@@ -11642,6 +11807,11 @@ function parsePastedOrderText(silent = false) {
   currentOrderProducts.emmi = emmiQty ? parseInt(emmiQty) : 0;
   currentOrderProducts.sgp = sgpQty ? parseInt(sgpQty) : 0;
   currentOrderProducts.free = freeQty ? parseInt(freeQty) : 0;
+
+  // Auto-expand extra products if Emmi or SGP has quantity
+  if (currentOrderProducts.emmi > 0 || currentOrderProducts.sgp > 0) {
+    toggleExtraOrderProducts(true);
+  }
 
   if (priceRaw) {
     const num = cleanNumber(priceRaw);
@@ -11686,7 +11856,7 @@ function parsePastedOrderText(silent = false) {
   const currentDeliv = document.getElementById('order-field-delivery')?.value || '';
   if (sellerNo && currentDeliv !== 'VET (COD)') {
     const phoneInput = document.getElementById('order-field-seller-phone');
-    if (phoneInput) phoneInput.value = sellerNo;
+    if (phoneInput) phoneInput.value = formatKhmerPhone(sellerNo);
   }
 
   updateProductQtyDisplay();
@@ -11821,7 +11991,7 @@ async function submitNewOrder() {
     totalAmount: totalUsd,
     shipFee: shipFee,
     deliveryMethod: delivery,
-    codStatus: 'បានដាក់ការកុម្មង់', // កំណត់ពាក្យ "បានដាក់ការកុម្មង់" ជា Default
+    codStatus: 'បានដាក់ការកុម្ម៉ង់', // កំណត់ពាក្យ "បានដាក់ការកុម្ម៉ង់" ជា Default
     profit: profit,
     note: note,
     createdAt: Date.now()
@@ -11840,8 +12010,8 @@ async function submitNewOrder() {
     localStorage.setItem('sd_local_orders', JSON.stringify(existing));
   } catch (_) {}
 
-  // 3. យុទ្ធសាស្ត្រ 3 in 1: បញ្ជូនចូល Google Sheet ផ្ទាល់ខ្លួន & Google Form ក្រុមហ៊ុន
-  const syncToCompany = document.getElementById('order-field-sync-company-form')?.checked !== false;
+  // 3. យុទ្ធសាស្ត្រ 3 in 1: បញ្ជូនចូល Google Sheet ផ្ទាល់ខ្លួន & Google Form ក្រុមហ៊ុន (បើ Mode Telegram មិនបញ្ជូនទៅក្រុមហ៊ុនដាច់ខាត)
+  const syncToCompany = (currentOrderEntryMode !== 'telegram') && (document.getElementById('order-field-sync-company-form')?.checked !== false);
   const webhookUrl = getAppsScriptWebhookUrl();
   let syncSuccess = false;
   let companyFormSuccess = false;
@@ -11868,7 +12038,7 @@ async function submitNewOrder() {
     );
   }
 
-  // 3B. Company Google Form Auto-Sync
+  // 3B. Company Google Form Auto-Sync (Only in 3-in-1 dock mode)
   if (syncToCompany && navigator.onLine) {
     syncTasks.push(
       submitToCompanyGoogleForm(newRecord).then(ok => {
@@ -11891,7 +12061,7 @@ async function submitNewOrder() {
     if (typeof addAppNotification === 'function') {
       addAppNotification({
         type: 'order',
-        title: `កុម្ម៉ង់ 3-in-1: ${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
+        title: (syncToCompany ? 'កុម្ម៉ង់ 3-in-1: ' : 'កត់ត្រាការលក់: ') + `${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
         content: `${productSummary} | ${totalBoxes} ប្រអប់ | $${formatUSD(totalUsd).replace('$', '')} | Team: Bech_Nora | ដឹក: ${delivery}`,
         tag: syncToCompany ? 'Google Form & Sheet ✓' : 'Google Sheet ✓',
         color: 'orange',
@@ -11923,7 +12093,7 @@ async function submitNewOrder() {
 
   if (btn) {
     btn.disabled = false;
-    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូលការលក់ 3-in-1 🚀</span>`;
+    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>✓ បញ្ជូនចូលការលក់ 🚀</span>`;
   }
 
   if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
@@ -12516,8 +12686,16 @@ function updateModalLanguage() {
   const orderLabelNote = document.getElementById('order-label-note');
   const btnSubmitOrder = document.getElementById('btn-submit-order');
 
-  if (orderTitle) orderTitle.textContent = isKm ? 'កត់ត្រាការកុម្ម៉ង់ថ្មី' : 'Record New Order';
-  if (orderSubtitle) orderSubtitle.textContent = isKm ? 'ការលក់ផ្ទាល់ខ្លួន និងក្រុម' : 'Personal Sales & Team Sync';
+  if (orderTitle) {
+    orderTitle.textContent = currentOrderEntryMode === 'telegram'
+      ? (isKm ? 'កត់ត្រាពី Telegram' : 'Record from Telegram')
+      : (isKm ? 'បញ្ចូលការកុម្ម៉ង់ថ្មី' : 'New Order Entry');
+  }
+  if (orderSubtitle) {
+    orderSubtitle.textContent = currentOrderEntryMode === 'telegram'
+      ? (isKm ? 'ចូល Google Sheet ផ្ទាល់ខ្លួន' : 'To Personal Google Sheet')
+      : (isKm ? 'Sync ផ្ទាល់ខ្លួន & ក្រុមហ៊ុន' : 'Sync Personal & Company');
+  }
   if (orderBtnClear) orderBtnClear.textContent = isKm ? 'សម្អាត' : 'Clear';
   if (orderPastePrompt) orderPastePrompt.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i><span>${isKm ? 'សារពី Telegram:' : 'Telegram Message:'}</span>`;
   if (orderLabelType) orderLabelType.textContent = isKm ? 'ប្រភេទការលក់:' : 'Order Type:';
@@ -12541,10 +12719,32 @@ function updateModalLanguage() {
   if (orderStockText) orderStockText.textContent = isKm ? 'ថ្លៃដើមស្តុក:' : 'Stock Cost:';
   if (orderProfitText) orderProfitText.textContent = isKm ? 'ប្រាក់ចំណេញ:' : 'Net Profit:';
   if (orderLabelNote) orderLabelNote.textContent = isKm ? 'ចំណាំបន្ថែម (ស្រេចចិត្ត):' : 'Note (Optional):';
-  if (btnSubmitOrder) btnSubmitOrder.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>${isKm ? 'បញ្ជូនចូលការលក់ផ្ទាល់ខ្លួន 🚀' : 'Submit to Personal Sales 🚀'}</span>`;
+  if (btnSubmitOrder) btnSubmitOrder.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>${isKm ? '✓ បញ្ជូនចូលការលក់ 🚀' : '✓ Submit Order 🚀'}</span>`;
 
   if (window.lucide) window.lucide.createIcons();
 }
+
+function openEditBudgetModal() {
+  const current = parseFloat(localStorage.getItem('sd_monthly_budget')) || 450;
+  const input = prompt('🎯 កំណត់គោលដៅចំណាយប្រចាំខែ ($):', current);
+  if (input !== null && input.trim() !== '') {
+    const val = parseFloat(input.trim());
+    if (!isNaN(val) && val >= 0) {
+      localStorage.setItem('sd_monthly_budget', val);
+      if (typeof showToastNotification === 'function') {
+        showToastNotification(`🎯 បានកំណត់គោលដៅចំណាយ $${val}/ខែ រួចរាល់!`);
+      }
+      if (typeof renderCurrentView === 'function') renderCurrentView();
+    }
+  }
+}
+window.openEditBudgetModal = openEditBudgetModal;
+
+function toggleAnalyticsProfitMode() {
+  appState.analyticsProfitMode = (appState.analyticsProfitMode === 'net') ? 'gross' : 'net';
+  if (typeof renderCurrentView === 'function') renderCurrentView();
+}
+window.toggleAnalyticsProfitMode = toggleAnalyticsProfitMode;
 
 window.updateDeliveryShippingDefault = updateDeliveryShippingDefault;
 window.updateModalLanguage = updateModalLanguage;
