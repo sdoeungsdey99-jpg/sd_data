@@ -3170,8 +3170,8 @@
       <!-- Scrollable Modal Body (Unified Seamless Flow) -->
       <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-3" id="new-order-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         
-        <!-- Telegram Smart Paste Box -->
-        <div id="order-paste-box" class="p-3 rounded-2xl bg-black/30 border border-white/10 space-y-2">
+        <!-- Telegram Smart Paste Box (Minimized by default on open) -->
+        <div id="order-paste-box" class="p-2.5 rounded-2xl bg-black/30 border border-white/10 space-y-1.5 transition-all duration-300">
           <div class="flex items-center justify-between">
             <label id="order-label-paste-prompt" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
@@ -3179,8 +3179,8 @@
             </label>
             <span class="text-[10px] text-slate-400 font-mono">ចុច Pass 🚀 ខាងលើ</span>
           </div>
-          <textarea id="order-paste-input" rows="5" oninput="parsePastedOrderText(true)" placeholder="🔔 មានការកុម្ម៉ង់ទំនិញថ្មីចូល 🔔&#10;&#10;🆔 Order Row: &#10;▪️ កាលបរិច្ឆេទ(Date): &#10;▪️ ថ្នាក់ដឹកនាំ(Team): &#10;▪️ ឈ្មោះអ្នកលក់: &#10;▪️ លេខអ្នកលក់(Seller No): &#10;▪️ ផលិតផល(Product): &#10;▪️ ផលិតផល(Product): &#10;▪️ តម្លៃ(Price): &#10;▪️ លេខអ្នកទទួល(Receiver No): &#10;▪️ អាសយដ្ឋាន(Address): &#10;▪️ ដឹកជញ្ជូនតាម(Delivery): &#10;▪️ Seller's Name: " 
-                    class="w-full text-xs font-mono bg-black/50 border border-white/10 rounded-xl p-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500 leading-relaxed"></textarea>
+          <textarea id="order-paste-input" rows="1" onfocus="expandOrderPasteInput()" oninput="parsePastedOrderText(true)" placeholder="🔔 មានការកុម្ម៉ង់ទំនិញថ្មីចូល 🔔" 
+                    class="w-full text-xs font-mono bg-black/50 border border-white/10 rounded-xl py-2 px-3 text-slate-200 placeholder-slate-400 text-center placeholder:text-center focus:outline-none focus:border-orange-500 leading-relaxed transition-all duration-300 resize-none h-9"></textarea>
         </div>
 
         <!-- 3-in-1 Strategy Auto-Sync Toggle Card -->
@@ -3393,18 +3393,31 @@
               </div>
             </div>
 
-            <!-- Toggle Extra Products Button (>) -->
-            <button type="button" id="btn-toggle-extra-products" onclick="toggleExtraOrderProducts()" 
-                    class="w-full py-1.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 flex items-center justify-between active:scale-98 transition shadow-sm">
-              <span id="label-toggle-extra-products" class="flex items-center gap-1.5">
-                <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-orange-400"></i>
-                <span>មុខទំនិញបន្ថែម (Emmi, S.G Pro)</span>
-              </span>
-              <i id="icon-toggle-extra-products" data-lucide="chevron-down" class="w-3.5 h-3.5 text-orange-400 transition-transform duration-200"></i>
-            </button>
+            <!-- Free Item (ថែមជូន) - Always with Top 4 -->
+            <div id="product-card-free" data-prod-key="free" class="product-swipe-item relative overflow-hidden flex items-center justify-between py-2 px-2.5 rounded-xl border border-white/10 bg-white/5 transition-all select-none" style="touch-action: pan-y;">
+              <div id="fill-bar-free" class="absolute inset-y-0 left-0 bg-gradient-to-r from-white/15 to-white/25 border-r border-white/40 rounded-xl transition-all duration-300 pointer-events-none" style="width: 0%;"></div>
+              <div class="relative z-10 flex items-center gap-2 min-w-0 pointer-events-none">
+                <span class="w-2 h-2 rounded-full bg-white/80 shadow-sm shadow-white/50 shrink-0"></span>
+                <span class="text-xs text-white font-bold leading-tight truncate">ថែមជូន</span>
+              </div>
+              <div class="relative z-10 flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="event.stopPropagation(); adjustProductQty('free', -1)" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-sm flex items-center justify-center active:scale-90 transition backdrop-blur-sm shadow-sm">-</button>
+                <span id="qty-disp-free" class="w-5 text-center font-bold font-mono text-xs text-white">0</span>
+                <button type="button" onclick="event.stopPropagation(); adjustProductQty('free', 1)" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-sm flex items-center justify-center active:scale-90 transition backdrop-blur-sm shadow-sm">+</button>
+              </div>
+            </div>
+
+            <!-- Subtle Minimal Dropdown Toggle (>) at Bottom of Free Item -->
+            <div class="flex items-center justify-center pt-0.5">
+              <button type="button" id="btn-toggle-extra-products" onclick="toggleExtraOrderProducts()" 
+                      class="text-[11px] text-slate-400 hover:text-orange-400 flex items-center gap-1 active:scale-95 transition py-1 px-3 rounded-full bg-white/5 border border-white/5">
+                <span id="label-toggle-extra-products">បន្ថែម (Emmi, S.G Pro)</span>
+                <i id="icon-toggle-extra-products" data-lucide="chevron-down" class="w-3.5 h-3.5 text-orange-400 transition-transform duration-200"></i>
+              </button>
+            </div>
 
             <!-- Collapsible Extra Products Container (Emmi, SG Pro) -->
-            <div id="order-extra-products-container" class="hidden space-y-1.5">
+            <div id="order-extra-products-container" class="hidden space-y-1.5 pt-0.5">
               <!-- Emmi -->
               <div id="product-card-emmi" data-prod-key="emmi" class="product-swipe-item relative overflow-hidden flex items-center justify-between py-2 px-2.5 rounded-xl border border-white/10 bg-white/5 transition-all select-none" style="touch-action: pan-y;">
                 <div id="fill-bar-emmi" class="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500/20 to-purple-500/35 border-r border-purple-400/50 rounded-xl transition-all duration-300 pointer-events-none" style="width: 0%;"></div>
@@ -3431,20 +3444,6 @@
                   <span id="qty-disp-sgp" class="w-5 text-center font-bold font-mono text-xs text-white">0</span>
                   <button type="button" onclick="event.stopPropagation(); adjustProductQty('sgp', 1)" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-sm flex items-center justify-center active:scale-90 transition backdrop-blur-sm shadow-sm">+</button>
                 </div>
-              </div>
-            </div>
-
-            <!-- Free Item (ថែមជូន) - Always Pinned at Bottom -->
-            <div id="product-card-free" data-prod-key="free" class="product-swipe-item relative overflow-hidden flex items-center justify-between py-2 px-2.5 rounded-xl border border-white/10 bg-white/5 transition-all select-none" style="touch-action: pan-y;">
-              <div id="fill-bar-free" class="absolute inset-y-0 left-0 bg-gradient-to-r from-white/15 to-white/25 border-r border-white/40 rounded-xl transition-all duration-300 pointer-events-none" style="width: 0%;"></div>
-              <div class="relative z-10 flex items-center gap-2 min-w-0 pointer-events-none">
-                <span class="w-2 h-2 rounded-full bg-white/80 shadow-sm shadow-white/50 shrink-0"></span>
-                <span class="text-xs text-white font-bold leading-tight truncate">ថែមជូន</span>
-              </div>
-              <div class="relative z-10 flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="event.stopPropagation(); adjustProductQty('free', -1)" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-sm flex items-center justify-center active:scale-90 transition backdrop-blur-sm shadow-sm">-</button>
-                <span id="qty-disp-free" class="w-5 text-center font-bold font-mono text-xs text-white">0</span>
-                <button type="button" onclick="event.stopPropagation(); adjustProductQty('free', 1)" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-sm flex items-center justify-center active:scale-90 transition backdrop-blur-sm shadow-sm">+</button>
               </div>
             </div>
           </div>
@@ -3480,8 +3479,8 @@
               <div class="flex items-center justify-between mb-1">
                 <label id="order-label-price-raw" class="text-[10px] text-slate-400">តម្លៃលក់:</label>
                 <div class="flex items-center gap-1 p-0.5 rounded-xl bg-black/60 border border-white/10" id="order-currency-switch">
-                  <button type="button" onclick="setOrderCurrency('KHR')" id="curr-btn-khr" class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center">៛</button>
-                  <button type="button" onclick="setOrderCurrency('THB')" id="curr-btn-thb" class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition bg-orange-500 text-white shadow-sm flex items-center justify-center">฿</button>
+                  <button type="button" onclick="setOrderCurrency('KHR')" id="curr-btn-khr" class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition bg-orange-500 text-white shadow-sm flex items-center justify-center">៛</button>
+                  <button type="button" onclick="setOrderCurrency('THB')" id="curr-btn-thb" class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center">฿</button>
                   <button type="button" onclick="setOrderCurrency('USD')" id="curr-btn-usd" class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center">$</button>
                 </div>
               </div>
@@ -3712,6 +3711,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=12.0"></script>
+  <script src="app.js?v=13.0"></script>
 </body>
 </html>

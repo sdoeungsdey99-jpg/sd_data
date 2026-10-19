@@ -10939,13 +10939,12 @@ function toggleExtraOrderProducts(forceState) {
   if (isExtraOrderProductsOpen) {
     container.classList.remove('hidden');
     if (icon) icon.style.transform = 'rotate(180deg)';
-    if (label) label.innerHTML = `<i data-lucide="minus-circle" class="w-3.5 h-3.5 text-orange-400"></i><span>លាក់មុខទំនិញបន្ថែម (Emmi, S.G Pro)</span>`;
+    if (label) label.textContent = 'លាក់ (Emmi, S.G Pro)';
   } else {
     container.classList.add('hidden');
     if (icon) icon.style.transform = 'rotate(0deg)';
-    if (label) label.innerHTML = `<i data-lucide="plus-circle" class="w-3.5 h-3.5 text-orange-400"></i><span>មុខទំនិញបន្ថែម (Emmi, S.G Pro)</span>`;
+    if (label) label.textContent = 'បន្ថែម (Emmi, S.G Pro)';
   }
-  if (window.lucide) window.lucide.createIcons();
 }
 window.toggleExtraOrderProducts = toggleExtraOrderProducts;
 
@@ -11378,6 +11377,17 @@ function openNewOrderModal(mode = 'dock') {
   const btnHeaderPass = document.getElementById('btn-header-pass');
   const card3in1 = document.getElementById('order-3in1-card');
   const syncToggle = document.getElementById('order-field-sync-company-form');
+  const modalBody = document.getElementById('new-order-modal-body');
+  if (modalBody) modalBody.scrollTop = 0;
+
+  // Reset Telegram paste box to minimized 1-line state
+  const pasteInput = document.getElementById('order-paste-input');
+  if (pasteInput) {
+    pasteInput.value = '';
+    pasteInput.classList.remove('h-36', 'text-left');
+    pasteInput.classList.add('h-9', 'text-center');
+    pasteInput.setAttribute('rows', '1');
+  }
 
   if (currentOrderEntryMode === 'telegram') {
     if (modalTitle) modalTitle.textContent = 'កត់ត្រាពី Telegram';
@@ -11452,8 +11462,10 @@ function openNewOrderModal(mode = 'dock') {
   updateProductQtyDisplay();
   setOrderType('standard');
   
-  // Default currency to THB (฿) as requested
-  setOrderCurrency('THB');
+  // Default currency based on delivery carrier (THB strictly for Thai, KHR for Cambodian carriers)
+  const deliverySel = document.getElementById('order-field-delivery');
+  const isThaiDelivery = (deliverySel?.value || '').includes('Thai');
+  setOrderCurrency(isThaiDelivery ? 'THB' : 'KHR');
 
   // Collapse extra products by default
   toggleExtraOrderProducts(false);
@@ -11502,7 +11514,17 @@ function checkOrderSubmitValidation() {
 
 function clearOrderInput() {
   const pasteInput = document.getElementById('order-paste-input');
-  if (pasteInput) pasteInput.value = '';
+  if (pasteInput) {
+    pasteInput.value = '';
+    pasteInput.classList.remove('h-36', 'text-left');
+    pasteInput.classList.add('h-9', 'text-center');
+    pasteInput.setAttribute('rows', '1');
+  }
+
+  const modalBody = document.getElementById('new-order-modal-body');
+  if (modalBody) {
+    modalBody.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   const idInput = document.getElementById('order-field-id');
   if (idInput) {
@@ -11552,7 +11574,11 @@ function clearOrderInput() {
   const totalUsdInput = document.getElementById('order-field-total-usd');
   if (totalUsdInput) totalUsdInput.value = '';
 
-  setOrderCurrency('THB');
+  if (typeof updateDeliveryShippingDefault === 'function') {
+    updateDeliveryShippingDefault();
+  } else {
+    setOrderCurrency('KHR');
+  }
 
   currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, emmi: 0, sgp: 0, free: 0 };
   updateProductQtyDisplay();
@@ -11693,7 +11719,28 @@ function calculateOrderFinancials() {
   if (profitDisp) profitDisp.innerText = `$${profit.toFixed(2)}`;
 }
 
+function expandOrderPasteInput() {
+  const pasteInput = document.getElementById('order-paste-input');
+  if (pasteInput) {
+    pasteInput.classList.remove('h-9', 'text-center');
+    pasteInput.classList.add('h-36', 'text-left');
+    pasteInput.setAttribute('rows', '5');
+  }
+}
+
+function scrollOrderModalToForm() {
+  setTimeout(() => {
+    const pasteBox = document.getElementById('order-paste-box');
+    const modalBody = document.getElementById('new-order-modal-body');
+    if (pasteBox && modalBody) {
+      const targetScroll = pasteBox.offsetTop + pasteBox.offsetHeight - 8;
+      modalBody.scrollTo({ top: targetScroll, behavior: 'smooth' });
+    }
+  }, 100);
+}
+
 async function pasteClipboardToOrderInput() {
+  expandOrderPasteInput();
   const btn = document.getElementById('btn-header-pass');
   if (btn) {
     btn.classList.add('scale-90', 'bg-emerald-600');
@@ -11707,6 +11754,7 @@ async function pasteClipboardToOrderInput() {
   // 1. បើមានអត្ថបទស្រាប់ក្នុងប្រអប់ Parse ភ្លាមៗ (ចុចតែ ១ ដង)
   if (input && input.value.trim().length > 10) {
     parsePastedOrderText(false);
+    scrollOrderModalToForm();
     return;
   }
 
@@ -11717,6 +11765,7 @@ async function pasteClipboardToOrderInput() {
       if (text && text.trim()) {
         if (input) input.value = text;
         parsePastedOrderText(false);
+        scrollOrderModalToForm();
         return;
       }
     }
@@ -11726,12 +11775,14 @@ async function pasteClipboardToOrderInput() {
 
   if (input && input.value.trim()) {
     parsePastedOrderText(false);
+    scrollOrderModalToForm();
   } else {
     showToastNotification('សូមចម្លងសារ ឬចុចបិទភ្ជាប់ក្នុងប្រអប់');
   }
 }
 
 function parsePastedOrderText(silent = false) {
+  expandOrderPasteInput();
   const input = document.getElementById('order-paste-input');
   const text = (input?.value || '').trim();
   if (!text) {
@@ -11867,6 +11918,7 @@ function parsePastedOrderText(silent = false) {
     showToastNotification('Pass ជោគជ័យ ✓');
     if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
   }
+  scrollOrderModalToForm();
 }
 
 async function submitNewOrder() {
@@ -12108,6 +12160,8 @@ window.toggleExtraProducts = toggleExtraProducts;
 window.calculateOrderFinancials = calculateOrderFinancials;
 window.pasteClipboardToOrderInput = pasteClipboardToOrderInput;
 window.parsePastedOrderText = parsePastedOrderText;
+window.expandOrderPasteInput = expandOrderPasteInput;
+window.scrollOrderModalToForm = scrollOrderModalToForm;
 window.submitNewOrder = submitNewOrder;
 window.checkOrderSubmitValidation = checkOrderSubmitValidation;
 window.clearOrderInput = clearOrderInput;
@@ -12602,20 +12656,26 @@ function updateDeliveryShippingDefault() {
 
   if (val.includes('Thai')) {
     shipInput.value = '5.50';
+    setOrderCurrency('THB');
   } else if (val === 'VET (COD)') {
     shipInput.value = '3.00';
+    setOrderCurrency('KHR');
     const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
     if (isMaster && sellerPhoneInput && !sellerPhoneInput.value) {
       sellerPhoneInput.value = '097 859 5526';
     }
   } else if (val === 'J&T (COD)') {
     shipInput.value = '3.00';
+    setOrderCurrency('KHR');
   } else if (val === 'VET Express') {
     shipInput.value = '2.50';
+    setOrderCurrency('KHR');
   } else if (val === 'J&T Cambodia') {
     shipInput.value = '2.50';
+    setOrderCurrency('KHR');
   } else if (val === 'Motor ក្រុមហ៊ុន') {
     shipInput.value = '2.00';
+    setOrderCurrency('KHR');
   }
   calculateOrderFinancials();
   if (typeof checkOrderSubmitValidation === 'function') checkOrderSubmitValidation();
