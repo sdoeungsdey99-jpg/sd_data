@@ -10194,7 +10194,7 @@ function openProfileSubModal(type) {
               <input type="number" id="rep-buy-old-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-1.5 text-white font-mono text-xs text-center focus:outline-none">
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-[10px] text-slate-300 w-28 shrink-0">អតិថិជនតាមដានទិញ:</span>
+              <span class="text-[10px] text-slate-300 w-28 shrink-0">អតិថិជនដែលតាមដានទិញ:</span>
               <input type="number" id="rep-buy-follow-p" placeholder="នាក់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-1.5 text-white font-mono text-xs text-center focus:outline-none">
               <input type="number" id="rep-buy-follow-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-1.5 text-white font-mono text-xs text-center focus:outline-none">
             </div>
@@ -10202,28 +10202,21 @@ function openProfileSubModal(type) {
 
           <!-- Total Calculation Display -->
           <div class="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs font-mono">
-            <span class="text-emerald-300 font-bold">👉 សរុបលក់បានទាំងអស់៖</span>
+            <span class="text-emerald-300 font-bold">👉 សរុបទំនិញលក់បានទាំងអស់៖</span>
             <span id="rep-total-summary-disp" class="text-emerald-400 font-bold">
-              ${autoTodayBoxes || 0} ប្រអប់ (${autoTodayOrders || 0} កញ្ចប់)
+              ${autoTodayBoxes || 0} ប្រអប់
             </span>
           </div>
         </div>
 
-        <!-- Card 5: Section 4 - 📊 ការវាយតម្លៃ និងចំណាំ -->
+        <!-- Card 5: បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ -->
         <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-          <span class="text-[10px] text-rose-400 font-bold uppercase tracking-wider flex items-center gap-1">
-            <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
-            <span>៤. ការវាយតម្លៃ និងចំណាំប្រចាំថ្ងៃ</span>
-          </span>
-          <div class="flex items-center justify-between p-2 rounded-xl bg-black/50 border border-white/10">
-            <span class="text-[10px] text-slate-300">ភាគរយជោគជ័យលើឆាតគោលដៅ៖</span>
-            <span id="rep-rate-disp" class="text-xs font-bold font-mono text-amber-400">0.0%</span>
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-400 mb-0.5">បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖</label>
-            <textarea id="rep-field-challenges" rows="2" placeholder="ឧទាហរណ៍៖ អតិថិជនត្អូញត្អែរតម្លៃ, សេវាដឹកយឺត..." 
-                      class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-rose-500 leading-relaxed"></textarea>
-          </div>
+          <label class="block text-[10px] text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+            <span>បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖</span>
+          </label>
+          <textarea id="rep-field-challenges" rows="2" placeholder="ឧទាហរណ៍៖ អតិថិជនត្អូញត្អែរតម្លៃ, សេវាដឹកយឺត..." 
+                    class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
         </div>
 
         <!-- Action Buttons -->
@@ -10876,29 +10869,15 @@ function calculateDailyReportMetrics() {
     }
   }
 
-  const buyNewP = cleanNumber(document.getElementById('rep-buy-new-p')?.value);
   const buyNewB = cleanNumber(document.getElementById('rep-buy-new-b')?.value);
-  const buyOldP = cleanNumber(document.getElementById('rep-buy-old-p')?.value);
   const buyOldB = cleanNumber(document.getElementById('rep-buy-old-b')?.value);
-  const buyFollowP = cleanNumber(document.getElementById('rep-buy-follow-p')?.value);
   const buyFollowB = cleanNumber(document.getElementById('rep-buy-follow-b')?.value);
 
   const totalBoxes = buyNewB + buyOldB + buyFollowB;
-  const totalInvoices = buyNewP + buyOldP + buyFollowP;
 
   const totalDisp = document.getElementById('rep-total-summary-disp');
   if (totalDisp) {
-    totalDisp.innerText = `${totalBoxes} ប្រអប់ (សរុប ${totalInvoices} កញ្ចប់/វិក្កយបត្រ)`;
-  }
-
-  const targetChats = cleanNumber(targetInput?.value);
-  let rate = 0;
-  if (targetChats > 0 && buyNewP > 0) {
-    rate = ((buyNewP / targetChats) * 100).toFixed(1);
-  }
-  const rateDisp = document.getElementById('rep-rate-disp');
-  if (rateDisp) {
-    rateDisp.innerText = `${rate}%`;
+    totalDisp.innerText = `${totalBoxes} ប្រអប់`;
   }
 }
 
@@ -10907,30 +10886,23 @@ function generateDailyReportText() {
   const page = document.getElementById('rep-field-page')?.value || '';
   const staff = document.getElementById('rep-field-staff')?.value || '';
 
-  const chatTotal = document.getElementById('rep-field-chat-total')?.value || '0';
-  const chatMistake = document.getElementById('rep-field-chat-mistake')?.value || '0';
-  const chatTarget = document.getElementById('rep-field-chat-target')?.value || '0';
-  const callDirect = document.getElementById('rep-field-call-direct')?.value || '0';
+  const chatTotal = document.getElementById('rep-field-chat-total')?.value || '';
+  const chatMistake = document.getElementById('rep-field-chat-mistake')?.value || '';
+  const chatTarget = document.getElementById('rep-field-chat-target')?.value || '';
+  const callDirect = document.getElementById('rep-field-call-direct')?.value || '';
 
-  const followOld = document.getElementById('rep-field-follow-old')?.value || '0';
-  const followPending = document.getElementById('rep-field-follow-pending')?.value || '0';
+  const followOld = document.getElementById('rep-field-follow-old')?.value || '';
+  const followPending = document.getElementById('rep-field-follow-pending')?.value || '';
 
-  const buyNewP = document.getElementById('rep-buy-new-p')?.value || '0';
-  const buyNewB = document.getElementById('rep-buy-new-b')?.value || '0';
-  const buyOldP = document.getElementById('rep-buy-old-p')?.value || '0';
-  const buyOldB = document.getElementById('rep-buy-old-b')?.value || '0';
-  const buyFollowP = document.getElementById('rep-buy-follow-p')?.value || '0';
-  const buyFollowB = document.getElementById('rep-buy-follow-b')?.value || '0';
+  const buyNewP = document.getElementById('rep-buy-new-p')?.value || '';
+  const buyNewB = document.getElementById('rep-buy-new-b')?.value || '';
+  const buyOldP = document.getElementById('rep-buy-old-p')?.value || '';
+  const buyOldB = document.getElementById('rep-buy-old-b')?.value || '';
+  const buyFollowP = document.getElementById('rep-buy-follow-p')?.value || '';
+  const buyFollowB = document.getElementById('rep-buy-follow-b')?.value || '';
 
   const totalBoxes = (Number(buyNewB) || 0) + (Number(buyOldB) || 0) + (Number(buyFollowB) || 0);
-  const totalInvoices = (Number(buyNewP) || 0) + (Number(buyOldP) || 0) + (Number(buyFollowP) || 0);
-
-  let successRate = '0';
-  if ((Number(chatTarget) || 0) > 0 && (Number(buyNewP) || 0) > 0) {
-    successRate = (((Number(buyNewP) || 0) / (Number(chatTarget) || 0)) * 100).toFixed(1);
-  }
-
-  const challenges = document.getElementById('rep-field-challenges')?.value || 'គ្មាន';
+  const challenges = document.getElementById('rep-field-challenges')?.value || '';
 
   if (page) {
     try { localStorage.setItem('sd_report_page', page); } catch (_) {}
@@ -10953,12 +10925,9 @@ function generateDailyReportText() {
 📦 ៣. លទ្ធផលនៃការលក់ជាក់ស្តែង
 • អតិថិជនថ្មីទិញ៖ ${buyNewP} នាក់ | ចំនួន៖ ${buyNewB} ប្រអប់
 • អតិថិជនចាស់ទិញបន្ថែម៖ ${buyOldP} នាក់ | ចំនួន៖ ${buyOldB} ប្រអប់
-• អតិថិជនតាមដានទិញ (តាមដានលើកមុន មកទិញថ្ងៃនេះ)៖ ${buyFollowP} នាក់ | ចំនួន៖ ${buyFollowB} ប្រអប់
-👉 សរុបទំនិញលក់បានទាំងអស់៖ ${totalBoxes} ប្រអប់ (សរុប ${totalInvoices} កញ្ចប់/វិក្កយបត្រ)
+• អតិថិជនដែលតាមដានទិញ (តាមដានលើកមុន មកទិញថ្ងៃនេះ)៖ ${buyFollowP} នាក់ | ចំនួន៖ ${buyFollowB} ប្រអប់
+👉 សរុបទំនិញលក់បានទាំងអស់៖ ${totalBoxes} ប្រអប់ 
 
-📊 ៤. ការវាយតម្លៃ និងចំណាំប្រចាំថ្ងៃ
-• ភាគរយជោគជ័យលើឆាតគោលដៅ៖ ${successRate}%  
-  [វិធីគណនា៖ (ចំនួនអ្នកថ្មីទិញ ÷ ឆាតគោលដៅ) x ១០០]
 • បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖ ${challenges}
 --------------------------------------------------
 ⏰ ម៉ោងរាយការណ៍៖ ៩:០០ យប់`;
