@@ -11847,6 +11847,10 @@ function closeNewOrderModal() {
   if (!modal) return;
   const miniCalPopup = document.getElementById('order-mini-calendar-popup');
   if (miniCalPopup) miniCalPopup.classList.add('hidden');
+  const delivMenu = document.getElementById('order-delivery-dropdown-menu');
+  if (delivMenu) delivMenu.classList.add('hidden');
+  const shipMenu = document.getElementById('order-ship-presets-dropdown-menu');
+  if (shipMenu) shipMenu.classList.add('hidden');
   modal.classList.add('hidden');
   setDockVisible(true);
 }
@@ -13061,8 +13065,116 @@ function updateDeliveryShippingDefault() {
     setOrderCurrency('KHR');
   }
   calculateOrderFinancials();
+  if (typeof syncOrderCarrierUI === 'function') syncOrderCarrierUI();
+  if (typeof syncOrderShipUI === 'function') syncOrderShipUI();
   if (typeof checkOrderSubmitValidation === 'function') checkOrderSubmitValidation();
 }
+
+// ==========================================
+// Delivery & Shipping Fee Custom UI Controls
+// ==========================================
+function toggleOrderDeliveryDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('order-delivery-dropdown-menu');
+  const shipMenu = document.getElementById('order-ship-presets-dropdown-menu');
+  if (shipMenu) shipMenu.classList.add('hidden');
+  if (!menu) return;
+  menu.classList.toggle('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function toggleOrderShipPresetsDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('order-ship-presets-dropdown-menu');
+  const delivMenu = document.getElementById('order-delivery-dropdown-menu');
+  if (delivMenu) delivMenu.classList.add('hidden');
+  if (!menu) return;
+  menu.classList.toggle('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function setOrderCarrier(carrierVal) {
+  const sel = document.getElementById('order-field-delivery');
+  if (sel) {
+    sel.value = carrierVal;
+  }
+  syncOrderCarrierUI();
+  updateDeliveryShippingDefault();
+  const menu = document.getElementById('order-delivery-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function setOrderShippingFee(feeVal) {
+  const shipInput = document.getElementById('order-field-ship');
+  if (shipInput) {
+    shipInput.value = feeVal;
+  }
+  syncOrderShipUI();
+  calculateOrderFinancials();
+  if (typeof checkOrderSubmitValidation === 'function') checkOrderSubmitValidation();
+  const menu = document.getElementById('order-ship-presets-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function syncOrderCarrierUI() {
+  const sel = document.getElementById('order-field-delivery');
+  const disp = document.getElementById('order-carrier-disp');
+  const val = sel?.value || 'VET (COD)';
+  if (disp) disp.textContent = val;
+
+  const map = {
+    'VET (COD)': 'order-deliv-check-vet-cod',
+    'VET Express': 'order-deliv-check-vet-exp',
+    'J&T (COD)': 'order-deliv-check-jt-cod',
+    'J&T Cambodia': 'order-deliv-check-jt-cam',
+    'Motor ក្រុមហ៊ុន': 'order-deliv-check-motor',
+    'Thai ✅COD': 'order-deliv-check-thai-cod',
+    'Thai ❌COD': 'order-deliv-check-thai-nocod'
+  };
+
+  Object.entries(map).forEach(([k, checkId]) => {
+    const el = document.getElementById(checkId);
+    if (el) {
+      if (k === val) el.classList.remove('hidden');
+      else el.classList.add('hidden');
+    }
+  });
+}
+
+function syncOrderShipUI() {
+  const shipInput = document.getElementById('order-field-ship');
+  const num = parseFloat(shipInput?.value || 0);
+  const val = isNaN(num) ? '' : num.toFixed(2);
+  const map = {
+    '3.00': 'order-ship-check-300',
+    '2.50': 'order-ship-check-250',
+    '2.00': 'order-ship-check-200',
+    '5.50': 'order-ship-check-550',
+    '1.50': 'order-ship-check-150',
+    '0.00': 'order-ship-check-000'
+  };
+  Object.entries(map).forEach(([fee, checkId]) => {
+    const el = document.getElementById(checkId);
+    if (el) {
+      if (fee === val) el.classList.remove('hidden');
+      else el.classList.add('hidden');
+    }
+  });
+}
+
+// Global click handler to close order delivery and ship preset dropdowns when tapping outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#btn-order-delivery-trigger') && !e.target.closest('#order-delivery-dropdown-menu')) {
+    const menu = document.getElementById('order-delivery-dropdown-menu');
+    if (menu) menu.classList.add('hidden');
+  }
+  if (!e.target.closest('#order-field-ship') && !e.target.closest('#order-ship-presets-dropdown-menu') && !e.target.closest('[onclick*="toggleOrderShipPresetsDropdown"]')) {
+    const menu = document.getElementById('order-ship-presets-dropdown-menu');
+    if (menu) menu.classList.add('hidden');
+  }
+});
 
 // ==========================================
 // Clean Language Separation for Modals (i18n)
@@ -13191,6 +13303,12 @@ window.toggleAnalyticsProfitMode = toggleAnalyticsProfitMode;
 
 window.updateDeliveryShippingDefault = updateDeliveryShippingDefault;
 window.updateModalLanguage = updateModalLanguage;
+window.toggleOrderDeliveryDropdown = toggleOrderDeliveryDropdown;
+window.toggleOrderShipPresetsDropdown = toggleOrderShipPresetsDropdown;
+window.setOrderCarrier = setOrderCarrier;
+window.setOrderShippingFee = setOrderShippingFee;
+window.syncOrderCarrierUI = syncOrderCarrierUI;
+window.syncOrderShipUI = syncOrderShipUI;
 
 // Export Notification Center & Offline Sync Functions
 window.getStoredNotifications = getStoredNotifications;
