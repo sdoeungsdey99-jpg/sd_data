@@ -16,7 +16,7 @@
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'ok',
-    version: '2.0-sequential',
+    version: '2.1-multi-sheet',
     message: 'SD Dashboard Webhook is live and ready! 🚀'
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -168,7 +168,7 @@ function insertPersonalSalesOrder(ss, order) {
   sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date Object (លែងមាន Invalid)
   sheet.getRange(targetRow, 2).setFormula(formulaNo); // Col B: No. (Formula)
   sheet.getRange(targetRow, 3).setValue(order.customer || ''); // Col C: FB Name (រំលង/ទុកទំនេរបាន)
-  sheet.getRange(targetRow, 4).setValue(order.seller || 'ស្តី ស្តើង'); // Col D: Seller
+  sheet.getRange(targetRow, 4).setValue(order.seller || 'សមាជិក Bostar'); // Col D: Seller
   sheet.getRange(targetRow, 5).setValue(order.orderId || ''); // Col E: Order ID
   sheet.getRange(targetRow, 6).setValue(order.location || ''); // Col F: Location
   sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone (លេខទូរស័ព្ទដូចគ្នាអាចបញ្ជូនបាន)
