@@ -10815,6 +10815,165 @@ try {
   localStorage.setItem('sd_apps_script_url', DEFAULT_APPS_SCRIPT_URL);
 } catch (_) {}
 
+const COMPANY_GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd_hP30dqB-F5gCV44AuxcftgmoDjo5zzkN-NSMiK-1rDEqPQ/formResponse';
+
+const BOSTAR_TEAM_SELLERS = [
+  { km: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung' },
+  { km: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung' },
+  { km: 'ស្តី ស្តើង', en: 'Sdey Sdoeung' },
+  { km: 'ញែក សុគន្ធ', en: 'Nhek Sokun' },
+  { km: 'អយ ស្រីនី', en: 'Oy Sreyny' },
+  { km: 'ផាត់ ណាវី', en: 'Phat Navy' },
+  { km: 'ម៉ាន់ សុគន្ធលីហ្សា', en: 'Man Sokunlyza' },
+  { km: 'មុំចាន់នី', en: 'Mom Channy' },
+  { km: 'ជា ស្រីណាត់', en: 'Chea Sreynat' },
+  { km: 'ប៊ិច ស្រីមុំ', en: 'Bech Sreymom' },
+  { km: 'និន ណែត', en: 'Nin Net' },
+  { km: 'ប្រាក់ ស្រីភា', en: 'Prak Sreyphea' },
+  { km: 'សារិ ច័ន្ទរា', en: 'Sari Chanrea' },
+  { km: 'ជន់ ច័ន្ទវិច្ឆិកា', en: 'Chhon Chanvichhika' },
+  { km: 'សឹម សិត', en: 'Sim Set' },
+  { km: 'ជាន ស្រីនិច', en: 'Chean Sreynich' },
+  { km: 'វន ស្រីនិច', en: 'Vorn Sreynich' },
+  { km: 'វួច ផាន់នី', en: 'Vouch Phanny' },
+  { km: 'ឆេង សុធី', en: 'Chheng Sothy' },
+  { km: 'ស្រី ឡាត់', en: 'Srey Lat' },
+  { km: 'ងី សុខណា', en: 'Ngy Sokna' },
+  { km: 'ផាន សោភា', en: 'Phan Sophea' },
+  { km: 'ជា វឌ្ឍនា', en: 'Chea Vathana' },
+  { km: 'ប៊ុន ស្រីភាព', en: 'Bun Sreypheap' },
+  { km: 'សាប់ លក្ខិណា', en: 'Sab Leakhena' },
+  { km: 'សុស ស្រីពេជ្រ', en: 'Sos Sreypech' },
+  { km: 'ភឿន សុផា', en: 'Phoeun Sopha' },
+  { km: 'សូត្រ ម៉ាស់យ៉ា', en: 'Sotr Masya' },
+  { km: 'ទូច ស្រីណែត', en: 'Touch Sreynet' },
+  { km: 'ជុំ ចាន់ រិទ្ធ', en: 'Chum Chanrith' },
+  { km: 'ភឿន កញ្ញា', en: 'Phoeun Kanya' },
+  { km: 'អៀម សុភី', en: 'Eam Sophy' },
+  { km: 'សុង ស្រីឡែន', en: 'Song Sreylen' },
+  { km: 'ជុន ថាវី', en: 'Chun Thavy' },
+  { km: 'ងេន សុខា', en: 'Ngen Sokha' },
+  { km: 'សុមុន្នី ស្រីណុច', en: 'Somony Sreynoch' },
+  { km: 'ម៉ន សីហាក់', en: 'Morn Seyhak' },
+  { km: 'សុង ស្រឡែន', en: 'Song Sreylen' }
+];
+
+function getSellerLatinName(kmName) {
+  if (!kmName) return '';
+  const trimmed = kmName.trim();
+  const found = BOSTAR_TEAM_SELLERS.find(s => s.km === trimmed || s.en.toLowerCase() === trimmed.toLowerCase());
+  return found ? found.en : trimmed;
+}
+
+function onSellerNameChange(val) {
+  const latinBadge = document.getElementById('order-seller-latin-disp');
+  const latin = getSellerLatinName(val);
+  if (latinBadge) {
+    latinBadge.innerText = latin;
+  }
+  if (val && val.trim()) {
+    try {
+      localStorage.setItem('sd_last_seller', val.trim());
+    } catch (_) {}
+  }
+}
+
+async function submitToCompanyGoogleForm(orderData) {
+  try {
+    const params = new URLSearchParams();
+    
+    // 1. Date: Year, Month, Day
+    let y = '2026', m = '10', d = '19';
+    if (orderData.isoDate && /^\d{4}-\d{2}-\d{2}$/.test(orderData.isoDate)) {
+      const parts = orderData.isoDate.split('-');
+      y = parts[0];
+      m = String(parseInt(parts[1], 10));
+      d = String(parseInt(parts[2], 10));
+    } else if (orderData.date && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(orderData.date)) {
+      const parts = orderData.date.split('/');
+      d = String(parseInt(parts[0], 10));
+      m = String(parseInt(parts[1], 10));
+      y = parts[2];
+    } else {
+      const now = new Date();
+      y = String(now.getFullYear());
+      m = String(now.getMonth() + 1);
+      d = String(now.getDate());
+    }
+    params.append('entry.1581364351_year', y);
+    params.append('entry.1581364351_month', m);
+    params.append('entry.1581364351_day', d);
+
+    // 2. Team: Bech_Nora
+    params.append('entry.2053044994', orderData.team || 'Bech_Nora');
+
+    // 3. Seller Name (Khmer)
+    params.append('entry.193760049', orderData.seller || '');
+
+    // 4. Seller Phone / No
+    params.append('entry.1250998064', orderData.sellerPhone || '');
+
+    // 5. Products (quantity 1 to 10)
+    if (orderData.qtyYLP > 0) params.append('entry.404230430', String(orderData.qtyYLP));
+    if (orderData.qtyYL > 0) params.append('entry.2028258738', String(orderData.qtyYL));
+    if (orderData.qtyKN > 0) params.append('entry.1166279805', String(orderData.qtyKN));
+    if (orderData.qtyPDO > 0) params.append('entry.1229436075', String(orderData.qtyPDO));
+    if (orderData.qtyEmmi > 0) params.append('entry.1958386252', String(orderData.qtyEmmi));
+    if (orderData.qtySGP > 0) params.append('entry.629009419', String(orderData.qtySGP));
+
+    // 6. Price (clean number string)
+    params.append('entry.615821671', String(orderData.price || ''));
+
+    // 7. Receiver No (Phone)
+    params.append('entry.1618786820', orderData.phone || '');
+
+    // 8. Customer (Recipient Name)
+    params.append('entry.485783433', orderData.customer || '');
+
+    // 9. Address
+    params.append('entry.1844490282', orderData.location || '');
+
+    // 10. Delivery (exact enum value)
+    let delivVal = 'VET(COD)';
+    const dStr = (orderData.deliveryMethod || '').toLowerCase();
+    if (dStr.includes('thai') || dStr.includes('ថៃ')) {
+      delivVal = (dStr.includes('❌') || dStr.includes('no') || dStr.includes('មិន')) ? 'Thai ❌COD' : 'Thai ✅COD';
+    } else if (dStr.includes('j&t') && dStr.includes('cod')) {
+      delivVal = 'J&T (COD)';
+    } else if (dStr.includes('vet') && dStr.includes('cod')) {
+      delivVal = 'VET(COD)';
+    } else if (dStr.includes('motor') || dStr.includes('ម៉ូតូ')) {
+      delivVal = 'Motor';
+    } else if (dStr.includes('j&t') || dStr.includes('jt')) {
+      delivVal = 'J&T';
+    } else if (dStr.includes('vet')) {
+      delivVal = 'VET';
+    }
+    params.append('entry.77621526', delivVal);
+
+    // 11. Note
+    params.append('entry.1529022117', orderData.note || '');
+
+    // 12. Seller's Latin Name
+    const latinName = orderData.sellerLatin || getSellerLatinName(orderData.seller);
+    params.append('entry.1608045144', latinName);
+
+    // Submit to Company Google Form
+    await fetch(COMPANY_GOOGLE_FORM_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params.toString()
+    });
+    return true;
+  } catch (err) {
+    console.warn('Company Google Form POST error:', err);
+    return false;
+  }
+}
+
 let currentOrderMode = 'paste';
 let currentOrderType = 'standard';
 let currentOrderCurrency = 'KHR';
@@ -10823,6 +10982,8 @@ let currentOrderProducts = {
   ylp: 1,
   kn: 0,
   pdo: 0,
+  emmi: 0,
+  sgp: 0,
   free: 0
 };
 
@@ -11101,12 +11262,19 @@ function openNewOrderModal() {
   const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
 
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+  
+  // Default to test seller requested by Brother Sdoeung: 'ឆេង រ៉ាស៊ុង' (or last remembered seller)
+  const savedSeller = localStorage.getItem('sd_last_seller') || 'ឆេង រ៉ាស៊ុង';
   if (sellerInput) {
-    sellerInput.value = isMaster ? (profile.name || 'ស្ដី ស្ដើង') : (profile.name && profile.name !== 'សមាជិក Bostar' && profile.name !== 'សមាជិកក្រុមការងារ' ? profile.name : '');
+    sellerInput.value = savedSeller;
+    onSellerNameChange(savedSeller);
   }
+  
+  const savedSellerPhone = localStorage.getItem('sd_last_seller_phone');
   if (sellerPhoneInput) {
-    sellerPhoneInput.value = isMaster ? (profile.phone || '097 859 5526') : (profile.phone || '');
+    sellerPhoneInput.value = savedSellerPhone || (isMaster ? (profile.phone || '097 859 5526') : (profile.phone || ''));
   }
+
   if (dateInput) {
     dateInput.value = todayIso;
     updateOrderDateDisplay(todayIso);
@@ -11124,7 +11292,11 @@ function openNewOrderModal() {
     orderIdInput.value = nextId;
   }
 
-  currentOrderProducts = { yl: 1, ylp: 1, kn: 0, pdo: 0, free: 0 };
+  // Ensure Auto-Sync to Company Form toggle is checked by default
+  const syncToggle = document.getElementById('order-field-sync-company-form');
+  if (syncToggle) syncToggle.checked = true;
+
+  currentOrderProducts = { yl: 1, ylp: 1, kn: 0, pdo: 0, emmi: 0, sgp: 0, free: 0 };
   updateProductQtyDisplay();
   setOrderType('standard');
   setOrderCurrency('KHR');
@@ -11150,6 +11322,7 @@ function closeNewOrderModal() {
 function checkOrderSubmitValidation() {
   const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
                      (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
                      (currentOrderProducts.free || 0);
   const phone = (document.getElementById('order-field-phone')?.value || '').trim().replace(/[\s\-\.]/g, '');
   const btn = document.getElementById('btn-submit-order');
@@ -11178,11 +11351,11 @@ function clearOrderInput() {
   if (dateInput) dateInput.value = todayIso;
   updateOrderDateDisplay(todayIso);
 
-  const profile = (typeof getProfileData === 'function') ? getProfileData() : {};
-  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+  const savedSeller = localStorage.getItem('sd_last_seller') || 'ឆេង រ៉ាស៊ុង';
   const sellerInput = document.getElementById('order-field-seller');
   if (sellerInput) {
-    sellerInput.value = isMaster ? (profile.name || 'ស្ដី ស្ដើង') : (profile.name && profile.name !== 'សមាជិក Bostar' && profile.name !== 'សមាជិកក្រុមការងារ' ? profile.name : '');
+    sellerInput.value = savedSeller;
+    onSellerNameChange(savedSeller);
   }
 
   const custInput = document.getElementById('order-field-customer');
@@ -11197,9 +11370,10 @@ function clearOrderInput() {
   const noteInput = document.getElementById('order-field-note');
   if (noteInput) noteInput.value = '';
 
+  const savedSellerPhone = localStorage.getItem('sd_last_seller_phone');
   const sellerPhoneInput = document.getElementById('order-field-seller-phone');
   if (sellerPhoneInput) {
-    sellerPhoneInput.value = isMaster ? (profile.phone || '097 859 5526') : (profile.phone || '');
+    sellerPhoneInput.value = savedSellerPhone || '';
   }
 
   const deliveryInput = document.getElementById('order-field-delivery');
@@ -11216,7 +11390,7 @@ function clearOrderInput() {
 
   setOrderCurrency('KHR');
 
-  currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, free: 0 };
+  currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, emmi: 0, sgp: 0, free: 0 };
   updateProductQtyDisplay();
   calculateOrderFinancials();
   checkOrderSubmitValidation();
@@ -11272,7 +11446,7 @@ function adjustProductQty(prod, delta) {
 }
 
 function updateProductQtyDisplay() {
-  const prods = ['yl', 'ylp', 'kn', 'pdo', 'free'];
+  const prods = ['yl', 'ylp', 'kn', 'pdo', 'emmi', 'sgp', 'free'];
   // 6 កម្រិតស្មើគ្នាតាម iOS Volume Bar (0% -> 17% -> 34% -> 50% -> 68% -> 85% -> 100%)
   const steps = [0, 17, 34, 50, 68, 85, 100];
 
@@ -11301,6 +11475,7 @@ function updateProductQtyDisplay() {
 
   const total = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
                 (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
                 (currentOrderProducts.free || 0);
 
   const badge = document.getElementById('order-total-boxes-badge');
@@ -11328,7 +11503,8 @@ function toggleExtraProducts() {
 
 function calculateOrderFinancials() {
   const paidBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
-                    (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0);
+                    (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                    (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0);
 
   const totalUsdInput = document.getElementById('order-field-total-usd');
   const shipInput = document.getElementById('order-field-ship');
@@ -11411,6 +11587,8 @@ function parsePastedOrderText(silent = false) {
   const ylpQty = extract(/\[Yong Liang Plus\][:\s]*(\d+)/i) || extract(/Yong Liang Plus[:\s]*(\d+)/i);
   const knQty = extract(/\[KN\][:\s]*(\d+)/i) || extract(/KN[:\s]*(\d+)/i) || extract(/\[Kidney Pro\][:\s]*(\d+)/i) || extract(/Kidney Pro[:\s]*(\d+)/i);
   const pdoQty = extract(/\[P D\.O\][:\s]*(\d+)/i) || extract(/P D\.O[:\s]*(\d+)/i) || extract(/\[Pro D\.O\][:\s]*(\d+)/i) || extract(/Pro D\.O[:\s]*(\d+)/i);
+  const emmiQty = extract(/\[Emmi\][:\s]*(\d+)/i) || extract(/Emmi[:\s]*(\d+)/i);
+  const sgpQty = extract(/\[SG\s*Pro\][:\s]*(\d+)/i) || extract(/SG\s*Pro[:\s]*(\d+)/i) || extract(/\[S\.G\s*Pro\][:\s]*(\d+)/i) || extract(/S\.G\s*Pro[:\s]*(\d+)/i);
   const freeQty = extract(/\[Free\][:\s]*(\d+)/i) || extract(/Free[:\s]*(\d+)/i) || extract(/\[ថែម\][:\s]*(\d+)/i) || extract(/ថែម[:\s]*(\d+)/i);
   const priceRaw = extract(/(?:តម្លៃ\(Price\)|Price|តម្លៃ)[:\s]*(\d+[\d,\.]*)/i);
   const receiverNo = extract(/(?:លេខអ្នកទទួល\(Receiver No\)|Receiver No|លេខអ្នកទទួល)[:\s]*([^\n\r]+)/i);
@@ -11442,7 +11620,10 @@ function parsePastedOrderText(silent = false) {
 
   if (seller) {
     const sField = document.getElementById('order-field-seller');
-    if (sField) sField.value = seller;
+    if (sField) {
+      sField.value = seller;
+      onSellerNameChange(seller);
+    }
   }
   if (receiverNo) {
     const rField = document.getElementById('order-field-phone');
@@ -11458,6 +11639,8 @@ function parsePastedOrderText(silent = false) {
   currentOrderProducts.ylp = ylpQty ? parseInt(ylpQty) : 0;
   currentOrderProducts.kn = knQty ? parseInt(knQty) : 0;
   currentOrderProducts.pdo = pdoQty ? parseInt(pdoQty) : 0;
+  currentOrderProducts.emmi = emmiQty ? parseInt(emmiQty) : 0;
+  currentOrderProducts.sgp = sgpQty ? parseInt(sgpQty) : 0;
   currentOrderProducts.free = freeQty ? parseInt(freeQty) : 0;
 
   if (priceRaw) {
@@ -11547,6 +11730,18 @@ async function submitNewOrder() {
   const priceRaw = cleanNumber(getVal('order-field-price-raw')) || 360000;
   const note = getVal('order-field-note') || (isReward ? 'លក់រង្វាន់' : '');
 
+  // ចងចាំឈ្មោះ និងលេខអ្នកលក់ក្នុង LocalStorage សម្រាប់លើកក្រោយ
+  if (seller) {
+    try { localStorage.setItem('sd_last_seller', seller); } catch (_) {}
+  }
+  let sellerPhone = getVal('order-field-seller-phone');
+  if (isMaster && !sellerPhone && (delivery === 'VET (COD)' || isReward)) {
+    sellerPhone = '097 859 5526';
+  }
+  if (sellerPhone) {
+    try { localStorage.setItem('sd_last_seller_phone', sellerPhone); } catch (_) {}
+  }
+
   // គណនាប្រាក់បាត (Thai Baht) សម្រាប់ Col M ក្នុង Google Sheet ដើម្បីកុំឲ្យខូចរូបមន្ត Col N
   let thaiBaht = priceRaw;
   if (currentOrderCurrency === 'KHR') {
@@ -11556,14 +11751,9 @@ async function submitNewOrder() {
     thaiBaht = Math.round((totalUsd * 35.6) / 0.97);
   }
 
-  // លេខអ្នកលក់: បើ Master Admin ហើយជា VET (COD) ឬ លក់រង្វាន់ កំណត់ជា 097 859 5526
-  let sellerPhone = getVal('order-field-seller-phone');
-  if (isMaster && !sellerPhone && (delivery === 'VET (COD)' || isReward)) {
-    sellerPhone = '097 859 5526';
-  }
-
   const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
                      (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
                      (currentOrderProducts.free || 0);
 
   if (totalBoxes === 0) {
@@ -11600,6 +11790,8 @@ async function submitNewOrder() {
   if (currentOrderProducts.ylp > 0) prodParts.push(currentOrderProducts.ylp > 1 ? `YLP (${currentOrderProducts.ylp})` : `YLP`);
   if (currentOrderProducts.kn > 0) prodParts.push(`KN (${currentOrderProducts.kn})`);
   if (currentOrderProducts.pdo > 0) prodParts.push(`PDO (${currentOrderProducts.pdo})`);
+  if (currentOrderProducts.emmi > 0) prodParts.push(`Emmi (${currentOrderProducts.emmi})`);
+  if (currentOrderProducts.sgp > 0) prodParts.push(`SGP (${currentOrderProducts.sgp})`);
   if (currentOrderProducts.free > 0) prodParts.push(`Free (${currentOrderProducts.free})`);
   const productSummary = prodParts.join(', ') || 'ទំនិញ';
 
@@ -11610,13 +11802,17 @@ async function submitNewOrder() {
     recordId: `REC-${Date.now().toString().slice(-4)}`,
     customer: customer,
     seller: seller,
+    sellerLatin: getSellerLatinName(seller),
     sellerPhone: sellerPhone,
+    team: 'Bech_Nora',
     location: location,
     phone: phone,
     qtyYL: currentOrderProducts.yl || 0,
     qtyYLP: currentOrderProducts.ylp || 0,
     qtyKN: currentOrderProducts.kn || 0,
     qtyPDO: currentOrderProducts.pdo || 0,
+    qtyEmmi: currentOrderProducts.emmi || 0,
+    qtySGP: currentOrderProducts.sgp || 0,
     freeQty: currentOrderProducts.free || 0,
     totalBoxQty: totalBoxes,
     product: productSummary,
@@ -11644,13 +11840,18 @@ async function submitNewOrder() {
     localStorage.setItem('sd_local_orders', JSON.stringify(existing));
   } catch (_) {}
 
-  // 3. Send to Google Apps Script Webhook or Queue Offline
+  // 3. យុទ្ធសាស្ត្រ 3 in 1: បញ្ជូនចូល Google Sheet ផ្ទាល់ខ្លួន & Google Form ក្រុមហ៊ុន
+  const syncToCompany = document.getElementById('order-field-sync-company-form')?.checked !== false;
   const webhookUrl = getAppsScriptWebhookUrl();
   let syncSuccess = false;
+  let companyFormSuccess = false;
 
+  const syncTasks = [];
+
+  // 3A. Personal Apps Script Webhook
   if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
-    try {
-      await fetch(webhookUrl, {
+    syncTasks.push(
+      fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -11659,26 +11860,45 @@ async function submitNewOrder() {
           sheetId: (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '',
           data: newRecord
         })
-      });
-      syncSuccess = true;
-    } catch (e) {
-      console.warn('Webhook POST error (fallback to local & offline queue):', e);
-      syncSuccess = false;
-    }
+      }).then(() => {
+        syncSuccess = true;
+      }).catch(e => {
+        console.warn('Personal Webhook POST error:', e);
+      })
+    );
   }
 
-  if (syncSuccess) {
+  // 3B. Company Google Form Auto-Sync
+  if (syncToCompany && navigator.onLine) {
+    syncTasks.push(
+      submitToCompanyGoogleForm(newRecord).then(ok => {
+        companyFormSuccess = ok;
+      }).catch(e => {
+        console.warn('Company Form submit error:', e);
+      })
+    );
+  }
+
+  if (syncTasks.length > 0) {
+    await Promise.allSettled(syncTasks);
+  }
+
+  if (syncSuccess || companyFormSuccess) {
+    const successMsg = (syncToCompany && companyFormSuccess) 
+      ? '✅ បានកត់ត្រាការលក់ និងបញ្ជូនចូល Google Form ក្រុមហ៊ុនជោគជ័យ! 🚀'
+      : '✅ បានកត់ត្រាការលក់ចូល Google Sheet ជោគជ័យ! 🚀';
+
     if (typeof addAppNotification === 'function') {
       addAppNotification({
         type: 'order',
-        title: `កុម្ម៉ង់ថ្មី: ${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
-        content: `${productSummary} | ចំនួន ${totalBoxes} ប្រអប់ | សរុប: $${formatUSD(totalUsd).replace('$', '')} | ដឹក: ${delivery}`,
-        tag: 'Google Sheet ✓',
+        title: `កុម្ម៉ង់ 3-in-1: ${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
+        content: `${productSummary} | ${totalBoxes} ប្រអប់ | $${formatUSD(totalUsd).replace('$', '')} | Team: Bech_Nora | ដឹក: ${delivery}`,
+        tag: syncToCompany ? 'Google Form & Sheet ✓' : 'Google Sheet ✓',
         color: 'orange',
         icon: 'package'
       });
     }
-    showToastNotification('បញ្ជូនចូល Google Sheet ជោគជ័យ 🚀');
+    showToastNotification(successMsg);
   } else {
     if (typeof queueOfflineOrder === 'function') {
       queueOfflineOrder(newRecord);
@@ -11703,7 +11923,7 @@ async function submitNewOrder() {
 
   if (btn) {
     btn.disabled = false;
-    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូលការលក់ផ្ទាល់ខ្លួន 🚀</span>`;
+    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូលការលក់ 3-in-1 🚀</span>`;
   }
 
   if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
@@ -11723,6 +11943,9 @@ window.checkOrderSubmitValidation = checkOrderSubmitValidation;
 window.clearOrderInput = clearOrderInput;
 window.setOrderCurrency = setOrderCurrency;
 window.onPriceRawInput = onPriceRawInput;
+window.onSellerNameChange = onSellerNameChange;
+window.submitToCompanyGoogleForm = submitToCompanyGoogleForm;
+window.getSellerLatinName = getSellerLatinName;
 window.updateOrderDateDisplay = updateOrderDateDisplay;
 window.openOrderDatePicker = openOrderDatePicker;
 window.toggleOrderMiniCalendar = toggleOrderMiniCalendar;
