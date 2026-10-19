@@ -18,7 +18,7 @@ function getActiveSheetId() {
     const custom = localStorage.getItem('sd_custom_sheet_id');
     if (custom && custom.trim().length > 15) return custom.trim();
   } catch (_) {}
-  return '';
+  return DEFAULT_MASTER_SHEET_ID;
 }
 
 function cleanNumber(val) {
