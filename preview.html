@@ -3449,63 +3449,67 @@
           </span>
 
           <div class="grid grid-cols-2 gap-2.5">
-            <!-- LEFT COLUMN: Inputs (ក្រុមហ៊ុនដឹកជញ្ជូន, ថ្លៃដឹក, តម្លៃលក់) -->
-            <div class="space-y-2">
-              <div>
-                <label id="order-label-delivery" class="block text-[10px] text-slate-400 font-semibold mb-1 truncate">ក្រុមហ៊ុនដឹកជញ្ជូន:</label>
-                <select id="order-field-delivery" onchange="updateDeliveryShippingDefault()" class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none">
-                  <option value="VET Express">VET Express</option>
-                  <option value="J&T Cambodia">J&T Cambodia</option>
-                  <option value="Motor ក្រុមហ៊ុន">Motor ក្រុមហ៊ុន</option>
-                  <option value="VET (COD)" selected>VET (COD)</option>
-                  <option value="J&T (COD)">J&T (COD)</option>
-                  <option value="Thai ✅COD">Thai ✅COD</option>
-                  <option value="Thai ❌COD">Thai ❌COD</option>
-                </select>
+            <!-- Row 1: ក្រុមហ៊ុនដឹកជញ្ជូន (Left) | តម្លៃសរុប (Right) -->
+            <div>
+              <div class="flex items-center justify-between mb-1 h-5">
+                <label id="order-label-delivery" class="text-[10px] text-slate-400 font-semibold truncate">ក្រុមហ៊ុនដឹកជញ្ជូន:</label>
               </div>
+              <select id="order-field-delivery" onchange="updateDeliveryShippingDefault()" class="w-full h-9 bg-black/50 border border-white/10 rounded-xl px-2.5 py-1.5 text-white text-xs focus:outline-none">
+                <option value="VET Express">VET Express</option>
+                <option value="J&T Cambodia">J&T Cambodia</option>
+                <option value="Motor ក្រុមហ៊ុន">Motor ក្រុមហ៊ុន</option>
+                <option value="VET (COD)" selected>VET (COD)</option>
+                <option value="J&T (COD)">J&T (COD)</option>
+                <option value="Thai ✅COD">Thai ✅COD</option>
+                <option value="Thai ❌COD">Thai ❌COD</option>
+              </select>
+            </div>
 
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <label id="order-label-ship" class="text-[10px] text-slate-400 font-semibold truncate">ថ្លៃដឹកជញ្ជូន ($):</label>
-                  <span class="text-[10px] text-slate-500 font-mono">USD</span>
-                </div>
-                <input type="number" step="0.5" id="order-field-ship" placeholder="0.00" oninput="calculateOrderFinancials()" class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono focus:outline-none text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+            <div>
+              <div class="flex items-center justify-between mb-1 h-5">
+                <label id="order-label-total-usd" class="text-[10px] text-slate-400 font-semibold truncate">តម្លៃសរុប ($):</label>
               </div>
+              <input type="number" step="0.01" id="order-field-total-usd" placeholder="0.00" oninput="calculateOrderFinancials()" class="w-full h-9 bg-black/50 border border-white/10 rounded-xl px-2.5 py-1.5 text-emerald-400 font-bold font-mono focus:outline-none focus:border-orange-500 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+            </div>
 
-              <div>
-                <div class="flex items-center justify-between mb-1 h-5">
-                  <label id="order-label-price-raw" class="text-[10px] text-slate-400 font-semibold truncate">តម្លៃលក់:</label>
-                  <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-black/60 border border-white/10 shrink-0" id="order-currency-switch">
-                    <button type="button" onclick="setOrderCurrency('KHR')" id="curr-btn-khr" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition bg-orange-500 text-white shadow-sm flex items-center justify-center min-w-[20px] leading-none">៛</button>
-                    <button type="button" onclick="setOrderCurrency('THB')" id="curr-btn-thb" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center min-w-[20px] leading-none">฿</button>
-                    <button type="button" onclick="setOrderCurrency('USD')" id="curr-btn-usd" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center min-w-[20px] leading-none">$</button>
-                  </div>
-                </div>
-                <input type="number" id="order-field-price-raw" placeholder="0" oninput="onPriceRawInput(true)" class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono focus:outline-none focus:border-orange-500 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+            <!-- Row 2: ថ្លៃដឹកជញ្ជូន (Left) | ថ្លៃដើមស្តុក (Right) -->
+            <div>
+              <div class="flex items-center justify-between mb-1 h-5">
+                <label id="order-label-ship" class="text-[10px] text-slate-400 font-semibold truncate">ថ្លៃដឹកជញ្ជូន ($):</label>
+              </div>
+              <input type="number" step="0.5" id="order-field-ship" placeholder="0.00" oninput="calculateOrderFinancials()" class="w-full h-9 bg-black/50 border border-white/10 rounded-xl px-2.5 py-1.5 text-white font-mono focus:outline-none text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1 h-5">
+                <span id="order-label-stock-text" class="text-[10px] text-slate-400 font-semibold truncate">ថ្លៃដើមស្តុក:</span>
+              </div>
+              <div class="w-full h-9 bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 flex items-center justify-between font-mono">
+                <span class="text-[10px] text-slate-500">Stock</span>
+                <span id="summary-stock-disp" class="text-rose-400 font-bold text-xs">$48.00</span>
               </div>
             </div>
 
-            <!-- RIGHT COLUMN: Results & Financials (តម្លៃសរុប, ថ្លៃដើមស្តុក, ប្រាក់ចំណេញ) -->
-            <div class="flex flex-col justify-between">
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <label id="order-label-total-usd" class="text-[10px] text-slate-400 font-semibold truncate">តម្លៃសរុប ($):</label>
-                  <span class="text-[10px] text-emerald-400/80 font-mono font-semibold">USD</span>
+            <!-- Row 3: តម្លៃលក់ (Left) | ប្រាក់ចំណេញ (Right) -->
+            <div>
+              <div class="flex items-center justify-between mb-1 h-5">
+                <label id="order-label-price-raw" class="text-[10px] text-slate-400 font-semibold truncate">តម្លៃលក់:</label>
+                <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-black/60 border border-white/10 shrink-0" id="order-currency-switch">
+                  <button type="button" onclick="setOrderCurrency('KHR')" id="curr-btn-khr" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition bg-orange-500 text-white shadow-sm flex items-center justify-center min-w-[20px] leading-none">៛</button>
+                  <button type="button" onclick="setOrderCurrency('THB')" id="curr-btn-thb" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center min-w-[20px] leading-none">฿</button>
+                  <button type="button" onclick="setOrderCurrency('USD')" id="curr-btn-usd" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center min-w-[20px] leading-none">$</button>
                 </div>
-                <input type="number" step="0.01" id="order-field-total-usd" placeholder="0.00" oninput="calculateOrderFinancials()" class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-emerald-400 font-bold font-mono focus:outline-none focus:border-orange-500 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
               </div>
+              <input type="number" id="order-field-price-raw" placeholder="0" oninput="onPriceRawInput(true)" class="w-full h-9 bg-black/50 border border-white/10 rounded-xl px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-orange-500 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+            </div>
 
-              <!-- Financial Summary Box: ថ្លៃស្តុក & ប្រាក់ចំណេញ (Right Column) -->
-              <div class="mt-2 p-2.5 rounded-xl bg-black/40 border border-white/10 flex flex-col justify-center gap-2.5 font-mono text-[11px] flex-1">
-                <div class="flex items-center justify-between">
-                  <span id="order-label-stock-text" class="text-slate-400 text-[10px]">ថ្លៃដើមស្តុក:</span>
-                  <span id="summary-stock-disp" class="text-rose-400 font-bold text-xs">$48.00</span>
-                </div>
-                <div class="h-px bg-white/10"></div>
-                <div class="flex items-center justify-between">
-                  <span id="order-label-profit-text" class="text-slate-400 text-[10px]">ប្រាក់ចំណេញ:</span>
-                  <span id="summary-profit-disp" class="text-emerald-400 font-bold text-sm">$39.00</span>
-                </div>
+            <div>
+              <div class="flex items-center justify-between mb-1 h-5">
+                <span id="order-label-profit-text" class="text-[10px] text-slate-400 font-semibold truncate">ប្រាក់ចំណេញ:</span>
+              </div>
+              <div class="w-full h-9 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-2.5 py-1.5 flex items-center justify-between font-mono">
+                <span class="text-[10px] text-emerald-400/80">Profit</span>
+                <span id="summary-profit-disp" class="text-emerald-400 font-bold text-sm">$39.00</span>
               </div>
             </div>
           </div>
@@ -3717,6 +3721,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=13.5"></script>
+  <script src="app.js?v=13.6"></script>
 </body>
 </html>
