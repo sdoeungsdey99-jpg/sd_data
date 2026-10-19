@@ -3228,10 +3228,6 @@
         <!-- Basic Order Info Card -->
         <div class="p-3 rounded-2xl bg-black/30 border border-white/10 space-y-2.5 text-xs">
           <div class="grid grid-cols-2 gap-2">
-            <div id="group-order-id">
-              <label id="order-label-id" class="block text-[11px] text-slate-400 mb-1 font-semibold">លេខកុម្ម៉ង់:</label>
-              <input type="text" id="order-field-id" placeholder="#" class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono focus:outline-none focus:border-orange-500">
-            </div>
             <div class="relative">
               <label id="order-label-date" class="block text-[11px] text-slate-400 mb-1 font-semibold">កាលបរិច្ឆេទ:</label>
               <div class="relative flex items-center w-full">
@@ -3247,8 +3243,12 @@
 
               <!-- iOS Style Mini Calendar Widget Popup (matching user uploaded screenshot) -->
               <div id="order-mini-calendar-popup" 
-                   class="hidden absolute z-50 top-full mt-2 right-0 w-[240px] bg-[#1C1C1E] border border-white/15 rounded-3xl p-3.5 shadow-2xl animate-fade-in font-sans select-none">
+                   class="hidden absolute z-50 top-full mt-2 left-0 w-[240px] bg-[#1C1C1E] border border-white/15 rounded-3xl p-3.5 shadow-2xl animate-fade-in font-sans select-none">
               </div>
+            </div>
+            <div id="group-order-id">
+              <label id="order-label-id" class="block text-[11px] text-slate-400 mb-1 font-semibold">លេខកុម្ម៉ង់:</label>
+              <input type="text" id="order-field-id" placeholder="#" class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono focus:outline-none focus:border-orange-500">
             </div>
           </div>
 
@@ -3703,6 +3703,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=13.2"></script>
+  <script src="app.js?v=13.3"></script>
 </body>
 </html>
