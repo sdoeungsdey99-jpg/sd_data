@@ -7912,7 +7912,7 @@ const DEFAULT_PROFILE_DATA = {
   from: 'ព្រះរាជាណាចក្រកម្ពុជា',
   status: 'កំពុងអភិវឌ្ឍអាជីវកម្ម',
   birthday: '១៥ មករា ២០០០',
-  phone: '096 212 9261',
+  phone: '(+855)',
   privacy: {
     showWork: true,
     showStudy: true,
@@ -7954,7 +7954,7 @@ function getProfileData() {
     if (raw) {
       const parsed = JSON.parse(raw);
       // If not in Master Sheet mode, prevent lingering Master Admin personal info
-      if (!isMaster && (parsed.name === 'ស្តី ស្តើង' || parsed.phone === '096 212 9261' || parsed.phone === '097 859 5526')) {
+      if (!isMaster && (parsed.name === 'ស្តី ស្តើង' || parsed.phone === '096 212 9261' || parsed.phone === '097 859 5526' || parsed.memberId === 'ID: SD-0001' || parsed.subtitle === 'SDEY SDOEUNG')) {
         return { ...DEFAULT_GUEST_PROFILE_DATA, privacy: { ...DEFAULT_GUEST_PROFILE_DATA.privacy } };
       }
       return {
@@ -9203,8 +9203,9 @@ function getProfileViewHTML() {
 let tempAvatarDataUrl = null;
 
 function openEditProfileModal() {
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   const p = getProfileData();
-  tempAvatarDataUrl = p.avatar || 'profile.png';
+  tempAvatarDataUrl = p.avatar || (isMaster ? 'profile.png' : 'bostar-logo.png');
 
   const preview = document.getElementById('edit-prof-avatar-preview');
   if (preview) preview.src = tempAvatarDataUrl;
@@ -9278,9 +9279,11 @@ async function handleProfileAvatarUpload(event) {
 }
 
 function resetProfileAvatar() {
-  tempAvatarDataUrl = 'profile.png';
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+  const defaultAvatar = isMaster ? 'profile.png' : 'bostar-logo.png';
+  tempAvatarDataUrl = defaultAvatar;
   const preview = document.getElementById('edit-prof-avatar-preview');
-  if (preview) preview.src = 'profile.png';
+  if (preview) preview.src = defaultAvatar;
 }
 
 function saveProfileData() {
@@ -10325,8 +10328,8 @@ function openProfileSubModal(type) {
     contentHTML = `
       <div class="space-y-2.5 text-xs">
         <div class="p-3 rounded-2xl bg-black/30 border border-white/10 space-y-1.5">
-          <p class="text-white font-bold">📞 ទូរសព្ទជំនួយបន្ទាន់៖ <span class="font-mono text-orange-400">096 212 9261</span></p>
-          <p class="text-slate-300">💬 Telegram៖ <span class="font-mono text-sky-400">@sdey_sdoeung</span></p>
+          <p class="text-white font-bold">📞 ទូរសព្ទជំនួយបន្ទាន់៖ <span class="font-mono text-amber-400">(+855)</span></p>
+          <p class="text-slate-300">💬 Telegram ជំនួយ៖ <span class="font-mono text-sky-400">BostarGroup Support</span></p>
         </div>
         <a href="https://t.me/sdey_sdoeung" target="_blank" 
            class="w-full py-2.5 rounded-xl accent-solid-btn text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition">
