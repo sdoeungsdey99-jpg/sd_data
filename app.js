@@ -223,11 +223,18 @@ const appState = {
   profitNetBoostMode: false,
   cardVisibility: (() => {
     try {
+      const vKey = 'sd_card_vis_v5';
+      if (!localStorage.getItem(vKey)) {
+        localStorage.removeItem('sd_card_visibility');
+        localStorage.setItem(vKey, '1');
+      }
       const saved = localStorage.getItem('sd_card_visibility');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.pureCash === undefined) parsed.pureCash = false;
         if (parsed.autoHideEmpty === undefined) parsed.autoHideEmpty = false;
+        if (parsed.teamSales === undefined) parsed.teamSales = false;
+        if (parsed.netCash === undefined) parsed.netCash = false;
         return parsed;
       }
     } catch (_) {}
@@ -235,9 +242,9 @@ const appState = {
       autoHideEmpty: false, // Default: false (Auto-hide empty cards turned OFF)
       pureCash: false, // Default: false (Card 1 turned OFF)
       salesPerformance: true,
-      netCash: true,
+      netCash: false, // Default: false (Hidden by default as requested by Brother Sdoeung)
       expenses: true,
-      teamSales: true,
+      teamSales: false, // Default: false (Hidden by default as requested by Brother Sdoeung)
       tools: true
     };
   })()
@@ -327,9 +334,9 @@ function resetAppSettings() {
     autoHideEmpty: false,
     pureCash: false,
     salesPerformance: true,
-    netCash: true,
+    netCash: false,
     expenses: true,
-    teamSales: true,
+    teamSales: false,
     tools: true
   };
   appState.theme = 'dark';
@@ -2980,9 +2987,9 @@ function getDashboardViewHTML() {
     autoHideEmpty: false,
     pureCash: false,
     salesPerformance: true,
-    netCash: true,
+    netCash: false,
     expenses: true,
-    teamSales: true,
+    teamSales: false,
     tools: true
   };
 
@@ -8880,31 +8887,16 @@ function renderProfileDrawerContent() {
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
       </div>
 
-      <!-- 3. មតិកែលម្អ (Feedback) -->
-      <div onclick="closeProfileDrawer(); openProfileSubModal('feedback');" 
+      <!-- 3. មតិកែលម្អ & ជំនួយបច្ចេកទេស (Feedback & Support) -->
+      <div onclick="closeProfileDrawer(); openProfileSubModal('feedback_support');" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
-          <div class="settings-icon-box w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0">
-            <i data-lucide="message-square-plus" class="w-3.5 h-3.5 text-blue-400"></i>
+          <div class="settings-icon-box w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="message-square-heart" class="w-3.5 h-3.5 text-sky-400"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Feedback' : 'មតិកែលម្អ'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Suggestions & improvements' : 'ផ្ញើសំណូមពរ និងមតិកែលម្អ'}</p>
-          </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
-      </div>
-
-      <!-- 4. ជំនួយបច្ចេកទេស (Support) -->
-      <div onclick="closeProfileDrawer(); openProfileSubModal('support');" 
-           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
-        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
-          <div class="settings-icon-box w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
-            <i data-lucide="help-circle" class="w-3.5 h-3.5 text-amber-400"></i>
-          </div>
-          <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Support' : 'ជំនួយបច្ចេកទេស'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Technical assistance & contact' : 'ទំនាក់ទំនងក្រុមការងារបច្ចេកទេស'}</p>
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Feedback & Support' : 'មតិកែលម្អ & ជំនួយបច្ចេកទេស'}</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Send feedback or contact Telegram' : 'ផ្ញើមតិកែលម្អ និងទំនាក់ទំនង Telegram ផ្ទាល់'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -9165,31 +9157,16 @@ function getProfileViewHTML() {
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
         </div>
 
-        <!-- 2. ផ្តល់មតិយោបល់មកក្រុមហ៊ុន (Feedback) -->
-        <div onclick="openProfileSubModal('feedback')" 
-             class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
-          <div class="settings-row-left flex items-center gap-3 min-w-0">
-            <div class="settings-icon-box w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
-              <i data-lucide="message-square-heart" class="w-4 h-4 text-amber-400"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ផ្តល់មតិយោបល់មកក្រុមហ៊ុន</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ចូលរួមផ្តល់មតិកែលម្អប្រព័ន្ធ SD Data</p>
-            </div>
-          </div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
-        </div>
-
-        <!-- 3. សុំជំនួយ (Help & Support) -->
-        <div onclick="openProfileSubModal('help')" 
+        <!-- 2. មតិកែលម្អ & ជំនួយបច្ចេកទេស (Feedback & Support) -->
+        <div onclick="openProfileSubModal('feedback_support')" 
              class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
           <div class="settings-row-left flex items-center gap-3 min-w-0">
             <div class="settings-icon-box w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0">
-              <i data-lucide="circle-help" class="w-4 h-4 text-sky-400"></i>
+              <i data-lucide="message-square-heart" class="w-4 h-4 text-sky-400"></i>
             </div>
             <div class="min-w-0">
-              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">សុំជំនួយ (Help & Support)</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">មជ្ឈមណ្ឌលជំនួយ និងទំនាក់ទំនងបច្ចេកទេស</p>
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">មតិកែលម្អ & ជំនួយបច្ចេកទេស</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ផ្ញើមតិកែលម្អប្រព័ន្ធ ឬទាក់ទង Telegram ផ្ទាល់</p>
             </div>
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
@@ -10331,35 +10308,52 @@ function openProfileSubModal(type) {
         `).join('')}
       </div>
     `;
-  } else if (type === 'feedback') {
-    title = 'ផ្តល់មតិយោបល់មកក្រុមហ៊ុន';
-    sub = 'រាល់មតិយោបល់របស់បងជួយឱ្យប្រព័ន្ធកាន់តែល្អប្រសើរ';
+  } else if (type === 'feedback_support' || type === 'feedback' || type === 'support' || type === 'help') {
+    title = 'មតិកែលម្អ & ជំនួយបច្ចេកទេស';
+    sub = 'ផ្ញើមតិកែលម្អប្រព័ន្ធ ឬទាក់ទង Telegram បងស្តើងផ្ទាល់';
     icon = 'message-square-heart';
     contentHTML = `
-      <div class="space-y-2.5">
-        <textarea id="feedback-text-input" rows="3" placeholder="សូមសរសេរមតិយោបល់ ឬសំណូមពររបស់អ្នក..." 
-                  class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500"></textarea>
-        <button onclick="showToastNotification('អរគុណសម្រាប់មតិយោបល់របស់អ្នក!'); closeProfileSubModal();" 
-                class="w-full py-2.5 rounded-xl accent-solid-btn text-xs font-bold active:scale-95 transition">
-          ផ្ញើមតិយោបល់
-        </button>
-      </div>
-    `;
-  } else if (type === 'help') {
-    title = 'សុំជំនួយ (Help & Support)';
-    sub = 'ទំនាក់ទំនងផ្នែកជំនួយបច្ចេកទេស';
-    icon = 'circle-help';
-    contentHTML = `
-      <div class="space-y-2.5 text-xs">
-        <div class="p-3 rounded-2xl bg-black/30 border border-white/10 space-y-1.5">
-          <p class="text-white font-bold">📞 ទូរសព្ទជំនួយបន្ទាន់៖ <span class="font-mono text-amber-400">(+855)</span></p>
-          <p class="text-slate-300">💬 Telegram ជំនួយ៖ <span class="font-mono text-sky-400">BostarGroup Support</span></p>
+      <div class="space-y-3 select-none text-xs">
+        <!-- Telegram Contact Card (Highlight Telegram បងស្តើង) -->
+        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-sky-500/15 via-blue-500/10 to-indigo-500/15 border border-sky-500/30 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center border border-sky-500/30 shrink-0">
+                <i data-lucide="send" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-white">ទំនាក់ទំនង Telegram ផ្ទាល់</h4>
+                <p class="text-[10px] text-sky-300 font-mono mt-0.5">@sdey_sdoeung</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[9px] font-bold font-mono">
+              ONLINE
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            លោកគ្រូ / អ្នកគ្រូ ឬសមាជិកក្រុមការងារ មានសំណូមពរ បញ្ហាបច្ចេកទេស ឬចង់កែលម្អប្រព័ន្ធ អាចឆាតទាក់ទងមកកាន់ <strong>បងស្តើង</strong> ដោយផ្ទាល់បានគ្រប់ពេលវេលា។
+          </p>
+          <a href="https://t.me/sdey_sdoeung" target="_blank" 
+             class="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 active:scale-95 transition">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span>បើកឆាត Telegram បងស្តើង 🚀</span>
+          </a>
         </div>
-        <a href="https://t.me/sdey_sdoeung" target="_blank" 
-           class="w-full py-2.5 rounded-xl accent-solid-btn text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition">
-          <i data-lucide="send" class="w-3.5 h-3.5"></i>
-          <span>ទាក់ទងតាម Telegram ផ្ទាល់</span>
-        </a>
+
+        <!-- Feedback Form Box -->
+        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+          <label class="block text-xs font-bold text-white flex items-center gap-1.5">
+            <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>ផ្ញើសារមតិយោបល់ ឬសំណូមពរ៖</span>
+          </label>
+          <textarea id="feedback-text-input" rows="3" placeholder="សូមសរសេរមតិយោបល់ ឬសំណូមពររបស់អ្នកនៅទីនេះ..." 
+                    class="w-full text-xs bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
+          <button onclick="submitUserFeedback()" 
+                  class="w-full py-2.5 rounded-xl accent-solid-btn text-xs font-bold active:scale-95 transition flex items-center justify-center gap-1.5 shadow-md">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>ផ្ញើមតិយោបល់</span>
+          </button>
+        </div>
       </div>
     `;
   } else if (type === 'logout') {
@@ -10659,8 +10653,34 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
     iconBg: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     keywords: 'about version dev អំពី កម្មវិធី v2.5 ព័ត៌មាន',
     action: () => { closeProfileSettingsSearch(); openAboutModal(); }
+  },
+  {
+    id: 'feedback_support',
+    group: 'Settings / ការកំណត់',
+    groupKm: 'ការកំណត់',
+    title: 'មតិកែលម្អ & ជំនួយបច្ចេកទេស',
+    titleEn: 'Feedback & Support',
+    subtitle: 'Settings > ផ្ញើមតិកែលម្អ និងទំនាក់ទំនង Telegram ផ្ទាល់',
+    subtitleEn: 'Settings > Send feedback or chat via Telegram',
+    icon: 'message-square-heart',
+    iconBg: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
+    keywords: 'feedback support help telegram contact មតិកែលម្អ ជំនួយ បច្ចេកទេស តេឡេក្រាម',
+    action: () => { closeProfileSettingsSearch(); openProfileSubModal('feedback_support'); }
   }
 ];
+
+function submitUserFeedback() {
+  const input = document.getElementById('feedback-text-input');
+  const val = input ? input.value.trim() : '';
+  if (!val) {
+    showToastNotification('សូមសរសេរមតិយោបល់មុននឹងផ្ញើ!');
+    return;
+  }
+  showToastNotification('អរគុណច្រើនសម្រាប់មតិយោបល់របស់អ្នក! 🙏');
+  if (input) input.value = '';
+  closeProfileSubModal();
+}
+window.submitUserFeedback = submitUserFeedback;
 
 function openProfileSettingsSearch() {
   const modal = document.getElementById('profile-settings-search-modal');
@@ -10792,9 +10812,9 @@ function toggleCardVisibility(cardKey) {
       autoHideEmpty: false,
       pureCash: false,
       salesPerformance: true,
-      netCash: true,
+      netCash: false,
       expenses: true,
-      teamSales: true,
+      teamSales: false,
       tools: true
     };
   }
