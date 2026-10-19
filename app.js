@@ -11400,7 +11400,7 @@ function openNewOrderModal(mode = 'dock') {
     if (card3in1) card3in1.classList.add('hidden');
     if (syncToggle) syncToggle.checked = false; // Strictly OFF for telegram mode!
     if (orderTypeCard) orderTypeCard.classList.remove('hidden');
-    if (stockCapsuleBtn) stockCapsuleBtn.classList.remove('hidden');
+    if (stockCapsuleBtn) stockCapsuleBtn.classList.add('hidden'); // លាក់ប៊ូតុងលើ Header ដោយសារមានរបារខាងក្រោមរួចហើយ
   } else {
     // Dock 3-in-1 Mode
     if (modalTitle) modalTitle.textContent = 'បញ្ចូលការកុម្ម៉ង់ថ្មី';
@@ -11410,7 +11410,7 @@ function openNewOrderModal(mode = 'dock') {
     if (card3in1) card3in1.classList.add('hidden');
     if (syncToggle) syncToggle.checked = true; // Auto-sync active for 3-in-1
     if (orderTypeCard) orderTypeCard.classList.add('hidden'); // Hidden in 3-in-1 dock mode as instructed!
-    if (stockCapsuleBtn) stockCapsuleBtn.classList.remove('hidden');
+    if (stockCapsuleBtn) stockCapsuleBtn.classList.remove('hidden'); // បង្ហាញប៊ូតុងលើ Header ព្រោះគ្មានរបារខាងក្រោម
   }
 
   const profile = (typeof getProfileData === 'function') ? getProfileData() : {};
