@@ -1774,7 +1774,8 @@ function closeAllModals() {
     'global-search-modal',
     'profile-settings-search-modal',
     'new-order-modal',
-    'new-expense-modal'
+    'new-expense-modal',
+    'daily-report-modal'
   ];
   modals.forEach(id => {
     const el = document.getElementById(id);
@@ -8747,7 +8748,7 @@ function renderProfileDrawerContent() {
         </div>
 
         <!-- 4. របាយការណ៍ប្រចាំថ្ងៃ (Daily Sales Report) -->
-        <div onclick="closeProfileDrawer(); openProfileSubModal('daily_report');" 
+        <div onclick="closeProfileDrawer(); openDailyReportModal();" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-emerald-500/40">
           <div class="flex items-center justify-between mb-1.5">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
@@ -10958,14 +10959,202 @@ function shareDailyReportToTelegram() {
   window.open(savedGroup, '_blank');
 }
 
-function openDailyReportModal() {
-  openProfileSubModal('daily_report');
+function renderDailyReportModal() {
+  const container = document.getElementById('daily-report-body-content');
+  if (!container) return;
+
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, '0');
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const yyyy = today.getFullYear();
+  const defaultDate = `${dd}/${mm}/${yyyy}`;
+  const savedPage = localStorage.getItem('sd_report_page') || 'Bostar Store';
+  const staffName = p.name || 'ស្តី ស្តើង';
+
+  // Auto-detect today's sales from DataService
+  let autoTodayBoxes = 0;
+  let autoTodayOrders = 0;
+  try {
+    const todayIso = today.toISOString().slice(0, 10);
+    const sales = (DataService.data && DataService.data.personalSales) ? DataService.data.personalSales : [];
+    const todaySales = sales.filter(s => s.isoDate === todayIso);
+    autoTodayOrders = todaySales.length;
+    autoTodayBoxes = todaySales.reduce((sum, s) => sum + (Number(s.boxes) || 0), 0);
+  } catch (_) {}
+
+  container.innerHTML = `
+    <div class="space-y-3 text-xs select-none">
+      <!-- Card 1: Meta Information -->
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+            <span>កាលបរិច្ឆេទ & ព័ត៌មាន</span>
+          </span>
+          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-[9px] font-bold border border-emerald-500/30">
+            ៩:០០ យប់
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1 font-semibold">កាលបរិច្ឆេទ៖</label>
+            <input type="text" id="rep-field-date" value="${defaultDate}" 
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1 font-semibold">ឈ្មោះផេក៖</label>
+            <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[10px] text-slate-400 mb-1 font-semibold">បុគ្គលិកទទួលខុសត្រូវ / ក្រុម៖</label>
+          <input type="text" id="rep-field-staff" value="${staffName}" 
+                 class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-emerald-500">
+        </div>
+      </div>
+
+      <!-- Card 2: Section 1 - 📥 ទិន្នន័យអតិថិជនថ្មីទាក់ទងមក -->
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+        <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="inbox" class="w-3.5 h-3.5"></i>
+          <span>១. ទិន្នន័យអតិថិជនថ្មីទាក់ទងមក</span>
+        </span>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">ឆាតថ្មីសរុប (នាក់)៖</label>
+            <input type="number" id="rep-field-chat-total" placeholder="0" oninput="calculateDailyReportMetrics()" 
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">ឆាតប៉ះដៃ (នាក់)៖</label>
+            <input type="number" id="rep-field-chat-mistake" placeholder="0" oninput="calculateDailyReportMetrics()" 
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">ឆាតគោលដៅ (នាក់)៖</label>
+            <input type="number" id="rep-field-chat-target" placeholder="0" oninput="calculateDailyReportMetrics()" 
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-sky-300 font-bold font-mono text-xs focus:outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">អតិថិជនខលផ្ទាល់ (នាក់)៖</label>
+            <input type="number" id="rep-field-call-direct" placeholder="0" 
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Section 2 - 🔄 សកម្មភាពតាមដាន (Follow Up) -->
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+        <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>២. សកម្មភាពតាមដានអតិថិជន (Follow Up)</span>
+        </span>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">អតិថិជនចាស់សួរសុខទុក្ខ (នាក់)៖</label>
+            <input type="number" id="rep-field-follow-old" placeholder="0" 
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-purple-500">
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">អតិថិជនរង់ចាំចម្លើយ (នាក់)៖</label>
+            <input type="number" id="rep-field-follow-pending" placeholder="0" 
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-purple-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Section 3 - 📦 លទ្ធផលនៃការលក់ជាក់ស្តែង -->
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+        <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="package" class="w-3.5 h-3.5"></i>
+          <span>៣. លទ្ធផលនៃការលក់ជាក់ស្តែង</span>
+        </span>
+        
+        <div class="space-y-2">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-slate-300 w-32 shrink-0">អតិថិជនថ្មីទិញ:</span>
+            <input type="number" id="rep-buy-new-p" placeholder="នាក់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
+            <input type="number" id="rep-buy-new-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-slate-300 w-32 shrink-0">អតិថិជនចាស់ទិញបន្ថែម:</span>
+            <input type="number" id="rep-buy-old-p" placeholder="នាក់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
+            <input type="number" id="rep-buy-old-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-slate-300 w-32 shrink-0">អតិថិជនដែលតាមដានទិញ:</span>
+            <input type="number" id="rep-buy-follow-p" placeholder="នាក់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
+            <input type="number" id="rep-buy-follow-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <!-- Total Calculation Display -->
+        <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs font-mono">
+          <span class="text-emerald-300 font-bold">👉 សរុបទំនិញលក់បានទាំងអស់៖</span>
+          <span id="rep-total-summary-disp" class="text-emerald-400 font-bold text-sm">
+            ${autoTodayBoxes || 0} ប្រអប់
+          </span>
+        </div>
+      </div>
+
+      <!-- Card 5: បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ -->
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+        <label class="block text-[10px] text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+          <span>បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖</span>
+        </label>
+        <textarea id="rep-field-challenges" rows="3" placeholder="ឧទាហរណ៍៖ អតិថិជនត្អូញត្អែរតម្លៃ, សេវាដឹកយឺត, អស់ទំនិញក្នុងស្តុក..." 
+                  class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
+      </div>
+    </div>
+  `;
 }
 
+function openDailyReportModal() {
+  const modal = document.getElementById('daily-report-modal');
+  if (!modal) return;
+  closeAllModals();
+  renderDailyReportModal();
+  modal.classList.remove('hidden');
+  setDockVisible(false);
+  const bodyEl = document.getElementById('daily-report-body-content');
+  if (bodyEl) bodyEl.scrollTop = 0;
+  if (window.lucide) window.lucide.createIcons();
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+}
+
+function closeDailyReportModal() {
+  const modal = document.getElementById('daily-report-modal');
+  if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
+}
+
+function resetDailyReportFields() {
+  const ids = [
+    'rep-field-chat-total', 'rep-field-chat-mistake', 'rep-field-chat-target', 'rep-field-call-direct',
+    'rep-field-follow-old', 'rep-field-follow-pending',
+    'rep-buy-new-p', 'rep-buy-new-b', 'rep-buy-old-p', 'rep-buy-old-b', 'rep-buy-follow-p', 'rep-buy-follow-b',
+    'rep-field-challenges'
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const targetInput = document.getElementById('rep-field-chat-target');
+  if (targetInput) delete targetInput.dataset.manualEdited;
+  calculateDailyReportMetrics();
+  showToastNotification('បានសម្អាតទិន្នន័យរបាយការណ៍!');
+}
+
+window.renderDailyReportModal = renderDailyReportModal;
+window.closeDailyReportModal = closeDailyReportModal;
+window.resetDailyReportFields = resetDailyReportFields;
+window.openDailyReportModal = openDailyReportModal;
 window.calculateDailyReportMetrics = calculateDailyReportMetrics;
 window.copyDailyReportText = copyDailyReportText;
 window.shareDailyReportToTelegram = shareDailyReportToTelegram;
-window.openDailyReportModal = openDailyReportModal;
 
 function openProfileSettingsSearch() {
   const modal = document.getElementById('profile-settings-search-modal');
@@ -11702,20 +11891,20 @@ function openNewOrderModal(mode = 'dock') {
     if (modalSubtitle) modalSubtitle.textContent = 'ចូល Google Sheet ផ្ទាល់ខ្លួន';
     if (pasteBox) pasteBox.classList.remove('hidden');
     if (btnHeaderPass) btnHeaderPass.classList.remove('hidden');
-    if (card3in1) card3in1.classList.add('hidden');
-    if (syncToggle) syncToggle.checked = false; // Strictly OFF for telegram mode!
+    if (card3in1) card3in1.classList.remove('hidden');
+    if (syncToggle) syncToggle.checked = false; // Strictly OFF for telegram mode by default!
     if (orderTypeCard) orderTypeCard.classList.remove('hidden');
     if (stockCapsuleBtn) {
       stockCapsuleBtn.classList.add('hidden');
       stockCapsuleBtn.style.display = 'none';
     }
   } else {
-    // Dock 3-in-1 Mode
+    // Dock 3-in-1 Mode (like outside)
     if (modalTitle) modalTitle.textContent = 'បញ្ចូលការកុម្ម៉ង់ថ្មី';
     if (modalSubtitle) modalSubtitle.textContent = 'Sync ផ្ទាល់ខ្លួន & ក្រុមហ៊ុន';
     if (pasteBox) pasteBox.classList.add('hidden');
     if (btnHeaderPass) btnHeaderPass.classList.add('hidden');
-    if (card3in1) card3in1.classList.add('hidden');
+    if (card3in1) card3in1.classList.remove('hidden');
     if (syncToggle) syncToggle.checked = true; // Auto-sync active for 3-in-1
     if (orderTypeCard) orderTypeCard.classList.add('hidden'); // Hidden in 3-in-1 dock mode as instructed!
     if (stockCapsuleBtn) {
@@ -11806,7 +11995,11 @@ function openNewOrderModal(mode = 'dock') {
   }
 
   modal.classList.remove('hidden');
-  setDockVisible(false);
+  setDockVisible(true);
+  const orderBody = document.getElementById('new-order-modal-body');
+  if (orderBody && typeof hookScrollableForDock === 'function') {
+    hookScrollableForDock(orderBody, false);
+  }
   if (window.lucide) window.lucide.createIcons();
   if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
 }
@@ -11833,14 +12026,16 @@ function checkOrderSubmitValidation() {
   const btn = document.getElementById('btn-submit-order');
   if (!btn) return;
 
-  // បើមិនអាចបញ្ជូនបាន (0 ប្រអប់ ឬលេខទូរស័ព្ទតិចជាង ៨ ខ្ទង់) គឺមិនបង្ហាញ Button
+  // បើមិនទាន់អាចបញ្ជូនបាន (0 ប្រអប់ ឬលេខទូរស័ព្ទតិចជាង ៨ ខ្ទង់) គឺ disable & dim
   const isReady = (totalBoxes > 0 && phone.length >= 8);
   if (isReady) {
-    btn.classList.remove('hidden');
     btn.disabled = false;
+    btn.classList.remove('opacity-40', 'cursor-not-allowed', 'grayscale');
+    btn.classList.add('shadow-lg', 'shadow-orange-500/25');
   } else {
-    btn.classList.add('hidden');
     btn.disabled = true;
+    btn.classList.add('opacity-40', 'cursor-not-allowed', 'grayscale');
+    btn.classList.remove('shadow-lg', 'shadow-orange-500/25');
   }
 }
 
