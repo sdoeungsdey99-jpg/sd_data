@@ -11320,8 +11320,8 @@ function setOrderCurrency(curr) {
   const btnThb = document.getElementById('curr-btn-thb');
   const btnUsd = document.getElementById('curr-btn-usd');
 
-  const activeCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition bg-orange-500 text-white shadow-sm flex items-center justify-center';
-  const inactiveCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center';
+  const activeCls = 'px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition bg-orange-500 text-white shadow-sm flex items-center justify-center min-w-[20px] leading-none';
+  const inactiveCls = 'px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center min-w-[20px] leading-none';
 
   if (btnKhr) btnKhr.className = (currentOrderCurrency === 'KHR' ? activeCls : inactiveCls);
   if (btnThb) btnThb.className = (currentOrderCurrency === 'THB' ? activeCls : inactiveCls);
