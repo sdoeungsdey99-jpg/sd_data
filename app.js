@@ -998,7 +998,7 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
@@ -1049,7 +1049,7 @@ function handleBackNavigation() {
 
 function isAnyDrilldownModalOpen() {
   const modalIds = [
-    'new-order-modal', 'new-expense-modal',
+    'team-members-modal', 'new-order-modal', 'new-expense-modal',
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
     'profile-sub-modal', 'qr-photos-modal', 'edit-profile-modal',
@@ -1261,9 +1261,7 @@ function isDialogModalOpen() {
     'about-modal',
     'attendance-modal',
     'global-search-modal',
-    'profile-settings-search-modal',
-    'new-order-modal',
-    'new-expense-modal'
+    'profile-settings-search-modal'
   ];
   return ids.some(id => {
     const el = document.getElementById(id);
@@ -1407,6 +1405,8 @@ function setupSmartDockScroll() {
     'bank-modal-list',
     'payables-modal-list',
     'all-customers-list',
+    'team-members-list',
+    'new-order-modal-body',
     'profile-drawer-content',
     'team-sets-modal-table-container',
     'search-results-container',
@@ -1764,6 +1764,7 @@ function closeAllModals() {
     'team-sets-modal',
     'notif-modal',
     'all-customers-modal',
+    'team-members-modal',
     'profile-drawer-modal',
     'edit-profile-modal',
     'qr-photos-modal',
@@ -7490,7 +7491,7 @@ function handleHomeClick(e) {
   const isDrawerOpen = (drawerModal && !drawerModal.classList.contains('hidden')) || 
                        (drawerPanel && drawerPanel.classList.contains('translate-x-0'));
 
-  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden)');
+  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden)');
 
   // Case 1: If Profile Drawer or any Modal is open ➔ Single tap smoothly dismisses it to reveal dashboard instantly (ZERO network reload)
   if (isDrawerOpen || openModal) {
@@ -8802,7 +8803,7 @@ function renderProfileDrawerContent() {
         </div>
 
         <!-- 5. សមាជិកក្រុម (Team Members) -->
-        <div onclick="closeProfileDrawer(); openProfileSubModal('members');" 
+        <div onclick="closeProfileDrawer(); openTeamMembersModal();" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
           <div class="flex items-center justify-between mb-1.5">
             <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
@@ -9103,7 +9104,7 @@ function getProfileViewHTML() {
           </div>
 
           <!-- 4. សមាជិក (Member) -->
-          <div onclick="openProfileSubModal('members')" 
+          <div onclick="openTeamMembersModal()" 
                class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
             <div class="flex items-center justify-between mb-2">
               <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
@@ -10097,6 +10098,10 @@ function closeProfileSubModal() {
 }
 
 function openProfileSubModal(type) {
+  if (type === 'members') {
+    openTeamMembersModal();
+    return;
+  }
   const header = document.getElementById('profile-sub-modal-header');
   const body = document.getElementById('profile-sub-modal-body');
   if (!header || !body) return;
@@ -10639,113 +10644,322 @@ function openProfileSubModal(type) {
   if (window.lucide) window.lucide.createIcons();
 }
 
-function openMemberDetailCard(sellerKmName) {
+// ==========================================
+// Full-Screen Bostar Team Members Directory Modal (Spacious like Customers/Expenses)
+// ==========================================
+function toggleTeamMembersSearch() {
+  const normalNav = document.getElementById('team-members-normal-nav');
+  const searchBar = document.getElementById('team-members-search-bar');
+  const input = document.getElementById('team-members-search-input');
+  if (!normalNav || !searchBar) return;
+  const isSearchOpen = !searchBar.classList.contains('hidden');
+  if (isSearchOpen) {
+    searchBar.classList.add('hidden');
+    normalNav.classList.remove('hidden');
+    if (input) input.value = '';
+    renderTeamMembersList();
+  } else {
+    normalNav.classList.add('hidden');
+    searchBar.classList.remove('hidden');
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 80);
+    }
+  }
+}
+
+function clearTeamMembersSearch() {
+  const input = document.getElementById('team-members-search-input');
+  if (input) {
+    input.value = '';
+    input.focus();
+    renderTeamMembersList();
+  }
+}
+
+function openTeamMembersModal(memberNameToOpen = null) {
+  closeProfileDrawer();
+  const subModal = document.getElementById('profile-sub-modal');
+  if (subModal) subModal.classList.add('hidden');
+
+  const modal = document.getElementById('team-members-modal');
+  if (!modal) return;
+
+  const normalNav = document.getElementById('team-members-normal-nav');
+  const searchBar = document.getElementById('team-members-search-bar');
+  const searchInput = document.getElementById('team-members-search-input');
+  if (normalNav) normalNav.classList.remove('hidden');
+  if (searchBar) searchBar.classList.add('hidden');
+  if (searchInput) searchInput.value = '';
+
+  const listView = document.getElementById('team-members-list-view');
+  const detailView = document.getElementById('team-members-detail-view');
+  if (listView) listView.classList.remove('hidden');
+  if (detailView) detailView.classList.add('hidden');
+
+  renderTeamMembersList();
+
+  modal.classList.remove('hidden');
+  setDockVisible(true);
+
+  const listEl = document.getElementById('team-members-list');
+  if (listEl && typeof hookScrollableForDock === 'function') {
+    hookScrollableForDock(listEl, false);
+  }
+
+  if (memberNameToOpen) {
+    openTeamMemberDetail(memberNameToOpen);
+  }
+
+  if (window.lucide) window.lucide.createIcons();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+}
+
+function closeTeamMembersModal() {
+  const modal = document.getElementById('team-members-modal');
+  if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
+}
+
+function backToTeamMembersList() {
+  const listView = document.getElementById('team-members-list-view');
+  const detailView = document.getElementById('team-members-detail-view');
+  if (listView) listView.classList.remove('hidden');
+  if (detailView) detailView.classList.add('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function renderTeamMembersList() {
+  const query = (document.getElementById('team-members-search-input')?.value || '').trim().toLowerCase();
+  const countBadge = document.getElementById('team-members-count-badge');
+  const summaryStrip = document.getElementById('team-members-summary-strip');
+  const listEl = document.getElementById('team-members-list');
+  if (!listEl) return;
+
+  const d = DataService.data;
+  const sales = (d && Array.isArray(d.personalSales)) ? d.personalSales : [];
+
+  // Group sales by seller name (supporting both km and en)
+  const sellerStats = {};
+  let totalTeamBoxes = 0;
+  let totalTeamOrders = 0;
+  let totalTeamRev = 0;
+
+  sales.forEach(s => {
+    const sName = (s.seller || '').trim();
+    if (!sName) return;
+    if (!sellerStats[sName]) {
+      sellerStats[sName] = { boxes: 0, orders: 0, totalAmount: 0 };
+    }
+    const b = Number(s.totalBoxQty || s.boxes || 0);
+    const amt = Number(s.totalAmount || s.price || 0);
+    sellerStats[sName].boxes += b;
+    sellerStats[sName].orders += 1;
+    sellerStats[sName].totalAmount += amt;
+    totalTeamBoxes += b;
+    totalTeamOrders += 1;
+    totalTeamRev += amt;
+  });
+
+  const filtered = BOSTAR_TEAM_SELLERS.filter(seller => {
+    if (!query) return true;
+    return seller.km.toLowerCase().includes(query) || seller.en.toLowerCase().includes(query);
+  });
+
+  if (countBadge) {
+    countBadge.textContent = `(${filtered.length} នាក់)`;
+  }
+
+  if (summaryStrip) {
+    summaryStrip.innerHTML = `
+      <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex flex-col justify-between">
+        <span class="text-[10px] text-slate-400 font-semibold truncate">👥 សមាជិក</span>
+        <span class="font-mono text-white font-bold text-xs sm:text-sm mt-0.5">${filtered.length} <span class="text-[9.5px] font-sans font-normal text-slate-400">នាក់</span></span>
+      </div>
+      <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex flex-col justify-between">
+        <span class="text-[10px] text-slate-400 font-semibold truncate">📦 លក់សរុប</span>
+        <span class="font-mono text-emerald-400 font-bold text-xs sm:text-sm mt-0.5">${formatInt(totalTeamBoxes)} <span class="text-[9.5px] font-sans font-normal text-slate-400">ប្រអប់</span></span>
+      </div>
+      <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex flex-col justify-between">
+        <span class="text-[10px] text-slate-400 font-semibold truncate">🧾 កុម្ម៉ង់សរុប</span>
+        <span class="font-mono text-sky-400 font-bold text-xs sm:text-sm mt-0.5">${formatInt(totalTeamOrders)} <span class="text-[9.5px] font-sans font-normal text-slate-400">កុម្ម៉ង់</span></span>
+      </div>
+    `;
+  }
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `
+      <div class="py-12 text-center select-none">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 mb-2">
+          <i data-lucide="search-x" class="w-6 h-6"></i>
+        </div>
+        <p class="text-xs text-slate-400 font-medium">រកមិនឃើញសមាជិកឈ្មោះ "${escapeHtml(query)}" ឡើយ</p>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  listEl.innerHTML = filtered.map((seller, idx) => {
+    const stats = sellerStats[seller.km] || sellerStats[seller.en] || { boxes: 0, orders: 0, totalAmount: 0 };
+    const goal = 100;
+    const percent = goal > 0 ? Math.min(100, Math.round((stats.boxes / goal) * 100)) : 0;
+
+    return `
+      <div onclick="openTeamMemberDetail('${escapeHtml(seller.km)}')" 
+           class="p-3.5 rounded-2xl ios-glass-card border border-white/10 hover:border-orange-500/40 flex items-center justify-between cursor-pointer active:scale-[0.99] transition group shadow-sm">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-8 h-8 rounded-xl bg-orange-500/15 border border-orange-500/25 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+            ${String(idx + 1).padStart(2, '0')}
+          </span>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 truncate">
+              <span class="text-xs sm:text-sm font-bold text-white group-hover:text-orange-400 transition truncate">${seller.km}</span>
+              <span class="text-[10px] text-slate-400 font-mono">(${seller.en})</span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[10px] text-slate-400 font-mono">${stats.orders} កុម្ម៉ង់</span>
+              <span class="text-[9px] text-slate-500">•</span>
+              <span class="text-[10px] text-amber-400/90 font-mono">គោលដៅ: ${goal} ប្រអប់</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 shrink-0 pl-2">
+          <div class="text-right">
+            <span class="font-mono font-bold text-xs sm:text-sm text-emerald-400 block">${stats.boxes} <span class="text-[9.5px] font-sans font-normal text-slate-400">ប្រអប់</span></span>
+            <div class="flex items-center justify-end gap-1 mt-0.5">
+              <div class="w-12 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-orange-500 to-emerald-400 rounded-full" style="width: ${percent}%"></div>
+              </div>
+              <span class="text-[9.5px] text-slate-400 font-mono">${percent}%</span>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-orange-400 group-hover:translate-x-0.5 transition"></i>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function openTeamMemberDetail(sellerKmName) {
   const seller = BOSTAR_TEAM_SELLERS.find(s => s.km === sellerKmName || s.en === sellerKmName) || { km: sellerKmName, en: getSellerLatinName(sellerKmName) };
   const d = DataService.data;
   const sales = (d && Array.isArray(d.personalSales)) ? d.personalSales.filter(s => (s.seller || '').trim() === seller.km || (s.seller || '').trim() === seller.en) : [];
-  
+
   const totalBoxes = sales.reduce((sum, s) => sum + Number(s.totalBoxQty || s.boxes || 0), 0);
   const totalRevenue = sales.reduce((sum, s) => sum + Number(s.totalAmount || s.price || 0), 0);
   const totalOrders = sales.length;
   const goal = 100;
   const percent = Math.min(100, Math.round((totalBoxes / goal) * 100));
 
-  const modal = document.getElementById('profile-sub-modal');
-  const header = document.getElementById('profile-sub-modal-header');
-  const body = document.getElementById('profile-sub-modal-body');
-  if (!modal || !header || !body) return;
+  const modal = document.getElementById('team-members-modal');
+  if (modal && modal.classList.contains('hidden')) {
+    modal.classList.remove('hidden');
+    setDockVisible(true);
+  }
 
-  header.innerHTML = `
-    <div class="flex items-center gap-2.5">
-      <button onclick="openProfileSubModal('members')" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center transition active:scale-95" title="ត្រឡប់ក្រោយ">
-        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+  const listView = document.getElementById('team-members-list-view');
+  const detailView = document.getElementById('team-members-detail-view');
+  if (!detailView) return;
+
+  if (listView) listView.classList.add('hidden');
+  detailView.classList.remove('hidden');
+  detailView.scrollTop = 0;
+
+  detailView.innerHTML = `
+    <!-- Top Action Bar for Detail View -->
+    <div class="flex items-center justify-between pb-1">
+      <button onclick="backToTeamMembersList()" 
+              class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
+        <span>បញ្ជីសមាជិក</span>
       </button>
-      <div>
-        <h3 class="font-bold text-sm text-white">កាតទិន្នន័យសមាជិក</h3>
-        <p class="text-[10px] text-slate-400">ព័ត៌មានលម្អិត និងលទ្ធផលការងារ</p>
+      <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
+    </div>
+
+    <!-- Member Identity Header Card -->
+    <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-3.5 shadow-lg">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
+        ${seller.km.slice(0, 2)}
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
+          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">ACTIVE</span>
+        </div>
+        <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
+        <span class="inline-block mt-1 text-[10px] text-amber-300 font-medium">✨ អ្នកលក់ឆ្នើម BostarGroup</span>
       </div>
     </div>
-  `;
 
-  body.innerHTML = `
-    <div class="space-y-3.5 text-xs select-none">
-      <!-- Member Identity Header Card -->
-      <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-3.5">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
-          ${seller.km.slice(0, 2)}
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1.5">
-            <h4 class="font-bold text-sm text-white truncate">${seller.km}</h4>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">ACTIVE</span>
-          </div>
-          <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
-          <span class="inline-block mt-1 text-[10px] text-amber-300/90 font-medium">✨ អ្នកលក់ឆ្នើម BostarGroup</span>
-        </div>
+    <!-- Performance KPI Grid -->
+    <div class="grid grid-cols-3 gap-2">
+      <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+        <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់</span>
+        <span class="font-mono font-bold text-base text-emerald-400 block">${totalBoxes}</span>
+        <span class="text-[9px] text-slate-500 font-mono">ប្រអប់</span>
       </div>
-
-      <!-- Performance KPI Grid -->
-      <div class="grid grid-cols-3 gap-2">
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-          <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់</span>
-          <span class="font-mono font-bold text-base text-emerald-400 block">${totalBoxes}</span>
-          <span class="text-[9px] text-slate-500 font-mono">ប្រអប់</span>
-        </div>
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-          <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់</span>
-          <span class="font-mono font-bold text-base text-sky-400 block">${totalOrders}</span>
-          <span class="text-[9px] text-slate-500 font-mono">ជោគជ័យ</span>
-        </div>
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-          <span class="text-[10px] text-slate-400 block font-semibold">💵 ទឹកប្រាក់សរុប</span>
-          <span class="font-mono font-bold text-base text-amber-400 block">$${totalRevenue.toFixed(0)}</span>
-          <span class="text-[9px] text-slate-500 font-mono">USD</span>
-        </div>
+      <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+        <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់</span>
+        <span class="font-mono font-bold text-base text-sky-400 block">${totalOrders}</span>
+        <span class="text-[9px] text-slate-500 font-mono">ជោគជ័យ</span>
       </div>
-
-      <!-- Goal Progress Bar -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-        <div class="flex items-center justify-between text-[11px]">
-          <span class="text-slate-300 font-semibold flex items-center gap-1.5">
-            <i data-lucide="target" class="w-3.5 h-3.5 text-orange-400"></i>
-            <span>គោលដៅប្រចាំខែ (${percent}%)</span>
-          </span>
-          <span class="font-mono font-bold text-orange-400">${totalBoxes} / ${goal} ប្រអប់</span>
-        </div>
-        <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500" style="width: ${percent}%"></div>
-        </div>
+      <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+        <span class="text-[10px] text-slate-400 block font-semibold">💵 ទឹកប្រាក់សរុប</span>
+        <span class="font-mono font-bold text-base text-amber-400 block">$${totalRevenue.toFixed(0)}</span>
+        <span class="text-[9px] text-slate-500 font-mono">USD</span>
       </div>
+    </div>
 
-      <!-- Recent Orders by this Member -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-        <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 mb-1">
-          <i data-lucide="history" class="w-3.5 h-3.5 text-sky-400"></i>
-          <span>ប្រវត្តិការលក់ចុងក្រោយ (${sales.length} កុម្ម៉ង់)</span>
+    <!-- Goal Progress Bar -->
+    <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+      <div class="flex items-center justify-between text-[11px]">
+        <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+          <i data-lucide="target" class="w-3.5 h-3.5 text-orange-400"></i>
+          <span>គោលដៅប្រចាំខែ (${percent}%)</span>
         </span>
-        ${sales.length === 0 ? `
-          <p class="text-[11px] text-slate-400 text-center py-4">មិនទាន់មានទិន្នន័យការលក់ជាក់ស្តែងក្នុង Sheet នេះនៅឡើយទេ</p>
-        ` : `
-          <div class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
-            ${sales.slice(0, 8).map(o => `
-              <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-[11px]">
-                <div class="truncate pr-2">
-                  <span class="font-bold text-white block truncate">${o.customer || 'អតិថិជន'}</span>
-                  <span class="text-[10px] text-slate-400 font-mono">${o.date || ''} • ${o.product || 'ទំនិញ'}</span>
-                </div>
-                <div class="text-right shrink-0">
-                  <span class="font-mono font-bold text-emerald-400 block">${o.totalBoxQty || o.boxes || 1} ប្រអប់</span>
-                  <span class="text-[9.5px] text-slate-400 font-mono">$${(Number(o.totalAmount) || 0).toFixed(2)}</span>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        `}
+        <span class="font-mono font-bold text-orange-400">${totalBoxes} / ${goal} ប្រអប់</span>
       </div>
+      <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+      </div>
+    </div>
+
+    <!-- Recent Orders by this Member -->
+    <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+      <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 mb-1">
+        <i data-lucide="history" class="w-3.5 h-3.5 text-sky-400"></i>
+        <span>ប្រវត្តិការលក់ចុងក្រោយ (${sales.length} កុម្ម៉ង់)</span>
+      </span>
+      ${sales.length === 0 ? `
+        <p class="text-[11px] text-slate-400 text-center py-5">មិនទាន់មានទិន្នន័យការលក់ជាក់ស្តែងក្នុង Google Sheet នៅឡើយទេ</p>
+      ` : `
+        <div class="space-y-1.5 max-h-64 overflow-y-auto no-scrollbar">
+          ${sales.slice(0, 15).map(o => `
+            <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
+              <div>
+                <span class="font-semibold text-white block text-[11px]">${escapeHtml(o.customer || o.customerName || 'អតិថិជន')}</span>
+                <span class="text-[9.5px] text-slate-400 font-mono">${o.date || o.orderDate || ''} • ${escapeHtml(o.delivery || 'ដឹកជញ្ជូន')}</span>
+              </div>
+              <div class="text-right">
+                <span class="font-mono font-bold text-emerald-400 text-xs">${o.totalBoxQty || o.boxes || 0} ប្រអប់</span>
+                <span class="text-[9.5px] text-amber-400 font-mono block">$${Number(o.totalAmount || o.price || 0).toFixed(2)}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `}
     </div>
   `;
 
   if (window.lucide) window.lucide.createIcons();
+}
+
+function openMemberDetailCard(sellerKmName) {
+  openTeamMemberDetail(sellerKmName);
 }
 
 function performCleanLogout() {
@@ -10818,7 +11032,7 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
     icon: 'contact',
     iconBg: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
     keywords: 'member members list សមាជិក ក្រុម ថ្នាក់ដឹកនាំ leader',
-    action: () => { closeProfileSettingsSearch(); openProfileSubModal('members'); }
+    action: () => { closeProfileSettingsSearch(); openTeamMembersModal(); }
   },
   {
     id: 'attendance',
@@ -13825,4 +14039,11 @@ window.toggleOrderTeamDropdown = toggleOrderTeamDropdown;
 window.filterOrderTeamDropdown = filterOrderTeamDropdown;
 window.selectOrderTeam = selectOrderTeam;
 window.openMemberDetailCard = openMemberDetailCard;
+window.openTeamMembersModal = openTeamMembersModal;
+window.closeTeamMembersModal = closeTeamMembersModal;
+window.toggleTeamMembersSearch = toggleTeamMembersSearch;
+window.clearTeamMembersSearch = clearTeamMembersSearch;
+window.renderTeamMembersList = renderTeamMembersList;
+window.openTeamMemberDetail = openTeamMemberDetail;
+window.backToTeamMembersList = backToTeamMembersList;
 window.performCleanLogout = performCleanLogout;
