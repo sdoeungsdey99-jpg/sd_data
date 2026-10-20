@@ -8628,6 +8628,52 @@ function closeProfileDrawer() {
   if (navigator.vibrate) navigator.vibrate(12);
 }
 
+const BOSTAR_TEAM_SELLERS = [
+  { km: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung' },
+  { km: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung' },
+  { km: 'ញែក សុគន្ធ', en: 'Nhek Sokun' },
+  { km: 'អយ ស្រីនី', en: 'Oy Sreyny' },
+  { km: 'ផាត់ ណាវី', en: 'Phat Navy' },
+  { km: 'ម៉ាន់ សុគន្ធលីហ្សា', en: 'Man Sokunlyza' },
+  { km: 'មុំចាន់នី', en: 'Mom Channy' },
+  { km: 'ជា ស្រីណាត់', en: 'Chea Sreynat' },
+  { km: 'ប៊ិច ស្រីមុំ', en: 'Bech Sreymom' },
+  { km: 'និន ណែត', en: 'Nin Net' },
+  { km: 'ប្រាក់ ស្រីភា', en: 'Prak Sreyphea' },
+  { km: 'សារិ ច័ន្ទរា', en: 'Sari Chanrea' },
+  { km: 'ជន់ ច័ន្ទវិច្ឆិកា', en: 'Chhon Chanvichhika' },
+  { km: 'សឹម សិត', en: 'Sim Set' },
+  { km: 'ជាន ស្រីនិច', en: 'Chean Sreynich' },
+  { km: 'វន ស្រីនិច', en: 'Vorn Sreynich' },
+  { km: 'វួច ផាន់នី', en: 'Vouch Phanny' },
+  { km: 'ឆេង សុធី', en: 'Chheng Sothy' },
+  { km: 'ស្រី ឡាត់', en: 'Srey Lat' },
+  { km: 'ងី សុខណា', en: 'Ngy Sokna' },
+  { km: 'ផាន សោភា', en: 'Phan Sophea' },
+  { km: 'ជា វឌ្ឍនា', en: 'Chea Vathana' },
+  { km: 'ប៊ុន ស្រីភាព', en: 'Bun Sreypheap' },
+  { km: 'សាប់ លក្ខិណា', en: 'Sab Leakhena' },
+  { km: 'សុស ស្រីពេជ្រ', en: 'Sos Sreypech' },
+  { km: 'ភឿន សុផា', en: 'Phoeun Sopha' },
+  { km: 'សូត្រ ម៉ាស់យ៉ា', en: 'Sotr Masya' },
+  { km: 'ទូច ស្រីណែត', en: 'Touch Sreynet' },
+  { km: 'ជុំ ចាន់ រិទ្ធ', en: 'Chum Chanrith' },
+  { km: 'ភឿន កញ្ញា', en: 'Phoeun Kanya' },
+  { km: 'អៀម សុភី', en: 'Eam Sophy' },
+  { km: 'សុង ស្រីឡែន', en: 'Song Sreylen' },
+  { km: 'ជុន ថាវី', en: 'Chun Thavy' },
+  { km: 'ងេន សុខា', en: 'Ngen Sokha' },
+  { km: 'សុមុន្នី ស្រីណុច', en: 'Somony Sreynoch' },
+  { km: 'ម៉ន សីហាក់', en: 'Morn Seyhak' }
+];
+
+function getSellerLatinName(kmName) {
+  if (!kmName) return '';
+  const trimmed = kmName.trim();
+  const found = BOSTAR_TEAM_SELLERS.find(s => s.km === trimmed || s.en.toLowerCase() === trimmed.toLowerCase());
+  return found ? found.en : trimmed;
+}
+
 function renderProfileDrawerContent() {
   const p = getProfileData();
   const customers = getAllUniqueCustomers();
@@ -8635,7 +8681,7 @@ function renderProfileDrawerContent() {
   const qrList = getQrPhotosList();
   const uploadedQrCount = qrList.filter(q => q.image).length;
   const d = DataService.data;
-  const membersCount = (d && d.teamLeaders) ? d.teamLeaders.length : 3;
+  const membersCount = BOSTAR_TEAM_SELLERS.length;
 
   // Attendance state
   const att = getAttendanceData();
@@ -8918,7 +8964,7 @@ function getProfileViewHTML() {
   const qrList = getQrPhotosList();
   const uploadedQrCount = qrList.filter(q => q.image).length;
   const d = DataService.data;
-  const membersCount = (d && d.teamLeaders) ? d.teamLeaders.length : 3;
+  const membersCount = BOSTAR_TEAM_SELLERS.length;
 
   const infoItems = [
     { key: 'showWork', icon: 'briefcase', color: 'text-orange-400', label: 'ធ្វើការនៅ', val: p.work },
@@ -11487,52 +11533,6 @@ try {
 } catch (_) {}
 
 const COMPANY_GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd_hP30dqB-F5gCV44AuxcftgmoDjo5zzkN-NSMiK-1rDEqPQ/formResponse';
-
-const BOSTAR_TEAM_SELLERS = [
-  { km: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung' },
-  { km: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung' },
-  { km: 'ញែក សុគន្ធ', en: 'Nhek Sokun' },
-  { km: 'អយ ស្រីនី', en: 'Oy Sreyny' },
-  { km: 'ផាត់ ណាវី', en: 'Phat Navy' },
-  { km: 'ម៉ាន់ សុគន្ធលីហ្សា', en: 'Man Sokunlyza' },
-  { km: 'មុំចាន់នី', en: 'Mom Channy' },
-  { km: 'ជា ស្រីណាត់', en: 'Chea Sreynat' },
-  { km: 'ប៊ិច ស្រីមុំ', en: 'Bech Sreymom' },
-  { km: 'និន ណែត', en: 'Nin Net' },
-  { km: 'ប្រាក់ ស្រីភា', en: 'Prak Sreyphea' },
-  { km: 'សារិ ច័ន្ទរា', en: 'Sari Chanrea' },
-  { km: 'ជន់ ច័ន្ទវិច្ឆិកា', en: 'Chhon Chanvichhika' },
-  { km: 'សឹម សិត', en: 'Sim Set' },
-  { km: 'ជាន ស្រីនិច', en: 'Chean Sreynich' },
-  { km: 'វន ស្រីនិច', en: 'Vorn Sreynich' },
-  { km: 'វួច ផាន់នី', en: 'Vouch Phanny' },
-  { km: 'ឆេង សុធី', en: 'Chheng Sothy' },
-  { km: 'ស្រី ឡាត់', en: 'Srey Lat' },
-  { km: 'ងី សុខណា', en: 'Ngy Sokna' },
-  { km: 'ផាន សោភា', en: 'Phan Sophea' },
-  { km: 'ជា វឌ្ឍនា', en: 'Chea Vathana' },
-  { km: 'ប៊ុន ស្រីភាព', en: 'Bun Sreypheap' },
-  { km: 'សាប់ លក្ខិណា', en: 'Sab Leakhena' },
-  { km: 'សុស ស្រីពេជ្រ', en: 'Sos Sreypech' },
-  { km: 'ភឿន សុផា', en: 'Phoeun Sopha' },
-  { km: 'សូត្រ ម៉ាស់យ៉ា', en: 'Sotr Masya' },
-  { km: 'ទូច ស្រីណែត', en: 'Touch Sreynet' },
-  { km: 'ជុំ ចាន់ រិទ្ធ', en: 'Chum Chanrith' },
-  { km: 'ភឿន កញ្ញា', en: 'Phoeun Kanya' },
-  { km: 'អៀម សុភី', en: 'Eam Sophy' },
-  { km: 'សុង ស្រីឡែន', en: 'Song Sreylen' },
-  { km: 'ជុន ថាវី', en: 'Chun Thavy' },
-  { km: 'ងេន សុខា', en: 'Ngen Sokha' },
-  { km: 'សុមុន្នី ស្រីណុច', en: 'Somony Sreynoch' },
-  { km: 'ម៉ន សីហាក់', en: 'Morn Seyhak' }
-];
-
-function getSellerLatinName(kmName) {
-  if (!kmName) return '';
-  const trimmed = kmName.trim();
-  const found = BOSTAR_TEAM_SELLERS.find(s => s.km === trimmed || s.en.toLowerCase() === trimmed.toLowerCase());
-  return found ? found.en : trimmed;
-}
 
 function onSellerNameChange(val) {
   const latinBadge = document.getElementById('order-seller-latin-disp');
