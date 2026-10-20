@@ -11891,7 +11891,7 @@ function openNewOrderModal(mode = 'dock') {
     if (modalSubtitle) modalSubtitle.textContent = 'ចូល Google Sheet ផ្ទាល់ខ្លួន';
     if (pasteBox) pasteBox.classList.remove('hidden');
     if (btnHeaderPass) btnHeaderPass.classList.remove('hidden');
-    if (card3in1) card3in1.classList.remove('hidden');
+    if (card3in1) card3in1.classList.add('hidden'); // Removed from Telegram mode
     if (syncToggle) syncToggle.checked = false; // Strictly OFF for telegram mode by default!
     if (orderTypeCard) orderTypeCard.classList.remove('hidden');
     if (stockCapsuleBtn) {
@@ -11899,17 +11899,22 @@ function openNewOrderModal(mode = 'dock') {
       stockCapsuleBtn.style.display = 'none';
     }
   } else {
-    // Dock 3-in-1 Mode (like outside)
+    // Dock Mode (បញ្ចូលការកុម្ម៉ង់ថ្មី)
     if (modalTitle) modalTitle.textContent = 'បញ្ចូលការកុម្ម៉ង់ថ្មី';
     if (modalSubtitle) modalSubtitle.textContent = 'Sync ផ្ទាល់ខ្លួន & ក្រុមហ៊ុន';
     if (pasteBox) pasteBox.classList.add('hidden');
     if (btnHeaderPass) btnHeaderPass.classList.add('hidden');
-    if (card3in1) card3in1.classList.remove('hidden');
-    if (syncToggle) syncToggle.checked = true; // Auto-sync active for 3-in-1
-    if (orderTypeCard) orderTypeCard.classList.add('hidden'); // Hidden in 3-in-1 dock mode as instructed!
+    if (card3in1) card3in1.classList.add('hidden'); // Removed from New Order mode
+    if (syncToggle) syncToggle.checked = true; // Auto-sync active for 3-in-1 in background
+    if (orderTypeCard) orderTypeCard.classList.add('hidden'); // Hidden in dock mode
     if (stockCapsuleBtn) {
       stockCapsuleBtn.classList.remove('hidden');
       stockCapsuleBtn.style.display = '';
+      stockCapsuleBtn.onclick = null;
+      stockCapsuleBtn.style.cursor = 'default';
+      stockCapsuleBtn.classList.remove('active:scale-95');
+      stockCapsuleBtn.title = 'ស្តុក';
+      stockCapsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ស្តុក</span>`;
     }
   }
 
@@ -12124,6 +12129,10 @@ function switchOrderMode(mode) {
 }
 
 function toggleOrderTypeCapsule() {
+  if (currentOrderEntryMode === 'dock') {
+    // សម្រាប់ផ្ទាំងការកុម្ម៉ង់ថ្មី គឺរក្សាទុកជា «ស្តុក» ថេរ មិនផ្លាស់ប្តូរទៅរង្វាន់ទេ
+    return;
+  }
   if (currentOrderType === 'standard') {
     setOrderType('reward');
     showToastNotification('🎁 ប្តូរទៅជា «លក់រង្វាន់» (ថ្លៃដើមស្តុក $0)');
@@ -12134,6 +12143,9 @@ function toggleOrderTypeCapsule() {
 }
 
 function setOrderType(type) {
+  if (currentOrderEntryMode === 'dock') {
+    type = 'standard'; // សម្រាប់ផ្ទាំងការកុម្ម៉ង់ថ្មី គឺស្តង់ដារ «ស្តុក» ជានិច្ច
+  }
   currentOrderType = type;
   const capsuleBtn = document.getElementById('btn-order-stock-capsule');
   const btnStd = document.getElementById('btn-type-standard');
@@ -12160,8 +12172,12 @@ function setOrderType(type) {
   } else {
     if (capsuleBtn) {
       const isTele = (currentOrderEntryMode === 'telegram');
-      capsuleBtn.className = 'px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/40 text-xs font-bold text-orange-400 active:scale-95 transition flex items-center justify-center shadow-sm' + (isTele ? ' hidden' : '');
+      const isDock = (currentOrderEntryMode === 'dock');
+      capsuleBtn.className = isDock 
+        ? 'px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/40 text-xs font-bold text-orange-400 flex items-center justify-center shadow-sm select-none cursor-default'
+        : ('px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/40 text-xs font-bold text-orange-400 active:scale-95 transition flex items-center justify-center shadow-sm' + (isTele ? ' hidden' : ''));
       capsuleBtn.style.display = isTele ? 'none' : '';
+      if (isDock) capsuleBtn.onclick = null;
       capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ស្តុក</span>`;
     }
     if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-orange-500/20 border-orange-500 text-orange-400';
