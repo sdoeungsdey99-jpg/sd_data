@@ -12193,11 +12193,10 @@ function clearOrderInput() {
   if (dateInput) dateInput.value = todayIso;
   updateOrderDateDisplay(todayIso);
 
-  const savedSeller = localStorage.getItem('sd_last_seller') || 'ឆេង រ៉ាស៊ុង';
   const sellerInput = document.getElementById('order-field-seller');
   if (sellerInput) {
-    sellerInput.value = savedSeller;
-    onSellerNameChange(savedSeller);
+    sellerInput.value = '';
+    onSellerNameChange('');
   }
 
   const custInput = document.getElementById('order-field-customer');
@@ -12212,10 +12211,9 @@ function clearOrderInput() {
   const noteInput = document.getElementById('order-field-note');
   if (noteInput) noteInput.value = '';
 
-  const savedSellerPhone = localStorage.getItem('sd_last_seller_phone');
   const sellerPhoneInput = document.getElementById('order-field-seller-phone');
   if (sellerPhoneInput) {
-    sellerPhoneInput.value = formatKhmerPhone(savedSellerPhone || '');
+    sellerPhoneInput.value = '';
   }
 
   const deliveryInput = document.getElementById('order-field-delivery');

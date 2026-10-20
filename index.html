@@ -3274,34 +3274,34 @@
           <p id="order-type-desc" class="text-[10px] text-slate-400">គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។</p>
         </div>
 
-        <!-- Basic Order Info Card -->
-        <div class="p-3 rounded-2xl bg-black/30 border border-white/10 space-y-2.5 text-xs">
-          <!-- Top Date Bar (Date & Mini Calendar anchored on the Right) -->
-          <div class="flex items-center justify-between pb-2 border-b border-white/5">
-            <div class="flex items-center gap-1.5 text-slate-300 font-semibold text-xs">
-              <i data-lucide="calendar" class="w-3.5 h-3.5 text-orange-400"></i>
-              <span id="order-label-date">កាលបរិច្ឆេទ:</span>
+        <!-- Date & Mini Calendar Bar (Outside Card, Right-aligned & Compact next to each other) -->
+        <div class="flex items-center justify-end gap-2 px-1 text-xs">
+          <div class="flex items-center gap-1.5 text-slate-300 font-semibold text-xs shrink-0">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-orange-400"></i>
+            <span id="order-label-date">កាលបរិច្ឆេទ:</span>
+          </div>
+          
+          <div class="relative flex items-center gap-1.5">
+            <div class="relative flex items-center">
+              <input type="text" id="order-field-date-text" value="20/10/2026" placeholder="DD/MM/YYYY" oninput="onOrderDateTextInput(this.value)" 
+                     class="w-28 bg-black/50 border border-white/10 rounded-xl py-1 px-2.5 text-white font-mono text-xs text-center focus:outline-none focus:border-orange-500 transition">
+              <input type="hidden" id="order-field-date" value="2026-10-20">
             </div>
-            
-            <div class="relative flex items-center gap-1.5">
-              <div class="relative flex items-center">
-                <input type="text" id="order-field-date-text" value="20/10/2026" placeholder="DD/MM/YYYY" oninput="onOrderDateTextInput(this.value)" 
-                       class="w-28 bg-black/50 border border-white/10 rounded-xl py-1 px-2.5 text-white font-mono text-xs text-center focus:outline-none focus:border-orange-500 transition">
-                <input type="hidden" id="order-field-date" value="2026-10-20">
-              </div>
-              <button type="button" onclick="toggleOrderMiniCalendar(event)" id="btn-toggle-mini-calendar" 
-                      class="w-7 h-7 rounded-lg bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/30 text-orange-400 flex items-center justify-center active:scale-90 transition shadow-sm shrink-0" 
-                      title="ជ្រើសរើសប្រតិទិន">
-                <i data-lucide="calendar" class="w-3.5 h-3.5 pointer-events-none"></i>
-              </button>
+            <button type="button" onclick="toggleOrderMiniCalendar(event)" id="btn-toggle-mini-calendar" 
+                    class="w-7 h-7 rounded-lg bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/30 text-orange-400 flex items-center justify-center active:scale-90 transition shadow-sm shrink-0" 
+                    title="ជ្រើសរើសប្រតិទិន">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 pointer-events-none"></i>
+            </button>
 
-              <!-- iOS Style Mini Calendar Widget Popup (anchored right) -->
-              <div id="order-mini-calendar-popup" 
-                   class="hidden absolute z-50 top-full mt-2 right-0 w-[240px] bg-[#1C1C1E] border border-white/15 rounded-3xl p-3.5 shadow-2xl animate-fade-in font-sans select-none">
-              </div>
+            <!-- iOS Style Mini Calendar Widget Popup (anchored right) -->
+            <div id="order-mini-calendar-popup" 
+                 class="hidden absolute z-50 top-full mt-2 right-0 w-[240px] bg-[#1C1C1E] border border-white/15 rounded-3xl p-3.5 shadow-2xl animate-fade-in font-sans select-none">
             </div>
           </div>
+        </div>
 
+        <!-- Basic Order Info Card -->
+        <div class="p-3 rounded-2xl bg-black/30 border border-white/10 space-y-2.5 text-xs">
           <!-- Row 1: ថ្នាក់ដឹកនាំ (Left) | លេខកុម្ម៉ង់ (Right) -->
           <div class="grid grid-cols-2 gap-2">
             <div class="relative" id="group-order-team">
@@ -3902,6 +3902,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=14.2"></script>
+  <script src="app.js?v=14.3"></script>
 </body>
 </html>
