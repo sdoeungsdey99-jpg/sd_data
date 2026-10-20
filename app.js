@@ -11858,6 +11858,121 @@ function onPriceRawInput(isTyping = false) {
   calculateOrderFinancials();
 }
 
+// ==========================================
+// Company Team Leaders (22 Official Leaders)
+// ==========================================
+const COMPANY_TEAM_LEADERS = [
+  'Bech_Nora',
+  'Vann_Sitha',
+  'Vann_Thida',
+  'V_Thida_Emmi',
+  'Chhorn_Dara',
+  'Meng_Samoeuk',
+  'Chhoun_Vireak',
+  'La_Thida',
+  'Nhem_Somrith',
+  'N_Somrith_Emmi',
+  'Yat_Virakyuth',
+  'Sarun_Chhayhor',
+  'S_Chhayhor_Emmi',
+  'Hong_Heng_Oeurn',
+  'Heng_Oeun_Emmi',
+  'Kru_Ta',
+  'Long_Vuthy',
+  'L_Vuthy_Emmi',
+  'Sorn_Sabda',
+  'Teng_Toeun',
+  'Vann_Theary',
+  'T_Toeun_Emmi'
+];
+
+function renderOrderTeamDropdown(filterText = '') {
+  const menu = document.getElementById('order-team-dropdown-menu');
+  if (!menu) return;
+  const currentVal = (document.getElementById('order-field-team')?.value || '').trim();
+  const search = (filterText || '').toLowerCase().trim();
+  const filtered = search 
+    ? COMPANY_TEAM_LEADERS.filter(item => item.toLowerCase().includes(search))
+    : COMPANY_TEAM_LEADERS;
+
+  if (filtered.length === 0) {
+    menu.innerHTML = `<div class="px-3 py-2 text-slate-400 text-[11px] text-center italic">រកមិនឃើញ "${filterText}"</div>`;
+    return;
+  }
+
+  menu.innerHTML = filtered.map(name => {
+    const isSelected = (name.toLowerCase() === currentVal.toLowerCase());
+    return `
+      <button type="button" onclick="selectOrderTeam('${name}')" 
+              class="w-full text-left px-3 py-1.5 rounded-xl transition flex items-center justify-between text-xs ${
+                isSelected 
+                  ? 'bg-orange-500/20 text-orange-400 font-bold border border-orange-500/30' 
+                  : 'text-slate-200 hover:bg-white/10 hover:text-white'
+              }">
+        <div class="flex items-center gap-2 truncate">
+          <i data-lucide="user-check" class="w-3.5 h-3.5 ${isSelected ? 'text-orange-400' : 'text-slate-500'} shrink-0"></i>
+          <span class="truncate">${name}</span>
+        </div>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function openOrderTeamDropdown() {
+  const menu = document.getElementById('order-team-dropdown-menu');
+  const arrow = document.getElementById('team-dropdown-arrow');
+  if (!menu) return;
+  const input = document.getElementById('order-field-team');
+  renderOrderTeamDropdown(input ? input.value : '');
+  menu.classList.remove('hidden');
+  if (arrow) arrow.classList.add('rotate-180');
+}
+
+function closeOrderTeamDropdown() {
+  const menu = document.getElementById('order-team-dropdown-menu');
+  const arrow = document.getElementById('team-dropdown-arrow');
+  if (menu) menu.classList.add('hidden');
+  if (arrow) arrow.classList.remove('rotate-180');
+}
+
+function toggleOrderTeamDropdown(event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  const menu = document.getElementById('order-team-dropdown-menu');
+  if (!menu) return;
+  if (menu.classList.contains('hidden')) {
+    openOrderTeamDropdown();
+  } else {
+    closeOrderTeamDropdown();
+  }
+}
+
+function filterOrderTeamDropdown(val) {
+  const menu = document.getElementById('order-team-dropdown-menu');
+  if (menu && menu.classList.contains('hidden')) {
+    menu.classList.remove('hidden');
+    const arrow = document.getElementById('team-dropdown-arrow');
+    if (arrow) arrow.classList.add('rotate-180');
+  }
+  renderOrderTeamDropdown(val);
+}
+
+function selectOrderTeam(teamName) {
+  const input = document.getElementById('order-field-team');
+  if (input) {
+    input.value = teamName;
+  }
+  try {
+    localStorage.setItem('sd_last_team_leader', teamName);
+  } catch (_) {}
+  closeOrderTeamDropdown();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
 let currentOrderEntryMode = 'dock'; // 'dock' (3-in-1 fresh order) or 'telegram' (paste from telegram to personal sheet only)
 
 function openNewOrderModal(mode = 'dock') {
@@ -11939,6 +12054,14 @@ function openNewOrderModal(mode = 'dock') {
     sellerPhoneInput.value = formatKhmerPhone(savedSellerPhone || (isMaster ? (profile.phone || '097 859 5526') : (profile.phone || '')));
   }
 
+  // Initialize Team Leader: Bech_Nora by default or from localStorage
+  const teamInput = document.getElementById('order-field-team');
+  const savedTeam = localStorage.getItem('sd_last_team_leader') || 'Bech_Nora';
+  if (teamInput) {
+    teamInput.value = savedTeam;
+  }
+  closeOrderTeamDropdown();
+
   if (customerPhoneInput && customerPhoneInput.value) {
     customerPhoneInput.value = formatKhmerPhone(customerPhoneInput.value);
   }
@@ -12014,6 +12137,7 @@ function closeNewOrderModal() {
   if (!modal) return;
   const miniCalPopup = document.getElementById('order-mini-calendar-popup');
   if (miniCalPopup) miniCalPopup.classList.add('hidden');
+  closeOrderTeamDropdown();
   const delivMenu = document.getElementById('order-delivery-dropdown-menu');
   if (delivMenu) delivMenu.classList.add('hidden');
   const shipMenu = document.getElementById('order-ship-presets-dropdown-menu');
@@ -12376,10 +12500,21 @@ function parsePastedOrderText(silent = false) {
   const receiverNo = extract(/(?:លេខអ្នកទទួល\(Receiver No\)|Receiver No|លេខអ្នកទទួល)[:\s]*([^\n\r]+)/i);
   const address = extract(/(?:អាសយដ្ឋាន\(Address\)|Address|អាសយដ្ឋាន|Location)[:\s]*([^\n\r]+)/i);
   const delivery = extract(/(?:ដឹកជញ្ជូនតាម\(Delivery\)|Delivery|ដឹកជញ្ជូនតាម)[:\s]*([^\n\r]+)/i);
+  const teamRaw = extract(/(?:ថ្នាក់ដឹកនាំ|Team Leader|Team)[:\s]*([^\n\r]+)/i);
 
   if (orderId) {
     const idField = document.getElementById('order-field-id');
     if (idField) idField.value = orderId.startsWith('#') ? orderId : `#${orderId}`;
+  }
+
+  if (teamRaw) {
+    const cleanTeam = teamRaw.trim().replace(/^[@#]/, '');
+    const matched = COMPANY_TEAM_LEADERS.find(t => t.toLowerCase() === cleanTeam.toLowerCase()) ||
+                    COMPANY_TEAM_LEADERS.find(t => t.toLowerCase().includes(cleanTeam.toLowerCase()));
+    const teamField = document.getElementById('order-field-team');
+    if (teamField && matched) {
+      teamField.value = matched;
+    }
   }
 
   if (dateRaw) {
@@ -12517,10 +12652,14 @@ async function submitNewOrder() {
   const shipFee = cleanNumber(getVal('order-field-ship')) || 3.00;
   const priceRaw = cleanNumber(getVal('order-field-price-raw')) || 360000;
   const note = getVal('order-field-note') || (isReward ? 'លក់រង្វាន់' : '');
+  const team = getVal('order-field-team') || 'Bech_Nora';
 
-  // ចងចាំឈ្មោះ និងលេខអ្នកលក់ក្នុង LocalStorage សម្រាប់លើកក្រោយ
+  // ចងចាំឈ្មោះអ្នកលក់ និងថ្នាក់ដឹកនាំក្នុង LocalStorage សម្រាប់លើកក្រោយ
   if (seller) {
     try { localStorage.setItem('sd_last_seller', seller); } catch (_) {}
+  }
+  if (team) {
+    try { localStorage.setItem('sd_last_team_leader', team); } catch (_) {}
   }
   let sellerPhone = getVal('order-field-seller-phone');
   if (isMaster && !sellerPhone && (delivery === 'VET (COD)' || isReward)) {
@@ -12592,7 +12731,7 @@ async function submitNewOrder() {
     seller: seller,
     sellerLatin: getSellerLatinName(seller),
     sellerPhone: sellerPhone,
-    team: 'Bech_Nora',
+    team: team,
     location: location,
     phone: phone,
     qtyYL: currentOrderProducts.yl || 0,
@@ -12680,7 +12819,7 @@ async function submitNewOrder() {
       addAppNotification({
         type: 'order',
         title: (syncToCompany ? 'កុម្ម៉ង់ 3-in-1: ' : 'កត់ត្រាការលក់: ') + `${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
-        content: `${productSummary} | ${totalBoxes} ប្រអប់ | $${formatUSD(totalUsd).replace('$', '')} | Team: Bech_Nora | ដឹក: ${delivery}`,
+        content: `${productSummary} | ${totalBoxes} ប្រអប់ | $${formatUSD(totalUsd).replace('$', '')} | Team: ${team} | ដឹក: ${delivery}`,
         tag: syncToCompany ? 'Google Form & Sheet ✓' : 'Google Sheet ✓',
         color: 'orange',
         icon: 'package'
@@ -13344,8 +13483,11 @@ function syncOrderShipUI() {
   });
 }
 
-// Global click handler to close order delivery and ship preset dropdowns when tapping outside
+// Global click handler to close order delivery, ship preset, and team dropdowns when tapping outside
 document.addEventListener('click', (e) => {
+  if (!e.target.closest('#group-order-team')) {
+    closeOrderTeamDropdown();
+  }
   if (!e.target.closest('#btn-order-delivery-trigger') && !e.target.closest('#order-delivery-dropdown-menu')) {
     const menu = document.getElementById('order-delivery-dropdown-menu');
     if (menu) menu.classList.add('hidden');
@@ -13403,6 +13545,7 @@ function updateModalLanguage() {
   const btnTypeRwdText = document.getElementById('btn-type-reward-text');
   const orderTypeDesc = document.getElementById('order-type-desc');
   const orderLabelId = document.getElementById('order-label-id');
+  const orderLabelTeam = document.getElementById('order-label-team');
   const orderLabelDate = document.getElementById('order-label-date');
   const orderLabelSeller = document.getElementById('order-label-seller');
   const orderLabelSellerPhone = document.getElementById('order-label-seller-phone');
@@ -13437,7 +13580,8 @@ function updateModalLanguage() {
   if (btnTypeStdText) btnTypeStdText.textContent = isKm ? 'ការលក់ធម្មតា' : 'Standard Order';
   if (btnTypeRwdText) btnTypeRwdText.textContent = isKm ? 'លក់រង្វាន់ (ថ្លៃដើម $0)' : 'Reward Order ($0 Cost)';
   if (orderTypeDesc) orderTypeDesc.textContent = isKm ? 'គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។' : 'Standard stock cost ($24/box) with official Order ID.';
-  if (orderLabelId) orderLabelId.textContent = isKm ? 'លេខកុម្ម៉ង់:' : 'Order ID:';
+  if (orderLabelTeam) orderLabelTeam.textContent = isKm ? 'ថ្នាក់ដឹកនាំ (Team):' : 'Team Leader:';
+  if (orderLabelId) orderLabelId.textContent = isKm ? 'លេខកុម្ម៉ង់ (#):' : 'Order ID (#):';
   if (orderLabelDate) orderLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ:' : 'Date:';
   if (orderLabelSeller) orderLabelSeller.textContent = isKm ? 'ឈ្មោះអ្នកលក់:' : 'Seller Name:';
   if (orderLabelSellerPhone) orderLabelSellerPhone.textContent = isKm ? 'លេខទូរសព្ទអ្នកលក់:' : 'Seller Phone:';
@@ -13523,3 +13667,12 @@ window.openExpensesModal = openExpensesModal;
 window.closeExpensesModal = closeExpensesModal;
 window.filterExpensesModalList = filterExpensesModalList;
 window.clearExpensesModalSearch = clearExpensesModalSearch;
+
+// Export Team Leader Selector Functions
+window.COMPANY_TEAM_LEADERS = COMPANY_TEAM_LEADERS;
+window.renderOrderTeamDropdown = renderOrderTeamDropdown;
+window.openOrderTeamDropdown = openOrderTeamDropdown;
+window.closeOrderTeamDropdown = closeOrderTeamDropdown;
+window.toggleOrderTeamDropdown = toggleOrderTeamDropdown;
+window.filterOrderTeamDropdown = filterOrderTeamDropdown;
+window.selectOrderTeam = selectOrderTeam;
