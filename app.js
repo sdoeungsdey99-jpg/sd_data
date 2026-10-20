@@ -7934,25 +7934,25 @@ function showToastNotification(msg) {
 // =========================================================
 
 const DEFAULT_PROFILE_DATA = {
-  name: 'ស្តី ស្តើង',
-  memberId: 'ID: SD-0001',
-  subtitle: 'SDEY SDOEUNG',
-  avatar: 'profile.png',
-  work: 'ស្ថាបនិក & អ្នកគ្រប់គ្រងនៅ SD Data',
-  study: 'ជីវិតជាការរៀនសូត្រ (Life is Learning)',
+  name: 'សមាជិក Bostar',
+  memberId: 'ID: BG-001',
+  subtitle: 'BostarGroup Member',
+  avatar: 'bostar-logo.png',
+  work: 'សមាជិកក្រុម BostarGroup',
+  study: 'BostarGroup',
   live: 'រាជធានីភ្នំពេញ',
   from: 'ព្រះរាជាណាចក្រកម្ពុជា',
-  status: 'កំពុងអភិវឌ្ឍអាជីវកម្ម',
-  birthday: '១៥ មករា ២០០០',
-  phone: '(+855)',
+  status: 'សកម្មក្នុងការងារ',
+  birthday: '',
+  phone: '',
   privacy: {
     showWork: true,
     showStudy: true,
     showLive: true,
     showFrom: true,
     showStatus: true,
-    showBirth: true,
-    showPhone: true
+    showBirth: false,
+    showPhone: false
   }
 };
 
@@ -7980,15 +7980,10 @@ const DEFAULT_GUEST_PROFILE_DATA = {
 };
 
 function getProfileData() {
-  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   try {
     const raw = localStorage.getItem('sd_profile_data');
     if (raw) {
       const parsed = JSON.parse(raw);
-      // If not in Master Sheet mode, prevent lingering Master Admin personal info
-      if (!isMaster && (parsed.name === 'ស្តី ស្តើង' || parsed.phone === '096 212 9261' || parsed.phone === '097 859 5526' || parsed.memberId === 'ID: SD-0001' || parsed.subtitle === 'SDEY SDOEUNG')) {
-        return { ...DEFAULT_GUEST_PROFILE_DATA, privacy: { ...DEFAULT_GUEST_PROFILE_DATA.privacy } };
-      }
       return {
         ...DEFAULT_GUEST_PROFILE_DATA,
         ...parsed,
@@ -8000,10 +7995,6 @@ function getProfileData() {
     }
   } catch (e) {
     console.warn('Error reading sd_profile_data:', e);
-  }
-  
-  if (isMaster) {
-    return { ...DEFAULT_PROFILE_DATA, privacy: { ...DEFAULT_PROFILE_DATA.privacy } };
   }
   return { ...DEFAULT_GUEST_PROFILE_DATA, privacy: { ...DEFAULT_GUEST_PROFILE_DATA.privacy } };
 }
@@ -10116,6 +10107,7 @@ function openProfileSubModal(type) {
             <div>
               <label class="block text-[10px] text-slate-400 mb-0.5">ឈ្មោះផេក៖</label>
               <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
+                     oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
                      class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-emerald-500">
             </div>
           </div>
@@ -10448,27 +10440,55 @@ function openProfileSubModal(type) {
     `;
   } else if (type === 'members') {
     const d = DataService.data;
-    const leaders = (d && d.teamLeaders) ? d.teamLeaders : [];
-    title = (appState.language === 'en') ? 'Member' : 'សមាជិក';
-    sub = (appState.language === 'en') ? 'Team members list & achievements' : 'បញ្ជីឈ្មោះសមាជិក និងលទ្ធផលការងារ';
+    const sales = (d && Array.isArray(d.personalSales)) ? d.personalSales : [];
+    
+    // Group sales by seller
+    const sellerStats = {};
+    sales.forEach(s => {
+      const sName = (s.seller || '').trim();
+      if (!sName) return;
+      if (!sellerStats[sName]) {
+        sellerStats[sName] = { boxes: 0, orders: 0, totalAmount: 0 };
+      }
+      sellerStats[sName].boxes += Number(s.totalBoxQty || s.boxes || 0);
+      sellerStats[sName].orders += 1;
+      sellerStats[sName].totalAmount += Number(s.totalAmount || s.price || 0);
+    });
+
+    const isKm = (appState.language !== 'en');
+    title = isKm ? 'សមាជិកក្រុមអ្នកលក់' : 'Team Sales Members';
+    sub = isKm ? 'បញ្ជីឈ្មោះអ្នកលក់ និងទិន្នន័យការងារ' : 'Sales roster & achievements';
     icon = 'contact-round';
+
     contentHTML = `
       <div class="space-y-2">
-        ${leaders.map((m, idx) => `
-          <div class="p-3 rounded-2xl bg-black/30 border border-white/10 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <span class="w-7 h-7 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-mono font-bold text-xs flex items-center justify-center">0${idx + 1}</span>
-              <div>
-                <div class="flex items-center gap-1">
-                  <span class="text-xs font-bold text-white">${m.name}</span>
-                  ${idx === 0 ? '<img src="blue-tick.png" class="w-3.5 h-3.5 object-contain">' : ''}
+        <p class="text-[11px] text-slate-400 mb-2 px-1">ចុចលើឈ្មោះសមាជិកដើម្បីមើល «កាតទិន្នន័យសមាជិក» លម្អិត៖</p>
+        ${BOSTAR_TEAM_SELLERS.map((seller, idx) => {
+          const stats = sellerStats[seller.km] || sellerStats[seller.en] || { boxes: 0, orders: 0, totalAmount: 0 };
+          const goal = 100;
+          const percent = goal > 0 ? Math.min(100, Math.round((stats.boxes / goal) * 100)) : 0;
+          return `
+            <div onclick="openMemberDetailCard('${seller.km}')" 
+                 class="p-3 rounded-2xl bg-black/30 hover:bg-white/5 border border-white/10 hover:border-orange-500/30 flex items-center justify-between cursor-pointer active:scale-98 transition group">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-8 h-8 rounded-xl bg-orange-500/15 border border-orange-500/25 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                  ${String(idx + 1).padStart(2, '0')}
+                </span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span class="text-xs font-bold text-white group-hover:text-orange-400 transition truncate">${seller.km}</span>
+                    <span class="text-[10px] text-slate-400 font-mono">(${seller.en})</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-mono">${stats.orders} កុម្ម៉ង់ | គោលដៅ: ${goal} ប្រអប់</span>
                 </div>
-                <span class="text-[10px] text-slate-400">គោលដៅ: ${m.targetGoal} ប្រអប់</span>
+              </div>
+              <div class="text-right shrink-0 pl-2">
+                <span class="font-mono font-bold text-xs text-emerald-400 block">${stats.boxes} ប្រអប់</span>
+                <span class="text-[9.5px] text-slate-400 font-mono">${percent}%</span>
               </div>
             </div>
-            <span class="font-mono font-bold text-xs text-emerald-400">${m.totalBoxes} ប្រអប់ (${m.targetPercent}%)</span>
-          </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     `;
   } else if (type === 'feedback_support' || type === 'feedback' || type === 'support' || type === 'help') {
@@ -10520,22 +10540,30 @@ function openProfileSubModal(type) {
       </div>
     `;
   } else if (type === 'logout') {
-    title = 'ចាកចេញ (Log out - Beta)';
-    sub = 'ប្តូរគណនី ដើម្បីប្រើអ៊ីមែលផ្សេង';
+    title = 'ចាកចេញ (Clean Log Out)';
+    sub = 'ជម្រះទិន្នន័យ និងគណនីចេញពីឧបករណ៍';
     icon = 'log-out';
     contentHTML = `
-      <div class="space-y-3 text-xs">
-        <div class="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-slate-200 leading-relaxed">
-          មុខងារ <strong>Log out (Beta)</strong> អនុញ្ញាតឱ្យអ្នកចាកចេញពីសម័យប្រើប្រាស់បច្ចុប្បន្ន ឬប្តូរទៅប្រើគណនី Google / Email ផ្សេង។
+      <div class="space-y-3.5 text-xs select-none">
+        <div class="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 text-slate-200 leading-relaxed space-y-2">
+          <div class="flex items-center gap-2 text-rose-400 font-bold">
+            <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
+            <span>ជម្រះទិន្នន័យទាំងអស់ (Clean Logout)</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            មុខងារនេះនឹងលុបសម្អាត Cache, LocalStorage, Google Sheet ID, Profile និងទិន្នន័យ Offline ទាំងអស់ចេញពីឧបករណ៍នេះ ដើម្បីឱ្យកម្មវិធីក្លាយជាទំព័រថ្មីស្រឡាង សម្រាប់ឱ្យសមាជិកក្រុមផ្សេងអាច Login ភ្ជាប់ Google Sheet របស់គេវិញដោយសុវត្ថិភាព។
+          </p>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="closeProfileSubModal(); lockAppNow();" 
-                  class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs active:scale-95 transition">
-            🔒 ចាក់សោអេក្រង់
+        <div class="space-y-2 pt-1">
+          <button onclick="performCleanLogout()" 
+                  class="w-full py-3 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs active:scale-95 transition flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span>ចាកចេញ & ជម្រះទិន្នន័យទាំងអស់ (Clean Logout) 🚪</span>
           </button>
-          <button onclick="window.location.href='/logout';" 
-                  class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs active:scale-95 transition">
-            🚪 ប្តូរអ៊ីមែលផ្សេង
+          <button onclick="closeProfileSubModal(); lockAppNow();" 
+                  class="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white font-semibold text-xs active:scale-95 transition flex items-center justify-center gap-2">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+            <span>គ្រាន់តែចាក់សោអេក្រង់ (Lock Screen)</span>
           </button>
         </div>
       </div>
@@ -10563,6 +10591,130 @@ function openProfileSubModal(type) {
   document.getElementById('profile-sub-modal')?.classList?.remove('hidden');
   setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
+}
+
+function openMemberDetailCard(sellerKmName) {
+  const seller = BOSTAR_TEAM_SELLERS.find(s => s.km === sellerKmName || s.en === sellerKmName) || { km: sellerKmName, en: getSellerLatinName(sellerKmName) };
+  const d = DataService.data;
+  const sales = (d && Array.isArray(d.personalSales)) ? d.personalSales.filter(s => (s.seller || '').trim() === seller.km || (s.seller || '').trim() === seller.en) : [];
+  
+  const totalBoxes = sales.reduce((sum, s) => sum + Number(s.totalBoxQty || s.boxes || 0), 0);
+  const totalRevenue = sales.reduce((sum, s) => sum + Number(s.totalAmount || s.price || 0), 0);
+  const totalOrders = sales.length;
+  const goal = 100;
+  const percent = Math.min(100, Math.round((totalBoxes / goal) * 100));
+
+  const modal = document.getElementById('profile-sub-modal');
+  const header = document.getElementById('profile-sub-modal-header');
+  const body = document.getElementById('profile-sub-modal-body');
+  if (!modal || !header || !body) return;
+
+  header.innerHTML = `
+    <div class="flex items-center gap-2.5">
+      <button onclick="openProfileSubModal('members')" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center transition active:scale-95" title="ត្រឡប់ក្រោយ">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      </button>
+      <div>
+        <h3 class="font-bold text-sm text-white">កាតទិន្នន័យសមាជិក</h3>
+        <p class="text-[10px] text-slate-400">ព័ត៌មានលម្អិត និងលទ្ធផលការងារ</p>
+      </div>
+    </div>
+  `;
+
+  body.innerHTML = `
+    <div class="space-y-3.5 text-xs select-none">
+      <!-- Member Identity Header Card -->
+      <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
+          ${seller.km.slice(0, 2)}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5">
+            <h4 class="font-bold text-sm text-white truncate">${seller.km}</h4>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">ACTIVE</span>
+          </div>
+          <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
+          <span class="inline-block mt-1 text-[10px] text-amber-300/90 font-medium">✨ អ្នកលក់ឆ្នើម BostarGroup</span>
+        </div>
+      </div>
+
+      <!-- Performance KPI Grid -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់</span>
+          <span class="font-mono font-bold text-base text-emerald-400 block">${totalBoxes}</span>
+          <span class="text-[9px] text-slate-500 font-mono">ប្រអប់</span>
+        </div>
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់</span>
+          <span class="font-mono font-bold text-base text-sky-400 block">${totalOrders}</span>
+          <span class="text-[9px] text-slate-500 font-mono">ជោគជ័យ</span>
+        </div>
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">💵 ទឹកប្រាក់សរុប</span>
+          <span class="font-mono font-bold text-base text-amber-400 block">$${totalRevenue.toFixed(0)}</span>
+          <span class="text-[9px] text-slate-500 font-mono">USD</span>
+        </div>
+      </div>
+
+      <!-- Goal Progress Bar -->
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+            <i data-lucide="target" class="w-3.5 h-3.5 text-orange-400"></i>
+            <span>គោលដៅប្រចាំខែ (${percent}%)</span>
+          </span>
+          <span class="font-mono font-bold text-orange-400">${totalBoxes} / ${goal} ប្រអប់</span>
+        </div>
+        <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+        </div>
+      </div>
+
+      <!-- Recent Orders by this Member -->
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+        <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 mb-1">
+          <i data-lucide="history" class="w-3.5 h-3.5 text-sky-400"></i>
+          <span>ប្រវត្តិការលក់ចុងក្រោយ (${sales.length} កុម្ម៉ង់)</span>
+        </span>
+        ${sales.length === 0 ? `
+          <p class="text-[11px] text-slate-400 text-center py-4">មិនទាន់មានទិន្នន័យការលក់ជាក់ស្តែងក្នុង Sheet នេះនៅឡើយទេ</p>
+        ` : `
+          <div class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
+            ${sales.slice(0, 8).map(o => `
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-[11px]">
+                <div class="truncate pr-2">
+                  <span class="font-bold text-white block truncate">${o.customer || 'អតិថិជន'}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">${o.date || ''} • ${o.product || 'ទំនិញ'}</span>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="font-mono font-bold text-emerald-400 block">${o.totalBoxQty || o.boxes || 1} ប្រអប់</span>
+                  <span class="text-[9.5px] text-slate-400 font-mono">$${(Number(o.totalAmount) || 0).toFixed(2)}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function performCleanLogout() {
+  const confirmed = confirm('⚠️ តើអ្នកពិតជាចង់ចាកចេញ (Log Out) និងជម្រះទិន្នន័យទាំងអស់មែនទេ?\n\nរាល់ Google Sheet ID, ទិន្នន័យ Offline, និង Profile នឹងត្រូវលុបសម្អាតដើម្បីឱ្យសមាជិកផ្សេងអាចចូលប្រើបាន។');
+  if (!confirmed) return;
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch (e) {
+    console.warn('Logout clear error:', e);
+  }
+  showToastNotification('បានចាកចេញ និងជម្រះទិន្នន័យជោគជ័យ! 👋');
+  setTimeout(() => {
+    window.location.reload();
+  }, 400);
 }
 
 // ==========================================
@@ -10970,7 +11122,7 @@ function renderDailyReportModal() {
   const yyyy = today.getFullYear();
   const defaultDate = `${dd}/${mm}/${yyyy}`;
   const savedPage = localStorage.getItem('sd_report_page') || 'Bostar Store';
-  const staffName = p.name || 'ស្តី ស្តើង';
+  const staffName = p.name || 'សមាជិក Bostar';
 
   // Auto-detect today's sales from DataService
   let autoTodayBoxes = 0;
@@ -11005,6 +11157,7 @@ function renderDailyReportModal() {
           <div>
             <label class="block text-[10px] text-slate-400 mb-1 font-semibold">ឈ្មោះផេក៖</label>
             <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
+                   oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
                    class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-emerald-500">
           </div>
         </div>
@@ -12043,7 +12196,7 @@ function openNewOrderModal(mode = 'dock') {
   const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   
-  const savedSeller = localStorage.getItem('sd_last_seller') || 'ឆេង រ៉ាស៊ុង';
+  const savedSeller = localStorage.getItem('sd_last_seller') || '';
   if (sellerInput) {
     sellerInput.value = savedSeller;
     onSellerNameChange(savedSeller);
@@ -12051,7 +12204,7 @@ function openNewOrderModal(mode = 'dock') {
   
   const savedSellerPhone = localStorage.getItem('sd_last_seller_phone');
   if (sellerPhoneInput) {
-    sellerPhoneInput.value = formatKhmerPhone(savedSellerPhone || (isMaster ? (profile.phone || '097 859 5526') : (profile.phone || '')));
+    sellerPhoneInput.value = formatKhmerPhone(savedSellerPhone || (profile.phone || ''));
   }
 
   // Initialize Team Leader: Bech_Nora by default or from localStorage
@@ -12640,7 +12793,7 @@ async function submitNewOrder() {
 
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   const activeProf = (typeof getProfileData === 'function') ? getProfileData() : {};
-  const defaultSeller = isMaster ? 'ស្ដី ស្ដើង' : (activeProf.name || 'សមាជិក Bostar');
+  const defaultSeller = activeProf.name || 'សមាជិក Bostar';
   const seller = getVal('order-field-seller') || defaultSeller;
   const phone = getVal('order-field-phone');
   const location = getVal('order-field-location');
@@ -12659,10 +12812,7 @@ async function submitNewOrder() {
   if (team) {
     try { localStorage.setItem('sd_last_team_leader', team); } catch (_) {}
   }
-  let sellerPhone = getVal('order-field-seller-phone');
-  if (isMaster && !sellerPhone && (delivery === 'VET (COD)' || isReward)) {
-    sellerPhone = '097 859 5526';
-  }
+  let sellerPhone = getVal('order-field-seller-phone') || (activeProf.phone || '');
   if (sellerPhone) {
     try { localStorage.setItem('sd_last_seller_phone', sellerPhone); } catch (_) {}
   }
@@ -12848,7 +12998,7 @@ async function submitNewOrder() {
 
   if (btn) {
     btn.disabled = false;
-    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>✓ បញ្ជូនចូលការលក់ 🚀</span>`;
+    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូលការលក់ 🚀</span>`;
   }
 
   if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
@@ -13579,7 +13729,7 @@ function updateModalLanguage() {
   if (btnTypeRwdText) btnTypeRwdText.textContent = isKm ? 'លក់រង្វាន់ (ថ្លៃដើម $0)' : 'Reward Order ($0 Cost)';
   if (orderTypeDesc) orderTypeDesc.textContent = isKm ? 'គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។' : 'Standard stock cost ($24/box) with official Order ID.';
   if (orderLabelTeam) orderLabelTeam.textContent = isKm ? 'ថ្នាក់ដឹកនាំ (Team):' : 'Team Leader:';
-  if (orderLabelId) orderLabelId.textContent = isKm ? 'លេខកុម្ម៉ង់ (#):' : 'Order ID (#):';
+  if (orderLabelId) orderLabelId.textContent = isKm ? 'លេខកុម្ម៉ង់:' : 'Order ID:';
   if (orderLabelDate) orderLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ:' : 'Date:';
   if (orderLabelSeller) orderLabelSeller.textContent = isKm ? 'ឈ្មោះអ្នកលក់:' : 'Seller Name:';
   if (orderLabelSellerPhone) orderLabelSellerPhone.textContent = isKm ? 'លេខទូរសព្ទអ្នកលក់:' : 'Seller Phone:';
@@ -13596,7 +13746,7 @@ function updateModalLanguage() {
   if (orderStockText) orderStockText.textContent = isKm ? 'ថ្លៃដើមស្តុក:' : 'Stock Cost:';
   if (orderProfitText) orderProfitText.textContent = isKm ? 'ប្រាក់ចំណេញ:' : 'Net Profit:';
   if (orderLabelNote) orderLabelNote.textContent = isKm ? 'ចំណាំបន្ថែម (ស្រេចចិត្ត):' : 'Note (Optional):';
-  if (btnSubmitOrder) btnSubmitOrder.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>${isKm ? '✓ បញ្ជូនចូលការលក់ 🚀' : '✓ Submit Order 🚀'}</span>`;
+  if (btnSubmitOrder) btnSubmitOrder.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>${isKm ? 'បញ្ជូនចូលការលក់ 🚀' : 'Submit Order 🚀'}</span>`;
 
   if (window.lucide) window.lucide.createIcons();
 }
@@ -13674,3 +13824,5 @@ window.closeOrderTeamDropdown = closeOrderTeamDropdown;
 window.toggleOrderTeamDropdown = toggleOrderTeamDropdown;
 window.filterOrderTeamDropdown = filterOrderTeamDropdown;
 window.selectOrderTeam = selectOrderTeam;
+window.openMemberDetailCard = openMemberDetailCard;
+window.performCleanLogout = performCleanLogout;
