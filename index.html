@@ -1924,23 +1924,6 @@
         <p class="text-[10.5px] text-slate-300">៣. ចុច <strong>Copy link</strong> រួចយកមក Paste ក្នុងប្រអប់ខាងលើជាការស្រេច!</p>
       </div>
 
-      <!-- Tutorial Center Quick Banner (មជ្ឈមណ្ឌលណែនាំការប្រើប្រាស់) -->
-      <button onclick="openTutorialModal()" class="w-full p-3 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-blue-500/10 border border-indigo-500/25 hover:border-indigo-400/40 text-left active:scale-[0.98] transition mb-2.5 shadow-md group flex items-center justify-between">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-            <i data-lucide="play-circle" class="w-4 h-4 text-indigo-400"></i>
-          </div>
-          <div class="min-w-0">
-            <h4 class="text-xs font-bold text-indigo-300 truncate">🎬 មជ្ឈមណ្ឌលណែនាំការប្រើប្រាស់</h4>
-            <p class="text-[10px] text-slate-400 truncate">វីដេអូណែនាំជាចលនា និងរបៀបប្រើ App</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-1.5 shrink-0">
-          <span class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[9.5px] font-bold">Watch</span>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-indigo-400/70 group-hover:translate-x-0.5 transition"></i>
-        </div>
-      </button>
-
       <!-- Honors & Dedication Quick Banner (កាតកិត្តិយស & ការដឹងគុណ) -->
       <button onclick="openHonorsModal()" class="w-full p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 border border-amber-500/25 hover:border-amber-400/40 text-left active:scale-[0.98] transition mb-3 shadow-md group flex items-center justify-between">
         <div class="flex items-center gap-2.5 min-w-0">
@@ -3288,15 +3271,26 @@
           </div>
         </div>
 
-        <button type="button" onclick="closeHonorsModal()" 
-                class="py-1 px-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-white/5 border border-white/10 flex items-center gap-1 active:scale-95 transition shadow-sm">
-          <i data-lucide="chevron-left" class="w-3.5 h-3.5 text-amber-400"></i>
-          <span>ត្រឡប់</span>
-        </button>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <!-- Direct Home Button -->
+          <button type="button" onclick="handleHomeClick(event)" 
+                  class="py-1 px-2.5 rounded-xl text-xs font-bold text-amber-300 hover:text-white bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 flex items-center gap-1.5 active:scale-95 transition shadow-sm" title="ទំព័រដើម">
+            <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 7.5V3.5h3v2.2" />
+              <path d="M2.5 10.5L12 3l9.5 7.5" />
+              <path d="M4.8 9.5V21h4.8v-6h4.8v6h4.8V9.5" />
+            </svg>
+            <span>ទំព័រដើម</span>
+          </button>
+          <button type="button" onclick="closeHonorsModal()" 
+                  class="w-8 h-8 rounded-xl text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center active:scale-95 transition shadow-sm" title="បិទ">
+            <i data-lucide="x" class="w-4 h-4 text-slate-400"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Scrollable Honors Content -->
-      <div id="honors-modal-body" class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3.5 pb-24">
+      <div id="honors-modal-body" class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3.5 pb-28">
         <!-- Rendered dynamically by renderHonorsModalContent() -->
       </div>
     </div>

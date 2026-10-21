@@ -7199,7 +7199,13 @@ function openHonorsModal() {
   if (modal) {
     renderHonorsModalContent();
     modal.classList.remove('hidden');
-    setDockVisible(false);
+    const gate = document.getElementById('onboarding-gate');
+    const isGateOpen = gate && !gate.classList.contains('hidden');
+    if (isGateOpen) {
+      setDockVisible(false);
+    } else {
+      setDockVisible(true);
+    }
     if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
   }
 }
@@ -7212,7 +7218,6 @@ function closeHonorsModal() {
     setDockVisible(false);
   } else {
     setDockVisible(true);
-    openProfileDrawer();
   }
 }
 
@@ -8320,10 +8325,16 @@ function handleHomeClick(e) {
   const isDrawerOpen = (drawerModal && !drawerModal.classList.contains('hidden')) || 
                        (drawerPanel && drawerPanel.classList.contains('translate-x-0'));
 
-  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden)');
+  const honorsModal = document.getElementById('honors-modal');
+  const isHonorsOpen = honorsModal && !honorsModal.classList.contains('hidden');
+
+  const tutorialModal = document.getElementById('tutorial-modal');
+  const isTutorialOpen = tutorialModal && !tutorialModal.classList.contains('hidden');
+
+  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #change-pin-modal:not(.hidden), #qr-photos-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden)');
 
   // Case 1: If Profile Drawer or any Modal is open ➔ Single tap smoothly dismisses it to reveal dashboard instantly (ZERO network reload)
-  if (isDrawerOpen || openModal) {
+  if (isDrawerOpen || openModal || isHonorsOpen || isTutorialOpen) {
     closeProfileDrawer();
     closeAllModals();
     const dock = document.getElementById('bottom-dock');
@@ -9778,21 +9789,6 @@ function renderProfileDrawerContent() {
           <div class="min-w-0">
             <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Honors & Dedication' : '🌟 កាតកិត្តិយស & ការដឹងគុណ'}</h4>
             <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'BostarGroup Visionaries & Leadership' : 'ស្ថាបនិក • គណៈគ្រប់គ្រង • អ្នករៀបចំប្រព័ន្ធ'}</p>
-          </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
-      </div>
-
-      <!-- 5. មជ្ឈមណ្ឌលណែនាំការប្រើប្រាស់ (Tutorial Center) -->
-      <div onclick="closeProfileDrawer(); openTutorialModal();" 
-           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
-        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
-          <div class="settings-icon-box w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-            <i data-lucide="play-circle" class="w-3.5 h-3.5 text-indigo-400"></i>
-          </div>
-          <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Tutorial Center' : '🎬 មជ្ឈមណ្ឌលណែនាំការប្រើប្រាស់'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Interactive video guide & pro tips' : 'វីដេអូណែនាំជាចលនា និងគន្លឹះ Tips គ្រប់ជំហាន'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
