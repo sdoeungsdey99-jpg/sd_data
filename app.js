@@ -16134,7 +16134,7 @@ function openNewOrderModal(mode = 'dock') {
       stockCapsuleBtn.classList.add('hidden');
       stockCapsuleBtn.style.display = 'none';
     }
-    // Telegram Mode: Restore Original Button!
+    // Telegram Mode: Restore Original Button (Matching Slider 250px x 48px)
     if (submitSlider) {
       submitSlider.classList.add('hidden');
       submitSlider.style.display = 'none';
@@ -16143,8 +16143,9 @@ function openNewOrderModal(mode = 'dock') {
     if (btnSubmitOrder) {
       btnSubmitOrder.classList.remove('hidden');
       btnSubmitOrder.style.display = 'inline-flex';
-      btnSubmitOrder.style.maxWidth = '230px';
-      btnSubmitOrder.style.width = 'auto';
+      btnSubmitOrder.style.maxWidth = '250px';
+      btnSubmitOrder.style.width = '100%';
+      btnSubmitOrder.style.height = '48px';
       btnSubmitOrder.style.marginLeft = 'auto';
       btnSubmitOrder.style.marginRight = 'auto';
     }
@@ -16172,6 +16173,7 @@ function openNewOrderModal(mode = 'dock') {
       submitSlider.style.display = 'flex';
       submitSlider.style.maxWidth = '250px';
       submitSlider.style.width = '100%';
+      submitSlider.style.height = '48px';
       submitSlider.style.marginLeft = 'auto';
       submitSlider.style.marginRight = 'auto';
     }
