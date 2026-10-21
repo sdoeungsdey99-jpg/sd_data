@@ -992,6 +992,11 @@ function handleBackNavigation() {
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
+  if (!document.getElementById('tutorial-modal')?.classList?.contains('hidden')) {
+    closeTutorialModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
 
   // 1d. Close Profile Drawer itself if open -> returns to Home!
   const profDrawer = document.getElementById('profile-drawer-modal');
@@ -1003,7 +1008,7 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
@@ -1782,7 +1787,8 @@ function closeAllModals() {
     'new-order-modal',
     'new-expense-modal',
     'daily-report-modal',
-    'honors-modal'
+    'honors-modal',
+    'tutorial-modal'
   ];
   modals.forEach(id => {
     const el = document.getElementById(id);
@@ -7092,7 +7098,7 @@ function renderHonorsModalContent() {
       </div>
     </div>
 
-    <!-- 2. អ្នកផ្តើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិក នោរ៉ា (Director) -->
+    <!-- 2. អ្នកផ្តើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិច នោរ៉ា (Director) -->
     <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-orange-500/15 via-white/[0.03] to-transparent border border-orange-500/35 relative overflow-hidden shadow-xl text-left">
       <div class="flex items-center justify-between mb-3">
         <span class="px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
@@ -7108,7 +7114,7 @@ function renderHonorsModalContent() {
           <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-white font-black shadow">✓</span>
         </div>
         <div class="min-w-0 flex-1">
-          <h3 class="text-base font-black text-white truncate brand-title">ស្ថាបនិក ប៊ិក នោរ៉ា (Director)</h3>
+          <h3 class="text-base font-black text-white truncate brand-title">ស្ថាបនិក ប៊ិច នោរ៉ា (Director)</h3>
           <p class="text-xs text-orange-300 font-bold tracking-wide mt-0.5">BECH NORA</p>
           <div class="mt-2 flex items-center gap-1.5 flex-wrap">
             <span class="px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-300 font-black text-[10px] border border-orange-500/40">
@@ -7213,6 +7219,624 @@ function closeHonorsModal() {
 window.openHonorsModal = openHonorsModal;
 window.closeHonorsModal = closeHonorsModal;
 window.renderHonorsModalContent = renderHonorsModalContent;
+
+// ========================================================
+// INTERACTIVE TUTORIAL & VIDEO TOUR CENTER
+// ========================================================
+window._activeTutorialChapter = 0;
+window._activeTutorialStep = 0;
+window._isTutorialPlaying = false;
+window._tutorialAutoPlayTimer = null;
+window._tutorialCountdownVal = 6;
+window._tutorialCountdownInterval = null;
+
+const TUTORIAL_CHAPTERS = [
+  {
+    id: 'sheet_connect',
+    title: 'ភ្ជាប់ Google Sheet',
+    titleEn: 'Connect Sheet',
+    icon: 'link-2',
+    color: 'from-orange-500 to-amber-500',
+    steps: [
+      {
+        stepTitle: 'ចុច Make a copy Google Sheet គំរូ',
+        stepSubtitle: 'ចម្លងឯកសារគំរូថ្មីទៅ Google Drive ផ្ទាល់ខ្លួនរបស់អ្នក',
+        bullets: [
+          'នៅលើទំព័រស្វាគមន៍ ចុចប៊ូតុងពណ៌ទឹកក្រូច "ចុច Make a copy Google Sheet 🚀"',
+          'ប្រព័ន្ធនឹងបើក Google Drive រួចចុច "Make a copy" ពណ៌ខៀវ',
+          'ឯកសារថ្មីនឹងត្រូវបានរក្សាទុកក្នុង Google Drive ផ្ទាល់ខ្លួនរបស់អ្នកដោយស្វ័យប្រវត្តិ'
+        ],
+        proTip: '💡 គន្លឹះ៖ ឯកសារដែលបាន Copy រួច គឺជារបស់អ្នក ១០០% គ្មាននរណាម្នាក់អាចមើលឃើញឡើយ។',
+        renderSim: () => `
+          <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-orange-500/40 relative overflow-hidden shadow-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center">1</span>
+              <span class="text-xs font-bold text-white">ចម្លងឯកសារ Google Sheet គំរូ</span>
+            </div>
+            <p class="text-[10px] text-slate-400 mb-2.5">បង្កើតច្បាប់ចម្លងនៃ Sheet គំរូថ្មីទៅក្នុង Google Drive របស់អ្នក</p>
+            <div class="relative inline-block w-full">
+              <div class="w-full py-2.5 px-3 rounded-xl bg-orange-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                <span>ចុច Make a copy Google Sheet 🚀</span>
+              </div>
+              <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-4 w-4 bg-amber-500 border border-white text-[8px] text-black font-black items-center justify-center">👆</span>
+              </span>
+            </div>
+          </div>
+        `
+      },
+      {
+        stepTitle: 'បើក Share សិទ្ធិ Anyone with the link',
+        stepSubtitle: 'អនុញ្ញាតឱ្យ App អាចទាញទិន្នន័យមកបង្ហាញលើ Dashboard',
+        bullets: [
+          'ក្នុង Google Sheet ដែលទើប Copy រួច ចុចប៊ូតុងពណ៌ខៀវ "Share" (ខាងស្តាំលើ)',
+          'ត្រង់ General access ចុចប្តូរពី "Restricted" ទៅជា "Anyone with the link"',
+          'រក្សាសិទ្ធិត្រឹម "Viewer" រួចចុច "Copy link"'
+        ],
+        proTip: '💡 គន្លឹះ៖ កុំប្តូរទៅ Editor ឡើយ! សិទ្ធិត្រឹម Viewer គឺមានសុវត្ថិភាពខ្ពស់បំផុត។',
+        renderSim: () => `
+          <div class="p-3.5 rounded-2xl bg-[#131F33] border border-blue-500/40 relative shadow-lg text-left">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5"><i data-lucide="share-2" class="w-3.5 h-3.5 text-blue-400"></i> Share with people</span>
+              <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[9px] font-mono">Google Drive</span>
+            </div>
+            <div class="space-y-2 text-[10px]">
+              <div class="p-2 rounded-lg bg-black/30 border border-emerald-500/40 flex items-center justify-between">
+                <div class="flex items-center gap-1.5 text-emerald-300">
+                  <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                  <span>Anyone with the link</span>
+                </div>
+                <span class="font-bold text-white bg-white/10 px-2 py-0.5 rounded">Viewer ✓</span>
+              </div>
+              <button class="w-full py-2 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow">
+                <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                <span>Copy link (រួចយកមក Paste ក្នុង App)</span>
+              </button>
+            </div>
+          </div>
+        `
+      },
+      {
+        stepTitle: 'បិទភ្ជាប់ (Paste) និងចាប់ផ្តើមប្រើប្រាស់',
+        stepSubtitle: 'ភ្ជាប់ទិន្នន័យចូលក្នុង App ត្រឹមតែប៉ុន្មានវិនាទី',
+        bullets: [
+          'ត្រឡប់មកក្នុង App វិញ បំពេញឈ្មោះរបស់អ្នក (ឧ. Hou Yarith / Hem Chanthy)',
+          'យក Link ដែលបាន Copy មក Paste ក្នុងប្រអប់ "Link Google Sheet"',
+          'ចុចប៊ូតុង "ភ្ជាប់ និងចាប់ផ្តើមប្រើប្រាស់ 🚀" ជាការស្រេច!'
+        ],
+        proTip: '💡 គន្លឹះ៖ ភ្ជាប់តែម្តងប៉ុណ្ណោះ លើកក្រោយបើក App មកគឺចងចាំទិន្នន័យដោយស្វ័យប្រវត្តិ។',
+        renderSim: () => `
+          <div class="p-3 rounded-2xl bg-white/[0.04] border border-emerald-500/40 space-y-2 text-left">
+            <div>
+              <span class="text-[9.5px] text-slate-400 block mb-0.5">ឈ្មោះរបស់អ្នក:</span>
+              <div class="px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/10 text-xs text-white font-semibold">Hou Yarith (Manager)</div>
+            </div>
+            <div>
+              <span class="text-[9.5px] text-slate-400 block mb-0.5">Link Google Sheet:</span>
+              <div class="px-2.5 py-1.5 rounded-lg bg-black/40 border border-emerald-500/40 text-[10px] text-emerald-400 font-mono truncate">https://docs.google.com/spreadsheets/d/1.../edit</div>
+            </div>
+            <button class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+              <span>ភ្ជាប់ជោគជ័យ! ចាប់ផ្តើមប្រើប្រាស់ 🚀</span>
+            </button>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id: 'cash_flow',
+    title: 'សាច់ប្រាក់ & COD',
+    titleEn: 'Cash Flow',
+    icon: 'wallet',
+    color: 'from-emerald-500 to-teal-500',
+    steps: [
+      {
+        stepTitle: 'ប៊ូតុងភ្នែកសម្ងាត់ (Hero Privacy Eye)',
+        stepSubtitle: 'លាក់ ឬបង្ហាញសមតុល្យទឹកប្រាក់ភ្លាមៗ',
+        bullets: [
+          'នៅផ្នែកខាងលើនៃទំព័រដើម មានកាតសមតុល្យទឹកប្រាក់ (Hero Balance Card)',
+          'ចុចលើរូប 👁️ (ភ្នែក) នៅជ្រុងខាងស្តាំលើ ដើម្បីបិទលាក់ទឹកប្រាក់ជា ••••••••',
+          'ពេលចង់មើលវិញ គ្រាន់តែចុចលើរូបភ្នែកម្តងទៀត ជាការស្រេច'
+        ],
+        proTip: '💡 គន្លឹះ៖ ពេលនៅទីសាធារណៈ ឬក្បែរអ្នកដទៃ ចុចបិទភ្នែកដើម្បីសុវត្ថិភាពផ្ទាល់ខ្លួន។',
+        renderSim: () => `
+          <div class="p-4 rounded-3xl bg-gradient-to-br from-amber-500/20 to-orange-600/10 border border-amber-500/30 text-left relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center"><i data-lucide="wallet" class="w-3.5 h-3.5"></i></div>
+                <span class="text-xs font-bold text-white">ទឹកប្រាក់ដែលមាន</span>
+              </div>
+              <div class="w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-amber-300 relative shadow">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+                <span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span></span>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-white font-mono tracking-tight">$3,710.88</div>
+            <div class="text-[11px] text-emerald-400 font-mono mt-0.5">1,073,700 ៛</div>
+          </div>
+        `
+      },
+      {
+        stepTitle: 'សង្ខេបស្ថាពរហិរញ្ញវត្ថុ (Net Cash Position)',
+        stepSubtitle: 'តាមដានសាច់ប្រាក់ជាក់ស្តែង, COD និងបំណុល',
+        bullets: [
+          'កាត Net Cash Position បង្ហាញសន្ទស្សន៍ហិរញ្ញវត្ថុ ៤ ជ្រុងច្បាស់លាស់',
+          'ប្រអប់ទី ១ Actual Cash: ចុចលើវាដើម្បីបើកមើលសមតុល្យតាមកុងធនាគារនីមួយៗ',
+          'ប្រអប់ទី ២ Pending COD: ចុចលើវាដើម្បីមើលតារាងលុយ COD រង់ចាំបើកពីក្រុមហ៊ុនដឹកជញ្ជូន',
+          'ប្រអប់ទី ៤ Accounts Payable: ចុចលើវាដើម្បីពិនិត្យបញ្ជីបំណុលត្រូវទូទាត់'
+        ],
+        proTip: '💡 គន្លឹះ៖ លំហូរសាច់ប្រាក់សុទ្ធ = (សាច់ប្រាក់ + COD រង់ចាំ) ដក បំណុលជំពាក់។',
+        renderSim: () => `
+          <div class="p-3 rounded-2xl bg-white/[0.04] border border-white/10 text-left space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-white flex items-center gap-1.5"><i data-lucide="landmark" class="w-3.5 h-3.5 text-emerald-400"></i> សង្ខេបស្ថាពរហិរញ្ញវត្ថុ</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-bold">✅ សុវត្ថិភាពខ្ពស់</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5 text-[10px]">
+              <div class="p-2 rounded-xl bg-black/40 border border-white/5"><span class="text-slate-400 block">សាច់ប្រាក់ជាក់ស្តែង</span><span class="font-mono text-white font-bold text-xs">$3,710.88</span></div>
+              <div class="p-2 rounded-xl bg-black/40 border border-amber-500/30"><span class="text-slate-400 block">លុយ COD រង់ចាំ</span><span class="font-mono text-amber-400 font-bold text-xs">$1,160.90</span></div>
+              <div class="p-2 rounded-xl bg-black/40 border border-white/5"><span class="text-slate-400 block">ទ្រព្យសកម្មរាវ</span><span class="font-mono text-blue-400 font-bold text-xs">$4,871.78</span></div>
+              <div class="p-2 rounded-xl bg-black/40 border border-rose-500/30"><span class="text-slate-400 block">បំណុលត្រូវទូទាត់</span><span class="font-mono text-rose-400 font-bold text-xs">$231.00</span></div>
+            </div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id: 'sales_orders',
+    title: 'កត់ត្រាលក់ & ក្រុមហ៊ុន',
+    titleEn: 'Sales & Company',
+    icon: 'shopping-bag',
+    color: 'from-amber-500 to-yellow-500',
+    steps: [
+      {
+        stepTitle: 'Smart Paste ពី Telegram ចូល App ស្វ័យប្រវត្ត',
+        stepSubtitle: 'មិនបាច់វាយអក្សរម្តងមួយៗឡើយ',
+        bullets: [
+          'ពេលភ្ញៀវកុម្ម៉ង់ក្នុង Telegram ចុច Copy អត្ថបទកុម្ម៉ង់នោះ',
+          'បើកផ្ទាំង Order ថ្មី ក្នុង App រួចចុចប៊ូតុង "Smart Paste Telegram 📋"',
+          'ប្រព័ន្ធនឹងបំប្លែងឈ្មោះអតិថិជន, លេខទូរស័ព្ទ, ទីតាំង, ក្រុមហ៊ុនដឹក និងចំនួនប្រអប់ បំពេញស្វ័យប្រវត្តិ!'
+        ],
+        proTip: '💡 គន្លឹះ៖ ចំណេញពេលរហូតដល់ ៩០% មិនបាច់សរសេរដោយដៃម្តងមួយក្រឡាឡើយ។',
+        renderSim: () => `
+          <div class="p-3 rounded-2xl bg-white/[0.04] border border-blue-500/40 text-left space-y-2">
+            <div class="p-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-[10px] text-blue-300 flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-blue-400"></i> Smart Paste Telegram</span>
+              <span class="px-1.5 py-0.5 rounded bg-blue-500 text-white font-bold text-[9px]">Active</span>
+            </div>
+            <div class="space-y-1 text-[10px]">
+              <div class="flex justify-between py-1 border-b border-white/5"><span class="text-slate-400">ឈ្មោះអតិថិជន:</span><span class="text-white font-bold">សុខ ជា (ភ្នំពេញ)</span></div>
+              <div class="flex justify-between py-1 border-b border-white/5"><span class="text-slate-400">ទូរស័ព្ទ:</span><span class="text-emerald-400 font-mono font-bold">012 345 678</span></div>
+              <div class="flex justify-between py-1"><span class="text-slate-400">ចំនួនប្រអប់:</span><span class="text-amber-400 font-bold">2 ប្រអប់ (Set 2)</span></div>
+            </div>
+          </div>
+        `
+      },
+      {
+        stepTitle: 'បញ្ជូនទិន្នន័យទៅ Form ក្រុមហ៊ុន',
+        stepSubtitle: 'ចាក់សោរចូល Team Bech_Nora ដោយស្វ័យប្រវត្តិ',
+        bullets: [
+          'បន្ទាប់ពីពិនិត្យព័ត៌មាន Order រួចរាល់ ចុចប៊ូតុង "បញ្ជូនទៅ Form ក្រុមហ៊ុន 🚀"',
+          'ប្រព័ន្ធបានចាក់សោរឈ្មោះក្រុមជា "Bech_Nora" ស្វ័យប្រវត្តិ ១០០% មិនបាច់បារម្ភពីការជ្រើសរើសខុស',
+          'ការទូទាត់ហិរញ្ញវត្ថុជាមួយក្រុមហ៊ុននឹងដំណើរការយ៉ាងត្រឹមត្រូវ និងទាន់ពេលវេលា'
+        ],
+        proTip: '💡 គន្លឹះ៖ ប្រព័ន្ធនឹងរក្សាទុកក្នុង Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នកផង និងផ្ញើទៅក្រុមហ៊ុនផង!',
+        renderSim: () => `
+          <div class="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/15 to-teal-500/10 border border-emerald-500/30 text-left space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Company Sync Status</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold">LOCKED ✓</span>
+            </div>
+            <div class="p-2 rounded-xl bg-black/40 border border-white/10 text-[10px] space-y-1">
+              <div class="flex justify-between"><span class="text-slate-400">Company Team:</span><span class="font-mono text-emerald-400 font-bold">Bech_Nora (Fixed)</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Settlement:</span><span class="text-white font-medium">Bostar Finance Direct</span></div>
+            </div>
+            <button class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow">
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              <span>បញ្ជូនទៅក្រុមហ៊ុនជោគជ័យ 🚀</span>
+            </button>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id: 'expenses',
+    title: 'កត់ត្រាចំណាយ',
+    titleEn: 'Daily Expenses',
+    icon: 'receipt',
+    color: 'from-rose-500 to-pink-500',
+    steps: [
+      {
+        stepTitle: 'កត់ត្រាចំណាយរហ័ស (Quick Expense)',
+        stepSubtitle: 'គ្រប់គ្រងថ្លៃ Boost Ads, ស្តុក និងប្រតិបត្តិការ',
+        bullets: [
+          'នៅលើកាតចំណាយ (Expenses Card) ចុចលើរូបប៊ិច ✏️ នៅជ្រុងខាងស្តាំលើ',
+          'ជ្រើសរើសប្រភេទចំណាយ៖ Boost Ads, ថ្លៃដឹកជញ្ជូន, ថ្លៃស្តុក ឬចំណាយទូទៅ',
+          'បញ្ចូលចំនួនទឹកប្រាក់ ($) និងកំណត់ចំណាំ រួចចុច "រក្សាទុក"'
+        ],
+        proTip: '💡 គន្លឹះ៖ អាចចុចលើកាតចំណាយទាំងមូលដើម្បីបើកមើលតារាងចំណាយលម្អិតទាំងអស់។',
+        renderSim: () => `
+          <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-rose-500/40 text-left space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center"><i data-lucide="receipt" class="w-3.5 h-3.5"></i></div><span class="text-xs font-bold text-white">កត់ត្រាចំណាយថ្មី</span></div>
+              <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold">Quick Entry</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5 text-[10px]">
+              <div class="p-2 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 font-bold text-center">🎯 Boost Ads</div>
+              <div class="p-2 rounded-lg bg-white/5 border border-white/5 text-slate-300 text-center">📦 ថ្លៃដឹកជញ្ជូន</div>
+              <div class="p-2 rounded-lg bg-white/5 border border-white/5 text-slate-300 text-center">🏷️ ថ្លៃទំនិញស្តុក</div>
+              <div class="p-2 rounded-lg bg-white/5 border border-white/5 text-slate-300 text-center">☕ ចំណាយទូទៅ</div>
+            </div>
+            <div class="p-2 rounded-xl bg-black/40 border border-white/10 text-center font-mono text-rose-400 font-bold text-base">$49.00</div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id: 'team_honors',
+    title: 'ក្រុម & កាតកិត្តិយស',
+    titleEn: 'Team & Honors',
+    icon: 'award',
+    color: 'from-amber-500 to-orange-500',
+    steps: [
+      {
+        stepTitle: 'តារាងប្រកួតប្រជែង & បញ្ជីសមាជិក',
+        stepSubtitle: 'លើកទឹកចិត្ត និងតាមដានលទ្ធផលជាក់ស្តែង',
+        bullets: [
+          'មើលបញ្ជីឈ្មោះសមាជិក និងតួនាទីទទួលខុសត្រូវក្នុង Bostar Group',
+          'តាមដានតារាងប្រកួតប្រជែងចំណាត់ថ្នាក់ពិន្ទុប្រអប់លក់សរុបទាំង ៦ ក្រុម',
+          'ទិន្នន័យត្រូវបាន Update ជាក់ស្តែងតាម Google Sheet របស់ក្រុមការងារ'
+        ],
+        proTip: '💡 គន្លឹះ៖ ការប្រកួតប្រជែងជួយជំរុញថាមពលការងារ និងបង្កើនការលក់កាន់តែខ្លាំងក្លា!',
+        renderSim: () => `
+          <div class="p-3 rounded-2xl bg-white/[0.04] border border-amber-500/30 text-left space-y-1.5">
+            <div class="flex items-center justify-between text-xs pb-1 border-b border-white/10">
+              <span class="font-bold text-white flex items-center gap-1.5"><i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i> តារាងប្រកួតប្រជែង ៦ ក្រុម</span>
+              <span class="text-[9px] text-amber-300 font-mono">Bostar Group</span>
+            </div>
+            <div class="space-y-1 text-[10px]">
+              <div class="p-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 flex justify-between items-center"><span class="font-bold text-amber-300">🥇 ក្រុម Hou_Yarith</span><span class="font-mono font-bold text-white">Live Score</span></div>
+              <div class="p-1.5 rounded-lg bg-white/5 flex justify-between items-center"><span class="text-slate-300">🥈 ក្រុម Hem_Chanthy</span><span class="font-mono text-slate-300">Live Score</span></div>
+              <div class="p-1.5 rounded-lg bg-white/5 flex justify-between items-center"><span class="text-slate-300">🥉 ក្រុម Sdey_Sdoeung</span><span class="font-mono text-slate-300">Live Score</span></div>
+            </div>
+          </div>
+        `
+      },
+      {
+        stepTitle: 'ផ្ទាំងកាតកិត្តិយស & ការដឹងគុណ',
+        stepSubtitle: 'ស្ថាបនិក, គ្រូបង្វឹកធំ និងថ្នាក់ដឹកនាំទាំង ៥ រូប',
+        bullets: [
+          'បើកមើលបានពី ២ កន្លែង៖ នៅលើ Onboarding Gate និងក្នុង Profile Drawer',
+          'បង្ហាញរូប Logo BOSTAR មាស 3D ដ៏ស្រស់ស្អាត និងប្រណិត',
+          '🎓 អ្នកបណ្តុះបណ្តាល៖ លោកអគ្គនាយក វណ្ណ ស៊ីថា (អគ្គនាយកក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក • គ្រូបង្វឹកធំ)',
+          '💡 អ្នកផ្តើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិច នោរ៉ា (Director)',
+          '🤝 ថ្នាក់ដឹកនាំគាំទ្រ៖ Managers ទាំង ៥ រូប'
+        ],
+        proTip: '💡 គន្លឹះ៖ នេះជាកាតកិត្តិយសផ្លូវការដែលលើកកម្ពស់មោទនភាពរបស់ក្រុមការងារ BostarGroup ទាំងអស់។',
+        renderSim: () => `
+          <div class="p-3 rounded-2xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/40 text-left space-y-2">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300"><i data-lucide="award" class="w-4 h-4"></i></div>
+              <div><h4 class="text-xs font-bold text-white">កាតកិត្តិយស & ការដឹងគុណ</h4><p class="text-[9px] text-amber-300">BostarGroup Leadership Plaque</p></div>
+            </div>
+            <div class="p-2 rounded-xl bg-black/40 border border-white/10 space-y-1 text-[10px]">
+              <div class="flex items-center gap-1.5 text-slate-300"><span>🎓</span><span>លោកអគ្គនាយក វណ្ណ ស៊ីថា</span></div>
+              <div class="flex items-center gap-1.5 text-slate-300"><span>💡</span><span>ស្ថាបនិក ប៊ិច នោរ៉ា (Director)</span></div>
+              <div class="flex items-center gap-1.5 text-slate-300"><span>🤝</span><span>Managers ទាំង ៥ រូប</span></div>
+            </div>
+          </div>
+        `
+      }
+    ]
+  },
+  {
+    id: 'pro_tips',
+    title: 'គន្លឹះសម្ងាត់ & Tips',
+    titleEn: 'Pro Tips',
+    icon: 'sparkles',
+    color: 'from-purple-500 to-indigo-500',
+    steps: [
+      {
+        stepTitle: 'កាយវិការបញ្ជាអូសដៃ (Swipe Gestures)',
+        stepSubtitle: 'បញ្ជាកម្មវិធីបានលឿនដូច App ទំនើបៗ',
+        bullets: [
+          'អូសពីគែមឆ្វេងមកស្តាំ (Swipe Right) ដើម្បីថយក្រោយ ១ ជំហាន (Back Navigation)',
+          'នៅលើអេក្រង់ដើម អូសពីឆ្វេងមកស្តាំដើម្បីបើកផ្ទាំង Profile Dashboard ភ្លាមៗ',
+          'អូសពីស្តាំមកឆ្វេងលើ Profile ដើម្បីបិទត្រឡប់ទៅវិញ'
+        ],
+        proTip: '💡 គន្លឹះ៖ មិនបាច់ចំណាយពេលចុចប៊ូតុងថយក្រោយទេ គ្រាន់តែអូសដៃស្រាលៗលើអេក្រង់!',
+        renderSim: () => `
+          <div class="p-4 rounded-2xl bg-white/[0.04] border border-purple-500/40 text-center relative overflow-hidden">
+            <div class="text-xs font-bold text-purple-300 mb-1 flex items-center justify-center gap-1.5"><i data-lucide="hand" class="w-3.5 h-3.5"></i> Swipe Left-to-Right</div>
+            <p class="text-[10px] text-slate-400 mb-3">អូសដៃពីគែមឆ្វេងមកស្តាំដើម្បី Back</p>
+            <div class="w-full h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-between px-3 text-purple-200 text-xs font-mono">
+              <span>👉 [ អូស ]</span>
+              <span class="animate-pulse">➔ ➔ ➔ ➔</span>
+              <span class="text-white font-bold">ត្រឡប់ (Back)</span>
+            </div>
+          </div>
+        `
+      },
+      {
+        stepTitle: 'ដំឡើង App លើអេក្រង់ដើមទូរស័ព្ទ (PWA)',
+        stepSubtitle: 'ដំណើរការពេញអេក្រង់ និងលឿនរហ័សដូចកម្មវិធីដំឡើងពី Store',
+        bullets: [
+          'លើទូរស័ព្ទ iPhone (Safari): ចុចប៊ូតុង Share (រូបប្រអប់ព្រួញឡើងលើ) ➔ រើសយក "Add to Home Screen"',
+          'លើទូរស័ព្ទ Android (Chrome): ចុចសញ្ញាចុច ៣ ខាងលើ ➔ រើសយក "Install App" ឬ "Add to Home Screen"',
+          'បន្ទាប់មកអ្នកនឹងទទួលបាន Icon កម្មវិធីលើអេក្រង់ទូរស័ព្ទ ចុចបើកប្រើប្រាស់ពេញអេក្រង់ភ្លាមៗ!'
+        ],
+        proTip: '💡 គន្លឹះ៖ ពេល Add to Home Screen រួច App នឹងដំណើរការរលូន គ្មានរបារ Browser រំខានឡើយ។',
+        renderSim: () => `
+          <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-blue-500/40 text-left space-y-2">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center"><i data-lucide="smartphone" class="w-4 h-4"></i></div>
+              <div><h4 class="text-xs font-bold text-white">Add to Home Screen</h4><p class="text-[9.5px] text-blue-300">Install as native Mobile App</p></div>
+            </div>
+            <div class="space-y-1 text-[10px]">
+              <div class="p-1.5 rounded-lg bg-black/40 border border-white/5 flex items-center gap-2"><span class="font-bold text-white">iOS:</span><span class="text-slate-300">Safari Share ➔ Add to Home Screen</span></div>
+              <div class="p-1.5 rounded-lg bg-black/40 border border-white/5 flex items-center gap-2"><span class="font-bold text-white">Android:</span><span class="text-slate-300">Chrome Menu (⋮) ➔ Install App</span></div>
+            </div>
+          </div>
+        `
+      }
+    ]
+  }
+];
+
+function openTutorialModal(chapterIndex = 0, stepIndex = 0) {
+  const modal = document.getElementById('tutorial-modal');
+  if (!modal) return;
+
+  window._activeTutorialChapter = Math.max(0, Math.min(chapterIndex, TUTORIAL_CHAPTERS.length - 1));
+  window._activeTutorialStep = Math.max(0, Math.min(stepIndex, (TUTORIAL_CHAPTERS[window._activeTutorialChapter]?.steps?.length || 1) - 1));
+
+  renderTutorialModalContent();
+  modal.classList.remove('hidden');
+  setDockVisible(false);
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+}
+
+function closeTutorialModal() {
+  stopTutorialAutoPlay();
+  const modal = document.getElementById('tutorial-modal');
+  if (modal) modal.classList.add('hidden');
+  const gate = document.getElementById('onboarding-gate');
+  if (gate && !gate.classList.contains('hidden')) {
+    setDockVisible(false);
+  } else {
+    setDockVisible(true);
+    openProfileDrawer();
+  }
+}
+
+function switchTutorialChapter(chapterIdx) {
+  stopTutorialAutoPlay();
+  window._activeTutorialChapter = chapterIdx;
+  window._activeTutorialStep = 0;
+  renderTutorialModalContent();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function nextTutorialStep() {
+  const currentChapter = TUTORIAL_CHAPTERS[window._activeTutorialChapter];
+  if (!currentChapter) return;
+
+  if (window._activeTutorialStep < currentChapter.steps.length - 1) {
+    window._activeTutorialStep++;
+  } else if (window._activeTutorialChapter < TUTORIAL_CHAPTERS.length - 1) {
+    window._activeTutorialChapter++;
+    window._activeTutorialStep = 0;
+  } else {
+    // End reached
+    window._activeTutorialChapter = 0;
+    window._activeTutorialStep = 0;
+  }
+  renderTutorialModalContent();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function prevTutorialStep() {
+  if (window._activeTutorialStep > 0) {
+    window._activeTutorialStep--;
+  } else if (window._activeTutorialChapter > 0) {
+    window._activeTutorialChapter--;
+    const prevChapter = TUTORIAL_CHAPTERS[window._activeTutorialChapter];
+    window._activeTutorialStep = (prevChapter?.steps?.length || 1) - 1;
+  }
+  renderTutorialModalContent();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function replayTutorialStep() {
+  stopTutorialAutoPlay();
+  renderTutorialModalContent();
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+}
+
+function toggleTutorialAutoPlay() {
+  if (window._isTutorialPlaying) {
+    stopTutorialAutoPlay();
+    renderTutorialControls();
+  } else {
+    startTutorialAutoPlay();
+  }
+}
+
+function startTutorialAutoPlay() {
+  window._isTutorialPlaying = true;
+  window._tutorialCountdownVal = 6;
+  renderTutorialControls();
+
+  if (window._tutorialAutoPlayTimer) clearInterval(window._tutorialAutoPlayTimer);
+  window._tutorialAutoPlayTimer = setInterval(() => {
+    nextTutorialStep();
+  }, 6000);
+
+  if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+}
+
+function stopTutorialAutoPlay() {
+  window._isTutorialPlaying = false;
+  if (window._tutorialAutoPlayTimer) {
+    clearInterval(window._tutorialAutoPlayTimer);
+    window._tutorialAutoPlayTimer = null;
+  }
+  renderTutorialControls();
+}
+
+function renderTutorialModalContent() {
+  renderTutorialChaptersBar();
+  renderTutorialBody();
+  renderTutorialControls();
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function renderTutorialChaptersBar() {
+  const bar = document.getElementById('tutorial-chapters-bar');
+  if (!bar) return;
+
+  bar.innerHTML = TUTORIAL_CHAPTERS.map((ch, idx) => {
+    const isActive = (idx === window._activeTutorialChapter);
+    return `
+      <button onclick="switchTutorialChapter(${idx})" 
+              class="px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 transition active:scale-95 ${isActive ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5'}">
+        <i data-lucide="${ch.icon}" class="w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-400'}"></i>
+        <span>${ch.title}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function renderTutorialBody() {
+  const container = document.getElementById('tutorial-modal-body');
+  if (!container) return;
+
+  const chapter = TUTORIAL_CHAPTERS[window._activeTutorialChapter] || TUTORIAL_CHAPTERS[0];
+  const step = chapter.steps[window._activeTutorialStep] || chapter.steps[0];
+  const totalSteps = chapter.steps.length;
+  const currentStepNum = window._activeTutorialStep + 1;
+  const progressPercent = Math.round((currentStepNum / totalSteps) * 100);
+
+  container.innerHTML = `
+    <!-- Top Chapter Badge & Progress -->
+    <div class="flex items-center justify-between">
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[10.5px] font-bold">
+        <i data-lucide="${chapter.icon}" class="w-3.5 h-3.5 text-indigo-400"></i>
+        <span>${chapter.title}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[10.5px] text-slate-400 font-mono">ជំហាន ${currentStepNum}/${totalSteps}</span>
+        <div class="w-16 h-1.5 rounded-full bg-white/10 overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300" style="width: ${progressPercent}%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phone Simulator Visual Card -->
+    <div class="w-full rounded-3xl bg-[#09111D] border border-white/10 p-3.5 relative overflow-hidden shadow-2xl text-center">
+      <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"></div>
+      
+      <!-- Phone Status Bar Mock -->
+      <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono px-2 mb-2.5 select-none">
+        <span>9:41</span>
+        <span class="px-2 py-0.5 rounded-full bg-black/40 text-[9px] text-slate-400 border border-white/5">SD Dashboard App</span>
+        <div class="flex items-center gap-1"><i data-lucide="wifi" class="w-3 h-3"></i><i data-lucide="battery" class="w-3 h-3"></i></div>
+      </div>
+
+      <!-- Render Step's Interactive Mock UI -->
+      <div class="w-full">
+        ${step.renderSim ? step.renderSim() : ''}
+      </div>
+    </div>
+
+    <!-- Step Explanation & Pro Tips Card -->
+    <div class="w-full p-4 rounded-3xl bg-white/[0.03] border border-white/10 text-left space-y-3 shadow-lg">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="w-5 h-5 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+            ${currentStepNum}
+          </span>
+          <h3 class="text-sm font-black text-white leading-tight">${step.stepTitle}</h3>
+        </div>
+        <p class="text-[11px] text-slate-400 leading-relaxed pl-7">${step.stepSubtitle}</p>
+      </div>
+
+      <!-- Bullet points -->
+      <div class="pl-2 space-y-1.5 border-l-2 border-indigo-500/30 my-2">
+        ${step.bullets.map(b => `
+          <div class="flex items-start gap-2 text-xs text-slate-300 leading-relaxed">
+            <span class="text-indigo-400 font-bold shrink-0">•</span>
+            <span>${b}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Pro Tip Box -->
+      ${step.proTip ? `
+        <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-200 text-[11px] leading-relaxed shadow-sm">
+          ${step.proTip}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderTutorialControls() {
+  const dock = document.getElementById('tutorial-player-controls');
+  if (!dock) return;
+
+  const isPlaying = Boolean(window._isTutorialPlaying);
+  const chapter = TUTORIAL_CHAPTERS[window._activeTutorialChapter] || TUTORIAL_CHAPTERS[0];
+  const currentStepNum = window._activeTutorialStep + 1;
+  const totalSteps = chapter.steps.length;
+
+  dock.innerHTML = `
+    <!-- Left: Prev Step Button -->
+    <button onclick="prevTutorialStep()" 
+            class="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition">
+      <i data-lucide="chevron-left" class="w-4 h-4 text-slate-400"></i>
+      <span class="hidden sm:inline">ថយក្រោយ</span>
+    </button>
+
+    <!-- Center: Play / Pause Auto-Tour Button -->
+    <div class="flex items-center gap-2">
+      <button onclick="toggleTutorialAutoPlay()" 
+              class="py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 shadow-lg ${isPlaying ? 'bg-amber-500 text-black shadow-amber-500/30 animate-pulse' : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-indigo-500/30'}">
+        <i data-lucide="${isPlaying ? 'pause' : 'play'}" class="w-4 h-4 fill-current"></i>
+        <span>${isPlaying ? 'ផ្អាក (Pause)' : 'ចាក់វីដេអូស្វ័យប្រវត្ត'}</span>
+      </button>
+
+      <button onclick="replayTutorialStep()" title="សារឡើងវិញ"
+              class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 flex items-center justify-center transition">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+
+    <!-- Right: Next Step Button -->
+    <button onclick="nextTutorialStep()" 
+            class="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-lg shadow-indigo-600/30">
+      <span class="hidden sm:inline">បន្ទាប់</span>
+      <i data-lucide="chevron-right" class="w-4 h-4 text-white"></i>
+    </button>
+  `;
+  if (window.lucide) window.lucide.createIcons();
+}
+
+window.openTutorialModal = openTutorialModal;
+window.closeTutorialModal = closeTutorialModal;
+window.switchTutorialChapter = switchTutorialChapter;
+window.nextTutorialStep = nextTutorialStep;
+window.prevTutorialStep = prevTutorialStep;
+window.replayTutorialStep = replayTutorialStep;
+window.toggleTutorialAutoPlay = toggleTutorialAutoPlay;
+window.renderTutorialModalContent = renderTutorialModalContent;
+
 
 function openAboutModal() {
   const modal = document.getElementById('about-modal');
@@ -9159,6 +9783,21 @@ function renderProfileDrawerContent() {
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
       </div>
 
+      <!-- 5. មជ្ឈមណ្ឌលណែនាំការប្រើប្រាស់ (Tutorial Center) -->
+      <div onclick="closeProfileDrawer(); openTutorialModal();" 
+           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
+          <div class="settings-icon-box w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="play-circle" class="w-3.5 h-3.5 text-indigo-400"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Tutorial Center' : '🎬 មជ្ឈមណ្ឌលណែនាំការប្រើប្រាស់'}</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Interactive video guide & pro tips' : 'វីដេអូណែនាំជាចលនា និងគន្លឹះ Tips គ្រប់ជំហាន'}</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+      </div>
+
       <!-- 5. ចាកចេញ (Log Out) -->
       <div onclick="closeProfileDrawer(); openProfileSubModal('logout');" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-rose-500/10 active:scale-[0.99] transition select-none">
@@ -10348,6 +10987,11 @@ function openProfileSubModal(type) {
   if (type === 'honors' || type === 'dedication') {
     closeProfileSubModal();
     openHonorsModal();
+    return;
+  }
+  if (type === 'tutorial' || type === 'guide' || type === 'help_center') {
+    closeProfileSubModal();
+    openTutorialModal();
     return;
   }
   const header = document.getElementById('profile-sub-modal-header');
