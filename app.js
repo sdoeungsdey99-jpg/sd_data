@@ -16096,6 +16096,8 @@ function openNewOrderModal(mode = 'dock') {
   if (orderBody && typeof hookScrollableForDock === 'function') {
     hookScrollableForDock(orderBody, false);
   }
+  if (typeof initOrderSubmitSlider === 'function') initOrderSubmitSlider();
+  if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
   if (window.lucide) window.lucide.createIcons();
   if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
 }
@@ -16110,8 +16112,174 @@ function closeNewOrderModal() {
   if (delivMenu) delivMenu.classList.add('hidden');
   const shipMenu = document.getElementById('order-ship-presets-dropdown-menu');
   if (shipMenu) shipMenu.classList.add('hidden');
+  if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
   modal.classList.add('hidden');
   setDockVisible(true);
+}
+
+// ==========================================
+// Order Submit Slider (Slide to Confirm Order)
+// ==========================================
+let isOrderSubmittingInProgress = false;
+
+function resetOrderSubmitSlider() {
+  const thumb = document.getElementById('order-slider-thumb');
+  const fill = document.getElementById('order-slider-fill');
+  const textWrap = document.getElementById('order-slider-label-wrap');
+  const icon = document.getElementById('order-slider-icon');
+  const text = document.getElementById('order-slider-text');
+
+  isOrderSubmittingInProgress = false;
+
+  if (thumb) {
+    thumb.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)';
+    thumb.style.transform = 'translateX(0px)';
+  }
+  if (fill) {
+    fill.style.transition = 'width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)';
+    fill.style.width = '0%';
+  }
+  if (textWrap) {
+    textWrap.style.transition = 'opacity 0.2s ease';
+    textWrap.style.opacity = '1';
+  }
+  if (icon) {
+    icon.classList.remove('animate-spin');
+    icon.setAttribute('data-lucide', 'chevrons-right');
+  }
+  if (text) {
+    const isKm = (appState.language !== 'en');
+    text.innerHTML = isKm 
+      ? '<span>អូសពីឆ្វេងទៅស្តាំ ដើម្បីបញ្ជូន</span><span class="animate-pulse text-orange-400 font-mono text-sm tracking-tighter">❯❯❯</span>'
+      : '<span>Slide Right to Submit</span><span class="animate-pulse text-orange-400 font-mono text-sm tracking-tighter">❯❯❯</span>';
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function initOrderSubmitSlider() {
+  const slider = document.getElementById('order-submit-slider');
+  const thumb = document.getElementById('order-slider-thumb');
+  const fill = document.getElementById('order-slider-fill');
+  const textWrap = document.getElementById('order-slider-label-wrap');
+
+  if (!slider || !thumb || slider._sliderInitialized) return;
+  slider._sliderInitialized = true;
+
+  let isDragging = false;
+  let startX = 0;
+  let currentTranslateX = 0;
+  let maxSlide = 0;
+  let hasTriggered = false;
+
+  const updateMaxSlide = () => {
+    const sliderWidth = slider.clientWidth || 320;
+    const thumbWidth = thumb.clientWidth || 44;
+    const padding = 12; // 6px padding on track sides
+    maxSlide = Math.max(0, sliderWidth - thumbWidth - padding);
+  };
+
+  const onDragStart = (clientX) => {
+    if (isOrderSubmittingInProgress) return false;
+
+    const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                       (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                       (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
+                       (currentOrderProducts.free || 0);
+    const phone = (document.getElementById('order-field-phone')?.value || '').trim().replace(/[\s\-\.]/g, '');
+    
+    if (totalBoxes === 0 || phone.length < 8) {
+      if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch (_) {}
+      showToastNotification('សូមបញ្ចូលលេខទូរសព្ទ និងចំនួនប្រអប់ទំនិញជាមុនសិន!');
+      slider.classList.add('animate-shake');
+      setTimeout(() => slider.classList.remove('animate-shake'), 400);
+      return false;
+    }
+
+    updateMaxSlide();
+    if (maxSlide <= 0) return false;
+
+    isDragging = true;
+    hasTriggered = false;
+    startX = clientX;
+    thumb.style.transition = 'none';
+    if (fill) fill.style.transition = 'none';
+    return true;
+  };
+
+  const onDragMove = (clientX) => {
+    if (!isDragging || hasTriggered) return;
+    const deltaX = clientX - startX;
+    currentTranslateX = Math.max(0, Math.min(deltaX, maxSlide));
+
+    thumb.style.transform = `translateX(${currentTranslateX}px)`;
+    const progress = maxSlide > 0 ? (currentTranslateX / maxSlide) : 0;
+
+    if (fill) {
+      fill.style.width = `${Math.min(100, Math.round(progress * 100))}%`;
+    }
+    if (textWrap) {
+      textWrap.style.opacity = String(Math.max(0, 1 - progress * 1.5));
+    }
+
+    // Trigger confirmation at >= 85%
+    if (progress >= 0.85 && !hasTriggered) {
+      hasTriggered = true;
+      isDragging = false;
+      isOrderSubmittingInProgress = true;
+      thumb.style.transform = `translateX(${maxSlide}px)`;
+      if (fill) fill.style.width = '100%';
+      if (textWrap) textWrap.style.opacity = '0';
+
+      if (navigator.vibrate) try { navigator.vibrate([20, 60, 20]); } catch (_) {}
+
+      // Trigger the order submit handler
+      submitNewOrder();
+    }
+  };
+
+  const onDragEnd = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    if (!hasTriggered) {
+      resetOrderSubmitSlider();
+    }
+  };
+
+  // Touch Events (Mobile)
+  thumb.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches.length === 1) {
+      if (onDragStart(e.touches[0].clientX)) {
+        e.stopPropagation();
+      }
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchmove', (e) => {
+    if (isDragging && e.touches && e.touches.length === 1) {
+      onDragMove(e.touches[0].clientX);
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchend', onDragEnd, { passive: true });
+  window.addEventListener('touchcancel', onDragEnd, { passive: true });
+
+  // Mouse Events (Desktop)
+  thumb.addEventListener('mousedown', (e) => {
+    if (e.button === 0) {
+      if (onDragStart(e.clientX)) {
+        e.preventDefault();
+      }
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      onDragMove(e.clientX);
+    }
+  });
+
+  window.addEventListener('mouseup', onDragEnd);
 }
 
 function checkOrderSubmitValidation() {
@@ -16121,18 +16289,28 @@ function checkOrderSubmitValidation() {
                      (currentOrderProducts.free || 0);
   const phone = (document.getElementById('order-field-phone')?.value || '').trim().replace(/[\s\-\.]/g, '');
   const btn = document.getElementById('btn-submit-order');
-  if (!btn) return;
+  const slider = document.getElementById('order-submit-slider');
+  const hint = document.getElementById('order-slider-hint');
 
-  // បើមិនទាន់អាចបញ្ជូនបាន (0 ប្រអប់ ឬលេខទូរស័ព្ទតិចជាង ៨ ខ្ទង់) គឺ disable & dim
   const isReady = (totalBoxes > 0 && phone.length >= 8);
-  if (isReady) {
-    btn.disabled = false;
-    btn.classList.remove('opacity-40', 'cursor-not-allowed', 'grayscale');
-    btn.classList.add('shadow-lg', 'shadow-orange-500/25');
-  } else {
-    btn.disabled = true;
-    btn.classList.add('opacity-40', 'cursor-not-allowed', 'grayscale');
-    btn.classList.remove('shadow-lg', 'shadow-orange-500/25');
+  if (btn) {
+    btn.disabled = !isReady;
+  }
+  if (slider) {
+    if (isReady) {
+      slider.classList.remove('opacity-40', 'cursor-not-allowed', 'grayscale');
+      slider.classList.add('border-orange-500/40');
+      if (hint) {
+        hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i><span class="text-emerald-300 font-medium">ទិន្នន័យគ្រប់គ្រាន់ - អូសទៅស្តាំដើម្បីបញ្ជូន ✓</span>';
+      }
+    } else {
+      slider.classList.add('opacity-40', 'cursor-not-allowed', 'grayscale');
+      slider.classList.remove('border-orange-500/40');
+      if (hint) {
+        hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-orange-400/80"></i><span>អូសដល់ចុងស្តាំ ដើម្បីរក្សាទុកចូលការលក់</span>';
+      }
+    }
+    if (window.lucide) window.lucide.createIcons();
   }
 }
 
@@ -16207,6 +16385,7 @@ function clearOrderInput() {
   setOrderType('standard');
   calculateOrderFinancials();
   checkOrderSubmitValidation();
+  if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
 
   showToastNotification('សម្អាតជោគជ័យ ✓');
   if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
@@ -16648,11 +16827,13 @@ async function submitNewOrder() {
 
   if (totalBoxes === 0) {
     showToastNotification('សូមជ្រើសរើសចំនួនប្រអប់ទំនិញ!');
+    if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
     return;
   }
 
   if (!phone || phone.replace(/[\s\-\.]/g, '').length < 8) {
     showToastNotification('សូមបញ្ចូលលេខទូរសព្ទអ្នកទទួល!');
+    if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
     return;
   }
 
@@ -16661,6 +16842,7 @@ async function submitNewOrder() {
     const isDup = DataService.data.personalSales.some(s => s.orderId && s.orderId.toLowerCase() === orderId.toLowerCase());
     if (isDup) {
       alert(`⚠️ លេខកុម្ម៉ង់ ${orderId} នេះមានរួចហើយក្នុង Personal Sales! មិនអាចបញ្ចូលស្ទួនបានទេ។`);
+      if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
       return;
     }
   }
@@ -16669,6 +16851,20 @@ async function submitNewOrder() {
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>កំពុងរក្សាទុក...</span>`;
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // Update slider UI to loading state
+  const sliderText = document.getElementById('order-slider-text');
+  const sliderIcon = document.getElementById('order-slider-icon');
+  const textWrap = document.getElementById('order-slider-label-wrap');
+  if (sliderText) {
+    sliderText.innerHTML = '<span class="text-xs font-bold text-amber-300">កំពុងបញ្ជូនចូលការលក់... ⏳</span>';
+  }
+  if (textWrap) textWrap.style.opacity = '1';
+  if (sliderIcon) {
+    sliderIcon.setAttribute('data-lucide', 'loader-2');
+    sliderIcon.classList.add('animate-spin');
     if (window.lucide) window.lucide.createIcons();
   }
 
@@ -16815,12 +17011,15 @@ async function submitNewOrder() {
     btn.disabled = false;
     btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូលការលក់ 🚀</span>`;
   }
+  if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
 
   if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
 }
 
 window.openNewOrderModal = openNewOrderModal;
 window.closeNewOrderModal = closeNewOrderModal;
+window.initOrderSubmitSlider = initOrderSubmitSlider;
+window.resetOrderSubmitSlider = resetOrderSubmitSlider;
 window.switchOrderMode = switchOrderMode;
 window.setOrderType = setOrderType;
 window.toggleOrderTypeCapsule = toggleOrderTypeCapsule;
@@ -17562,6 +17761,12 @@ function updateModalLanguage() {
   if (orderProfitText) orderProfitText.textContent = isKm ? 'ប្រាក់ចំណេញ:' : 'Net Profit:';
   if (orderLabelNote) orderLabelNote.textContent = isKm ? 'ចំណាំបន្ថែម (ស្រេចចិត្ត):' : 'Note (Optional):';
   if (btnSubmitOrder) btnSubmitOrder.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>${isKm ? 'បញ្ជូនចូលការលក់ 🚀' : 'Submit Order 🚀'}</span>`;
+  const sliderText = document.getElementById('order-slider-text');
+  if (sliderText) {
+    sliderText.innerHTML = isKm 
+      ? '<span>អូសពីឆ្វេងទៅស្តាំ ដើម្បីបញ្ជូន</span><span class="animate-pulse text-orange-400 font-mono text-sm tracking-tighter">❯❯❯</span>'
+      : '<span>Slide Right to Submit</span><span class="animate-pulse text-orange-400 font-mono text-sm tracking-tighter">❯❯❯</span>';
+  }
 
   if (window.lucide) window.lucide.createIcons();
 }

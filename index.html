@@ -2068,6 +2068,14 @@
             <span id="reload-time-text" class="text-[11px] font-mono leading-none">--:--</span>
           </button>
 
+          <!-- Daily Report Quick Header Button (Direct 1-Tap Access) -->
+          <button onclick="openDailyReportModal()" 
+                  class="h-9 px-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-95 border border-emerald-500/30 text-emerald-400 text-xs transition flex items-center gap-1.5 shadow-sm"
+                  title="របាយការណ៍លក់ប្រចាំថ្ងៃ ៩:០០ យប់">
+            <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+            <span class="text-[11px] font-bold font-kantumruy hidden sm:inline">របាយការណ៍</span>
+          </button>
+
           <!-- Search Button -->
           <button onclick="openSearchBar()" 
                   class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition shadow-sm"
@@ -4740,6 +4748,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=16.0"></script>
+  <script src="app.js?v=18.0"></script>
 </body>
 </html>
