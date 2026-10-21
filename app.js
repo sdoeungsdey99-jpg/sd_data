@@ -1323,7 +1323,6 @@ function isDialogModalOpen() {
     'change-pin-modal',
     'shortcut-modal',
     'about-modal',
-    'attendance-modal',
     'global-search-modal',
     'profile-settings-search-modal'
   ];
@@ -1475,7 +1474,12 @@ function setupSmartDockScroll() {
     'team-sets-modal-table-container',
     'search-results-container',
     'profile-settings-search-results',
-    'honors-modal-body'
+    'honors-modal-body',
+    'attendance-modal-body',
+    'attendance-leave-body',
+    'attendance-manager-body',
+    'attendance-top10-body',
+    'attendance-documents-body'
   ];
 
   scrollableIds.forEach(id => {
