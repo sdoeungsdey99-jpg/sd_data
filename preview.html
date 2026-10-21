@@ -1679,6 +1679,19 @@
       opacity: 0 !important;
       pointer-events: none !important;
     }
+    /* Complete Dock & Blur Backdrop Suppression when Daily Report is open */
+    body:has(#daily-report-modal:not(.hidden)) #bottom-dock,
+    body:has(#daily-report-modal:not(.hidden)) #dock-blur-backdrop {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transform: translateY(100vh) !important;
+    }
+    #daily-report-modal input,
+    #daily-report-modal textarea {
+      font-size: 16px !important;
+    }
     /* Search Result Highlight */
     mark.search-highlight {
       background: #F59E0B;
@@ -3120,7 +3133,7 @@
           </button>
           <div class="min-w-0">
             <h3 class="font-bold text-xs sm:text-sm text-white leading-tight">
-              <span>HR Attendance Module</span>
+              <span>កត់ត្រាវត្តមាន</span>
             </h3>
             <p class="text-[10px] text-slate-400">Bostar HR & Operations System</p>
           </div>
@@ -4493,7 +4506,7 @@
         <div id="order-submit-container" class="pt-3 pb-12 flex flex-col items-center justify-center select-none font-kantumruy">
           <!-- Slider Track -->
           <div id="order-submit-slider" 
-               class="relative w-full max-w-sm mx-auto h-14 bg-gradient-to-r from-[#0C1526] via-[#101F38] to-[#0C1526] border-2 border-orange-500/30 rounded-full overflow-hidden select-none p-1.5 flex items-center shadow-[0_8px_25px_rgba(0,0,0,0.5)] transition-all duration-300"
+               class="relative w-full max-w-[260px] mx-auto h-12 bg-gradient-to-r from-[#0C1526] via-[#101F38] to-[#0C1526] border-2 border-orange-500/30 rounded-full overflow-hidden select-none p-1 flex items-center shadow-[0_6px_20px_rgba(0,0,0,0.5)] transition-all duration-300"
                style="touch-action: none;">
             
             <!-- Dynamic Progress Fill Layer -->
@@ -4502,30 +4515,30 @@
                  style="width: 0%;"></div>
 
             <!-- Shimmer Text & Chevron Guide (Centered) -->
-            <div id="order-slider-label-wrap" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-12 transition-opacity duration-200">
-              <span id="order-slider-text" class="text-xs sm:text-[13px] font-bold text-orange-200 tracking-wide flex items-center gap-2 drop-shadow-md">
-                <span>អូសពីឆ្វេងទៅស្តាំ ដើម្បីបញ្ជូន</span>
-                <span class="animate-pulse text-orange-400 font-mono text-sm tracking-tighter">❯❯❯</span>
+            <div id="order-slider-label-wrap" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 pl-9 pr-3 transition-opacity duration-200">
+              <span id="order-slider-text" class="text-[11.5px] font-bold text-orange-200 tracking-wide flex items-center gap-1.5 drop-shadow-md">
+                <span>អូសដើម្បីបញ្ជូន</span>
+                <span class="animate-pulse text-orange-400 font-mono text-xs tracking-tighter">❯❯</span>
               </span>
             </div>
 
             <!-- Draggable Slider Thumb / Handle -->
             <div id="order-slider-thumb" 
-                 class="relative z-20 w-11 h-11 rounded-full bg-gradient-to-tr from-orange-500 via-amber-500 to-orange-400 text-white shadow-[0_4px_15px_rgba(249,115,22,0.5)] flex items-center justify-center cursor-grab active:cursor-grabbing border-2 border-white/40 transition-transform duration-75 select-none"
+                 class="relative z-20 w-9 h-9 rounded-full bg-gradient-to-tr from-orange-500 via-amber-500 to-orange-400 text-white shadow-[0_3px_12px_rgba(249,115,22,0.5)] flex items-center justify-center cursor-grab active:cursor-grabbing border-2 border-white/40 transition-transform duration-75 select-none"
                  style="transform: translateX(0px);">
-              <i id="order-slider-icon" data-lucide="chevrons-right" class="w-5 h-5 text-white stroke-[2.5] pointer-events-none transition-transform"></i>
+              <i id="order-slider-icon" data-lucide="chevrons-right" class="w-4 h-4 text-white stroke-[2.5] pointer-events-none transition-transform"></i>
             </div>
           </div>
 
           <!-- Safety Status & Validation Hint -->
-          <p id="order-slider-hint" class="text-[10px] text-slate-400 text-center mt-2 flex items-center justify-center gap-1 transition-colors">
+          <p id="order-slider-hint" class="text-[10px] text-slate-400 text-center mt-1.5 flex items-center justify-center gap-1 transition-colors">
             <i data-lucide="shield-check" class="w-3 h-3 text-orange-400/80"></i>
-            <span>អូសដល់ចុងស្តាំ ដើម្បីរក្សាទុកចូលការលក់</span>
+            <span>អូសដល់ចុងស្តាំ ដើម្បីរក្សាទុក</span>
           </p>
 
           <!-- Original Button (For Telegram Mode) -->
           <button type="button" id="btn-submit-order" onclick="submitNewOrder()" 
-                  class="w-full max-w-sm mx-auto py-3 rounded-full accent-solid-btn font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-orange-500/25 hidden">
+                  class="w-auto min-w-[190px] max-w-[240px] mx-auto px-6 py-2.5 rounded-full accent-solid-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-orange-500/25 hidden">
             <i data-lucide="check" class="w-4 h-4"></i>
             <span id="order-submit-btn-text">បញ្ជូនចូលការលក់ 🚀</span>
           </button>
@@ -4724,6 +4737,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=19.1"></script>
+  <script src="app.js?v=19.2"></script>
 </body>
 </html>

@@ -1317,6 +1317,7 @@ function setupSwipeToBack() {
 
 function isDialogModalOpen() {
   const ids = [
+    'daily-report-modal',
     'edit-profile-modal',
     'profile-sub-modal',
     'qr-photos-modal',
@@ -1324,7 +1325,10 @@ function isDialogModalOpen() {
     'shortcut-modal',
     'about-modal',
     'global-search-modal',
-    'profile-settings-search-modal'
+    'profile-settings-search-modal',
+    'honors-modal',
+    'team-members-modal',
+    'new-order-modal'
   ];
   return ids.some(id => {
     const el = document.getElementById(id);
@@ -1333,12 +1337,33 @@ function isDialogModalOpen() {
 }
 
 function setDockVisible(visible) {
-  if (visible && isDialogModalOpen()) return;
+  const dailyReportEl = document.getElementById('daily-report-modal');
+  const isReportOpen = dailyReportEl && !dailyReportEl.classList.contains('hidden');
+
   const dock = document.getElementById('bottom-dock');
   const dockBlur = document.getElementById('dock-blur-backdrop');
+
+  if (isReportOpen || (visible && isDialogModalOpen())) {
+    if (dock) {
+      dock.classList.add('dock-hidden', '!hidden');
+      dock.style.display = 'none';
+    }
+    if (dockBlur) {
+      dockBlur.classList.add('opacity-0', '!hidden');
+      dockBlur.style.display = 'none';
+    }
+    return;
+  }
+
   if (visible) {
-    if (dock) dock.classList.remove('dock-hidden');
-    if (dockBlur) dockBlur.classList.remove('opacity-0');
+    if (dock) {
+      dock.classList.remove('dock-hidden', '!hidden');
+      dock.style.display = '';
+    }
+    if (dockBlur) {
+      dockBlur.classList.remove('opacity-0', '!hidden');
+      dockBlur.style.display = '';
+    }
   } else {
     if (dock) dock.classList.add('dock-hidden');
     if (dockBlur) dockBlur.classList.add('opacity-0');
@@ -9603,7 +9628,7 @@ function generateAttendanceTelegramText(actionType = null, extraNote = null) {
 ━━━━━━━━━━━━━━━━━━
 💬 ${checkoutQuote}
 ━━━━━━━━━━━━━━━━━━
-✨ Bostar Group - HR Attendance Module`;
+✨ Bostar Group - កត់ត្រាវត្តមាន (HR Attendance)`;
   }
 
   if (isLate) {
@@ -9620,7 +9645,7 @@ function generateAttendanceTelegramText(actionType = null, extraNote = null) {
 ━━━━━━━━━━━━━━━━━━
 💬 ${lateQuote}
 ━━━━━━━━━━━━━━━━━━
-✨ Bostar Group - HR Attendance Module`;
+✨ Bostar Group - កត់ត្រាវត្តមាន (HR Attendance)`;
   }
 
   // On time / Early
@@ -9636,7 +9661,7 @@ function generateAttendanceTelegramText(actionType = null, extraNote = null) {
 ━━━━━━━━━━━━━━━━━━
 💬 ${ontimeQuote}
 ━━━━━━━━━━━━━━━━━━
-✨ Bostar Group - HR Attendance Module`;
+✨ Bostar Group - កត់ត្រាវត្តមាន (HR Attendance)`;
 }
 
 async function copyAttendanceReportText(actionType = null) {
@@ -11770,7 +11795,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight flex items-center gap-1">
-              <span>${isEn ? 'Attendance Module' : 'ម៉ូឌុលវត្តមាន (HR)'}</span>
+              <span>${isEn ? 'Attendance Tracking' : 'កត់ត្រាវត្តមាន'}</span>
             </h3>
             <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${attSubtitle}</p>
           </div>
@@ -16170,8 +16195,8 @@ function resetOrderSubmitSlider() {
   if (text) {
     const isKm = (appState.language !== 'en');
     text.innerHTML = isKm 
-      ? '<span>អូសពីឆ្វេងទៅស្តាំ ដើម្បីបញ្ជូន</span><span class="animate-pulse text-orange-400 font-mono text-sm tracking-tighter">❯❯❯</span>'
-      : '<span>Slide Right to Submit</span><span class="animate-pulse text-orange-400 font-mono text-sm tracking-tighter">❯❯❯</span>';
+      ? '<span>អូសដើម្បីបញ្ជូន</span><span class="animate-pulse text-orange-400 font-mono text-xs tracking-tighter">❯❯</span>'
+      : '<span>Slide to Submit</span><span class="animate-pulse text-orange-400 font-mono text-xs tracking-tighter">❯❯</span>';
   }
   if (window.lucide) window.lucide.createIcons();
 }
@@ -16192,9 +16217,9 @@ function initOrderSubmitSlider() {
   let hasTriggered = false;
 
   const updateMaxSlide = () => {
-    const sliderWidth = slider.clientWidth || 320;
-    const thumbWidth = thumb.clientWidth || 44;
-    const padding = 12; // 6px padding on track sides
+    const sliderWidth = slider.clientWidth || 260;
+    const thumbWidth = thumb.clientWidth || 36;
+    const padding = 8; // 4px padding on track sides
     maxSlide = Math.max(0, sliderWidth - thumbWidth - padding);
   };
 
@@ -17791,8 +17816,8 @@ function updateModalLanguage() {
   const sliderText = document.getElementById('order-slider-text');
   if (sliderText) {
     sliderText.innerHTML = isKm 
-      ? '<span>អូសពីឆ្វេងទៅស្តាំ ដើម្បីបញ្ជូន</span><span class="animate-pulse text-orange-400 font-mono text-sm tracking-tighter">❯❯❯</span>'
-      : '<span>Slide Right to Submit</span><span class="animate-pulse text-orange-400 font-mono text-sm tracking-tighter">❯❯❯</span>';
+      ? '<span>អូសដើម្បីបញ្ជូន</span><span class="animate-pulse text-orange-400 font-mono text-xs tracking-tighter">❯❯</span>'
+      : '<span>Slide to Submit</span><span class="animate-pulse text-orange-400 font-mono text-xs tracking-tighter">❯❯</span>';
   }
 
   if (window.lucide) window.lucide.createIcons();
