@@ -9669,6 +9669,20 @@ function confirmLateCheckIn() {
   data.todayStatus = 'checked_in';
   data.checkInTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
   data.todayLate = true;
+
+  // Record into Manager Private Late Log (Confidential)
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  recordLateCheckInLog({
+    id: 'LATE_' + Date.now(),
+    staffName: p.name || 'សមាជិក Bostar',
+    staffId: p.memberId || 'BG-001',
+    date: `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`,
+    time: data.checkInTime,
+    lateMinutes: data.lateMinutes || 15,
+    reason: reason || 'ស្ទះចរាចរណ៍តាមផ្លូវ',
+    leader: 'Sdey_Sdoeung'
+  });
+
   finalizeCheckIn(data, reason || 'ស្ទះចរាចរណ៍តាមផ្លូវ');
 }
 
@@ -9703,7 +9717,7 @@ function submitAttendancePin() {
   const err = document.getElementById('att-admin-pin-err');
   const val = input ? input.value.trim() : '';
 
-  if (val === '2026' || val === 'sd2026' || val === '1234' || val === '5136' || val === '8899') {
+  if (val === '2026' || val === 'sd2026' || val === '1234' || val === '5136' || val === '8899' || val === '7788' || val === '9988') {
     window._attendanceAdminUnlocked = true;
     closeAttendancePinModal();
     executeAdminAttendanceAction(pendingAdminAttendanceAction);
@@ -9714,11 +9728,963 @@ function submitAttendancePin() {
 }
 
 function executeAdminAttendanceAction(action) {
-  if (action === 'edit') {
-    openAttendanceEditModal();
+  if (action === 'manager') {
+    openAttendanceManagerModal('approvals');
+  } else if (action === 'edit') {
+    openAttendanceManagerModal('settings');
   } else if (action === 'reset') {
     resetTodayAttendanceConfirmed();
   }
+}
+
+// ==========================================
+// LEADER DISPLAY NAMES & LEAVE / LATE STORAGE
+// ==========================================
+const LEADER_DISPLAY_NAMES = {
+  'Hou_Yarith': 'លោក ហ៊ូ យ៉ារិទ្ធ (Hou Yarith)',
+  'Hem_Chanthy': 'អ្នកនាង ហែម ចាន់ធី (Hem Chanthy)',
+  'Sroeun_Leanghak': 'លោក ស្រឿន លាងហាក់ (Sroeun Leanghak)',
+  'Bech_Udom': 'លោក ប៊ិច ឧត្តម (Bech Udom)',
+  'Sdey_Sdoeung': 'លោក ស្ដី ស្ដើង (Sdey Sdoeung)',
+  'Bech_Nora': 'លោក ប៊ិច ណូរ៉ា (Bech Nora)',
+  'Vann_Sitha': 'លោក វ៉ាន់ ស៊ីថា (Vann Sitha)',
+  'Vann_Thida': 'អ្នកនាង វ៉ាន់ ធីតា (Vann Thida)',
+  'V_Thida_Emmi': 'អ្នកនាង វ៉ាន់ ធីតា (Emmi)',
+  'Chhorn_Dara': 'លោក ឈរន តារា (Chhorn Dara)',
+  'Meng_Samoeuk': 'លោក ម៉េង សាមឿក (Meng Samoeuk)',
+  'Chhoun_Vireak': 'លោក ឈួន វីរៈ (Chhoun Vireak)',
+  'La_Thida': 'អ្នកនាង ឡា ធីតា (La Thida)',
+  'Nhem_Somrith': 'លោក ញ៉ែម សំរឹទ្ធ (Nhem Somrith)',
+  'N_Somrith_Emmi': 'លោក ញ៉ែម សំរឹទ្ធ (Emmi)',
+  'Yat_Virakyuth': 'លោក យ៉ាត់ វីរៈយុទ្ធ (Yat Virakyuth)',
+  'Sarun_Chhayhor': 'លោក សារុន ឆាយហ័រ (Sarun Chhayhor)',
+  'S_Chhayhor_Emmi': 'លោក សារុន ឆាយហ័រ (Emmi)',
+  'Hong_Heng_Oeurn': 'លោក ហុង ហេងអឿន (Hong Heng Oeurn)',
+  'Heng_Oeun_Emmi': 'លោក ហុង ហេងអឿន (Emmi)',
+  'Kru_Ta': 'លោក គ្រូតា (Kru Ta)',
+  'Long_Vuthy': 'លោក ឡុង វុទ្ធី (Long Vuthy)',
+  'L_Vuthy_Emmi': 'លោក ឡុង វុទ្ធី (Emmi)',
+  'Sorn_Sabda': 'លោក ស៊ន សប្ដាហ៍ (Sorn Sabda)',
+  'Teng_Toeun': 'លោក ថេង តឿន (Teng Toeun)',
+  'Vann_Theary': 'អ្នកនាង វ៉ាន់ ធារី (Vann Theary)',
+  'T_Toeun_Emmi': 'លោក ថេង តឿន (Emmi)'
+};
+
+function getLeaderDisplayName(leaderKey) {
+  if (!leaderKey) return 'មិនទាន់បញ្ជាក់';
+  if (LEADER_DISPLAY_NAMES[leaderKey]) return LEADER_DISPLAY_NAMES[leaderKey];
+  return leaderKey.replace(/_/g, ' ');
+}
+
+function getLeaveRequests() {
+  try {
+    const raw = localStorage.getItem('sd_leave_requests');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [
+    {
+      id: 'LEAVE_DEMO_1',
+      staffName: 'ជា ស្រីណាត់',
+      staffId: 'BG-008',
+      leaveType: 'ច្បាប់ឈឺ (Sick Leave)',
+      duration: 'ពេញមួយថ្ងៃ (Full Day)',
+      startDate: '2026-10-15',
+      endDate: '2026-10-15',
+      leaderKey: 'Sdey_Sdoeung',
+      leaderName: 'លោក ស្ដី ស្ដើង (Sdey Sdoeung)',
+      reason: 'គ្រុនក្តៅ និងឈឺក្បាល ត្រូវការសម្រាក១ថ្ងៃ',
+      status: 'pending',
+      createdAt: '14/10/2026 07:45 AM'
+    },
+    {
+      id: 'LEAVE_DEMO_2',
+      staffName: 'ផាត់ ណាវី',
+      staffId: 'BG-005',
+      leaveType: 'ច្បាប់ផ្ទាល់ខ្លួន/ការងារបន្ទាន់ (Personal)',
+      duration: 'កន្លះថ្ងៃ (ព្រឹក)',
+      startDate: '2026-10-14',
+      endDate: '2026-10-14',
+      leaderKey: 'Bech_Nora',
+      leaderName: 'លោក ប៊ិច ណូរ៉ា (Bech Nora)',
+      reason: 'ជូនម្តាយទៅពិនិត្យសុខភាពនៅមន្ទីរពេទ្យ',
+      status: 'approved',
+      approvedBy: 'លោក ប៊ិច ណូរ៉ា',
+      createdAt: '13/10/2026 04:30 PM'
+    }
+  ];
+}
+
+function saveLeaveRequests(list) {
+  try {
+    localStorage.setItem('sd_leave_requests', JSON.stringify(list));
+  } catch (e) {
+    console.warn('Error saving leave requests:', e);
+  }
+}
+
+function getLateCheckInLogs() {
+  try {
+    const raw = localStorage.getItem('sd_attendance_late_log');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [
+    { id: 'LATE_1', staffName: 'កុល សុភាព', staffId: 'BG-014', date: '14/10/2026', time: '08:26 AM', lateMinutes: 26, reason: 'ស្ទះចរាចរណ៍នៅស្ពានអាកាស', leader: 'Bech_Nora' },
+    { id: 'LATE_2', staffName: 'ចាន់ ដារ៉ា', staffId: 'BG-021', date: '12/10/2026', time: '08:35 AM', lateMinutes: 35, reason: 'ម៉ូតូបែកកង់តាមផ្លូវ', leader: 'Hou_Yarith' },
+    { id: 'LATE_3', staffName: 'ឡុង វិបុល', staffId: 'BG-009', date: '08/10/2026', time: '08:19 AM', lateMinutes: 19, reason: 'ភ្លៀងខ្លាំងនៅតំបន់ផ្ទះ', leader: 'Hem_Chanthy' }
+  ];
+}
+
+function recordLateCheckInLog(entry) {
+  try {
+    const logs = getLateCheckInLogs();
+    logs.unshift(entry);
+    if (logs.length > 60) logs.length = 60;
+    localStorage.setItem('sd_attendance_late_log', JSON.stringify(logs));
+  } catch (e) {
+    console.warn('Error recording late log:', e);
+  }
+}
+
+// ==========================================
+// LEAVE REQUEST MODAL CONTROLS
+// ==========================================
+function openAttendanceLeaveModal() {
+  const modal = document.getElementById('attendance-leave-modal');
+  if (!modal) return;
+
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const applicantNameEl = document.getElementById('att-leave-applicant-name');
+  const applicantIdEl = document.getElementById('att-leave-applicant-id');
+  if (applicantNameEl) applicantNameEl.textContent = p.name || 'សមាជិក Bostar';
+  if (applicantIdEl) applicantIdEl.textContent = p.memberId || 'ID: BG-001';
+
+  // Populate leader select
+  const leaderSelect = document.getElementById('att-leave-leader-select');
+  if (leaderSelect) {
+    leaderSelect.innerHTML = COMPANY_TEAM_LEADERS.map(key => {
+      const displayName = getLeaderDisplayName(key);
+      const isSelected = key === 'Sdey_Sdoeung' ? 'selected' : '';
+      return `<option value="${key}" ${isSelected}>${displayName}</option>`;
+    }).join('');
+  }
+
+  // Set default dates
+  const today = new Date().toISOString().split('T')[0];
+  const startDateInput = document.getElementById('att-leave-start-date');
+  const endDateInput = document.getElementById('att-leave-end-date');
+  if (startDateInput) startDateInput.value = today;
+  if (endDateInput) endDateInput.value = today;
+
+  selectLeaveDurationType('full_day');
+
+  const reasonInput = document.getElementById('att-leave-reason-input');
+  if (reasonInput) reasonInput.value = '';
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeAttendanceLeaveModal() {
+  const modal = document.getElementById('attendance-leave-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function selectLeaveDurationType(type) {
+  const hidden = document.getElementById('att-leave-duration-type');
+  if (hidden) hidden.value = type;
+
+  document.querySelectorAll('.leave-dur-pill').forEach(btn => {
+    btn.className = 'leave-dur-pill px-2 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-[11px] font-medium transition';
+  });
+  const activeBtn = document.getElementById('leave-dur-btn-' + type);
+  if (activeBtn) {
+    activeBtn.className = 'leave-dur-pill px-2 py-2 rounded-xl bg-blue-500/20 border border-blue-500/50 text-blue-300 text-[11px] font-bold transition';
+  }
+
+  const endWrapper = document.getElementById('att-leave-end-date-wrapper');
+  if (endWrapper) {
+    if (type === 'multi_days') {
+      endWrapper.classList.remove('hidden');
+    } else {
+      endWrapper.classList.add('hidden');
+      const startInput = document.getElementById('att-leave-start-date');
+      const endInput = document.getElementById('att-leave-end-date');
+      if (startInput && endInput) endInput.value = startInput.value;
+    }
+  }
+}
+
+function selectLeaveReasonChip(text) {
+  const input = document.getElementById('att-leave-reason-input');
+  if (input) input.value = text;
+}
+
+async function submitAttendanceLeaveRequest() {
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const applicantName = p.name || 'សមាជិក Bostar';
+  const applicantId = p.memberId || 'ID: BG-001';
+
+  const typeRadio = document.querySelector('input[name="att_leave_type"]:checked');
+  const leaveType = typeRadio ? typeRadio.value : 'ច្បាប់ឈឺ (Sick Leave)';
+
+  const durType = document.getElementById('att-leave-duration-type')?.value || 'full_day';
+  const startDate = document.getElementById('att-leave-start-date')?.value || new Date().toISOString().split('T')[0];
+  const endDate = durType === 'multi_days' ? (document.getElementById('att-leave-end-date')?.value || startDate) : startDate;
+
+  const leaderKey = document.getElementById('att-leave-leader-select')?.value || 'Sdey_Sdoeung';
+  const leaderName = getLeaderDisplayName(leaderKey);
+
+  const reasonInput = document.getElementById('att-leave-reason-input');
+  const reason = reasonInput ? reasonInput.value.trim() : '';
+
+  if (!reason) {
+    showToastNotification('សូមបញ្ជាក់មូលហេតុនៃការសុំច្បាប់! ✍️');
+    if (reasonInput) reasonInput.focus();
+    return;
+  }
+
+  const durLabels = {
+    full_day: 'ពេញមួយថ្ងៃ (Full Day)',
+    morning: 'កន្លះថ្ងៃ - ព្រឹក (Morning 08:00 - 12:00)',
+    afternoon: 'កន្លះថ្ងៃ - រសៀល (Afternoon 01:30 - 05:30)',
+    multi_days: 'ច្រើនថ្ងៃ (Multiple Days)'
+  };
+  const durationText = durLabels[durType] || durType;
+  const dateRangeText = (startDate === endDate) ? startDate : `${startDate} ដល់ ${endDate}`;
+
+  const newReq = {
+    id: 'LEAVE_' + Date.now(),
+    staffName: applicantName,
+    staffId: applicantId,
+    leaveType: leaveType,
+    duration: durationText,
+    startDate: startDate,
+    endDate: endDate,
+    leaderKey: leaderKey,
+    leaderName: leaderName,
+    reason: reason,
+    status: 'pending',
+    createdAt: new Date().toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', month: '2-digit', day: '2-digit', year: 'numeric' })
+  };
+
+  const list = getLeaveRequests();
+  list.unshift(newReq);
+  saveLeaveRequests(list);
+
+  // Send Telegram Notification via olddata_bot
+  const tgText = [
+    `📩 <b>ពាក្យសុំច្បាប់ឈប់សម្រាក (Leave Request)</b>`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `👤 <b>បុគ្គលិក៖</b> ${applicantName} (${applicantId})`,
+    `📋 <b>ប្រភេទច្បាប់៖</b> ${leaveType}`,
+    `⏱ <b>ថិរវេលា៖</b> ${durationText}`,
+    `📅 <b>កាលបរិច្ឆេទ៖</b> ${dateRangeText}`,
+    `👔 <b>ដាក់ជូន Leader៖</b> ${leaderName}`,
+    `📝 <b>មូលហេតុ៖</b> ${reason}`,
+    `⏳ <b>ស្ថានភាព៖</b> រង់ចាំការអនុម័ត (Pending Approval)`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `⚡ <i>Bostar HR & Operations Architecture</i>`
+  ].join('\n');
+
+  try {
+    await sendAttendanceViaTelegramBot(tgText);
+  } catch (err) {
+    console.warn('Telegram notify error:', err);
+  }
+
+  closeAttendanceLeaveModal();
+  renderAttendanceContent();
+  showToastNotification('ពាក្យសុំច្បាប់ត្រូវបានបញ្ជូនទៅ Leader តាម Telegram រួចរាល់! 📩');
+  if (navigator.vibrate) try { navigator.vibrate([20, 60, 20]); } catch(_) {}
+}
+
+// ==========================================
+// MANAGER & ADMIN HUB CONTROLS
+// ==========================================
+window._managerActiveTab = 'approvals';
+window._managerApprovalFilter = 'all';
+
+function openAttendanceManagerModal(initialTab = null) {
+  const modal = document.getElementById('attendance-manager-modal');
+  if (!modal) return;
+  if (initialTab) window._managerActiveTab = initialTab;
+  switchManagerTab(window._managerActiveTab);
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeAttendanceManagerModal() {
+  const modal = document.getElementById('attendance-manager-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function switchManagerTab(tab) {
+  window._managerActiveTab = tab;
+  ['approvals', 'late_log', 'settings'].forEach(t => {
+    const btn = document.getElementById('mgr-tab-btn-' + t);
+    if (!btn) return;
+    if (t === tab) {
+      btn.className = 'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold text-amber-400 bg-amber-500/20 border border-amber-500/40 flex items-center justify-center gap-1.5 transition';
+    } else {
+      btn.className = 'flex-1 py-1.5 px-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-transparent border border-transparent flex items-center justify-center gap-1.5 transition';
+    }
+  });
+  renderManagerModalContent();
+}
+
+function renderManagerModalContent() {
+  const container = document.getElementById('attendance-manager-body');
+  if (!container) return;
+
+  const tab = window._managerActiveTab || 'approvals';
+  const requests = getLeaveRequests();
+  const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const badge = document.getElementById('mgr-pending-badge');
+  if (badge) badge.textContent = pendingCount;
+
+  if (tab === 'approvals') {
+    const filter = window._managerApprovalFilter || 'all';
+    let filtered = requests;
+    if (filter === 'pending') filtered = requests.filter(r => r.status === 'pending');
+    else if (filter === 'approved') filtered = requests.filter(r => r.status === 'approved');
+    else if (filter === 'rejected') filtered = requests.filter(r => r.status === 'rejected');
+
+    let cardsHTML = '';
+    if (filtered.length === 0) {
+      cardsHTML = `
+        <div class="p-6 text-center text-slate-400 text-xs italic bg-white/[0.02] border border-white/5 rounded-2xl">
+          គ្មានទិន្នន័យពាក្យសុំច្បាប់នៅក្នុងបញ្ជីនេះទេ
+        </div>
+      `;
+    } else {
+      cardsHTML = filtered.map(req => {
+        const isPending = req.status === 'pending';
+        const isApproved = req.status === 'approved';
+
+        let statusBadge = '';
+        if (isPending) {
+          statusBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9.5px] font-bold">⏳ រង់ចាំការអនុម័ត</span>';
+        } else if (isApproved) {
+          statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9.5px] font-bold">✅ បានយល់ព្រម</span>';
+        } else {
+          statusBadge = '<span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[9.5px] font-bold">❌ បានបដិសេធ</span>';
+        }
+
+        return `
+          <div class="p-3.5 rounded-2xl bg-[#111C2E] border ${isPending ? 'border-amber-500/30' : 'border-white/10'} space-y-2.5 shadow-md">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">
+                  <i data-lucide="file-text" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white leading-tight">${req.staffName}</h4>
+                  <p class="text-[9.5px] text-slate-400 font-mono">${req.staffId || 'BG-001'} • ${req.createdAt || ''}</p>
+                </div>
+              </div>
+              ${statusBadge}
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 space-y-1 text-xs">
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400 text-[10.5px]">ប្រភេទ៖</span>
+                <span class="font-bold text-sky-300">${req.leaveType}</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400 text-[10.5px]">កាលបរិច្ឆេទ៖</span>
+                <span class="font-mono text-emerald-300">${req.startDate === req.endDate ? req.startDate : (req.startDate + ' ដល់ ' + req.endDate)} (${req.duration || 'ពេញមួយថ្ងៃ'})</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-300">
+                <span class="text-slate-400 text-[10.5px]">Leader ទទួលបន្ទុក៖</span>
+                <span class="text-amber-300 font-medium">${req.leaderName || req.leaderKey}</span>
+              </div>
+              <div class="pt-1 border-t border-white/5 text-slate-300">
+                <p class="text-[10px] text-slate-400">មូលហេតុ៖</p>
+                <p class="italic text-[11px] text-slate-200 mt-0.5">"${req.reason}"</p>
+              </div>
+              ${req.approvedBy ? `
+                <div class="pt-1 text-[10px] text-emerald-400 font-medium">
+                  អនុម័តដោយ៖ ${req.approvedBy}
+                </div>
+              ` : ''}
+            </div>
+
+            ${isPending ? `
+              <div class="flex items-center gap-2 pt-1">
+                <button type="button" onclick="handleRejectLeave('${req.id}')" 
+                        class="flex-1 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-bold active:scale-95 transition flex items-center justify-center gap-1">
+                  <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                  <span>បដិសេធ</span>
+                </button>
+                <button type="button" onclick="handleApproveLeave('${req.id}')" 
+                        class="flex-1 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold active:scale-95 transition flex items-center justify-center gap-1 shadow-md shadow-emerald-500/20">
+                  <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                  <span>យល់ព្រម (Approve)</span>
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    container.innerHTML = `
+      <!-- Filter Chips -->
+      <div class="flex items-center gap-1.5 pb-1 overflow-x-auto no-scrollbar">
+        <button type="button" onclick="setManagerApprovalFilter('all')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold ${filter === 'all' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-white/5 text-slate-400'}">ទាំងអស់ (${requests.length})</button>
+        <button type="button" onclick="setManagerApprovalFilter('pending')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold ${filter === 'pending' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-white/5 text-slate-400'}">រង់ចាំ (${pendingCount})</button>
+        <button type="button" onclick="setManagerApprovalFilter('approved')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold ${filter === 'approved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-white/5 text-slate-400'}">បានអនុម័ត (${requests.filter(r => r.status === 'approved').length})</button>
+      </div>
+
+      <div class="space-y-3">
+        ${cardsHTML}
+      </div>
+    `;
+  } else if (tab === 'late_log') {
+    const lateLogs = getLateCheckInLogs();
+
+    const lateCards = lateLogs.map(log => `
+      <div class="p-3.5 rounded-2xl bg-[#111C2E] border border-white/10 space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
+              <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">${log.staffName}</h4>
+              <p class="text-[9.5px] text-slate-400 font-mono">${log.staffId || 'BG-001'} • ${log.date} ${log.time}</p>
+            </div>
+          </div>
+          <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/30">
+            យឺត ${log.lateMinutes} នាទី
+          </span>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 text-xs text-slate-300">
+          <p class="text-[10px] text-slate-400">មូលហេតុដែលបុគ្គលិកបានបញ្ជាក់៖</p>
+          <p class="italic text-[11px] text-amber-200 mt-0.5">"${log.reason || 'ស្ទះចរាចរណ៍តាមផ្លូវ'}"</p>
+        </div>
+      </div>
+    `).join('');
+
+    container.innerHTML = `
+      <!-- Governance Guidance Card -->
+      <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-1">
+        <div class="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
+          <i data-lucide="shield-alert" class="w-4 h-4"></i>
+          <span>កំណត់ត្រាសម្ងាត់ផ្ទៃក្នុង (Strictly Confidential)</span>
+        </div>
+        <p class="text-[11px] text-slate-300 leading-relaxed">
+          «Praise in Public, Correct in Private» — ព័ត៌មានអ្នកមកយឺតត្រូវបានលាក់ជាសម្ងាត់ពីសាធារណៈជន និងបុគ្គលិកដទៃ សម្រាប់តែ Manager/Leader ពិនិត្យ និងណែនាំផ្ទាល់ (1-on-1 Coaching) ប៉ុណ្ណោះ។
+        </p>
+      </div>
+
+      <div class="space-y-2.5">
+        ${lateCards}
+      </div>
+    `;
+  } else if (tab === 'settings') {
+    const data = getAttendanceData();
+    const savedGroup = getTelegramGroupUrl();
+
+    container.innerHTML = `
+      <!-- Status Selection -->
+      <div>
+        <label class="block text-xs font-bold text-slate-300 mb-2">ស្ថានភាពវត្តមានថ្ងៃនេះ៖</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="p-2.5 rounded-xl border ${data.todayStatus === 'checked_in' ? 'bg-amber-500/20 border-amber-500/60 text-amber-300' : 'bg-black/30 border-white/10 text-slate-300'} flex items-center gap-2 cursor-pointer transition">
+            <input type="radio" name="att_status" value="checked_in" ${data.todayStatus === 'checked_in' ? 'checked' : ''} class="accent-amber-500">
+            <span class="text-xs font-bold">🟢 កំពុងធ្វើការ (In)</span>
+          </label>
+          <label class="p-2.5 rounded-xl border ${data.todayStatus === 'checked_out' ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300' : 'bg-black/30 border-white/10 text-slate-300'} flex items-center gap-2 cursor-pointer transition">
+            <input type="radio" name="att_status" value="checked_out" ${data.todayStatus === 'checked_out' ? 'checked' : ''} class="accent-emerald-500">
+            <span class="text-xs font-bold">🔴 បានបញ្ចប់ (Out)</span>
+          </label>
+          <label class="p-2.5 rounded-xl border ${data.todayStatus === 'not_checked' ? 'bg-slate-500/20 border-slate-500/60 text-slate-300' : 'bg-black/30 border-white/10 text-slate-300'} flex items-center gap-2 cursor-pointer transition">
+            <input type="radio" name="att_status" value="not_checked" ${data.todayStatus === 'not_checked' ? 'checked' : ''} class="accent-slate-500">
+            <span class="text-xs font-bold">⚪ មិនទាន់ Check-In</span>
+          </label>
+          <label class="p-2.5 rounded-xl border ${data.todayStatus === 'leave' ? 'bg-blue-500/20 border-blue-500/60 text-blue-300' : 'bg-black/30 border-white/10 text-slate-300'} flex items-center gap-2 cursor-pointer transition">
+            <input type="radio" name="att_status" value="leave" ${data.todayStatus === 'leave' ? 'checked' : ''} class="accent-blue-500">
+            <span class="text-xs font-bold">📋 សុំច្បាប់ (Leave)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Times (In & Out) -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <div class="space-y-1">
+          <label class="block text-[11px] font-bold text-slate-300">ម៉ោងចូល (Check In)៖</label>
+          <input type="text" id="att-edit-in-time" value="${data.checkInTime || '08:00 AM'}" 
+                 placeholder="08:00 AM"
+                 class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+        </div>
+        <div class="space-y-1">
+          <label class="block text-[11px] font-bold text-slate-300">ម៉ោងចេញ (Check Out)៖</label>
+          <input type="text" id="att-edit-out-time" value="${data.checkOutTime || '05:30 PM'}" 
+                 placeholder="05:30 PM"
+                 class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+        </div>
+      </div>
+
+      <!-- Late Checkbox -->
+      <div class="p-2.5 rounded-xl bg-black/30 border border-white/10 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="clock-alert" class="w-4 h-4 text-yellow-400"></i>
+          <span class="text-xs font-semibold text-slate-300">កំណត់ថាចូលយឺត (Late)៖</span>
+        </div>
+        <input type="checkbox" id="att-edit-is-late" ${data.todayLate ? 'checked' : ''} class="w-4 h-4 rounded accent-yellow-500">
+      </div>
+
+      <!-- Location -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-slate-300">ទីតាំងបំពេញការងារ (Location)៖</label>
+        <input type="text" id="att-edit-location" value="${data.location || 'ការិយាល័យកណ្តាល (HQ GPS Verified)'}" 
+               placeholder="ទីតាំង..."
+               class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+      </div>
+
+      <!-- Note -->
+      <div class="space-y-1">
+        <label class="block text-xs font-bold text-slate-300">កំណត់សម្គាល់បន្ថែម (Note)៖</label>
+        <input type="text" id="att-edit-note" value="${data.note || ''}" 
+               placeholder="ឧ. ជួបភ្ញៀវក្រៅម៉ោង..."
+               class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+      </div>
+
+      <!-- Telegram Bot Config -->
+      <div class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/25 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-sky-400 flex items-center gap-1.5">
+            <i data-lucide="bot" class="w-4 h-4"></i>
+            <span>Telegram Bot & Group (Manager Exclusive)</span>
+          </span>
+          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold">Connected</span>
+        </div>
+        
+        <div class="space-y-1">
+          <label class="block text-[10.5px] text-slate-300 font-semibold">Telegram Bot Token៖</label>
+          <input type="text" id="att-edit-tg-token" value="${getTelegramBotToken()}" 
+                 placeholder="Bot Token..." 
+                 class="w-full text-xs font-mono bg-black/40 border border-sky-500/30 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-400">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div class="space-y-1">
+            <label class="block text-[10.5px] text-slate-300 font-semibold">Chat ID Group៖</label>
+            <input type="text" id="att-edit-tg-chat-id" value="${getTelegramChatId()}" 
+                   placeholder="-811940176" 
+                   class="w-full text-xs font-mono bg-black/40 border border-sky-500/30 rounded-xl p-2 text-white focus:outline-none focus:border-sky-400">
+          </div>
+          <div class="space-y-1">
+            <label class="block text-[10.5px] text-slate-300 font-semibold">Link Group៖</label>
+            <input type="url" id="att-edit-tg-group" value="${savedGroup}" 
+                   placeholder="https://t.me/+..." 
+                   class="w-full text-xs font-mono bg-black/40 border border-sky-500/30 rounded-xl p-2 text-white focus:outline-none focus:border-sky-400">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <button type="button" onclick="shareAttendanceToTelegram()" class="text-[10px] text-sky-300 hover:text-white underline font-bold">
+            ផ្ញើតេស្តទៅ Telegram 🚀
+          </button>
+          <button type="button" onclick="resetTodayAttendanceConfirmed()" class="text-[10px] text-rose-300 hover:text-rose-200 underline font-bold">
+            កំណត់ឡើងវិញថ្ងៃនេះ (Reset) 🔄
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 pt-2">
+        <button type="button" onclick="saveAttendanceEditForm(false)" 
+                class="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs transition active:scale-95 flex items-center justify-center gap-1.5">
+          <i data-lucide="save" class="w-3.5 h-3.5"></i>
+          <span>រក្សាទុក (Update)</span>
+        </button>
+        <button type="button" onclick="saveAttendanceEditForm(true)" 
+                class="flex-1 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 text-white font-bold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/25">
+          <i data-lucide="send" class="w-3.5 h-3.5"></i>
+          <span>Update & ផ្ញើ TG 🚀</span>
+        </button>
+      </div>
+    `;
+  }
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function setManagerApprovalFilter(f) {
+  window._managerApprovalFilter = f;
+  renderManagerModalContent();
+}
+
+async function handleApproveLeave(reqId) {
+  const list = getLeaveRequests();
+  const req = list.find(r => r.id === reqId);
+  if (!req) return;
+
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const approverName = p.name || 'Manager';
+
+  req.status = 'approved';
+  req.approvedBy = approverName;
+  saveLeaveRequests(list);
+
+  // If leave covers today, update current attendance status
+  const today = new Date().toISOString().split('T')[0];
+  if (req.startDate <= today && today <= req.endDate) {
+    const data = getAttendanceData();
+    data.todayStatus = 'leave';
+    saveAttendanceData(data);
+    renderAttendanceContent();
+  }
+
+  // Telegram notification
+  const tgText = [
+    `✅ <b>បានអនុម័តច្បាប់ឈប់សម្រាក (Leave Approved)</b>`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `👤 <b>បុគ្គលិក៖</b> ${req.staffName} (${req.staffId || 'BG-001'})`,
+    `📋 <b>ប្រភេទច្បាប់៖</b> ${req.leaveType}`,
+    `📅 <b>កាលបរិច្ឆេទ៖</b> ${req.startDate === req.endDate ? req.startDate : (req.startDate + ' ដល់ ' + req.endDate)}`,
+    `⏱ <b>ថិរវេលា៖</b> ${req.duration}`,
+    `👔 <b>អនុម័តដោយ៖</b> ${approverName} (Manager/Leader)`,
+    `📌 <b>ស្ថានភាព៖</b> ត្រូវបានយល់ព្រមជាផ្លូវការ ✅`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `⚡ <i>Bostar HR & Operations Architecture</i>`
+  ].join('\n');
+
+  try {
+    await sendAttendanceViaTelegramBot(tgText);
+  } catch (err) {
+    console.warn('Telegram notify error:', err);
+  }
+
+  showToastNotification(`បានអនុម័តច្បាប់ជូន ${req.staffName} រួចរាល់! ✅`);
+  renderManagerModalContent();
+  if (navigator.vibrate) try { navigator.vibrate([30, 40]); } catch(_) {}
+}
+
+async function handleRejectLeave(reqId) {
+  const list = getLeaveRequests();
+  const req = list.find(r => r.id === reqId);
+  if (!req) return;
+
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const approverName = p.name || 'Manager';
+
+  req.status = 'rejected';
+  req.approvedBy = approverName;
+  saveLeaveRequests(list);
+
+  // Telegram notification
+  const tgText = [
+    `❌ <b>មិនបានអនុម័តច្បាប់ឈប់សម្រាក (Leave Rejected)</b>`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `👤 <b>បុគ្គលិក៖</b> ${req.staffName} (${req.staffId || 'BG-001'})`,
+    `📋 <b>ប្រភេទច្បាប់៖</b> ${req.leaveType}`,
+    `👔 <b>ដោយ៖</b> ${approverName} (Manager/Leader)`,
+    `📌 <b>ស្ថានភាព៖</b> មិនត្រូវបានយល់ព្រម ❌`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `⚡ <i>Bostar HR & Operations Architecture</i>`
+  ].join('\n');
+
+  try {
+    await sendAttendanceViaTelegramBot(tgText);
+  } catch (err) {
+    console.warn('Telegram notify error:', err);
+  }
+
+  showToastNotification(`បានបដិសេធពាក្យសុំច្បាប់របស់ ${req.staffName}`);
+  renderManagerModalContent();
+}
+
+// ==========================================
+// TOP 10 ON-TIME HONOR ROLL CONTROLS
+// ==========================================
+function openAttendanceTop10Modal() {
+  const modal = document.getElementById('attendance-top10-modal');
+  if (!modal) return;
+  renderAttendanceTop10Content();
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeAttendanceTop10Modal() {
+  const modal = document.getElementById('attendance-top10-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function renderAttendanceTop10Content() {
+  const container = document.getElementById('attendance-top10-body');
+  if (!container) return;
+
+  const top10Data = [
+    { rank: 1, name: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥇 Top 1 ឆ្នើមប្រចាំខែ', border: 'border-amber-400/50' },
+    { rank: 2, name: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥈 Top 2 គំរូវិន័យ', border: 'border-slate-300/40' },
+    { rank: 3, name: 'ញែក សុគន្ធ', en: 'Nhek Sokun', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: '🥉 Top 3 ទៀងទាត់', border: 'border-amber-600/40' },
+    { rank: 4, name: 'អយ ស្រីនី', en: 'Oy Sreyny', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: 'Star Performer', border: 'border-blue-400/30' },
+    { rank: 5, name: 'ផាត់ ណាវី', en: 'Phat Navy', rate: '97%', days: '២១/២២ ថ្ងៃ', badge: 'Consistent', border: 'border-teal-400/30' },
+    { rank: 6, name: 'ម៉ាន់ សុគន្ធលីហ្សា', en: 'Man Sokunlyza', rate: '96%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-purple-400/30' },
+    { rank: 7, name: 'មុំចាន់នី', en: 'Mom Channy', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-sky-400/30' },
+    { rank: 8, name: 'ជា ស្រីណាត់', en: 'Chea Sreynat', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-orange-400/30' },
+    { rank: 9, name: 'ប៊ិច ស្រីមុំ', en: 'Bech Sreymom', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-rose-400/30' },
+    { rank: 10, name: 'និន ណែត', en: 'Nin Net', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-emerald-400/30' }
+  ];
+
+  const itemsHTML = top10Data.map(item => {
+    let rankBadge = '';
+    if (item.rank === 1) rankBadge = '<span class="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-500 text-black font-extrabold text-xs flex items-center justify-center shadow-md">1</span>';
+    else if (item.rank === 2) rankBadge = '<span class="w-7 h-7 rounded-full bg-gradient-to-tr from-slate-200 to-slate-400 text-black font-extrabold text-xs flex items-center justify-center shadow-md">2</span>';
+    else if (item.rank === 3) rankBadge = '<span class="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-600 to-amber-700 text-white font-extrabold text-xs flex items-center justify-center shadow-md">3</span>';
+    else rankBadge = `<span class="w-7 h-7 rounded-full bg-white/10 text-slate-300 font-bold text-xs flex items-center justify-center">${item.rank}</span>`;
+
+    return `
+      <div class="p-3 rounded-2xl bg-[#111C2E] border ${item.border} flex items-center justify-between gap-3 shadow-md hover:scale-[1.01] transition">
+        <div class="flex items-center gap-2.5 min-w-0">
+          ${rankBadge}
+          <div class="min-w-0">
+            <h4 class="text-xs font-bold text-white truncate flex items-center gap-1.5">
+              <span>${item.name}</span>
+              <span class="text-[9.5px] text-slate-400 font-mono">(${item.en})</span>
+            </h4>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="px-1.5 py-0.2 rounded-full bg-white/5 text-[9px] text-amber-300 font-medium">${item.badge}</span>
+              <span class="text-[9.5px] text-slate-400 font-mono">${item.days}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-right shrink-0">
+          <span class="text-xs font-extrabold font-mono text-emerald-400">${item.rate}</span>
+          <p class="text-[8.5px] text-slate-400">ទាន់ពេល</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <!-- Month Banner -->
+    <div class="p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-[#0B1528] border border-amber-500/25 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+          <i data-lucide="award" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-white">កិត្តិយសវត្តមានប្រចាំខែតុលា ២០២៦</h4>
+          <p class="text-[9.5px] text-amber-300/80">ផ្អែកលើទិន្នន័យ CheckinMe Attendance</p>
+        </div>
+      </div>
+      <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold">100% On-Time</span>
+    </div>
+
+    <!-- Leaderboard List -->
+    <div class="space-y-2">
+      ${itemsHTML}
+    </div>
+
+    <!-- Confidentiality & Leadership Notice -->
+    <div class="p-3 rounded-2xl bg-white/[0.03] border border-white/5 space-y-1 text-center">
+      <p class="text-[10px] text-slate-400 leading-relaxed">
+        🔒 <b>វិន័យ Bostar Governance៖</b> តារាងកិត្តិយសបង្ហាញតែ Top 1-10 ឆ្នើម ដើម្បីលើកទឹកចិត្តជាសាធារណៈ។ ព័ត៌មានអ្នកមកយឺតត្រូវបានលាក់ជាសម្ងាត់ សម្រាប់តែ Leader/Manager ណែនាំផ្ទៃក្នុង។
+      </p>
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+// ==========================================
+// HR DOCUMENTS & LETTERS CONTROLS
+// ==========================================
+window._docActiveTab = 'work_cert';
+
+function openAttendanceDocumentsModal() {
+  const modal = document.getElementById('attendance-documents-modal');
+  if (!modal) return;
+  switchDocTab(window._docActiveTab || 'work_cert');
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeAttendanceDocumentsModal() {
+  const modal = document.getElementById('attendance-documents-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function switchDocTab(tab) {
+  window._docActiveTab = tab;
+  ['work_cert', 'eval_letter', 'salary_cert'].forEach(t => {
+    const btn = document.getElementById('doc-tab-btn-' + t);
+    if (!btn) return;
+    if (t === tab) {
+      btn.className = 'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center gap-1 whitespace-nowrap transition';
+    } else {
+      btn.className = 'flex-1 py-1.5 px-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-transparent border border-transparent flex items-center justify-center gap-1 whitespace-nowrap transition';
+    }
+  });
+  renderHRDocumentContent();
+}
+
+function renderHRDocumentContent() {
+  const container = document.getElementById('attendance-documents-body');
+  if (!container) return;
+
+  const tab = window._docActiveTab || 'work_cert';
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const memberName = p.name || 'សមាជិក Bostar';
+  const memberId = p.memberId || 'BG-001';
+  const position = p.work || 'បុគ្គលិកផ្នែកលក់ និងប្រតិបត្តិការ (Sales & Operations)';
+  const now = new Date();
+  const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+  let docHTML = '';
+
+  if (tab === 'work_cert') {
+    docHTML = `
+      <div class="bg-white text-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-200 font-kantumruy space-y-4 text-xs leading-relaxed">
+        <!-- Official Kingdom Header -->
+        <div class="text-center space-y-0.5 border-b border-slate-200 pb-3">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-800">ព្រះរាជាណាចក្រកម្ពុជា</h4>
+          <p class="text-[11px] text-slate-600 font-serif">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+          <div class="w-16 h-0.5 bg-amber-500 mx-auto mt-1"></div>
+        </div>
+
+        <!-- Company Header -->
+        <div class="flex items-center justify-between text-[11px] text-slate-600 pt-1">
+          <div>
+            <h5 class="font-bold text-slate-900 text-xs">BOSTAR GROUP CO., LTD.</h5>
+            <p class="text-[10px]">នាយកដ្ឋានធនធានមនុស្ស & ប្រតិបត្តិការ (HR)</p>
+          </div>
+          <div class="text-right font-mono text-[10.5px]">
+            <p>លេខ៖ BST-HR-${memberId.replace(/[^0-9]/g, '') || '001'}/2026</p>
+            <p>កាលបរិច្ឆេទ៖ ${dateStr}</p>
+          </div>
+        </div>
+
+        <!-- Document Title -->
+        <div class="text-center py-2">
+          <h3 class="font-extrabold text-sm text-slate-900 tracking-wide">វិញ្ញាបនបត្របញ្ជាក់ការងារ</h3>
+          <p class="text-[10px] text-slate-500 font-mono uppercase mt-0.5">Certificate of Employment</p>
+        </div>
+
+        <!-- Content -->
+        <div class="space-y-2 text-slate-800 text-[11.5px] leading-relaxed">
+          <p>
+            នាយកដ្ឋានធនធានមនុស្សនៃក្រុមហ៊ុន <b>Bostar Group</b> សូមបញ្ជាក់ថា៖
+          </p>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+            <p><b>ឈ្មោះបុគ្គលិក៖</b> <span class="text-blue-700 font-bold">${memberName}</span></p>
+            <p><b>អត្តលេខសម្គាល់៖</b> <span class="font-mono font-bold">${memberId}</span></p>
+            <p><b>តួនាទី / មុខតំណែង៖</b> ${position}</p>
+            <p><b>ស្ថានភាពការងារ៖</b> បុគ្គលិកពេញសិទ្ធិ (Active Full-Time Member)</p>
+            <p><b>កាលបរិច្ឆេទចាប់ផ្តើម៖</b> ០១ ខែមករា ឆ្នាំ២០២៥ ដល់ បច្ចុប្បន្ន</p>
+          </div>
+          <p>
+            បុគ្គលិកខាងលើពិតជាបាននិងកំពុងបំពេញការងារយ៉ាងសកម្ម មានវិន័យ ភាពស្មោះត្រង់ និងការទទួលខុសត្រូវខ្ពស់ស្របតាមបទបញ្ជាផ្ទៃក្នុងរបស់ក្រុមហ៊ុន។ វិញ្ញាបនបត្រនេះត្រូវបានចេញជូនតាមការស្នើសុំរបស់សាមីខ្លួន ដើម្បីប្រើប្រាស់តាមផ្លូវច្បាប់។
+          </p>
+        </div>
+
+        <!-- Signature & Seal -->
+        <div class="flex items-end justify-between pt-6">
+          <div class="text-center">
+            <div class="w-16 h-16 rounded-full border-2 border-dashed border-red-500/40 flex items-center justify-center text-red-500 text-[9px] font-bold mx-auto rotate-[-12deg]">
+              ត្រាក្រុមហ៊ុន<br>BOSTAR
+            </div>
+            <p class="text-[9px] text-slate-500 mt-1">Official Company Seal</p>
+          </div>
+          <div class="text-center space-y-1">
+            <p class="text-[10px] text-slate-600">រាជធានីភ្នំពេញ, ថ្ងៃទី ${dateStr}</p>
+            <p class="font-bold text-xs text-slate-900">ប្រធានផ្នែកធនធានមនុស្ស</p>
+            <div class="h-10"></div>
+            <p class="font-bold text-xs text-slate-800 border-t border-slate-300 pt-1">Bostar HR & Operations</p>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (tab === 'eval_letter') {
+    docHTML = `
+      <div class="bg-white text-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-200 font-kantumruy space-y-4 text-xs leading-relaxed">
+        <div class="text-center space-y-0.5 border-b border-slate-200 pb-3">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-800">BOSTAR GROUP CO., LTD.</h4>
+          <h3 class="font-extrabold text-sm text-slate-900">លិខិតវាយតម្លៃការងារ & វិន័យ</h3>
+          <p class="text-[10px] text-slate-500 font-mono">Performance & Discipline Evaluation</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1 text-[11.5px]">
+          <p><b>បុគ្គលិក៖</b> <span class="text-blue-700 font-bold">${memberName}</span> (${memberId})</p>
+          <p><b>វាយតម្លៃលើកាលបរិច្ឆេទ៖</b> ${dateStr}</p>
+          <p><b>លទ្ធផលរួម៖</b> <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10.5px]">និទ្ទេស A+ (ឆ្នើម)</span></p>
+        </div>
+
+        <div class="space-y-2 text-[11px]">
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-100">
+            <span>១. វត្តមាន និងពេលវេលា (Punctuality & Attendance)</span>
+            <span class="font-bold text-emerald-700 font-mono">98.5% (ទាន់ពេល)</span>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-100">
+            <span>២. ការលក់ និងសម្រេចគោលដៅ (Sales & Target)</span>
+            <span class="font-bold text-emerald-700 font-mono">100% (សម្រេចបាន)</span>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-100">
+            <span>៣. សាមគ្គីភាព និងការងារជាក្រុម (Teamwork)</span>
+            <span class="font-bold text-emerald-700 font-mono">ឆ្នើម (Excellent)</span>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-700 italic">
+          "បុគ្គលិកមានភាពសកម្ម គោរពពេលវេលា មិនដែលមានបញ្ហាវិន័យ និងជាគំរូដ៏ល្អសម្រាប់ក្រុមការងារ។"
+        </p>
+
+        <div class="text-right pt-4 border-t border-slate-200">
+          <p class="font-bold text-xs">ការិយាល័យវាយតម្លៃ Bostar Operations</p>
+        </div>
+      </div>
+    `;
+  } else if (tab === 'salary_cert') {
+    docHTML = `
+      <div class="bg-white text-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-200 font-kantumruy space-y-4 text-xs leading-relaxed">
+        <div class="text-center space-y-0.5 border-b border-slate-200 pb-3">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-slate-800">ព្រះរាជាណាចក្រកម្ពុជា</h4>
+          <p class="text-[11px] text-slate-600 font-serif">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+        </div>
+
+        <div class="text-center py-1">
+          <h3 class="font-extrabold text-sm text-slate-900">លិខិតបញ្ជាក់ប្រាក់ខែ និងប្រាក់ចំណូល</h3>
+          <p class="text-[10px] text-slate-500 font-mono">Salary & Remuneration Certificate</p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1 text-[11.5px]">
+          <p><b>ឈ្មោះបុគ្គលិក៖</b> <span class="text-blue-700 font-bold">${memberName}</span></p>
+          <p><b>អត្តលេខសម្គាល់៖</b> <span class="font-mono font-bold">${memberId}</span></p>
+          <p><b>មុខតំណែង៖</b> ${position}</p>
+          <p><b>ប្រាក់បៀវត្ស និងកម្រៃជើងសារជាមធ្យម៖</b> <span class="font-bold font-mono text-emerald-700">$650.00 - $1,200.00 / ខែ</span></p>
+          <p><b>ស្ថានភាព៖</b> បុគ្គលិកសកម្មប្រចាំការ</p>
+        </div>
+
+        <p class="text-[11px] text-slate-700 leading-relaxed">
+          លិខិតនេះត្រូវបានចេញជូនសាមីខ្លួន ដើម្បីយកទៅប្រើប្រាស់ក្នុងកិច្ចការធនាគារ សុំទិដ្ឋាការ ឬកិច្ចការរដ្ឋបាលស្របច្បាប់នានា។
+        </p>
+
+        <div class="flex items-end justify-between pt-4 border-t border-slate-200">
+          <div class="text-center">
+            <div class="w-14 h-14 rounded-full border border-red-500/40 text-red-500 text-[8px] font-bold flex items-center justify-center">
+              BOSTAR FINANCE
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-[10px] text-slate-600">ថ្ងៃទី ${dateStr}</p>
+            <p class="font-bold text-xs text-slate-900">ប្រធានផ្នែកហិរញ្ញវត្ថុ & HR</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = docHTML;
+}
+
+function printCurrentHRDocument() {
+  window.print();
 }
 
 function resetTodayAttendanceConfirmed() {
@@ -9905,6 +10871,9 @@ function renderAttendanceContent() {
   const savedGroupUrl = getTelegramGroupUrl();
   const previewText = generateAttendanceTelegramText();
   const previewHtml = previewText.replace(/\n/g, '<br>');
+
+  const leaveRequests = getLeaveRequests();
+  const currentPendingLeave = leaveRequests.find(r => r.status === 'pending');
 
   let actionButtonHTML = '';
   if (data.todayStatus === 'not_checked') {
@@ -10094,6 +11063,52 @@ function renderAttendanceContent() {
           </h4>
         </div>
       </div>
+    </div>
+
+    <!-- Pending Leave Banner (if any) -->
+    ${currentPendingLeave ? `
+      <div class="p-3 rounded-2xl bg-blue-500/15 border border-blue-500/35 flex items-center justify-between gap-2 shadow-sm animate-pulse">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-7 h-7 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+            <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="min-w-0">
+            <h5 class="text-[11px] font-bold text-white truncate">ពាក្យសុំច្បាប់៖ ${currentPendingLeave.leaveType}</h5>
+            <p class="text-[9.5px] text-blue-200 truncate">រង់ចាំ Leader ${currentPendingLeave.leaderName || ''} អនុម័ត</p>
+          </div>
+        </div>
+        <span class="px-2 py-0.5 rounded-full bg-blue-500/30 text-blue-300 font-mono text-[9px] font-bold shrink-0">Pending</span>
+      </div>
+    ` : ''}
+
+    <!-- Quick HR Hub Action Buttons (Leave, Top 10, HR Documents) -->
+    <div class="grid grid-cols-3 gap-2 py-0.5">
+      <button onclick="openAttendanceLeaveModal()" 
+              class="p-2.5 rounded-2xl bg-gradient-to-b from-blue-500/15 to-blue-600/5 hover:from-blue-500/25 border border-blue-500/30 text-center flex flex-col items-center justify-center gap-1 active:scale-95 transition shadow-sm group">
+        <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 group-hover:scale-110 transition flex items-center justify-center">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+        </div>
+        <span class="text-[11px] font-bold text-white leading-tight font-kantumruy">សុំច្បាប់</span>
+        <span class="text-[8.5px] text-blue-300 font-mono">Leave Request</span>
+      </button>
+
+      <button onclick="openAttendanceTop10Modal()" 
+              class="p-2.5 rounded-2xl bg-gradient-to-b from-amber-500/15 to-amber-600/5 hover:from-amber-500/25 border border-amber-500/30 text-center flex flex-col items-center justify-center gap-1 active:scale-95 transition shadow-sm group">
+        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 group-hover:scale-110 transition flex items-center justify-center">
+          <i data-lucide="trophy" class="w-4 h-4"></i>
+        </div>
+        <span class="text-[11px] font-bold text-white leading-tight font-kantumruy">តារាងកិត្តិយស</span>
+        <span class="text-[8.5px] text-amber-300 font-mono">Top 10 On-Time</span>
+      </button>
+
+      <button onclick="openAttendanceDocumentsModal()" 
+              class="p-2.5 rounded-2xl bg-gradient-to-b from-emerald-500/15 to-emerald-600/5 hover:from-emerald-500/25 border border-emerald-500/30 text-center flex flex-col items-center justify-center gap-1 active:scale-95 transition shadow-sm group">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition flex items-center justify-center">
+          <i data-lucide="file-badge" class="w-4 h-4"></i>
+        </div>
+        <span class="text-[11px] font-bold text-white leading-tight font-kantumruy">លិខិត & ច្បាប់</span>
+        <span class="text-[8.5px] text-emerald-300 font-mono">HR Letters</span>
+      </button>
     </div>
 
     <!-- Card 2.5: DAILY MOTIVATIONAL LEADERSHIP CAPSULE -->
@@ -15784,3 +16799,36 @@ window.submitAttendancePin = submitAttendancePin;
 window.resetTodayAttendanceConfirmed = resetTodayAttendanceConfirmed;
 window.finalizeCheckIn = finalizeCheckIn;
 window.getDailyMotivationQuote = getDailyMotivationQuote;
+
+// Leave Request Workflow
+window.openAttendanceLeaveModal = openAttendanceLeaveModal;
+window.closeAttendanceLeaveModal = closeAttendanceLeaveModal;
+window.selectLeaveDurationType = selectLeaveDurationType;
+window.selectLeaveReasonChip = selectLeaveReasonChip;
+window.submitAttendanceLeaveRequest = submitAttendanceLeaveRequest;
+window.getLeaderDisplayName = getLeaderDisplayName;
+window.getLeaveRequests = getLeaveRequests;
+window.saveLeaveRequests = saveLeaveRequests;
+
+// Manager & Admin Governance Portal
+window.openAttendanceManagerModal = openAttendanceManagerModal;
+window.closeAttendanceManagerModal = closeAttendanceManagerModal;
+window.switchManagerTab = switchManagerTab;
+window.renderManagerModalContent = renderManagerModalContent;
+window.setManagerApprovalFilter = setManagerApprovalFilter;
+window.handleApproveLeave = handleApproveLeave;
+window.handleRejectLeave = handleRejectLeave;
+window.getLateCheckInLogs = getLateCheckInLogs;
+window.recordLateCheckInLog = recordLateCheckInLog;
+
+// Top 10 On-Time Honor Roll
+window.openAttendanceTop10Modal = openAttendanceTop10Modal;
+window.closeAttendanceTop10Modal = closeAttendanceTop10Modal;
+window.renderAttendanceTop10Content = renderAttendanceTop10Content;
+
+// HR Letters & Certificates
+window.openAttendanceDocumentsModal = openAttendanceDocumentsModal;
+window.closeAttendanceDocumentsModal = closeAttendanceDocumentsModal;
+window.switchDocTab = switchDocTab;
+window.renderHRDocumentContent = renderHRDocumentContent;
+window.printCurrentHRDocument = printCurrentHRDocument;
