@@ -16238,7 +16238,11 @@ function openNewOrderModal(mode = 'dock') {
     if (sliderHint) sliderHint.classList.add('hidden');
     if (btnSubmitOrder) {
       btnSubmitOrder.classList.remove('hidden');
-      btnSubmitOrder.style.display = '';
+      btnSubmitOrder.style.display = 'flex';
+      btnSubmitOrder.style.maxWidth = '260px';
+      btnSubmitOrder.style.width = '100%';
+      btnSubmitOrder.style.height = '48px';
+      btnSubmitOrder.style.margin = '0 auto';
     }
   } else {
     // Dock Mode (បញ្ចូលការកុម្ម៉ង់ថ្មី): Slide to Submit
