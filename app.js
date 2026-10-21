@@ -17204,3 +17204,15 @@ window.closeAttendanceDocumentsModal = closeAttendanceDocumentsModal;
 window.switchDocTab = switchDocTab;
 window.renderHRDocumentContent = renderHRDocumentContent;
 window.printCurrentHRDocument = printCurrentHRDocument;
+
+// Bostar Team Birthday Engine Exports
+window.isUserTeamLeader = isUserTeamLeader;
+window.getTeamBirthdays = getTeamBirthdays;
+window.saveTeamMemberBirthday = saveTeamMemberBirthday;
+window.getTodayTeamBirthdaysCount = getTodayTeamBirthdaysCount;
+window.buildLeaderBirthdayFeedHTML = buildLeaderBirthdayFeedHTML;
+window.sendTelegramBirthdayWish = sendTelegramBirthdayWish;
+window.checkAndShowBirthdayGreeting = checkAndShowBirthdayGreeting;
+window.closeBirthdayCelebrationModal = closeBirthdayCelebrationModal;
+window.launchBirthdayConfetti = launchBirthdayConfetti;
+
