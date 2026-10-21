@@ -1111,8 +1111,14 @@ function setupSwipeToBack() {
     const screenWidth = window.innerWidth || document.documentElement.clientWidth;
     const isDrawerOpen = isProfileDrawerOpen();
     const isSubModalOpen = isProfileSubModalOpen();
+    const honorsEl = document.getElementById('honors-modal');
+    const isHonorsOpen = honorsEl && !honorsEl.classList.contains('hidden');
 
-    if (isSubModalOpen) {
+    if (isHonorsOpen && e.target && e.target.closest('#honors-modal')) {
+      // 0. Touching anywhere on Honors Modal (Swipe Left/Right to return)
+      isPotentialSwipe = true;
+      swipeOrigin = 'honors-modal';
+    } else if (isSubModalOpen) {
       // 1. Touching anywhere when a profile submodal is open (Books & Notes, Customers, Attendance, QR...)
       isPotentialSwipe = true;
       swipeOrigin = 'profile-submodal';
@@ -1154,6 +1160,16 @@ function setupSwipeToBack() {
     const deltaY = touchEndY - touchStartY;
     const isDrawerOpen = isProfileDrawerOpen();
     const isSubModalOpen = isProfileSubModalOpen();
+
+    // Case 0: Swiping Left OR Right anywhere on Honors Modal -> Return
+    if (swipeOrigin === 'honors-modal') {
+      if (Math.abs(deltaX) >= 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.0) {
+        closeHonorsModal();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        isPotentialSwipe = false;
+        return;
+      }
+    }
 
     // Case 1: Left-to-right swipe (deltaX >= 55px) -> Back / Return 1 Step
     if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
@@ -1205,8 +1221,14 @@ function setupSwipeToBack() {
     const screenWidth = window.innerWidth || document.documentElement.clientWidth;
     const isDrawerOpen = isProfileDrawerOpen();
     const isSubModalOpen = isProfileSubModalOpen();
+    const honorsEl = document.getElementById('honors-modal');
+    const isHonorsOpen = honorsEl && !honorsEl.classList.contains('hidden');
 
-    if (isSubModalOpen) {
+    if (isHonorsOpen && e.target && e.target.closest('#honors-modal')) {
+      // 0. Touching anywhere on Honors Modal (Swipe Left/Right to return)
+      isPotentialSwipe = true;
+      swipeOrigin = 'honors-modal';
+    } else if (isSubModalOpen) {
       mouseStartX = e.clientX;
       mouseStartY = e.clientY;
       isMouseDown = true;
@@ -1235,6 +1257,15 @@ function setupSwipeToBack() {
     const deltaY = e.clientY - mouseStartY;
     const isDrawerOpen = isProfileDrawerOpen();
     const isSubModalOpen = isProfileSubModalOpen();
+
+    if (mouseOrigin === 'honors-modal') {
+      if (Math.abs(deltaX) >= 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.0) {
+        closeHonorsModal();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        isMouseDown = false;
+        return;
+      }
+    }
 
     if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
       if (isSubModalOpen || mouseOrigin === 'profile-submodal') {
@@ -1271,8 +1302,7 @@ function isDialogModalOpen() {
     'about-modal',
     'attendance-modal',
     'global-search-modal',
-    'profile-settings-search-modal',
-    'honors-modal'
+    'profile-settings-search-modal'
   ];
   return ids.some(id => {
     const el = document.getElementById(id);
@@ -1421,7 +1451,8 @@ function setupSmartDockScroll() {
     'profile-drawer-content',
     'team-sets-modal-table-container',
     'search-results-container',
-    'profile-settings-search-results'
+    'profile-settings-search-results',
+    'honors-modal-body'
   ];
 
   scrollableIds.forEach(id => {
@@ -7195,12 +7226,61 @@ function renderHonorsModalContent() {
   if (window.lucide) window.lucide.createIcons();
 }
 
+function hookHonorsModalGestures() {
+  const modal = document.getElementById('honors-modal');
+  if (!modal || modal._gestureHooked) return;
+  modal._gestureHooked = true;
+
+  let sX = 0;
+  let sY = 0;
+  let active = false;
+
+  modal.addEventListener('touchstart', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    sX = e.touches[0].clientX;
+    sY = e.touches[0].clientY;
+    active = true;
+  }, { passive: true });
+
+  modal.addEventListener('touchmove', (e) => {
+    if (!active || !e.touches || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - sX;
+    const dy = e.touches[0].clientY - sY;
+    if (Math.abs(dy) > 50 && Math.abs(dy) > Math.abs(dx) * 1.5) {
+      active = false;
+    }
+  }, { passive: true });
+
+  modal.addEventListener('touchend', (e) => {
+    if (!active || !e.changedTouches || e.changedTouches.length !== 1) return;
+    const dx = e.changedTouches[0].clientX - sX;
+    const dy = e.changedTouches[0].clientY - sY;
+    active = false;
+    // Both Left-to-Right (dx >= 45) AND Right-to-Left (dx <= -45) trigger close/back
+    if (Math.abs(dx) >= 45 && Math.abs(dx) > Math.abs(dy) * 1.0) {
+      closeHonorsModal();
+      if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+    }
+  }, { passive: true });
+}
+
 function openHonorsModal() {
   const modal = document.getElementById('honors-modal');
   if (modal) {
     renderHonorsModalContent();
     modal.classList.remove('hidden');
-    setDockVisible(false);
+    const gate = document.getElementById('onboarding-gate');
+    const isGateOpen = gate && !gate.classList.contains('hidden');
+    if (!isGateOpen) {
+      setDockVisible(true);
+      const honorsBody = document.getElementById('honors-modal-body');
+      if (honorsBody && typeof hookScrollableForDock === 'function') {
+        hookScrollableForDock(honorsBody, false);
+      }
+    } else {
+      setDockVisible(false);
+    }
+    hookHonorsModalGestures();
     if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
   }
 }
