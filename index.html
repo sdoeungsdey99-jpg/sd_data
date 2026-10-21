@@ -3703,39 +3703,13 @@
                        class="w-full h-10 px-3 text-xs sm:text-sm bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none focus:border-orange-500 transition">
               </div>
             </div>
-            <!-- Birthday Section (Day + Month) -->
-            <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-2 select-none">
-              <label class="block text-xs sm:text-sm font-bold text-amber-400 flex items-center gap-1.5">
-                <i data-lucide="cake" class="w-3.5 h-3.5 text-amber-400"></i>
-                <span>ថ្ងៃខែខួបកំណើត</span>
+            <div>
+              <label class="block text-xs text-slate-300 mb-1.5 font-medium flex items-center gap-1.5">
+                <span>📅</span>
+                <span>ថ្ងៃទីខែឆ្នាំកំណើត</span>
               </label>
-              <div class="grid grid-cols-2 gap-2 pt-0.5">
-                <div>
-                  <label class="block text-xs text-slate-300 mb-1 font-medium">ថ្ងៃ</label>
-                  <select id="edit-prof-birthday-day" class="w-full h-10 px-2.5 text-xs sm:text-sm bg-black/60 border border-white/15 rounded-xl text-white focus:outline-none focus:border-amber-400">
-                    <option value="">-- ជ្រើសរើសថ្ងៃ --</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-xs text-slate-300 mb-1 font-medium">ខែ</label>
-                  <select id="edit-prof-birthday-month" class="w-full h-10 px-2.5 text-xs sm:text-sm bg-black/60 border border-white/15 rounded-xl text-white focus:outline-none focus:border-amber-400">
-                    <option value="">-- ជ្រើសរើសខែ --</option>
-                    <option value="1">មករា (ខែ ១)</option>
-                    <option value="2">កុម្ភៈ (ខែ ២)</option>
-                    <option value="3">មីនា (ខែ ៣)</option>
-                    <option value="4">មេសា (ខែ ៤)</option>
-                    <option value="5">ឧសភា (ខែ ៥)</option>
-                    <option value="6">មិថុនា (ខែ ៦)</option>
-                    <option value="7">កក្កដា (ខែ ៧)</option>
-                    <option value="8">សីហា (ខែ ៨)</option>
-                    <option value="9">កញ្ញា (ខែ ៩)</option>
-                    <option value="10">តុលា (ខែ ១០)</option>
-                    <option value="11">វិច្ឆិកា (ខែ ១១)</option>
-                    <option value="12">ធ្នូ (ខែ ១២)</option>
-                  </select>
-                </div>
-              </div>
-              <input type="hidden" id="edit-prof-birthday" value="">
+              <input type="text" id="edit-prof-birthday" placeholder="ឧ. 15 តុលា 1998 ឬ 15/10/1998" 
+                     class="w-full h-10 px-3 text-xs sm:text-sm bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none focus:border-orange-500 transition">
             </div>
             <div class="grid grid-cols-2 gap-2.5">
               <div>
@@ -4721,6 +4695,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=22.0"></script>
+  <script src="app.js?v=22.1"></script>
 </body>
 </html>

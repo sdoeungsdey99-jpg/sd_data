@@ -12453,12 +12453,21 @@ function saveProfileData() {
   const current = getProfileData();
   const getVal = (id) => (document.getElementById(id)?.value || '').trim();
 
-  const birthDay = parseInt(document.getElementById('edit-prof-birthday-day')?.value || '0', 10) || null;
-  const birthMonth = parseInt(document.getElementById('edit-prof-birthday-month')?.value || '0', 10) || null;
-  let formattedBirthday = '';
-  if (birthDay && birthMonth) {
-    const khMonth = KH_MONTH_NAMES[birthMonth] || `ខែ ${birthMonth}`;
-    formattedBirthday = `${birthDay} ${khMonth}`;
+  const birthdayVal = getVal('edit-prof-birthday');
+  let birthDay = parseInt(document.getElementById('edit-prof-birthday-day')?.value || '0', 10) || null;
+  let birthMonth = parseInt(document.getElementById('edit-prof-birthday-month')?.value || '0', 10) || null;
+  
+  if (!birthDay && !birthMonth && birthdayVal) {
+    const digits = birthdayVal.match(/(\d{1,4})/g);
+    if (digits && digits.length >= 2) {
+      if (parseInt(digits[0], 10) > 1900) {
+        birthMonth = parseInt(digits[1], 10);
+        birthDay = parseInt(digits[2] || digits[0], 10);
+      } else {
+        birthDay = parseInt(digits[0], 10);
+        birthMonth = parseInt(digits[1], 10);
+      }
+    }
   }
 
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
@@ -12473,7 +12482,7 @@ function saveProfileData() {
     live: getVal('edit-prof-live'),
     from: getVal('edit-prof-from'),
     status: getVal('edit-prof-status'),
-    birthday: formattedBirthday || getVal('edit-prof-birthday') || '',
+    birthday: birthdayVal || '',
     birthDay: birthDay,
     birthMonth: birthMonth,
     birthPrivacy: 'leader_only',
