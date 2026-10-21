@@ -7059,7 +7059,7 @@ function renderHonorsModalContent() {
         </span>
         <h2 class="text-lg font-black text-white brand-title tracking-wide">កាតកិត្តិយស & ការដឹងគុណ</h2>
         <p class="text-[11px] text-slate-300 max-w-xs mt-1 leading-relaxed">
-          សូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះគណៈស្ថាបនិក ថ្នាក់ដឹកនាំ និងអ្នកអភិវឌ្ឍន៍ប្រព័ន្ធទាំងអស់
+          សូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះគណៈស្ថាបនិក និងថ្នាក់ដឹកនាំទាំងអស់
         </p>
       </div>
     </div>
@@ -7084,7 +7084,7 @@ function renderHonorsModalContent() {
           <p class="text-xs text-amber-300 font-bold tracking-wide mt-0.5">VANN SITHA</p>
           <div class="mt-2 flex items-center gap-1.5 flex-wrap">
             <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-black text-[10px] border border-amber-500/40">
-              អគ្គនាយកក្រុមហ៊ុន Bostar (CEO)
+              អគ្គនាយកក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក
             </span>
             <span class="px-2 py-0.5 rounded-lg bg-white/10 text-slate-300 font-bold text-[10px]">
               គ្រូបង្វឹកធំ
@@ -7177,66 +7177,13 @@ function renderHonorsModalContent() {
 
         <!-- 5. Sdey Sdoeung -->
         <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition sm:col-span-2">
-          <img src="profile.png" alt="Sdey Sdoeung" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
+          <img src="leader-sdey-sdoeung.jpg" alt="Sdey Sdoeung" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
           <div class="min-w-0">
             <h4 class="text-xs font-bold text-white truncate">លោក ស្ដី ស្ដើង</h4>
             <p class="text-[10px] text-amber-300 truncate font-semibold">Manager ជំនាញបច្ចេកទេស & អភិវឌ្ឍ</p>
             <p class="text-[9px] text-slate-400 font-mono truncate">Sdey_Sdoeung</p>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- 4. អ្នករៀបចំ & អភិវឌ្ឍន៍ប្រព័ន្ធ៖ ស្ដី ស្ដើង (System Architect & Developer) -->
-    <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-blue-500/15 via-indigo-500/5 to-transparent border border-blue-500/30 relative overflow-hidden shadow-xl text-left">
-      <div class="flex items-center justify-between mb-3">
-        <span class="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
-          <span>💻</span>
-          <span>${isKm ? 'អ្នករៀបចំ & អភិវឌ្ឍន៍ប្រព័ន្ធ' : 'System Architect & Developer'}</span>
-        </span>
-        <span class="text-[10px] text-blue-400/90 font-mono font-bold">DEV & TECH</span>
-      </div>
-      <div class="flex items-center gap-3.5 mb-3.5">
-        <div class="relative shrink-0">
-          <img src="profile.png" alt="Sdey Sdoeung" 
-               class="w-16 h-16 rounded-2xl object-cover border-2 border-blue-400 shadow-xl">
-          <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain absolute -bottom-1 -right-1" style="width: 16px; height: 16px;">
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1.5">
-            <h3 class="text-base font-black text-white truncate brand-title">ស្ដី ស្ដើង</h3>
-            <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10px]">Manager</span>
-          </div>
-          <p class="text-[11px] text-blue-300 font-bold tracking-widest uppercase mt-0.5">SDEY SDOEUNG</p>
-          <div class="mt-1.5 flex items-center gap-1 text-[9.5px] text-slate-300">
-            <span>📈 Sales</span> • <span>👑 Leader</span> • <span>💻 Developer</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contacts & Version -->
-      <div class="space-y-2 text-xs pt-3 border-t border-white/10">
-        <div class="flex items-center justify-between text-slate-300">
-          <span class="text-slate-400">${t('phoneLabel')}:</span>
-          <span class="font-mono font-bold text-white">087 513 666 / 090 513 666</span>
-        </div>
-        <div class="flex items-center justify-between text-slate-300">
-          <span class="text-slate-400">${t('telegramLabel')}:</span>
-          <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline">@sdoeung_sd</a>
-        </div>
-        <div class="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
-          <span class="text-slate-400">${t('versionLabel')}:</span>
-          <span class="font-mono text-[10px] px-2.5 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.5 (Bostar Edition)</span>
-        </div>
-      </div>
-
-      <!-- Telegram Contact Button -->
-      <div class="pt-3">
-        <a href="https://t.me/sdoeung_sd" target="_blank" 
-           class="w-full py-2.5 px-3 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-blue-500/25">
-          <i data-lucide="send" class="w-4 h-4"></i>
-          <span>${t('contactTelegramBtn')}</span>
-        </a>
       </div>
     </div>
   `;
