@@ -3517,6 +3517,11 @@
           </div>
         </div>
         <div class="flex items-center gap-1.5">
+          <button type="button" onclick="printCurrentHRDocument()" 
+                  class="h-8 px-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-bold text-[11px] flex items-center gap-1.5 active:scale-95 transition shadow-md shadow-emerald-600/25">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>បោះពុម្ព</span>
+          </button>
           <button onclick="closeAttendanceDocumentsModal()" 
                   class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 flex items-center justify-center transition">
             <i data-lucide="x" class="w-4 h-4 text-slate-400"></i>
@@ -3544,14 +3549,14 @@
       </div>
 
       <!-- Document Content Body -->
-      <div id="attendance-documents-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-3.5 pb-36 bg-[#0A1220]" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+      <div id="attendance-documents-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-3.5 pb-6 bg-[#0A1220]" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
         <!-- Injected dynamically -->
       </div>
 
-      <!-- Print / Download Footer -->
-      <div class="p-3 border-t border-white/10 bg-black/40 flex items-center justify-between shrink-0">
-        <span class="text-[10px] text-slate-400 flex items-center gap-1">
-          <i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>
+      <!-- Print / Download Footer (Elevated cleanly above the Dock) -->
+      <div class="p-3.5 pb-28 sm:pb-32 border-t border-white/10 bg-[#0B1528] flex items-center justify-between shrink-0 relative z-20">
+        <span class="text-[10px] text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
           <span>ចេញជាផ្លូវការដោយ Bostar HR & Admin</span>
         </span>
         <button type="button" onclick="printCurrentHRDocument()" 
@@ -3931,12 +3936,12 @@
           </div>
           <div class="min-w-0 truncate">
             <h3 class="font-bold text-xs sm:text-sm text-white leading-tight truncate">របាយការណ៍លក់ប្រចាំថ្ងៃ</h3>
-            <p class="text-[10px] text-slate-400 mt-0.5 truncate">ដៃឆ្វេងប៉ះកន្លែងបំពេញ ➔ ដៃស្តាំអូសកង់ 3D</p>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">ប្រព័ន្ធកត់ត្រាលក់ប្រចាំថ្ងៃ Bostar</p>
           </div>
         </div>
 
         <div class="flex items-center gap-1.5 shrink-0">
-          <button type="button" onclick="resetDailyReportFields()" class="px-2.5 py-1.5 rounded-full text-slate-400 hover:text-emerald-400 bg-white/5 border border-white/10 text-[11px] font-semibold active:scale-95 transition flex items-center gap-1.5" title="កំណត់ឡើងវិញ">
+          <button type="button" onclick="resetDailyReportFields()" class="px-2.5 py-1.5 rounded-full text-slate-400 hover:text-emerald-400 bg-white/5 border border-white/10 text-xs font-semibold active:scale-95 transition flex items-center gap-1.5" title="កំណត់ឡើងវិញ">
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
             <span>សម្អាត</span>
           </button>
@@ -3947,33 +3952,32 @@
       </div>
 
       <!-- Scrollable Modal Body (Cards 1 to 6 & Action buttons) -->
-      <div id="daily-report-body-content" class="p-3 sm:p-3.5 pb-48 overflow-y-auto flex-1 no-scrollbar space-y-3" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div id="daily-report-body-content" class="p-3 sm:p-3.5 pb-52 overflow-y-auto flex-1 no-scrollbar space-y-3" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Injected dynamically by renderDailyReportModal() -->
       </div>
 
       <!-- FIXED DOCKED 3D INFINITE RULER WHEEL PANEL (Operated by Right Hand) -->
-      <div id="daily-report-ruler-panel" class="shrink-0 bg-[#0B1528] border-t border-amber-500/35 shadow-[0_-12px_40px_rgba(0,0,0,0.9)] flex flex-col select-none relative z-30 pb-safe">
+      <div id="daily-report-ruler-panel" class="shrink-0 bg-[#0B1528] border-t-2 border-amber-500/40 shadow-[0_-16px_50px_rgba(0,0,0,0.95)] flex flex-col select-none relative z-30 pb-4 sm:pb-5 pt-1.5 mb-1 sm:mb-2">
         <!-- Active Target Header Bar + Stepper & Live Value -->
-        <div class="px-3.5 pt-2 pb-1.5 flex items-center justify-between border-b border-white/5 bg-gradient-to-r from-black/50 via-transparent to-black/50">
-          <div class="flex items-center gap-2 min-w-0 flex-1">
-            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0 text-xs">
-              <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+        <div class="px-3.5 pt-2 pb-2 flex items-center justify-between border-b border-white/5 bg-gradient-to-r from-black/50 via-transparent to-black/50">
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            <span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0 text-sm">
+              <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
             </span>
             <div class="min-w-0 truncate">
-              <span class="text-[9px] text-amber-400 font-bold block leading-none truncate">ដៃឆ្វេងប៉ះកែប្រែ៖</span>
-              <h4 id="ruler-fixed-title" class="text-xs font-bold text-white truncate mt-0.5">ឆាតថ្មីសរុប</h4>
+              <h4 id="ruler-fixed-title" class="text-sm sm:text-base font-bold text-white truncate">ឆាតថ្មីសរុប</h4>
             </div>
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
-            <button type="button" onclick="stepCurrentRuler(-1)" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/20 border border-white/10 text-white font-bold text-base flex items-center justify-center active:scale-90 transition shadow-sm">
+            <button type="button" onclick="stepCurrentRuler(-1)" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/15 text-white font-bold text-lg flex items-center justify-center active:scale-90 transition shadow-sm">
               -
             </button>
-            <div class="text-center min-w-[70px]">
-              <span id="ruler-fixed-val" class="text-2xl font-mono font-black text-amber-400 drop-shadow-[0_0_12px_rgba(245,158,11,0.7)] leading-none block">0</span>
-              <span id="ruler-fixed-unit" class="text-[9.5px] text-slate-400 block font-kantumruy">នាក់</span>
+            <div class="text-center min-w-[76px]">
+              <span id="ruler-fixed-val" class="text-3xl font-mono font-black text-amber-400 drop-shadow-[0_0_14px_rgba(245,158,11,0.7)] leading-none block">0</span>
+              <span id="ruler-fixed-unit" class="text-xs text-slate-300 font-bold block font-kantumruy mt-0.5">នាក់</span>
             </div>
-            <button type="button" onclick="stepCurrentRuler(1)" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/20 border border-white/10 text-white font-bold text-base flex items-center justify-center active:scale-90 transition shadow-sm">
+            <button type="button" onclick="stepCurrentRuler(1)" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/15 text-white font-bold text-lg flex items-center justify-center active:scale-90 transition shadow-sm">
               +
             </button>
           </div>
@@ -3991,18 +3995,18 @@
         </div>
 
         <!-- Quick Value Chips Row -->
-        <div class="p-1.5 px-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar bg-[#091122]">
-          <span class="text-[9px] text-slate-500 font-bold shrink-0">រហ័ស:</span>
-          <button type="button" onclick="setRulerValue(0)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">0</button>
-          <button type="button" onclick="setRulerValue(1)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">1</button>
-          <button type="button" onclick="setRulerValue(2)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">2</button>
-          <button type="button" onclick="setRulerValue(3)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">3</button>
-          <button type="button" onclick="setRulerValue(5)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">5</button>
-          <button type="button" onclick="setRulerValue(10)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">10</button>
-          <button type="button" onclick="setRulerValue(15)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">15</button>
-          <button type="button" onclick="setRulerValue(20)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">20</button>
-          <button type="button" onclick="setRulerValue(30)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">30</button>
-          <button type="button" onclick="setRulerValue(50)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">50</button>
+        <div class="p-2 px-3 flex items-center gap-2 overflow-x-auto no-scrollbar bg-[#091122]">
+          <span class="text-xs text-slate-400 font-bold shrink-0">រហ័ស:</span>
+          <button type="button" onclick="setRulerValue(0)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">0</button>
+          <button type="button" onclick="setRulerValue(1)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">1</button>
+          <button type="button" onclick="setRulerValue(2)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">2</button>
+          <button type="button" onclick="setRulerValue(3)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">3</button>
+          <button type="button" onclick="setRulerValue(5)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">5</button>
+          <button type="button" onclick="setRulerValue(10)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">10</button>
+          <button type="button" onclick="setRulerValue(15)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">15</button>
+          <button type="button" onclick="setRulerValue(20)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">20</button>
+          <button type="button" onclick="setRulerValue(30)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">30</button>
+          <button type="button" onclick="setRulerValue(50)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">50</button>
         </div>
       </div>
 
