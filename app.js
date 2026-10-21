@@ -965,6 +965,26 @@ function handleBackNavigation() {
   }
 
   // 1c. Close any open Profile Sub-Modal -> returns to Profile Drawer!
+  if (!document.getElementById('attendance-leave-modal')?.classList?.contains('hidden')) {
+    closeAttendanceLeaveModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+  if (!document.getElementById('attendance-manager-modal')?.classList?.contains('hidden')) {
+    closeAttendanceManagerModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+  if (!document.getElementById('attendance-top10-modal')?.classList?.contains('hidden')) {
+    closeAttendanceTop10Modal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+  if (!document.getElementById('attendance-documents-modal')?.classList?.contains('hidden')) {
+    closeAttendanceDocumentsModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
   if (!document.getElementById('all-customers-modal')?.classList?.contains('hidden')) {
     closeAllCustomersModal();
     if (navigator.vibrate) navigator.vibrate(15);
@@ -8840,6 +8860,10 @@ function handleHeaderScrollToTop(e, targetId = null) {
   } else {
     // Dynamic detection based on what is currently active/visible on screen
     const modals = [
+      { modalId: 'attendance-leave-modal', listId: 'attendance-leave-body' },
+      { modalId: 'attendance-manager-modal', listId: 'attendance-manager-body' },
+      { modalId: 'attendance-top10-modal', listId: 'attendance-top10-body' },
+      { modalId: 'attendance-documents-modal', listId: 'attendance-documents-body' },
       { modalId: 'attendance-modal', listId: 'attendance-modal-body' },
       { modalId: 'all-customers-modal', listId: 'all-customers-list' },
       { modalId: 'sales-modal', listId: 'sales-modal-list' },
@@ -10055,33 +10079,33 @@ const BOSTAR_CORE_LEADERS = [
 ];
 
 const LEADER_DISPLAY_NAMES = {
-  'Hou_Yarith': 'លោក ហ៊ូ យ៉ារិទ្ធ (Hou_Yarith)',
-  'Hem_Chanthy': 'លោក ហែម ចន្ធី (Hem_Chanthy)',
-  'Sroeun_Leanghak': 'លោក ស្រឿន លាងហាក់ (Sroeun_Leanghak)',
-  'Bech_Udom': 'លោក ប៊ិច ឧត្តម (Bech_Udom)',
-  'Sdey_Sdoeung': 'លោក ស្ដី ស្ដើង (Sdey_Sdoeung)',
-  'Bech_Nora': 'លោក ប៊ិច នោរ៉ា (Bech_Nora)',
-  'Vann_Sitha': 'លោក វ៉ាន់ ស៊ីថា (Vann Sitha)',
-  'Vann_Thida': 'អ្នកនាង វ៉ាន់ ធីតា (Vann Thida)',
-  'V_Thida_Emmi': 'អ្នកនាង វ៉ាន់ ធីតា (Emmi)',
-  'Chhorn_Dara': 'លោក ឈរន តារា (Chhorn Dara)',
-  'Meng_Samoeuk': 'លោក ម៉េង សាមឿក (Meng Samoeuk)',
-  'Chhoun_Vireak': 'លោក ឈួន វីរៈ (Chhoun Vireak)',
-  'La_Thida': 'អ្នកនាង ឡា ធីតា (La Thida)',
-  'Nhem_Somrith': 'លោក ញ៉ែម សំរឹទ្ធ (Nhem Somrith)',
-  'N_Somrith_Emmi': 'លោក ញ៉ែម សំរឹទ្ធ (Emmi)',
-  'Yat_Virakyuth': 'លោក យ៉ាត់ វីរៈយុទ្ធ (Yat Virakyuth)',
-  'Sarun_Chhayhor': 'លោក សារុន ឆាយហ័រ (Sarun Chhayhor)',
-  'S_Chhayhor_Emmi': 'លោក សារុន ឆាយហ័រ (Emmi)',
-  'Hong_Heng_Oeurn': 'លោក ហុង ហេងអឿន (Hong Heng Oeurn)',
-  'Heng_Oeun_Emmi': 'លោក ហុង ហេងអឿន (Emmi)',
-  'Kru_Ta': 'លោក គ្រូតា (Kru Ta)',
-  'Long_Vuthy': 'លោក ឡុង វុទ្ធី (Long Vuthy)',
-  'L_Vuthy_Emmi': 'លោក ឡុង វុទ្ធី (Emmi)',
-  'Sorn_Sabda': 'លោក ស៊ន សប្ដាហ៍ (Sorn Sabda)',
-  'Teng_Toeun': 'លោក ថេង តឿន (Teng Toeun)',
-  'Vann_Theary': 'អ្នកនាង វ៉ាន់ ធារី (Vann Theary)',
-  'T_Toeun_Emmi': 'លោក ថេង តឿន (Emmi)'
+  'Hou_Yarith': 'លោក ហ៊ូ យ៉ារិទ្ធ',
+  'Hem_Chanthy': 'លោក ហែម ចន្ធី',
+  'Sroeun_Leanghak': 'លោក ស្រឿន លាងហាក់',
+  'Bech_Udom': 'លោក ប៊ិច ឧត្តម',
+  'Sdey_Sdoeung': 'លោក ស្ដី ស្ដើង',
+  'Bech_Nora': 'លោក ប៊ិច នោរ៉ា',
+  'Vann_Sitha': 'លោក វ៉ាន់ ស៊ីថា',
+  'Vann_Thida': 'អ្នកនាង វ៉ាន់ ធីតា',
+  'V_Thida_Emmi': 'អ្នកនាង វ៉ាន់ ធីតា',
+  'Chhorn_Dara': 'លោក ឈរន តារា',
+  'Meng_Samoeuk': 'លោក ម៉េង សាមឿក',
+  'Chhoun_Vireak': 'លោក ឈួន វីរៈ',
+  'La_Thida': 'អ្នកនាង ឡា ធីតា',
+  'Nhem_Somrith': 'លោក ញ៉ែម សំរឹទ្ធ',
+  'N_Somrith_Emmi': 'លោក ញ៉ែម សំរឹទ្ធ',
+  'Yat_Virakyuth': 'លោក យ៉ាត់ វីរៈយុទ្ធ',
+  'Sarun_Chhayhor': 'លោក សារុន ឆាយហ័រ',
+  'S_Chhayhor_Emmi': 'លោក សារុន ឆាយហ័រ',
+  'Hong_Heng_Oeurn': 'លោក ហុង ហេងអឿន',
+  'Heng_Oeun_Emmi': 'លោក ហុង ហេងអឿន',
+  'Kru_Ta': 'លោក គ្រូតា',
+  'Long_Vuthy': 'លោក ឡុង វុទ្ធី',
+  'L_Vuthy_Emmi': 'លោក ឡុង វុទ្ធី',
+  'Sorn_Sabda': 'លោក ស៊ន សប្ដាហ៍',
+  'Teng_Toeun': 'លោក ថេង តឿន',
+  'Vann_Theary': 'អ្នកនាង វ៉ាន់ ធារី',
+  'T_Toeun_Emmi': 'លោក ថេង តឿន'
 };
 
 function getLeaderDisplayName(leaderKey) {
@@ -10105,7 +10129,7 @@ function getLeaveRequests() {
       startDate: '2026-10-15',
       endDate: '2026-10-15',
       leaderKey: 'Sdey_Sdoeung',
-      leaderName: 'លោក ស្ដី ស្ដើង (Sdey_Sdoeung)',
+      leaderName: 'លោក ស្ដី ស្ដើង',
       reason: 'គ្រុនក្តៅ និងឈឺក្បាល ត្រូវការសម្រាក១ថ្ងៃ',
       status: 'pending',
       createdAt: '14/10/2026 07:45 AM'
@@ -10119,7 +10143,7 @@ function getLeaveRequests() {
       startDate: '2026-10-14',
       endDate: '2026-10-14',
       leaderKey: 'Bech_Nora',
-      leaderName: 'លោក ប៊ិច នោរ៉ា (Bech_Nora)',
+      leaderName: 'លោក ប៊ិច នោរ៉ា',
       reason: 'ជូនម្តាយទៅពិនិត្យសុខភាពនៅមន្ទីរពេទ្យ',
       status: 'approved',
       approvedBy: 'លោក ប៊ិច នោរ៉ា',
@@ -10195,12 +10219,21 @@ function openAttendanceLeaveModal() {
   if (reasonInput) reasonInput.value = '';
 
   modal.classList.remove('hidden');
+  setDockVisible(true);
+  const scrollEl = document.getElementById('attendance-leave-body');
+  if (scrollEl) {
+    scrollEl.scrollTop = 0;
+    if (typeof hookScrollableForDock === 'function') {
+      hookScrollableForDock(scrollEl, false);
+    }
+  }
   if (window.lucide) window.lucide.createIcons();
 }
 
 function closeAttendanceLeaveModal() {
   const modal = document.getElementById('attendance-leave-modal');
   if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
 }
 
 function selectLeaveDurationType(type) {
@@ -10324,12 +10357,21 @@ function openAttendanceManagerModal(initialTab = null) {
   if (initialTab) window._managerActiveTab = initialTab;
   switchManagerTab(window._managerActiveTab);
   modal.classList.remove('hidden');
+  setDockVisible(true);
+  const scrollEl = document.getElementById('attendance-manager-body');
+  if (scrollEl) {
+    scrollEl.scrollTop = 0;
+    if (typeof hookScrollableForDock === 'function') {
+      hookScrollableForDock(scrollEl, false);
+    }
+  }
   if (window.lucide) window.lucide.createIcons();
 }
 
 function closeAttendanceManagerModal() {
   const modal = document.getElementById('attendance-manager-modal');
   if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
 }
 
 function switchManagerTab(tab) {
@@ -10720,12 +10762,21 @@ function openAttendanceTop10Modal() {
   if (!modal) return;
   renderAttendanceTop10Content();
   modal.classList.remove('hidden');
+  setDockVisible(true);
+  const scrollEl = document.getElementById('attendance-top10-body');
+  if (scrollEl) {
+    scrollEl.scrollTop = 0;
+    if (typeof hookScrollableForDock === 'function') {
+      hookScrollableForDock(scrollEl, false);
+    }
+  }
   if (window.lucide) window.lucide.createIcons();
 }
 
 function closeAttendanceTop10Modal() {
   const modal = document.getElementById('attendance-top10-modal');
   if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
 }
 
 function renderAttendanceTop10Content() {
@@ -10733,16 +10784,16 @@ function renderAttendanceTop10Content() {
   if (!container) return;
 
   const top10Data = [
-    { rank: 1, name: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥇 Top 1 ឆ្នើមប្រចាំខែ', border: 'border-amber-400/50' },
-    { rank: 2, name: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥈 Top 2 គំរូវិន័យ', border: 'border-slate-300/40' },
-    { rank: 3, name: 'ញែក សុគន្ធ', en: 'Nhek Sokun', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: '🥉 Top 3 ទៀងទាត់', border: 'border-amber-600/40' },
-    { rank: 4, name: 'អយ ស្រីនី', en: 'Oy Sreyny', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: 'Star Performer', border: 'border-blue-400/30' },
-    { rank: 5, name: 'ផាត់ ណាវី', en: 'Phat Navy', rate: '97%', days: '២១/២២ ថ្ងៃ', badge: 'Consistent', border: 'border-teal-400/30' },
-    { rank: 6, name: 'ម៉ាន់ សុគន្ធលីហ្សា', en: 'Man Sokunlyza', rate: '96%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-purple-400/30' },
-    { rank: 7, name: 'មុំចាន់នី', en: 'Mom Channy', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-sky-400/30' },
-    { rank: 8, name: 'ជា ស្រីណាត់', en: 'Chea Sreynat', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-orange-400/30' },
-    { rank: 9, name: 'ប៊ិច ស្រីមុំ', en: 'Bech Sreymom', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-rose-400/30' },
-    { rank: 10, name: 'និន ណែត', en: 'Nin Net', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-emerald-400/30' }
+    { rank: 1, name: 'ឆេង រ៉ាស៊ុង', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥇 Top 1 ឆ្នើមប្រចាំខែ', border: 'border-amber-400/50' },
+    { rank: 2, name: 'ស្ដី ស្ដើង', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥈 Top 2 គំរូវិន័យ', border: 'border-slate-300/40' },
+    { rank: 3, name: 'ញែក សុគន្ធ', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: '🥉 Top 3 ទៀងទាត់', border: 'border-amber-600/40' },
+    { rank: 4, name: 'អយ ស្រីនី', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: 'Star Performer', border: 'border-blue-400/30' },
+    { rank: 5, name: 'ផាត់ ណាវី', rate: '97%', days: '២១/២២ ថ្ងៃ', badge: 'Consistent', border: 'border-teal-400/30' },
+    { rank: 6, name: 'ម៉ាន់ សុគន្ធលីហ្សា', rate: '96%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-purple-400/30' },
+    { rank: 7, name: 'មុំចាន់នី', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-sky-400/30' },
+    { rank: 8, name: 'ជា ស្រីណាត់', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-orange-400/30' },
+    { rank: 9, name: 'ប៊ិច ស្រីមុំ', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-rose-400/30' },
+    { rank: 10, name: 'និន ណែត', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-emerald-400/30' }
   ];
 
   const itemsHTML = top10Data.map(item => {
@@ -10757,9 +10808,8 @@ function renderAttendanceTop10Content() {
         <div class="flex items-center gap-2.5 min-w-0">
           ${rankBadge}
           <div class="min-w-0">
-            <h4 class="text-xs font-bold text-white truncate flex items-center gap-1.5">
+            <h4 class="text-xs font-bold text-white truncate">
               <span>${item.name}</span>
-              <span class="text-[9.5px] text-slate-400 font-mono">(${item.en})</span>
             </h4>
             <div class="flex items-center gap-1.5 mt-0.5">
               <span class="px-1.5 py-0.2 rounded-full bg-white/5 text-[9px] text-amber-300 font-medium">${item.badge}</span>
@@ -10785,7 +10835,7 @@ function renderAttendanceTop10Content() {
         </div>
         <div>
           <h4 class="text-xs font-bold text-white">កិត្តិយសវត្តមានប្រចាំខែតុលា ២០២៦</h4>
-          <p class="text-[9.5px] text-amber-300/80">ផ្អែកលើទិន្នន័យ CheckinMe Attendance</p>
+          <p class="text-[9.5px] text-amber-300/80">ផ្អែកលើទិន្នន័យវត្តមានប្រចាំខែ (Bostar HR Attendance)</p>
         </div>
       </div>
       <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold">100% On-Time</span>
@@ -10817,12 +10867,21 @@ function openAttendanceDocumentsModal() {
   if (!modal) return;
   switchDocTab(window._docActiveTab || 'work_cert');
   modal.classList.remove('hidden');
+  setDockVisible(true);
+  const scrollEl = document.getElementById('attendance-documents-body');
+  if (scrollEl) {
+    scrollEl.scrollTop = 0;
+    if (typeof hookScrollableForDock === 'function') {
+      hookScrollableForDock(scrollEl, false);
+    }
+  }
   if (window.lucide) window.lucide.createIcons();
 }
 
 function closeAttendanceDocumentsModal() {
   const modal = document.getElementById('attendance-documents-modal');
   if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
 }
 
 function switchDocTab(tab) {
@@ -14108,7 +14167,7 @@ const PROFILE_SETTINGS_SEARCH_ITEMS = [
     groupKm: 'មុខងារចម្បង',
     title: 'កត់ត្រាវត្តមាន',
     titleEn: 'Attendance Tracker',
-    subtitle: 'Profile > កត់ត្រាម៉ោងចូល/ចេញ និងប្រតិទិនវត្តមាន (CheckinMe)',
+    subtitle: 'Profile > កត់ត្រាម៉ោងចូល/ចេញ និងប្រតិទិនវត្តមាន',
     subtitleEn: 'Profile > Daily Check-in / Out & Attendance Matrix',
     icon: 'fingerprint',
     iconBg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',

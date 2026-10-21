@@ -3100,9 +3100,8 @@
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
           </button>
           <div class="min-w-0">
-            <h3 class="font-bold text-xs sm:text-sm text-white leading-tight flex items-center gap-1.5">
+            <h3 class="font-bold text-xs sm:text-sm text-white leading-tight">
               <span>HR Attendance Module</span>
-              <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-[9px] font-bold border border-emerald-500/30">CheckinMe</span>
             </h3>
             <p class="text-[10px] text-slate-400">Bostar HR & Operations System</p>
           </div>
@@ -3202,31 +3201,38 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- LEAVE REQUEST MODAL (CheckinMe Leave Workflow)          -->
+  <!-- LEAVE REQUEST MODAL (Full Screen Responsive)             -->
   <!-- ======================================================== -->
-  <div id="attendance-leave-modal" onclick="if(event.target === this) closeAttendanceLeaveModal()" class="fixed inset-0 z-[80] bg-[#070D18]/85 backdrop-blur-xl hidden flex items-center justify-center p-4 pb-8 font-kantumruy">
-    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl max-h-[90vh] flex flex-col overflow-hidden w-full max-w-md mx-auto shadow-2xl">
-      <!-- Header -->
-      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-blue-500/10 shrink-0">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
-            <i data-lucide="file-text" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight">ស្នើសុំច្បាប់ឈប់សម្រាក</h3>
-            <p class="text-[10px] text-blue-300 font-mono mt-0.5">Leave Request • Bostar HR</p>
+  <div id="attendance-leave-modal" class="fixed inset-0 z-[75] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300 ease-out">
+    <div class="w-full max-w-lg lg:max-w-xl mx-auto flex flex-col h-full overflow-hidden">
+      <!-- Top Bar -->
+      <div onclick="handleHeaderScrollToTop(event, 'attendance-leave-body')" 
+           class="relative z-30 px-3.5 sm:px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-2xl shrink-0 flex items-center justify-between gap-2 cursor-pointer select-none transition">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="closeAttendanceLeaveModal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
+                  title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
+          <div class="min-w-0">
+            <h3 class="font-bold text-xs sm:text-sm text-white leading-tight">
+              <span>ស្នើសុំច្បាប់ឈប់សម្រាក</span>
+            </h3>
+            <p class="text-[10px] text-blue-300 font-medium">Leave Request • Bostar HR</p>
           </div>
         </div>
-        <button onclick="closeAttendanceLeaveModal()" 
-                class="py-1 px-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-white/5 border border-white/10 flex items-center gap-1 active:scale-95 transition shadow-sm">
-          <i data-lucide="x" class="w-3.5 h-3.5 text-slate-400"></i>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button onclick="closeAttendanceLeaveModal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 flex items-center justify-center transition">
+            <i data-lucide="x" class="w-4 h-4 text-slate-400"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Form Body -->
-      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-3.5">
+      <div id="attendance-leave-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-4 pb-36" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
         <!-- Applicant Info Banner -->
-        <div class="p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
+        <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow-md">
               <i data-lucide="user" class="w-4 h-4"></i>
@@ -3236,26 +3242,26 @@
               <p id="att-leave-applicant-id" class="text-[10px] text-slate-400 font-mono mt-0.5">ID: BG-001</p>
             </div>
           </div>
-          <span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[9.5px] font-bold border border-blue-500/30">បុគ្គលិក</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-500/30">បុគ្គលិក</span>
         </div>
 
         <!-- Leave Type Selector -->
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-2">ប្រភេទច្បាប់ (Leave Type) ៖</label>
           <div class="grid grid-cols-2 gap-2" id="att-leave-type-group">
-            <label class="p-2.5 rounded-xl border border-white/10 bg-black/30 hover:border-blue-500/40 flex items-center gap-2 cursor-pointer transition">
+            <label class="p-3 rounded-2xl border border-white/10 bg-black/30 hover:border-blue-500/40 flex items-center gap-2 cursor-pointer transition">
               <input type="radio" name="att_leave_type" value="ច្បាប់ឈឺ (Sick Leave)" checked class="accent-blue-500">
               <span class="text-xs font-semibold text-white">🤒 ច្បាប់ឈឺ</span>
             </label>
-            <label class="p-2.5 rounded-xl border border-white/10 bg-black/30 hover:border-blue-500/40 flex items-center gap-2 cursor-pointer transition">
+            <label class="p-3 rounded-2xl border border-white/10 bg-black/30 hover:border-blue-500/40 flex items-center gap-2 cursor-pointer transition">
               <input type="radio" name="att_leave_type" value="ច្បាប់ប្រចាំឆ្នាំ (Annual Leave)" class="accent-blue-500">
               <span class="text-xs font-semibold text-white">🏖️ ប្រចាំឆ្នាំ</span>
             </label>
-            <label class="p-2.5 rounded-xl border border-white/10 bg-black/30 hover:border-blue-500/40 flex items-center gap-2 cursor-pointer transition">
+            <label class="p-3 rounded-2xl border border-white/10 bg-black/30 hover:border-blue-500/40 flex items-center gap-2 cursor-pointer transition">
               <input type="radio" name="att_leave_type" value="ច្បាប់ផ្ទាល់ខ្លួន/ការងារបន្ទាន់ (Personal)" class="accent-blue-500">
               <span class="text-xs font-semibold text-white">💼 ផ្ទាល់ខ្លួន/បន្ទាន់</span>
             </label>
-            <label class="p-2.5 rounded-xl border border-white/10 bg-black/30 hover:border-blue-500/40 flex items-center gap-2 cursor-pointer transition">
+            <label class="p-3 rounded-2xl border border-white/10 bg-black/30 hover:border-blue-500/40 flex items-center gap-2 cursor-pointer transition">
               <input type="radio" name="att_leave_type" value="សម្រាកលំហែមាតុភាព (Maternity Leave)" class="accent-blue-500">
               <span class="text-xs font-semibold text-white">👶 លំហែមាតុភាព</span>
             </label>
@@ -3266,16 +3272,16 @@
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1.5">ថិរវេលាឈប់សម្រាក (Duration) ៖</label>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-center">
-            <button type="button" onclick="selectLeaveDurationType('full_day')" id="leave-dur-btn-full_day" class="leave-dur-pill px-2 py-2 rounded-xl bg-blue-500/20 border border-blue-500/50 text-blue-300 text-[11px] font-bold transition">
+            <button type="button" onclick="selectLeaveDurationType('full_day')" id="leave-dur-btn-full_day" class="leave-dur-pill px-2.5 py-2.5 rounded-xl bg-blue-500/20 border border-blue-500/50 text-blue-300 text-xs font-bold transition">
               ពេញមួយថ្ងៃ
             </button>
-            <button type="button" onclick="selectLeaveDurationType('morning')" id="leave-dur-btn-morning" class="leave-dur-pill px-2 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-[11px] font-medium transition">
+            <button type="button" onclick="selectLeaveDurationType('morning')" id="leave-dur-btn-morning" class="leave-dur-pill px-2.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-xs font-medium transition">
               កន្លះថ្ងៃ (ព្រឹក)
             </button>
-            <button type="button" onclick="selectLeaveDurationType('afternoon')" id="leave-dur-btn-afternoon" class="leave-dur-pill px-2 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-[11px] font-medium transition">
+            <button type="button" onclick="selectLeaveDurationType('afternoon')" id="leave-dur-btn-afternoon" class="leave-dur-pill px-2.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-xs font-medium transition">
               កន្លះថ្ងៃ (រសៀល)
             </button>
-            <button type="button" onclick="selectLeaveDurationType('multi_days')" id="leave-dur-btn-multi_days" class="leave-dur-pill px-2 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-[11px] font-medium transition">
+            <button type="button" onclick="selectLeaveDurationType('multi_days')" id="leave-dur-btn-multi_days" class="leave-dur-pill px-2.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-xs font-medium transition">
               ច្រើនថ្ងៃ
             </button>
           </div>
@@ -3296,15 +3302,15 @@
           </div>
         </div>
 
-        <!-- Respective Leader Dropdown -->
+        <!-- Respective Leader Dropdown (Pure Khmer Only) -->
         <div class="space-y-1.5">
           <label class="block text-xs font-bold text-slate-300">ជ្រើសរើស Leader ទទួលបន្ទុកអនុម័ត (ក្រុម Bostar ទាំង ៦) ៖</label>
           <div class="relative">
             <select id="att-leave-leader-select" 
-                    class="w-full text-xs bg-black/40 border border-blue-500/40 rounded-xl p-2.5 pr-8 text-white focus:outline-none focus:border-blue-400 appearance-none font-kantumruy">
-              <!-- Populated dynamically with 6 Bostar leaders -->
+                    class="w-full text-xs bg-black/40 border border-blue-500/40 rounded-xl p-3 pr-8 text-white focus:outline-none focus:border-blue-400 appearance-none font-kantumruy">
+              <!-- Populated dynamically with 6 Bostar leaders in pure Khmer -->
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-blue-400">
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-blue-400">
               <i data-lucide="chevron-down" class="w-4 h-4"></i>
             </div>
           </div>
@@ -3315,169 +3321,185 @@
         <div class="space-y-1.5">
           <label class="block text-xs font-bold text-slate-300">មូលហេតុនៃការសុំច្បាប់ ៖</label>
           <div class="flex flex-wrap gap-1.5 pb-1">
-            <button type="button" onclick="selectLeaveReasonChip('គ្រុនក្តៅ/ផ្តាសាយ មិនស្រួលខ្លួន')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🤒 ផ្តាសាយ/មិនស្រួលខ្លួន</button>
-            <button type="button" onclick="selectLeaveReasonChip('មានធុរៈគ្រួសារបន្ទាន់')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🏠 ធុរៈគ្រួសារបន្ទាន់</button>
-            <button type="button" onclick="selectLeaveReasonChip('ទៅពិនិត្យសុខភាពតាមវេជ្ជបញ្ជា')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🏥 ពិនិត្យសុខភាព</button>
-            <button type="button" onclick="selectLeaveReasonChip('សម្រាកលំហែប្រចាំឆ្នាំ')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🏖️ សម្រាកប្រចាំឆ្នាំ</button>
+            <button type="button" onclick="selectLeaveReasonChip('គ្រុនក្តៅ/ផ្តាសាយ មិនស្រួលខ្លួន')" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[10.5px] text-slate-300">🤒 ផ្តាសាយ/មិនស្រួលខ្លួន</button>
+            <button type="button" onclick="selectLeaveReasonChip('មានធុរៈគ្រួសារបន្ទាន់')" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[10.5px] text-slate-300">🏠 ធុរៈគ្រួសារបន្ទាន់</button>
+            <button type="button" onclick="selectLeaveReasonChip('ទៅពិនិត្យសុខភាពតាមវេជ្ជបញ្ជា')" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[10.5px] text-slate-300">🏥 ពិនិត្យសុខភាព</button>
+            <button type="button" onclick="selectLeaveReasonChip('សម្រាកលំហែប្រចាំឆ្នាំ')" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[10.5px] text-slate-300">🏖️ សម្រាកប្រចាំឆ្នាំ</button>
           </div>
-          <textarea id="att-leave-reason-input" rows="2.5" placeholder="សូមបញ្ជាក់មូលហេតុលម្អិត..."
-                    class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500 font-kantumruy"></textarea>
+          <textarea id="att-leave-reason-input" rows="3" placeholder="សូមបញ្ជាក់មូលហេតុលម្អិត..."
+                    class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 font-kantumruy leading-relaxed"></textarea>
         </div>
-      </div>
 
-      <!-- Action Buttons -->
-      <div class="p-3.5 border-t border-white/10 bg-black/20 flex items-center gap-2 shrink-0">
-        <button type="button" onclick="closeAttendanceLeaveModal()" 
-                class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs transition active:scale-95">
-          បោះបង់
-        </button>
-        <button type="button" onclick="submitAttendanceLeaveRequest()" 
-                class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-blue-600/30">
-          <i data-lucide="send" class="w-3.5 h-3.5"></i>
-          <span>ដាក់ស្នើសុំច្បាប់ 🚀</span>
-        </button>
+        <!-- Action Submit Buttons -->
+        <div class="pt-2 flex items-center gap-2">
+          <button type="button" onclick="closeAttendanceLeaveModal()" 
+                  class="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs transition active:scale-95">
+            បោះបង់
+          </button>
+          <button type="button" onclick="submitAttendanceLeaveRequest()" 
+                  class="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-blue-600/30">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>ដាក់ស្នើសុំច្បាប់ 🚀</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ======================================================== -->
-  <!-- MANAGER & ADMIN HUB (CheckinMe Governance & Approvals)   -->
+  <!-- MANAGER & ADMIN HUB (Full Screen Responsive)             -->
   <!-- ======================================================== -->
-  <div id="attendance-manager-modal" onclick="if(event.target === this) closeAttendanceManagerModal()" class="fixed inset-0 z-[80] bg-[#070D18]/85 backdrop-blur-xl hidden flex items-center justify-center p-4 pb-8 font-kantumruy">
-    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl max-h-[90vh] flex flex-col overflow-hidden w-full max-w-md mx-auto shadow-2xl">
-      <!-- Header -->
-      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent shrink-0">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
-            <i data-lucide="shield-check" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight flex items-center gap-1.5">
+  <div id="attendance-manager-modal" class="fixed inset-0 z-[75] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300 ease-out">
+    <div class="w-full max-w-lg lg:max-w-xl mx-auto flex flex-col h-full overflow-hidden">
+      <!-- Top Bar -->
+      <div onclick="handleHeaderScrollToTop(event, 'attendance-manager-body')" 
+           class="relative z-30 px-3.5 sm:px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-2xl shrink-0 flex items-center justify-between gap-2 cursor-pointer select-none transition">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="closeAttendanceManagerModal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
+                  title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
+          <div class="min-w-0">
+            <h3 class="font-bold text-xs sm:text-sm text-white leading-tight flex items-center gap-1.5">
               <span>Manager & Admin Hub</span>
               <span class="px-1.5 py-0.2 rounded-full bg-orange-500/20 text-orange-400 font-mono text-[9px] font-bold border border-orange-500/30">Unlocked</span>
             </h3>
-            <p class="text-[10px] text-slate-400 mt-0.5">គ្រប់គ្រងច្បាប់ & កំណត់ត្រាវត្តមានផ្ទៃក្នុង</p>
+            <p class="text-[10px] text-slate-400">គ្រប់គ្រងច្បាប់ & កំណត់ត្រាវត្តមានផ្ទៃក្នុង</p>
           </div>
         </div>
-        <button onclick="closeAttendanceManagerModal()" 
-                class="py-1 px-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-white/5 border border-white/10 flex items-center gap-1 active:scale-95 transition shadow-sm">
-          <i data-lucide="x" class="w-3.5 h-3.5 text-slate-400"></i>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button onclick="closeAttendanceManagerModal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 flex items-center justify-center transition">
+            <i data-lucide="x" class="w-4 h-4 text-slate-400"></i>
+          </button>
+        </div>
       </div>
 
-      <!-- Tab Switcher (3 Tabs) -->
-      <div class="px-3 pt-2.5 pb-1 border-b border-white/10 bg-black/30 flex items-center gap-1 shrink-0">
+      <!-- Tab Switcher -->
+      <div class="px-3 pt-2.5 pb-2 border-b border-white/10 bg-black/40 flex items-center gap-1 shrink-0">
         <button type="button" onclick="switchManagerTab('approvals')" id="mgr-tab-btn-approvals" 
-                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-bold text-amber-400 bg-amber-500/20 border border-amber-500/40 flex items-center justify-center gap-1.5 transition">
+                class="flex-1 py-2 px-2 rounded-xl text-xs font-bold text-amber-400 bg-amber-500/20 border border-amber-500/40 flex items-center justify-center gap-1.5 transition">
           <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i>
           <span>អនុម័តច្បាប់</span>
           <span id="mgr-pending-badge" class="px-1.5 py-0.2 rounded-full bg-amber-400 text-black text-[9px] font-mono font-bold">0</span>
         </button>
         <button type="button" onclick="switchManagerTab('late_log')" id="mgr-tab-btn-late_log" 
-                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-transparent border border-transparent flex items-center justify-center gap-1.5 transition">
+                class="flex-1 py-2 px-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-transparent border border-transparent flex items-center justify-center gap-1.5 transition">
           <i data-lucide="eye-off" class="w-3.5 h-3.5"></i>
           <span>កំណត់ត្រាយឺត</span>
         </button>
         <button type="button" onclick="switchManagerTab('settings')" id="mgr-tab-btn-settings" 
-                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-transparent border border-transparent flex items-center justify-center gap-1.5 transition">
+                class="flex-1 py-2 px-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-transparent border border-transparent flex items-center justify-center gap-1.5 transition">
           <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
           <span>កែវត្តមាន & Bot</span>
         </button>
       </div>
 
-      <!-- Tab Content Area -->
-      <div id="attendance-manager-body" class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-3.5">
-        <!-- Injected dynamically by renderManagerModalContent() -->
+      <!-- Body with Auto Dock Hook -->
+      <div id="attendance-manager-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-3.5 pb-36" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+        <!-- Injected dynamically -->
       </div>
     </div>
   </div>
 
   <!-- ======================================================== -->
-  <!-- TOP 10 ON-TIME HONOR ROLL MODAL (Praise in Public)      -->
+  <!-- TOP 10 ON-TIME HONOR ROLL MODAL (Full Screen Responsive) -->
   <!-- ======================================================== -->
-  <div id="attendance-top10-modal" onclick="if(event.target === this) closeAttendanceTop10Modal()" class="fixed inset-0 z-[80] bg-[#070D18]/85 backdrop-blur-xl hidden flex items-center justify-center p-4 pb-8 font-kantumruy">
-    <div class="bg-[#0F1B2E] border border-amber-500/30 rounded-3xl max-h-[90vh] flex flex-col overflow-hidden w-full max-w-md mx-auto shadow-2xl">
-      <!-- Header -->
-      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent shrink-0">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
-            <i data-lucide="trophy" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight flex items-center gap-1.5">
+  <div id="attendance-top10-modal" class="fixed inset-0 z-[75] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300 ease-out">
+    <div class="w-full max-w-lg lg:max-w-xl mx-auto flex flex-col h-full overflow-hidden">
+      <!-- Top Bar -->
+      <div onclick="handleHeaderScrollToTop(event, 'attendance-top10-body')" 
+           class="relative z-30 px-3.5 sm:px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-2xl shrink-0 flex items-center justify-between gap-2 cursor-pointer select-none transition">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="closeAttendanceTop10Modal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
+                  title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
+          <div class="min-w-0">
+            <h3 class="font-bold text-xs sm:text-sm text-white leading-tight">
               <span>តារាងកិត្តិយស Top 10</span>
-              <span class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-400 font-mono text-[9px] font-bold border border-amber-500/30">On-Time Stars</span>
             </h3>
-            <p class="text-[10px] text-slate-400 mt-0.5">គំរូវិន័យ និងវត្តមានទៀងទាត់ប្រចាំខែ</p>
+            <p class="text-[10px] text-amber-300 font-medium">គំរូវិន័យ និងវត្តមានទៀងទាត់ប្រចាំខែ</p>
           </div>
         </div>
-        <button onclick="closeAttendanceTop10Modal()" 
-                class="py-1 px-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-white/5 border border-white/10 flex items-center gap-1 active:scale-95 transition shadow-sm">
-          <i data-lucide="x" class="w-3.5 h-3.5 text-slate-400"></i>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button onclick="closeAttendanceTop10Modal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 flex items-center justify-center transition">
+            <i data-lucide="x" class="w-4 h-4 text-slate-400"></i>
+          </button>
+        </div>
       </div>
 
-      <!-- Body -->
-      <div id="attendance-top10-body" class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-3">
-        <!-- Rendered dynamically -->
+      <!-- Body with Auto Dock Hook -->
+      <div id="attendance-top10-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-3.5 pb-36" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+        <!-- Rendered dynamically in pure Khmer -->
       </div>
     </div>
   </div>
 
   <!-- ======================================================== -->
-  <!-- HR DOCUMENTS & LETTERS MODAL (Certs, Evaluation, Income) -->
+  <!-- HR DOCUMENTS & LETTERS MODAL (Full Screen Responsive)    -->
   <!-- ======================================================== -->
-  <div id="attendance-documents-modal" onclick="if(event.target === this) closeAttendanceDocumentsModal()" class="fixed inset-0 z-[80] bg-[#070D18]/85 backdrop-blur-xl hidden flex items-center justify-center p-4 pb-8 font-kantumruy">
-    <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl max-h-[92vh] flex flex-col overflow-hidden w-full max-w-lg mx-auto shadow-2xl">
-      <!-- Header -->
-      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-emerald-500/10 shrink-0">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
-            <i data-lucide="file-badge" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight">សេវាកម្មឯកសាររដ្ឋបាល HR</h3>
-            <p class="text-[10px] text-emerald-300 font-mono mt-0.5">Official Certificates & Letters</p>
+  <div id="attendance-documents-modal" class="fixed inset-0 z-[75] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300 ease-out">
+    <div class="w-full max-w-lg lg:max-w-xl mx-auto flex flex-col h-full overflow-hidden">
+      <!-- Top Bar -->
+      <div onclick="handleHeaderScrollToTop(event, 'attendance-documents-body')" 
+           class="relative z-30 px-3.5 sm:px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-2xl shrink-0 flex items-center justify-between gap-2 cursor-pointer select-none transition">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="closeAttendanceDocumentsModal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
+                  title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
+          <div class="min-w-0">
+            <h3 class="font-bold text-xs sm:text-sm text-white leading-tight">
+              <span>សេវាកម្មឯកសាររដ្ឋបាល HR</span>
+            </h3>
+            <p class="text-[10px] text-emerald-300 font-medium">Official Certificates & Letters</p>
           </div>
         </div>
-        <button onclick="closeAttendanceDocumentsModal()" 
-                class="py-1 px-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-white/5 border border-white/10 flex items-center gap-1 active:scale-95 transition shadow-sm">
-          <i data-lucide="x" class="w-3.5 h-3.5 text-slate-400"></i>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button onclick="closeAttendanceDocumentsModal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 flex items-center justify-center transition">
+            <i data-lucide="x" class="w-4 h-4 text-slate-400"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Tab Buttons for 3 Letters -->
-      <div class="px-3 pt-2.5 pb-1 border-b border-white/10 bg-black/30 flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar">
+      <div class="px-3 pt-2.5 pb-2 border-b border-white/10 bg-black/40 flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar">
         <button type="button" onclick="switchDocTab('work_cert')" id="doc-tab-btn-work_cert" 
-                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center gap-1 whitespace-nowrap transition">
+                class="flex-1 py-2 px-2.5 rounded-xl text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center gap-1 whitespace-nowrap transition">
           <i data-lucide="award" class="w-3.5 h-3.5"></i>
           <span>វិញ្ញាបនបត្រការងារ</span>
         </button>
         <button type="button" onclick="switchDocTab('eval_letter')" id="doc-tab-btn-eval_letter" 
-                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-transparent border border-transparent flex items-center justify-center gap-1 whitespace-nowrap transition">
+                class="flex-1 py-2 px-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-transparent border border-transparent flex items-center justify-center gap-1 whitespace-nowrap transition">
           <i data-lucide="star" class="w-3.5 h-3.5"></i>
           <span>លិខិតវាយតម្លៃ</span>
         </button>
         <button type="button" onclick="switchDocTab('salary_cert')" id="doc-tab-btn-salary_cert" 
-                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-transparent border border-transparent flex items-center justify-center gap-1 whitespace-nowrap transition">
+                class="flex-1 py-2 px-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-transparent border border-transparent flex items-center justify-center gap-1 whitespace-nowrap transition">
           <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
           <span>លិខិតប្រាក់ខែ</span>
         </button>
       </div>
 
       <!-- Document Content Body -->
-      <div id="attendance-documents-body" class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-3.5 bg-[#0A1220]">
+      <div id="attendance-documents-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-3.5 pb-36 bg-[#0A1220]" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
         <!-- Injected dynamically -->
       </div>
 
       <!-- Print / Download Footer -->
-      <div class="p-3 border-t border-white/10 bg-black/30 flex items-center justify-between shrink-0">
+      <div class="p-3 border-t border-white/10 bg-black/40 flex items-center justify-between shrink-0">
         <span class="text-[10px] text-slate-400 flex items-center gap-1">
           <i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>
           <span>ចេញជាផ្លូវការដោយ Bostar HR & Admin</span>
         </span>
         <button type="button" onclick="printCurrentHRDocument()" 
-                class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 active:scale-95 transition shadow-lg shadow-emerald-600/25">
+                class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 active:scale-95 transition shadow-lg shadow-emerald-600/25">
           <i data-lucide="printer" class="w-3.5 h-3.5"></i>
           <span>បោះពុម្ព / ទាញយក (Print)</span>
         </button>
@@ -4603,6 +4625,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=15.8"></script>
+  <script src="app.js?v=15.9"></script>
 </body>
 </html>
