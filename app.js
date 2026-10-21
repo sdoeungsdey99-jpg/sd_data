@@ -641,6 +641,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderCurrentView();
 
+  // Check and show morning birthday celebration greeting if today is user's birthday
+  setTimeout(checkAndShowBirthdayGreeting, 600);
+
   if (urlParams.get('master') === '1') {
     openMasterAdminPinModal();
   }
@@ -1008,7 +1011,7 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
@@ -1820,7 +1823,8 @@ function closeAllModals() {
     'new-expense-modal',
     'daily-report-modal',
     'honors-modal',
-    'tutorial-modal'
+    'tutorial-modal',
+    'birthday-celebration-modal'
   ];
   modals.forEach(id => {
     const el = document.getElementById(id);
@@ -7963,7 +7967,17 @@ function updateNotifBadgeCount() {
   const notifBadge = document.getElementById('notif-badge');
   if (!notifBadge) return;
   const list = getStoredNotifications();
-  const unreadCount = list.filter(n => !n.isRead).length;
+  let unreadCount = list.filter(n => !n.isRead).length;
+
+  try {
+    if (typeof isUserTeamLeader === 'function' && isUserTeamLeader()) {
+      const todayCount = (typeof getTodayTeamBirthdaysCount === 'function') ? getTodayTeamBirthdaysCount() : 0;
+      if (todayCount > 0 && !sessionStorage.getItem('bday_leader_ack_' + new Date().toDateString())) {
+        unreadCount += todayCount;
+      }
+    }
+  } catch (_) {}
+
   if (unreadCount > 0 && !appState.hasReadNotifications) {
     notifBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
     notifBadge.classList.remove('hidden');
@@ -8128,6 +8142,281 @@ async function syncOfflineQueue() {
   }
 }
 
+// ==========================================
+// BOSTAR TEAM BIRTHDAY ENGINE (LEADER ONLY)
+// ==========================================
+const DEFAULT_INITIAL_TEAM_BIRTHDAYS = [
+  { name: 'ឆេង រ៉ាស៊ុង', day: 21, month: 10, role: 'Co-Founder & Sale Leader' },
+  { name: 'ញែក សុគន្ធ', day: 24, month: 10, role: 'Co-Founder & Operations' },
+  { name: 'ស្ដី ស្ដើង', day: 15, month: 11, role: 'Founder & CEO' },
+  { name: 'ប៊ិច នោរ៉ា', day: 1, month: 12, role: 'Admin & Customer Care' },
+  { name: 'ចាន់ សុភាព', day: 8, month: 11, role: 'Marketing Specialist' },
+  { name: 'ម៉ែន វិបុល', day: 29, month: 10, role: 'Senior Sales Leader' }
+];
+
+const KH_MONTH_NAMES = [
+  '', 'មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា',
+  'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'
+];
+
+function isUserTeamLeader() {
+  try {
+    if (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet()) {
+      return true;
+    }
+    if (sessionStorage.getItem('master_admin_unlocked') === 'true' || sessionStorage.getItem('sd_attendance_admin') === 'true') {
+      return true;
+    }
+    const prof = (typeof getProfileData === 'function') ? getProfileData() : {};
+    const textToCheck = `${prof.name || ''} ${prof.subtitle || ''} ${prof.work || ''}`.toLowerCase();
+    const leaderKeywords = ['leader', 'manager', 'admin', 'director', 'founder', 'ceo', 'ស្ថាបនិក', 'ប្រធាន', 'នាយក', 'ស្ដើង', 'ស្តើង', 'sdoeung', 'រ៉ាស៊ុង', 'ស៊ុង', 'នោរ៉ា', 'សុគន្ធ'];
+    return leaderKeywords.some(kw => textToCheck.includes(kw));
+  } catch (_) {
+    return false;
+  }
+}
+
+function getTeamBirthdays() {
+  try {
+    const raw = localStorage.getItem('sd_team_birthdays');
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list) && list.length > 0) return list;
+    }
+  } catch (_) {}
+  try {
+    localStorage.setItem('sd_team_birthdays', JSON.stringify(DEFAULT_INITIAL_TEAM_BIRTHDAYS));
+  } catch (_) {}
+  return DEFAULT_INITIAL_TEAM_BIRTHDAYS;
+}
+
+function saveTeamMemberBirthday(member) {
+  if (!member || !member.name || !member.day || !member.month) return;
+  try {
+    const list = getTeamBirthdays().slice();
+    const idx = list.findIndex(m => m.name && m.name.trim().toLowerCase() === member.name.trim().toLowerCase());
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...member };
+    } else {
+      list.push(member);
+    }
+    localStorage.setItem('sd_team_birthdays', JSON.stringify(list));
+  } catch (_) {}
+}
+
+function getTodayTeamBirthdaysCount() {
+  const now = new Date();
+  const todayDay = now.getDate();
+  const todayMonth = now.getMonth() + 1;
+  const list = getTeamBirthdays();
+  return list.filter(m => parseInt(m.day, 10) === todayDay && parseInt(m.month, 10) === todayMonth).length;
+}
+
+function buildLeaderBirthdayFeedHTML() {
+  if (!isUserTeamLeader()) return '';
+
+  const list = getTeamBirthdays();
+  const now = new Date();
+  const todayDay = now.getDate();
+  const todayMonth = now.getMonth() + 1;
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const enriched = list.map(m => {
+    const day = parseInt(m.day, 10);
+    const month = parseInt(m.month, 10);
+    let bdayYear = now.getFullYear();
+    let bdayDate = new Date(bdayYear, month - 1, day);
+    if (bdayDate < todayMidnight) {
+      bdayDate = new Date(bdayYear + 1, month - 1, day);
+    }
+    const diffDays = Math.round((bdayDate - todayMidnight) / (1000 * 60 * 60 * 24));
+    return { ...m, diffDays, monthName: KH_MONTH_NAMES[month] || `ខែ ${month}` };
+  });
+
+  enriched.sort((a, b) => a.diffDays - b.diffDays);
+
+  const todayBirthdays = enriched.filter(m => m.diffDays === 0);
+  const upcomingBirthdays = enriched.filter(m => m.diffDays > 0 && m.diffDays <= 30).slice(0, 4);
+
+  if (todayBirthdays.length === 0 && upcomingBirthdays.length === 0) {
+    return '';
+  }
+
+  let html = `
+    <div class="mb-3.5 p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-[#101D32] border border-amber-400/30 text-xs text-slate-200 space-y-3 shadow-xl relative overflow-hidden font-kantumruy">
+      <div class="absolute -right-8 -top-8 w-24 h-24 bg-amber-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="flex items-center justify-between relative z-10">
+        <span class="font-bold text-amber-300 flex items-center gap-1.5 text-xs">
+          <span class="text-base">🎂</span>
+          <span>ខួបកំណើតសមាជិកក្រុម (Team Birthdays)</span>
+        </span>
+        <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30 flex items-center gap-1">
+          <i data-lucide="shield-check" class="w-3 h-3 text-amber-400"></i>
+          <span>Leader Only</span>
+        </span>
+      </div>
+  `;
+
+  if (todayBirthdays.length > 0) {
+    html += `
+      <div class="space-y-2 relative z-10">
+        ${todayBirthdays.map(m => `
+          <div class="p-3 rounded-xl bg-gradient-to-r from-amber-500/25 via-orange-500/20 to-amber-500/10 border border-amber-400/50 shadow-lg relative overflow-hidden">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center text-lg shadow-md flex-shrink-0">
+                  🎉
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-bold text-white text-xs">${m.name}</span>
+                    <span class="px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-900 font-black text-[9px] uppercase tracking-wider">Today!</span>
+                  </div>
+                  <p class="text-[10px] text-amber-200/90">${m.role || 'សមាជិកក្រុម Bostar'}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-[10.5px] font-bold text-amber-300 font-mono">${m.day} ${m.monthName}</span>
+                <span class="block text-[8.5px] text-amber-400/80 font-bold">ថ្ងៃនេះ</span>
+              </div>
+            </div>
+
+            <button onclick="sendTelegramBirthdayWish('${m.name.replace(/'/g, "\\'")}')"
+                    class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 active:scale-98 text-white font-bold text-[11px] shadow-md shadow-sky-500/30 flex items-center justify-center gap-2 transition">
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              <span>🚀 ផ្ញើសារជូនពរលើ Telegram</span>
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  if (upcomingBirthdays.length > 0) {
+    html += `
+      <div class="space-y-1.5 relative z-10 pt-1">
+        <p class="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+          <i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i>
+          <span>ជិតមកដល់ឆាប់ៗនេះ (Upcoming in 30 days)</span>
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          ${upcomingBirthdays.map(m => `
+            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/30 flex items-center justify-between gap-2 transition">
+              <div class="flex items-center gap-2 min-w-0">
+                <div class="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-xs flex-shrink-0">
+                  🎁
+                </div>
+                <div class="truncate">
+                  <span class="font-bold text-white text-[11px] block truncate">${m.name}</span>
+                  <span class="text-[9.5px] text-slate-400">${m.role || 'សមាជិក Bostar'}</span>
+                </div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <span class="text-[10px] font-bold text-amber-300 font-mono block">${m.day} ${m.monthName}</span>
+                <span class="text-[8.5px] px-1.5 py-0.2 rounded-full bg-white/10 text-slate-300">ក្នុង ${m.diffDays} ថ្ងៃ</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  html += `
+      <p class="text-[9px] text-slate-400 text-center pt-1 border-t border-white/5 flex items-center justify-center gap-1">
+        <i data-lucide="lock" class="w-2.5 h-2.5 text-slate-500"></i>
+        <span>ទិន្នន័យថ្ងៃកំណើត (ថ្ងៃ+ខែ) ត្រូវបានបង្ហាញជូនតែថ្នាក់ដឹកនាំប៉ុណ្ណោះ។</span>
+      </p>
+    </div>
+  `;
+
+  return html;
+}
+
+function sendTelegramBirthdayWish(name) {
+  const wishText = `🎉🎂 រីករាយថ្ងៃខួបកំណើត ${name}! ថ្នាក់ដឹកនាំ និងគ្រួសារ Bostar Group សូមជូនពរឱ្យប្អូន/លោក ជួបតែសេចក្តីសុខ សុខភាពល្អបរិបូរណ៍ មានសំណាងល្អ និងសម្រេចបានគ្រប់គោលដៅលក់យ៉ាងត្រចះត្រចង់! ✨❤️🚀`;
+  const url = `https://t.me/share/url?url=${encodeURIComponent('https://sddata.vercel.app')}&text=${encodeURIComponent(wishText)}`;
+  window.open(url, '_blank');
+}
+
+function checkAndShowBirthdayGreeting() {
+  try {
+    const prof = (typeof getProfileData === 'function') ? getProfileData() : {};
+    const now = new Date();
+    const todayDay = now.getDate();
+    const todayMonth = now.getMonth() + 1;
+
+    let isBirthday = false;
+    if (prof.birthDay && prof.birthMonth) {
+      isBirthday = (parseInt(prof.birthDay, 10) === todayDay && parseInt(prof.birthMonth, 10) === todayMonth);
+    } else if (prof.birthday) {
+      const bStr = String(prof.birthday).toLowerCase();
+      const khMonth = KH_MONTH_NAMES[todayMonth] || '';
+      if (bStr.includes(String(todayDay)) && (khMonth && bStr.includes(khMonth) || bStr.includes(`/${todayMonth}`) || bStr.includes(`-${todayMonth}`))) {
+        isBirthday = true;
+      }
+    }
+
+    if (!isBirthday) return;
+
+    const sessionKey = `bday_greeted_${now.getFullYear()}_${todayMonth}_${todayDay}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+
+    const modal = document.getElementById('birthday-celebration-modal');
+    if (!modal) return;
+
+    const nameEl = document.getElementById('bday-celebrate-name');
+    if (nameEl) {
+      nameEl.textContent = `រីករាយថ្ងៃខួបកំណើត ${prof.name || 'ប្អូន'}! 🎂🎉`;
+    }
+
+    modal.classList.remove('hidden');
+    sessionStorage.setItem(sessionKey, 'true');
+    launchBirthdayConfetti();
+
+    if (navigator.vibrate) try { navigator.vibrate([100, 50, 100, 50, 200]); } catch (_) {}
+  } catch (err) {
+    console.warn('Birthday greeting check error:', err);
+  }
+}
+
+function closeBirthdayCelebrationModal() {
+  const modal = document.getElementById('birthday-celebration-modal');
+  if (modal) modal.classList.add('hidden');
+  const container = document.getElementById('birthday-confetti-container');
+  if (container) container.innerHTML = '';
+}
+
+function launchBirthdayConfetti() {
+  const container = document.getElementById('birthday-confetti-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const colors = ['#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#FBBF24'];
+  const confettiCount = 45;
+
+  for (let i = 0; i < confettiCount; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const left = Math.random() * 100;
+    const bg = colors[Math.floor(Math.random() * colors.length)];
+    const delay = Math.random() * 1.8;
+    const duration = 2.2 + Math.random() * 1.5;
+    const sizeW = 6 + Math.random() * 6;
+    const sizeH = 10 + Math.random() * 8;
+
+    piece.style.left = `${left}%`;
+    piece.style.backgroundColor = bg;
+    piece.style.animationDelay = `${delay}s`;
+    piece.style.animationDuration = `${duration}s`;
+    piece.style.width = `${sizeW}px`;
+    piece.style.height = `${sizeH}px`;
+
+    container.appendChild(piece);
+  }
+}
+
 function renderNotificationsFeed(d) {
   const feedList = document.getElementById('notif-feed-list');
   if (!d || !feedList) return;
@@ -8224,7 +8513,8 @@ function renderNotificationsFeed(d) {
     `;
   }
 
-  feedList.innerHTML = announcementsHTML + eventsHTML;
+  const birthdayHTML = (typeof buildLeaderBirthdayFeedHTML === 'function') ? buildLeaderBirthdayFeedHTML() : '';
+  feedList.innerHTML = birthdayHTML + announcementsHTML + eventsHTML;
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -8233,6 +8523,10 @@ function toggleNotificationsModal() {
   if (!modal) return;
   const isHidden = modal.classList.contains('hidden');
   if (isHidden) {
+    try {
+      sessionStorage.setItem('bday_leader_ack_' + new Date().toDateString(), 'true');
+      if (typeof updateNotifBadgeCount === 'function') updateNotifBadgeCount();
+    } catch (_) {}
     if (DataService.data) renderNotificationsFeed(DataService.data);
     setDockVisible(true);
     const feedList = document.getElementById('notif-feed-list');
@@ -8546,6 +8840,7 @@ function handleHeaderScrollToTop(e, targetId = null) {
   } else {
     // Dynamic detection based on what is currently active/visible on screen
     const modals = [
+      { modalId: 'attendance-modal', listId: 'attendance-modal-body' },
       { modalId: 'all-customers-modal', listId: 'all-customers-list' },
       { modalId: 'sales-modal', listId: 'sales-modal-list' },
       { modalId: 'expenses-modal', listId: 'expenses-modal-list' },
@@ -9140,15 +9435,15 @@ const DEFAULT_ATTENDANCE_STATE = {
   location: 'ការិយាល័យកណ្តាល (HQ GPS Verified)',
   note: '',
   records: [
-    { day: 1, date: '01/10/2026', checkIn: '08:02 AM', checkOut: '05:32 PM', status: 'present', duration: '9h 30m' },
-    { day: 2, date: '02/10/2026', checkIn: '08:00 AM', checkOut: '05:30 PM', status: 'present', duration: '9h 30m' },
-    { day: 5, date: '05/10/2026', checkIn: '08:05 AM', checkOut: '05:40 PM', status: 'present', duration: '9h 35m' },
-    { day: 6, date: '06/10/2026', checkIn: '08:03 AM', checkOut: '05:31 PM', status: 'present', duration: '9h 28m' },
-    { day: 7, date: '07/10/2026', checkIn: '08:35 AM', checkOut: '05:45 PM', status: 'late', duration: '9h 10m' },
-    { day: 8, date: '08/10/2026', checkIn: '08:00 AM', checkOut: '05:30 PM', status: 'present', duration: '9h 30m' },
-    { day: 9, date: '09/10/2026', checkIn: '08:04 AM', checkOut: '05:30 PM', status: 'present', duration: '9h 26m' },
-    { day: 12, date: '12/10/2026', checkIn: '08:01 AM', checkOut: '05:35 PM', status: 'present', duration: '9h 34m' },
-    { day: 13, date: '13/10/2026', checkIn: '08:06 AM', checkOut: '05:30 PM', status: 'present', duration: '9h 24m' }
+    { day: 1, date: '01/10/2026', checkIn: '08:02 AM', checkOut: '05:02 PM', status: 'present', duration: '9h 00m' },
+    { day: 2, date: '02/10/2026', checkIn: '08:00 AM', checkOut: '05:00 PM', status: 'present', duration: '9h 00m' },
+    { day: 5, date: '05/10/2026', checkIn: '08:05 AM', checkOut: '05:10 PM', status: 'present', duration: '9h 05m' },
+    { day: 6, date: '06/10/2026', checkIn: '08:03 AM', checkOut: '05:01 PM', status: 'present', duration: '8h 58m' },
+    { day: 7, date: '07/10/2026', checkIn: '08:35 AM', checkOut: '05:15 PM', status: 'late', duration: '8h 40m' },
+    { day: 8, date: '08/10/2026', checkIn: '08:00 AM', checkOut: '05:00 PM', status: 'present', duration: '9h 00m' },
+    { day: 9, date: '09/10/2026', checkIn: '08:04 AM', checkOut: '05:00 PM', status: 'present', duration: '8h 56m' },
+    { day: 12, date: '12/10/2026', checkIn: '08:01 AM', checkOut: '05:05 PM', status: 'present', duration: '9h 04m' },
+    { day: 13, date: '13/10/2026', checkIn: '08:06 AM', checkOut: '05:00 PM', status: 'present', duration: '8h 54m' }
   ]
 };
 
@@ -9438,11 +9733,11 @@ function renderAttendanceEditForm() {
 
       <div class="space-y-1">
         <label class="block text-[11px] font-bold text-slate-300">ម៉ោងចេញ (Check Out)៖</label>
-        <input type="text" id="att-edit-out-time" value="${data.checkOutTime || '05:30 PM'}" 
-               placeholder="05:30 PM"
+        <input type="text" id="att-edit-out-time" value="${data.checkOutTime || '05:00 PM'}" 
+               placeholder="05:00 PM"
                class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
         <div class="flex items-center gap-1 pt-1">
-          <button type="button" onclick="quickSetAttendanceTime('att-edit-out-time', '05:30 PM')" class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-[9.5px] text-slate-300 font-mono">05:30 PM</button>
+          <button type="button" onclick="quickSetAttendanceTime('att-edit-out-time', '05:00 PM')" class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-[9.5px] text-slate-300 font-mono">05:00 PM</button>
           <button type="button" onclick="quickSetAttendanceTime('att-edit-out-time', 'now')" class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-[9.5px] text-sky-400 font-mono">ឥឡូវនេះ</button>
         </div>
       </div>
@@ -9610,7 +9905,16 @@ function openAttendanceModal() {
   if (!modal) return;
   renderAttendanceContent();
   modal.classList.remove('hidden');
-  setDockVisible(false);
+
+  // Keep dock visible and smoothly hook for auto-hide on scroll (like All Customers)
+  setDockVisible(true);
+  const scrollEl = document.getElementById('attendance-modal-body');
+  if (scrollEl) {
+    scrollEl.scrollTop = 0;
+    if (typeof hookScrollableForDock === 'function') {
+      hookScrollableForDock(scrollEl, false);
+    }
+  }
 
   if (window._attendanceClockInterval) clearInterval(window._attendanceClockInterval);
   window._attendanceClockInterval = setInterval(updateAttendanceLiveClock, 1000);
@@ -9627,6 +9931,7 @@ function closeAttendanceModal() {
     clearInterval(window._attendanceClockInterval);
     window._attendanceClockInterval = null;
   }
+  setDockVisible(true);
   openProfileDrawer();
   if (navigator.vibrate) try { navigator.vibrate(12); } catch(_) {}
 }
@@ -9955,7 +10260,7 @@ async function submitAttendanceLeaveRequest() {
   const durLabels = {
     full_day: 'ពេញមួយថ្ងៃ (Full Day)',
     morning: 'កន្លះថ្ងៃ - ព្រឹក (Morning 08:00 - 12:00)',
-    afternoon: 'កន្លះថ្ងៃ - រសៀល (Afternoon 01:30 - 05:30)',
+    afternoon: 'កន្លះថ្ងៃ - រសៀល (Afternoon 01:30 - 05:00)',
     multi_days: 'ច្រើនថ្ងៃ (Multiple Days)'
   };
   const durationText = durLabels[durType] || durType;
@@ -10230,8 +10535,8 @@ function renderManagerModalContent() {
         </div>
         <div class="space-y-1">
           <label class="block text-[11px] font-bold text-slate-300">ម៉ោងចេញ (Check Out)៖</label>
-          <input type="text" id="att-edit-out-time" value="${data.checkOutTime || '05:30 PM'}" 
-                 placeholder="05:30 PM"
+          <input type="text" id="att-edit-out-time" value="${data.checkOutTime || '05:00 PM'}" 
+                 placeholder="05:00 PM"
                  class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
         </div>
       </div>
@@ -11018,12 +11323,12 @@ function renderAttendanceContent() {
 
         <p class="text-[10.5px] text-slate-400">
           ${data.todayStatus === 'not_checked' 
-            ? (isEn ? 'Standard work hours: 08:00 AM - 05:30 PM' : 'ម៉ោងចូលស្តង់ដារ៖ ០៨:០០ ព្រឹក - ០៥:៣០ ល្ងាច')
+            ? (isEn ? 'Standard work hours: 08:00 AM - 05:00 PM' : 'ម៉ោងចូលស្តង់ដារ៖ ០៨:០០ ព្រឹក - ០៥:០០ ល្ងាច')
             : (data.todayStatus === 'checked_in' 
                 ? (isEn ? `Checked in at ${data.checkInTime}. Remember to check out when finishing!` : `បានចូលម៉ោង ${data.checkInTime}។ កុំភ្លេចចុចចេញពេលចប់ការងារ!`)
                 : (data.todayStatus === 'leave'
                     ? (isEn ? 'On Leave today' : 'សុំច្បាប់សម្រាកសម្រាប់ថ្ងៃនេះ')
-                    : (isEn ? `Full day completed: ${data.duration || '8h 25m'}` : `បានបញ្ចប់ម៉ោងការងារពេញលេញ៖ ${data.duration || '៨ ម៉ោង ២៥ នាទី'}`)))
+                    : (isEn ? `Full day completed: ${data.duration || '8h 00m'}` : `បានបញ្ចប់ម៉ោងការងារពេញលេញ៖ ${data.duration || '៨ ម៉ោង ០០ នាទី'}`)))
           }
         </p>
       </div>
@@ -11915,6 +12220,44 @@ function openEditProfileModal() {
   setVal('edit-prof-birthday', p.birthday);
   setVal('edit-prof-phone', p.phone);
 
+  // Dynamically populate days 1..31 if not yet populated
+  const daySelect = document.getElementById('edit-prof-birthday-day');
+  if (daySelect && daySelect.options.length <= 1) {
+    for (let d = 1; d <= 31; d++) {
+      const opt = document.createElement('option');
+      opt.value = String(d);
+      opt.textContent = `ថ្ងៃទី ${d}`;
+      daySelect.appendChild(opt);
+    }
+  }
+
+  // Populate Day & Month selections
+  let savedDay = p.birthDay || '';
+  let savedMonth = p.birthMonth || '';
+  if (!savedDay && !savedMonth && p.birthday) {
+    const digits = String(p.birthday).match(/(\d{1,4})/g);
+    if (digits && digits.length >= 2) {
+      if (parseInt(digits[0], 10) > 1900) {
+        savedMonth = parseInt(digits[1], 10);
+        savedDay = parseInt(digits[2] || digits[0], 10);
+      } else {
+        savedDay = parseInt(digits[0], 10);
+        savedMonth = parseInt(digits[1], 10);
+      }
+    } else if (digits && digits.length === 1) {
+      savedDay = parseInt(digits[0], 10);
+      for (let mi = 1; mi <= 12; mi++) {
+        if (KH_MONTH_NAMES[mi] && p.birthday.includes(KH_MONTH_NAMES[mi])) {
+          savedMonth = mi;
+          break;
+        }
+      }
+    }
+  }
+  if (daySelect) daySelect.value = savedDay ? String(savedDay) : '';
+  const monthSelect = document.getElementById('edit-prof-birthday-month');
+  if (monthSelect) monthSelect.value = savedMonth ? String(savedMonth) : '';
+
   document.getElementById('edit-profile-modal')?.classList?.remove('hidden');
   setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
@@ -11980,6 +12323,14 @@ function saveProfileData() {
   const current = getProfileData();
   const getVal = (id) => (document.getElementById(id)?.value || '').trim();
 
+  const birthDay = parseInt(document.getElementById('edit-prof-birthday-day')?.value || '0', 10) || null;
+  const birthMonth = parseInt(document.getElementById('edit-prof-birthday-month')?.value || '0', 10) || null;
+  let formattedBirthday = '';
+  if (birthDay && birthMonth) {
+    const khMonth = KH_MONTH_NAMES[birthMonth] || `ខែ ${birthMonth}`;
+    formattedBirthday = `${birthDay} ${khMonth}`;
+  }
+
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   const updated = {
     ...current,
@@ -11992,12 +12343,23 @@ function saveProfileData() {
     live: getVal('edit-prof-live'),
     from: getVal('edit-prof-from'),
     status: getVal('edit-prof-status'),
-    birthday: getVal('edit-prof-birthday') || '',
+    birthday: formattedBirthday || getVal('edit-prof-birthday') || '',
+    birthDay: birthDay,
+    birthMonth: birthMonth,
+    birthPrivacy: 'leader_only',
     phone: getVal('edit-prof-phone') || ''
   };
 
   try {
     localStorage.setItem('sd_profile_data', JSON.stringify(updated));
+    if (birthDay && birthMonth && typeof saveTeamMemberBirthday === 'function') {
+      saveTeamMemberBirthday({
+        name: updated.name,
+        day: birthDay,
+        month: birthMonth,
+        role: updated.subtitle || 'សមាជិកក្រុម Bostar'
+      });
+    }
     syncHeaderProfileUI();
     closeEditProfileModal();
     renderCurrentView();
