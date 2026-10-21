@@ -1317,7 +1317,6 @@ function setupSwipeToBack() {
 
 function isDialogModalOpen() {
   const ids = [
-    'daily-report-modal',
     'edit-profile-modal',
     'profile-sub-modal',
     'qr-photos-modal',
@@ -1325,10 +1324,7 @@ function isDialogModalOpen() {
     'shortcut-modal',
     'about-modal',
     'global-search-modal',
-    'profile-settings-search-modal',
-    'honors-modal',
-    'team-members-modal',
-    'new-order-modal'
+    'profile-settings-search-modal'
   ];
   return ids.some(id => {
     const el = document.getElementById(id);
@@ -1346,12 +1342,10 @@ function setDockVisible(visible) {
 
   if (isReportOpen || (visible && isDialogModalOpen())) {
     if (dock) {
-      dock.classList.add('dock-hidden', '!hidden');
-      dock.style.display = 'none';
+      dock.classList.add('dock-hidden');
     }
     if (dockBlur) {
-      dockBlur.classList.add('opacity-0', '!hidden', 'dock-hidden');
-      dockBlur.style.display = 'none';
+      dockBlur.classList.add('opacity-0', 'dock-hidden');
     }
     return;
   }
@@ -1371,7 +1365,7 @@ function setDockVisible(visible) {
     }
     if (dockBlur) {
       dockBlur.classList.add('opacity-0', 'dock-hidden');
-      dockBlur.style.display = 'none';
+      dockBlur.style.display = '';
     }
   }
 }

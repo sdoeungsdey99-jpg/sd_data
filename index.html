@@ -1679,18 +1679,17 @@
       opacity: 0 !important;
       pointer-events: none !important;
     }
-    /* When dock is hidden or opacity-0, suppress the blur backdrop completely */
-    #dock-blur-backdrop.opacity-0,
-    #dock-blur-backdrop.dock-hidden,
-    #dock-blur-backdrop.\!hidden {
-      display: none !important;
-      opacity: 0 !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
+    /* When dock is hidden or opacity-0, fade blur backdrop smoothly */
+    #dock-blur-backdrop {
+      transition: opacity 0.3s ease !important;
+      will-change: opacity;
     }
-    /* Complete Dock & Blur Backdrop Suppression when Daily Report is open */
+    #dock-blur-backdrop.opacity-0,
+    #dock-blur-backdrop.dock-hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    /* Complete Dock & Blur Backdrop Suppression strictly when Daily Report is open */
     body.report-modal-open #bottom-dock,
     body.report-modal-open #dock-blur-backdrop,
     body:has(#daily-report-modal:not(.hidden)) #bottom-dock,
@@ -4763,6 +4762,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=20.1"></script>
+  <script src="app.js?v=20.2"></script>
 </body>
 </html>
