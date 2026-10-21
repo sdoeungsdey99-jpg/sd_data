@@ -1924,6 +1924,20 @@
         <p class="text-[10.5px] text-slate-300">៣. ចុច <strong>Copy link</strong> រួចយកមក Paste ក្នុងប្រអប់ខាងលើជាការស្រេច!</p>
       </div>
 
+      <!-- Honors & Dedication Quick Banner (កាតកិត្តិយស & ការដឹងគុណ) -->
+      <button onclick="openAboutModal()" class="w-full p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 border border-amber-500/25 hover:border-amber-400/40 text-left active:scale-[0.98] transition mb-3 shadow-md group flex items-center justify-between">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-xs font-bold text-amber-300 truncate">🌟 កាតកិត្តិយស & ការដឹងគុណ</h4>
+            <p class="text-[10px] text-slate-400 truncate">ស្ថាបនិក • គណៈគ្រប់គ្រង • អ្នករៀបចំប្រព័ន្ធ</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-amber-400/70 group-hover:translate-x-0.5 transition shrink-0"></i>
+      </button>
+
       <!-- Master Admin Switch for Brother Sdoeung -->
       <button onclick="openMasterAdminPinModal()" class="text-[11px] text-slate-500 hover:text-orange-400 active:scale-95 transition flex items-center gap-1.5 py-1 px-2.5 rounded-lg">
         <i data-lucide="shield-lock" class="w-3.5 h-3.5 text-slate-500"></i>
@@ -2733,7 +2747,7 @@
 
   <!-- About Me Modal (ផ្ទាំងកាតអំពីខ្ញុំចំកណ្តាលពេញលេញ + Blur ផ្ទៃខាងក្រោយ + ប៉ះកន្លែងទំនេរដើម្បីបិទ) -->
   <div id="about-modal" onclick="closeAboutModal(event)" class="fixed inset-0 z-[70] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-300">
-    <div id="about-modal-card" onclick="event.stopPropagation()" class="rounded-3xl bg-[#09111D] border border-white/10 p-5 shadow-2xl flex flex-col items-center text-center space-y-3.5 relative overflow-hidden max-w-xs w-full animate-fade-in">
+    <div id="about-modal-card" onclick="event.stopPropagation()" class="rounded-3xl bg-[#09111D] border border-white/10 p-5 shadow-2xl flex flex-col items-center text-center space-y-4 relative overflow-y-auto no-scrollbar max-w-md w-full max-h-[88vh] animate-fade-in">
       <!-- Populated dynamically by renderAboutModal() -->
     </div>
   </div>
