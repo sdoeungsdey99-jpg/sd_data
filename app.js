@@ -1136,8 +1136,14 @@ function setupSwipeToBack() {
     const isSubModalOpen = isProfileSubModalOpen();
     const honorsEl = document.getElementById('honors-modal');
     const isHonorsOpen = honorsEl && !honorsEl.classList.contains('hidden');
+    const reportEl = document.getElementById('daily-report-modal');
+    const isReportOpen = reportEl && !reportEl.classList.contains('hidden');
 
-    if (isHonorsOpen && e.target && e.target.closest('#honors-modal')) {
+    if (isReportOpen && e.target && e.target.closest('#daily-report-modal')) {
+      // Swiping inside Daily Report Modal -> Dismiss/Back
+      isPotentialSwipe = true;
+      swipeOrigin = 'daily-report-modal';
+    } else if (isHonorsOpen && e.target && e.target.closest('#honors-modal')) {
       // 0. Touching anywhere on Honors Modal (Swipe Left/Right to return)
       isPotentialSwipe = true;
       swipeOrigin = 'honors-modal';
@@ -1183,6 +1189,16 @@ function setupSwipeToBack() {
     const deltaY = touchEndY - touchStartY;
     const isDrawerOpen = isProfileDrawerOpen();
     const isSubModalOpen = isProfileSubModalOpen();
+
+    // Case 00: Swiping Left-to-Right anywhere on Daily Report Modal -> Dismiss/Back
+    if (swipeOrigin === 'daily-report-modal') {
+      if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
+        closeDailyReportModal();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        isPotentialSwipe = false;
+        return;
+      }
+    }
 
     // Case 0: Swiping Left OR Right anywhere on Honors Modal -> Return
     if (swipeOrigin === 'honors-modal') {
@@ -1246,8 +1262,14 @@ function setupSwipeToBack() {
     const isSubModalOpen = isProfileSubModalOpen();
     const honorsEl = document.getElementById('honors-modal');
     const isHonorsOpen = honorsEl && !honorsEl.classList.contains('hidden');
+    const reportEl = document.getElementById('daily-report-modal');
+    const isReportOpen = reportEl && !reportEl.classList.contains('hidden');
 
-    if (isHonorsOpen && e.target && e.target.closest('#honors-modal')) {
+    if (isReportOpen && e.target && e.target.closest('#daily-report-modal')) {
+      // Swiping inside Daily Report Modal -> Dismiss/Back
+      isPotentialSwipe = true;
+      swipeOrigin = 'daily-report-modal';
+    } else if (isHonorsOpen && e.target && e.target.closest('#honors-modal')) {
       // 0. Touching anywhere on Honors Modal (Swipe Left/Right to return)
       isPotentialSwipe = true;
       swipeOrigin = 'honors-modal';
@@ -1280,6 +1302,15 @@ function setupSwipeToBack() {
     const deltaY = e.clientY - mouseStartY;
     const isDrawerOpen = isProfileDrawerOpen();
     const isSubModalOpen = isProfileSubModalOpen();
+
+    if (mouseOrigin === 'daily-report-modal') {
+      if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
+        closeDailyReportModal();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        isMouseDown = false;
+        return;
+      }
+    }
 
     if (mouseOrigin === 'honors-modal') {
       if (Math.abs(deltaX) >= 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.0) {
@@ -14457,18 +14488,15 @@ let _stepTimer = null;
 let _stepInterval = null;
 
 function changeReportFieldVal(fieldId, delta) {
-  const hiddenInput = document.getElementById(fieldId);
-  if (!hiddenInput) return;
-  let val = (Number(hiddenInput.value) || 0) + delta;
+  const input = document.getElementById(fieldId);
+  if (!input) return;
+  let val = (Number(input.value) || 0) + delta;
   if (val < 0) val = 0;
-  hiddenInput.value = val;
+  input.value = val;
 
   if (fieldId === 'rep-field-chat-target') {
-    hiddenInput.dataset.manualEdited = 'true';
+    input.dataset.manualEdited = 'true';
   }
-
-  const disp = document.getElementById(`${fieldId}-disp`);
-  if (disp) disp.innerText = val;
 
   // Subtle highlight card when clicked
   const card = document.getElementById(`card-${fieldId}`);
@@ -14482,6 +14510,22 @@ function changeReportFieldVal(fieldId, delta) {
   calculateDailyReportMetrics();
   if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
 }
+
+function onReportFieldManualInput(fieldId) {
+  const input = document.getElementById(fieldId);
+  if (!input) return;
+  let clean = input.value.replace(/[^0-9]/g, '');
+  if (clean === '') clean = '0';
+  const val = parseInt(clean, 10) || 0;
+  input.value = val;
+
+  if (fieldId === 'rep-field-chat-target') {
+    input.dataset.manualEdited = 'true';
+  }
+
+  calculateDailyReportMetrics();
+}
+window.onReportFieldManualInput = onReportFieldManualInput;
 
 function stepFieldPress(fieldId, delta, ev) {
   if (ev) ev.stopPropagation();
@@ -14518,7 +14562,7 @@ function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTi
         <span class="text-[10px] text-slate-400 font-kantumruy font-semibold shrink-0 ml-1">${unit}</span>
       </div>
 
-      <!-- Compact Standard Stepper: [-] [ Value ] [+] -->
+      <!-- Compact Standard Stepper: [-] [ Num Key Input ] [+] -->
       <div class="flex items-center justify-between bg-black/60 px-1 py-1 rounded-xl border border-white/10 gap-1">
         <!-- Minus Button on Left -->
         <button type="button" 
@@ -14532,9 +14576,18 @@ function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTi
           −
         </button>
 
-        <!-- Center Number Display -->
+        <!-- Center Number Display (Interactive Numeric Keypad Input!) -->
         <div class="flex-1 text-center min-w-0 px-1">
-          <span id="${id}-disp" class="text-base sm:text-lg font-mono font-black text-amber-400 block leading-tight truncate drop-shadow-sm">${v}</span>
+          <input type="text"
+                 inputmode="numeric"
+                 pattern="[0-9]*"
+                 id="${id}"
+                 value="${v}"
+                 onclick="this.select();"
+                 onfocus="this.select();"
+                 oninput="onReportFieldManualInput('${id}')"
+                 class="w-full bg-transparent text-center text-base sm:text-lg font-mono font-black text-amber-400 focus:outline-none focus:text-amber-300 selection:bg-amber-500/30 p-0 m-0 border-none leading-tight drop-shadow-sm cursor-text"
+                 style="font-size: 17px !important; -webkit-user-select: text !important; user-select: text !important;">
         </div>
 
         <!-- Plus Button on Right -->
@@ -14549,7 +14602,6 @@ function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTi
           +
         </button>
       </div>
-      <input type="hidden" id="${id}" value="${v}">
     </div>
   `;
 }
@@ -15111,8 +15163,8 @@ function renderDailyReportModal() {
       <!-- Card 1: Meta Information -->
       <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
         <div class="flex items-center justify-between">
-          <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+          <span class="text-xs sm:text-sm text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
             <span>កាលបរិច្ឆេទ & ព័ត៌មានផេក</span>
           </span>
           <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-[9px] font-bold border border-emerald-500/30">
@@ -15129,9 +15181,9 @@ function renderDailyReportModal() {
         </div>
 
         <div class="space-y-2.5 pt-1">
-          <!-- ឈ្មោះផេកផ្ទាល់ (Full width) -->
+          <!-- ឈ្មោះផេក (Full width) -->
           <div>
-            <label class="block text-xs text-slate-300 mb-1 font-bold">ឈ្មោះផេកផ្ទាល់៖</label>
+            <label class="block text-xs text-slate-300 mb-1 font-bold">ឈ្មោះផេក៖</label>
             <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
                    oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
                    class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 sm:p-3 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
@@ -15244,13 +15296,13 @@ function renderDailyReportModal() {
       </div>
 
       <!-- Card 5: បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-        <label class="block text-[10px] text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-          <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+      <div class="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+        <label class="block text-xs sm:text-sm text-amber-400 font-bold uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4"></i>
           <span>បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖</span>
         </label>
         <textarea id="rep-field-challenges" rows="2" placeholder="ឧទាហរណ៍៖ អតិថិជនត្អូញត្អែរតម្លៃ, សេវាដឹកយឺត, អស់ទំនិញក្នុងស្តុក..." 
-                  class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
+                  class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white text-xs sm:text-sm focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
       </div>
 
       <!-- Card 6: សារលើកទឹកចិត្ត និងអបអរសាទរ (App-Only Motivational Morale Card) -->
