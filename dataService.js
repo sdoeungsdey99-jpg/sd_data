@@ -15,6 +15,15 @@ function extractSheetId(input) {
 
 function getActiveSheetId() {
   try {
+    if (typeof window !== 'undefined' && window.location && window.location.search) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSheet = urlParams.get('sheet') || urlParams.get('sheet_id');
+      if (urlSheet && urlSheet.trim().length > 15) {
+        const cleanUrlSheet = extractSheetId(urlSheet.trim()) || urlSheet.trim();
+        localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
+        return cleanUrlSheet;
+      }
+    }
     const custom = localStorage.getItem('sd_custom_sheet_id');
     if (custom && custom.trim().length > 15) return custom.trim();
   } catch (_) {}

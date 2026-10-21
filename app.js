@@ -12248,6 +12248,11 @@ function onPriceRawInput(isTyping = false) {
 // Company Team Leaders (22 Official Leaders)
 // ==========================================
 const COMPANY_TEAM_LEADERS = [
+  'Hou_Yarith',
+  'Hem_Chanthy',
+  'Sroeun_Leanghak',
+  'Bech_Udom',
+  'Sdey_Sdoeung',
   'Bech_Nora',
   'Vann_Sitha',
   'Vann_Thida',
