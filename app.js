@@ -5608,8 +5608,13 @@ function getSettingsViewHTML() {
 
       </div>
 
-      <!-- 11. កំណត់ឡើងវិញទៅទម្រង់ដើម (Reset to Default Button) -->
-      <div class="pt-2">
+      <!-- 11. កំណត់ឡើងវិញទៅទម្រង់ដើម & Update -->
+      <div class="pt-2 space-y-2">
+        <button onclick="forceAppUpdate()" 
+                class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 hover:from-orange-500/30 hover:to-amber-500/30 border border-orange-500/30 text-amber-300 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 shadow-md">
+          <i data-lucide="rotate-cw" class="w-4 h-4 text-orange-400"></i>
+          <span>${isKm ? 'ធ្វើបច្ចុប្បន្នភាពប្រព័ន្ធភ្លាមៗ (Force Update) 🚀' : 'Force Update & Clear Cache 🚀'}</span>
+        </button>
         <button onclick="resetAppSettings()" 
                 class="w-full p-3.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 hover:text-rose-300 font-semibold text-xs flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
           <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
@@ -5621,6 +5626,22 @@ function getSettingsViewHTML() {
     </div>
   `;
 }
+
+function forceAppUpdate() {
+  if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch (_) {}
+  try {
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => caches.delete(name));
+      });
+    }
+  } catch (_) {}
+  showToastNotification('កំពុងទាញយកកំណែចុងក្រោយបង្អស់... 🚀');
+  setTimeout(() => {
+    window.location.replace(window.location.origin + window.location.pathname + '?v=' + Date.now());
+  }, 350);
+}
+window.forceAppUpdate = forceAppUpdate;
 
 // ==========================================
 // 8. Drill-down Modals & Actions
