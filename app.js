@@ -14464,13 +14464,13 @@ function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTi
   const v = Number(defaultVal) || 0;
   return `
     <div id="card-${id}" onclick="setActiveReportField('${id}', '${fieldTitleKm || label}', ${min || 0}, ${max || 999}, '${unit}')"
-         class="report-field-item p-2.5 sm:p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-amber-500/40 cursor-pointer active:scale-98 transition flex items-center justify-between select-none group">
+         class="report-field-item p-3 sm:p-3.5 rounded-2xl bg-black/60 border border-white/10 hover:border-amber-500/40 cursor-pointer active:scale-98 transition flex items-center justify-between select-none group">
       <div class="min-w-0 pr-2 flex-1">
-        <span class="text-xs sm:text-sm text-slate-200 font-bold block truncate leading-snug group-hover:text-amber-400 transition">${label}</span>
+        <span class="text-sm sm:text-base text-slate-100 font-bold block truncate leading-snug group-hover:text-amber-400 transition">${label}</span>
       </div>
       <div class="text-right shrink-0 flex items-baseline gap-1">
-        <span id="${id}-disp" class="text-white font-mono font-black text-base sm:text-lg tracking-wide">${v}</span>
-        <span class="text-xs text-slate-400 font-kantumruy font-semibold">${unit}</span>
+        <span id="${id}-disp" class="text-white font-mono font-black text-lg sm:text-xl tracking-wide">${v}</span>
+        <span class="text-xs sm:text-sm text-slate-300 font-kantumruy font-semibold">${unit}</span>
       </div>
       <input type="hidden" id="${id}" value="${v}">
     </div>
@@ -14480,7 +14480,7 @@ function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTi
 function setActiveReportField(fieldId, label, min, max, unit) {
   // Clear previous active highlights from all items
   document.querySelectorAll('.report-field-item').forEach(el => {
-    el.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/40', 'bg-amber-500/15');
+    el.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/50', 'bg-amber-500/20');
     el.classList.add('border-white/10', 'bg-black/60');
   });
 
@@ -14488,11 +14488,11 @@ function setActiveReportField(fieldId, label, min, max, unit) {
   const card = document.getElementById(`card-${fieldId}`);
   if (card) {
     card.classList.remove('border-white/10', 'bg-black/60');
-    card.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/40', 'bg-amber-500/15');
-    // Ensure the card is smoothly scrolled into clear view above the bottom docked ruler
+    card.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/50', 'bg-amber-500/20');
+    // Ensure the card is smoothly centered in clear view well above the bottom docked ruler
     setTimeout(() => {
       try {
-        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } catch (_) {}
     }, 40);
   }
@@ -14682,22 +14682,22 @@ function draw3DRuler() {
 
     if (perspectiveScale <= 0.05) continue;
 
-    let baseH = 16;
-    let baseW = 1.3;
-    let strokeColor = `rgba(226, 232, 240, ${0.45 * perspectiveScale})`;
+    let baseH = 18;
+    let baseW = 1.6;
+    let strokeColor = `rgba(226, 232, 240, ${0.55 * perspectiveScale})`;
 
     if (i % 10 === 0) {
-      baseH = 34;
-      baseW = 2.4;
-      strokeColor = `rgba(255, 255, 255, ${0.95 * perspectiveScale})`;
+      baseH = 38;
+      baseW = 3.0;
+      strokeColor = `rgba(255, 255, 255, ${1.0 * perspectiveScale})`;
     } else if (i % 5 === 0) {
-      baseH = 24;
-      baseW = 1.9;
-      strokeColor = `rgba(251, 191, 36, ${0.85 * perspectiveScale})`;
+      baseH = 26;
+      baseW = 2.2;
+      strokeColor = `rgba(251, 191, 36, ${0.95 * perspectiveScale})`;
     }
 
     const tickH = baseH * perspectiveScale;
-    const tickW = Math.max(1, baseW * perspectiveScale);
+    const tickW = Math.max(1.2, baseW * perspectiveScale);
 
     ctx.beginPath();
     ctx.lineWidth = tickW;
@@ -14707,12 +14707,12 @@ function draw3DRuler() {
     ctx.lineTo(x, centerY + tickH / 2);
     ctx.stroke();
 
-    // Render numbers above 10th ticks
+    // Render numbers above 10th ticks (Larger & clearer for glasses wearers)
     if (i % 10 === 0 && i >= _rulerState.min && i <= _rulerState.max) {
-      ctx.font = `bold ${Math.round(10 * perspectiveScale)}px monospace`;
-      ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.2, perspectiveScale * 0.9)})`;
+      ctx.font = `bold ${Math.round(13 * perspectiveScale)}px monospace`;
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.4, perspectiveScale * 1.0)})`;
       ctx.textAlign = 'center';
-      ctx.fillText(String(i), x, centerY - tickH / 2 - 3);
+      ctx.fillText(String(i), x, centerY - tickH / 2 - 4);
     }
   }
 
@@ -14999,15 +14999,15 @@ function renderDailyReportPagePills() {
     const isActive = page === current;
     const escaped = page.replace(/'/g, "\\'");
     return `
-      <div class="inline-flex items-center rounded-xl border text-xs sm:text-sm font-bold transition cursor-pointer select-none ${isActive ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}"
+      <div class="inline-flex items-center rounded-2xl border text-sm font-bold transition cursor-pointer select-none ${isActive ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}"
            onclick="selectDailyReportPage('${escaped}')">
-        <span class="pl-3 pr-2 py-1.5 flex items-center gap-1.5">
-          <i data-lucide="${isActive ? 'check-circle' : 'flag'}" class="w-3.5 h-3.5 ${isActive ? 'text-emerald-400' : 'text-slate-400'}"></i>
+        <span class="pl-3.5 pr-2.5 py-2 flex items-center gap-2">
+          <i data-lucide="${isActive ? 'check-circle' : 'flag'}" class="w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-400'}"></i>
           <span>${page}</span>
         </span>
         ${list.length > 1 ? `
           <button type="button" onclick="removeDailyReportPage('${escaped}', event)" 
-                  class="pr-2.5 pl-0.5 py-1.5 text-slate-400 hover:text-red-400 transition" title="លុបផេក">
+                  class="pr-3 pl-1 py-2 text-slate-400 hover:text-red-400 transition" title="លុបផេក">
             <i data-lucide="x" class="w-3.5 h-3.5"></i>
           </button>
         ` : '<span class="pr-2"></span>'}
@@ -15017,8 +15017,8 @@ function renderDailyReportPagePills() {
 
   html += `
     <button type="button" onclick="addDailyReportPage()" 
-            class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-dashed border-white/20 text-slate-300 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition">
-      <i data-lucide="plus" class="w-3.5 h-3.5 text-emerald-400"></i>
+            class="px-3.5 py-2 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-95 border border-dashed border-white/20 text-slate-300 text-sm font-bold flex items-center gap-1.5 transition">
+      <i data-lucide="plus" class="w-4 h-4 text-emerald-400"></i>
       <span>ថែមផេក</span>
     </button>
   `;
@@ -15060,60 +15060,60 @@ function renderDailyReportModal() {
   } catch (_) {}
 
   container.innerHTML = `
-    <div class="space-y-3.5 text-xs select-none">
+    <div class="space-y-4 text-sm sm:text-base select-none">
       <!-- Card 1: Meta Information -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+      <div class="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3.5">
         <div class="flex items-center justify-between">
-          <span class="text-xs sm:text-sm text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-2">
+          <span class="text-sm sm:text-base text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-2">
             <i data-lucide="calendar" class="w-4 h-4"></i>
             <span>កាលបរិច្ឆេទ & ព័ត៌មានផេក</span>
           </span>
-          <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-[10px] sm:text-xs font-bold border border-emerald-500/30">
+          <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-xs sm:text-sm font-bold border border-emerald-500/30">
             ៩:០០ យប់
           </span>
         </div>
 
         <!-- Multi-page Quick Switching Pills -->
-        <div class="space-y-1.5">
-          <label class="block text-xs text-slate-300 font-semibold">ជ្រើសរើសផេកលក់ (ប្តូររហ័ស 1-Tap)៖</label>
-          <div id="rep-pages-pills-container" class="flex flex-wrap items-center gap-1.5">
+        <div class="space-y-2">
+          <label class="block text-sm text-slate-200 font-bold">ជ្រើសរើសផេកលក់ (ប្តូររហ័ស 1-Tap)៖</label>
+          <div id="rep-pages-pills-container" class="flex flex-wrap items-center gap-2">
             <!-- Rendered by renderDailyReportPagePills() -->
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2.5 pt-1">
+        <div class="grid grid-cols-2 gap-3 pt-1">
           <div>
-            <label class="block text-xs text-slate-300 mb-1 font-semibold">កាលបរិច្ឆេទ៖</label>
+            <label class="block text-sm text-slate-200 mb-1.5 font-bold">កាលបរិច្ឆេទ៖</label>
             <input type="text" id="rep-field-date" value="${defaultDate}" 
                    onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white font-mono text-sm font-medium focus:outline-none focus:border-emerald-500">
+                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white font-mono text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label class="block text-xs text-slate-300 mb-1 font-semibold">ឈ្មោះផេកផ្ទាល់៖</label>
+            <label class="block text-sm text-slate-200 mb-1.5 font-bold">ឈ្មោះផេកផ្ទាល់៖</label>
             <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
                    oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
                    onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-sm font-medium focus:outline-none focus:border-emerald-500">
+                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
           </div>
         </div>
         <div>
-          <label class="block text-xs text-slate-300 mb-1 font-semibold">បុគ្គលិកទទួលខុសត្រូវ / ឈ្មោះអ្នកលក់៖</label>
+          <label class="block text-sm text-slate-200 mb-1.5 font-bold">បុគ្គលិកទទួលខុសត្រូវ / ឈ្មោះអ្នកលក់៖</label>
           <input type="text" id="rep-field-staff" value="${savedStaff}" placeholder="ឈ្មោះអ្នកលក់ ឬ ក្រុមការងារ" 
                  oninput="try { localStorage.setItem('sd_report_staff', this.value); } catch(_) {}"
                  onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
-                 class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-sm font-medium focus:outline-none focus:border-emerald-500">
+                 class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
         </div>
       </div>
 
       <!-- Card 2: Section 1 - 📥 ទិន្នន័យឆាត & ខល -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+      <div class="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3.5">
         <div class="flex items-center justify-between">
-          <span class="text-xs sm:text-sm text-sky-400 font-bold uppercase tracking-wider flex items-center gap-2">
+          <span class="text-sm sm:text-base text-sky-400 font-bold uppercase tracking-wider flex items-center gap-2">
             <i data-lucide="inbox" class="w-4 h-4"></i>
             <span>១. ទិន្នន័យឆាត & ខល (Traffic)</span>
           </span>
         </div>
-        <div class="grid grid-cols-2 gap-2.5">
+        <div class="grid grid-cols-2 gap-3">
           ${renderRulerNumberControl('rep-field-chat-total', 'ឆាតថ្មីសរុប', 0, 'នាក់', 0, 500, 'ឆាតថ្មីសរុប')}
           ${renderRulerNumberControl('rep-field-chat-mistake', 'ឆាតប៉ះដៃ (Spam)', 0, 'នាក់', 0, 500, 'ឆាតប៉ះដៃ (ច្រឡំ/Spam)')}
           ${renderRulerNumberControl('rep-field-chat-target', 'ឆាតគោលដៅ', 0, 'នាក់', 0, 500, 'ឆាតគោលដៅ (សួរពិត)')}
@@ -15122,23 +15122,23 @@ function renderDailyReportModal() {
       </div>
 
       <!-- Card 3: Section 2 - 🔄 សកម្មភាពតាមដាន (Follow Up) -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+      <div class="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3.5">
         <div class="flex items-center justify-between">
-          <span class="text-xs sm:text-sm text-purple-400 font-bold uppercase tracking-wider flex items-center gap-2">
+          <span class="text-sm sm:text-base text-purple-400 font-bold uppercase tracking-wider flex items-center gap-2">
             <i data-lucide="refresh-cw" class="w-4 h-4"></i>
             <span>២. សកម្មភាពតាមដាន (Follow Up)</span>
           </span>
         </div>
-        <div class="grid grid-cols-2 gap-2.5">
+        <div class="grid grid-cols-2 gap-3">
           ${renderRulerNumberControl('rep-field-follow-old', 'ភ្ញៀវចាស់សួរសុខទុក្ខ', 0, 'នាក់', 0, 200, 'ភ្ញៀវចាស់សួរសុខទុក្ខ')}
           ${renderRulerNumberControl('rep-field-follow-pending', 'ភ្ញៀវរង់ចាំចម្លើយ', 0, 'នាក់', 0, 200, 'ភ្ញៀវរង់ចាំចម្លើយ')}
         </div>
       </div>
 
       <!-- Card 4: Section 3 - 📦 លទ្ធផលនៃការលក់ជាក់ស្តែង -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+      <div class="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3.5">
         <div class="flex items-center justify-between">
-          <span class="text-xs sm:text-sm text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-2">
+          <span class="text-sm sm:text-base text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-2">
             <i data-lucide="package" class="w-4 h-4"></i>
             <span>៣. លទ្ធផលលក់ជាក់ស្តែង (Sales)</span>
           </span>
@@ -15146,36 +15146,36 @@ function renderDailyReportModal() {
         
         <div class="space-y-3">
           <!-- ភ្ញៀវថ្មី -->
-          <div class="p-3 rounded-xl bg-white/5 border border-white/5 space-y-2">
-            <span class="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+          <div class="p-3 sm:p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+            <span class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
               <span>ភ្ញៀវថ្មីទិញ៖</span>
             </span>
-            <div class="grid grid-cols-2 gap-2.5">
+            <div class="grid grid-cols-2 gap-3">
               ${renderRulerNumberControl('rep-buy-new-p', 'ចំនួនភ្ញៀវ', (autoTodayBoxes > 0 ? autoTodayOrders : 0), 'នាក់', 0, 100, 'ភ្ញៀវថ្មីទិញ (ចំនួននាក់)')}
               ${renderRulerNumberControl('rep-buy-new-b', 'ចំនួនប្រអប់', autoTodayBoxes, 'ប្រអប់', 0, 200, 'ភ្ញៀវថ្មីទិញ (ចំនួនប្រអប់)')}
             </div>
           </div>
 
           <!-- ភ្ញៀវចាស់ទិញបន្ថែម -->
-          <div class="p-3 rounded-xl bg-white/5 border border-white/5 space-y-2">
-            <span class="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+          <div class="p-3 sm:p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+            <span class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-teal-400"></span>
               <span>ភ្ញៀវចាស់ទិញបន្ថែម (Repeat)៖</span>
             </span>
-            <div class="grid grid-cols-2 gap-2.5">
+            <div class="grid grid-cols-2 gap-3">
               ${renderRulerNumberControl('rep-buy-old-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវចាស់ទិញ (ចំនួននាក់)')}
               ${renderRulerNumberControl('rep-buy-old-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវចាស់ទិញ (ចំនួនប្រអប់)')}
             </div>
           </div>
 
           <!-- ភ្ញៀវ Follow-up ទិញ -->
-          <div class="p-3 rounded-xl bg-white/5 border border-white/5 space-y-2">
-            <span class="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+          <div class="p-3 sm:p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+            <span class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-sky-400"></span>
               <span>ភ្ញៀវតាមដានទិញ (Follow-up Closed)៖</span>
             </span>
-            <div class="grid grid-cols-2 gap-2.5">
+            <div class="grid grid-cols-2 gap-3">
               ${renderRulerNumberControl('rep-buy-follow-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវ Follow ទិញ (ចំនួននាក់)')}
               ${renderRulerNumberControl('rep-buy-follow-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវ Follow ទិញ (ចំនួនប្រអប់)')}
             </div>
@@ -15183,25 +15183,25 @@ function renderDailyReportModal() {
         </div>
 
         <!-- Total Calculation Display -->
-        <div class="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-between text-xs sm:text-sm font-mono shadow-sm">
+        <div class="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-between text-sm sm:text-base font-mono shadow-sm">
           <span class="text-emerald-300 font-bold flex items-center gap-2">
             <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
             <span>សរុបទំនិញលក់បានទាំងអស់៖</span>
           </span>
-          <span id="rep-total-summary-disp" class="text-emerald-300 font-black text-base sm:text-lg drop-shadow">
+          <span id="rep-total-summary-disp" class="text-emerald-300 font-black text-lg sm:text-xl drop-shadow">
             ${autoTodayBoxes || 0} ប្រអប់
           </span>
         </div>
       </div>
 
       <!-- Card 5: បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-        <label class="block text-xs sm:text-sm text-amber-400 font-bold uppercase tracking-wider flex items-center gap-2">
+      <div class="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+        <label class="block text-sm sm:text-base text-amber-400 font-bold uppercase tracking-wider flex items-center gap-2">
           <i data-lucide="alert-circle" class="w-4 h-4"></i>
           <span>បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖</span>
         </label>
         <textarea id="rep-field-challenges" rows="2" placeholder="ឧទាហរណ៍៖ អតិថិជនត្អូញត្អែរតម្លៃ, សេវាដឹកយឺត, អស់ទំនិញក្នុងស្តុក..." 
-                  class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
+                  class="w-full bg-black/50 border border-white/10 rounded-2xl p-3.5 text-white text-sm sm:text-base focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
       </div>
 
       <!-- Card 6: សារលើកទឹកចិត្ត និងអបអរសាទរ (App-Only Motivational Morale Card) -->
@@ -15210,12 +15210,12 @@ function renderDailyReportModal() {
       </div>
 
       <!-- Action Buttons Footer in Scroll View -->
-      <div class="pt-2 pb-1 flex items-center gap-2.5">
-        <button type="button" onclick="copyDailyReportText()" class="flex-1 py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
+      <div class="pt-2 pb-1 flex items-center gap-3">
+        <button type="button" onclick="copyDailyReportText()" class="flex-1 py-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
           <i data-lucide="copy" class="w-4 h-4 text-amber-400"></i>
           <span>ចម្លងរបាយការណ៍ 📋</span>
         </button>
-        <button type="button" onclick="shareDailyReportToTelegram()" class="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-emerald-500/25">
+        <button type="button" onclick="shareDailyReportToTelegram()" class="flex-1 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-emerald-500/25">
           <i data-lucide="send" class="w-4 h-4"></i>
           <span>ផ្ញើទៅ Telegram 🚀</span>
         </button>

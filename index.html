@@ -3951,61 +3951,63 @@
       </div>
 
       <!-- Scrollable Modal Body (Cards 1 to 6 & Action buttons) -->
-      <div id="daily-report-body-content" class="p-3 sm:p-3.5 pb-52 overflow-y-auto flex-1 no-scrollbar space-y-3" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div id="daily-report-body-content" class="p-3 sm:p-3.5 pb-64 overflow-y-auto flex-1 no-scrollbar space-y-3.5" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Injected dynamically by renderDailyReportModal() -->
       </div>
 
-      <!-- FIXED DOCKED 3D INFINITE RULER WHEEL PANEL (Operated by Right Hand) -->
-      <div id="daily-report-ruler-panel" class="shrink-0 bg-[#0B1528] border-t-2 border-amber-500/40 shadow-[0_-16px_50px_rgba(0,0,0,0.95)] flex flex-col select-none relative z-30 pb-4 sm:pb-5 pt-1.5 mb-1 sm:mb-2">
-        <!-- Active Target Header Bar + Stepper & Live Value -->
-        <div class="px-3.5 pt-2 pb-2 flex items-center justify-between border-b border-white/5 bg-gradient-to-r from-black/50 via-transparent to-black/50">
-          <div class="flex items-center gap-2.5 min-w-0 flex-1">
-            <span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0 text-sm">
-              <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
-            </span>
-            <div class="min-w-0 truncate">
-              <h4 id="ruler-fixed-title" class="text-sm sm:text-base font-bold text-white truncate">ឆាតថ្មីសរុប</h4>
+      <!-- ELEVATED FLOATING 3D INFINITE RULER WHEEL PANEL -->
+      <div class="px-2.5 sm:px-3 pb-3 sm:pb-4 pt-1 bg-gradient-to-t from-[#070D18] via-[#070D18]/95 to-transparent shrink-0 relative z-30">
+        <div id="daily-report-ruler-panel" class="w-full bg-[#0B1528] rounded-3xl border-2 border-amber-500/50 shadow-[0_12px_40px_rgba(0,0,0,0.95),0_0_25px_rgba(245,158,11,0.25)] flex flex-col select-none overflow-hidden pb-2 pt-1">
+          <!-- Active Target Header Bar + Stepper & Live Value -->
+          <div class="px-3.5 pt-2 pb-2 flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-black/60 via-transparent to-black/60">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+              <span class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center shrink-0 text-base shadow-sm">
+                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+              </span>
+              <div class="min-w-0 truncate">
+                <h4 id="ruler-fixed-title" class="text-sm sm:text-base font-bold text-white truncate">ឆាតថ្មីសរុប</h4>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2.5 shrink-0">
+              <button type="button" onclick="stepCurrentRuler(-1)" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 text-white font-black text-xl flex items-center justify-center active:scale-90 transition shadow-sm">
+                -
+              </button>
+              <div class="text-center min-w-[80px]">
+                <span id="ruler-fixed-val" class="text-3xl sm:text-4xl font-mono font-black text-amber-400 drop-shadow-[0_0_16px_rgba(245,158,11,0.8)] leading-none block">0</span>
+                <span id="ruler-fixed-unit" class="text-xs sm:text-sm text-slate-300 font-bold block font-kantumruy mt-0.5">នាក់</span>
+              </div>
+              <button type="button" onclick="stepCurrentRuler(1)" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 text-white font-black text-xl flex items-center justify-center active:scale-90 transition shadow-sm">
+                +
+              </button>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 shrink-0">
-            <button type="button" onclick="stepCurrentRuler(-1)" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/15 text-white font-bold text-lg flex items-center justify-center active:scale-90 transition shadow-sm">
-              -
-            </button>
-            <div class="text-center min-w-[76px]">
-              <span id="ruler-fixed-val" class="text-3xl font-mono font-black text-amber-400 drop-shadow-[0_0_14px_rgba(245,158,11,0.7)] leading-none block">0</span>
-              <span id="ruler-fixed-unit" class="text-xs text-slate-300 font-bold block font-kantumruy mt-0.5">នាក់</span>
+          <!-- 3D Cylindrical Ruler Canvas (Horizontal Ticks ||||||||||||||) -->
+          <div class="relative w-full h-[68px] bg-[#050912] border-y border-white/10 overflow-hidden flex items-center justify-center shadow-inner" 
+               style="-webkit-mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);">
+            <!-- Center Pointer Needle with arrows -->
+            <div class="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-1 bg-amber-400 shadow-[0_0_16px_#f59e0b] z-20 pointer-events-none flex flex-col justify-between items-center py-0.5">
+              <div class="w-3.5 h-2 bg-amber-400 [clip-path:polygon(0_0,100%_0,50%_100%)]"></div>
+              <div class="w-3.5 h-2 bg-amber-400 [clip-path:polygon(50%_0,100%_100%,0_100%)]"></div>
             </div>
-            <button type="button" onclick="stepCurrentRuler(1)" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/15 text-white font-bold text-lg flex items-center justify-center active:scale-90 transition shadow-sm">
-              +
-            </button>
+            <canvas id="ruler-canvas" class="w-full h-full cursor-grab active:cursor-grabbing touch-none"></canvas>
           </div>
-        </div>
 
-        <!-- 3D Cylindrical Ruler Canvas (Horizontal Ticks ||||||||||||||) -->
-        <div class="relative w-full h-[64px] bg-[#050912] border-y border-white/10 overflow-hidden flex items-center justify-center shadow-inner" 
-             style="-webkit-mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);">
-          <!-- Center Pointer Needle with arrows -->
-          <div class="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-0.5 bg-amber-400 shadow-[0_0_12px_#f59e0b] z-20 pointer-events-none flex flex-col justify-between items-center py-0.5">
-            <div class="w-2.5 h-1.5 bg-amber-400 [clip-path:polygon(0_0,100%_0,50%_100%)]"></div>
-            <div class="w-2.5 h-1.5 bg-amber-400 [clip-path:polygon(50%_0,100%_100%,0_100%)]"></div>
+          <!-- Quick Value Chips Row -->
+          <div class="p-2 px-3 flex items-center gap-2 overflow-x-auto no-scrollbar bg-[#091122]">
+            <span class="text-xs sm:text-sm text-slate-400 font-bold shrink-0">រហ័ស:</span>
+            <button type="button" onclick="setRulerValue(0)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">0</button>
+            <button type="button" onclick="setRulerValue(1)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">1</button>
+            <button type="button" onclick="setRulerValue(2)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">2</button>
+            <button type="button" onclick="setRulerValue(3)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">3</button>
+            <button type="button" onclick="setRulerValue(5)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">5</button>
+            <button type="button" onclick="setRulerValue(10)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">10</button>
+            <button type="button" onclick="setRulerValue(15)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">15</button>
+            <button type="button" onclick="setRulerValue(20)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">20</button>
+            <button type="button" onclick="setRulerValue(30)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">30</button>
+            <button type="button" onclick="setRulerValue(50)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">50</button>
           </div>
-          <canvas id="ruler-canvas" class="w-full h-full cursor-grab active:cursor-grabbing touch-none"></canvas>
-        </div>
-
-        <!-- Quick Value Chips Row -->
-        <div class="p-2 px-3 flex items-center gap-2 overflow-x-auto no-scrollbar bg-[#091122]">
-          <span class="text-xs text-slate-400 font-bold shrink-0">រហ័ស:</span>
-          <button type="button" onclick="setRulerValue(0)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">0</button>
-          <button type="button" onclick="setRulerValue(1)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">1</button>
-          <button type="button" onclick="setRulerValue(2)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">2</button>
-          <button type="button" onclick="setRulerValue(3)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">3</button>
-          <button type="button" onclick="setRulerValue(5)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">5</button>
-          <button type="button" onclick="setRulerValue(10)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">10</button>
-          <button type="button" onclick="setRulerValue(15)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">15</button>
-          <button type="button" onclick="setRulerValue(20)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">20</button>
-          <button type="button" onclick="setRulerValue(30)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">30</button>
-          <button type="button" onclick="setRulerValue(50)" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/10 text-white font-mono text-xs sm:text-sm font-bold">50</button>
         </div>
       </div>
 
@@ -4762,6 +4764,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=20.4"></script>
+  <script src="app.js?v=20.5"></script>
 </body>
 </html>
