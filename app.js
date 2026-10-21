@@ -9740,6 +9740,15 @@ function executeAdminAttendanceAction(action) {
 // ==========================================
 // LEADER DISPLAY NAMES & LEAVE / LATE STORAGE
 // ==========================================
+const BOSTAR_CORE_LEADERS = [
+  'Hou_Yarith',
+  'Hem_Chanthy',
+  'Sroeun_Leanghak',
+  'Bech_Udom',
+  'Sdey_Sdoeung',
+  'Bech_Nora'
+];
+
 const LEADER_DISPLAY_NAMES = {
   'Hou_Yarith': 'លោក ហ៊ូ យ៉ារិទ្ធ (Hou Yarith)',
   'Hem_Chanthy': 'អ្នកនាង ហែម ចាន់ធី (Hem Chanthy)',
@@ -9858,13 +9867,13 @@ function openAttendanceLeaveModal() {
   if (applicantNameEl) applicantNameEl.textContent = p.name || 'សមាជិក Bostar';
   if (applicantIdEl) applicantIdEl.textContent = p.memberId || 'ID: BG-001';
 
-  // Populate leader select
+  // Populate leader select with 6 core Bostar Team Leaders
   const leaderSelect = document.getElementById('att-leave-leader-select');
   if (leaderSelect) {
-    leaderSelect.innerHTML = COMPANY_TEAM_LEADERS.map(key => {
+    leaderSelect.innerHTML = BOSTAR_CORE_LEADERS.map((key, index) => {
       const displayName = getLeaderDisplayName(key);
       const isSelected = key === 'Sdey_Sdoeung' ? 'selected' : '';
-      return `<option value="${key}" ${isSelected}>${displayName}</option>`;
+      return `<option value="${key}" ${isSelected}>${index + 1}. ${displayName}</option>`;
     }).join('');
   }
 
@@ -16801,6 +16810,7 @@ window.finalizeCheckIn = finalizeCheckIn;
 window.getDailyMotivationQuote = getDailyMotivationQuote;
 
 // Leave Request Workflow
+window.BOSTAR_CORE_LEADERS = BOSTAR_CORE_LEADERS;
 window.openAttendanceLeaveModal = openAttendanceLeaveModal;
 window.closeAttendanceLeaveModal = closeAttendanceLeaveModal;
 window.selectLeaveDurationType = selectLeaveDurationType;
