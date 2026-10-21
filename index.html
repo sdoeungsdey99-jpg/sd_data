@@ -3711,7 +3711,8 @@
                 <span>📅</span>
                 <span>ថ្ងៃទីខែឆ្នាំកំណើត</span>
               </label>
-              <input type="text" id="edit-prof-birthday" placeholder="ឧ. 15 តុលា 1998 ឬ 15/10/1998" 
+              <input type="text" id="edit-prof-birthday" placeholder="ថ្ងៃទី / ខែ / ឆ្នាំ" inputmode="numeric"
+                     oninput="onBirthdayInput(event)"
                      class="w-full h-10 px-3 text-xs sm:text-sm bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none focus:border-orange-500 transition">
             </div>
             <div class="grid grid-cols-2 gap-2.5">

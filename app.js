@@ -12344,7 +12344,13 @@ function openEditProfileModal() {
   setVal('edit-prof-live', p.live);
   setVal('edit-prof-from', p.from);
   setVal('edit-prof-status', p.status);
-  setVal('edit-prof-birthday', p.birthday);
+  let bVal = p.birthday || '';
+  if ((!bVal || !bVal.includes('/')) && p.birthDay && p.birthMonth) {
+    const dStr = String(p.birthDay).padStart(2, '0');
+    const mStr = String(p.birthMonth).padStart(2, '0');
+    bVal = `${dStr}/${mStr}`;
+  }
+  setVal('edit-prof-birthday', bVal);
   setVal('edit-prof-phone', p.phone);
 
   // Dynamically populate days 1..31 if not yet populated
@@ -12399,6 +12405,37 @@ function closeEditProfileModal() {
   document.getElementById('edit-profile-modal')?.classList?.add('hidden');
   openProfileDrawer();
 }
+
+function onBirthdayInput(e) {
+  const input = e.target;
+  let val = input.value || '';
+  
+  if (e.inputType === 'deleteContentBackward') {
+    if (val.endsWith('/')) {
+      input.value = val.slice(0, -1);
+    }
+    return;
+  }
+  
+  // Support Khmer numerals ០-៩ as well as standard 0-9
+  let v = val.replace(/[០-៩]/g, d => '០១២៣៤៥៦៧៨៩'.indexOf(d)).replace(/\D/g, '');
+  if (v.length > 8) v = v.substring(0, 8);
+  
+  let formatted = '';
+  if (v.length >= 5) {
+    formatted = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+  } else if (v.length >= 4) {
+    formatted = `${v.slice(0, 2)}/${v.slice(2, 4)}/`;
+  } else if (v.length >= 3) {
+    formatted = `${v.slice(0, 2)}/${v.slice(2)}`;
+  } else if (v.length >= 2) {
+    formatted = `${v.slice(0, 2)}/`;
+  } else {
+    formatted = v;
+  }
+  input.value = formatted;
+}
+window.onBirthdayInput = onBirthdayInput;
 
 function compressImageFile(file, maxSizePx = 500, quality = 0.82) {
   return new Promise((resolve, reject) => {
@@ -12460,14 +12497,20 @@ function saveProfileData() {
   let birthMonth = parseInt(document.getElementById('edit-prof-birthday-month')?.value || '0', 10) || null;
   
   if (!birthDay && !birthMonth && birthdayVal) {
-    const digits = birthdayVal.match(/(\d{1,4})/g);
-    if (digits && digits.length >= 2) {
-      if (parseInt(digits[0], 10) > 1900) {
-        birthMonth = parseInt(digits[1], 10);
-        birthDay = parseInt(digits[2] || digits[0], 10);
-      } else {
-        birthDay = parseInt(digits[0], 10);
-        birthMonth = parseInt(digits[1], 10);
+    const parts = birthdayVal.split('/');
+    if (parts.length >= 2) {
+      birthDay = parseInt(parts[0], 10) || null;
+      birthMonth = parseInt(parts[1], 10) || null;
+    } else {
+      const digits = birthdayVal.match(/(\d{1,4})/g);
+      if (digits && digits.length >= 2) {
+        if (parseInt(digits[0], 10) > 1900) {
+          birthMonth = parseInt(digits[1], 10);
+          birthDay = parseInt(digits[2] || digits[0], 10);
+        } else {
+          birthDay = parseInt(digits[0], 10);
+          birthMonth = parseInt(digits[1], 10);
+        }
       }
     }
   }
