@@ -3617,7 +3617,7 @@
         </button>
       </div>
 
-      <div class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-4 pb-12" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
+      <div id="edit-profile-body" class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-4" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
         <!-- Avatar Upload Section -->
         <div class="flex flex-col items-center justify-center py-2">
           <div class="relative group cursor-pointer" onclick="document.getElementById('profile-avatar-input').click()">
@@ -3742,17 +3742,18 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="p-3.5 sm:p-4 border-t border-white/10 bg-[#0B1528]/95 backdrop-blur-xl flex items-center gap-3 shrink-0 pb-safe">
-        <button onclick="closeEditProfileModal()" 
-                class="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-semibold text-xs transition active:scale-95">
-          បោះបង់
-        </button>
-        <button onclick="saveProfileData()" 
-                class="flex-1 py-2.5 rounded-xl accent-solid-btn font-bold text-xs shadow-lg transition active:scale-95">
-          រក្សាទុកព័ត៌មាន
-        </button>
+        <!-- Action Buttons (Floating elevated above Dock with pb-32 clearance, no bottom bar) -->
+        <div class="pt-4 pb-32 flex items-center gap-3 select-none">
+          <button type="button" onclick="closeEditProfileModal()" 
+                  class="flex-1 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-semibold text-xs border border-white/10 active:scale-95 transition shadow-sm">
+            បោះបង់
+          </button>
+          <button type="button" onclick="saveProfileData()" 
+                  class="flex-1 py-3 rounded-2xl accent-solid-btn font-bold text-xs shadow-lg active:scale-95 transition">
+            រក្សាទុកព័ត៌មាន
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -4704,6 +4705,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=21.5"></script>
+  <script src="app.js?v=21.6"></script>
 </body>
 </html>

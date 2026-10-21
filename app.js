@@ -1349,7 +1349,6 @@ function setupSwipeToBack() {
 function isDialogModalOpen() {
   const ids = [
     'daily-report-modal',
-    'edit-profile-modal',
     'profile-sub-modal',
     'qr-photos-modal',
     'change-pin-modal',
@@ -1532,6 +1531,7 @@ function setupSmartDockScroll() {
     'all-customers-list',
     'team-members-list',
     'new-order-modal-body',
+    'edit-profile-body',
     'profile-drawer-content',
     'team-sets-modal-table-container',
     'search-results-container',
@@ -12385,7 +12385,12 @@ function openEditProfileModal() {
   if (monthSelect) monthSelect.value = savedMonth ? String(savedMonth) : '';
 
   document.getElementById('edit-profile-modal')?.classList?.remove('hidden');
-  setDockVisible(false);
+  setDockVisible(true);
+  const scrollEl = document.getElementById('edit-profile-body');
+  if (scrollEl) {
+    scrollEl.scrollTop = 0;
+    if (typeof hookScrollableForDock === 'function') hookScrollableForDock(scrollEl, false);
+  }
   if (window.lucide) window.lucide.createIcons();
 }
 
