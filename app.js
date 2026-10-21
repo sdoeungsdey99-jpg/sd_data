@@ -10647,6 +10647,17 @@ function openProfileSubModal(type) {
 // ==========================================
 // Full-Screen Bostar Team Members Directory Modal (Spacious like Customers/Expenses)
 // ==========================================
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+window.escapeHtml = escapeHtml;
+
 function toggleTeamMembersSearch() {
   const normalNav = document.getElementById('team-members-normal-nav');
   const searchBar = document.getElementById('team-members-search-bar');
@@ -10697,10 +10708,14 @@ function openTeamMembersModal(memberNameToOpen = null) {
   if (listView) listView.classList.remove('hidden');
   if (detailView) detailView.classList.add('hidden');
 
-  renderTeamMembersList();
-
   modal.classList.remove('hidden');
   setDockVisible(true);
+
+  try {
+    renderTeamMembersList();
+  } catch (err) {
+    console.error('Error rendering team members list:', err);
+  }
 
   const listEl = document.getElementById('team-members-list');
   if (listEl && typeof hookScrollableForDock === 'function') {
@@ -10708,7 +10723,11 @@ function openTeamMembersModal(memberNameToOpen = null) {
   }
 
   if (memberNameToOpen) {
-    openTeamMemberDetail(memberNameToOpen);
+    try {
+      openTeamMemberDetail(memberNameToOpen);
+    } catch (err) {
+      console.error('Error opening team member detail:', err);
+    }
   }
 
   if (window.lucide) window.lucide.createIcons();
@@ -10736,7 +10755,7 @@ function renderTeamMembersList() {
   const listEl = document.getElementById('team-members-list');
   if (!listEl) return;
 
-  const d = DataService.data;
+  const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : ((window.DataService && window.DataService.data) ? window.DataService.data : null);
   const sales = (d && Array.isArray(d.personalSales)) ? d.personalSales : [];
 
   // Group sales by seller name (supporting both km and en)
@@ -10846,7 +10865,7 @@ function renderTeamMembersList() {
 
 function openTeamMemberDetail(sellerKmName) {
   const seller = BOSTAR_TEAM_SELLERS.find(s => s.km === sellerKmName || s.en === sellerKmName) || { km: sellerKmName, en: getSellerLatinName(sellerKmName) };
-  const d = DataService.data;
+  const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : ((window.DataService && window.DataService.data) ? window.DataService.data : null);
   const sales = (d && Array.isArray(d.personalSales)) ? d.personalSales.filter(s => (s.seller || '').trim() === seller.km || (s.seller || '').trim() === seller.en) : [];
 
   const totalBoxes = sales.reduce((sum, s) => sum + Number(s.totalBoxQty || s.boxes || 0), 0);
