@@ -7176,8 +7176,10 @@ function renderHonorsModalContent() {
     <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent border border-amber-500/30 text-center relative overflow-hidden shadow-xl">
       <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-amber-500/20 blur-3xl pointer-events-none"></div>
       <div class="relative z-10 flex flex-col items-center">
-        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 p-0.5 shadow-xl shadow-amber-500/30 mb-2.5 flex items-center justify-center overflow-hidden">
-          <img src="bostar-gold-emblem.jpg" alt="BostarGroup" class="w-full h-full object-cover rounded-2xl shadow-inner">
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 p-0.5 shadow-xl shadow-amber-500/30 mb-2.5 flex items-center justify-center">
+          <div class="w-full h-full rounded-2xl bg-[#09111D] flex items-center justify-center p-1">
+            <img src="bostar-gold-crest.png" alt="BostarGroup" class="w-full h-full object-contain filter drop-shadow-[0_2px_10px_rgba(245,158,11,0.5)]">
+          </div>
         </div>
         <span class="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 font-black text-xs tracking-wider uppercase mb-1.5 shadow-sm">
           ★ BOSTAR GROUP LEADERSHIP ★
