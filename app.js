@@ -1126,7 +1126,7 @@ function setupSwipeToBack() {
     touchStartY = e.touches[0].clientY;
 
     // Do not intercept form inputs or sliders
-    if (e.target && e.target.closest && e.target.closest('input, textarea, select')) {
+    if (e.target && e.target.closest && e.target.closest('input, textarea, select, #order-submit-slider')) {
       isPotentialSwipe = false;
       return;
     }
@@ -10784,16 +10784,16 @@ function renderAttendanceTop10Content() {
   if (!container) return;
 
   const top10Data = [
-    { rank: 1, name: 'ឆេង រ៉ាស៊ុង', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥇 Top 1 ឆ្នើមប្រចាំខែ', border: 'border-amber-400/50' },
-    { rank: 2, name: 'ស្ដី ស្ដើង', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥈 Top 2 គំរូវិន័យ', border: 'border-slate-300/40' },
-    { rank: 3, name: 'ញែក សុគន្ធ', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: '🥉 Top 3 ទៀងទាត់', border: 'border-amber-600/40' },
-    { rank: 4, name: 'អយ ស្រីនី', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: 'Star Performer', border: 'border-blue-400/30' },
-    { rank: 5, name: 'ផាត់ ណាវី', rate: '97%', days: '២១/២២ ថ្ងៃ', badge: 'Consistent', border: 'border-teal-400/30' },
-    { rank: 6, name: 'ម៉ាន់ សុគន្ធលីហ្សា', rate: '96%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-purple-400/30' },
-    { rank: 7, name: 'មុំចាន់នី', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-sky-400/30' },
-    { rank: 8, name: 'ជា ស្រីណាត់', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-orange-400/30' },
-    { rank: 9, name: 'ប៊ិច ស្រីមុំ', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-rose-400/30' },
-    { rank: 10, name: 'និន ណែត', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-emerald-400/30' }
+    { rank: 1, name: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥇 Top 1 ឆ្នើមប្រចាំខែ', border: 'border-amber-400/50' },
+    { rank: 2, name: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥈 Top 2 គំរូវិន័យ', border: 'border-slate-300/40' },
+    { rank: 3, name: 'ញែក សុគន្ធ', en: 'Nhek Sokun', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: '🥉 Top 3 ទៀងទាត់', border: 'border-amber-600/40' },
+    { rank: 4, name: 'អយ ស្រីនី', en: 'Oy Sreyny', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: 'Star Performer', border: 'border-blue-400/30' },
+    { rank: 5, name: 'ផាត់ ណាវី', en: 'Phat Navy', rate: '97%', days: '២១/២២ ថ្ងៃ', badge: 'Consistent', border: 'border-teal-400/30' },
+    { rank: 6, name: 'ម៉ាន់ សុគន្ធលីហ្សា', en: 'Man Sokunlyza', rate: '96%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-purple-400/30' },
+    { rank: 7, name: 'មុំចាន់នី', en: 'Mom Channy', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-sky-400/30' },
+    { rank: 8, name: 'ជា ស្រីណាត់', en: 'Chea Sreynat', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-orange-400/30' },
+    { rank: 9, name: 'ប៊ិច ស្រីមុំ', en: 'Bech Sreymom', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-rose-400/30' },
+    { rank: 10, name: 'និន ណែត', en: 'Nin Net', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-emerald-400/30' }
   ];
 
   const itemsHTML = top10Data.map(item => {
@@ -10808,8 +10808,9 @@ function renderAttendanceTop10Content() {
         <div class="flex items-center gap-2.5 min-w-0">
           ${rankBadge}
           <div class="min-w-0">
-            <h4 class="text-xs font-bold text-white truncate">
+            <h4 class="text-xs font-bold text-white truncate flex items-center gap-1.5">
               <span>${item.name}</span>
+              <span class="text-[9.5px] text-slate-400 font-mono">(${item.en})</span>
             </h4>
             <div class="flex items-center gap-1.5 mt-0.5">
               <span class="px-1.5 py-0.2 rounded-full bg-white/5 text-[9px] text-amber-300 font-medium">${item.badge}</span>
@@ -14397,6 +14398,338 @@ function submitUserFeedback() {
 }
 window.submitUserFeedback = submitUserFeedback;
 
+// ========================================================
+// 3D INFINITE RULER WHEEL PICKER & DAILY REPORT ENGINE
+// ========================================================
+let _rulerState = {
+  isOpen: false,
+  targetFieldId: null,
+  title: 'កែសម្រួលចំនួន',
+  min: 0,
+  max: 999,
+  unit: 'ប្រអប់',
+  val: 0,
+  pixelOffset: 0,
+  isDragging: false,
+  startX: 0,
+  startOffset: 0,
+  tickSpacing: 14,
+  animFrameId: null,
+  lastVibrateVal: null
+};
+
+function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTitleKm) {
+  const v = Number(defaultVal) || 0;
+  return `
+    <div class="space-y-1">
+      <label class="block text-[10px] text-slate-400 font-semibold truncate">${label}</label>
+      <div class="flex items-center bg-black/60 border border-white/10 hover:border-amber-500/30 rounded-2xl p-1 transition shadow-inner">
+        <button type="button" onclick="stepDailyReportField('${id}', -1, event)" 
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-90 text-slate-300 flex items-center justify-center font-bold text-sm transition shrink-0 select-none" title="ដក ១">
+          -
+        </button>
+        <div onclick="open3DRulerPicker('${id}', '${fieldTitleKm || label}', ${min || 0}, ${max || 999}, '${unit}')" 
+             class="flex-1 text-center cursor-pointer py-1 px-1 select-none active:scale-95 transition group min-w-0" title="ចុចដើម្បីអូសកង់ 3D">
+          <div class="text-white font-mono font-bold text-xs sm:text-sm flex items-center justify-center gap-1 group-hover:text-amber-400 transition truncate">
+            <span id="${id}-disp" class="tracking-wider">${v}</span>
+            <span class="text-[9.5px] text-slate-400 font-kantumruy font-normal">${unit}</span>
+          </div>
+        </div>
+        <button type="button" onclick="stepDailyReportField('${id}', 1, event)" 
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-90 text-slate-300 flex items-center justify-center font-bold text-sm transition shrink-0 select-none" title="បូក ១">
+          +
+        </button>
+        <input type="hidden" id="${id}" value="${v}">
+      </div>
+    </div>
+  `;
+}
+
+function stepDailyReportField(fieldId, delta, event) {
+  if (event) {
+    try { event.stopPropagation(); event.preventDefault(); } catch (_) {}
+  }
+  const hiddenInput = document.getElementById(fieldId);
+  if (!hiddenInput) return;
+  
+  const current = Number(hiddenInput.value) || 0;
+  const newVal = Math.max(0, current + delta);
+  hiddenInput.value = newVal;
+
+  const disp = document.getElementById(`${fieldId}-disp`);
+  if (disp) disp.innerText = newVal;
+
+  if (fieldId === 'rep-field-chat-target') {
+    hiddenInput.dataset.manualEdited = 'true';
+  }
+
+  if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
+  calculateDailyReportMetrics();
+}
+
+function open3DRulerPicker(fieldId, title, min, max, unit) {
+  const backdrop = document.getElementById('ruler-picker-backdrop');
+  const sheet = document.getElementById('ruler-picker-sheet');
+  const titleEl = document.getElementById('ruler-picker-title');
+  const valEl = document.getElementById('ruler-live-val');
+  const unitEl = document.getElementById('ruler-live-unit');
+
+  if (!backdrop || !sheet) return;
+
+  const hiddenInput = document.getElementById(fieldId);
+  const currentVal = hiddenInput ? (Number(hiddenInput.value) || 0) : 0;
+
+  _rulerState.isOpen = true;
+  _rulerState.targetFieldId = fieldId;
+  _rulerState.title = title || 'កែសម្រួលចំនួន';
+  _rulerState.min = (typeof min === 'number') ? min : 0;
+  _rulerState.max = (typeof max === 'number') ? max : 999;
+  _rulerState.unit = unit || 'នាក់';
+  _rulerState.val = currentVal;
+  _rulerState.pixelOffset = currentVal * _rulerState.tickSpacing;
+  _rulerState.lastVibrateVal = currentVal;
+
+  if (titleEl) titleEl.innerText = _rulerState.title;
+  if (valEl) valEl.innerText = currentVal;
+  if (unitEl) unitEl.innerText = _rulerState.unit;
+
+  backdrop.classList.remove('hidden');
+  setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+  sheet.classList.remove('translate-y-full');
+
+  init3DRulerCanvas();
+  draw3DRuler();
+
+  if (window.lucide) window.lucide.createIcons();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+}
+
+function close3DRulerPicker() {
+  const backdrop = document.getElementById('ruler-picker-backdrop');
+  const sheet = document.getElementById('ruler-picker-sheet');
+
+  if (sheet) sheet.classList.add('translate-y-full');
+  if (backdrop) {
+    backdrop.classList.add('opacity-0');
+    setTimeout(() => backdrop.classList.add('hidden'), 220);
+  }
+
+  _rulerState.isOpen = false;
+  if (_rulerState.animFrameId) {
+    cancelAnimationFrame(_rulerState.animFrameId);
+    _rulerState.animFrameId = null;
+  }
+}
+
+function confirm3DRulerPicker() {
+  syncRulerToField();
+  close3DRulerPicker();
+  if (navigator.vibrate) try { navigator.vibrate([10, 40, 10]); } catch (_) {}
+  showToastNotification(`បានកំណត់ ${_rulerState.title} ៖ ${_rulerState.val} ${_rulerState.unit} ✓`);
+}
+
+function syncRulerToField() {
+  if (!_rulerState.targetFieldId) return;
+  const hiddenInput = document.getElementById(_rulerState.targetFieldId);
+  if (hiddenInput) {
+    hiddenInput.value = _rulerState.val;
+    if (_rulerState.targetFieldId === 'rep-field-chat-target') {
+      hiddenInput.dataset.manualEdited = 'true';
+    }
+  }
+  const disp = document.getElementById(`${_rulerState.targetFieldId}-disp`);
+  if (disp) disp.innerText = _rulerState.val;
+  calculateDailyReportMetrics();
+}
+
+function stepCurrentRuler(delta) {
+  setRulerValue(_rulerState.val + delta);
+}
+
+function setRulerValue(targetVal) {
+  const clamped = Math.max(_rulerState.min, Math.min(_rulerState.max, Number(targetVal) || 0));
+  _rulerState.val = clamped;
+  _rulerState.pixelOffset = clamped * _rulerState.tickSpacing;
+
+  const valEl = document.getElementById('ruler-live-val');
+  if (valEl) valEl.innerText = clamped;
+
+  syncRulerToField();
+  draw3DRuler();
+
+  if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
+}
+
+function init3DRulerCanvas() {
+  const canvas = document.getElementById('ruler-canvas');
+  if (!canvas || canvas.dataset.initialized) return;
+  canvas.dataset.initialized = 'true';
+
+  const onDragStart = (clientX) => {
+    _rulerState.isDragging = true;
+    _rulerState.startX = clientX;
+    _rulerState.startOffset = _rulerState.pixelOffset;
+  };
+
+  const onDragMove = (clientX) => {
+    if (!_rulerState.isDragging) return;
+    const deltaX = clientX - _rulerState.startX;
+    let nextOffset = _rulerState.startOffset - deltaX;
+
+    const minOffset = _rulerState.min * _rulerState.tickSpacing;
+    const maxOffset = _rulerState.max * _rulerState.tickSpacing;
+
+    // Soft resistance at boundaries
+    if (nextOffset < minOffset) {
+      nextOffset = minOffset + (nextOffset - minOffset) * 0.25;
+    } else if (nextOffset > maxOffset) {
+      nextOffset = maxOffset + (nextOffset - maxOffset) * 0.25;
+    }
+
+    _rulerState.pixelOffset = nextOffset;
+
+    const currentInt = Math.max(_rulerState.min, Math.min(_rulerState.max, Math.round(nextOffset / _rulerState.tickSpacing)));
+    if (currentInt !== _rulerState.val) {
+      _rulerState.val = currentInt;
+      const valEl = document.getElementById('ruler-live-val');
+      if (valEl) valEl.innerText = currentInt;
+
+      if (_rulerState.lastVibrateVal !== currentInt) {
+        _rulerState.lastVibrateVal = currentInt;
+        if (navigator.vibrate) try { navigator.vibrate(6); } catch (_) {}
+      }
+
+      syncRulerToField();
+    }
+
+    draw3DRuler();
+  };
+
+  const onDragEnd = () => {
+    if (!_rulerState.isDragging) return;
+    _rulerState.isDragging = false;
+
+    // Magnetic snap animation to exact integer
+    const targetOffset = _rulerState.val * _rulerState.tickSpacing;
+    const snapAnimate = () => {
+      const diff = targetOffset - _rulerState.pixelOffset;
+      if (Math.abs(diff) > 0.5) {
+        _rulerState.pixelOffset += diff * 0.35;
+        draw3DRuler();
+        _rulerState.animFrameId = requestAnimationFrame(snapAnimate);
+      } else {
+        _rulerState.pixelOffset = targetOffset;
+        draw3DRuler();
+        _rulerState.animFrameId = null;
+      }
+    };
+    snapAnimate();
+  };
+
+  // Touch Events
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 0) onDragStart(e.touches[0].clientX);
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (_rulerState.isDragging && e.touches.length > 0) {
+      onDragMove(e.touches[0].clientX);
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchend', onDragEnd, { passive: true });
+  window.addEventListener('touchcancel', onDragEnd, { passive: true });
+
+  // Mouse Events
+  canvas.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    onDragStart(e.clientX);
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (_rulerState.isDragging) onDragMove(e.clientX);
+  });
+
+  window.addEventListener('mouseup', onDragEnd);
+}
+
+function draw3DRuler() {
+  const canvas = document.getElementById('ruler-canvas');
+  if (!canvas) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const width = rect.width || 360;
+  const height = rect.height || 74;
+
+  if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+  }
+
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, width, height);
+
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const spacing = _rulerState.tickSpacing;
+  const currentOffset = _rulerState.pixelOffset;
+
+  const minTick = Math.max(_rulerState.min - 15, Math.floor((currentOffset - centerX * 1.2) / spacing));
+  const maxTick = Math.min(_rulerState.max + 15, Math.ceil((currentOffset + centerX * 1.2) / spacing));
+
+  for (let i = minTick; i <= maxTick; i++) {
+    const rawDx = (i * spacing) - currentOffset;
+    
+    // 3D Cylinder projection math (cylindrical curve distortion)
+    const normalizedDist = rawDx / (centerX * 0.96);
+    if (Math.abs(normalizedDist) >= 1) continue;
+
+    const angle = normalizedDist * (Math.PI / 2.3);
+    const x = centerX + Math.sin(angle) * (centerX * 0.94);
+    const perspectiveScale = Math.cos(angle);
+
+    if (perspectiveScale <= 0.05) continue;
+
+    let baseH = 18;
+    let baseW = 1.3;
+    let strokeColor = `rgba(226, 232, 240, ${0.45 * perspectiveScale})`;
+
+    if (i % 10 === 0) {
+      baseH = 38;
+      baseW = 2.4;
+      strokeColor = `rgba(255, 255, 255, ${0.95 * perspectiveScale})`;
+    } else if (i % 5 === 0) {
+      baseH = 26;
+      baseW = 1.9;
+      strokeColor = `rgba(251, 191, 36, ${0.85 * perspectiveScale})`;
+    }
+
+    const tickH = baseH * perspectiveScale;
+    const tickW = Math.max(1, baseW * perspectiveScale);
+
+    ctx.beginPath();
+    ctx.lineWidth = tickW;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineCap = 'round';
+    ctx.moveTo(x, centerY - tickH / 2);
+    ctx.lineTo(x, centerY + tickH / 2);
+    ctx.stroke();
+
+    // Render numbers above 10th ticks
+    if (i % 10 === 0 && i >= _rulerState.min && i <= _rulerState.max) {
+      ctx.font = `bold ${Math.round(10.5 * perspectiveScale)}px monospace`;
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.2, perspectiveScale * 0.9)})`;
+      ctx.textAlign = 'center';
+      ctx.fillText(String(i), x, centerY - tickH / 2 - 4);
+    }
+  }
+
+  ctx.restore();
+}
+
 function calculateDailyReportMetrics() {
   const chatTotal = cleanNumber(document.getElementById('rep-field-chat-total')?.value);
   const chatMistake = cleanNumber(document.getElementById('rep-field-chat-mistake')?.value);
@@ -14405,20 +14738,123 @@ function calculateDailyReportMetrics() {
   if (chatTotal > 0 && chatMistake >= 0 && targetInput) {
     if (!targetInput.dataset.manualEdited) {
       const autoTarget = Math.max(0, chatTotal - chatMistake);
-      targetInput.value = autoTarget || '';
+      targetInput.value = autoTarget;
+      const targetDisp = document.getElementById('rep-field-chat-target-disp');
+      if (targetDisp) targetDisp.innerText = autoTarget;
     }
   }
 
   const buyNewB = cleanNumber(document.getElementById('rep-buy-new-b')?.value);
   const buyOldB = cleanNumber(document.getElementById('rep-buy-old-b')?.value);
   const buyFollowB = cleanNumber(document.getElementById('rep-buy-follow-b')?.value);
-
   const totalBoxes = buyNewB + buyOldB + buyFollowB;
 
   const totalDisp = document.getElementById('rep-total-summary-disp');
   if (totalDisp) {
     totalDisp.innerText = `${totalBoxes} ប្រអប់`;
   }
+
+  renderDailyReportMoraleCard(totalBoxes);
+}
+
+function renderDailyReportMoraleCard(totalBoxes) {
+  const cardEl = document.getElementById('rep-morale-card');
+  if (!cardEl) return;
+
+  const chatTotal = cleanNumber(document.getElementById('rep-field-chat-total')?.value);
+  const chatTarget = cleanNumber(document.getElementById('rep-field-chat-target')?.value);
+  const buyOldB = cleanNumber(document.getElementById('rep-buy-old-b')?.value);
+  const buyFollowB = cleanNumber(document.getElementById('rep-buy-follow-b')?.value);
+
+  let badge = '🌱';
+  let title = 'ថ្ងៃស្អែកជាឱកាសថ្មី!';
+  let sub = 'លើកទឹកចិត្ត និងផ្តល់ថាមពលការងារ';
+  let message = 'មិនអីទេប្អូន! ការលក់តែងមានថ្ងៃឡើងថ្ងៃចុះ។ រាល់ការឆ្លើយឆាត និង Follow-up ថ្ងៃនេះ គឺជាគ្រាប់ពូជនៃការលក់នៅថ្ងៃស្អែក។ សម្រាកឱ្យស្រួលខ្លួន ស៊ូៗបន្តទៀត!';
+  let borderClass = 'border-amber-500/30';
+  let bgClass = 'bg-gradient-to-br from-amber-500/10 via-black/40 to-slate-900/60';
+  let glowColor = 'text-amber-400';
+
+  if (totalBoxes >= 10) {
+    badge = '👑';
+    title = 'ជើងឯកប្រចាំថ្ងៃ Champion!';
+    sub = 'កំពូលអ្នកលក់ប្រចាំថ្ងៃ Bostar Group';
+    message = `🎉 វ៉ោវ! អស្ចារ្យហួសថ្លែង! លក់បាន ${totalBoxes} ប្រអប់ គឺជាលទ្ធផលកម្រិតជើងឯក (Champion Sales)! ប្អូនជាគំរូដ៏ឆ្នើមរបស់ក្រុមការងារ។ សូមអបអរសាទរចំពោះជ័យជម្នះថ្ងៃនេះ!`;
+    borderClass = 'border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.2)]';
+    bgClass = 'bg-gradient-to-br from-amber-500/25 via-yellow-500/10 to-black/60';
+    glowColor = 'text-amber-300';
+  } else if (totalBoxes >= 6) {
+    badge = '🌟';
+    title = 'កំពូលអ្នកលក់ឆ្នើម (High Performer)!';
+    sub = 'សមិទ្ធផលលេចធ្លោខ្លាំងគួរឱ្យកោតសរសើរ';
+    message = `អបអរសាទរ! លទ្ធផល ${totalBoxes} ប្រអប់ថ្ងៃនេះលេចធ្លោខ្លាំងណាស់។ ក្រុមការងារពិតជាមានមោទនភាពចំពោះការតស៊ូ និងភាពសកម្មរបស់ប្អូន។ រក្សាថាមពលដ៏អស្ចារ្យនេះបន្តទៀត!`;
+    borderClass = 'border-purple-500/40 shadow-[0_0_20px_rgba(168,85,247,0.15)]';
+    bgClass = 'bg-gradient-to-br from-purple-500/20 via-pink-500/10 to-black/60';
+    glowColor = 'text-purple-300';
+  } else if (totalBoxes >= 3) {
+    badge = '🚀';
+    title = 'ស្តង់ដារលក់ល្អប្រសើរ!';
+    sub = 'ល្បឿន និងស្ថិរភាពលក់រឹងមាំ';
+    message = `ពិតជាធ្វើបានល្អណាស់! លទ្ធផល ${totalBoxes} ប្រអប់ថ្ងៃនេះបង្ហាញពីភាពប៉ិនប្រសប់ក្នុងការបិទការលក់។ បន្តទម្រង់លេងដ៏ល្អនេះទៅកាន់ថ្ងៃស្អែក!`;
+    borderClass = 'border-emerald-500/35';
+    bgClass = 'bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-black/60';
+    glowColor = 'text-emerald-400';
+  } else if (totalBoxes >= 1) {
+    badge = '🎯';
+    title = 'ចាប់ផ្តើមបំបែកពងមាន់ហើយ!';
+    sub = 'ការចាប់ផ្តើមដ៏រឹងមាំ និងមានសន្ទុះ';
+    message = `អស្ចារ្យណាស់! បានបំបែកពងមាន់ ${totalBoxes} ប្រអប់ថ្ងៃនេះហើយ។ ជំហានជោគជ័យតូចៗជារៀងរាល់ថ្ងៃ នឹងនាំយើងទៅរកគោលដៅធំ។ បន្តសន្ទុះនេះទៀតណា!`;
+    borderClass = 'border-sky-500/35';
+    bgClass = 'bg-gradient-to-br from-sky-500/15 via-blue-500/10 to-black/60';
+    glowColor = 'text-sky-400';
+  }
+
+  // Smart Context Tips
+  let smartTip = '';
+  if (chatTarget >= 8 && totalBoxes === 0) {
+    smartTip = `
+      <div class="mt-2 pt-2 border-t border-white/10 flex items-start gap-1.5 text-[10.5px] text-amber-300 leading-relaxed">
+        <i data-lucide="lightbulb" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400"></i>
+        <span>ថ្ងៃនេះមានភ្ញៀវគោលដៅដល់ទៅ <strong>${chatTarget} នាក់</strong>! នេះជាទុនដ៏ល្អបំផុតសម្រាប់ព្រឹកស្អែក Follow-up បិទការលក់។</span>
+      </div>
+    `;
+  } else if (buyOldB >= 3) {
+    smartTip = `
+      <div class="mt-2 pt-2 border-t border-white/10 flex items-start gap-1.5 text-[10.5px] text-teal-300 leading-relaxed">
+        <i data-lucide="heart-handshake" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-teal-400"></i>
+        <span>ពូកែថែទាំភ្ញៀវចាស់មែនទែន! ភ្ញៀវចាស់ទិញថែម <strong>${buyOldB} ប្រអប់</strong> ថ្ងៃនេះ។</span>
+      </div>
+    `;
+  } else if (buyFollowB >= 3) {
+    smartTip = `
+      <div class="mt-2 pt-2 border-t border-white/10 flex items-start gap-1.5 text-[10.5px] text-sky-300 leading-relaxed">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-sky-400"></i>
+        <span>ជំនាញ Follow-up ខ្លាំងណាស់! តាមដានភ្ញៀវរហូតទិញបាន <strong>${buyFollowB} ប្រអប់</strong>។</span>
+      </div>
+    `;
+  }
+
+  cardEl.innerHTML = `
+    <div class="p-3.5 rounded-2xl ${bgClass} border ${borderClass} transition-all duration-300 select-none space-y-2">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl filter drop-shadow animate-pulse">${badge}</span>
+          <div>
+            <h4 class="font-bold text-xs ${glowColor} leading-tight">${title}</h4>
+            <p class="text-[10px] text-slate-400 mt-0.5">${sub}</p>
+          </div>
+        </div>
+        <span class="px-2 py-0.5 rounded-full bg-white/10 text-white font-mono font-bold text-[10px]">
+          ${totalBoxes} ប្រអប់
+        </span>
+      </div>
+      <p class="text-[11px] text-slate-200 leading-relaxed italic">
+        « ${message} »
+      </p>
+      ${smartTip}
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function generateDailyReportText() {
@@ -14426,50 +14862,48 @@ function generateDailyReportText() {
   const page = document.getElementById('rep-field-page')?.value || '';
   const staff = document.getElementById('rep-field-staff')?.value || '';
 
-  const chatTotal = document.getElementById('rep-field-chat-total')?.value || '';
-  const chatMistake = document.getElementById('rep-field-chat-mistake')?.value || '';
-  const chatTarget = document.getElementById('rep-field-chat-target')?.value || '';
-  const callDirect = document.getElementById('rep-field-call-direct')?.value || '';
+  const chatTotal = document.getElementById('rep-field-chat-total')?.value || '0';
+  const chatMistake = document.getElementById('rep-field-chat-mistake')?.value || '0';
+  const chatTarget = document.getElementById('rep-field-chat-target')?.value || '0';
+  const callDirect = document.getElementById('rep-field-call-direct')?.value || '0';
 
-  const followOld = document.getElementById('rep-field-follow-old')?.value || '';
-  const followPending = document.getElementById('rep-field-follow-pending')?.value || '';
+  const followOld = document.getElementById('rep-field-follow-old')?.value || '0';
+  const followPending = document.getElementById('rep-field-follow-pending')?.value || '0';
 
-  const buyNewP = document.getElementById('rep-buy-new-p')?.value || '';
-  const buyNewB = document.getElementById('rep-buy-new-b')?.value || '';
-  const buyOldP = document.getElementById('rep-buy-old-p')?.value || '';
-  const buyOldB = document.getElementById('rep-buy-old-b')?.value || '';
-  const buyFollowP = document.getElementById('rep-buy-follow-p')?.value || '';
-  const buyFollowB = document.getElementById('rep-buy-follow-b')?.value || '';
+  const buyNewP = document.getElementById('rep-buy-new-p')?.value || '0';
+  const buyNewB = document.getElementById('rep-buy-new-b')?.value || '0';
+  const buyOldP = document.getElementById('rep-buy-old-p')?.value || '0';
+  const buyOldB = document.getElementById('rep-buy-old-b')?.value || '0';
+  const buyFollowP = document.getElementById('rep-buy-follow-p')?.value || '0';
+  const buyFollowB = document.getElementById('rep-buy-follow-b')?.value || '0';
 
   const totalBoxes = (Number(buyNewB) || 0) + (Number(buyOldB) || 0) + (Number(buyFollowB) || 0);
-  const challenges = document.getElementById('rep-field-challenges')?.value || '';
+  const challenges = (document.getElementById('rep-field-challenges')?.value || '').trim();
 
   if (page) {
     try { localStorage.setItem('sd_report_page', page); } catch (_) {}
   }
 
   return `🔰 របាយការណ៍លក់ប្រចាំថ្ងៃ ទី ${date}
-📌 ឈ្មោះផេក៖ ${page}
-👤 បុគ្គលិកទទួលខុសត្រូវ / ក្រុម៖ ${staff}
---------------------------------------------------
-📥 ១. ទិន្នន័យអតិថិជនថ្មីទាក់ទងមក
-• ចំនួនឆាតថ្មីសរុប៖ ${chatTotal} នាក់
-  - ឆាតប៉ះដៃ (ច្រឡំដៃ ឬស្ងាត់គ្មានការសន្ទនា)៖ ${chatMistake} នាក់
-  - ឆាតគោលដៅ (សួរតម្លៃ ឬព័ត៌មានផលិតផលពិតប្រាកដ)៖ ${chatTarget} នាក់
-• ចំនួនអតិថិជនថ្មីខលមកផ្ទាល់៖ ${callDirect} នាក់
+👤 អ្នកលក់៖ ${staff} | ផេក៖ ${page}
+━━━━━━━━━━━━━━━━━━
+📊 សរុបលក់បាន៖ ${totalBoxes} ប្រអប់ 🏆
 
-🔄 ២. សកម្មភាពតាមដានអតិថិជន (Follow Up)
-• ចំនួនអតិថិជនចាស់ដែលបានតាមដានសួរសុខទុក្ខ៖ ${followOld} នាក់
-• ចំនួនអតិថិជនកំពុងពិចារណា (រង់ចាំចម្លើយ)៖ ${followPending} នាក់
+📥 ១. ឆាត & ខល (Traffic)
+• ឆាតសរុប៖ ${chatTotal} នាក់ (គោលដៅ: ${chatTarget} | ប៉ះដៃ: ${chatMistake})
+• ខលផ្ទាល់៖ ${callDirect} នាក់
 
-📦 ៣. លទ្ធផលនៃការលក់ជាក់ស្តែង
-• អតិថិជនថ្មីទិញ៖ ${buyNewP} នាក់ | ចំនួន៖ ${buyNewB} ប្រអប់
-• អតិថិជនចាស់ទិញបន្ថែម៖ ${buyOldP} នាក់ | ចំនួន៖ ${buyOldB} ប្រអប់
-• អតិថិជនដែលតាមដានទិញ (តាមដានលើកមុន មកទិញថ្ងៃនេះ)៖ ${buyFollowP} នាក់ | ចំនួន៖ ${buyFollowB} ប្រអប់
-👉 សរុបទំនិញលក់បានទាំងអស់៖ ${totalBoxes} ប្រអប់ 
+🔄 ២. តាមដានភ្ញៀវ (Follow Up)
+• សួរសុខទុក្ខភ្ញៀវចាស់៖ ${followOld} នាក់
+• ភ្ញៀវកំពុងពិចារណា៖ ${followPending} នាក់
 
-• បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖ ${challenges}
---------------------------------------------------
+📦 ៣. លទ្ធផលលក់ជាក់ស្តែង (Sales)
+• ភ្ញៀវថ្មីទិញ៖ ${buyNewP} នាក់ ➔ ${buyNewB} ប្រអប់
+• ភ្ញៀវចាស់ទិញថែម៖ ${buyOldP} នាក់ ➔ ${buyOldB} ប្រអប់
+• ភ្ញៀវ Follow-up ទិញ៖ ${buyFollowP} នាក់ ➔ ${buyFollowB} ប្រអប់
+
+• បញ្ហាប្រឈម / ចំណាំ៖ ${challenges || 'គ្មាន'}
+━━━━━━━━━━━━━━━━━━
 ⏰ ម៉ោងរាយការណ៍៖ ៩:០០ យប់`;
 }
 
@@ -14564,85 +14998,93 @@ function renderDailyReportModal() {
         </div>
       </div>
 
-      <!-- Card 2: Section 1 - 📥 ទិន្នន័យអតិថិជនថ្មីទាក់ទងមក -->
+      <!-- Card 2: Section 1 - 📥 ទិន្នន័យអតិថិជនថ្មីទាក់ទងមក (No Keyboard - Stepper & 3D Wheel) -->
       <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
-        <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-          <i data-lucide="inbox" class="w-3.5 h-3.5"></i>
-          <span>១. ទិន្នន័យអតិថិជនថ្មីទាក់ទងមក</span>
-        </span>
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="inbox" class="w-3.5 h-3.5"></i>
+            <span>១. ទិន្នន័យឆាត & ខល (Traffic)</span>
+          </span>
+          <span class="text-[9.5px] text-slate-400 font-normal">ប៉ះលេខដើម្បីអូស 3D</span>
+        </div>
         <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[10px] text-slate-400 mb-1">ឆាតថ្មីសរុប (នាក់)៖</label>
-            <input type="number" id="rep-field-chat-total" placeholder="0" oninput="calculateDailyReportMetrics()" 
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-400 mb-1">ឆាតប៉ះដៃ (នាក់)៖</label>
-            <input type="number" id="rep-field-chat-mistake" placeholder="0" oninput="calculateDailyReportMetrics()" 
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-400 mb-1">ឆាតគោលដៅ (នាក់)៖</label>
-            <input type="number" id="rep-field-chat-target" placeholder="0" oninput="calculateDailyReportMetrics()" 
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-sky-300 font-bold font-mono text-xs focus:outline-none focus:border-sky-500">
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-400 mb-1">អតិថិជនខលផ្ទាល់ (នាក់)៖</label>
-            <input type="number" id="rep-field-call-direct" placeholder="0" 
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
-          </div>
+          ${renderRulerNumberControl('rep-field-chat-total', 'ឆាតថ្មីសរុប', 0, 'នាក់', 0, 500, 'ឆាតថ្មីសរុប')}
+          ${renderRulerNumberControl('rep-field-chat-mistake', 'ឆាតប៉ះដៃ (Spam)', 0, 'នាក់', 0, 500, 'ឆាតប៉ះដៃ (ច្រឡំ/Spam)')}
+          ${renderRulerNumberControl('rep-field-chat-target', 'ឆាតគោលដៅ', 0, 'នាក់', 0, 500, 'ឆាតគោលដៅ (សួរពិត)')}
+          ${renderRulerNumberControl('rep-field-call-direct', 'អតិថិជនខលផ្ទាល់', 0, 'នាក់', 0, 100, 'អតិថិជនខលផ្ទាល់')}
         </div>
       </div>
 
       <!-- Card 3: Section 2 - 🔄 សកម្មភាពតាមដាន (Follow Up) -->
       <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
-        <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-          <span>២. សកម្មភាពតាមដានអតិថិជន (Follow Up)</span>
-        </span>
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>២. សកម្មភាពតាមដាន (Follow Up)</span>
+          </span>
+          <span class="text-[9.5px] text-slate-400 font-normal">ប៉ះលេខដើម្បីអូស 3D</span>
+        </div>
         <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[10px] text-slate-400 mb-1">អតិថិជនចាស់សួរសុខទុក្ខ (នាក់)៖</label>
-            <input type="number" id="rep-field-follow-old" placeholder="0" 
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-purple-500">
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-400 mb-1">អតិថិជនរង់ចាំចម្លើយ (នាក់)៖</label>
-            <input type="number" id="rep-field-follow-pending" placeholder="0" 
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-purple-500">
-          </div>
+          ${renderRulerNumberControl('rep-field-follow-old', 'ភ្ញៀវចាស់សួរសុខទុក្ខ', 0, 'នាក់', 0, 200, 'ភ្ញៀវចាស់សួរសុខទុក្ខ')}
+          ${renderRulerNumberControl('rep-field-follow-pending', 'ភ្ញៀវរង់ចាំចម្លើយ', 0, 'នាក់', 0, 200, 'ភ្ញៀវរង់ចាំចម្លើយ')}
         </div>
       </div>
 
       <!-- Card 4: Section 3 - 📦 លទ្ធផលនៃការលក់ជាក់ស្តែង -->
       <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
-        <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-          <i data-lucide="package" class="w-3.5 h-3.5"></i>
-          <span>៣. លទ្ធផលនៃការលក់ជាក់ស្តែង</span>
-        </span>
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="package" class="w-3.5 h-3.5"></i>
+            <span>៣. លទ្ធផលលក់ជាក់ស្តែង (Sales)</span>
+          </span>
+          <span class="text-[9.5px] text-slate-400 font-normal">ប៉ះលេខដើម្បីអូស 3D</span>
+        </div>
         
-        <div class="space-y-2">
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] text-slate-300 w-32 shrink-0">អតិថិជនថ្មីទិញ:</span>
-            <input type="number" id="rep-buy-new-p" placeholder="នាក់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
-            <input type="number" id="rep-buy-new-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
+        <div class="space-y-2.5">
+          <!-- ភ្ញៀវថ្មី -->
+          <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 space-y-1.5">
+            <span class="text-[11px] font-bold text-white flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>ភ្ញៀវថ្មីទិញ៖</span>
+            </span>
+            <div class="grid grid-cols-2 gap-2">
+              ${renderRulerNumberControl('rep-buy-new-p', 'ចំនួនភ្ញៀវ', (autoTodayBoxes > 0 ? autoTodayOrders : 0), 'នាក់', 0, 100, 'ភ្ញៀវថ្មីទិញ (ចំនួននាក់)')}
+              ${renderRulerNumberControl('rep-buy-new-b', 'ចំនួនប្រអប់', autoTodayBoxes, 'ប្រអប់', 0, 200, 'ភ្ញៀវថ្មីទិញ (ចំនួនប្រអប់)')}
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] text-slate-300 w-32 shrink-0">អតិថិជនចាស់ទិញបន្ថែម:</span>
-            <input type="number" id="rep-buy-old-p" placeholder="នាក់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
-            <input type="number" id="rep-buy-old-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
+
+          <!-- ភ្ញៀវចាស់ទិញបន្ថែម -->
+          <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 space-y-1.5">
+            <span class="text-[11px] font-bold text-white flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
+              <span>ភ្ញៀវចាស់ទិញបន្ថែម (Repeat)៖</span>
+            </span>
+            <div class="grid grid-cols-2 gap-2">
+              ${renderRulerNumberControl('rep-buy-old-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវចាស់ទិញ (ចំនួននាក់)')}
+              ${renderRulerNumberControl('rep-buy-old-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវចាស់ទិញ (ចំនួនប្រអប់)')}
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] text-slate-300 w-32 shrink-0">អតិថិជនដែលតាមដានទិញ:</span>
-            <input type="number" id="rep-buy-follow-p" placeholder="នាក់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
-            <input type="number" id="rep-buy-follow-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs text-center focus:outline-none focus:border-emerald-500">
+
+          <!-- ភ្ញៀវ Follow-up ទិញ -->
+          <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 space-y-1.5">
+            <span class="text-[11px] font-bold text-white flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+              <span>ភ្ញៀវតាមដានទិញ (Follow-up Closed)៖</span>
+            </span>
+            <div class="grid grid-cols-2 gap-2">
+              ${renderRulerNumberControl('rep-buy-follow-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវ Follow ទិញ (ចំនួននាក់)')}
+              ${renderRulerNumberControl('rep-buy-follow-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវ Follow ទិញ (ចំនួនប្រអប់)')}
+            </div>
           </div>
         </div>
 
         <!-- Total Calculation Display -->
-        <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs font-mono">
-          <span class="text-emerald-300 font-bold">👉 សរុបទំនិញលក់បានទាំងអស់៖</span>
-          <span id="rep-total-summary-disp" class="text-emerald-400 font-bold text-sm">
+        <div class="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-between text-xs font-mono shadow-sm">
+          <span class="text-emerald-300 font-bold flex items-center gap-1.5">
+            <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
+            <span>សរុបទំនិញលក់បានទាំងអស់៖</span>
+          </span>
+          <span id="rep-total-summary-disp" class="text-emerald-300 font-black text-sm drop-shadow">
             ${autoTodayBoxes || 0} ប្រអប់
           </span>
         </div>
@@ -14654,11 +15096,19 @@ function renderDailyReportModal() {
           <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
           <span>បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖</span>
         </label>
-        <textarea id="rep-field-challenges" rows="3" placeholder="ឧទាហរណ៍៖ អតិថិជនត្អូញត្អែរតម្លៃ, សេវាដឹកយឺត, អស់ទំនិញក្នុងស្តុក..." 
+        <textarea id="rep-field-challenges" rows="2" placeholder="ឧទាហរណ៍៖ អតិថិជនត្អូញត្អែរតម្លៃ, សេវាដឹកយឺត, អស់ទំនិញក្នុងស្តុក..." 
                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
+      </div>
+
+      <!-- Card 6: សារលើកទឹកចិត្ត និងអបអរសាទរ (App-Only Motivational Morale Card) -->
+      <div id="rep-morale-card" class="transition-all duration-300">
+        <!-- Rendered dynamically by renderDailyReportMoraleCard() -->
       </div>
     </div>
   `;
+
+  calculateDailyReportMetrics();
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function openDailyReportModal() {
@@ -14675,6 +15125,7 @@ function openDailyReportModal() {
 }
 
 function closeDailyReportModal() {
+  close3DRulerPicker();
   const modal = document.getElementById('daily-report-modal');
   if (modal) modal.classList.add('hidden');
   setDockVisible(true);
@@ -14684,13 +15135,16 @@ function resetDailyReportFields() {
   const ids = [
     'rep-field-chat-total', 'rep-field-chat-mistake', 'rep-field-chat-target', 'rep-field-call-direct',
     'rep-field-follow-old', 'rep-field-follow-pending',
-    'rep-buy-new-p', 'rep-buy-new-b', 'rep-buy-old-p', 'rep-buy-old-b', 'rep-buy-follow-p', 'rep-buy-follow-b',
-    'rep-field-challenges'
+    'rep-buy-new-p', 'rep-buy-new-b', 'rep-buy-old-p', 'rep-buy-old-b', 'rep-buy-follow-p', 'rep-buy-follow-b'
   ];
   ids.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.value = '';
+    if (el) el.value = '0';
+    const disp = document.getElementById(`${id}-disp`);
+    if (disp) disp.innerText = '0';
   });
+  const chalEl = document.getElementById('rep-field-challenges');
+  if (chalEl) chalEl.value = '';
   const targetInput = document.getElementById('rep-field-chat-target');
   if (targetInput) delete targetInput.dataset.manualEdited;
   calculateDailyReportMetrics();
@@ -14704,6 +15158,12 @@ window.openDailyReportModal = openDailyReportModal;
 window.calculateDailyReportMetrics = calculateDailyReportMetrics;
 window.copyDailyReportText = copyDailyReportText;
 window.shareDailyReportToTelegram = shareDailyReportToTelegram;
+window.stepDailyReportField = stepDailyReportField;
+window.open3DRulerPicker = open3DRulerPicker;
+window.close3DRulerPicker = close3DRulerPicker;
+window.confirm3DRulerPicker = confirm3DRulerPicker;
+window.stepCurrentRuler = stepCurrentRuler;
+window.setRulerValue = setRulerValue;
 
 function openProfileSettingsSearch() {
   const modal = document.getElementById('profile-settings-search-modal');

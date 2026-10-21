@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>BostarGroup - Dashboard</title>
 
   <!-- iOS Status Bar & Theme Color (Matches Light & Dark Mode seamlessly) -->
@@ -144,6 +147,14 @@
       height: 14px;
       border-radius: 2px;
       animation: confettiFall 3.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    @keyframes sliderShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
+    }
+    .animate-shake {
+      animation: sliderShake 0.35s ease-in-out;
     }
     /* Hide scrollbar */
     .no-scrollbar::-webkit-scrollbar {
@@ -3907,6 +3918,80 @@
         </button>
       </div>
 
+      <!-- 3D Ruler Picker Bottom Sheet / Wheel Drawer (No Keyboard) -->
+      <div id="ruler-picker-backdrop" onclick="close3DRulerPicker()" class="absolute inset-0 bg-black/70 backdrop-blur-sm z-40 hidden transition-opacity duration-200 opacity-0"></div>
+      <div id="ruler-picker-sheet" class="absolute inset-x-0 bottom-0 z-50 bg-[#0B1528] border-t border-amber-500/40 rounded-t-3xl shadow-[0_-12px_45px_rgba(0,0,0,0.9)] transition-transform duration-300 translate-y-full flex flex-col overflow-hidden select-none">
+        <!-- Top Drag Pill & Header -->
+        <div class="pt-3 px-4 pb-2 border-b border-white/10 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs border border-amber-500/30">
+              <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+            </span>
+            <div>
+              <span id="ruler-picker-title" class="font-bold text-xs text-white block leading-tight">កែសម្រួលចំនួន</span>
+              <span class="text-[9.5px] text-slate-400 font-normal">អូសឆ្វេង-ស្តាំលើបន្ទាត់រង្វាស់ 3D គ្មានក្តារចុច</span>
+            </div>
+          </div>
+          <button type="button" onclick="close3DRulerPicker()" class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 active:scale-90 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">
+            ✕
+          </button>
+        </div>
+
+        <!-- Big 3D Glowing Digit Display with +/- Stepper buttons -->
+        <div class="py-3 px-4 bg-gradient-to-b from-black/50 via-transparent to-transparent flex items-center justify-center gap-5">
+          <button type="button" onclick="stepCurrentRuler(-1)" class="w-11 h-11 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-90 border border-white/10 text-white font-bold text-xl flex items-center justify-center transition shadow-md">
+            -
+          </button>
+          <div class="min-w-[130px] text-center">
+            <div id="ruler-live-val" class="text-4xl font-mono font-black text-amber-400 drop-shadow-[0_0_18px_rgba(245,158,11,0.7)] leading-none">
+              0
+            </div>
+            <div id="ruler-live-unit" class="text-[11px] font-semibold text-slate-400 mt-1">
+              ប្រអប់
+            </div>
+          </div>
+          <button type="button" onclick="stepCurrentRuler(1)" class="w-11 h-11 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-90 border border-white/10 text-white font-bold text-xl flex items-center justify-center transition shadow-md">
+            +
+          </button>
+        </div>
+
+        <!-- 3D Cylindrical Ruler Track Container -->
+        <div class="relative w-full h-[74px] bg-[#050912] border-y border-white/10 overflow-hidden flex items-center justify-center shadow-inner" 
+             style="-webkit-mask-image: linear-gradient(90deg, transparent 0%, black 18%, black 82%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0%, black 18%, black 82%, transparent 100%);">
+          <!-- Center 3D Needle Indicator (Glowing Amber Pointer with top/bottom arrows) -->
+          <div class="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-0.5 bg-amber-400 shadow-[0_0_12px_#f59e0b] z-20 pointer-events-none flex flex-col justify-between items-center py-1">
+            <div class="w-2.5 h-2 bg-amber-400 [clip-path:polygon(0_0,100%_0,50%_100%)]"></div>
+            <div class="w-2.5 h-2 bg-amber-400 [clip-path:polygon(50%_0,100%_100%,0_100%)]"></div>
+          </div>
+
+          <!-- HTML5 Canvas for ultra-smooth 60fps/120fps 3D ticks matching user image -->
+          <canvas id="ruler-canvas" class="w-full h-full cursor-grab active:cursor-grabbing touch-none"></canvas>
+        </div>
+
+        <!-- Quick Preset Value Chips -->
+        <div class="p-2.5 px-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <span class="text-[10px] text-slate-500 font-bold shrink-0 mr-0.5">រហ័ស:</span>
+          <button type="button" onclick="setRulerValue(0)" class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-xs font-bold">0</button>
+          <button type="button" onclick="setRulerValue(1)" class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-xs font-bold">1</button>
+          <button type="button" onclick="setRulerValue(2)" class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-xs font-bold">2</button>
+          <button type="button" onclick="setRulerValue(3)" class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-xs font-bold">3</button>
+          <button type="button" onclick="setRulerValue(5)" class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-xs font-bold">5</button>
+          <button type="button" onclick="setRulerValue(10)" class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-xs font-bold">10</button>
+          <button type="button" onclick="setRulerValue(15)" class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-xs font-bold">15</button>
+          <button type="button" onclick="setRulerValue(20)" class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-xs font-bold">20</button>
+          <button type="button" onclick="setRulerValue(30)" class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-xs font-bold">30</button>
+          <button type="button" onclick="setRulerValue(50)" class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-xs font-bold">50</button>
+        </div>
+
+        <!-- Confirm Done Button -->
+        <div class="p-3 pt-1 border-t border-white/10 bg-[#070D18]">
+          <button type="button" onclick="confirm3DRulerPicker()" class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-orange-500/25">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>រួចរាល់ (Done) ✓</span>
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -4424,12 +4509,42 @@
           </div>
         </div>
 
-        <!-- Order Submit Button (Inside Scrollable Form) -->
-        <div id="order-submit-container" class="pt-2 pb-10 flex items-center justify-center">
-          <button type="button" id="btn-submit-order" onclick="submitNewOrder()" class="w-full max-w-sm mx-auto py-3 rounded-full accent-solid-btn font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-orange-500/25">
-            <i data-lucide="check" class="w-4 h-4"></i>
-            <span id="order-submit-btn-text">បញ្ជូនចូលការលក់ 🚀</span>
-          </button>
+        <!-- Order Submit Slider (Slide to Confirm - Prevents Accidental Submissions) -->
+        <div id="order-submit-container" class="pt-3 pb-12 flex flex-col items-center justify-center select-none font-kantumruy">
+          <!-- Slider Track -->
+          <div id="order-submit-slider" 
+               class="relative w-full max-w-sm mx-auto h-14 bg-gradient-to-r from-[#0C1526] via-[#101F38] to-[#0C1526] border-2 border-orange-500/30 rounded-full overflow-hidden select-none p-1.5 flex items-center shadow-[0_8px_25px_rgba(0,0,0,0.5)] transition-all duration-300"
+               style="touch-action: none;">
+            
+            <!-- Dynamic Progress Fill Layer -->
+            <div id="order-slider-fill" 
+                 class="absolute inset-y-0 left-0 bg-gradient-to-r from-orange-500/40 via-amber-500/35 to-orange-500/50 rounded-full pointer-events-none transition-all duration-75" 
+                 style="width: 0%;"></div>
+
+            <!-- Shimmer Text & Chevron Guide (Centered) -->
+            <div id="order-slider-label-wrap" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-12 transition-opacity duration-200">
+              <span id="order-slider-text" class="text-xs sm:text-[13px] font-bold text-orange-200 tracking-wide flex items-center gap-2 drop-shadow-md">
+                <span>អូសពីឆ្វេងទៅស្តាំ ដើម្បីបញ្ជូន</span>
+                <span class="animate-pulse text-orange-400 font-mono text-sm tracking-tighter">❯❯❯</span>
+              </span>
+            </div>
+
+            <!-- Draggable Slider Thumb / Handle -->
+            <div id="order-slider-thumb" 
+                 class="relative z-20 w-11 h-11 rounded-full bg-gradient-to-tr from-orange-500 via-amber-500 to-orange-400 text-white shadow-[0_4px_15px_rgba(249,115,22,0.5)] flex items-center justify-center cursor-grab active:cursor-grabbing border-2 border-white/40 transition-transform duration-75 select-none"
+                 style="transform: translateX(0px);">
+              <i id="order-slider-icon" data-lucide="chevrons-right" class="w-5 h-5 text-white stroke-[2.5] pointer-events-none transition-transform"></i>
+            </div>
+          </div>
+
+          <!-- Safety Status & Validation Hint -->
+          <p id="order-slider-hint" class="text-[10px] text-slate-400 text-center mt-2 flex items-center justify-center gap-1 transition-colors">
+            <i data-lucide="shield-check" class="w-3 h-3 text-orange-400/80"></i>
+            <span>អូសដល់ចុងស្តាំ ដើម្បីរក្សាទុកចូលការលក់</span>
+          </p>
+
+          <!-- Hidden button fallback to maintain compatibility -->
+          <button type="button" id="btn-submit-order" onclick="submitNewOrder()" class="hidden"></button>
         </div>
 
       </div>
@@ -4625,6 +4740,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=15.9"></script>
+  <script src="app.js?v=16.0"></script>
 </body>
 </html>
