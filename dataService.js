@@ -3,6 +3,7 @@
  * Real-time dynamic Google Sheet reader (Zero Hardcoding)
  */
 
+const MASTER_SDOEUNG_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
 const DEFAULT_MASTER_SHEET_ID = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
 
 function extractSheetId(input) {
@@ -114,21 +115,21 @@ async function fetchGoogleSheetGViz(param, sheetNameFallback) {
 // Fetch Google Sheet tab as raw CSV for 100% faithful cell extraction without GViz header stripping
 async function fetchGoogleSheetCSV(param, sheetNameFallback) {
   const sheetId = getActiveSheetId();
-  const isCustom = (sheetId !== DEFAULT_MASTER_SHEET_ID);
 
-  let url;
-  if (isCustom && sheetNameFallback) {
-    url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetNameFallback)}`;
-  } else if (!isNaN(param)) {
-    url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${param}`;
-  } else {
-    url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(param)}`;
+  // Try raw export?format=csv first for 100% faithful cell extraction without GViz header stripping
+  let response;
+  if (!isNaN(param)) {
+    try {
+      const exportUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${param}`;
+      response = await fetch(exportUrl);
+    } catch (_) {}
   }
 
-  let response = await fetch(url);
-  if (!response.ok && sheetNameFallback) {
-    const retryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetNameFallback)}`;
-    response = await fetch(retryUrl);
+  // Fallback to GViz by sheet name if export by gid was unsuccessful
+  if (!response || !response.ok) {
+    const target = sheetNameFallback || param;
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(target)}`;
+    response = await fetch(gvizUrl);
   }
 
   if (!response.ok) {
@@ -351,77 +352,109 @@ window.DataService = {
       let pureUsdTotal = 0;
       let pureKhrTotal = 0;
 
-      // Extract 10 Bank Accounts (Rows 4 to 13 in CSV)
-      for (let i = 4; i <= 13 && i < bankCsvRows.length; i++) {
-        const r = bankCsvRows[i];
-        if (!r || r.length < 4) continue;
-        const no = String(r[0] || '').trim();
-        const name = String(r[1] || '').trim();
-        if (!name || isNaN(parseInt(no))) continue;
-
-        const usdVal = cleanNumber(r[2]);
-        const khrVal = cleanNumber(r[3]);
-        accounts.push({ name, usd: usdVal, khr: khrVal });
-
-        if (!name.includes('(KHR)')) {
-          pureUsdTotal += usdVal;
-        } else {
-          pureKhrTotal += khrVal;
-        }
-      }
-
-      // Net Cash Position Summary
       const netCashPosition = {
-        totalNetCash: cleanNumber(bankCsvRows[2]?.[4] || bankCsvRows[8]?.[8]),
-        totalActualCash: cleanNumber(bankCsvRows[4]?.[8]),
-        pendingCodReceivables: cleanNumber(bankCsvRows[5]?.[8]),
-        totalLiquidAssets: cleanNumber(bankCsvRows[6]?.[8]),
-        totalAccountsPayable: cleanNumber(bankCsvRows[7]?.[8]),
-        netCashPositionFinal: cleanNumber(bankCsvRows[8]?.[8]),
-        healthStatus: String(bankCsvRows[9]?.[8] || '✅ សុវត្ថិភាពខ្ពស់').trim(),
-        coverageRatio: String(bankCsvRows[10]?.[8] || '10.39x').trim()
+        totalNetCash: 0,
+        totalActualCash: 0,
+        pendingCodReceivables: 0,
+        totalLiquidAssets: 0,
+        totalAccountsPayable: 0,
+        netCashPositionFinal: 0,
+        healthStatus: '✅ សុវត្ថិភាពខ្ពស់',
+        coverageRatio: '10.39x'
       };
 
-      // Extract Accounts Receivable / Pending COD table (Rows 20 to end)
-      for (let i = 20; i < bankCsvRows.length; i++) {
+      let inCodSection = false;
+
+      for (let i = 0; i < bankCsvRows.length; i++) {
         const r = bankCsvRows[i];
-        if (!r || r.length < 7) continue;
+        if (!r || r.length < 2) continue;
+
+        const rowStr = r.join(' ');
+        if (rowStr.includes('Accounts Receivable') || rowStr.includes('Pending COD') || rowStr.includes('កាលបរិច្ឆេទ') || rowStr.includes('ក្រុមហ៊ុនដឹកជញ្ជូន')) {
+          inCodSection = true;
+        }
+
+        // Net Cash Summary (Dynamic search by label in column 4)
+        if (r.length > 4) {
+          const label = String(r[4] || '').trim();
+          const valCol8 = cleanNumber(r[8]);
+          const rawCol8 = String(r[8] || '').trim();
+
+          if (label.includes('សរុបសាច់ប្រាក់ជាក់ស្តែង') || label.includes('Total Cash')) {
+            netCashPosition.totalActualCash = valCol8;
+          } else if (label.includes('លុយ COD') || label.includes('Receivables')) {
+            netCashPosition.pendingCodReceivables = valCol8;
+          } else if (label.includes('ទ្រព្យសកម្មរាវ') || label.includes('Total Liquid Assets')) {
+            netCashPosition.totalLiquidAssets = valCol8;
+          } else if (label.includes('សរុបបំណុលត្រូវទូទាត់') || label.includes('Accounts Payable')) {
+            netCashPosition.totalAccountsPayable = valCol8;
+          } else if (label.includes('សាច់ប្រាក់សុទ្ធពិតប្រាកដ') || label.includes('Net Cash Position')) {
+            netCashPosition.netCashPositionFinal = valCol8;
+            netCashPosition.totalNetCash = valCol8;
+          } else if (label.includes('សន្ទស្សន៍សុខភាព') || label.includes('Cash Health')) {
+            netCashPosition.healthStatus = rawCol8 || '✅ សុវត្ថិភាពខ្ពស់';
+          } else if (label.includes('សមាមាត្រទូទាត់') || label.includes('Coverage Ratio')) {
+            netCashPosition.coverageRatio = rawCol8 || '10.39x';
+          }
+        }
+
         const no = String(r[0] || '').trim();
-        if (!no || isNaN(parseInt(no))) continue;
+        const noInt = parseInt(no, 10);
 
-        const dateRaw = String(r[1] || '').trim();
-        const carrier = String(r[2] || '').trim();
-        const customer = String(r[3] || '').trim();
-        const qtyBoxes = String(r[4] || '').trim();
-        const amt = cleanNumber(r[5]);
-        const status = String(r[6] || '').trim();
+        // Bank Accounts (Before reaching COD section)
+        if (!inCodSection) {
+          const name = String(r[1] || '').trim();
+          if (!isNaN(noInt) && noInt >= 1 && noInt <= 10 && name && !name.startsWith('សរុប')) {
+            const usdVal = cleanNumber(r[2]);
+            const khrVal = cleanNumber(r[3]);
+            accounts.push({ name, usd: usdVal, khr: khrVal });
 
-        if (dateRaw && (amt > 0 || status)) {
-          pendingCodReceivables.push({
-            no: no,
-            date: formatToDDMMYYYY(dateRaw),
-            carrier,
-            customer,
-            qtyBoxes: qtyBoxes ? `${qtyBoxes} ប្រអប់` : '—',
-            amount: amt,
-            status: status || 'រង់ចាំទូទាត់'
-          });
+            if (!name.includes('(KHR)')) {
+              pureUsdTotal += usdVal;
+            } else {
+              pureKhrTotal += khrVal;
+            }
+          }
+        } else {
+          // In COD & Payables section
+          // COD in cols 0 to 6
+          if (!isNaN(noInt) && noInt >= 1) {
+            const dateRaw = String(r[1] || '').trim();
+            const carrier = String(r[2] || '').trim();
+            const customer = String(r[3] || '').trim();
+            const qtyBoxes = String(r[4] || '').trim();
+            const amt = cleanNumber(r[5]);
+            const status = String(r[6] || '').trim();
+
+            if (customer && (amt > 0 || status)) {
+              pendingCodReceivables.push({
+                no: no,
+                date: formatToDDMMYYYY(dateRaw),
+                carrier,
+                customer,
+                qtyBoxes: qtyBoxes ? `${qtyBoxes} ប្រអប់` : '—',
+                amount: amt,
+                status: status || 'រង់ចាំទូទាត់'
+              });
+            }
+          }
+
+          // Accounts Payable in cols 7 to 10
+          if (r.length > 8) {
+            const pNo = String(r[7] || '').trim();
+            const title = String(r[8] || '').trim();
+            const amount = cleanNumber(r[10]);
+
+            if (pNo && !isNaN(parseInt(pNo, 10)) && title && amount > 0) {
+              payables.push({ title, amount });
+            }
+          }
         }
       }
 
-      // Extract Accounts Payable List (Rows 20 to end, Columns H to K)
-      for (let i = 20; i < bankCsvRows.length; i++) {
-        const r = bankCsvRows[i];
-        if (!r || r.length < 11) continue;
-        const pNo = String(r[7] || '').trim();
-        if (!pNo || isNaN(parseInt(pNo))) continue;
-
-        const title = String(r[8] || '').trim();
-        const amount = cleanNumber(r[10]);
-
-        if (title && amount > 0) {
-          payables.push({ title, amount });
-        }
+      // Fallback: If totalNetCash not set from label, use netCashPositionFinal or bank sum
+      if (!netCashPosition.totalNetCash) {
+        netCashPosition.totalNetCash = netCashPosition.netCashPositionFinal || (netCashPosition.totalLiquidAssets - netCashPosition.totalAccountsPayable);
       }
 
       // ==========================================
@@ -764,11 +797,11 @@ window.DataService = {
   },
 
   isMasterSheet() {
-    return getActiveSheetId() === DEFAULT_MASTER_SHEET_ID;
+    return getActiveSheetId() === MASTER_SDOEUNG_SHEET_ID;
   },
 
   getMasterSheetId() {
-    return DEFAULT_MASTER_SHEET_ID;
+    return MASTER_SDOEUNG_SHEET_ID;
   },
 
   disconnectSheet() {

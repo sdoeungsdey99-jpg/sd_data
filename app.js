@@ -10291,9 +10291,9 @@ async function submitMasterPin() {
   const err = document.getElementById('master-pin-err');
   const pin = input ? input.value.trim() : '';
 
-  if (pin === '2026' || pin === 'sd2026' || pin === '1234') {
+  if (pin === '2026' || pin === 'sd2026' || pin === '1234' || pin === '5136') {
     closeMasterPinModal();
-    const masterId = (typeof DataService !== 'undefined' && DataService.getMasterSheetId) ? DataService.getMasterSheetId() : '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+    const masterId = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
     localStorage.setItem('sd_custom_sheet_id', masterId);
     localStorage.setItem('sd_profile_data', JSON.stringify(DEFAULT_PROFILE_DATA));
     syncHeaderProfileUI();
