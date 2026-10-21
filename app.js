@@ -14453,57 +14453,140 @@ let _rulerState = {
   lastVibrateVal: null
 };
 
+let _stepTimer = null;
+let _stepInterval = null;
+
+function changeReportFieldVal(fieldId, delta) {
+  const hiddenInput = document.getElementById(fieldId);
+  if (!hiddenInput) return;
+  let val = (Number(hiddenInput.value) || 0) + delta;
+  if (val < 0) val = 0;
+  hiddenInput.value = val;
+
+  if (fieldId === 'rep-field-chat-target') {
+    hiddenInput.dataset.manualEdited = 'true';
+  }
+
+  const disp = document.getElementById(`${fieldId}-disp`);
+  if (disp) disp.innerText = val;
+
+  // Highlight card without auto-scrolling
+  setActiveReportField(fieldId, null, 0, 999, null, false);
+
+  // Sync with 3D ruler if active
+  if (_rulerState && _rulerState.targetFieldId === fieldId) {
+    _rulerState.val = val;
+    _rulerState.pixelOffset = val * _rulerState.tickSpacing;
+    const rulerVal = document.getElementById('ruler-fixed-val');
+    if (rulerVal) rulerVal.innerText = val;
+    if (typeof draw3DRuler === 'function') draw3DRuler();
+  }
+
+  calculateDailyReportMetrics();
+  if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
+}
+
+function stepFieldPress(fieldId, delta, ev) {
+  if (ev) ev.stopPropagation();
+  changeReportFieldVal(fieldId, delta);
+
+  clearTimeout(_stepTimer);
+  clearInterval(_stepInterval);
+  _stepTimer = setTimeout(() => {
+    _stepInterval = setInterval(() => {
+      changeReportFieldVal(fieldId, delta);
+    }, 120);
+  }, 380);
+}
+
+function stepFieldRelease(ev) {
+  if (ev) ev.stopPropagation();
+  clearTimeout(_stepTimer);
+  clearInterval(_stepInterval);
+  _stepTimer = null;
+  _stepInterval = null;
+}
+
+window.changeReportFieldVal = changeReportFieldVal;
+window.stepFieldPress = stepFieldPress;
+window.stepFieldRelease = stepFieldRelease;
+
 function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTitleKm) {
   const v = Number(defaultVal) || 0;
+  const title = fieldTitleKm || label;
   return `
-    <div id="card-${id}" onclick="setActiveReportField('${id}', '${fieldTitleKm || label}', ${min || 0}, ${max || 999}, '${unit}')"
-         class="report-field-item p-2 sm:p-2.5 rounded-2xl bg-black/60 border border-white/10 hover:border-amber-500/40 cursor-pointer active:scale-98 transition flex items-center justify-between select-none group">
-      <div class="min-w-0 pr-1.5 flex-1">
-        <span class="text-[10px] text-slate-300 font-semibold block truncate leading-tight group-hover:text-amber-400 transition">${label}</span>
-        <span id="badge-${id}" class="field-active-badge hidden text-[8.5px] text-amber-400 font-bold flex items-center gap-1 mt-0.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> កំពុងជ្រើស
-        </span>
+    <div id="card-${id}" onclick="setActiveReportField('${id}', '${title}', ${min || 0}, ${max || 999}, '${unit}')"
+         class="report-field-item p-2.5 sm:p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-amber-500/40 cursor-pointer transition select-none flex flex-col justify-between group shadow-sm">
+      <div class="flex items-center justify-between mb-2 min-w-0">
+        <span class="text-xs sm:text-sm text-slate-200 font-bold truncate group-hover:text-amber-400 transition">${label}</span>
+        <span class="text-[11px] text-slate-400 font-kantumruy font-semibold shrink-0 ml-1.5">${unit}</span>
       </div>
-      <div class="text-right shrink-0">
-        <span id="${id}-disp" class="text-white font-mono font-black text-sm tracking-wide">${v}</span>
-        <span class="text-[9px] text-slate-400 font-kantumruy ml-0.5">${unit}</span>
+
+      <!-- Stepper Controls: [-] on Left, Value in Center, [+] on Right -->
+      <div class="flex items-center justify-between bg-black/80 p-1 sm:p-1.5 rounded-xl border border-white/10 gap-1.5">
+        <!-- Minus Button on Left -->
+        <button type="button" 
+                onpointerdown="stepFieldPress('${id}', -1, event)"
+                onpointerup="stepFieldRelease(event)"
+                onpointerleave="stepFieldRelease(event)"
+                onpointercancel="stepFieldRelease(event)"
+                onclick="event.stopPropagation();"
+                class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-white/10 hover:bg-white/20 active:bg-amber-500 active:text-black text-white font-black text-2xl flex items-center justify-center transition active:scale-90 shrink-0 select-none shadow-sm touch-manipulation"
+                title="បន្ថយ">
+          −
+        </button>
+
+        <!-- Center Number Display -->
+        <div class="flex-1 text-center min-w-0 px-1 py-0.5">
+          <span id="${id}-disp" class="text-xl sm:text-2xl font-mono font-black text-amber-400 block leading-tight truncate drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]">${v}</span>
+        </div>
+
+        <!-- Plus Button on Right -->
+        <button type="button" 
+                onpointerdown="stepFieldPress('${id}', 1, event)"
+                onpointerup="stepFieldRelease(event)"
+                onpointerleave="stepFieldRelease(event)"
+                onpointercancel="stepFieldRelease(event)"
+                onclick="event.stopPropagation();"
+                class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-white/10 hover:bg-white/20 active:bg-amber-500 active:text-black text-white font-black text-2xl flex items-center justify-center transition active:scale-90 shrink-0 select-none shadow-sm touch-manipulation"
+                title="បន្ថែម">
+          +
+        </button>
       </div>
       <input type="hidden" id="${id}" value="${v}">
     </div>
   `;
 }
 
-function setActiveReportField(fieldId, label, min, max, unit) {
+function setActiveReportField(fieldId, label, min, max, unit, shouldScroll = true) {
   // Clear previous active highlights from all items
   document.querySelectorAll('.report-field-item').forEach(el => {
     el.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/40', 'bg-amber-500/15');
     el.classList.add('border-white/10', 'bg-black/60');
   });
-  document.querySelectorAll('.field-active-badge').forEach(b => b.classList.add('hidden'));
 
   // Highlight the selected field
   const card = document.getElementById(`card-${fieldId}`);
   if (card) {
     card.classList.remove('border-white/10', 'bg-black/60');
     card.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/40', 'bg-amber-500/15');
-    // Ensure the card is smoothly scrolled into clear view above the bottom docked ruler
-    setTimeout(() => {
-      try {
-        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } catch (_) {}
-    }, 40);
+    if (shouldScroll) {
+      setTimeout(() => {
+        try {
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (_) {}
+      }, 40);
+    }
   }
-  const badge = document.getElementById(`badge-${fieldId}`);
-  if (badge) badge.classList.remove('hidden');
 
   const hiddenInput = document.getElementById(fieldId);
   const currentVal = hiddenInput ? (Number(hiddenInput.value) || 0) : 0;
 
   _rulerState.targetFieldId = fieldId;
-  _rulerState.title = label || 'កែសម្រួលចំនួន';
-  _rulerState.min = (typeof min === 'number') ? min : 0;
-  _rulerState.max = (typeof max === 'number') ? max : 999;
-  _rulerState.unit = unit || 'នាក់';
+  if (label) _rulerState.title = label;
+  if (typeof min === 'number') _rulerState.min = min;
+  if (typeof max === 'number') _rulerState.max = max;
+  if (unit) _rulerState.unit = unit;
   _rulerState.val = currentVal;
   _rulerState.pixelOffset = currentVal * _rulerState.tickSpacing;
   _rulerState.lastVibrateVal = currentVal;
@@ -14512,9 +14595,9 @@ function setActiveReportField(fieldId, label, min, max, unit) {
   const valEl = document.getElementById('ruler-fixed-val');
   const unitEl = document.getElementById('ruler-fixed-unit');
 
-  if (titleEl) titleEl.innerText = _rulerState.title;
+  if (titleEl && _rulerState.title) titleEl.innerText = _rulerState.title;
   if (valEl) valEl.innerText = currentVal;
-  if (unitEl) unitEl.innerText = _rulerState.unit;
+  if (unitEl && _rulerState.unit) unitEl.innerText = _rulerState.unit;
 
   draw3DRuler();
   if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
@@ -14888,7 +14971,7 @@ function generateDailyReportText() {
 📦 ៣. លទ្ធផលលក់ជាក់ស្តែង (Sales)
 • ភ្ញៀវថ្មីទិញ៖ ${buyNewP} នាក់ ➔ ${buyNewB} ប្រអប់
 • ភ្ញៀវចាស់ទិញថែម៖ ${buyOldP} នាក់ ➔ ${buyOldB} ប្រអប់
-• ភ្ញៀវ Follow-up ទិញ៖ ${buyFollowP} នាក់ ➔ ${buyFollowB} ប្រអប់
+• ភ្ញៀវបាន Follow Up៖ ${buyFollowP} នាក់ ➔ ${buyFollowB} ប្រអប់
 
 • បញ្ហាប្រឈម / ចំណាំ៖ ${challenges || 'គ្មាន'}
 ━━━━━━━━━━━━━━━━━━
@@ -15073,124 +15156,121 @@ function renderDailyReportModal() {
         </div>
 
         <!-- Multi-page Quick Switching Pills -->
-        <div class="space-y-1">
-          <label class="block text-[10px] text-slate-400 font-semibold">ជ្រើសរើសផេកលក់ (ប្តូររហ័ស 1-Tap)៖</label>
+        <div class="space-y-1.5">
+          <label class="block text-xs sm:text-sm text-slate-300 font-bold">ជ្រើសរើសផេកលក់ (ប្តូររហ័ស 1-Tap)៖</label>
           <div id="rep-pages-pills-container" class="flex flex-wrap items-center gap-1.5">
             <!-- Rendered by renderDailyReportPagePills() -->
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 pt-1">
+        <div class="space-y-2.5 pt-1">
           <div>
-            <label class="block text-[10px] text-slate-400 mb-1 font-semibold">កាលបរិច្ឆេទ៖</label>
+            <label class="block text-xs sm:text-sm text-slate-300 mb-1 font-bold">កាលបរិច្ឆេទ (ថ្ងៃ/ខែ/ឆ្នាំ)៖</label>
             <input type="text" id="rep-field-date" value="${defaultDate}" 
                    onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
+                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white font-mono text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label class="block text-[10px] text-slate-400 mb-1 font-semibold">ឈ្មោះផេកផ្ទាល់៖</label>
+            <label class="block text-xs sm:text-sm text-slate-300 mb-1 font-bold">ឈ្មោះផេកផ្ទាល់៖</label>
             <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
                    oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
                    onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-emerald-500">
+                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
           </div>
-        </div>
-        <div>
-          <label class="block text-[10px] text-slate-400 mb-1 font-semibold">បុគ្គលិកទទួលខុសត្រូវ / ឈ្មោះអ្នកលក់៖</label>
-          <input type="text" id="rep-field-staff" value="${savedStaff}" placeholder="ឈ្មោះអ្នកលក់ ឬ ក្រុមការងារ" 
-                 oninput="try { localStorage.setItem('sd_report_staff', this.value); } catch(_) {}"
-                 onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
-                 class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-emerald-500">
+          <div>
+            <label class="block text-xs sm:text-sm text-slate-300 mb-1 font-bold">បុគ្គលិកទទួលខុសត្រូវ / ឈ្មោះអ្នកលក់៖</label>
+            <input type="text" id="rep-field-staff" value="${savedStaff}" placeholder="ឈ្មោះអ្នកលក់ ឬ ក្រុមការងារ" 
+                   oninput="try { localStorage.setItem('sd_report_staff', this.value); } catch(_) {}"
+                   onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
+                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
+          </div>
         </div>
       </div>
 
-      <!-- Card 2: Section 1 - 📥 ទិន្នន័យឆាត & ខល (Left Hand Taps to Select Field) -->
+      <!-- Card 2: Section 1 - 📥 ទិន្នន័យឆាត & ខល -->
       <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
         <div class="flex items-center justify-between">
-          <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <i data-lucide="inbox" class="w-3.5 h-3.5"></i>
+          <span class="text-xs sm:text-sm text-sky-400 font-bold uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="inbox" class="w-4 h-4"></i>
             <span>១. ទិន្នន័យឆាត & ខល (Traffic)</span>
           </span>
-          <span class="text-[9px] text-amber-400 font-bold">👈 ដៃឆ្វេងប៉ះប្រអប់</span>
         </div>
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-2 gap-2.5">
           ${renderRulerNumberControl('rep-field-chat-total', 'ឆាតថ្មីសរុប', 0, 'នាក់', 0, 500, 'ឆាតថ្មីសរុប')}
-          ${renderRulerNumberControl('rep-field-chat-mistake', 'ឆាតប៉ះដៃ (Spam)', 0, 'នាក់', 0, 500, 'ឆាតប៉ះដៃ (ច្រឡំ/Spam)')}
-          ${renderRulerNumberControl('rep-field-chat-target', 'ឆាតគោលដៅ', 0, 'នាក់', 0, 500, 'ឆាតគោលដៅ (សួរពិត)')}
-          ${renderRulerNumberControl('rep-field-call-direct', 'អតិថិជនខលផ្ទាល់', 0, 'នាក់', 0, 100, 'អតិថិជនខលផ្ទាល់')}
+          ${renderRulerNumberControl('rep-field-chat-mistake', 'ឆាតប៉ះដៃ (Spam)', 0, 'នាក់', 0, 500, 'ឆាតប៉ះដៃ')}
+          ${renderRulerNumberControl('rep-field-chat-target', 'ឆាតគោលដៅ', 0, 'នាក់', 0, 500, 'ឆាតគោលដៅ')}
+          ${renderRulerNumberControl('rep-field-call-direct', 'អតិថិជនខលផ្ទាល់', 0, 'នាក់', 0, 100, 'អតិថិជនខល')}
         </div>
       </div>
 
       <!-- Card 3: Section 2 - 🔄 សកម្មភាពតាមដាន (Follow Up) -->
       <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
         <div class="flex items-center justify-between">
-          <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span class="text-xs sm:text-sm text-purple-400 font-bold uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
             <span>២. សកម្មភាពតាមដាន (Follow Up)</span>
           </span>
-          <span class="text-[9px] text-amber-400 font-bold">👈 ដៃឆ្វេងប៉ះប្រអប់</span>
         </div>
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-2 gap-2.5">
           ${renderRulerNumberControl('rep-field-follow-old', 'ភ្ញៀវចាស់សួរសុខទុក្ខ', 0, 'នាក់', 0, 200, 'ភ្ញៀវចាស់សួរសុខទុក្ខ')}
           ${renderRulerNumberControl('rep-field-follow-pending', 'ភ្ញៀវរង់ចាំចម្លើយ', 0, 'នាក់', 0, 200, 'ភ្ញៀវរង់ចាំចម្លើយ')}
         </div>
       </div>
 
       <!-- Card 4: Section 3 - 📦 លទ្ធផលនៃការលក់ជាក់ស្តែង -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
         <div class="flex items-center justify-between">
-          <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <i data-lucide="package" class="w-3.5 h-3.5"></i>
+          <span class="text-xs sm:text-sm text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="package" class="w-4 h-4"></i>
             <span>៣. លទ្ធផលលក់ជាក់ស្តែង (Sales)</span>
           </span>
-          <span class="text-[9px] text-amber-400 font-bold">👈 ដៃឆ្វេងប៉ះប្រអប់</span>
         </div>
         
         <div class="space-y-2.5">
           <!-- ភ្ញៀវថ្មី -->
-          <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 space-y-1.5">
-            <span class="text-[11px] font-bold text-white flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <div class="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+            <span class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
               <span>ភ្ញៀវថ្មីទិញ៖</span>
             </span>
-            <div class="grid grid-cols-2 gap-2">
-              ${renderRulerNumberControl('rep-buy-new-p', 'ចំនួនភ្ញៀវ', (autoTodayBoxes > 0 ? autoTodayOrders : 0), 'នាក់', 0, 100, 'ភ្ញៀវថ្មីទិញ (ចំនួននាក់)')}
-              ${renderRulerNumberControl('rep-buy-new-b', 'ចំនួនប្រអប់', autoTodayBoxes, 'ប្រអប់', 0, 200, 'ភ្ញៀវថ្មីទិញ (ចំនួនប្រអប់)')}
+            <div class="grid grid-cols-2 gap-2.5">
+              ${renderRulerNumberControl('rep-buy-new-p', 'ចំនួនភ្ញៀវ', (autoTodayBoxes > 0 ? autoTodayOrders : 0), 'នាក់', 0, 100, 'ភ្ញៀវថ្មីទិញ')}
+              ${renderRulerNumberControl('rep-buy-new-b', 'ចំនួនប្រអប់', autoTodayBoxes, 'ប្រអប់', 0, 200, 'ភ្ញៀវថ្មីទិញ')}
             </div>
           </div>
 
           <!-- ភ្ញៀវចាស់ទិញបន្ថែម -->
-          <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 space-y-1.5">
-            <span class="text-[11px] font-bold text-white flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
+          <div class="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+            <span class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-teal-400"></span>
               <span>ភ្ញៀវចាស់ទិញបន្ថែម (Repeat)៖</span>
             </span>
-            <div class="grid grid-cols-2 gap-2">
-              ${renderRulerNumberControl('rep-buy-old-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវចាស់ទិញ (ចំនួននាក់)')}
-              ${renderRulerNumberControl('rep-buy-old-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវចាស់ទិញ (ចំនួនប្រអប់)')}
+            <div class="grid grid-cols-2 gap-2.5">
+              ${renderRulerNumberControl('rep-buy-old-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវចាស់ទិញថែម')}
+              ${renderRulerNumberControl('rep-buy-old-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវចាស់ទិញថែម')}
             </div>
           </div>
 
-          <!-- ភ្ញៀវ Follow-up ទិញ -->
-          <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 space-y-1.5">
-            <span class="text-[11px] font-bold text-white flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-              <span>ភ្ញៀវតាមដានទិញ (Follow-up Closed)៖</span>
+          <!-- ភ្ញៀវបាន Follow Up -->
+          <div class="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+            <span class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+              <span>ភ្ញៀវបាន Follow Up៖</span>
             </span>
-            <div class="grid grid-cols-2 gap-2">
-              ${renderRulerNumberControl('rep-buy-follow-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវ Follow ទិញ (ចំនួននាក់)')}
-              ${renderRulerNumberControl('rep-buy-follow-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវ Follow ទិញ (ចំនួនប្រអប់)')}
+            <div class="grid grid-cols-2 gap-2.5">
+              ${renderRulerNumberControl('rep-buy-follow-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវបាន Follow Up')}
+              ${renderRulerNumberControl('rep-buy-follow-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវបាន Follow Up')}
             </div>
           </div>
         </div>
 
         <!-- Total Calculation Display -->
-        <div class="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-between text-xs font-mono shadow-sm">
-          <span class="text-emerald-300 font-bold flex items-center gap-1.5">
+        <div class="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-between text-xs sm:text-sm font-mono shadow-sm">
+          <span class="text-emerald-300 font-bold flex items-center gap-2">
             <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
             <span>សរុបទំនិញលក់បានទាំងអស់៖</span>
           </span>
-          <span id="rep-total-summary-disp" class="text-emerald-300 font-black text-sm drop-shadow">
+          <span id="rep-total-summary-disp" class="text-emerald-300 font-black text-base sm:text-lg drop-shadow">
             ${autoTodayBoxes || 0} ប្រអប់
           </span>
         </div>
