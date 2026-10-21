@@ -14399,15 +14399,15 @@ function submitUserFeedback() {
 window.submitUserFeedback = submitUserFeedback;
 
 // ========================================================
-// 3D INFINITE RULER WHEEL PICKER & DAILY REPORT ENGINE
+// INTEGRATED TWO-HAND 3D RULER WHEEL & DAILY REPORT ENGINE
+// Left Hand Taps Field to Select | Right Hand Swipes Ruler to Adjust
 // ========================================================
 let _rulerState = {
-  isOpen: false,
-  targetFieldId: null,
-  title: 'កែសម្រួលចំនួន',
+  targetFieldId: 'rep-field-chat-total',
+  title: 'ឆាតថ្មីសរុប',
   min: 0,
-  max: 999,
-  unit: 'ប្រអប់',
+  max: 500,
+  unit: 'នាក់',
   val: 0,
   pixelOffset: 0,
   isDragging: false,
@@ -14421,67 +14421,45 @@ let _rulerState = {
 function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTitleKm) {
   const v = Number(defaultVal) || 0;
   return `
-    <div class="space-y-1">
-      <label class="block text-[10px] text-slate-400 font-semibold truncate">${label}</label>
-      <div class="flex items-center bg-black/60 border border-white/10 hover:border-amber-500/30 rounded-2xl p-1 transition shadow-inner">
-        <button type="button" onclick="stepDailyReportField('${id}', -1, event)" 
-                class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-90 text-slate-300 flex items-center justify-center font-bold text-sm transition shrink-0 select-none" title="ដក ១">
-          -
-        </button>
-        <div onclick="open3DRulerPicker('${id}', '${fieldTitleKm || label}', ${min || 0}, ${max || 999}, '${unit}')" 
-             class="flex-1 text-center cursor-pointer py-1 px-1 select-none active:scale-95 transition group min-w-0" title="ចុចដើម្បីអូសកង់ 3D">
-          <div class="text-white font-mono font-bold text-xs sm:text-sm flex items-center justify-center gap-1 group-hover:text-amber-400 transition truncate">
-            <span id="${id}-disp" class="tracking-wider">${v}</span>
-            <span class="text-[9.5px] text-slate-400 font-kantumruy font-normal">${unit}</span>
-          </div>
-        </div>
-        <button type="button" onclick="stepDailyReportField('${id}', 1, event)" 
-                class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-90 text-slate-300 flex items-center justify-center font-bold text-sm transition shrink-0 select-none" title="បូក ១">
-          +
-        </button>
-        <input type="hidden" id="${id}" value="${v}">
+    <div id="card-${id}" onclick="setActiveReportField('${id}', '${fieldTitleKm || label}', ${min || 0}, ${max || 999}, '${unit}')"
+         class="report-field-item p-2 sm:p-2.5 rounded-2xl bg-black/60 border border-white/10 hover:border-amber-500/40 cursor-pointer active:scale-98 transition flex items-center justify-between select-none group">
+      <div class="min-w-0 pr-1.5 flex-1">
+        <span class="text-[10px] text-slate-300 font-semibold block truncate leading-tight group-hover:text-amber-400 transition">${label}</span>
+        <span id="badge-${id}" class="field-active-badge hidden text-[8.5px] text-amber-400 font-bold flex items-center gap-1 mt-0.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> កំពុងជ្រើស
+        </span>
       </div>
+      <div class="text-right shrink-0">
+        <span id="${id}-disp" class="text-white font-mono font-black text-sm tracking-wide">${v}</span>
+        <span class="text-[9px] text-slate-400 font-kantumruy ml-0.5">${unit}</span>
+      </div>
+      <input type="hidden" id="${id}" value="${v}">
     </div>
   `;
 }
 
-function stepDailyReportField(fieldId, delta, event) {
-  if (event) {
-    try { event.stopPropagation(); event.preventDefault(); } catch (_) {}
+function setActiveReportField(fieldId, label, min, max, unit) {
+  // Clear previous active highlights from all items
+  document.querySelectorAll('.report-field-item').forEach(el => {
+    el.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/40', 'bg-amber-500/15');
+    el.classList.add('border-white/10', 'bg-black/60');
+  });
+  document.querySelectorAll('.field-active-badge').forEach(b => b.classList.add('hidden'));
+
+  // Highlight the selected field
+  const card = document.getElementById(`card-${fieldId}`);
+  if (card) {
+    card.classList.remove('border-white/10', 'bg-black/60');
+    card.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/40', 'bg-amber-500/15');
   }
-  const hiddenInput = document.getElementById(fieldId);
-  if (!hiddenInput) return;
-  
-  const current = Number(hiddenInput.value) || 0;
-  const newVal = Math.max(0, current + delta);
-  hiddenInput.value = newVal;
-
-  const disp = document.getElementById(`${fieldId}-disp`);
-  if (disp) disp.innerText = newVal;
-
-  if (fieldId === 'rep-field-chat-target') {
-    hiddenInput.dataset.manualEdited = 'true';
-  }
-
-  if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
-  calculateDailyReportMetrics();
-}
-
-function open3DRulerPicker(fieldId, title, min, max, unit) {
-  const backdrop = document.getElementById('ruler-picker-backdrop');
-  const sheet = document.getElementById('ruler-picker-sheet');
-  const titleEl = document.getElementById('ruler-picker-title');
-  const valEl = document.getElementById('ruler-live-val');
-  const unitEl = document.getElementById('ruler-live-unit');
-
-  if (!backdrop || !sheet) return;
+  const badge = document.getElementById(`badge-${fieldId}`);
+  if (badge) badge.classList.remove('hidden');
 
   const hiddenInput = document.getElementById(fieldId);
   const currentVal = hiddenInput ? (Number(hiddenInput.value) || 0) : 0;
 
-  _rulerState.isOpen = true;
   _rulerState.targetFieldId = fieldId;
-  _rulerState.title = title || 'កែសម្រួលចំនួន';
+  _rulerState.title = label || 'កែសម្រួលចំនួន';
   _rulerState.min = (typeof min === 'number') ? min : 0;
   _rulerState.max = (typeof max === 'number') ? max : 999;
   _rulerState.unit = unit || 'នាក់';
@@ -14489,43 +14467,16 @@ function open3DRulerPicker(fieldId, title, min, max, unit) {
   _rulerState.pixelOffset = currentVal * _rulerState.tickSpacing;
   _rulerState.lastVibrateVal = currentVal;
 
+  const titleEl = document.getElementById('ruler-fixed-title');
+  const valEl = document.getElementById('ruler-fixed-val');
+  const unitEl = document.getElementById('ruler-fixed-unit');
+
   if (titleEl) titleEl.innerText = _rulerState.title;
   if (valEl) valEl.innerText = currentVal;
   if (unitEl) unitEl.innerText = _rulerState.unit;
 
-  backdrop.classList.remove('hidden');
-  setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
-  sheet.classList.remove('translate-y-full');
-
-  init3DRulerCanvas();
   draw3DRuler();
-
-  if (window.lucide) window.lucide.createIcons();
-  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
-}
-
-function close3DRulerPicker() {
-  const backdrop = document.getElementById('ruler-picker-backdrop');
-  const sheet = document.getElementById('ruler-picker-sheet');
-
-  if (sheet) sheet.classList.add('translate-y-full');
-  if (backdrop) {
-    backdrop.classList.add('opacity-0');
-    setTimeout(() => backdrop.classList.add('hidden'), 220);
-  }
-
-  _rulerState.isOpen = false;
-  if (_rulerState.animFrameId) {
-    cancelAnimationFrame(_rulerState.animFrameId);
-    _rulerState.animFrameId = null;
-  }
-}
-
-function confirm3DRulerPicker() {
-  syncRulerToField();
-  close3DRulerPicker();
-  if (navigator.vibrate) try { navigator.vibrate([10, 40, 10]); } catch (_) {}
-  showToastNotification(`បានកំណត់ ${_rulerState.title} ៖ ${_rulerState.val} ${_rulerState.unit} ✓`);
+  if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
 }
 
 function syncRulerToField() {
@@ -14539,6 +14490,10 @@ function syncRulerToField() {
   }
   const disp = document.getElementById(`${_rulerState.targetFieldId}-disp`);
   if (disp) disp.innerText = _rulerState.val;
+
+  const valEl = document.getElementById('ruler-fixed-val');
+  if (valEl) valEl.innerText = _rulerState.val;
+
   calculateDailyReportMetrics();
 }
 
@@ -14550,9 +14505,6 @@ function setRulerValue(targetVal) {
   const clamped = Math.max(_rulerState.min, Math.min(_rulerState.max, Number(targetVal) || 0));
   _rulerState.val = clamped;
   _rulerState.pixelOffset = clamped * _rulerState.tickSpacing;
-
-  const valEl = document.getElementById('ruler-live-val');
-  if (valEl) valEl.innerText = clamped;
 
   syncRulerToField();
   draw3DRuler();
@@ -14579,7 +14531,6 @@ function init3DRulerCanvas() {
     const minOffset = _rulerState.min * _rulerState.tickSpacing;
     const maxOffset = _rulerState.max * _rulerState.tickSpacing;
 
-    // Soft resistance at boundaries
     if (nextOffset < minOffset) {
       nextOffset = minOffset + (nextOffset - minOffset) * 0.25;
     } else if (nextOffset > maxOffset) {
@@ -14591,14 +14542,10 @@ function init3DRulerCanvas() {
     const currentInt = Math.max(_rulerState.min, Math.min(_rulerState.max, Math.round(nextOffset / _rulerState.tickSpacing)));
     if (currentInt !== _rulerState.val) {
       _rulerState.val = currentInt;
-      const valEl = document.getElementById('ruler-live-val');
-      if (valEl) valEl.innerText = currentInt;
-
       if (_rulerState.lastVibrateVal !== currentInt) {
         _rulerState.lastVibrateVal = currentInt;
         if (navigator.vibrate) try { navigator.vibrate(6); } catch (_) {}
       }
-
       syncRulerToField();
     }
 
@@ -14660,7 +14607,7 @@ function draw3DRuler() {
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
   const width = rect.width || 360;
-  const height = rect.height || 74;
+  const height = rect.height || 64;
 
   if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
     canvas.width = Math.round(width * dpr);
@@ -14683,7 +14630,7 @@ function draw3DRuler() {
   for (let i = minTick; i <= maxTick; i++) {
     const rawDx = (i * spacing) - currentOffset;
     
-    // 3D Cylinder projection math (cylindrical curve distortion)
+    // 3D Cylinder projection math (Cylindrical curved distortion)
     const normalizedDist = rawDx / (centerX * 0.96);
     if (Math.abs(normalizedDist) >= 1) continue;
 
@@ -14693,16 +14640,16 @@ function draw3DRuler() {
 
     if (perspectiveScale <= 0.05) continue;
 
-    let baseH = 18;
+    let baseH = 16;
     let baseW = 1.3;
     let strokeColor = `rgba(226, 232, 240, ${0.45 * perspectiveScale})`;
 
     if (i % 10 === 0) {
-      baseH = 38;
+      baseH = 34;
       baseW = 2.4;
       strokeColor = `rgba(255, 255, 255, ${0.95 * perspectiveScale})`;
     } else if (i % 5 === 0) {
-      baseH = 26;
+      baseH = 24;
       baseW = 1.9;
       strokeColor = `rgba(251, 191, 36, ${0.85 * perspectiveScale})`;
     }
@@ -14720,10 +14667,10 @@ function draw3DRuler() {
 
     // Render numbers above 10th ticks
     if (i % 10 === 0 && i >= _rulerState.min && i <= _rulerState.max) {
-      ctx.font = `bold ${Math.round(10.5 * perspectiveScale)}px monospace`;
+      ctx.font = `bold ${Math.round(10 * perspectiveScale)}px monospace`;
       ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.2, perspectiveScale * 0.9)})`;
       ctx.textAlign = 'center';
-      ctx.fillText(String(i), x, centerY - tickH / 2 - 4);
+      ctx.fillText(String(i), x, centerY - tickH / 2 - 3);
     }
   }
 
@@ -14968,7 +14915,7 @@ function renderDailyReportModal() {
   container.innerHTML = `
     <div class="space-y-3 text-xs select-none">
       <!-- Card 1: Meta Information -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+      <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2">
         <div class="flex items-center justify-between">
           <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
             <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
@@ -14998,14 +14945,14 @@ function renderDailyReportModal() {
         </div>
       </div>
 
-      <!-- Card 2: Section 1 - 📥 ទិន្នន័យអតិថិជនថ្មីទាក់ទងមក (No Keyboard - Stepper & 3D Wheel) -->
+      <!-- Card 2: Section 1 - 📥 ទិន្នន័យឆាត & ខល (Left Hand Taps to Select Field) -->
       <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
         <div class="flex items-center justify-between">
           <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
             <i data-lucide="inbox" class="w-3.5 h-3.5"></i>
             <span>១. ទិន្នន័យឆាត & ខល (Traffic)</span>
           </span>
-          <span class="text-[9.5px] text-slate-400 font-normal">ប៉ះលេខដើម្បីអូស 3D</span>
+          <span class="text-[9px] text-amber-400 font-bold">👈 ដៃឆ្វេងប៉ះប្រអប់</span>
         </div>
         <div class="grid grid-cols-2 gap-2">
           ${renderRulerNumberControl('rep-field-chat-total', 'ឆាតថ្មីសរុប', 0, 'នាក់', 0, 500, 'ឆាតថ្មីសរុប')}
@@ -15022,7 +14969,7 @@ function renderDailyReportModal() {
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             <span>២. សកម្មភាពតាមដាន (Follow Up)</span>
           </span>
-          <span class="text-[9.5px] text-slate-400 font-normal">ប៉ះលេខដើម្បីអូស 3D</span>
+          <span class="text-[9px] text-amber-400 font-bold">👈 ដៃឆ្វេងប៉ះប្រអប់</span>
         </div>
         <div class="grid grid-cols-2 gap-2">
           ${renderRulerNumberControl('rep-field-follow-old', 'ភ្ញៀវចាស់សួរសុខទុក្ខ', 0, 'នាក់', 0, 200, 'ភ្ញៀវចាស់សួរសុខទុក្ខ')}
@@ -15037,7 +14984,7 @@ function renderDailyReportModal() {
             <i data-lucide="package" class="w-3.5 h-3.5"></i>
             <span>៣. លទ្ធផលលក់ជាក់ស្តែង (Sales)</span>
           </span>
-          <span class="text-[9.5px] text-slate-400 font-normal">ប៉ះលេខដើម្បីអូស 3D</span>
+          <span class="text-[9px] text-amber-400 font-bold">👈 ដៃឆ្វេងប៉ះប្រអប់</span>
         </div>
         
         <div class="space-y-2.5">
@@ -15104,6 +15051,18 @@ function renderDailyReportModal() {
       <div id="rep-morale-card" class="transition-all duration-300">
         <!-- Rendered dynamically by renderDailyReportMoraleCard() -->
       </div>
+
+      <!-- Action Buttons Footer in Scroll View -->
+      <div class="pt-2 pb-1 flex items-center gap-2">
+        <button type="button" onclick="copyDailyReportText()" class="flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="copy" class="w-4 h-4 text-amber-400"></i>
+          <span>ចម្លងរបាយការណ៍ 📋</span>
+        </button>
+        <button type="button" onclick="shareDailyReportToTelegram()" class="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg shadow-emerald-500/25">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>ផ្ញើទៅ Telegram 🚀</span>
+        </button>
+      </div>
     </div>
   `;
 
@@ -15115,9 +15074,28 @@ function openDailyReportModal() {
   const modal = document.getElementById('daily-report-modal');
   if (!modal) return;
   closeAllModals();
+
+  // Hide the Dock completely so it never blocks the screen
+  const dock = document.getElementById('bottom-dock');
+  if (dock) {
+    dock.classList.add('!hidden');
+    dock.style.display = 'none';
+  }
+  const dockBlur = document.getElementById('dock-blur-backdrop');
+  if (dockBlur) {
+    dockBlur.classList.add('!hidden');
+    dockBlur.style.display = 'none';
+  }
+
   renderDailyReportModal();
   modal.classList.remove('hidden');
-  setDockVisible(false);
+
+  // Initialize canvas and select the first field by default
+  setTimeout(() => {
+    init3DRulerCanvas();
+    setActiveReportField('rep-field-chat-total', 'ឆាតថ្មីសរុប', 0, 500, 'នាក់');
+  }, 40);
+
   const bodyEl = document.getElementById('daily-report-body-content');
   if (bodyEl) bodyEl.scrollTop = 0;
   if (window.lucide) window.lucide.createIcons();
@@ -15125,10 +15103,20 @@ function openDailyReportModal() {
 }
 
 function closeDailyReportModal() {
-  close3DRulerPicker();
   const modal = document.getElementById('daily-report-modal');
   if (modal) modal.classList.add('hidden');
-  setDockVisible(true);
+
+  // Restore the Dock when closing modal
+  const dock = document.getElementById('bottom-dock');
+  if (dock) {
+    dock.classList.remove('!hidden');
+    dock.style.display = '';
+  }
+  const dockBlur = document.getElementById('dock-blur-backdrop');
+  if (dockBlur) {
+    dockBlur.classList.remove('!hidden');
+    dockBlur.style.display = '';
+  }
 }
 
 function resetDailyReportFields() {
@@ -15148,6 +15136,9 @@ function resetDailyReportFields() {
   const targetInput = document.getElementById('rep-field-chat-target');
   if (targetInput) delete targetInput.dataset.manualEdited;
   calculateDailyReportMetrics();
+  
+  // Reset ruler display
+  setRulerValue(0);
   showToastNotification('បានសម្អាតទិន្នន័យរបាយការណ៍!');
 }
 
@@ -15158,10 +15149,7 @@ window.openDailyReportModal = openDailyReportModal;
 window.calculateDailyReportMetrics = calculateDailyReportMetrics;
 window.copyDailyReportText = copyDailyReportText;
 window.shareDailyReportToTelegram = shareDailyReportToTelegram;
-window.stepDailyReportField = stepDailyReportField;
-window.open3DRulerPicker = open3DRulerPicker;
-window.close3DRulerPicker = close3DRulerPicker;
-window.confirm3DRulerPicker = confirm3DRulerPicker;
+window.setActiveReportField = setActiveReportField;
 window.stepCurrentRuler = stepCurrentRuler;
 window.setRulerValue = setRulerValue;
 
@@ -15969,6 +15957,10 @@ function openNewOrderModal(mode = 'dock') {
   const orderTypeCard = document.getElementById('order-type-card');
   const stockCapsuleBtn = document.getElementById('btn-order-stock-capsule');
 
+  const submitSlider = document.getElementById('order-submit-slider');
+  const sliderHint = document.getElementById('order-slider-hint');
+  const btnSubmitOrder = document.getElementById('btn-submit-order');
+
   if (currentOrderEntryMode === 'telegram') {
     if (modalTitle) modalTitle.textContent = 'កត់ត្រាពី Telegram';
     if (modalSubtitle) modalSubtitle.textContent = 'ចូល Google Sheet ផ្ទាល់ខ្លួន';
@@ -15981,8 +15973,15 @@ function openNewOrderModal(mode = 'dock') {
       stockCapsuleBtn.classList.add('hidden');
       stockCapsuleBtn.style.display = 'none';
     }
+    // Telegram Mode: Restore Original Button!
+    if (submitSlider) submitSlider.classList.add('hidden');
+    if (sliderHint) sliderHint.classList.add('hidden');
+    if (btnSubmitOrder) {
+      btnSubmitOrder.classList.remove('hidden');
+      btnSubmitOrder.style.display = '';
+    }
   } else {
-    // Dock Mode (បញ្ចូលការកុម្ម៉ង់ថ្មី)
+    // Dock Mode (បញ្ចូលការកុម្ម៉ង់ថ្មី): Slide to Submit
     if (modalTitle) modalTitle.textContent = 'បញ្ចូលការកុម្ម៉ង់ថ្មី';
     if (modalSubtitle) modalSubtitle.textContent = 'Sync ផ្ទាល់ខ្លួន & ក្រុមហ៊ុន';
     if (pasteBox) pasteBox.classList.add('hidden');
@@ -15999,6 +15998,21 @@ function openNewOrderModal(mode = 'dock') {
       stockCapsuleBtn.title = 'ស្តុក';
       stockCapsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ស្តុក</span>`;
     }
+    // Dock Mode: Slide to Submit
+    if (submitSlider) {
+      submitSlider.classList.remove('hidden');
+      submitSlider.style.display = '';
+    }
+    if (sliderHint) {
+      sliderHint.classList.remove('hidden');
+      sliderHint.style.display = '';
+    }
+    if (btnSubmitOrder) {
+      btnSubmitOrder.classList.add('hidden');
+      btnSubmitOrder.style.display = 'none';
+    }
+    if (typeof initOrderSubmitSlider === 'function') initOrderSubmitSlider();
+    if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
   }
 
   const profile = (typeof getProfileData === 'function') ? getProfileData() : {};
@@ -16096,8 +16110,10 @@ function openNewOrderModal(mode = 'dock') {
   if (orderBody && typeof hookScrollableForDock === 'function') {
     hookScrollableForDock(orderBody, false);
   }
-  if (typeof initOrderSubmitSlider === 'function') initOrderSubmitSlider();
-  if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
+  if (currentOrderEntryMode === 'dock') {
+    if (typeof initOrderSubmitSlider === 'function') initOrderSubmitSlider();
+    if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
+  }
   if (window.lucide) window.lucide.createIcons();
   if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
 }
@@ -16295,6 +16311,13 @@ function checkOrderSubmitValidation() {
   const isReady = (totalBoxes > 0 && phone.length >= 8);
   if (btn) {
     btn.disabled = !isReady;
+    if (isReady) {
+      btn.classList.remove('opacity-40', 'cursor-not-allowed', 'grayscale');
+      btn.classList.add('shadow-lg', 'shadow-orange-500/25');
+    } else {
+      btn.classList.add('opacity-40', 'cursor-not-allowed', 'grayscale');
+      btn.classList.remove('shadow-lg', 'shadow-orange-500/25');
+    }
   }
   if (slider) {
     if (isReady) {
