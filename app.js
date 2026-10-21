@@ -9077,16 +9077,68 @@ function triggerDrawerGreetingAnimation(e) {
   }, 3200);
 }
 
+const DEFAULT_TELEGRAM_GROUP_URL = 'https://t.me/+j-M2q84kQJ1hYzY1';
+const DEFAULT_TELEGRAM_BOT_TOKEN = '8606222639:AAHizZMN6HOHDZqf9FlRjAI40jeerJxQnSM';
+const DEFAULT_TELEGRAM_CHAT_ID = '-811940176';
+
+function getTelegramGroupUrl() {
+  try {
+    const saved = (localStorage.getItem('sd_telegram_group_url') || '').trim();
+    if (saved && saved.startsWith('http') && saved !== 'https://t.me/sdey_sdoeung') return saved;
+  } catch (e) {}
+  return DEFAULT_TELEGRAM_GROUP_URL;
+}
+
+function getTelegramBotToken() {
+  try {
+    const saved = (localStorage.getItem('sd_telegram_bot_token') || '').trim();
+    if (saved) return saved;
+  } catch (e) {}
+  return DEFAULT_TELEGRAM_BOT_TOKEN;
+}
+
+function getTelegramChatId() {
+  try {
+    const saved = (localStorage.getItem('sd_telegram_chat_id') || '').trim();
+    if (saved) return saved;
+  } catch (e) {}
+  return DEFAULT_TELEGRAM_CHAT_ID;
+}
+
+async function sendAttendanceViaTelegramBot(text) {
+  const token = getTelegramBotToken();
+  const chatId = getTelegramChatId();
+
+  if (!token || !chatId) return false;
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: text
+      })
+    });
+    const result = await res.json();
+    return !!(result && result.ok);
+  } catch (err) {
+    console.warn('Telegram Bot send failed, falling back:', err);
+    return false;
+  }
+}
+
 // ==========================================
-// ATTENDANCE TRACKER (CheckinMe Style)
+// ATTENDANCE TRACKER (CheckinMe Style & Telegram Sync)
 // ==========================================
 const DEFAULT_ATTENDANCE_STATE = {
-  todayStatus: 'not_checked', // 'not_checked' | 'checked_in' | 'checked_out'
+  todayStatus: 'not_checked', // 'not_checked' | 'checked_in' | 'checked_out' | 'leave'
   checkInTime: null,
   checkOutTime: null,
   duration: null,
   todayLate: false,
   location: 'ការិយាល័យកណ្តាល (HQ GPS Verified)',
+  note: '',
   records: [
     { day: 1, date: '01/10/2026', checkIn: '08:02 AM', checkOut: '05:32 PM', status: 'present', duration: '9h 30m' },
     { day: 2, date: '02/10/2026', checkIn: '08:00 AM', checkOut: '05:30 PM', status: 'present', duration: '9h 30m' },
@@ -9103,7 +9155,15 @@ const DEFAULT_ATTENDANCE_STATE = {
 function getAttendanceData() {
   try {
     const raw = localStorage.getItem('sd_attendance_data');
-    if (raw) return { ...DEFAULT_ATTENDANCE_STATE, ...JSON.parse(raw) };
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { 
+        ...DEFAULT_ATTENDANCE_STATE, 
+        ...parsed,
+        location: parsed.location || DEFAULT_ATTENDANCE_STATE.location,
+        note: parsed.note || ''
+      };
+    }
   } catch (e) {
     console.warn('Error reading sd_attendance_data:', e);
   }
@@ -9115,6 +9175,366 @@ function saveAttendanceData(data) {
     localStorage.setItem('sd_attendance_data', JSON.stringify(data));
   } catch (e) {
     console.warn('Error saving sd_attendance_data:', e);
+  }
+}
+
+function calculateAttendanceDuration(inStr, outStr) {
+  if (!inStr || !outStr) return '៨ ម៉ោង ២៥ នាទី';
+  try {
+    const parseTime = (str) => {
+      const match = str.match(/(\d+):(\d+)(?::\d+)?\s*(AM|PM)?/i);
+      if (!match) return null;
+      let h = parseInt(match[1], 10);
+      const m = parseInt(match[2], 10);
+      const ap = match[3] ? match[3].toUpperCase() : null;
+      if (ap === 'PM' && h < 12) h += 12;
+      if (ap === 'AM' && h === 12) h = 0;
+      return h * 60 + m;
+    };
+    const tIn = parseTime(inStr);
+    const tOut = parseTime(outStr);
+    if (tIn !== null && tOut !== null) {
+      let diff = tOut - tIn;
+      if (diff < 0) diff += 24 * 60;
+      const hours = Math.floor(diff / 60);
+      const mins = diff % 60;
+      return `${hours} ម៉ោង ${mins} នាទី`;
+    }
+  } catch (e) {
+    console.warn('Error calculating duration:', e);
+  }
+  return '៨ ម៉ោង ២៥ នាទី';
+}
+
+function generateAttendanceTelegramText(actionType = null) {
+  const data = getAttendanceData();
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const now = new Date();
+
+  const kmDays = ['អាទិត្យ', 'ចន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
+  const kmMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  
+  const dayName = kmDays[now.getDay()];
+  const dateNum = now.getDate();
+  const monthName = kmMonths[now.getMonth()];
+  const yearNum = now.getFullYear();
+  const fullDateKm = `ថ្ងៃ${dayName} ទី${dateNum} ខែ${monthName} ឆ្នាំ${yearNum}`;
+  
+  const staffName = p.name || 'ស្តី ស្តើង';
+  const staffId = p.memberId || 'SD-8899';
+  const role = p.work || 'Bostar Sales & Finance';
+  const loc = data.location || 'ការិយាល័យកណ្តាល (HQ)';
+
+  const inTime = data.checkInTime || (data.todayStatus !== 'not_checked' ? '08:00 AM' : '—');
+  const outTime = data.checkOutTime || (data.todayStatus === 'checked_out' ? '05:30 PM' : 'កំពុងបំពេញការងារ ⏳');
+  const dur = data.duration || (data.todayStatus === 'checked_out' ? '៨ ម៉ោង ២៥ នាទី' : (data.todayStatus === 'checked_in' ? 'កំពុងបំពេញការងារ' : '—'));
+  
+  let statusBadge = '✅ ចូលទាន់ពេល (On Time)';
+  if (data.todayStatus === 'checked_out') {
+    statusBadge = data.todayLate ? '⚠️ បញ្ចប់ថ្ងៃ (ចូលយឺត)' : '✅ បញ្ចប់ថ្ងៃពេញលេញ (Done)';
+  } else if (data.todayStatus === 'checked_in') {
+    statusBadge = data.todayLate ? '⚠️ ចូលយឺត (Late)' : '✅ កំពុងបំពេញការងារ (Working)';
+  } else if (data.todayStatus === 'leave') {
+    statusBadge = '📋 សុំច្បាប់ (Leave Approved)';
+  }
+
+  let typeHeader = '📍 របាយការណ៍វត្តមានប្រចាំថ្ងៃ (Check in Me)';
+  if (actionType === 'in' || (actionType === null && data.todayStatus === 'checked_in')) {
+    typeHeader = '🟢 របាយការណ៍ចូលធ្វើការ (CHECK-IN)';
+  } else if (actionType === 'out' || (actionType === null && data.todayStatus === 'checked_out')) {
+    typeHeader = '🔴 របាយការណ៍ចេញពីធ្វើការ (CHECK-OUT)';
+  }
+
+  let noteLine = '';
+  if (data.note && data.note.trim()) {
+    noteLine = `\n📝 កំណត់សម្គាល់៖ ${data.note.trim()}`;
+  }
+
+  return `${typeHeader}
+━━━━━━━━━━━━━━━━━━
+👤 ឈ្មោះ៖ ${staffName} (ID: ${staffId})
+💼 តួនាទី៖ ${role}
+📅 កាលបរិច្ឆេទ៖ ${fullDateKm}
+⏰ ម៉ោងចូល (Check In)៖ ${inTime}
+⏱️ ម៉ោងចេញ (Check Out)៖ ${outTime}
+⏳ ថិរវេលាការងារ៖ ${dur}
+📌 ស្ថានភាព៖ ${statusBadge}
+📍 ទីតាំង៖ ${loc}${noteLine}
+━━━━━━━━━━━━━━━━━━
+✨ Bostar Group - Check in Me System`;
+}
+
+async function copyAttendanceReportText(actionType = null) {
+  const text = generateAttendanceTelegramText(actionType);
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showToastNotification(appState.language === 'km' ? 'បានចម្លងវត្តមានជោគជ័យ! ត្រៀម Paste ចូល Telegram 📋' : 'Copied attendance! Ready to paste 📋');
+  } catch (_) {
+    showToastNotification('ចម្លងបានជោគជ័យ!');
+  }
+}
+
+async function shareAttendanceToTelegram(actionType = null) {
+  const text = generateAttendanceTelegramText(actionType);
+  copyAttendanceReportText(actionType);
+  
+  showToastNotification('កំពុងបញ្ជូនវត្តមានទៅកាន់ Telegram... ⏳');
+  
+  const botSuccess = await sendAttendanceViaTelegramBot(text);
+  if (botSuccess) {
+    showToastNotification('បានផ្ញើវត្តមានចូល Telegram Group ស្វ័យប្រវត្តិជោគជ័យ! 🚀');
+    if (navigator.vibrate) try { navigator.vibrate([40, 60, 40]); } catch(_) {}
+  } else {
+    // Fallback: open group link if bot API network is blocked
+    const savedGroup = getTelegramGroupUrl();
+    if (savedGroup && savedGroup.startsWith('http')) {
+      window.open(savedGroup, '_blank');
+    }
+  }
+}
+
+function toggleAttendanceAutoShare() {
+  const current = localStorage.getItem('sd_attendance_autoshare') !== 'false';
+  const nextVal = !current;
+  localStorage.setItem('sd_attendance_autoshare', nextVal ? 'true' : 'false');
+  showToastNotification(nextVal ? 'បានបើកការផ្ញើទៅ Telegram ស្វ័យប្រវត្តិ 🚀' : 'បានបិទការផ្ញើទៅ Telegram ស្វ័យប្រវត្តិ');
+  renderAttendanceContent();
+}
+
+function quickSetAttendanceTime(inputId, val) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (val === 'now') {
+    const now = new Date();
+    input.value = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  } else {
+    input.value = val;
+  }
+}
+
+function quickSetAttendanceLocation(locName) {
+  const input = document.getElementById('att-edit-location');
+  if (input) input.value = locName;
+}
+
+function openAttendanceEditModal() {
+  const modal = document.getElementById('attendance-edit-modal');
+  if (!modal) return;
+  renderAttendanceEditForm();
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeAttendanceEditModal() {
+  const modal = document.getElementById('attendance-edit-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+}
+
+function renderAttendanceEditForm() {
+  const container = document.getElementById('attendance-edit-body');
+  if (!container) return;
+
+  const data = getAttendanceData();
+  const savedGroup = getTelegramGroupUrl();
+
+  container.innerHTML = `
+    <!-- Status Selection -->
+    <div>
+      <label class="block text-xs font-bold text-slate-300 mb-2">ស្ថានភាពវត្តមានថ្ងៃនេះ៖</label>
+      <div class="grid grid-cols-2 gap-2">
+        <label class="p-2.5 rounded-xl border ${data.todayStatus === 'checked_in' ? 'bg-amber-500/20 border-amber-500/60 text-amber-300' : 'bg-black/30 border-white/10 text-slate-300'} flex items-center gap-2 cursor-pointer active:scale-95 transition">
+          <input type="radio" name="att_status" value="checked_in" ${data.todayStatus === 'checked_in' ? 'checked' : ''} class="accent-amber-500">
+          <span class="text-xs font-bold">🟢 កំពុងធ្វើការ (In)</span>
+        </label>
+        <label class="p-2.5 rounded-xl border ${data.todayStatus === 'checked_out' ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300' : 'bg-black/30 border-white/10 text-slate-300'} flex items-center gap-2 cursor-pointer active:scale-95 transition">
+          <input type="radio" name="att_status" value="checked_out" ${data.todayStatus === 'checked_out' ? 'checked' : ''} class="accent-emerald-500">
+          <span class="text-xs font-bold">🔴 បានបញ្ចប់ (Out)</span>
+        </label>
+        <label class="p-2.5 rounded-xl border ${data.todayStatus === 'not_checked' ? 'bg-slate-500/20 border-slate-500/60 text-slate-300' : 'bg-black/30 border-white/10 text-slate-300'} flex items-center gap-2 cursor-pointer active:scale-95 transition">
+          <input type="radio" name="att_status" value="not_checked" ${data.todayStatus === 'not_checked' ? 'checked' : ''} class="accent-slate-500">
+          <span class="text-xs font-bold">⚪ មិនទាន់ Check-In</span>
+        </label>
+        <label class="p-2.5 rounded-xl border ${data.todayStatus === 'leave' ? 'bg-blue-500/20 border-blue-500/60 text-blue-300' : 'bg-black/30 border-white/10 text-slate-300'} flex items-center gap-2 cursor-pointer active:scale-95 transition">
+          <input type="radio" name="att_status" value="leave" ${data.todayStatus === 'leave' ? 'checked' : ''} class="accent-blue-500">
+          <span class="text-xs font-bold">📋 សុំច្បាប់ (Leave)</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Times (In & Out) -->
+    <div class="grid grid-cols-2 gap-2.5">
+      <div class="space-y-1">
+        <label class="block text-[11px] font-bold text-slate-300">ម៉ោងចូល (Check In)៖</label>
+        <input type="text" id="att-edit-in-time" value="${data.checkInTime || '08:00 AM'}" 
+               placeholder="08:00 AM"
+               class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+        <div class="flex items-center gap-1 pt-1">
+          <button type="button" onclick="quickSetAttendanceTime('att-edit-in-time', '08:00 AM')" class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-[9.5px] text-slate-300 font-mono">08:00 AM</button>
+          <button type="button" onclick="quickSetAttendanceTime('att-edit-in-time', 'now')" class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-[9.5px] text-sky-400 font-mono">ឥឡូវនេះ</button>
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <label class="block text-[11px] font-bold text-slate-300">ម៉ោងចេញ (Check Out)៖</label>
+        <input type="text" id="att-edit-out-time" value="${data.checkOutTime || '05:30 PM'}" 
+               placeholder="05:30 PM"
+               class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+        <div class="flex items-center gap-1 pt-1">
+          <button type="button" onclick="quickSetAttendanceTime('att-edit-out-time', '05:30 PM')" class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-[9.5px] text-slate-300 font-mono">05:30 PM</button>
+          <button type="button" onclick="quickSetAttendanceTime('att-edit-out-time', 'now')" class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-[9.5px] text-sky-400 font-mono">ឥឡូវនេះ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Late Checkbox -->
+    <div class="p-2.5 rounded-xl bg-black/30 border border-white/10 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i data-lucide="clock-alert" class="w-4 h-4 text-yellow-400"></i>
+        <span class="text-xs font-semibold text-slate-300">កំណត់ថាចូលយឺត (Late)៖</span>
+      </div>
+      <input type="checkbox" id="att-edit-is-late" ${data.todayLate ? 'checked' : ''} class="w-4 h-4 rounded accent-yellow-500">
+    </div>
+
+    <!-- Location -->
+    <div class="space-y-1.5">
+      <label class="block text-xs font-bold text-slate-300">ទីតាំងបំពេញការងារ (Location)៖</label>
+      <input type="text" id="att-edit-location" value="${data.location || 'ការិយាល័យកណ្តាល (HQ GPS Verified)'}" 
+             placeholder="ទីតាំង..."
+             class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+      <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+        <button type="button" onclick="quickSetAttendanceLocation('ការិយាល័យកណ្តាល (HQ GPS Verified)')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🏢 HQ ការិយាល័យ</button>
+        <button type="button" onclick="quickSetAttendanceLocation('ចុះទីផ្សារ & ជួបអតិថិជន (Field Sales)')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🛵 ចុះទីផ្សារ</button>
+        <button type="button" onclick="quickSetAttendanceLocation('ធ្វើការពីផ្ទះ (Work From Home)')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🏠 ធ្វើការពីផ្ទះ</button>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div class="space-y-1">
+      <label class="block text-xs font-bold text-slate-300">កំណត់សម្គាល់បន្ថែម (Note)៖</label>
+      <input type="text" id="att-edit-note" value="${data.note || ''}" 
+             placeholder="ឧ. ជួបភ្ញៀវក្រៅម៉ោង, ភ្លៀងខ្លាំង..."
+             class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+    </div>
+
+    <!-- Telegram Bot & Group Configuration -->
+    <div class="p-3 rounded-2xl bg-sky-500/10 border border-sky-500/25 space-y-2.5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-sky-400 flex items-center gap-1.5">
+          <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+          <span>Telegram Bot (@olddata_bot) & Group</span>
+        </span>
+        <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold">Connected</span>
+      </div>
+      
+      <div class="space-y-1">
+        <label class="block text-[10.5px] text-slate-300 font-semibold">Telegram Bot Token៖</label>
+        <input type="text" id="att-edit-tg-token" value="${getTelegramBotToken()}" 
+               placeholder="Bot Token..." 
+               class="w-full text-xs font-mono bg-black/40 border border-sky-500/30 rounded-xl p-2 text-white focus:outline-none focus:border-sky-400">
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="space-y-1">
+          <label class="block text-[10.5px] text-slate-300 font-semibold">Chat ID Group៖</label>
+          <input type="text" id="att-edit-tg-chat-id" value="${getTelegramChatId()}" 
+                 placeholder="-811940176" 
+                 class="w-full text-xs font-mono bg-black/40 border border-sky-500/30 rounded-xl p-2 text-white focus:outline-none focus:border-sky-400">
+        </div>
+        <div class="space-y-1">
+          <label class="block text-[10.5px] text-slate-300 font-semibold">Link Group៖</label>
+          <input type="url" id="att-edit-tg-group" value="${savedGroup}" 
+                 placeholder="https://t.me/+..." 
+                 class="w-full text-xs font-mono bg-black/40 border border-sky-500/30 rounded-xl p-2 text-white focus:outline-none focus:border-sky-400">
+        </div>
+      </div>
+      <p class="text-[9.5px] text-emerald-400">⚡ សារនឹងត្រូវបាញ់ចូល Group នេះដោយស្វ័យប្រវត្ត ១០០% តាមរយៈ Bot។</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-2 pt-2">
+      <button type="button" onclick="saveAttendanceEditForm(false)" 
+              class="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs transition active:scale-95 flex items-center justify-center gap-1.5">
+        <i data-lucide="save" class="w-3.5 h-3.5"></i>
+        <span>រក្សាទុក (Update)</span>
+      </button>
+      <button type="button" onclick="saveAttendanceEditForm(true)" 
+              class="flex-1 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/25">
+        <i data-lucide="send" class="w-3.5 h-3.5"></i>
+        <span>Update & ផ្ញើ TG 🚀</span>
+      </button>
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function saveAttendanceEditForm(andShare = false) {
+  const data = getAttendanceData();
+  const selectedStatusEl = document.querySelector('input[name="att_status"]:checked');
+  const inTimeInput = document.getElementById('att-edit-in-time');
+  const outTimeInput = document.getElementById('att-edit-out-time');
+  const isLateEl = document.getElementById('att-edit-is-late');
+  const locInput = document.getElementById('att-edit-location');
+  const noteInput = document.getElementById('att-edit-note');
+  const tgGroupInput = document.getElementById('att-edit-tg-group');
+
+  if (selectedStatusEl) data.todayStatus = selectedStatusEl.value;
+  if (inTimeInput) data.checkInTime = inTimeInput.value.trim() || null;
+  if (outTimeInput) data.checkOutTime = outTimeInput.value.trim() || null;
+  if (isLateEl) data.todayLate = isLateEl.checked;
+  if (locInput) data.location = locInput.value.trim() || 'ការិយាល័យកណ្តាល (HQ)';
+  if (noteInput) data.note = noteInput.value.trim();
+
+  if (data.todayStatus === 'checked_out' && data.checkInTime && data.checkOutTime) {
+    data.duration = calculateAttendanceDuration(data.checkInTime, data.checkOutTime);
+  }
+
+  // Update records for today
+  const now = new Date();
+  const today = now.getDate();
+  const existingIdx = (data.records || []).findIndex(r => r.day === today);
+  const newRecord = {
+    day: today,
+    date: `${String(today).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`,
+    checkIn: data.checkInTime || '08:00 AM',
+    checkOut: data.checkOutTime || '—',
+    status: data.todayStatus === 'leave' ? 'leave' : (data.todayLate ? 'late' : 'present'),
+    duration: data.duration || '—'
+  };
+  if (existingIdx >= 0) {
+    data.records[existingIdx] = newRecord;
+  } else {
+    data.records.push(newRecord);
+  }
+
+  // Save TG bot token, chat id, and group if changed
+  const tgTokenInput = document.getElementById('att-edit-tg-token');
+  const tgChatIdInput = document.getElementById('att-edit-tg-chat-id');
+  if (tgTokenInput) localStorage.setItem('sd_telegram_bot_token', tgTokenInput.value.trim());
+  if (tgChatIdInput) localStorage.setItem('sd_telegram_chat_id', tgChatIdInput.value.trim());
+  if (tgGroupInput) localStorage.setItem('sd_telegram_group_url', tgGroupInput.value.trim());
+
+  saveAttendanceData(data);
+  closeAttendanceEditModal();
+  renderAttendanceContent();
+  renderProfileDrawerContent();
+
+  showToastNotification('បាន Update វត្តមានជោគជ័យ! ✅');
+
+  if (andShare) {
+    setTimeout(() => {
+      shareAttendanceToTelegram();
+    }, 300);
   }
 }
 
@@ -9167,12 +9587,12 @@ function handleAttendanceAction(action) {
   } else if (action === 'out') {
     data.todayStatus = 'checked_out';
     data.checkOutTime = timeStr;
-    data.duration = '៨ ម៉ោង ២៥ នាទី';
+    data.duration = calculateAttendanceDuration(data.checkInTime, timeStr) || '៨ ម៉ោង ២៥ នាទី';
     const today = now.getDate();
     const existingIdx = (data.records || []).findIndex(r => r.day === today);
     const newRecord = {
       day: today,
-      date: `${String(today).padStart(2, '0')}/10/2026`,
+      date: `${String(today).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`,
       checkIn: data.checkInTime || '08:00 AM',
       checkOut: timeStr,
       status: data.todayLate ? 'late' : 'present',
@@ -9190,6 +9610,14 @@ function handleAttendanceAction(action) {
   renderAttendanceContent();
   renderProfileDrawerContent();
   if (window.lucide) window.lucide.createIcons();
+
+  // If auto-share to Telegram is active (Defaults to ON)
+  const isAutoShare = localStorage.getItem('sd_attendance_autoshare') !== 'false';
+  if (isAutoShare) {
+    setTimeout(() => {
+      shareAttendanceToTelegram(action);
+    }, 400);
+  }
 }
 
 function resetTodayAttendance(e) {
@@ -9200,6 +9628,7 @@ function resetTodayAttendance(e) {
   data.checkOutTime = null;
   data.duration = null;
   data.todayLate = false;
+  data.note = '';
   saveAttendanceData(data);
   renderAttendanceContent();
   renderProfileDrawerContent();
@@ -9229,10 +9658,15 @@ function renderAttendanceContent() {
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
   const records = data.records || [];
-  const presentCount = records.filter(r => r.status === 'present').length + (data.todayStatus !== 'not_checked' && !data.todayLate ? 1 : 0);
+  const presentCount = records.filter(r => r.status === 'present').length + (data.todayStatus !== 'not_checked' && !data.todayLate && data.todayStatus !== 'leave' ? 1 : 0);
   const lateCount = records.filter(r => r.status === 'late').length + (data.todayLate ? 1 : 0);
+  const leaveCount = records.filter(r => r.status === 'leave').length + (data.todayStatus === 'leave' ? 1 : 0);
   const absentCount = 0;
-  const leaveCount = 0;
+
+  const isAutoShare = localStorage.getItem('sd_attendance_autoshare') !== 'false';
+  const savedGroupUrl = getTelegramGroupUrl();
+  const previewText = generateAttendanceTelegramText();
+  const previewHtml = previewText.replace(/\n/g, '<br>');
 
   let actionButtonHTML = '';
   if (data.todayStatus === 'not_checked') {
@@ -9276,7 +9710,7 @@ function renderAttendanceContent() {
             <div class="w-11 h-11 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-1 border border-emerald-500/30">
               <i data-lucide="badge-check" class="w-6 h-6"></i>
             </div>
-            <span class="text-xs font-bold text-white leading-tight font-kantumruy">${isEn ? 'Completed' : 'បានបញ្ចប់វត្តមាន'}</span>
+            <span class="text-xs font-bold text-white leading-tight font-kantumruy">${data.todayStatus === 'leave' ? (isEn ? 'On Leave' : 'សុំច្បាប់សម្រាក') : (isEn ? 'Completed' : 'បានបញ្ចប់វត្តមាន')}</span>
             <span class="text-[9px] text-emerald-400 font-mono font-bold mt-0.5">Day Complete ✓</span>
           </div>
         </div>
@@ -9305,6 +9739,9 @@ function renderAttendanceContent() {
       } else if (data.todayStatus === 'checked_out') {
         cellClass += 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-bold';
         badge = '<span class="text-[8px] text-emerald-400 font-bold leading-none">✓</span>';
+      } else if (data.todayStatus === 'leave') {
+        cellClass += 'bg-blue-500/20 border-blue-500/50 text-blue-300 font-bold';
+        badge = '<span class="text-[8px] text-blue-400 font-bold leading-none">L</span>';
       } else {
         cellClass += 'bg-orange-500/20 border-orange-500/60 text-orange-300 font-bold ring-1 ring-orange-500/40';
         badge = '<span class="w-1 h-1 rounded-full bg-orange-400"></span>';
@@ -9313,6 +9750,9 @@ function renderAttendanceContent() {
       if (rec.status === 'late') {
         cellClass += 'bg-yellow-500/15 border-yellow-500/30 text-yellow-300 font-medium';
         badge = '<span class="text-[7.5px] text-yellow-400 font-bold leading-none">!</span>';
+      } else if (rec.status === 'leave') {
+        cellClass += 'bg-blue-500/15 border-blue-500/30 text-blue-300 font-medium';
+        badge = '<span class="text-[7.5px] text-blue-400 font-bold leading-none">L</span>';
       } else {
         cellClass += 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-medium';
         badge = '<span class="text-[7.5px] text-emerald-400 font-bold leading-none">✓</span>';
@@ -9357,9 +9797,85 @@ function renderAttendanceContent() {
             ? (isEn ? 'Standard work hours: 08:00 AM - 05:30 PM' : 'ម៉ោងចូលស្តង់ដារ៖ ០៨:០០ ព្រឹក - ០៥:៣០ ល្ងាច')
             : (data.todayStatus === 'checked_in' 
                 ? (isEn ? `Checked in at ${data.checkInTime}. Remember to check out when finishing!` : `បានចូលម៉ោង ${data.checkInTime}។ កុំភ្លេចចុចចេញពេលចប់ការងារ!`)
-                : (isEn ? `Full day completed: ${data.duration || '8h 25m'}` : `បានបញ្ចប់ម៉ោងការងារពេញលេញ៖ ${data.duration || '៨ ម៉ោង ២៥ នាទី'}`))
+                : (data.todayStatus === 'leave'
+                    ? (isEn ? 'On Leave today' : 'សុំច្បាប់សម្រាកសម្រាប់ថ្ងៃនេះ')
+                    : (isEn ? `Full day completed: ${data.duration || '8h 25m'}` : `បានបញ្ចប់ម៉ោងការងារពេញលេញ៖ ${data.duration || '៨ ម៉ោង ២៥ នាទី'}`)))
           }
         </p>
+      </div>
+    </div>
+
+    <!-- Card 1.5: TELEGRAM AUTO-SHARE HUB & LIVE PREVIEW (CheckinMe Star Feature 🚀) -->
+    <div class="ios-glass-card rounded-3xl p-4 border border-sky-500/30 bg-gradient-to-b from-sky-500/10 via-[#0B1528] to-[#070D18] space-y-3 shadow-xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="send" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-xs font-bold text-white leading-tight flex items-center gap-1.5">
+              <span>ចែករំលែកទៅ Telegram</span>
+              <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold border border-emerald-500/30">@olddata_bot Live</span>
+            </h4>
+            <p class="text-[9.5px] text-emerald-400 mt-0.5 truncate flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+              <span class="truncate">ភ្ជាប់ជោគជ័យ៖ My Sim Group (ID: -811940176)</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <a href="${savedGroupUrl}" target="_blank" title="បើកមើល Group តេស្តក្នុង Telegram"
+             class="px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-slate-300 border border-white/10 text-[10.5px] font-bold flex items-center gap-1 transition">
+            <i data-lucide="external-link" class="w-3 h-3 text-sky-400"></i>
+            <span>Group</span>
+          </a>
+          <button onclick="openAttendanceEditModal()" 
+                  class="px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 active:scale-95 text-sky-300 border border-sky-500/30 text-[11px] font-bold flex items-center gap-1 transition">
+            <i data-lucide="edit-3" class="w-3 h-3 text-sky-400"></i>
+            <span>Update</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons (Send Telegram & Copy) -->
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="shareAttendanceToTelegram()" 
+                class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg shadow-sky-500/25">
+          <i data-lucide="send" class="w-3.5 h-3.5"></i>
+          <span>ផ្ញើទៅ Telegram 🚀</span>
+        </button>
+        <button onclick="copyAttendanceReportText()" 
+                class="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition border border-white/10">
+          <i data-lucide="copy" class="w-3.5 h-3.5 text-sky-400"></i>
+          <span>ចម្លងវត្តមាន 📋</span>
+        </button>
+      </div>
+
+      <!-- Auto Share Toggle -->
+      <div onclick="toggleAttendanceAutoShare()" 
+           class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between cursor-pointer hover:bg-black/60 transition select-none">
+        <div class="flex items-center gap-2 min-w-0">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+          <span class="text-[11px] font-medium text-slate-200 truncate">ផ្ញើស្វ័យប្រវត្តិពេល Check-In / Out</span>
+        </div>
+        <div class="w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${isAutoShare ? 'bg-sky-500' : 'bg-slate-700'} flex items-center">
+          <div class="w-4 h-4 rounded-full bg-white transition-transform duration-200 ease-in-out ${isAutoShare ? 'translate-x-4' : 'translate-x-0'} shadow-sm"></div>
+        </div>
+      </div>
+
+      <!-- Live Telegram Message Preview Bubble -->
+      <div class="rounded-2xl bg-[#17212B]/95 border border-[#2B5278]/40 p-3 text-[11px] font-sans text-slate-200 space-y-1 relative shadow-inner">
+        <div class="flex items-center justify-between text-[10px] text-sky-400 font-bold pb-1 border-b border-white/5">
+          <span class="flex items-center gap-1">
+            <i data-lucide="message-square" class="w-3 h-3"></i>
+            <span>ទម្រង់សារ Telegram (Live Preview)</span>
+          </span>
+          <span class="text-[9px] text-slate-400 font-mono">Bostar Format</span>
+        </div>
+        <div class="pt-1.5 leading-relaxed font-kantumruy select-text text-slate-200 text-[10.5px]">
+          ${previewHtml}
+        </div>
       </div>
     </div>
 
@@ -9402,7 +9918,7 @@ function renderAttendanceContent() {
         <div class="min-w-0">
           <p class="text-[9.5px] text-slate-400 leading-tight">${isEn ? 'Status' : 'ស្ថានភាព'}</p>
           <h4 class="text-xs font-bold ${data.todayLate ? 'text-yellow-400' : 'text-emerald-400'} mt-0.5 truncate">
-            ${data.todayStatus === 'not_checked' ? 'មិនទាន់' : (data.todayLate ? 'យឺត (Late)' : 'ទាន់ពេល ✓')}
+            ${data.todayStatus === 'not_checked' ? 'មិនទាន់' : (data.todayStatus === 'leave' ? 'សុំច្បាប់ (Leave)' : (data.todayLate ? 'យឺត (Late)' : 'ទាន់ពេល ✓'))}
           </h4>
         </div>
       </div>
@@ -9468,6 +9984,7 @@ function renderAttendanceContent() {
 
   if (window.lucide) window.lucide.createIcons();
 }
+
 
 // ==========================================
 // Profile Dashboard Drawer (82% Width - Facebook Style)
@@ -9602,15 +10119,15 @@ function renderProfileDrawerContent() {
 
   let attBadgeBg = 'bg-slate-500/20 text-slate-300 border border-slate-500/30';
   let attBadgeText = isEn ? 'Not Yet' : 'មិនទាន់';
-  let attSubtitle = isEn ? 'Daily Check-in' : 'CheckinMe Style';
+  let attSubtitle = isEn ? 'Check-in & TG Sync' : 'Check-in & ផ្ញើ Telegram';
   if (att.todayStatus === 'checked_in') {
     attBadgeBg = 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
     attBadgeText = isEn ? 'Working' : 'កំពុងធ្វើការ';
-    attSubtitle = (isEn ? 'In: ' : 'ចូល: ') + (att.checkInTime || '08:00 AM');
+    attSubtitle = (isEn ? 'In: ' : 'ចូល: ') + (att.checkInTime || '08:00 AM') + ' • TG 🚀';
   } else if (att.todayStatus === 'checked_out') {
     attBadgeBg = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
     attBadgeText = isEn ? 'Done ✓' : 'បញ្ចប់ ✓';
-    attSubtitle = att.duration || (isEn ? 'Completed' : 'បានបញ្ចប់វត្តមាន');
+    attSubtitle = (att.duration || (isEn ? 'Completed' : 'បានបញ្ចប់វត្តមាន')) + ' • TG ✓';
   }
 
   // Update Drawer Header (Original high left position)
@@ -10740,7 +11257,7 @@ function renderAllCustomersList() {
 // 4. PROFILE SUB-MODALS (Note, Book, Members, Telegram, Privacy, Feedback, Help, Logout Beta)
 // =========================================================
 function handleTelegramGroupClick() {
-  const savedUrl = localStorage.getItem('sd_telegram_group_url');
+  const savedUrl = getTelegramGroupUrl();
   if (savedUrl && savedUrl.trim()) {
     window.open(savedUrl.trim(), '_blank');
   } else {
@@ -12344,10 +12861,19 @@ async function copyDailyReportText() {
   }
 }
 
-function shareDailyReportToTelegram() {
+async function shareDailyReportToTelegram() {
+  const text = generateDailyReportText();
   copyDailyReportText();
-  const savedGroup = localStorage.getItem('sd_telegram_group_url') || 'https://t.me/sdey_sdoeung';
-  window.open(savedGroup, '_blank');
+  
+  showToastNotification('កំពុងផ្ញើរបាយការណ៍លក់ទៅ Telegram... ⏳');
+  const botSuccess = await sendAttendanceViaTelegramBot(text);
+  if (botSuccess) {
+    showToastNotification('បានផ្ញើរបាយការណ៍លក់ចូល Telegram Group ជោគជ័យ! 🚀');
+    if (navigator.vibrate) try { navigator.vibrate([40, 60, 40]); } catch(_) {}
+  } else {
+    const savedGroup = getTelegramGroupUrl();
+    window.open(savedGroup, '_blank');
+  }
 }
 
 function renderDailyReportModal() {
@@ -15031,3 +15557,30 @@ window.renderTeamMembersList = renderTeamMembersList;
 window.openTeamMemberDetail = openTeamMemberDetail;
 window.backToTeamMembersList = backToTeamMembersList;
 window.performCleanLogout = performCleanLogout;
+
+
+// Attendance & Telegram Export
+window.calculateAttendanceDuration = calculateAttendanceDuration;
+window.generateAttendanceTelegramText = generateAttendanceTelegramText;
+window.copyAttendanceReportText = copyAttendanceReportText;
+window.shareAttendanceToTelegram = shareAttendanceToTelegram;
+window.toggleAttendanceAutoShare = toggleAttendanceAutoShare;
+window.quickSetAttendanceTime = quickSetAttendanceTime;
+window.quickSetAttendanceLocation = quickSetAttendanceLocation;
+window.openAttendanceEditModal = openAttendanceEditModal;
+window.closeAttendanceEditModal = closeAttendanceEditModal;
+window.renderAttendanceEditForm = renderAttendanceEditForm;
+window.saveAttendanceEditForm = saveAttendanceEditForm;
+window.openAttendanceModal = openAttendanceModal;
+window.closeAttendanceModal = closeAttendanceModal;
+window.updateAttendanceLiveClock = updateAttendanceLiveClock;
+window.handleAttendanceAction = handleAttendanceAction;
+window.resetTodayAttendance = resetTodayAttendance;
+window.renderAttendanceContent = renderAttendanceContent;
+
+window.DEFAULT_TELEGRAM_GROUP_URL = DEFAULT_TELEGRAM_GROUP_URL;
+window.getTelegramGroupUrl = getTelegramGroupUrl;
+
+window.sendAttendanceViaTelegramBot = sendAttendanceViaTelegramBot;
+window.getTelegramBotToken = getTelegramBotToken;
+window.getTelegramChatId = getTelegramChatId;
