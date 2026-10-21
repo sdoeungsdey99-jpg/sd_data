@@ -9750,12 +9750,12 @@ const BOSTAR_CORE_LEADERS = [
 ];
 
 const LEADER_DISPLAY_NAMES = {
-  'Hou_Yarith': 'លោក ហ៊ូ យ៉ារិទ្ធ (Hou Yarith)',
-  'Hem_Chanthy': 'អ្នកនាង ហែម ចាន់ធី (Hem Chanthy)',
-  'Sroeun_Leanghak': 'លោក ស្រឿន លាងហាក់ (Sroeun Leanghak)',
-  'Bech_Udom': 'លោក ប៊ិច ឧត្តម (Bech Udom)',
-  'Sdey_Sdoeung': 'លោក ស្ដី ស្ដើង (Sdey Sdoeung)',
-  'Bech_Nora': 'លោក ប៊ិច ណូរ៉ា (Bech Nora)',
+  'Hou_Yarith': 'លោក ហ៊ូ យ៉ារិទ្ធ (Hou_Yarith)',
+  'Hem_Chanthy': 'លោក ហែម ចន្ធី (Hem_Chanthy)',
+  'Sroeun_Leanghak': 'លោក ស្រឿន លាងហាក់ (Sroeun_Leanghak)',
+  'Bech_Udom': 'លោក ប៊ិច ឧត្តម (Bech_Udom)',
+  'Sdey_Sdoeung': 'លោក ស្ដី ស្ដើង (Sdey_Sdoeung)',
+  'Bech_Nora': 'លោក ប៊ិច នោរ៉ា (Bech_Nora)',
   'Vann_Sitha': 'លោក វ៉ាន់ ស៊ីថា (Vann Sitha)',
   'Vann_Thida': 'អ្នកនាង វ៉ាន់ ធីតា (Vann Thida)',
   'V_Thida_Emmi': 'អ្នកនាង វ៉ាន់ ធីតា (Emmi)',
@@ -9800,7 +9800,7 @@ function getLeaveRequests() {
       startDate: '2026-10-15',
       endDate: '2026-10-15',
       leaderKey: 'Sdey_Sdoeung',
-      leaderName: 'លោក ស្ដី ស្ដើង (Sdey Sdoeung)',
+      leaderName: 'លោក ស្ដី ស្ដើង (Sdey_Sdoeung)',
       reason: 'គ្រុនក្តៅ និងឈឺក្បាល ត្រូវការសម្រាក១ថ្ងៃ',
       status: 'pending',
       createdAt: '14/10/2026 07:45 AM'
@@ -9814,10 +9814,10 @@ function getLeaveRequests() {
       startDate: '2026-10-14',
       endDate: '2026-10-14',
       leaderKey: 'Bech_Nora',
-      leaderName: 'លោក ប៊ិច ណូរ៉ា (Bech Nora)',
+      leaderName: 'លោក ប៊ិច នោរ៉ា (Bech_Nora)',
       reason: 'ជូនម្តាយទៅពិនិត្យសុខភាពនៅមន្ទីរពេទ្យ',
       status: 'approved',
-      approvedBy: 'លោក ប៊ិច ណូរ៉ា',
+      approvedBy: 'លោក ប៊ិច នោរ៉ា',
       createdAt: '13/10/2026 04:30 PM'
     }
   ];

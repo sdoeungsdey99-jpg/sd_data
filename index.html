@@ -132,6 +132,19 @@
     .liquid-ambient-blue {
       background: radial-gradient(circle, rgba(24, 119, 242, 0.22) 0%, rgba(24, 119, 242, 0) 70%);
     }
+    /* Confetti Animation for Special Celebrations */
+    @keyframes confettiFall {
+      0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(450px) rotate(720deg); opacity: 0; }
+    }
+    .confetti-piece {
+      position: absolute;
+      top: 0;
+      width: 8px;
+      height: 14px;
+      border-radius: 2px;
+      animation: confettiFall 3.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
     /* Hide scrollbar */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -3592,10 +3605,48 @@
                        class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-orange-500">
               </div>
             </div>
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-1">🎂 ថ្ងៃខែឆ្នាំកំណើត (Birthday)</label>
-              <input type="text" id="edit-prof-birthday" placeholder="ឧ. ១៥ មករា ឬ 15/01/2000" 
-                     class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-orange-500">
+            <!-- Birthday Section (Day + Month - Leader Only) -->
+            <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-1.5 select-none">
+              <div class="flex items-center justify-between">
+                <label class="block text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
+                  <i data-lucide="cake" class="w-3.5 h-3.5 text-amber-400"></i>
+                  <span>ថ្ងៃខែខួបកំណើត (Birthday)</span>
+                </label>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[9.5px] border border-emerald-500/30 flex items-center gap-1">
+                  <i data-lucide="lock" class="w-2.5 h-2.5"></i>
+                  <span>Leader Only</span>
+                </span>
+              </div>
+              <p class="text-[9.5px] text-slate-300 leading-relaxed">
+                សុំត្រឹមតែថ្ងៃ និងខែ ដើម្បីទទួលបានសារជូនពរ និងរំលឹកដល់ថ្នាក់ដឹកនាំ (រក្សាការសម្ងាត់អាយុ ១០០%)
+              </p>
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <div>
+                  <label class="block text-[9.5px] text-slate-400 mb-1">ថ្ងៃ (Day)</label>
+                  <select id="edit-prof-birthday-day" class="w-full text-xs bg-black/60 border border-white/15 rounded-xl p-2 text-white focus:outline-none focus:border-amber-400">
+                    <option value="">-- ជ្រើសរើសថ្ងៃ --</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[9.5px] text-slate-400 mb-1">ខែ (Month)</label>
+                  <select id="edit-prof-birthday-month" class="w-full text-xs bg-black/60 border border-white/15 rounded-xl p-2 text-white focus:outline-none focus:border-amber-400">
+                    <option value="">-- ជ្រើសរើសខែ --</option>
+                    <option value="1">មករា (Jan - 01)</option>
+                    <option value="2">កុម្ភៈ (Feb - 02)</option>
+                    <option value="3">មីនា (Mar - 03)</option>
+                    <option value="4">មេសា (Apr - 04)</option>
+                    <option value="5">ឧសភា (May - 05)</option>
+                    <option value="6">មិថុនា (Jun - 06)</option>
+                    <option value="7">កក្កដា (Jul - 07)</option>
+                    <option value="8">សីហា (Aug - 08)</option>
+                    <option value="9">កញ្ញា (Sep - 09)</option>
+                    <option value="10">តុលា (Oct - 10)</option>
+                    <option value="11">វិច្ឆិកា (Nov - 11)</option>
+                    <option value="12">ធ្នូ (Dec - 12)</option>
+                  </select>
+                </div>
+              </div>
+              <input type="hidden" id="edit-prof-birthday" value="">
             </div>
             <div class="grid grid-cols-2 gap-2.5">
               <div>
@@ -3698,6 +3749,43 @@
       <!-- Scrollable Honors Content -->
       <div id="honors-modal-body" class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3.5 pb-28">
         <!-- Rendered dynamically by renderHonorsModalContent() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SPECIAL BIRTHDAY CELEBRATION MODAL (FOR OWNER SURPRISE)    -->
+  <!-- ======================================================== -->
+  <div id="birthday-celebration-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="relative bg-gradient-to-b from-[#1E293B] via-[#0F172A] to-[#0B1120] border-2 border-amber-400/40 rounded-3xl max-w-sm w-full p-6 text-center shadow-[0_0_50px_rgba(251,191,36,0.3)] animate-scale-up overflow-hidden select-none font-kantumruy">
+      <!-- Ambient Glow Behind Cake -->
+      <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Confetti Particles Animation Canvas/Div -->
+      <div id="birthday-confetti-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
+      <!-- Cake Icon & Badge -->
+      <div class="relative z-10 mx-auto w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center shadow-2xl shadow-amber-500/40 border-2 border-white/20 mb-4 animate-bounce">
+        <span class="text-4xl">🎂</span>
+      </div>
+
+      <div class="relative z-10 space-y-2 mb-5">
+        <span class="px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 font-bold text-[11px] border border-amber-400/30 uppercase tracking-wider">
+          🎉 HAPPY BIRTHDAY 🎉
+        </span>
+        <h3 id="bday-celebrate-name" class="text-base font-black text-white leading-tight pt-1">
+          រីករាយថ្ងៃខួបកំណើត!
+        </h3>
+        <p class="text-xs text-amber-200/90 leading-relaxed px-2">
+          ថ្នាក់ដឹកនាំ និងគ្រួសារ <strong class="text-amber-400 font-black">Bostar Group</strong> សូមជូនពរឱ្យប្អូន/លោក ជួបតែសេចក្តីសុខ សុខភាពល្អបរិបូរណ៍ មានសំណាងល្អ និងសម្រេចបានគ្រប់គោលដៅលក់យ៉ាងត្រចះត្រចង់! ✨
+        </p>
+      </div>
+
+      <div class="relative z-10 pt-1">
+        <button onclick="closeBirthdayCelebrationModal()" 
+                class="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-white font-bold text-xs shadow-xl shadow-orange-500/30 active:scale-95 transition flex items-center justify-center gap-2">
+          <span>អរគុណច្រើន! 🙏❤️</span>
+        </button>
       </div>
     </div>
   </div>
@@ -4514,6 +4602,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=15.6"></script>
+  <script src="app.js?v=15.7"></script>
 </body>
 </html>
