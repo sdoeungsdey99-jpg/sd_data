@@ -9478,21 +9478,21 @@ function renderAttendanceEditForm() {
              class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
     </div>
 
-    <!-- Telegram Bot & Group Configuration -->
-    <div class="p-3 rounded-2xl bg-sky-500/10 border border-sky-500/25 space-y-2.5">
+    <!-- Manager / Admin Telegram Bot Configuration & Live Preview -->
+    <div class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/25 space-y-3">
       <div class="flex items-center justify-between">
         <span class="text-xs font-bold text-sky-400 flex items-center gap-1.5">
-          <i data-lucide="bot" class="w-3.5 h-3.5"></i>
-          <span>Telegram Bot (@olddata_bot) & Group</span>
+          <i data-lucide="bot" class="w-4 h-4"></i>
+          <span>Telegram Bot & Group (សម្រាប់តែ Manager)</span>
         </span>
-        <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold">Connected</span>
+        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold">Live Connected</span>
       </div>
       
       <div class="space-y-1">
         <label class="block text-[10.5px] text-slate-300 font-semibold">Telegram Bot Token៖</label>
         <input type="text" id="att-edit-tg-token" value="${getTelegramBotToken()}" 
                placeholder="Bot Token..." 
-               class="w-full text-xs font-mono bg-black/40 border border-sky-500/30 rounded-xl p-2 text-white focus:outline-none focus:border-sky-400">
+               class="w-full text-xs font-mono bg-black/40 border border-sky-500/30 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-400">
       </div>
 
       <div class="grid grid-cols-2 gap-2">
@@ -9509,7 +9509,22 @@ function renderAttendanceEditForm() {
                  class="w-full text-xs font-mono bg-black/40 border border-sky-500/30 rounded-xl p-2 text-white focus:outline-none focus:border-sky-400">
         </div>
       </div>
-      <p class="text-[9.5px] text-emerald-400">⚡ សារនឹងត្រូវបាញ់ចូល Group នេះដោយស្វ័យប្រវត្ត ១០០% តាមរយៈ Bot។</p>
+
+      <!-- Telegram Message Live Preview (Only visible in Manager Admin Modal) -->
+      <div class="space-y-1.5 pt-1">
+        <div class="flex items-center justify-between">
+          <span class="text-[10.5px] font-bold text-sky-400 flex items-center gap-1">
+            <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+            <span>ទម្រង់សារដែលនឹងត្រូវបាញ់ចេញ (Preview)៖</span>
+          </span>
+          <button type="button" onclick="shareAttendanceToTelegram()" class="text-[10px] text-sky-300 hover:text-white underline font-bold">
+            ផ្ញើតេស្តទៅ Telegram 🚀
+          </button>
+        </div>
+        <div class="rounded-xl bg-[#17212B]/95 border border-[#2B5278]/50 p-2.5 text-[10.5px] font-kantumruy text-slate-200 leading-relaxed max-h-36 overflow-y-auto no-scrollbar">
+          ${generateAttendanceTelegramText().replace(/\n/g, '<br>')}
+        </div>
+      </div>
     </div>
 
     <!-- Action Buttons -->
@@ -10033,80 +10048,6 @@ function renderAttendanceContent() {
                     : (isEn ? `Full day completed: ${data.duration || '8h 25m'}` : `បានបញ្ចប់ម៉ោងការងារពេញលេញ៖ ${data.duration || '៨ ម៉ោង ២៥ នាទី'}`)))
           }
         </p>
-      </div>
-    </div>
-
-    <!-- Card 1.5: TELEGRAM AUTO-SHARE HUB & LIVE PREVIEW (CheckinMe Star Feature 🚀) -->
-    <div class="ios-glass-card rounded-3xl p-4 border border-sky-500/30 bg-gradient-to-b from-sky-500/10 via-[#0B1528] to-[#070D18] space-y-3 shadow-xl">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2 min-w-0">
-          <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shrink-0">
-            <i data-lucide="send" class="w-4 h-4"></i>
-          </div>
-          <div class="min-w-0">
-            <h4 class="text-xs font-bold text-white leading-tight flex items-center gap-1.5">
-              <span>ចែករំលែកទៅ Telegram</span>
-              <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold border border-emerald-500/30">@olddata_bot Live</span>
-            </h4>
-            <p class="text-[9.5px] text-emerald-400 mt-0.5 truncate flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-              <span class="truncate">ភ្ជាប់ជោគជ័យ៖ My Sim Group (ID: -811940176)</span>
-            </p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-1.5 shrink-0">
-          <a href="${savedGroupUrl}" target="_blank" title="បើកមើល Group ក្នុង Telegram"
-             class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-slate-300 border border-white/10 text-[10.5px] font-bold flex items-center gap-1 transition">
-            <i data-lucide="external-link" class="w-3 h-3 text-sky-400"></i>
-            <span>Group</span>
-          </a>
-          <button onclick="checkAttendanceAdminAccess('edit')" title="Admin Configuration (PIN Protected)"
-                  class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-slate-300 border border-white/10 text-[11px] font-bold flex items-center gap-1 transition">
-            <i data-lucide="lock" class="w-3 h-3 text-orange-400"></i>
-            <span>Admin</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Action Buttons (Send Telegram & Copy) -->
-      <div class="grid grid-cols-2 gap-2">
-        <button onclick="shareAttendanceToTelegram()" 
-                class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg shadow-sky-500/25">
-          <i data-lucide="send" class="w-3.5 h-3.5"></i>
-          <span>ផ្ញើទៅ Telegram 🚀</span>
-        </button>
-        <button onclick="copyAttendanceReportText()" 
-                class="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition border border-white/10">
-          <i data-lucide="copy" class="w-3.5 h-3.5 text-sky-400"></i>
-          <span>ចម្លងវត្តមាន 📋</span>
-        </button>
-      </div>
-
-      <!-- Auto Share Toggle -->
-      <div onclick="toggleAttendanceAutoShare()" 
-           class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between cursor-pointer hover:bg-black/60 transition select-none">
-        <div class="flex items-center gap-2 min-w-0">
-          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
-          <span class="text-[11px] font-medium text-slate-200 truncate">ផ្ញើស្វ័យប្រវត្តិពេល Check-In / Out</span>
-        </div>
-        <div class="w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${isAutoShare ? 'bg-sky-500' : 'bg-slate-700'} flex items-center">
-          <div class="w-4 h-4 rounded-full bg-white transition-transform duration-200 ease-in-out ${isAutoShare ? 'translate-x-4' : 'translate-x-0'} shadow-sm"></div>
-        </div>
-      </div>
-
-      <!-- Live Telegram Message Preview Bubble -->
-      <div class="rounded-2xl bg-[#17212B]/95 border border-[#2B5278]/40 p-3 text-[11px] font-sans text-slate-200 space-y-1 relative shadow-inner">
-        <div class="flex items-center justify-between text-[10px] text-sky-400 font-bold pb-1 border-b border-white/5">
-          <span class="flex items-center gap-1">
-            <i data-lucide="message-square" class="w-3 h-3"></i>
-            <span>ទម្រង់សារ Telegram (Live Preview)</span>
-          </span>
-          <span class="text-[9px] text-slate-400 font-mono">Bostar Format</span>
-        </div>
-        <div class="pt-1.5 leading-relaxed font-kantumruy select-text text-slate-200 text-[10.5px]">
-          ${previewHtml}
-        </div>
       </div>
     </div>
 
