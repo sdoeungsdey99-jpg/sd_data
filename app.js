@@ -9206,7 +9206,37 @@ function calculateAttendanceDuration(inStr, outStr) {
   return '៨ ម៉ោង ២៥ នាទី';
 }
 
-function generateAttendanceTelegramText(actionType = null) {
+// ==========================================
+// BOSTAR HR ATTENDANCE QUOTES & TEMPLATES
+// ==========================================
+const MORNING_ONTIME_QUOTES = [
+  "«ការមកដល់មុនម៉ោង បង្ហាញពីការត្រៀមខ្លួនឆ្ពោះទៅរកជោគជ័យ! ជូនពរមានថាមពលពេញលេញ និងលក់ដាច់ហេងៗថ្ងៃនេះ! 💪✨»",
+  "«វិន័យ និងការតាំងចិត្ត គឺជាស្ពានចម្លងក្តីស្រមៃទៅកាន់ភាពជោគជ័យ! ជូនពរថ្ងៃនេះសម្រេចគោលដៅធំៗ! 🚀🌟»",
+  "«អតិថិជនរង់ចាំសេវាកម្មដ៏ល្អបំផុតពីអ្នក! រួមគ្នាកសាងលទ្ធផលឆ្នើមនៅថ្ងៃនេះ! 🤝🏆»",
+  "«ថាមពលវិជ្ជមាននៅពេលព្រឹក នឹងនាំមកនូវលាភសំណាង និងការលក់កើនឡើងទ្វេដង! 💫💼»",
+  "«ការចាប់ផ្តើមថ្ងៃថ្មីដោយភាពទាន់ពេល គឺជាជំហានដំបូងនៃអ្នកដឹកនាំឆ្នើម! សូមសំណាងល្អពេញមួយថ្ងៃ! ☀️✨»"
+];
+
+const LATE_EMPATHY_QUOTES = [
+  "«ការធ្វើដំណើរពេលព្រឹកអាចមានការរំខាន! Leader បានទទួលដំណឹង និងយោគយល់។ សូមបន្តថ្ងៃនេះដោយស្នាមញញឹម និងសម្រេចគោលដៅឱ្យបានល្អណា! 🤝🧡»",
+  "«សុវត្ថិភាពតាមផ្លូវជាចម្បង! មកដល់ដោយសុវត្ថិភាពគឺល្អណាស់ហើយ។ តស៊ូទាំងអស់គ្នាដើម្បីគោលដៅថ្ងៃនេះ! 🚗💪»",
+  "«ឧបសគ្គតូចតាចមិនអាចរារាំងជោគជ័យធំឡើយ! ចាប់ផ្តើមការងារដោយភាពស្វាហាប់ និងសម្រេចលទ្ធផលល្អណា! 🌟✨»"
+];
+
+const CHECKOUT_APPRECIATION_QUOTES = [
+  "«អរគុណច្រើនសម្រាប់ការខិតខំប្រឹងប្រែង និងការលះបង់ពេញមួយថ្ងៃនេះ! សូមសម្រាកឱ្យបានស្រួល និងរីករាយជាមួយគ្រួសារ ជួបគ្នានៅថ្ងៃស្អែក! 🙌🎉»",
+  "«មួយថ្ងៃកន្លងផុតទៅជាមួយស្នាដៃដ៏អស្ចារ្យ! អរគុណសម្រាប់ការរួមចំណែកដ៏មានតម្លៃចំពោះ Bostar Group! សម្រាកឱ្យមានកម្លាំងណា! 🌙✨»",
+  "«ការងារប្រចាំថ្ងៃត្រូវបានបញ្ចប់ដោយជោគជ័យ! ជូនពររាត្រីសមប្រកប និងមានសុខភាពល្អ ត្រៀមស្វាគមន៍ថ្ងៃថ្មី! 🌟🛋️»"
+];
+
+function getDailyMotivationQuote(type = 'ontime') {
+  const d = new Date().getDate();
+  if (type === 'checkout') return CHECKOUT_APPRECIATION_QUOTES[d % CHECKOUT_APPRECIATION_QUOTES.length];
+  if (type === 'late') return LATE_EMPATHY_QUOTES[d % LATE_EMPATHY_QUOTES.length];
+  return MORNING_ONTIME_QUOTES[d % MORNING_ONTIME_QUOTES.length];
+}
+
+function generateAttendanceTelegramText(actionType = null, extraNote = null) {
   const data = getAttendanceData();
   const p = (typeof getProfileData === 'function') ? getProfileData() : {};
   const now = new Date();
@@ -9222,46 +9252,68 @@ function generateAttendanceTelegramText(actionType = null) {
   
   const staffName = p.name || 'ស្តី ស្តើង';
   const staffId = p.memberId || 'SD-8899';
-  const role = p.work || 'Bostar Sales & Finance';
-  const loc = data.location || 'ការិយាល័យកណ្តាល (HQ)';
+  const role = p.work || 'Bostar Sales Consultant';
+  const loc = data.location || 'ការិយាល័យកណ្តាល (HQ GPS Verified)';
 
   const inTime = data.checkInTime || (data.todayStatus !== 'not_checked' ? '08:00 AM' : '—');
-  const outTime = data.checkOutTime || (data.todayStatus === 'checked_out' ? '05:30 PM' : 'កំពុងបំពេញការងារ ⏳');
+  const outTime = data.checkOutTime || (data.todayStatus === 'checked_out' ? now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'កំពុងបំពេញការងារ ⏳');
   const dur = data.duration || (data.todayStatus === 'checked_out' ? '៨ ម៉ោង ២៥ នាទី' : (data.todayStatus === 'checked_in' ? 'កំពុងបំពេញការងារ' : '—'));
-  
-  let statusBadge = '✅ ចូលទាន់ពេល (On Time)';
-  if (data.todayStatus === 'checked_out') {
-    statusBadge = data.todayLate ? '⚠️ បញ្ចប់ថ្ងៃ (ចូលយឺត)' : '✅ បញ្ចប់ថ្ងៃពេញលេញ (Done)';
-  } else if (data.todayStatus === 'checked_in') {
-    statusBadge = data.todayLate ? '⚠️ ចូលយឺត (Late)' : '✅ កំពុងបំពេញការងារ (Working)';
-  } else if (data.todayStatus === 'leave') {
-    statusBadge = '📋 សុំច្បាប់ (Leave Approved)';
-  }
+  const note = extraNote || data.note || '';
 
-  let typeHeader = '📍 របាយការណ៍វត្តមានប្រចាំថ្ងៃ (Check in Me)';
-  if (actionType === 'in' || (actionType === null && data.todayStatus === 'checked_in')) {
-    typeHeader = '🟢 របាយការណ៍ចូលធ្វើការ (CHECK-IN)';
-  } else if (actionType === 'out' || (actionType === null && data.todayStatus === 'checked_out')) {
-    typeHeader = '🔴 របាយការណ៍ចេញពីធ្វើការ (CHECK-OUT)';
-  }
+  const ontimeQuote = getDailyMotivationQuote('ontime');
+  const lateQuote = getDailyMotivationQuote('late');
+  const checkoutQuote = getDailyMotivationQuote('checkout');
 
-  let noteLine = '';
-  if (data.note && data.note.trim()) {
-    noteLine = `\n📝 កំណត់សម្គាល់៖ ${data.note.trim()}`;
-  }
+  const isCheckout = actionType === 'out' || (actionType === null && data.todayStatus === 'checked_out');
+  const isLate = data.todayLate;
 
-  return `${typeHeader}
+  if (isCheckout) {
+    return `🔴 របាយការណ៍ចេញពីធ្វើការ (CHECK-OUT)
 ━━━━━━━━━━━━━━━━━━
-👤 ឈ្មោះ៖ ${staffName} (ID: ${staffId})
+👤 បុគ្គលិក៖ ${staffName} (ID: ${staffId})
 💼 តួនាទី៖ ${role}
 📅 កាលបរិច្ឆេទ៖ ${fullDateKm}
-⏰ ម៉ោងចូល (Check In)៖ ${inTime}
-⏱️ ម៉ោងចេញ (Check Out)៖ ${outTime}
-⏳ ថិរវេលាការងារ៖ ${dur}
-📌 ស្ថានភាព៖ ${statusBadge}
-📍 ទីតាំង៖ ${loc}${noteLine}
+⏰ ម៉ោងចេញ៖ ${outTime}
+⏳ ថិរវេលាការងារសរុប៖ ${dur} (ពេញលេញ ✅)
+📌 ស្ថានភាព៖ បានបញ្ចប់ភារកិច្ចថ្ងៃនេះ
+📍 ទីតាំង៖ ${loc}
 ━━━━━━━━━━━━━━━━━━
-✨ Bostar Group - Check in Me System`;
+💬 ${checkoutQuote}
+━━━━━━━━━━━━━━━━━━
+✨ Bostar Group - HR Attendance Module`;
+  }
+
+  if (isLate) {
+    const lateNoteLine = note ? `\n📝 មូលហេតុ៖ «${note}»` : '';
+    const lateDetail = data.lateMinutes ? ` (យឺត ${data.lateMinutes} នាទី)` : '';
+    return `🟡 របាយការណ៍ចូលធ្វើការ (CHECK-IN LATE)
+━━━━━━━━━━━━━━━━━━
+👤 បុគ្គលិក៖ ${staffName} (ID: ${staffId})
+💼 តួនាទី៖ ${role}
+📅 កាលបរិច្ឆេទ៖ ${fullDateKm}
+⏰ ម៉ោងចូល៖ ${inTime}${lateDetail}
+📌 ស្ថានភាព៖ ⚠️ ចូលយឺត (Late)
+📍 ទីតាំង៖ ${loc}${lateNoteLine}
+━━━━━━━━━━━━━━━━━━
+💬 ${lateQuote}
+━━━━━━━━━━━━━━━━━━
+✨ Bostar Group - HR Attendance Module`;
+  }
+
+  // On time / Early
+  const earlyDetail = data.earlyMinutes ? ` (មកដល់មុនម៉ោង ${data.earlyMinutes} នាទី! 👏)` : '';
+  return `🟢 របាយការណ៍ចូលធ្វើការ (CHECK-IN)
+━━━━━━━━━━━━━━━━━━
+👤 បុគ្គលិក៖ ${staffName} (ID: ${staffId})
+💼 តួនាទី៖ ${role}
+📅 កាលបរិច្ឆេទ៖ ${fullDateKm}
+⏰ ម៉ោងចូល៖ ${inTime}${earlyDetail}
+📌 ស្ថានភាព៖ 🌟 គំរូល្អទាន់ពេល (On Time)
+📍 ទីតាំង៖ ${loc}
+━━━━━━━━━━━━━━━━━━
+💬 ${ontimeQuote}
+━━━━━━━━━━━━━━━━━━
+✨ Bostar Group - HR Attendance Module`;
 }
 
 async function copyAttendanceReportText(actionType = null) {
@@ -9564,11 +9616,166 @@ function closeAttendanceModal() {
   if (navigator.vibrate) try { navigator.vibrate(12); } catch(_) {}
 }
 
+
+// ==========================================
+// LATE MODAL & ADMIN PIN GOVERNANCE
+// ==========================================
+let pendingAdminAttendanceAction = null; // 'edit' | 'reset'
+
+function openAttendanceLateModal(lateMins) {
+  const modal = document.getElementById('attendance-late-modal');
+  const calcText = document.getElementById('att-late-calc-time');
+  const input = document.getElementById('att-late-reason-input');
+  if (input) input.value = '';
+  if (calcText) {
+    calcText.textContent = `យឺត ${lateMins} នាទី (ម៉ោងចូលស្តង់ដារ 08:00 AM)`;
+  }
+  if (modal) modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeAttendanceLateModal() {
+  const modal = document.getElementById('attendance-late-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function selectLateReasonChip(reasonText) {
+  const input = document.getElementById('att-late-reason-input');
+  if (input) input.value = reasonText;
+}
+
+function confirmLateCheckIn() {
+  const input = document.getElementById('att-late-reason-input');
+  const reason = input ? input.value.trim() : 'ស្ទះចរាចរណ៍តាមផ្លូវ';
+  closeAttendanceLateModal();
+
+  const data = getAttendanceData();
+  const now = new Date();
+  data.todayStatus = 'checked_in';
+  data.checkInTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  data.todayLate = true;
+  finalizeCheckIn(data, reason || 'ស្ទះចរាចរណ៍តាមផ្លូវ');
+}
+
+function checkAttendanceAdminAccess(action) {
+  if (window._attendanceAdminUnlocked) {
+    executeAdminAttendanceAction(action);
+    return;
+  }
+  pendingAdminAttendanceAction = action;
+  openAttendancePinModal();
+}
+
+function openAttendancePinModal() {
+  const modal = document.getElementById('attendance-pin-modal');
+  const input = document.getElementById('att-admin-pin-input');
+  const err = document.getElementById('att-admin-pin-err');
+  if (input) input.value = '';
+  if (err) err.classList.add('hidden');
+  if (modal) modal.classList.remove('hidden');
+  if (input) setTimeout(() => input.focus(), 120);
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeAttendancePinModal() {
+  const modal = document.getElementById('attendance-pin-modal');
+  if (modal) modal.classList.add('hidden');
+  pendingAdminAttendanceAction = null;
+}
+
+function submitAttendancePin() {
+  const input = document.getElementById('att-admin-pin-input');
+  const err = document.getElementById('att-admin-pin-err');
+  const val = input ? input.value.trim() : '';
+
+  if (val === '2026' || val === 'sd2026' || val === '1234' || val === '5136' || val === '8899') {
+    window._attendanceAdminUnlocked = true;
+    closeAttendancePinModal();
+    executeAdminAttendanceAction(pendingAdminAttendanceAction);
+  } else {
+    if (err) err.classList.remove('hidden');
+    if (input) input.value = '';
+  }
+}
+
+function executeAdminAttendanceAction(action) {
+  if (action === 'edit') {
+    openAttendanceEditModal();
+  } else if (action === 'reset') {
+    resetTodayAttendanceConfirmed();
+  }
+}
+
+function resetTodayAttendanceConfirmed() {
+  const data = getAttendanceData();
+  data.todayStatus = 'not_checked';
+  data.checkInTime = null;
+  data.checkOutTime = null;
+  data.duration = null;
+  data.todayLate = false;
+  data.note = '';
+  data.lateMinutes = null;
+  data.earlyMinutes = null;
+  saveAttendanceData(data);
+  renderAttendanceContent();
+  renderProfileDrawerContent();
+  if (window.lucide) window.lucide.createIcons();
+  showToastNotification('បានកំណត់វត្តមានថ្ងៃនេះឡើងវិញដោយជោគជ័យ! ✅');
+}
+
+function finalizeCheckIn(data, reason = null) {
+  if (reason) data.note = reason;
+  const now = new Date();
+  const today = now.getDate();
+  const existingIdx = (data.records || []).findIndex(r => r.day === today);
+  const newRecord = {
+    day: today,
+    date: `${String(today).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`,
+    checkIn: data.checkInTime || '08:00 AM',
+    checkOut: '—',
+    status: data.todayLate ? 'late' : 'present',
+    duration: '—'
+  };
+  if (existingIdx >= 0) {
+    data.records[existingIdx] = newRecord;
+  } else {
+    data.records.push(newRecord);
+  }
+  saveAttendanceData(data);
+  renderAttendanceContent();
+  renderProfileDrawerContent();
+  if (window.lucide) window.lucide.createIcons();
+
+  const msg = data.todayLate 
+    ? 'បានកត់ត្រាចូលធ្វើការ (ចូលយឺត)។ តស៊ូទាំងអស់គ្នា! 🤝' 
+    : 'បានចូលធ្វើការទាន់ពេល! ជូនពរលក់ដាច់ហេងៗថ្ងៃនេះ! 🌟';
+  showToastNotification(msg);
+  if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch(_) {}
+
+  const isAutoShare = localStorage.getItem('sd_attendance_autoshare') !== 'false';
+  if (isAutoShare) {
+    setTimeout(() => {
+      shareAttendanceToTelegram('in');
+    }, 350);
+  }
+}
+
 function updateAttendanceLiveClock() {
   const clockEl = document.getElementById('attendance-live-clock');
   if (clockEl) {
     const now = new Date();
     clockEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+  }
+
+  // Update Live Shift Working Timer if checked in
+  const shiftTimerEl = document.getElementById('attendance-live-shift-timer');
+  if (shiftTimerEl) {
+    const data = getAttendanceData();
+    if (data.todayStatus === 'checked_in' && data.checkInTime) {
+      const now = new Date();
+      const currentStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      shiftTimerEl.textContent = calculateAttendanceDuration(data.checkInTime, currentStr);
+    }
   }
 }
 
@@ -9578,12 +9785,28 @@ function handleAttendanceAction(action) {
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   if (action === 'in') {
-    data.todayStatus = 'checked_in';
-    data.checkInTime = timeStr;
-    const isLate = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 15);
-    data.todayLate = isLate;
-    if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch(_) {}
-    showToastNotification(appState.language === 'km' ? 'បានកត់ត្រាចូលធ្វើការជោគជ័យ!' : 'Checked in successfully!');
+    const currentHour = now.getHours();
+    const currentMin = now.getMinutes();
+    const isLate = currentHour > 8 || (currentHour === 8 && currentMin > 15);
+
+    if (isLate) {
+      const lateMins = (currentHour * 60 + currentMin) - (8 * 60 + 15);
+      data.lateMinutes = lateMins > 0 ? lateMins : (currentMin > 0 ? currentMin : 5);
+      data.earlyMinutes = null;
+      openAttendanceLateModal(data.lateMinutes);
+      return;
+    } else {
+      const startMinTotal = 8 * 60;
+      const currentMinTotal = currentHour * 60 + currentMin;
+      const earlyMins = startMinTotal - currentMinTotal;
+      data.earlyMinutes = earlyMins > 0 ? earlyMins : null;
+      data.lateMinutes = null;
+      data.todayLate = false;
+      data.todayStatus = 'checked_in';
+      data.checkInTime = timeStr;
+      finalizeCheckIn(data);
+      return;
+    }
   } else if (action === 'out') {
     data.todayStatus = 'checked_out';
     data.checkOutTime = timeStr;
@@ -9792,6 +10015,14 @@ function renderAttendanceContent() {
 
         ${actionButtonHTML}
 
+        ${data.todayStatus === 'checked_in' ? `
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold mb-2 shadow-sm animate-pulse">
+            <i data-lucide="timer" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>ថិរវេលាធ្វើការផ្ទាល់៖ </span>
+            <span id="attendance-live-shift-timer">${calculateAttendanceDuration(data.checkInTime, now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }))}</span>
+          </div>
+        ` : ''}
+
         <p class="text-[10.5px] text-slate-400">
           ${data.todayStatus === 'not_checked' 
             ? (isEn ? 'Standard work hours: 08:00 AM - 05:30 PM' : 'ម៉ោងចូលស្តង់ដារ៖ ០៨:០០ ព្រឹក - ០៥:៣០ ល្ងាច')
@@ -9825,15 +10056,15 @@ function renderAttendanceContent() {
         </div>
 
         <div class="flex items-center gap-1.5 shrink-0">
-          <a href="${savedGroupUrl}" target="_blank" title="បើកមើល Group តេស្តក្នុង Telegram"
-             class="px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-slate-300 border border-white/10 text-[10.5px] font-bold flex items-center gap-1 transition">
+          <a href="${savedGroupUrl}" target="_blank" title="បើកមើល Group ក្នុង Telegram"
+             class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-slate-300 border border-white/10 text-[10.5px] font-bold flex items-center gap-1 transition">
             <i data-lucide="external-link" class="w-3 h-3 text-sky-400"></i>
             <span>Group</span>
           </a>
-          <button onclick="openAttendanceEditModal()" 
-                  class="px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 active:scale-95 text-sky-300 border border-sky-500/30 text-[11px] font-bold flex items-center gap-1 transition">
-            <i data-lucide="edit-3" class="w-3 h-3 text-sky-400"></i>
-            <span>Update</span>
+          <button onclick="checkAttendanceAdminAccess('edit')" title="Admin Configuration (PIN Protected)"
+                  class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-slate-300 border border-white/10 text-[11px] font-bold flex items-center gap-1 transition">
+            <i data-lucide="lock" class="w-3 h-3 text-orange-400"></i>
+            <span>Admin</span>
           </button>
         </div>
       </div>
@@ -9922,6 +10153,20 @@ function renderAttendanceContent() {
           </h4>
         </div>
       </div>
+    </div>
+
+    <!-- Card 2.5: DAILY MOTIVATIONAL LEADERSHIP CAPSULE -->
+    <div class="ios-glass-card rounded-2xl p-3.5 border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-[#0B1528] to-emerald-500/10 space-y-1.5 shadow-md">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="sparkles" class="w-3 h-3 text-amber-400"></i>
+          <span>ពាក្យលើកទឹកចិត្តប្រចាំថ្ងៃ (Daily Motivation)</span>
+        </span>
+        <span class="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold">Bostar Culture</span>
+      </div>
+      <p class="text-xs text-slate-200 italic leading-relaxed pt-0.5">
+        ${getDailyMotivationQuote(data.todayStatus === 'checked_out' ? 'checkout' : (data.todayLate ? 'late' : 'ontime'))}
+      </p>
     </div>
 
     <!-- Card 3: Monthly Attendance Matrix / Grid (CheckinMe Style) -->
@@ -10178,7 +10423,7 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 2. កត់ត្រាវត្តមាន (Attendance Tracker - CheckinMe Style) ⭐ -->
+        <!-- 2. កត់ត្រាវត្តមាន (HR Attendance Module - CheckinMe Enterprise) ⭐ -->
         <div onclick="closeProfileDrawer(); openAttendanceModal();" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-emerald-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -10191,7 +10436,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight flex items-center gap-1">
-              <span>${isEn ? 'Attendance' : 'កត់ត្រាវត្តមាន'}</span>
+              <span>${isEn ? 'Attendance Module' : 'ម៉ូឌុលវត្តមាន (HR)'}</span>
             </h3>
             <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${attSubtitle}</p>
           </div>
@@ -15584,3 +15829,17 @@ window.getTelegramGroupUrl = getTelegramGroupUrl;
 window.sendAttendanceViaTelegramBot = sendAttendanceViaTelegramBot;
 window.getTelegramBotToken = getTelegramBotToken;
 window.getTelegramChatId = getTelegramChatId;
+
+
+// Export Enterprise Attendance & Governance
+window.openAttendanceLateModal = openAttendanceLateModal;
+window.closeAttendanceLateModal = closeAttendanceLateModal;
+window.selectLateReasonChip = selectLateReasonChip;
+window.confirmLateCheckIn = confirmLateCheckIn;
+window.checkAttendanceAdminAccess = checkAttendanceAdminAccess;
+window.openAttendancePinModal = openAttendancePinModal;
+window.closeAttendancePinModal = closeAttendancePinModal;
+window.submitAttendancePin = submitAttendancePin;
+window.resetTodayAttendanceConfirmed = resetTodayAttendanceConfirmed;
+window.finalizeCheckIn = finalizeCheckIn;
+window.getDailyMotivationQuote = getDailyMotivationQuote;
