@@ -1338,7 +1338,8 @@ function isDialogModalOpen() {
 
 function setDockVisible(visible) {
   const dailyReportEl = document.getElementById('daily-report-modal');
-  const isReportOpen = dailyReportEl && !dailyReportEl.classList.contains('hidden');
+  const isReportOpen = document.body.classList.contains('report-modal-open') || 
+                       (dailyReportEl && !dailyReportEl.classList.contains('hidden'));
 
   const dock = document.getElementById('bottom-dock');
   const dockBlur = document.getElementById('dock-blur-backdrop');
@@ -1349,7 +1350,7 @@ function setDockVisible(visible) {
       dock.style.display = 'none';
     }
     if (dockBlur) {
-      dockBlur.classList.add('opacity-0', '!hidden');
+      dockBlur.classList.add('opacity-0', '!hidden', 'dock-hidden');
       dockBlur.style.display = 'none';
     }
     return;
@@ -1361,12 +1362,17 @@ function setDockVisible(visible) {
       dock.style.display = '';
     }
     if (dockBlur) {
-      dockBlur.classList.remove('opacity-0', '!hidden');
+      dockBlur.classList.remove('opacity-0', '!hidden', 'dock-hidden');
       dockBlur.style.display = '';
     }
   } else {
-    if (dock) dock.classList.add('dock-hidden');
-    if (dockBlur) dockBlur.classList.add('opacity-0');
+    if (dock) {
+      dock.classList.add('dock-hidden');
+    }
+    if (dockBlur) {
+      dockBlur.classList.add('opacity-0', 'dock-hidden');
+      dockBlur.style.display = 'none';
+    }
   }
 }
 
@@ -14480,6 +14486,12 @@ function setActiveReportField(fieldId, label, min, max, unit) {
   if (card) {
     card.classList.remove('border-white/10', 'bg-black/60');
     card.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/40', 'bg-amber-500/15');
+    // Ensure the card is smoothly scrolled into clear view above the bottom docked ruler
+    setTimeout(() => {
+      try {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (_) {}
+    }, 40);
   }
   const badge = document.getElementById(`badge-${fieldId}`);
   if (badge) badge.classList.remove('hidden');
@@ -14917,6 +14929,110 @@ async function shareDailyReportToTelegram() {
   }
 }
 
+// ========================================================
+// DAILY SALES REPORT: MULTI-PAGE & SELLER PERSISTENCE
+// ========================================================
+function getDailyReportPagesList() {
+  try {
+    const raw = localStorage.getItem('sd_report_pages_list');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (_) {}
+  return ['Bostar Store', 'Bostar Health & Beauty', 'Bostar Official'];
+}
+
+function saveDailyReportPagesList(list) {
+  try {
+    localStorage.setItem('sd_report_pages_list', JSON.stringify(list));
+  } catch (_) {}
+}
+
+function selectDailyReportPage(pageName) {
+  try {
+    localStorage.setItem('sd_report_page', pageName);
+  } catch (_) {}
+  const input = document.getElementById('rep-field-page');
+  if (input) input.value = pageName;
+  renderDailyReportPagePills();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function addDailyReportPage() {
+  const newName = prompt('បញ្ចូលឈ្មោះផេកថ្មីរបស់អ្នក (ឧ. Bostar Page 2):');
+  if (!newName || !newName.trim()) return;
+  const trimmed = newName.trim();
+  const list = getDailyReportPagesList();
+  if (!list.includes(trimmed)) {
+    list.push(trimmed);
+    saveDailyReportPagesList(list);
+  }
+  selectDailyReportPage(trimmed);
+}
+
+function removeDailyReportPage(pageName, event) {
+  if (event) event.stopPropagation();
+  const list = getDailyReportPagesList();
+  if (list.length <= 1) {
+    if (typeof showToastNotification === 'function') showToastNotification('ត្រូវមានយ៉ាងហោចណាស់ផេកមួយ!');
+    return;
+  }
+  const filtered = list.filter(p => p !== pageName);
+  saveDailyReportPagesList(filtered);
+  const current = localStorage.getItem('sd_report_page') || filtered[0];
+  if (current === pageName) {
+    selectDailyReportPage(filtered[0]);
+  } else {
+    renderDailyReportPagePills();
+  }
+}
+
+function renderDailyReportPagePills() {
+  const container = document.getElementById('rep-pages-pills-container');
+  if (!container) return;
+  const list = getDailyReportPagesList();
+  const current = localStorage.getItem('sd_report_page') || list[0] || 'Bostar Store';
+
+  let html = list.map(page => {
+    const isActive = page === current;
+    const escaped = page.replace(/'/g, "\\'");
+    return `
+      <div class="inline-flex items-center rounded-xl border text-[11px] font-semibold transition cursor-pointer select-none ${isActive ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}"
+           onclick="selectDailyReportPage('${escaped}')">
+        <span class="pl-2.5 pr-1.5 py-1 flex items-center gap-1">
+          <i data-lucide="${isActive ? 'check-circle' : 'flag'}" class="w-3 h-3 ${isActive ? 'text-emerald-400' : 'text-slate-400'}"></i>
+          <span>${page}</span>
+        </span>
+        ${list.length > 1 ? `
+          <button type="button" onclick="removeDailyReportPage('${escaped}', event)" 
+                  class="pr-2 pl-0.5 py-1 text-slate-400 hover:text-red-400 transition" title="លុបផេក">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        ` : '<span class="pr-2"></span>'}
+      </div>
+    `;
+  }).join('');
+
+  html += `
+    <button type="button" onclick="addDailyReportPage()" 
+            class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-dashed border-white/20 text-slate-300 text-[11px] font-semibold flex items-center gap-1 transition">
+      <i data-lucide="plus" class="w-3 h-3 text-emerald-400"></i>
+      <span>ថែមផេក</span>
+    </button>
+  `;
+
+  container.innerHTML = html;
+  if (window.lucide) window.lucide.createIcons();
+}
+
+window.getDailyReportPagesList = getDailyReportPagesList;
+window.saveDailyReportPagesList = saveDailyReportPagesList;
+window.selectDailyReportPage = selectDailyReportPage;
+window.addDailyReportPage = addDailyReportPage;
+window.removeDailyReportPage = removeDailyReportPage;
+window.renderDailyReportPagePills = renderDailyReportPagePills;
+
 function renderDailyReportModal() {
   const container = document.getElementById('daily-report-body-content');
   if (!container) return;
@@ -14927,8 +15043,9 @@ function renderDailyReportModal() {
   const mm = String(today.getMonth() + 1).padStart(2, '0');
   const yyyy = today.getFullYear();
   const defaultDate = `${dd}/${mm}/${yyyy}`;
-  const savedPage = localStorage.getItem('sd_report_page') || 'Bostar Store';
-  const staffName = p.name || 'សមាជិក Bostar';
+  const savedPagesList = getDailyReportPagesList();
+  const savedPage = localStorage.getItem('sd_report_page') || savedPagesList[0] || 'Bostar Store';
+  const savedStaff = localStorage.getItem('sd_report_staff') || p.name || 'សមាជិក Bostar';
 
   // Auto-detect today's sales from DataService
   let autoTodayBoxes = 0;
@@ -14944,33 +15061,46 @@ function renderDailyReportModal() {
   container.innerHTML = `
     <div class="space-y-3 text-xs select-none">
       <!-- Card 1: Meta Information -->
-      <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+      <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
         <div class="flex items-center justify-between">
           <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
             <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-            <span>កាលបរិច្ឆេទ & ព័ត៌មាន</span>
+            <span>កាលបរិច្ឆេទ & ព័ត៌មានផេក</span>
           </span>
           <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-[9px] font-bold border border-emerald-500/30">
             ៩:០០ យប់
           </span>
         </div>
-        <div class="grid grid-cols-2 gap-2">
+
+        <!-- Multi-page Quick Switching Pills -->
+        <div class="space-y-1">
+          <label class="block text-[10px] text-slate-400 font-semibold">ជ្រើសរើសផេកលក់ (ប្តូររហ័ស 1-Tap)៖</label>
+          <div id="rep-pages-pills-container" class="flex flex-wrap items-center gap-1.5">
+            <!-- Rendered by renderDailyReportPagePills() -->
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
           <div>
             <label class="block text-[10px] text-slate-400 mb-1 font-semibold">កាលបរិច្ឆេទ៖</label>
             <input type="text" id="rep-field-date" value="${defaultDate}" 
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
+                   onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label class="block text-[10px] text-slate-400 mb-1 font-semibold">ឈ្មោះផេក៖</label>
+            <label class="block text-[10px] text-slate-400 mb-1 font-semibold">ឈ្មោះផេកផ្ទាល់៖</label>
             <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
                    oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-emerald-500">
+                   onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-emerald-500">
           </div>
         </div>
         <div>
-          <label class="block text-[10px] text-slate-400 mb-1 font-semibold">បុគ្គលិកទទួលខុសត្រូវ / ក្រុម៖</label>
-          <input type="text" id="rep-field-staff" value="${staffName}" 
-                 class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-emerald-500">
+          <label class="block text-[10px] text-slate-400 mb-1 font-semibold">បុគ្គលិកទទួលខុសត្រូវ / ឈ្មោះអ្នកលក់៖</label>
+          <input type="text" id="rep-field-staff" value="${savedStaff}" placeholder="ឈ្មោះអ្នកលក់ ឬ ក្រុមការងារ" 
+                 oninput="try { localStorage.setItem('sd_report_staff', this.value); } catch(_) {}"
+                 onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
+                 class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-emerald-500">
         </div>
       </div>
 
@@ -15095,6 +15225,7 @@ function renderDailyReportModal() {
     </div>
   `;
 
+  renderDailyReportPagePills();
   calculateDailyReportMetrics();
   if (window.lucide) window.lucide.createIcons();
 }
@@ -15104,15 +15235,17 @@ function openDailyReportModal() {
   if (!modal) return;
   closeAllModals();
 
+  document.body.classList.add('report-modal-open');
+
   // Hide the Dock completely so it never blocks the screen
   const dock = document.getElementById('bottom-dock');
   if (dock) {
-    dock.classList.add('!hidden');
+    dock.classList.add('dock-hidden', '!hidden');
     dock.style.display = 'none';
   }
   const dockBlur = document.getElementById('dock-blur-backdrop');
   if (dockBlur) {
-    dockBlur.classList.add('!hidden');
+    dockBlur.classList.add('opacity-0', '!hidden', 'dock-hidden');
     dockBlur.style.display = 'none';
   }
 
@@ -15132,18 +15265,19 @@ function openDailyReportModal() {
 }
 
 function closeDailyReportModal() {
+  document.body.classList.remove('report-modal-open');
   const modal = document.getElementById('daily-report-modal');
   if (modal) modal.classList.add('hidden');
 
   // Restore the Dock when closing modal
   const dock = document.getElementById('bottom-dock');
   if (dock) {
-    dock.classList.remove('!hidden');
+    dock.classList.remove('dock-hidden', '!hidden');
     dock.style.display = '';
   }
   const dockBlur = document.getElementById('dock-blur-backdrop');
   if (dockBlur) {
-    dockBlur.classList.remove('!hidden');
+    dockBlur.classList.remove('opacity-0', '!hidden', 'dock-hidden');
     dockBlur.style.display = '';
   }
 }

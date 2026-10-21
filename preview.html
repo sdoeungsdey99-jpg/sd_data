@@ -1679,7 +1679,20 @@
       opacity: 0 !important;
       pointer-events: none !important;
     }
+    /* When dock is hidden or opacity-0, suppress the blur backdrop completely */
+    #dock-blur-backdrop.opacity-0,
+    #dock-blur-backdrop.dock-hidden,
+    #dock-blur-backdrop.\!hidden {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
     /* Complete Dock & Blur Backdrop Suppression when Daily Report is open */
+    body.report-modal-open #bottom-dock,
+    body.report-modal-open #dock-blur-backdrop,
     body:has(#daily-report-modal:not(.hidden)) #bottom-dock,
     body:has(#daily-report-modal:not(.hidden)) #dock-blur-backdrop {
       display: none !important;
@@ -1687,10 +1700,21 @@
       visibility: hidden !important;
       pointer-events: none !important;
       transform: translateY(100vh) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
     }
     #daily-report-modal input,
     #daily-report-modal textarea {
       font-size: 16px !important;
+      -webkit-user-select: text !important;
+      user-select: text !important;
+      filter: none !important;
+      -webkit-filter: none !important;
+    }
+    #daily-report-modal .report-field-item {
+      filter: none !important;
+      -webkit-filter: none !important;
+      opacity: 1 !important;
     }
     /* Search Result Highlight */
     mark.search-highlight {
@@ -3923,7 +3947,7 @@
       </div>
 
       <!-- Scrollable Modal Body (Cards 1 to 6 & Action buttons) -->
-      <div id="daily-report-body-content" class="p-3 sm:p-3.5 pb-6 overflow-y-auto flex-1 no-scrollbar space-y-3" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div id="daily-report-body-content" class="p-3 sm:p-3.5 pb-48 overflow-y-auto flex-1 no-scrollbar space-y-3" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Injected dynamically by renderDailyReportModal() -->
       </div>
 
@@ -3981,9 +4005,6 @@
           <button type="button" onclick="setRulerValue(50)" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono text-[11px] font-bold">50</button>
         </div>
       </div>
-
-    </div>
-  </div>
 
     </div>
   </div>
@@ -4737,6 +4758,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=19.2"></script>
+  <script src="app.js?v=20.0"></script>
 </body>
 </html>
