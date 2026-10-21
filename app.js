@@ -7130,14 +7130,14 @@ function renderHonorsModalContent() {
       </div>
     </div>
 
-    <!-- 2. អ្នកផ្តើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិច នោរ៉ា (Director) -->
+    <!-- 2. អ្នកផ្តើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិច នោរ៉ា -->
     <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-orange-500/15 via-white/[0.03] to-transparent border border-orange-500/35 relative overflow-hidden shadow-xl text-left">
       <div class="flex items-center justify-between mb-3">
         <span class="px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
           <span>💡</span>
           <span>${isKm ? 'អ្នកផ្តើមគំនិតបង្កើត App' : 'App Visionary & Founder'}</span>
         </span>
-        <span class="text-[10px] text-orange-400/90 font-mono font-bold">DIRECTOR</span>
+        <span class="text-[10px] text-orange-400/90 font-mono font-bold">FOUNDER</span>
       </div>
       <div class="flex items-center gap-3.5">
         <div class="relative shrink-0">
@@ -7146,14 +7146,11 @@ function renderHonorsModalContent() {
           <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-white font-black shadow">✓</span>
         </div>
         <div class="min-w-0 flex-1">
-          <h3 class="text-base font-black text-white truncate brand-title">ស្ថាបនិក ប៊ិច នោរ៉ា (Director)</h3>
+          <h3 class="text-base font-black text-white truncate brand-title">ស្ថាបនិក ប៊ិច នោរ៉ា</h3>
           <p class="text-xs text-orange-300 font-bold tracking-wide mt-0.5">BECH NORA</p>
           <div class="mt-2 flex items-center gap-1.5 flex-wrap">
             <span class="px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-300 font-black text-[10px] border border-orange-500/40">
               ស្ថាបនិក Bostar Group
-            </span>
-            <span class="px-2 py-0.5 rounded-lg bg-white/10 text-slate-300 font-bold text-[10px]">
-              Director
             </span>
           </div>
         </div>
@@ -7595,7 +7592,7 @@ const TUTORIAL_CHAPTERS = [
           'បើកមើលបានពី ២ កន្លែង៖ នៅលើ Onboarding Gate និងក្នុង Profile Drawer',
           'បង្ហាញរូប Logo BOSTAR មាស 3D ដ៏ស្រស់ស្អាត និងប្រណិត',
           '🎓 អ្នកបណ្តុះបណ្តាល៖ លោកអគ្គនាយក វណ្ណ ស៊ីថា (អគ្គនាយកក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក • គ្រូបង្វឹកធំ)',
-          '💡 អ្នកផ្តើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិច នោរ៉ា (Director)',
+          '💡 អ្នកផ្តើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិច នោរ៉ា',
           '🤝 ថ្នាក់ដឹកនាំគាំទ្រ៖ Managers ទាំង ៥ រូប'
         ],
         proTip: '💡 គន្លឹះ៖ នេះជាកាតកិត្តិយសផ្លូវការដែលលើកកម្ពស់មោទនភាពរបស់ក្រុមការងារ BostarGroup ទាំងអស់។',
@@ -7607,7 +7604,7 @@ const TUTORIAL_CHAPTERS = [
             </div>
             <div class="p-2 rounded-xl bg-black/40 border border-white/10 space-y-1 text-[10px]">
               <div class="flex items-center gap-1.5 text-slate-300"><span>🎓</span><span>លោកអគ្គនាយក វណ្ណ ស៊ីថា</span></div>
-              <div class="flex items-center gap-1.5 text-slate-300"><span>💡</span><span>ស្ថាបនិក ប៊ិច នោរ៉ា (Director)</span></div>
+              <div class="flex items-center gap-1.5 text-slate-300"><span>💡</span><span>ស្ថាបនិក ប៊ិច នោរ៉ា</span></div>
               <div class="flex items-center gap-1.5 text-slate-300"><span>🤝</span><span>Managers ទាំង ៥ រូប</span></div>
             </div>
           </div>
