@@ -14460,54 +14460,6 @@ let _rulerState = {
   lastVibrateVal: null
 };
 
-function showFloatingRulerCard() {
-  const wrapper = document.getElementById('daily-report-ruler-wrapper');
-  if (wrapper) {
-    wrapper.classList.remove('translate-y-full', 'opacity-0', 'pointer-events-none');
-    wrapper.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
-  }
-  setTimeout(() => {
-    init3DRulerCanvas();
-    draw3DRuler();
-  }, 20);
-}
-
-function hideFloatingRulerCard() {
-  const wrapper = document.getElementById('daily-report-ruler-wrapper');
-  if (wrapper) {
-    wrapper.classList.add('translate-y-full', 'opacity-0', 'pointer-events-none');
-    wrapper.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
-  }
-  document.querySelectorAll('.report-field-item').forEach(el => {
-    el.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/50', 'bg-amber-500/20');
-    el.classList.add('border-white/10', 'bg-black/60');
-  });
-}
-
-function onReportDatePicked(isoDate) {
-  if (!isoDate) return;
-  const parts = isoDate.split('-');
-  if (parts.length === 3) {
-    const formatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
-    const dateInput = document.getElementById('rep-field-date');
-    if (dateInput) dateInput.value = formatted;
-  }
-  hideFloatingRulerCard();
-}
-
-function triggerReportDatePicker() {
-  hideFloatingRulerCard();
-  const picker = document.getElementById('rep-native-date-picker');
-  if (picker && typeof picker.showPicker === 'function') {
-    try { picker.showPicker(); } catch (_) {}
-  }
-}
-
-window.showFloatingRulerCard = showFloatingRulerCard;
-window.hideFloatingRulerCard = hideFloatingRulerCard;
-window.onReportDatePicked = onReportDatePicked;
-window.triggerReportDatePicker = triggerReportDatePicker;
-
 function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTitleKm) {
   const v = Number(defaultVal) || 0;
   return `
@@ -14564,9 +14516,6 @@ function setActiveReportField(fieldId, label, min, max, unit) {
   if (titleEl) titleEl.innerText = _rulerState.title;
   if (valEl) valEl.innerText = currentVal;
   if (unitEl) unitEl.innerText = _rulerState.unit;
-
-  // Auto-Show Floating 3D Card like a keyboard
-  showFloatingRulerCard();
 
   draw3DRuler();
   if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
@@ -14940,7 +14889,7 @@ function generateDailyReportText() {
 📦 ៣. លទ្ធផលលក់ជាក់ស្តែង (Sales)
 • ភ្ញៀវថ្មីទិញ៖ ${buyNewP} នាក់ ➔ ${buyNewB} ប្រអប់
 • ភ្ញៀវចាស់ទិញថែម៖ ${buyOldP} នាក់ ➔ ${buyOldB} ប្រអប់
-• ភ្ញៀវបាន Follow Up៖ ${buyFollowP} នាក់ ➔ ${buyFollowB} ប្រអប់
+• ភ្ញៀវ Follow-up ទិញ៖ ${buyFollowP} នាក់ ➔ ${buyFollowB} ប្រអប់
 
 • បញ្ហាប្រឈម / ចំណាំ៖ ${challenges || 'គ្មាន'}
 ━━━━━━━━━━━━━━━━━━
@@ -15132,35 +15081,26 @@ function renderDailyReportModal() {
           </div>
         </div>
 
-        <!-- Date (Full Width) with Embedded Mini Calendar (No Icon Displayed) -->
-        <div>
-          <label class="block text-sm text-slate-200 mb-1.5 font-bold">កាលបរិច្ឆេទ (ថ្ងៃ/ខែ/ឆ្នាំ)៖</label>
-          <div class="relative flex items-center">
-            <input type="text" id="rep-field-date" value="${defaultDate}" readonly 
-                   onclick="triggerReportDatePicker()" 
-                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white font-mono text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer">
-            <input type="date" id="rep-native-date-picker" value="${today.toISOString().slice(0, 10)}" 
-                   onchange="onReportDatePicked(this.value)" 
-                   class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10 pointer-events-auto" 
-                   style="-webkit-appearance: none; appearance: none;">
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="block text-sm text-slate-200 mb-1.5 font-bold">កាលបរិច្ឆេទ៖</label>
+            <input type="text" id="rep-field-date" value="${defaultDate}" 
+                   onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
+                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white font-mono text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-sm text-slate-200 mb-1.5 font-bold">ឈ្មោះផេកផ្ទាល់៖</label>
+            <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
+                   oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
+                   onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
+                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
           </div>
         </div>
-
-        <!-- Page Name: Under Date, Full Width -->
-        <div>
-          <label class="block text-sm text-slate-200 mb-1.5 font-bold">ឈ្មោះផេកលក់៖</label>
-          <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
-                 oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
-                 onfocus="hideFloatingRulerCard(); this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
-                 class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
-        </div>
-
-        <!-- Staff / Seller Name: Under Page Name, Full Width -->
         <div>
           <label class="block text-sm text-slate-200 mb-1.5 font-bold">បុគ្គលិកទទួលខុសត្រូវ / ឈ្មោះអ្នកលក់៖</label>
           <input type="text" id="rep-field-staff" value="${savedStaff}" placeholder="ឈ្មោះអ្នកលក់ ឬ ក្រុមការងារ" 
                  oninput="try { localStorage.setItem('sd_report_staff', this.value); } catch(_) {}"
-                 onfocus="hideFloatingRulerCard(); this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
+                 onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
                  class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
         </div>
       </div>
@@ -15175,9 +15115,9 @@ function renderDailyReportModal() {
         </div>
         <div class="grid grid-cols-2 gap-3">
           ${renderRulerNumberControl('rep-field-chat-total', 'ឆាតថ្មីសរុប', 0, 'នាក់', 0, 500, 'ឆាតថ្មីសរុប')}
-          ${renderRulerNumberControl('rep-field-chat-mistake', 'ឆាតប៉ះដៃ (Spam)', 0, 'នាក់', 0, 500, 'ឆាតប៉ះដៃ')}
-          ${renderRulerNumberControl('rep-field-chat-target', 'ឆាតគោលដៅ', 0, 'នាក់', 0, 500, 'ឆាតគោលដៅ')}
-          ${renderRulerNumberControl('rep-field-call-direct', 'អតិថិជនខលផ្ទាល់', 0, 'នាក់', 0, 100, 'អតិថិជនខល')}
+          ${renderRulerNumberControl('rep-field-chat-mistake', 'ឆាតប៉ះដៃ (Spam)', 0, 'នាក់', 0, 500, 'ឆាតប៉ះដៃ (ច្រឡំ/Spam)')}
+          ${renderRulerNumberControl('rep-field-chat-target', 'ឆាតគោលដៅ', 0, 'នាក់', 0, 500, 'ឆាតគោលដៅ (សួរពិត)')}
+          ${renderRulerNumberControl('rep-field-call-direct', 'អតិថិជនខលផ្ទាល់', 0, 'នាក់', 0, 100, 'អតិថិជនខលផ្ទាល់')}
         </div>
       </div>
 
@@ -15190,7 +15130,7 @@ function renderDailyReportModal() {
           </span>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          ${renderRulerNumberControl('rep-field-follow-old', 'ភ្ញៀវចាស់សួរសុខទុក្ខ', 0, 'នាក់', 0, 200, 'សួរសុខទុក្ខភ្ញៀវចាស់')}
+          ${renderRulerNumberControl('rep-field-follow-old', 'ភ្ញៀវចាស់សួរសុខទុក្ខ', 0, 'នាក់', 0, 200, 'ភ្ញៀវចាស់សួរសុខទុក្ខ')}
           ${renderRulerNumberControl('rep-field-follow-pending', 'ភ្ញៀវរង់ចាំចម្លើយ', 0, 'នាក់', 0, 200, 'ភ្ញៀវរង់ចាំចម្លើយ')}
         </div>
       </div>
@@ -15212,8 +15152,8 @@ function renderDailyReportModal() {
               <span>ភ្ញៀវថ្មីទិញ៖</span>
             </span>
             <div class="grid grid-cols-2 gap-3">
-              ${renderRulerNumberControl('rep-buy-new-p', 'ចំនួនភ្ញៀវ', (autoTodayBoxes > 0 ? autoTodayOrders : 0), 'នាក់', 0, 100, 'ភ្ញៀវថ្មីទិញ')}
-              ${renderRulerNumberControl('rep-buy-new-b', 'ចំនួនប្រអប់', autoTodayBoxes, 'ប្រអប់', 0, 200, 'ភ្ញៀវថ្មីទិញ')}
+              ${renderRulerNumberControl('rep-buy-new-p', 'ចំនួនភ្ញៀវ', (autoTodayBoxes > 0 ? autoTodayOrders : 0), 'នាក់', 0, 100, 'ភ្ញៀវថ្មីទិញ (ចំនួននាក់)')}
+              ${renderRulerNumberControl('rep-buy-new-b', 'ចំនួនប្រអប់', autoTodayBoxes, 'ប្រអប់', 0, 200, 'ភ្ញៀវថ្មីទិញ (ចំនួនប្រអប់)')}
             </div>
           </div>
 
@@ -15224,20 +15164,20 @@ function renderDailyReportModal() {
               <span>ភ្ញៀវចាស់ទិញបន្ថែម (Repeat)៖</span>
             </span>
             <div class="grid grid-cols-2 gap-3">
-              ${renderRulerNumberControl('rep-buy-old-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវចាស់ទិញថែម')}
-              ${renderRulerNumberControl('rep-buy-old-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវចាស់ទិញថែម')}
+              ${renderRulerNumberControl('rep-buy-old-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវចាស់ទិញ (ចំនួននាក់)')}
+              ${renderRulerNumberControl('rep-buy-old-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវចាស់ទិញ (ចំនួនប្រអប់)')}
             </div>
           </div>
 
-          <!-- ភ្ញៀវបាន Follow Up -->
+          <!-- ភ្ញៀវ Follow-up ទិញ -->
           <div class="p-3 sm:p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
             <span class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-sky-400"></span>
-              <span>ភ្ញៀវបាន Follow Up៖</span>
+              <span>ភ្ញៀវតាមដានទិញ (Follow-up Closed)៖</span>
             </span>
             <div class="grid grid-cols-2 gap-3">
-              ${renderRulerNumberControl('rep-buy-follow-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវបាន Follow Up')}
-              ${renderRulerNumberControl('rep-buy-follow-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវបាន Follow Up')}
+              ${renderRulerNumberControl('rep-buy-follow-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវ Follow ទិញ (ចំនួននាក់)')}
+              ${renderRulerNumberControl('rep-buy-follow-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវ Follow ទិញ (ចំនួនប្រអប់)')}
             </div>
           </div>
         </div>
@@ -15261,7 +15201,6 @@ function renderDailyReportModal() {
           <span>បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖</span>
         </label>
         <textarea id="rep-field-challenges" rows="2" placeholder="ឧទាហរណ៍៖ អតិថិជនត្អូញត្អែរតម្លៃ, សេវាដឹកយឺត, អស់ទំនិញក្នុងស្តុក..." 
-                  onfocus="hideFloatingRulerCard(); this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3.5 text-white text-sm sm:text-base focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
       </div>
 
@@ -15311,8 +15250,11 @@ function openDailyReportModal() {
   renderDailyReportModal();
   modal.classList.remove('hidden');
 
-  // Start with floating ruler card hidden like a keyboard
-  hideFloatingRulerCard();
+  // Initialize canvas and select the first field by default
+  setTimeout(() => {
+    init3DRulerCanvas();
+    setActiveReportField('rep-field-chat-total', 'ឆាតថ្មីសរុប', 0, 500, 'នាក់');
+  }, 40);
 
   const bodyEl = document.getElementById('daily-report-body-content');
   if (bodyEl) bodyEl.scrollTop = 0;
@@ -15321,7 +15263,6 @@ function openDailyReportModal() {
 }
 
 function closeDailyReportModal() {
-  hideFloatingRulerCard();
   document.body.classList.remove('report-modal-open');
   const modal = document.getElementById('daily-report-modal');
   if (modal) modal.classList.add('hidden');

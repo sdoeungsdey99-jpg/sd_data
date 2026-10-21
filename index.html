@@ -1710,11 +1710,6 @@
       filter: none !important;
       -webkit-filter: none !important;
     }
-    #rep-native-date-picker::-webkit-calendar-picker-indicator {
-      opacity: 0 !important;
-      display: none !important;
-      -webkit-appearance: none !important;
-    }
     #daily-report-modal .report-field-item {
       filter: none !important;
       -webkit-filter: none !important;
@@ -3960,8 +3955,8 @@
         <!-- Injected dynamically by renderDailyReportModal() -->
       </div>
 
-      <!-- ELEVATED FLOATING 3D INFINITE RULER WHEEL PANEL (Auto Show/Hide Like Mobile Keyboard) -->
-      <div id="daily-report-ruler-wrapper" class="absolute bottom-0 inset-x-0 px-2.5 sm:px-3 pb-3 sm:pb-4 pt-1 bg-gradient-to-t from-[#070D18] via-[#070D18]/95 to-transparent z-40 transition-all duration-300 transform translate-y-full opacity-0 pointer-events-none">
+      <!-- ELEVATED FLOATING 3D INFINITE RULER WHEEL PANEL -->
+      <div class="px-2.5 sm:px-3 pb-3 sm:pb-4 pt-1 bg-gradient-to-t from-[#070D18] via-[#070D18]/95 to-transparent shrink-0 relative z-30">
         <div id="daily-report-ruler-panel" class="w-full bg-[#0B1528] rounded-3xl border-2 border-amber-500/50 shadow-[0_12px_40px_rgba(0,0,0,0.95),0_0_25px_rgba(245,158,11,0.25)] flex flex-col select-none overflow-hidden pb-2 pt-1">
           <!-- Active Target Header Bar + Stepper & Live Value -->
           <div class="px-3.5 pt-2 pb-2 flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-black/60 via-transparent to-black/60">
@@ -3974,21 +3969,16 @@
               </div>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-2.5 shrink-0">
               <button type="button" onclick="stepCurrentRuler(-1)" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 text-white font-black text-xl flex items-center justify-center active:scale-90 transition shadow-sm">
                 -
               </button>
-              <div class="text-center min-w-[70px]">
+              <div class="text-center min-w-[80px]">
                 <span id="ruler-fixed-val" class="text-3xl sm:text-4xl font-mono font-black text-amber-400 drop-shadow-[0_0_16px_rgba(245,158,11,0.8)] leading-none block">0</span>
                 <span id="ruler-fixed-unit" class="text-xs sm:text-sm text-slate-300 font-bold block font-kantumruy mt-0.5">នាក់</span>
               </div>
               <button type="button" onclick="stepCurrentRuler(1)" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 text-white font-black text-xl flex items-center justify-center active:scale-90 transition shadow-sm">
                 +
-              </button>
-              <!-- Done / Dismiss Button -->
-              <button type="button" onclick="hideFloatingRulerCard()" class="ml-1 px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1 active:scale-95 transition" title="រួចរាល់">
-                <i data-lucide="check" class="w-3.5 h-3.5"></i>
-                <span>រួចរាល់</span>
               </button>
             </div>
           </div>
@@ -4004,8 +3994,8 @@
             <canvas id="ruler-canvas" class="w-full h-full cursor-grab active:cursor-grabbing touch-none"></canvas>
           </div>
 
-          <!-- Quick Value Chips Row (Centered, 0 to 15) -->
-          <div class="p-2 px-3 flex items-center justify-center gap-2 overflow-x-auto no-scrollbar bg-[#091122]">
+          <!-- Quick Value Chips Row -->
+          <div class="p-2 px-3 flex items-center gap-2 overflow-x-auto no-scrollbar bg-[#091122]">
             <span class="text-xs sm:text-sm text-slate-400 font-bold shrink-0">រហ័ស:</span>
             <button type="button" onclick="setRulerValue(0)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">0</button>
             <button type="button" onclick="setRulerValue(1)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">1</button>
@@ -4014,6 +4004,9 @@
             <button type="button" onclick="setRulerValue(5)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">5</button>
             <button type="button" onclick="setRulerValue(10)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">10</button>
             <button type="button" onclick="setRulerValue(15)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">15</button>
+            <button type="button" onclick="setRulerValue(20)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">20</button>
+            <button type="button" onclick="setRulerValue(30)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">30</button>
+            <button type="button" onclick="setRulerValue(50)" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white font-mono text-xs sm:text-sm font-bold">50</button>
           </div>
         </div>
       </div>
@@ -4771,6 +4764,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=20.6"></script>
+  <script src="app.js?v=20.5"></script>
 </body>
 </html>
