@@ -1418,7 +1418,7 @@ function hookScrollableForDock(el, isMain = false) {
     }
 
     // 1. Scrolling content down (finger moving up) -> Smoothly hide Dock & Filter Bar (Home & Analytics)
-    if (diff > 8 && currentScrollTop > 30) {
+    if (diff > 6 && currentScrollTop > 20) {
       setDockVisible(false);
       if (isMain && filterBar) filterBar.classList.add('filter-hidden');
       if (isMain && appState.currentView === 'analytics') {
@@ -1437,8 +1437,8 @@ function hookScrollableForDock(el, isMain = false) {
         }
       }
     }
-    // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock & Filter Bar
-    else if (diff < -6 || currentScrollTop <= 15) {
+    // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock & Filter Bar (iPhone Standard)
+    else if (diff < -5 || currentScrollTop <= 15) {
       if (!isDialogModalOpen()) {
         setDockVisible(true);
         if (isMain && filterBar && appState.currentView === 'dashboard') {
@@ -1468,14 +1468,6 @@ function hookScrollableForDock(el, isMain = false) {
         loadMoreStudyWords();
       }
     }
-
-    // 4. When scrolling stops / screen is still -> Smoothly restore Dock (except when deep inside profile drawer or in dialog modal)
-    clearTimeout(scrollIdleTimer);
-    scrollIdleTimer = setTimeout(() => {
-      if (el.id === 'profile-drawer-content' && el.scrollTop > 25) return;
-      if (isDialogModalOpen()) return;
-      setDockVisible(true);
-    }, 450);
   }, { passive: true });
 }
 
