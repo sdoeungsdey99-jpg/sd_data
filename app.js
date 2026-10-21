@@ -14470,16 +14470,13 @@ function changeReportFieldVal(fieldId, delta) {
   const disp = document.getElementById(`${fieldId}-disp`);
   if (disp) disp.innerText = val;
 
-  // Highlight card without auto-scrolling
-  setActiveReportField(fieldId, null, 0, 999, null, false);
-
-  // Sync with 3D ruler if active
-  if (_rulerState && _rulerState.targetFieldId === fieldId) {
-    _rulerState.val = val;
-    _rulerState.pixelOffset = val * _rulerState.tickSpacing;
-    const rulerVal = document.getElementById('ruler-fixed-val');
-    if (rulerVal) rulerVal.innerText = val;
-    if (typeof draw3DRuler === 'function') draw3DRuler();
+  // Subtle highlight card when clicked
+  const card = document.getElementById(`card-${fieldId}`);
+  if (card) {
+    card.classList.add('border-amber-400/80', 'bg-amber-500/10');
+    setTimeout(() => {
+      if (card) card.classList.remove('border-amber-400/80', 'bg-amber-500/10');
+    }, 200);
   }
 
   calculateDailyReportMetrics();
@@ -14495,8 +14492,8 @@ function stepFieldPress(fieldId, delta, ev) {
   _stepTimer = setTimeout(() => {
     _stepInterval = setInterval(() => {
       changeReportFieldVal(fieldId, delta);
-    }, 120);
-  }, 380);
+    }, 110);
+  }, 350);
 }
 
 function stepFieldRelease(ev) {
@@ -14513,17 +14510,16 @@ window.stepFieldRelease = stepFieldRelease;
 
 function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTitleKm) {
   const v = Number(defaultVal) || 0;
-  const title = fieldTitleKm || label;
   return `
-    <div id="card-${id}" onclick="setActiveReportField('${id}', '${title}', ${min || 0}, ${max || 999}, '${unit}')"
-         class="report-field-item p-2.5 sm:p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-amber-500/40 cursor-pointer transition select-none flex flex-col justify-between group shadow-sm">
-      <div class="flex items-center justify-between mb-2 min-w-0">
-        <span class="text-xs sm:text-sm text-slate-200 font-bold truncate group-hover:text-amber-400 transition">${label}</span>
-        <span class="text-[11px] text-slate-400 font-kantumruy font-semibold shrink-0 ml-1.5">${unit}</span>
+    <div id="card-${id}"
+         class="report-field-item p-2 sm:p-2.5 rounded-2xl bg-[#0B1528] border border-white/10 hover:border-amber-500/40 transition select-none flex flex-col justify-between group shadow-sm">
+      <div class="flex items-center justify-between mb-1.5 min-w-0">
+        <span class="text-xs text-slate-200 font-bold truncate group-hover:text-amber-400 transition">${label}</span>
+        <span class="text-[10px] text-slate-400 font-kantumruy font-semibold shrink-0 ml-1">${unit}</span>
       </div>
 
-      <!-- Stepper Controls: [-] on Left, Value in Center, [+] on Right -->
-      <div class="flex items-center justify-between bg-black/80 p-1 sm:p-1.5 rounded-xl border border-white/10 gap-1.5">
+      <!-- Compact Standard Stepper: [-] [ Value ] [+] -->
+      <div class="flex items-center justify-between bg-black/60 px-1 py-1 rounded-xl border border-white/10 gap-1">
         <!-- Minus Button on Left -->
         <button type="button" 
                 onpointerdown="stepFieldPress('${id}', -1, event)"
@@ -14531,14 +14527,14 @@ function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTi
                 onpointerleave="stepFieldRelease(event)"
                 onpointercancel="stepFieldRelease(event)"
                 onclick="event.stopPropagation();"
-                class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-white/10 hover:bg-white/20 active:bg-amber-500 active:text-black text-white font-black text-2xl flex items-center justify-center transition active:scale-90 shrink-0 select-none shadow-sm touch-manipulation"
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/20 active:bg-amber-500 active:text-black text-white font-black text-lg flex items-center justify-center transition active:scale-90 shrink-0 select-none shadow-sm touch-manipulation"
                 title="បន្ថយ">
           −
         </button>
 
         <!-- Center Number Display -->
-        <div class="flex-1 text-center min-w-0 px-1 py-0.5">
-          <span id="${id}-disp" class="text-xl sm:text-2xl font-mono font-black text-amber-400 block leading-tight truncate drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]">${v}</span>
+        <div class="flex-1 text-center min-w-0 px-1">
+          <span id="${id}-disp" class="text-base sm:text-lg font-mono font-black text-amber-400 block leading-tight truncate drop-shadow-sm">${v}</span>
         </div>
 
         <!-- Plus Button on Right -->
@@ -14548,7 +14544,7 @@ function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTi
                 onpointerleave="stepFieldRelease(event)"
                 onpointercancel="stepFieldRelease(event)"
                 onclick="event.stopPropagation();"
-                class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-white/10 hover:bg-white/20 active:bg-amber-500 active:text-black text-white font-black text-2xl flex items-center justify-center transition active:scale-90 shrink-0 select-none shadow-sm touch-manipulation"
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 hover:bg-white/20 active:bg-amber-500 active:text-black text-white font-black text-lg flex items-center justify-center transition active:scale-90 shrink-0 select-none shadow-sm touch-manipulation"
                 title="បន្ថែម">
           +
         </button>
@@ -14562,45 +14558,14 @@ function setActiveReportField(fieldId, label, min, max, unit, shouldScroll = tru
   // Clear previous active highlights from all items
   document.querySelectorAll('.report-field-item').forEach(el => {
     el.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/40', 'bg-amber-500/15');
-    el.classList.add('border-white/10', 'bg-black/60');
+    el.classList.add('border-white/10', 'bg-[#0B1528]');
   });
 
-  // Highlight the selected field
   const card = document.getElementById(`card-${fieldId}`);
   if (card) {
-    card.classList.remove('border-white/10', 'bg-black/60');
+    card.classList.remove('border-white/10', 'bg-[#0B1528]');
     card.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/40', 'bg-amber-500/15');
-    if (shouldScroll) {
-      setTimeout(() => {
-        try {
-          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        } catch (_) {}
-      }, 40);
-    }
   }
-
-  const hiddenInput = document.getElementById(fieldId);
-  const currentVal = hiddenInput ? (Number(hiddenInput.value) || 0) : 0;
-
-  _rulerState.targetFieldId = fieldId;
-  if (label) _rulerState.title = label;
-  if (typeof min === 'number') _rulerState.min = min;
-  if (typeof max === 'number') _rulerState.max = max;
-  if (unit) _rulerState.unit = unit;
-  _rulerState.val = currentVal;
-  _rulerState.pixelOffset = currentVal * _rulerState.tickSpacing;
-  _rulerState.lastVibrateVal = currentVal;
-
-  const titleEl = document.getElementById('ruler-fixed-title');
-  const valEl = document.getElementById('ruler-fixed-val');
-  const unitEl = document.getElementById('ruler-fixed-unit');
-
-  if (titleEl && _rulerState.title) titleEl.innerText = _rulerState.title;
-  if (valEl) valEl.innerText = currentVal;
-  if (unitEl && _rulerState.unit) unitEl.innerText = _rulerState.unit;
-
-  draw3DRuler();
-  if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
 }
 
 function syncRulerToField() {
@@ -15164,25 +15129,27 @@ function renderDailyReportModal() {
         </div>
 
         <div class="space-y-2.5 pt-1">
+          <!-- ឈ្មោះផេកផ្ទាល់ (Full width) -->
           <div>
-            <label class="block text-xs sm:text-sm text-slate-300 mb-1 font-bold">កាលបរិច្ឆេទ (ថ្ងៃ/ខែ/ឆ្នាំ)៖</label>
-            <input type="text" id="rep-field-date" value="${defaultDate}" 
-                   onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
-                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white font-mono text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
-          </div>
-          <div>
-            <label class="block text-xs sm:text-sm text-slate-300 mb-1 font-bold">ឈ្មោះផេកផ្ទាល់៖</label>
+            <label class="block text-xs text-slate-300 mb-1 font-bold">ឈ្មោះផេកផ្ទាល់៖</label>
             <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
                    oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
-                   onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
-                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
+                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 sm:p-3 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
           </div>
-          <div>
-            <label class="block text-xs sm:text-sm text-slate-300 mb-1 font-bold">បុគ្គលិកទទួលខុសត្រូវ / ឈ្មោះអ្នកលក់៖</label>
-            <input type="text" id="rep-field-staff" value="${savedStaff}" placeholder="ឈ្មោះអ្នកលក់ ឬ ក្រុមការងារ" 
-                   oninput="try { localStorage.setItem('sd_report_staff', this.value); } catch(_) {}"
-                   onfocus="this.scrollIntoView({ behavior: 'smooth', block: 'center' });"
-                   class="w-full bg-black/50 border border-white/10 rounded-2xl p-3 text-white text-sm sm:text-base font-semibold focus:outline-none focus:border-emerald-500">
+
+          <!-- ជួរកាលបរិច្ឆេទ & ឈ្មោះអ្នកលក់ / អ្នកទទួលខុសត្រូវ (2 Columns) -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs text-slate-300 mb-1 font-bold">កាលបរិច្ឆេទ៖</label>
+              <input type="text" id="rep-field-date" value="${defaultDate}" 
+                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 sm:p-3 text-white font-mono text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-300 mb-1 font-bold">អ្នកលក់ / ទទួលខុសត្រូវ៖</label>
+              <input type="text" id="rep-field-staff" value="${savedStaff}" placeholder="ឈ្មោះអ្នកលក់" 
+                     oninput="try { localStorage.setItem('sd_report_staff', this.value); } catch(_) {}"
+                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 sm:p-3 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
+            </div>
           </div>
         </div>
       </div>
@@ -15331,12 +15298,6 @@ function openDailyReportModal() {
 
   renderDailyReportModal();
   modal.classList.remove('hidden');
-
-  // Initialize canvas and select the first field by default
-  setTimeout(() => {
-    init3DRulerCanvas();
-    setActiveReportField('rep-field-chat-total', 'ឆាតថ្មីសរុប', 0, 500, 'នាក់');
-  }, 40);
 
   const bodyEl = document.getElementById('daily-report-body-content');
   if (bodyEl) bodyEl.scrollTop = 0;
