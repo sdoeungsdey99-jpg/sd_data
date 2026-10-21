@@ -1357,8 +1357,7 @@ function isDialogModalOpen() {
     'global-search-modal',
     'profile-settings-search-modal',
     'honors-modal',
-    'team-members-modal',
-    'new-order-modal'
+    'team-members-modal'
   ];
   return ids.some(id => {
     const el = document.getElementById(id);
