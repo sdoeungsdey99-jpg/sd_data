@@ -9940,16 +9940,38 @@ async function resetCustomGoogleSheetToMaster() {
 
 function checkOnboardingGate() {
   const gate = document.getElementById('onboarding-gate');
-  const dock = document.getElementById('smart-dock');
+  const dock = document.getElementById('bottom-dock');
   if (!gate) return;
-  if (!window.DataService || !window.DataService.hasActiveSheet()) {
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const skipGate = urlParams.get('skip_gate') === '1' || urlParams.get('admin') === '1';
+  const hasCustomSheet = Boolean(localStorage.getItem('sd_custom_sheet_id'));
+  const hasOnboardingDone = localStorage.getItem('sd_onboarding_completed') === 'true';
+
+  if (!skipGate && (!hasCustomSheet || !hasOnboardingDone)) {
     gate.classList.remove('hidden');
     if (dock) dock.classList.add('hidden');
+    setDockVisible(false);
   } else {
     gate.classList.add('hidden');
     if (dock) dock.classList.remove('hidden');
+    setDockVisible(true);
   }
 }
+
+function enterTestMode() {
+  localStorage.setItem('sd_onboarding_completed', 'true');
+  localStorage.setItem('sd_custom_sheet_id', '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg');
+  const gate = document.getElementById('onboarding-gate');
+  if (gate) gate.classList.add('hidden');
+  const dock = document.getElementById('bottom-dock');
+  if (dock) dock.classList.remove('hidden');
+  setDockVisible(true);
+  if (window.DataService) window.DataService.fetchData(false);
+  renderCurrentView();
+  showToastNotification('🎉 ស្វាគមន៍មកកាន់ Test Mode! ជាមួយ Google Sheet ថ្មី');
+}
+window.enterTestMode = enterTestMode;
 
 async function submitOnboardingConnection() {
   const nameInput = document.getElementById('onboard-member-name');
@@ -10013,6 +10035,7 @@ async function submitOnboardingConnection() {
       }
     };
     localStorage.setItem('sd_profile_data', JSON.stringify(memberProfile));
+    localStorage.setItem('sd_onboarding_completed', 'true');
     
     syncHeaderProfileUI();
     checkOnboardingGate();

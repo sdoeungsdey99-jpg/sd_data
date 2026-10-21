@@ -3,7 +3,7 @@
  * Real-time dynamic Google Sheet reader (Zero Hardcoding)
  */
 
-const DEFAULT_MASTER_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+const DEFAULT_MASTER_SHEET_ID = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
 
 function extractSheetId(input) {
   if (!input) return '';
