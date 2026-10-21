@@ -4527,8 +4527,8 @@
         <div id="order-submit-container" class="pt-3 pb-12 flex flex-col items-center justify-center select-none font-kantumruy">
           <!-- Slider Track -->
           <div id="order-submit-slider" 
-               class="relative w-full max-w-[260px] mx-auto h-12 bg-gradient-to-r from-[#0C1526] via-[#101F38] to-[#0C1526] border-2 border-orange-500/30 rounded-full overflow-hidden select-none p-1 flex items-center shadow-[0_6px_20px_rgba(0,0,0,0.5)] transition-all duration-300"
-               style="touch-action: none;">
+               class="relative w-full max-w-[250px] mx-auto h-12 bg-gradient-to-r from-[#0C1526] via-[#101F38] to-[#0C1526] border-2 border-orange-500/30 rounded-full overflow-hidden select-none p-1 flex items-center shadow-[0_6px_20px_rgba(0,0,0,0.5)] transition-all duration-300"
+               style="touch-action: none; max-width: 250px !important; width: 100% !important; height: 48px !important; margin-left: auto !important; margin-right: auto !important;">
             
             <!-- Dynamic Progress Fill Layer -->
             <div id="order-slider-fill" 
@@ -4559,7 +4559,8 @@
 
           <!-- Original Button (For Telegram Mode) -->
           <button type="button" id="btn-submit-order" onclick="submitNewOrder()" 
-                  class="w-auto min-w-[190px] max-w-[240px] mx-auto px-6 py-2.5 rounded-full accent-solid-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-orange-500/25 hidden">
+                  class="w-auto min-w-[190px] max-w-[230px] mx-auto px-6 py-2.5 rounded-full accent-solid-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-orange-500/25 hidden"
+                  style="max-width: 230px !important; width: auto !important; min-width: 190px !important; margin-left: auto !important; margin-right: auto !important;">
             <i data-lucide="check" class="w-4 h-4"></i>
             <span id="order-submit-btn-text">បញ្ជូនចូលការលក់ 🚀</span>
           </button>
@@ -4758,6 +4759,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=20.0"></script>
+  <script src="app.js?v=20.1"></script>
 </body>
 </html>

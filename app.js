@@ -16137,11 +16137,18 @@ function openNewOrderModal(mode = 'dock') {
       stockCapsuleBtn.style.display = 'none';
     }
     // Telegram Mode: Restore Original Button!
-    if (submitSlider) submitSlider.classList.add('hidden');
+    if (submitSlider) {
+      submitSlider.classList.add('hidden');
+      submitSlider.style.display = 'none';
+    }
     if (sliderHint) sliderHint.classList.add('hidden');
     if (btnSubmitOrder) {
       btnSubmitOrder.classList.remove('hidden');
-      btnSubmitOrder.style.display = '';
+      btnSubmitOrder.style.display = 'inline-flex';
+      btnSubmitOrder.style.maxWidth = '230px';
+      btnSubmitOrder.style.width = 'auto';
+      btnSubmitOrder.style.marginLeft = 'auto';
+      btnSubmitOrder.style.marginRight = 'auto';
     }
   } else {
     // Dock Mode (បញ្ចូលការកុម្ម៉ង់ថ្មី): Slide to Submit
@@ -16164,7 +16171,11 @@ function openNewOrderModal(mode = 'dock') {
     // Dock Mode: Slide to Submit
     if (submitSlider) {
       submitSlider.classList.remove('hidden');
-      submitSlider.style.display = '';
+      submitSlider.style.display = 'flex';
+      submitSlider.style.maxWidth = '250px';
+      submitSlider.style.width = '100%';
+      submitSlider.style.marginLeft = 'auto';
+      submitSlider.style.marginRight = 'auto';
     }
     if (sliderHint) {
       sliderHint.classList.remove('hidden');
