@@ -987,6 +987,11 @@ function handleBackNavigation() {
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
+  if (!document.getElementById('honors-modal')?.classList?.contains('hidden')) {
+    closeHonorsModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
 
   // 1d. Close Profile Drawer itself if open -> returns to Home!
   const profDrawer = document.getElementById('profile-drawer-modal');
@@ -998,7 +1003,7 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
@@ -1776,7 +1781,8 @@ function closeAllModals() {
     'profile-settings-search-modal',
     'new-order-modal',
     'new-expense-modal',
-    'daily-report-modal'
+    'daily-report-modal',
+    'honors-modal'
   ];
   modals.forEach(id => {
     const el = document.getElementById(id);
@@ -5500,16 +5506,16 @@ function getSettingsViewHTML() {
           ` : ''}
         </div>
 
-        <!-- 10. កាតកិត្តិយស & ការដឹងគុណ (Honors & Dedication) -->
+        <!-- 10. អំពីខ្ញុំ (About Me) -->
         <div onclick="openAboutModal()" 
              class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
           <div class="settings-row-left flex items-center gap-3 min-w-0">
-            <div class="settings-icon-box w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-              <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+            <div class="settings-icon-box w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+              <i data-lucide="user" class="w-4 h-4 text-orange-400"></i>
             </div>
             <div class="min-w-0">
-              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isKm ? 'កាតកិត្តិយស & ការដឹងគុណ' : 'Honors & Dedication'}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ស្ថាបនិក • គណៈគ្រប់គ្រង • អ្នករៀបចំប្រព័ន្ធ' : 'BostarGroup Visionaries & Leadership'}</p>
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ស្តី ស្តើង • ប្រធានគ្រប់គ្រង' : 'SDEY SDOEUNG • Manager'}</p>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -6929,68 +6935,188 @@ function renderAboutModalContent() {
 
   card.innerHTML = `
     <!-- Close Button top right -->
-    <button onclick="closeAboutModal()" class="absolute top-3.5 right-3.5 p-1.5 rounded-full text-slate-400 hover:text-white bg-white/5 border border-white/5 active:scale-95 transition z-20">
+    <button onclick="closeAboutModal()" class="absolute top-3.5 right-3.5 p-1.5 rounded-full text-slate-400 hover:text-white bg-white/5 border border-white/5 active:scale-95 transition z-10">
       <i data-lucide="x" class="w-4 h-4"></i>
     </button>
 
     <!-- Ambient Top Glow -->
-    <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-gradient-to-b from-amber-500/20 to-orange-500/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full bg-orange-500/15 blur-3xl pointer-events-none"></div>
 
-    <!-- Header / Plaque Title -->
-    <div class="w-full text-center relative z-10 pt-1 pb-1">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-bold tracking-wide mb-2 shadow-sm">
-        <span>🌟</span>
-        <span>${isKm ? 'កាតកិត្តិយស & ការដឹងគុណ' : 'Honors & Dedication Plaque'}</span>
+    <!-- Centered Profile Photo with Green Status Dot -->
+    <div class="relative">
+      <img src="profile.png" alt="SDEY SDOEUNG" 
+           class="w-24 h-24 rounded-full object-cover border-4 border-[var(--accent-solid)] shadow-2xl">
+      <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#070D18] shadow-md"></span>
+    </div>
+
+    <!-- Centered Name with Verified Blue Tick (រក្សាបែបនេះ ទោះប្តូរភាសាក៏ដោយ ដូចរូបភាពគំរូ) -->
+    <div>
+      <div class="flex items-center justify-center gap-1.5">
+        <h2 class="text-2xl font-black text-white tracking-wide brand-title">ស្តី ស្តើង</h2>
+        <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0" style="width: 16px; height: 16px;">
       </div>
-      <h2 class="text-lg font-black text-white brand-title tracking-wide">BostarGroup Leadership</h2>
-      <p class="text-[10.5px] text-slate-400 mt-0.5">${isKm ? 'ថ្នាក់ដឹកនាំឆ្នើម និងក្រុមការងារអភិវឌ្ឍន៍ប្រព័ន្ធ' : 'Executive Leadership & Development Team'}</p>
+      <p class="text-xs text-orange-400 font-bold tracking-widest uppercase mt-1">SDEY SDOEUNG</p>
+      
+      <!-- Manager Badge Centered (រក្សា Manager ជាប់ជានិច្ច មិនផ្លាស់ប្តូរតាមភាសា ដូចរូបភាពគំរូ) -->
+      <div class="mt-2.5 flex justify-center">
+        <span class="px-4 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 font-black text-xs shadow-sm flex items-center gap-1.5 tracking-wide">
+          <span>🎖️</span>
+          <span>Manager</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Roles Badges Centered in 3 Columns (ប្តូរតាម Setting) -->
+    <div class="w-full pt-3 border-t border-white/10">
+      <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">
+        ${isKm ? 'តួនាទីទទួលខុសត្រូវ:' : 'Key Responsibilities:'}
+      </span>
+      <div class="grid grid-cols-3 gap-1.5 w-full">
+        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+          <span class="text-xs">📈</span>
+          <p class="text-[10px] font-bold text-white mt-0.5">${t('salesRole')}</p>
+        </div>
+        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+          <span class="text-xs">👑</span>
+          <p class="text-[10px] font-bold text-white mt-0.5">${t('leaderRole')}</p>
+        </div>
+        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center justify-center">
+          <span class="text-xs">💻</span>
+          <p class="text-[10px] font-bold text-white mt-0.5">${t('developerRole')}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centered Contacts List (ប្តូរតាម Setting) -->
+    <div class="w-full pt-2.5 border-t border-white/10 space-y-1.5 text-xs">
+      <div class="flex items-center justify-between text-slate-300">
+        <span class="text-slate-400">${t('phoneLabel')}:</span>
+        <span class="font-mono font-bold text-white">087 513 666 / 090 513 666</span>
+      </div>
+      <div class="flex items-center justify-between text-slate-300">
+        <span class="text-slate-400">${t('telegramLabel')}:</span>
+        <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline">@sdoeung_sd</a>
+      </div>
+      <div class="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
+        <span class="text-slate-400">${t('versionLabel')}:</span>
+        <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.5</span>
+      </div>
+    </div>
+
+    <!-- Solid Accent Fill Button with Auto Contrast Text -->
+    <div class="w-full pt-1">
+      <a href="https://t.me/sdoeung_sd" target="_blank" 
+         class="w-full py-2.5 rounded-2xl accent-solid-btn font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
+        <i data-lucide="send" class="w-3.5 h-3.5"></i>
+        <span>${t('contactTelegramBtn')}</span>
+      </a>
+    </div>
+  `;
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function openAboutModal() {
+  const modal = document.getElementById('about-modal');
+  if (modal) {
+    renderAboutModalContent();
+    modal.classList.remove('hidden');
+    setDockVisible(false);
+    if (navigator.vibrate) navigator.vibrate(12);
+  }
+}
+
+function closeAboutModal(e) {
+  if (e && e.target && e.target.closest && e.target.closest('#about-modal-card')) {
+    return; // clicked inside card, don't close
+  }
+  const modal = document.getElementById('about-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    setDockVisible(true);
+  }
+}
+
+// ========================================================
+// FULL-SCREEN BOSTAR HONORS & DEDICATION MODAL
+// ========================================================
+function renderHonorsModalContent() {
+  const isKm = appState.language === 'km';
+  const container = document.getElementById('honors-modal-body');
+  if (!container) return;
+
+  container.innerHTML = `
+    <!-- Top Prestige Banner -->
+    <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent border border-amber-500/30 text-center relative overflow-hidden shadow-xl">
+      <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-amber-500/20 blur-3xl pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col items-center">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 p-0.5 shadow-lg shadow-amber-500/30 mb-2.5 flex items-center justify-center">
+          <div class="w-full h-full rounded-2xl bg-[#09111D] flex items-center justify-center">
+            <img src="bostar-logo.png" alt="BostarGroup" class="w-10 h-10 object-contain">
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 font-black text-xs tracking-wider uppercase mb-1.5 shadow-sm">
+          ★ BOSTAR GROUP LEADERSHIP ★
+        </span>
+        <h2 class="text-lg font-black text-white brand-title tracking-wide">កាតកិត្តិយស & ការដឹងគុណ</h2>
+        <p class="text-[11px] text-slate-300 max-w-xs mt-1 leading-relaxed">
+          សូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះគណៈស្ថាបនិក ថ្នាក់ដឹកនាំ និងអ្នកអភិវឌ្ឍន៍ប្រព័ន្ធទាំងអស់
+        </p>
+      </div>
     </div>
 
     <!-- 1. អ្នកបណ្តុះបណ្តាល៖ លោកអគ្គនាយក វណ្ណ ស៊ីថា (Corporate Coach & CEO) -->
-    <div class="w-full p-3.5 rounded-2xl bg-gradient-to-b from-amber-500/10 to-amber-900/10 border border-amber-500/30 relative overflow-hidden shadow-lg text-left">
-      <div class="flex items-center gap-1.5 text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-2.5">
-        <span>🎓</span>
-        <span>${isKm ? 'អ្នកបណ្តុះបណ្តាល' : 'Corporate Coach / Trainer'}</span>
+    <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/35 relative overflow-hidden shadow-xl text-left">
+      <div class="flex items-center justify-between mb-3">
+        <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+          <span>🎓</span>
+          <span>${isKm ? 'អ្នកបណ្តុះបណ្តាល' : 'Corporate Coach / Trainer'}</span>
+        </span>
+        <span class="text-[10px] text-amber-400/90 font-mono font-bold">CEO</span>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3.5">
         <div class="relative shrink-0">
           <img src="ceo-vann-sitha.jpg" alt="Vann Sitha" 
-               class="w-16 h-16 rounded-2xl object-cover border-2 border-amber-400/80 shadow-md">
-          <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[8px] text-black font-black">★</span>
+               class="w-20 h-20 rounded-2xl object-cover border-2 border-amber-400 shadow-xl">
+          <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
         </div>
         <div class="min-w-0 flex-1">
-          <h3 class="text-sm font-black text-white truncate brand-title">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
-          <p class="text-[11px] text-amber-300 font-semibold mt-0.5">VANN SITHA</p>
-          <div class="mt-1 flex items-center gap-1.5 flex-wrap">
-            <span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold text-[9.5px] border border-amber-500/30">
-              អគ្គនាយក Bostar (CEO)
+          <h3 class="text-base font-black text-white truncate brand-title">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
+          <p class="text-xs text-amber-300 font-bold tracking-wide mt-0.5">VANN SITHA</p>
+          <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-black text-[10px] border border-amber-500/40">
+              អគ្គនាយកក្រុមហ៊ុន Bostar (CEO)
             </span>
-            <span class="text-[9.5px] text-slate-400">គ្រូបង្វឹកធំ</span>
+            <span class="px-2 py-0.5 rounded-lg bg-white/10 text-slate-300 font-bold text-[10px]">
+              គ្រូបង្វឹកធំ
+            </span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 2. អ្នកផ្តើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិក នោរ៉ា (Director) -->
-    <div class="w-full p-3.5 rounded-2xl bg-gradient-to-b from-orange-500/10 to-amber-500/5 border border-orange-500/30 relative overflow-hidden shadow-lg text-left">
-      <div class="flex items-center gap-1.5 text-[10px] text-orange-400 font-bold uppercase tracking-wider mb-2.5">
-        <span>💡</span>
-        <span>${isKm ? 'អ្នកផ្តើមគំនិតបង្កើត App' : 'App Visionary & Founder'}</span>
+    <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-orange-500/15 via-white/[0.03] to-transparent border border-orange-500/35 relative overflow-hidden shadow-xl text-left">
+      <div class="flex items-center justify-between mb-3">
+        <span class="px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+          <span>💡</span>
+          <span>${isKm ? 'អ្នកផ្តើមគំនិតបង្កើត App' : 'App Visionary & Founder'}</span>
+        </span>
+        <span class="text-[10px] text-orange-400/90 font-mono font-bold">DIRECTOR</span>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3.5">
         <div class="relative shrink-0">
           <img src="leader-bech-nora.jpg" alt="Bech Nora" 
-               class="w-16 h-16 rounded-2xl object-cover border-2 border-orange-400/80 shadow-md">
-          <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-orange-500 border-2 border-[#09111D] flex items-center justify-center text-[8px] text-white font-black">✓</span>
+               class="w-20 h-20 rounded-2xl object-cover border-2 border-orange-400 shadow-xl">
+          <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-white font-black shadow">✓</span>
         </div>
         <div class="min-w-0 flex-1">
-          <h3 class="text-sm font-black text-white truncate brand-title">ស្ថាបនិក ប៊ិក នោរ៉ា (Director)</h3>
-          <p class="text-[11px] text-orange-300 font-semibold mt-0.5">BECH NORA</p>
-          <div class="mt-1 flex items-center gap-1.5 flex-wrap">
-            <span class="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 font-bold text-[9.5px] border border-orange-500/30">
+          <h3 class="text-base font-black text-white truncate brand-title">ស្ថាបនិក ប៊ិក នោរ៉ា (Director)</h3>
+          <p class="text-xs text-orange-300 font-bold tracking-wide mt-0.5">BECH NORA</p>
+          <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+            <span class="px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-300 font-black text-[10px] border border-orange-500/40">
               ស្ថាបនិក Bostar Group
             </span>
-            <span class="px-2 py-0.5 rounded-md bg-white/10 text-slate-300 font-bold text-[9.5px]">
+            <span class="px-2 py-0.5 rounded-lg bg-white/10 text-slate-300 font-bold text-[10px]">
               Director
             </span>
           </div>
@@ -6998,114 +7124,117 @@ function renderAboutModalContent() {
       </div>
     </div>
 
-    <!-- 3. ថ្នាក់ដឹកនាំគាំទ្រ (Managers ទាំង ៥ រូប) -->
-    <div class="w-full p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-left">
-      <div class="flex items-center justify-between mb-2.5 px-1">
-        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+    <!-- 3. ថ្នាក់ដឹកនាំគាំទ្រ (5 Managers) -->
+    <div class="w-full p-4 rounded-3xl bg-white/[0.03] border border-white/10 shadow-xl text-left">
+      <div class="flex items-center justify-between mb-3 px-0.5">
+        <span class="px-3 py-1 rounded-full bg-white/10 text-slate-300 font-bold text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
           <span>🤝</span>
           <span>${isKm ? 'ថ្នាក់ដឹកនាំគាំទ្រ (Managers)' : 'Supporting Managers'}</span>
         </span>
-        <span class="text-[9.5px] px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono font-bold">5 រូប</span>
+        <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-bold">5 រូប</span>
       </div>
-      
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         <!-- 1. Hou Yarith -->
-        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center gap-2.5">
-          <img src="leader-hou-yarith.jpg" alt="Hou Yarith" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10">
+        <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
+          <img src="leader-hou-yarith.jpg" alt="Hou Yarith" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
           <div class="min-w-0">
-            <h4 class="text-[11px] font-bold text-white truncate">លោក ហ៊ួរ យ៉ារិទ្ធ</h4>
-            <p class="text-[9px] text-amber-300 truncate font-medium">Manager គ្រូបង្វឹកផ្នែកលក់</p>
-            <p class="text-[8.5px] text-slate-400 font-mono truncate">Hou_Yarith</p>
+            <h4 class="text-xs font-bold text-white truncate">លោក ហ៊ួរ យ៉ារិទ្ធ</h4>
+            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager គ្រូបង្វឹកផ្នែកលក់</p>
+            <p class="text-[9px] text-slate-400 font-mono truncate">Hou_Yarith</p>
           </div>
         </div>
 
         <!-- 2. Hem Chanthy -->
-        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center gap-2.5">
-          <img src="leader-hem-chanthy.jpg" alt="Hem Chanthy" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10">
+        <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
+          <img src="leader-hem-chanthy.jpg" alt="Hem Chanthy" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
           <div class="min-w-0">
-            <h4 class="text-[11px] font-bold text-white truncate">លោក ហែម ចន្ធី</h4>
-            <p class="text-[9px] text-amber-300 truncate font-medium">Manager គ្រូបង្វឹកចំណេះដឹងទូទៅ</p>
-            <p class="text-[8.5px] text-slate-400 font-mono truncate">Hem_Chanthy</p>
+            <h4 class="text-xs font-bold text-white truncate">លោក ហែម ចន្ធី</h4>
+            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager គ្រូបង្វឹកចំណេះដឹងទូទៅ</p>
+            <p class="text-[9px] text-slate-400 font-mono truncate">Hem_Chanthy</p>
           </div>
         </div>
 
         <!-- 3. Sroeun Leanghak -->
-        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center gap-2.5">
-          <img src="leader-sroeun-leanghak.jpg" alt="Sroeun Leanghak" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10">
+        <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
+          <img src="leader-sroeun-leanghak.jpg" alt="Sroeun Leanghak" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
           <div class="min-w-0">
-            <h4 class="text-[11px] font-bold text-white truncate">លោក ស្រឿន លាងហាក់</h4>
-            <p class="text-[9px] text-amber-300 truncate font-medium">Manager បច្ចេកទេស</p>
-            <p class="text-[8.5px] text-slate-400 font-mono truncate">Sroeun_Leanghak</p>
+            <h4 class="text-xs font-bold text-white truncate">លោក ស្រឿន លាងហាក់</h4>
+            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager បច្ចេកទេស</p>
+            <p class="text-[9px] text-slate-400 font-mono truncate">Sroeun_Leanghak</p>
           </div>
         </div>
 
         <!-- 4. Bech Udom -->
-        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center gap-2.5">
-          <img src="leader-bech-udom.jpg" alt="Bech Udom" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10">
+        <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
+          <img src="leader-bech-udom.jpg" alt="Bech Udom" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
           <div class="min-w-0">
-            <h4 class="text-[11px] font-bold text-white truncate">លោក ប៊ិច ឧត្ដម</h4>
-            <p class="text-[9px] text-amber-300 truncate font-medium">Manager អ្នកបច្ចេកទេស</p>
-            <p class="text-[8.5px] text-slate-400 font-mono truncate">Bech_Udom</p>
+            <h4 class="text-xs font-bold text-white truncate">លោក ប៊ិច ឧត្ដម</h4>
+            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager អ្នកបច្ចេកទេស</p>
+            <p class="text-[9px] text-slate-400 font-mono truncate">Bech_Udom</p>
           </div>
         </div>
 
         <!-- 5. Sdey Sdoeung -->
-        <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center gap-2.5 sm:col-span-2">
-          <img src="profile.png" alt="Sdey Sdoeung" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10">
+        <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition sm:col-span-2">
+          <img src="profile.png" alt="Sdey Sdoeung" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
           <div class="min-w-0">
-            <h4 class="text-[11px] font-bold text-white truncate">លោក ស្ដី ស្ដើង</h4>
-            <p class="text-[9px] text-amber-300 truncate font-medium">Manager ជំនាញបច្ចេកទេស & អភិវឌ្ឍ</p>
-            <p class="text-[8.5px] text-slate-400 font-mono truncate">Sdey_Sdoeung</p>
+            <h4 class="text-xs font-bold text-white truncate">លោក ស្ដី ស្ដើង</h4>
+            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager ជំនាញបច្ចេកទេស & អភិវឌ្ឍ</p>
+            <p class="text-[9px] text-slate-400 font-mono truncate">Sdey_Sdoeung</p>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 4. អ្នករៀបចំ & អភិវឌ្ឍន៍ប្រព័ន្ធ៖ ស្ដី ស្ដើង (System Architect & Developer) -->
-    <div class="w-full p-3.5 rounded-2xl bg-gradient-to-b from-blue-500/10 via-indigo-500/5 to-transparent border border-blue-500/25 relative overflow-hidden shadow-lg text-left">
-      <div class="flex items-center gap-1.5 text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-2.5">
-        <span>💻</span>
-        <span>${isKm ? 'អ្នករៀបចំ & អភិវឌ្ឍន៍ប្រព័ន្ធ' : 'System Architect & Developer'}</span>
+    <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-blue-500/15 via-indigo-500/5 to-transparent border border-blue-500/30 relative overflow-hidden shadow-xl text-left">
+      <div class="flex items-center justify-between mb-3">
+        <span class="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+          <span>💻</span>
+          <span>${isKm ? 'អ្នករៀបចំ & អភិវឌ្ឍន៍ប្រព័ន្ធ' : 'System Architect & Developer'}</span>
+        </span>
+        <span class="text-[10px] text-blue-400/90 font-mono font-bold">DEV & TECH</span>
       </div>
-      <div class="flex items-center gap-3 mb-3">
+      <div class="flex items-center gap-3.5 mb-3.5">
         <div class="relative shrink-0">
           <img src="profile.png" alt="Sdey Sdoeung" 
-               class="w-14 h-14 rounded-2xl object-cover border-2 border-blue-400/80 shadow-md">
+               class="w-16 h-16 rounded-2xl object-cover border-2 border-blue-400 shadow-xl">
           <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain absolute -bottom-1 -right-1" style="width: 16px; height: 16px;">
         </div>
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5">
-            <h3 class="text-sm font-black text-white truncate brand-title">ស្ដី ស្ដើង</h3>
-            <span class="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 font-black text-[9.5px]">Manager</span>
+            <h3 class="text-base font-black text-white truncate brand-title">ស្ដី ស្ដើង</h3>
+            <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10px]">Manager</span>
           </div>
-          <p class="text-[10px] text-blue-300 font-bold tracking-widest uppercase mt-0.5">SDEY SDOEUNG</p>
-          <div class="mt-1 flex items-center gap-1 text-[9px] text-slate-400">
+          <p class="text-[11px] text-blue-300 font-bold tracking-widest uppercase mt-0.5">SDEY SDOEUNG</p>
+          <div class="mt-1.5 flex items-center gap-1 text-[9.5px] text-slate-300">
             <span>📈 Sales</span> • <span>👑 Leader</span> • <span>💻 Developer</span>
           </div>
         </div>
       </div>
 
       <!-- Contacts & Version -->
-      <div class="space-y-1.5 text-[11px] pt-2 border-t border-white/10">
+      <div class="space-y-2 text-xs pt-3 border-t border-white/10">
         <div class="flex items-center justify-between text-slate-300">
           <span class="text-slate-400">${t('phoneLabel')}:</span>
-          <span class="font-mono font-bold text-white text-[10.5px]">087 513 666 / 090 513 666</span>
+          <span class="font-mono font-bold text-white">087 513 666 / 090 513 666</span>
         </div>
         <div class="flex items-center justify-between text-slate-300">
           <span class="text-slate-400">${t('telegramLabel')}:</span>
-          <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline text-[10.5px]">@sdoeung_sd</a>
+          <a href="https://t.me/sdoeung_sd" target="_blank" class="text-blue-400 font-mono font-bold hover:underline">@sdoeung_sd</a>
         </div>
         <div class="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
           <span class="text-slate-400">${t('versionLabel')}:</span>
-          <span class="font-mono text-[9.5px] px-2 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.5 (Bostar Edition)</span>
+          <span class="font-mono text-[10px] px-2.5 py-0.5 rounded bg-white/10 text-orange-400 font-bold">SD Liquid v3.5 (Bostar Edition)</span>
         </div>
       </div>
 
       <!-- Telegram Contact Button -->
-      <div class="pt-2.5">
+      <div class="pt-3">
         <a href="https://t.me/sdoeung_sd" target="_blank" 
-           class="w-full py-2 px-3 rounded-xl bg-blue-500 hover:bg-blue-600 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-blue-500/25">
-          <i data-lucide="send" class="w-3.5 h-3.5"></i>
+           class="w-full py-2.5 px-3 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-blue-500/25">
+          <i data-lucide="send" class="w-4 h-4"></i>
           <span>${t('contactTelegramBtn')}</span>
         </a>
       </div>
@@ -7113,6 +7242,32 @@ function renderAboutModalContent() {
   `;
   if (window.lucide) window.lucide.createIcons();
 }
+
+function openHonorsModal() {
+  const modal = document.getElementById('honors-modal');
+  if (modal) {
+    renderHonorsModalContent();
+    modal.classList.remove('hidden');
+    setDockVisible(false);
+    if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+  }
+}
+
+function closeHonorsModal() {
+  const modal = document.getElementById('honors-modal');
+  if (modal) modal.classList.add('hidden');
+  const gate = document.getElementById('onboarding-gate');
+  if (gate && !gate.classList.contains('hidden')) {
+    setDockVisible(false);
+  } else {
+    setDockVisible(true);
+    openProfileDrawer();
+  }
+}
+
+window.openHonorsModal = openHonorsModal;
+window.closeHonorsModal = closeHonorsModal;
+window.renderHonorsModalContent = renderHonorsModalContent;
 
 function openAboutModal() {
   const modal = document.getElementById('about-modal');
@@ -9045,7 +9200,7 @@ function renderProfileDrawerContent() {
       </div>
 
       <!-- 4. អំពីគម្រោង & កាតកិត្តិយស (Honors & Dedication) -->
-      <div onclick="closeProfileDrawer(); openAboutModal();" 
+      <div onclick="closeProfileDrawer(); openHonorsModal();" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
           <div class="settings-icon-box w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
@@ -10243,6 +10398,11 @@ function closeProfileSubModal() {
 function openProfileSubModal(type) {
   if (type === 'members') {
     openTeamMembersModal();
+    return;
+  }
+  if (type === 'honors' || type === 'dedication') {
+    closeProfileSubModal();
+    openHonorsModal();
     return;
   }
   const header = document.getElementById('profile-sub-modal-header');

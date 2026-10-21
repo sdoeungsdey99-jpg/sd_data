@@ -1925,7 +1925,7 @@
       </div>
 
       <!-- Honors & Dedication Quick Banner (កាតកិត្តិយស & ការដឹងគុណ) -->
-      <button onclick="openAboutModal()" class="w-full p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 border border-amber-500/25 hover:border-amber-400/40 text-left active:scale-[0.98] transition mb-3 shadow-md group flex items-center justify-between">
+      <button onclick="openHonorsModal()" class="w-full p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 border border-amber-500/25 hover:border-amber-400/40 text-left active:scale-[0.98] transition mb-3 shadow-md group flex items-center justify-between">
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
             <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
@@ -2747,8 +2747,8 @@
 
   <!-- About Me Modal (ផ្ទាំងកាតអំពីខ្ញុំចំកណ្តាលពេញលេញ + Blur ផ្ទៃខាងក្រោយ + ប៉ះកន្លែងទំនេរដើម្បីបិទ) -->
   <div id="about-modal" onclick="closeAboutModal(event)" class="fixed inset-0 z-[70] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-300">
-    <div id="about-modal-card" onclick="event.stopPropagation()" class="rounded-3xl bg-[#09111D] border border-white/10 p-5 shadow-2xl flex flex-col items-center text-center space-y-4 relative overflow-y-auto no-scrollbar max-w-md w-full max-h-[88vh] animate-fade-in">
-      <!-- Populated dynamically by renderAboutModal() -->
+    <div id="about-modal-card" onclick="event.stopPropagation()" class="rounded-3xl bg-[#09111D] border border-white/10 p-5 shadow-2xl flex flex-col items-center text-center space-y-3.5 relative overflow-hidden max-w-xs w-full animate-fade-in">
+      <!-- Populated dynamically by renderAboutModalContent() -->
     </div>
   </div>
 
@@ -3246,6 +3246,41 @@
       </div>
       <div id="profile-sub-modal-body" class="p-4 overflow-y-auto flex-1 no-scrollbar space-y-3">
         <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- FULL-SCREEN BOSTAR HONORS & DEDICATION MODAL (100% SCREEN VIEW) -->
+  <!-- ======================================================== -->
+  <div id="honors-modal" class="fixed inset-0 z-[70] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300">
+    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in relative">
+      
+      <!-- Top Modal Header -->
+      <div class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button type="button" onclick="closeHonorsModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-amber-400"></i>
+          </button>
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0 shadow-sm">
+            <i data-lucide="award" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0 truncate">
+            <h3 class="font-bold text-sm text-white leading-tight truncate">កាតកិត្តិយស & ការដឹងគុណ</h3>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">BostarGroup Leadership Plaque</p>
+          </div>
+        </div>
+
+        <button type="button" onclick="closeHonorsModal()" 
+                class="py-1 px-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-white/5 border border-white/10 flex items-center gap-1 active:scale-95 transition shadow-sm">
+          <i data-lucide="chevron-left" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>ត្រឡប់</span>
+        </button>
+      </div>
+
+      <!-- Scrollable Honors Content -->
+      <div id="honors-modal-body" class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3.5 pb-24">
+        <!-- Rendered dynamically by renderHonorsModalContent() -->
       </div>
     </div>
   </div>
