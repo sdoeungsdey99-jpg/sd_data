@@ -1271,7 +1271,8 @@ function isDialogModalOpen() {
     'about-modal',
     'attendance-modal',
     'global-search-modal',
-    'profile-settings-search-modal'
+    'profile-settings-search-modal',
+    'honors-modal'
   ];
   return ids.some(id => {
     const el = document.getElementById(id);
@@ -7199,13 +7200,7 @@ function openHonorsModal() {
   if (modal) {
     renderHonorsModalContent();
     modal.classList.remove('hidden');
-    const gate = document.getElementById('onboarding-gate');
-    const isGateOpen = gate && !gate.classList.contains('hidden');
-    if (isGateOpen) {
-      setDockVisible(false);
-    } else {
-      setDockVisible(true);
-    }
+    setDockVisible(false);
     if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
   }
 }
@@ -7217,7 +7212,7 @@ function closeHonorsModal() {
   if (gate && !gate.classList.contains('hidden')) {
     setDockVisible(false);
   } else {
-    setDockVisible(true);
+    openProfileDrawer();
   }
 }
 
