@@ -8181,55 +8181,52 @@ function renderHonorsModalContent() {
     </div>
 
     <!-- 1. អ្នកបណ្តុះបណ្តាល៖ លោកអគ្គនាយក វណ្ណ ស៊ីថា (Corporate Coach & CEO) -->
-    <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/35 relative overflow-hidden shadow-xl text-left">
-      <div class="flex items-center justify-between mb-3">
+    <div class="w-full p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/35 relative overflow-hidden shadow-xl text-left">
+      <div class="flex items-center justify-between mb-2.5">
         <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
           <span>🎓</span>
           <span>${isKm ? 'អ្នកបណ្តុះបណ្តាល' : 'Corporate Coach / Trainer'}</span>
         </span>
-        <span class="text-[10px] text-amber-400/90 font-mono font-bold">CEO</span>
+        <span class="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono text-[10px] font-bold">CEO</span>
       </div>
-      <div class="flex items-center gap-3.5">
+      <div class="flex items-center gap-3 sm:gap-3.5">
         <div class="relative shrink-0">
           <img src="ceo-vann-sitha.jpg?v=2" alt="Vann Sitha" 
-               class="w-20 h-20 rounded-2xl object-cover border-2 border-amber-400 shadow-xl">
+               class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-amber-400 shadow-xl" style="width:72px; height:72px;">
           <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
         </div>
         <div class="min-w-0 flex-1">
-          <h3 class="text-base font-black text-white truncate brand-title">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
+          <h3 class="text-base font-black text-white brand-title leading-tight">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
           <p class="text-xs text-amber-300 font-bold tracking-wide mt-0.5">VANN SITHA</p>
-          <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-black text-[10px] border border-amber-500/40">
+          <div class="mt-1.5">
+            <span class="inline-block px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[10px] border border-amber-500/40 leading-snug">
               អគ្គនាយកក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក
-            </span>
-            <span class="px-2 py-0.5 rounded-lg bg-white/10 text-slate-300 font-bold text-[10px]">
-              គ្រូបង្វឹកធំ
             </span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 2. អ្នកផ្តើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិច នោរ៉ា -->
-    <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-orange-500/15 via-white/[0.03] to-transparent border border-orange-500/35 relative overflow-hidden shadow-xl text-left">
-      <div class="flex items-center justify-between mb-3">
+    <!-- 2. អ្នកផ្តើមគំនិតបង្កើត App៖ លោក ប៊ិច នោរ៉ា -->
+    <div class="w-full p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-orange-500/15 via-white/[0.03] to-transparent border border-orange-500/35 relative overflow-hidden shadow-xl text-left">
+      <div class="flex items-center justify-between mb-2.5">
         <span class="px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
           <span>💡</span>
           <span>${isKm ? 'អ្នកផ្តើមគំនិតបង្កើត App' : 'App Visionary & Founder'}</span>
         </span>
-        <span class="text-[10px] text-orange-400/90 font-mono font-bold">FOUNDER</span>
+        <span class="px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-300 font-mono text-[10px] font-bold">FOUNDER</span>
       </div>
-      <div class="flex items-center gap-3.5">
+      <div class="flex items-center gap-3 sm:gap-3.5">
         <div class="relative shrink-0">
           <img src="leader-bech-nora.jpg" alt="Bech Nora" 
-               class="w-20 h-20 rounded-2xl object-cover border-2 border-orange-400 shadow-xl">
+               class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-orange-400 shadow-xl" style="width:72px; height:72px;">
           <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-white font-black shadow">✓</span>
         </div>
         <div class="min-w-0 flex-1">
-          <h3 class="text-base font-black text-white truncate brand-title">ស្ថាបនិក ប៊ិច នោរ៉ា</h3>
+          <h3 class="text-base font-black text-white brand-title leading-tight">លោក ប៊ិច នោរ៉ា</h3>
           <p class="text-xs text-orange-300 font-bold tracking-wide mt-0.5">BECH NORA</p>
-          <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-            <span class="px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-300 font-black text-[10px] border border-orange-500/40">
+          <div class="mt-1.5">
+            <span class="inline-block px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-300 font-bold text-[10px] border border-orange-500/40 leading-snug">
               ស្ថាបនិក Bostar Group
             </span>
           </div>
