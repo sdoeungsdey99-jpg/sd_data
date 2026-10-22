@@ -6596,7 +6596,7 @@ function renderSalesResetContent() {
             <div class="flex items-center justify-between mb-3">
               <span class="px-3 py-1 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
                 <span>💻</span>
-                <span>បច្ចេកវិទ្យា & អភិវឌ្ឍន៍សូហ្វវែរ</span>
+                <span>Technical & Software</span>
               </span>
               <span class="text-[10px] text-sky-400 font-mono font-bold bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/30">MANAGER</span>
             </div>
@@ -6615,7 +6615,7 @@ function renderSalesResetContent() {
                 <!-- ជួរទី ២ ៖ ឈ្មោះឡាតាំងនៅក្រោម -->
                 <p class="text-xs sm:text-sm font-bold text-sky-400 mt-0.5 tracking-wide">Sdey Sdoeung</p>
                 <!-- ជួរទី ៣ ៖ តួនាទី -->
-                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • Technical & Software Development</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager</p>
                 <div class="mt-2 flex items-center gap-1.5 flex-wrap">
                   <span class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 font-bold text-[9.5px] border border-sky-500/40">
                     TECHNICAL & SOFTWARE DEV
