@@ -15031,7 +15031,8 @@ function generateDailyReportText() {
   }
 
   return `🔰 របាយការណ៍លក់ប្រចាំថ្ងៃ ទី ${date}
-👤 អ្នកលក់៖ ${staff} | ផេក៖ ${page}
+🚩 ផេក៖ ${page}
+👤 អ្នកលក់៖ ${staff}
 ━━━━━━━━━━━━━━━━━━
 📊 សរុបលក់បាន៖ ${totalBoxes} ប្រអប់ 🏆
 
