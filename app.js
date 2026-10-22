@@ -15159,9 +15159,10 @@ function renderDailyReportPagePills() {
     return `
       <div class="inline-flex items-center rounded-xl border text-[11px] font-semibold transition cursor-pointer select-none ${isActive ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}"
            onclick="selectDailyReportPage('${escaped}')">
-        <span class="pl-2.5 pr-1.5 py-1 flex items-center gap-1">
-          <i data-lucide="${isActive ? 'check-circle' : 'flag'}" class="w-3 h-3 ${isActive ? 'text-emerald-400' : 'text-slate-400'}"></i>
+        <span class="pl-2 pr-1.5 py-1 flex items-center gap-1.5">
+          <img src="facebook-page-icon.png" class="w-3.5 h-3.5 object-contain shrink-0" alt="FB">
           <span>${page}</span>
+          ${isActive ? '<i data-lucide="check" class="w-3 h-3 text-emerald-400 ml-0.5"></i>' : ''}
         </span>
         ${list.length > 1 ? `
           <button type="button" onclick="removeDailyReportPage('${escaped}', event)" 
@@ -15175,7 +15176,7 @@ function renderDailyReportPagePills() {
 
   html += `
     <button type="button" onclick="addDailyReportPage()" 
-            class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-dashed border-white/20 text-slate-300 text-[11px] font-semibold flex items-center gap-1 transition">
+            class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-dashed border-white/20 text-slate-300 text-[11px] font-semibold flex items-center gap-1.5 transition">
       <i data-lucide="plus" class="w-3 h-3 text-emerald-400"></i>
       <span>ថែមផេក</span>
     </button>
@@ -15233,33 +15234,50 @@ function renderDailyReportModal() {
 
         <!-- Multi-page Quick Switching Pills -->
         <div class="space-y-1.5">
-          <label class="block text-xs sm:text-sm text-slate-300 font-bold">ជ្រើសរើសផេកលក់ (ប្តូររហ័ស 1-Tap)៖</label>
+          <label class="block text-xs sm:text-sm text-slate-300 font-bold flex items-center gap-1.5">
+            <img src="facebook-page-icon.png" class="w-4 h-4 object-contain shrink-0" alt="FB">
+            <span>ជ្រើសរើសផេកលក់ (ប្តូររហ័ស 1-Tap)៖</span>
+          </label>
           <div id="rep-pages-pills-container" class="flex flex-wrap items-center gap-1.5">
             <!-- Rendered by renderDailyReportPagePills() -->
           </div>
         </div>
 
         <div class="space-y-2.5 pt-1">
-          <!-- ឈ្មោះផេក (Full width) -->
+          <!-- ឈ្មោះផេក (Full width with official Page Icon) -->
           <div>
-            <label class="block text-xs text-slate-300 mb-1 font-bold">ឈ្មោះផេក៖</label>
-            <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
-                   oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 sm:p-3 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
+            <label class="block text-xs text-slate-300 mb-1.5 font-bold flex items-center gap-1.5">
+              <img src="facebook-page-icon.png" class="w-4 h-4 object-contain shrink-0" alt="FB">
+              <span>ឈ្មោះផេក៖</span>
+            </label>
+            <div class="relative flex items-center">
+              <span class="absolute left-3 pointer-events-none flex items-center justify-center">
+                <img src="facebook-page-icon.png" class="w-4 h-4 object-contain" alt="FB">
+              </span>
+              <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
+                     oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
+                     class="w-full bg-black/50 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
+            </div>
           </div>
 
           <!-- ជួរកាលបរិច្ឆេទ & ឈ្មោះអ្នកលក់ / អ្នកទទួលខុសត្រូវ (2 Columns) -->
           <div class="grid grid-cols-2 gap-2.5">
             <div>
-              <label class="block text-xs text-slate-300 mb-1 font-bold">កាលបរិច្ឆេទ៖</label>
+              <label class="block text-xs text-slate-300 mb-1.5 font-bold flex items-center gap-1.5">
+                <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                <span>កាលបរិច្ឆេទ៖</span>
+              </label>
               <input type="text" id="rep-field-date" value="${defaultDate}" 
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 sm:p-3 text-white font-mono text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
+                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
             </div>
             <div>
-              <label class="block text-xs text-slate-300 mb-1 font-bold">អ្នកលក់ / ទទួលខុសត្រូវ៖</label>
+              <label class="block text-xs text-slate-300 mb-1.5 font-bold flex items-center gap-1.5">
+                <i data-lucide="user" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
+                <span>អ្នកលក់ / ទទួលខុសត្រូវ៖</span>
+              </label>
               <input type="text" id="rep-field-staff" value="${savedStaff}" placeholder="ឈ្មោះអ្នកលក់" 
                      oninput="try { localStorage.setItem('sd_report_staff', this.value); } catch(_) {}"
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 sm:p-3 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
+                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
             </div>
           </div>
         </div>
