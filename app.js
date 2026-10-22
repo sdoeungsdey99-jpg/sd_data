@@ -15148,30 +15148,192 @@ function removeDailyReportPage(pageName, event) {
   }
 }
 
-function onReportDatePicked(isoDate) {
-  if (!isoDate) return;
-  const parts = isoDate.split('-');
+let repCalendarState = {
+  selectedDate: '',
+  calMonth: (new Date()).getMonth() + 1,
+  calYear: (new Date()).getFullYear()
+};
+
+function toggleReportMiniCalendar(event) {
+  if (event) event.stopPropagation();
+  const calEl = document.getElementById('rep-mini-calendar-container');
+  if (!calEl) return;
+
+  const isHidden = calEl.classList.contains('hidden');
+  if (isHidden) {
+    const dateInput = document.getElementById('rep-field-date');
+    const val = dateInput ? dateInput.value.trim() : '';
+    const parts = val.split('/');
+    if (parts.length === 3 && parts[2].length === 4) {
+      repCalendarState.calYear = parseInt(parts[2], 10);
+      repCalendarState.calMonth = parseInt(parts[1], 10);
+      repCalendarState.selectedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    } else {
+      const now = new Date();
+      repCalendarState.calYear = now.getFullYear();
+      repCalendarState.calMonth = now.getMonth() + 1;
+      repCalendarState.selectedDate = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(now) : now.toISOString().slice(0, 10);
+    }
+    renderReportMiniCalendar();
+    calEl.classList.remove('hidden');
+  } else {
+    calEl.classList.add('hidden');
+  }
+}
+
+function renderReportMiniCalendar() {
+  const calEl = document.getElementById('rep-mini-calendar-container');
+  if (!calEl) return;
+
+  const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const monthTitle = `${khmerMonths[repCalendarState.calMonth - 1]} ${repCalendarState.calYear}`;
+
+  const now = new Date();
+  const realTodayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(now) : now.toISOString().slice(0, 10);
+  const yDate = new Date();
+  yDate.setDate(yDate.getDate() - 1);
+  const yesterdayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(yDate) : yDate.toISOString().slice(0, 10);
+
+  const selectedIso = repCalendarState.selectedDate || realTodayIso;
+
+  const firstDayOfWeek = new Date(repCalendarState.calYear, repCalendarState.calMonth - 1, 1).getDay();
+  const daysInMonth = new Date(repCalendarState.calYear, repCalendarState.calMonth, 0).getDate();
+
+  let daysGridHtml = '';
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    daysGridHtml += `<div class="h-8"></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayStr = String(day).padStart(2, '0');
+    const monthStr = String(repCalendarState.calMonth).padStart(2, '0');
+    const thisDateIso = `${repCalendarState.calYear}-${monthStr}-${dayStr}`;
+
+    const isSelected = thisDateIso === selectedIso;
+    const isToday = thisDateIso === realTodayIso;
+
+    let cellClasses = 'h-8 rounded-full flex items-center justify-center text-xs font-semibold cursor-pointer active:scale-95 transition ';
+    if (isSelected) {
+      cellClasses += 'bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/30';
+    } else if (isToday) {
+      cellClasses += 'border border-emerald-500/60 text-emerald-400 hover:bg-emerald-500/20';
+    } else {
+      cellClasses += 'text-slate-200 hover:bg-white/10';
+    }
+
+    daysGridHtml += `
+      <button type="button" onclick="selectReportCalendarDay('${thisDateIso}', event)" 
+              class="${cellClasses}">
+        ${day}
+      </button>
+    `;
+  }
+
+  const isTodayActive = selectedIso === realTodayIso;
+  const isYesterdayActive = selectedIso === yesterdayIso;
+
+  calEl.innerHTML = `
+    <!-- iOS Header: Month Year + Prev/Next Arrow Buttons + Close Button -->
+    <div class="flex items-center justify-between pb-2 border-b border-white/10">
+      <button type="button" onclick="navigateReportCalendarMonth(-1, event)" 
+              class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-90">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
+
+      <span class="text-xs font-bold text-white tracking-wide font-sans">
+        ${monthTitle}
+      </span>
+
+      <div class="flex items-center gap-1">
+        <button type="button" onclick="navigateReportCalendarMonth(1, event)" 
+                class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-90">
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+        <button type="button" onclick="toggleReportMiniCalendar(event)" 
+                class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-400 hover:text-white transition active:scale-90 ml-1" title="បិទ">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Pick Shortcuts (Today / Yesterday) -->
+    <div class="grid grid-cols-2 gap-1.5 pb-2 border-b border-white/10">
+      <button type="button" onclick="selectReportQuickDay('today', event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${isTodayActive ? 'bg-emerald-500 text-white font-bold shadow-sm shadow-emerald-500/30' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        ☀️ ថ្ងៃនេះ
+      </button>
+      <button type="button" onclick="selectReportQuickDay('yesterday', event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${isYesterdayActive ? 'bg-emerald-500 text-white font-bold shadow-sm shadow-emerald-500/30' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        🌙 ម្សិលមិញ
+      </button>
+    </div>
+
+    <!-- Weekday Headers (Su, Mo, Tu, We, Th, Fr, Sa) -->
+    <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+      <span>អា</span>
+      <span>ច</span>
+      <span>អ</span>
+      <span>ព</span>
+      <span>ព្រ</span>
+      <span>សុ</span>
+      <span>ស</span>
+    </div>
+
+    <!-- Calendar Days Grid (7 cols) -->
+    <div class="grid grid-cols-7 gap-1 text-center">
+      ${daysGridHtml}
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function navigateReportCalendarMonth(delta, event) {
+  if (event) event.stopPropagation();
+  repCalendarState.calMonth += delta;
+  if (repCalendarState.calMonth < 1) {
+    repCalendarState.calMonth = 12;
+    repCalendarState.calYear--;
+  } else if (repCalendarState.calMonth > 12) {
+    repCalendarState.calMonth = 1;
+    repCalendarState.calYear++;
+  }
+  renderReportMiniCalendar();
+}
+
+function selectReportCalendarDay(thisDateIso, event) {
+  if (event) event.stopPropagation();
+  const parts = thisDateIso.split('-');
   if (parts.length === 3) {
     const formatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
     const dateInput = document.getElementById('rep-field-date');
     if (dateInput) dateInput.value = formatted;
+    repCalendarState.selectedDate = thisDateIso;
   }
+  const calEl = document.getElementById('rep-mini-calendar-container');
+  if (calEl) calEl.classList.add('hidden');
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
 }
 
-function triggerReportDatePicker() {
-  const picker = document.getElementById('rep-native-date-picker');
-  if (picker) {
-    if (typeof picker.showPicker === 'function') {
-      try { picker.showPicker(); } catch (_) { picker.focus(); picker.click(); }
-    } else {
-      picker.focus();
-      picker.click();
-    }
+function selectReportQuickDay(type, event) {
+  if (event) event.stopPropagation();
+  const targetDate = new Date();
+  if (type === 'yesterday') {
+    targetDate.setDate(targetDate.getDate() - 1);
   }
+  const targetIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(targetDate) : targetDate.toISOString().slice(0, 10);
+  const parts = targetIso.split('-');
+  repCalendarState.calYear = parseInt(parts[0], 10);
+  repCalendarState.calMonth = parseInt(parts[1], 10);
+  selectReportCalendarDay(targetIso, event);
 }
 
-window.onReportDatePicked = onReportDatePicked;
-window.triggerReportDatePicker = triggerReportDatePicker;
+window.repCalendarState = repCalendarState;
+window.toggleReportMiniCalendar = toggleReportMiniCalendar;
+window.renderReportMiniCalendar = renderReportMiniCalendar;
+window.navigateReportCalendarMonth = navigateReportCalendarMonth;
+window.selectReportCalendarDay = selectReportCalendarDay;
+window.selectReportQuickDay = selectReportQuickDay;
 
 function renderDailyReportPagePills() {
   const container = document.getElementById('rep-pages-pills-container');
@@ -15281,22 +15443,18 @@ function renderDailyReportModal() {
 
           <!-- ជួរកាលបរិច្ឆេទ & ឈ្មោះអ្នកលក់ / អ្នកទទួលខុសត្រូវ (2 Columns) -->
           <div class="grid grid-cols-2 gap-2.5">
-            <!-- Date Field with Integrated Mini Calendar -->
+            <!-- Date Field with Integrated iOS Mini Calendar Trigger -->
             <div>
               <label class="block text-xs text-slate-300 mb-1 font-bold flex items-center gap-1.5">
                 <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
                 <span>កាលបរិច្ឆេទ៖</span>
               </label>
-              <div class="relative flex items-center cursor-pointer">
+              <div class="relative flex items-center cursor-pointer" onclick="toggleReportMiniCalendar(event)">
                 <input type="text" id="rep-field-date" value="${defaultDate}" readonly
-                       onclick="triggerReportDatePicker()"
                        class="w-full bg-black/50 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-white font-mono text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer select-none">
                 <span class="absolute right-2.5 pointer-events-none text-emerald-400 flex items-center justify-center">
                   <i data-lucide="calendar-days" class="w-4 h-4"></i>
                 </span>
-                <!-- Hidden native date picker overlay for 1-tap Mini Calendar popup -->
-                <input type="date" id="rep-native-date-picker" onchange="onReportDatePicked(this.value)"
-                       class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10">
               </div>
             </div>
             <div>
@@ -15308,6 +15466,12 @@ function renderDailyReportModal() {
                      oninput="try { localStorage.setItem('sd_report_staff', this.value); } catch(_) {}"
                      class="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
             </div>
+          </div>
+
+          <!-- iOS Mini Calendar Accordion / Container (Matches App Top Date Bar) -->
+          <div id="rep-mini-calendar-container" 
+               class="hidden p-3 bg-[#0C1425]/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl flex flex-col gap-2.5 transition-all">
+            <!-- Dynamically populated by renderReportMiniCalendar() -->
           </div>
         </div>
       </div>
