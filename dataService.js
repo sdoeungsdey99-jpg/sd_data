@@ -721,16 +721,7 @@ window.DataService = {
         targetsByMonth,
         boostByMonth,
         recentBoostEntries,
-        announcements: [
-          {
-            id: 1,
-            title: 'ស្វាគមន៍ការប្រើប្រាស់ SD Dashboard v2.5',
-            date: '13-Oct-2026',
-            author: 'ស្តី ស្តើង (Leader)',
-            urgent: false,
-            content: 'សូមជម្រាបជូនថ្នាក់ដឹកនាំ និងសមាជិកក្រុមទាំងអស់ ឥឡូវនេះប្រព័ន្ធត្រូវបានអាប់ដេតមុខងារស្វែងរកថ្មី និងប្រព័ន្ធត្រួតពិនិត្យទិន្នន័យផ្ទាល់។'
-          }
-        ],
+        announcements: [],
         meta: {
           totalSalesCount: personalSales.length,
           totalExpensesCount: expenses.length

@@ -216,6 +216,11 @@ const appState = {
   analyticsTab: 'all', // 'all' | 'business' | 'expenses'
   hasReadNotifications: false,
   studyWordCount: 5,
+  studyTab: 'sales_reset', // 'sales_reset' | 'quotes' | 'english'
+  quoteCategory: 'all',
+  activeQuoteIndex: 0,
+  lessonCategory: 'all',
+  expandedLessons: { 1: true, 5: true },
   fontFamily: localStorage.getItem('sd_font') || 'font-kantumruy',
   textSize: localStorage.getItem('sd_text_size') || 'md',
   hideSubtitles: localStorage.getItem('sd_hide_subtitles') !== 'false', // Default: true (Hide Subtitles is ON)
@@ -426,6 +431,330 @@ const DAILY_ENGLISH_WORDS = [
   { en: 'Settlement', pron: 'សេតថលមែន', pos: 'Noun', km: 'ការទូទាត់ផ្តាច់ ឬបិទបញ្ជី', ex: 'Delivery partner completed COD settlement.' },
   { en: 'Cashflow', pron: 'ខាសហ្វ្លូ', pos: 'Noun', km: 'ចរន្តសាច់ប្រាក់ចេញ-ចូល', ex: 'Healthy cashflow keeps our business strong.' },
   { en: 'Commission', pron: 'ខមមីសិន', pos: 'Noun', km: 'ប្រាក់កម្រៃជើងសារលើការលក់', ex: 'Sales reps receive weekly commission.' }
+];
+
+// ==========================================
+// EXECUTIVE SALES RESET & MOTTO DATA (CEO Vann Sitha - Oct 2026)
+// ==========================================
+const DRAWER_SALES_MOTTOS = [
+  '«ការលក់ធ្លាក់ ≠ យើងធ្លាក់ • សកម្មភាពត្រូវតែកើនឡើង!»',
+  '«ធ្វើឱ្យបានពិត កុំគ្រាន់តែតាំងចិត្ត»',
+  '«កុំរង់ចាំឱ្យទីផ្សារល្អ ទើបយើងខ្លាំង»',
+  '«អ្នកលក់ខ្លាំង ចំណាយពេលរកវិធីធ្វើបន្ថែម»',
+  '«គិតដូចគ្រូពេទ្យ៖ សួរ → ស្តាប់ → យល់ → ណែនាំ»',
+  '«L.U.C.A.៖ ស្តាប់ • ស្វែងយល់ • សួរបញ្ជាក់ • ឆ្លើយ»',
+  '«ការតាមដានល្អ គឺជួយអតិថិជនឱ្យមានព័ត៌មានគ្រប់គ្រាន់»',
+  '«លទ្ធផល = សកម្មភាព × ជំនាញ»',
+  '«បើដួល — ក្រោកឡើងវិញ!»'
+];
+
+let drawerMottoTimer = null;
+let currentMottoIdx = 0;
+
+function nextDrawerMotto(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const textEl = document.getElementById('drawer-motto-text');
+  if (!textEl) return;
+  
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+  
+  currentMottoIdx = (currentMottoIdx + 1) % DRAWER_SALES_MOTTOS.length;
+  const nextText = DRAWER_SALES_MOTTOS[currentMottoIdx];
+
+  // Smooth slide-up & fade-out then slide-up & fade-in
+  textEl.classList.remove('translate-y-0', 'opacity-100');
+  textEl.classList.add('-translate-y-3', 'opacity-0');
+
+  setTimeout(() => {
+    textEl.textContent = nextText;
+    textEl.classList.remove('-translate-y-3');
+    textEl.classList.add('translate-y-3');
+    
+    requestAnimationFrame(() => {
+      textEl.classList.remove('translate-y-3', 'opacity-0');
+      textEl.classList.add('translate-y-0', 'opacity-100');
+    });
+  }, 180);
+
+  // Restart auto timer so it doesn't immediately slide right after manual tap
+  startDrawerMottoRotation();
+}
+
+function startDrawerMottoRotation() {
+  if (drawerMottoTimer) clearInterval(drawerMottoTimer);
+  drawerMottoTimer = setInterval(() => {
+    nextDrawerMotto();
+  }, 4800);
+}
+
+function stopDrawerMottoRotation() {
+  if (drawerMottoTimer) {
+    clearInterval(drawerMottoTimer);
+    drawerMottoTimer = null;
+  }
+}
+
+window.nextDrawerMotto = nextDrawerMotto;
+window.startDrawerMottoRotation = startDrawerMottoRotation;
+window.stopDrawerMottoRotation = stopDrawerMottoRotation;
+
+const CEO_SALES_RESET_LESSONS = [
+  {
+    num: 1,
+    category: 'mindset',
+    title: 'ការលក់ធ្លាក់ ≠ យើងធ្លាក់',
+    tag: 'ផ្នត់គំនិត',
+    tagColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+    summary: 'កុំឱ្យលទ្ធផលមួយរយៈ ក្លាយជាអត្តសញ្ញាណរបស់អ្នក។ ពេលការលក់ធ្លាក់ចុះ សកម្មភាពរបស់យើងត្រូវតែកើនឡើង!',
+    dangerCycle: 'ការលក់ ↓ → អារម្មណ៍ ↓ → សកម្មភាព ↓ → ការតាមដាន ↓ → ការលក់កាន់តែធ្លាក់ ↓↓',
+    rules: [
+      { trigger: 'អតិថិជន ពិបាកបិទ', action: 'ជំនាញត្រូវតែកើនឡើង' },
+      { trigger: 'អតិថិជន មិនទុកចិត្ត', action: 'ពង្រឹងការកសាងទំនុកចិត្តឱ្យល្អជាង' },
+      { trigger: 'ការតាមដាន ម្តងមិនឆ្លើយ', action: 'ការតាមដានត្រូវតែល្អជាងមុន' },
+      { trigger: 'ខ្លឹមសារ មិនទាក់ទាញ', action: 'ខ្លឹមសារត្រូវតែល្អជាងមុន' }
+    ],
+    motto: '«ពេលការលក់ធ្លាក់ចុះ សកម្មភាពរបស់យើងត្រូវតែ កើនឡើង!»'
+  },
+  {
+    num: 2,
+    category: 'mindset',
+    title: 'ផ្តោតលើអ្វីដែលយើងអាចគ្រប់គ្រងបាន',
+    tag: 'ការគ្រប់គ្រង',
+    tagColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    summary: 'អ្នកលក់ដែលខ្សោយ ចំណាយពេលពន្យល់ថាហេតុអ្វីលក់មិនបាន។ អ្នកលក់ដែលខ្លាំង ចំណាយពេលរកថា ខ្លួនអាចធ្វើអ្វីបន្ថែមបាន!',
+    cantControl: 'ទីផ្សារ, អាកាសធាតុ, គូប្រកួត, ប្រព័ន្ធ Facebook, និងស្ថានភាពថវិការបស់ភ្ញៀវ',
+    canControl: 'សកម្មភាព, ជំនាញ, ការតាមដាន, ខ្លឹមសារ, សេវាកម្ម, អាកប្បកិរិយា, និងផ្នត់គំនិត',
+    motto: '«អ្នកលក់ដែលខ្លាំង ចំណាយពេលរកថាខ្លួនអាចធ្វើអ្វីបន្ថែមបាន»'
+  },
+  {
+    num: 3,
+    category: 'process',
+    title: 'កុំប្រាប់តែថា «លក់មិនដាច់»',
+    tag: 'ដំណើរការលក់',
+    tagColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    summary: 'រកឱ្យឃើញថា ដំណើរការលក់ជាប់នៅត្រង់ណា តាមរយៈខ្សែសង្វាក់ទាំង ៦ ជំហាន។',
+    steps: ['ឃើញ', 'ផ្ញើសារ', 'សន្ទនា', 'ទុកចិត្ត', 'សម្រេចចិត្ត', 'ទិញ', 'ទិញម្តងទៀត'],
+    diagnostics: [
+      { issue: 'មនុស្សមិនឃើញ', cause: 'បញ្ហាការផ្សព្វផ្សាយ ឬការទៅដល់អតិថិជន' },
+      { issue: 'ឃើញ តែមិនផ្ញើសារ', cause: 'បញ្ហាខ្លឹមសារ ឬការផ្តល់ជូន (Offer)' },
+      { issue: 'ផ្ញើសារ តែឆាតមិនបន្ត', cause: 'បញ្ហារបៀបសន្ទនា និងឆ្លើយតប' },
+      { issue: 'ឆាតយូរ តែមិនជឿ', cause: 'បញ្ហាការកសាងទំនុកចិត្ត' },
+      { issue: 'ជឿ តែមិនសម្រេចទិញ', cause: 'បញ្ហាដោះស្រាយការស្ទាក់ស្ទើរ ឬបិទការលក់' },
+      { issue: 'ទិញម្តងហើយបាត់', cause: 'បញ្ហាថែទាំ និងការតាមដានអតិថិជន' }
+    ],
+    motto: 'សំណួរសំខាន់៖ «ការលក់របស់ខ្ញុំ ជាប់នៅត្រង់ណា?»'
+  },
+  {
+    num: 4,
+    category: 'process',
+    title: 'គិតដូច «គ្រូពេទ្យផ្នែកលក់»',
+    tag: 'ជំនាញប្រឹក្សា',
+    tagColor: 'bg-teal-500/20 text-teal-300 border-teal-500/30',
+    summary: 'ស្វែងយល់បញ្ហាមុនពេលណែនាំ! កុំប្រញាប់និយាយពីផលិតផល ប្រូម៉ូសិន ឬតម្លៃ មុនពេលយល់ថាភ្ញៀវកំពុងបារម្ភអ្វី។',
+    doctorFormula: 'សួរ → ស្តាប់ → យល់ → ណែនាំ → បិទការលក់',
+    doctorDesc: 'ការលក់ដែលល្អ មិនមែនជាការនិយាយច្រើនជាងអតិថិជនទេ។ វាជាការសួរល្អ ស្តាប់ល្អ យល់ត្រូវ ហើយណែនាំឱ្យសមនឹងតម្រូវការរបស់គាត់។',
+    motto: '«សួរល្អ ស្តាប់ល្អ យល់ត្រូវ ទើបណែនាំត្រូវ»'
+  },
+  {
+    num: 5,
+    category: 'luca',
+    title: 'ការស្ទាក់ស្ទើររបស់ភ្ញៀវ មិនមែនជាការបដិសេធទេ',
+    tag: 'រូបមន្ត L.U.C.A.',
+    tagColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    summary: 'ពាក្យ «ថ្លៃ», «ចាំគិតសិន», «ខ្លាចមិនបានផល» មិនមែនមានន័យថាភ្ញៀវបដិសេធទេ គឺគាត់នៅមិនទាន់ឃើញតម្លៃ និងព័ត៌មានគ្រប់គ្រាន់។',
+    lucaSteps: [
+      { letter: 'L', name: 'Listen', km: 'ស្តាប់', desc: 'ស្តាប់ដោយយកចិត្តទុកដាក់ មិនកាត់សម្តី' },
+      { letter: 'U', name: 'Understand', km: 'ស្វែងយល់', desc: 'ស្វែងយល់ពីអារម្មណ៍ និងការព្រួយបារម្ភពិត' },
+      { letter: 'C', name: 'Clarify', km: 'សួរបញ្ជាក់', desc: 'សួរសំណួរដេញដោលរកមូលហេតុជាក់លាក់' },
+      { letter: 'A', name: 'Answer & Ask', km: 'ឆ្លើយ និងសួរបន្ត', desc: 'ដោះស្រាយក្តីបារម្ភ និងសួរសំណួរបិទការលក់' }
+    ],
+    scripts: [
+      {
+        objection: '«ថ្លៃពេកបង»',
+        response: '«បាទ/ចាសបង ខ្ញុំយល់។ តែខ្ញុំសួរបន្តិចបានទេបង—បងមានអារម្មណ៍ថាតម្លៃលើសថវិកាដែលបងគ្រោងទុក ឬបងនៅមិនទាន់ប្រាកដថា គុណភាពវាសមនឹងតម្លៃនេះ?»',
+        copyText: 'បាទ/ចាសបង ខ្ញុំយល់។ តែខ្ញុំសួរបន្តិចបានទេបង—បងមានអារម្មណ៍ថាតម្លៃលើសថវិកាដែលបងគ្រោងទុក ឬបងនៅមិនទាន់ប្រាកដថា គុណភាពវាសមនឹងតម្លៃនេះ?'
+      },
+      {
+        objection: '«ចាំគិតមើលសិន»',
+        response: '«បាទ/ចាសបង។ មុនបងសម្រេច ខ្ញុំសូមសួរបងបន្តិចបានទេ? តើមានចំណុចណាដែលបងនៅមិនទាន់ប្រាកដចិត្ត—តម្លៃ របៀបប្រើ ឬបងនៅចង់ដឹងព័ត៌មានបន្ថែម?»',
+        copyText: 'បាទ/ចាសបង។ មុនបងសម្រេច ខ្ញុំសូមសួរបងបន្តិចបានទេ? តើមានចំណុចណាដែលបងនៅមិនទាន់ប្រាកដចិត្ត—តម្លៃ របៀបប្រើ ឬបងនៅចង់ដឹងព័ត៌មានបន្ថែម?'
+      }
+    ],
+    motto: '«គោលបំណងគឺយល់បញ្ហាពិត ហើយជួយគាត់សម្រេចចិត្តដោយមានព័ត៌មានគ្រប់គ្រាន់»'
+  },
+  {
+    num: 6,
+    category: 'followup',
+    title: 'ការតាមដានអតិថិជន មិនមែនជាការអង្វរឱ្យទិញទេ',
+    tag: 'Follow-up',
+    tagColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+    summary: 'កុំតាមជំរុញឱ្យអតិថិជនទិញ — តែតាមដានដោយផ្តល់អ្វីដែលមានប្រយោជន៍ដល់គាត់។ បញ្ជីអតិថិជនក្នុង Inbox គឺជាឱកាសលក់របស់អ្នក!',
+    rules: [
+      { trigger: 'តាមដានដោយសួរសុខទុក្ខ', action: 'មិនចាប់ផ្តើមដោយការលក់ទំនិញភ្លាមៗ' },
+      { trigger: 'តាមដានដោយផ្តល់គុណតម្លៃ', action: 'ជាព័ត៌មានមានប្រយោជន៍ទាក់ទងនឹងបញ្ហាដែលគាត់ធ្លាប់សួរ' },
+      { trigger: 'តាមដានដោយមានមូលហេតុ', action: 'ពេលមានប្រូម៉ូសិន ឬព័ត៌មានថ្មីពិតប្រាកដដែលពាក់ព័ន្ធ' },
+      { trigger: 'ការតាមដានល្អ', action: 'ជួយភ្ញៀវឱ្យមានព័ត៌មានគ្រប់គ្រាន់ មិនមែនផ្ញើ «យកអត់បង?» ដដែលៗទេ' }
+    ],
+    motto: '«បញ្ជីអតិថិជនក្នុង Inbox អាចជាបញ្ជីឱកាសលក់របស់អ្នក»'
+  },
+  {
+    num: 7,
+    category: 'process',
+    title: 'ការលក់ជាល្បែងនៃចំនួន និងជំនាញ',
+    tag: 'រូបមន្តលទ្ធផល',
+    tagColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    summary: 'លទ្ធផល = សកម្មភាព × ជំនាញ (100 → 30 → 10 → 3)',
+    funnel: 'ទាក់ទង 100 នាក់ → ចាប់អារម្មណ៍ 30 នាក់ → មានបំណងទិញ 10 នាក់ → ទិញ 3 នាក់',
+    funnelDesc: '97 នាក់ដែលមិនទិញ មិនមែនមានន័យថាយើងបរាជ័យទេ។ ត្រូវស្វែងយល់ហេតុផល និងកែលម្អការតាមដានឱ្យល្អជាងមុន។',
+    formula: 'លទ្ធផល = សកម្មភាព × ជំនាញ',
+    motto: '«បើជំនាញមិនទាន់គ្រប់ ត្រូវបង្កើនសកម្មភាព • បើទាំងពីរកើនឡើង លទ្ធផលនឹងកើនឡើង!»'
+  },
+  {
+    num: 8,
+    category: 'action',
+    title: 'ផែនការស្តារការលក់របស់ខ្ញុំ',
+    tag: 'ផែនការសកម្មភាព',
+    tagColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    summary: 'កុំគ្រប់គ្រងតែ លទ្ធផល — ត្រូវគ្រប់គ្រង «សកម្មភាព» ដែលបង្កើត លទ្ធផល!',
+    checklist: [
+      '1. គោលដៅលក់ប្រចាំខែ (Monthly Target)',
+      '2. សកម្មភាពប្រចាំថ្ងៃដែលត្រូវធ្វើ (Daily Activities)',
+      '3. ចំនួនការតាមដានអតិថិជនប្រចាំថ្ងៃ (Follow-ups)',
+      '4. ជំនាញមួយដែលនឹងពង្រឹង (Key Skill to Master)',
+      '5. ការសន្យាមួយជាមួយខ្លួនឯង (Self-Commitment)'
+    ],
+    motto: 'សួរខ្លួនឯង៖ «តើសកម្មភាពដែលខ្ញុំធ្វើ សមនឹង Target ដែលខ្ញុំចង់បានទេ?»'
+  },
+  {
+    num: 9,
+    category: 'mindset',
+    title: 'ការប្តេជ្ញាចិត្តលើសកម្មភាព',
+    tag: 'វិន័យខ្លួនឯង',
+    tagColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+    summary: 'ការផ្លាស់ប្តូរចាប់ផ្តើមពីអ្វីដែលយើងធ្វើបន្ទាប់ពីថ្ងៃនេះ។ កុំសន្យាតែជាមួយថ្នាក់ដឹកនាំ — ត្រូវសន្យាជាមួយខ្លួនឯង!',
+    quoteBox: 'មិនចាំបាច់សន្យាថាខ្លួននឹងល្អឥតខ្ចោះទេ តែសន្យាថានឹងផ្លាស់ប្តូរសកម្មភាពដែលអាចវាស់បាន។',
+    motto: '«កុំសន្យាតែជាមួយថ្នាក់ដឹកនាំ — ត្រូវសន្យាជាមួយខ្លួនឯង»'
+  },
+  {
+    num: 10,
+    category: 'mindset',
+    title: 'ចំណុចចុងក្រោយដែលត្រូវចងចាំ',
+    tag: 'គោលការណ៍មាស',
+    tagColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    summary: 'យើងមិនរង់ចាំឱ្យទីផ្សារល្អ ទើបយើងខ្លាំងទេ។ ទោះទីផ្សារមិនផ្លាស់ប្តូរ តែយើងអាចផ្លាស់ប្តូរខ្លួនយើងបាន!',
+    mantraList: [
+      '• បើជំនាញ មិនគ្រប់ — រៀន។',
+      '• បើខ្លឹមសារ មិនល្អ — កែ។',
+      '• បើអតិថិជន មិនទុកចិត្ត — កសាងទំនុកចិត្ត។',
+      '• បើបិទការលក់ មិនបាន — ហ្វឹកហាត់។',
+      '• បើការតាមដាន មិនគ្រប់ — ធ្វើបន្ថែមឱ្យច្រើន។',
+      '• បើដួល — ក្រោកឡើងវិញ!'
+    ],
+    motto: '«ធ្វើឱ្យបានពិត កុំគ្រាន់តែតាំងចិត្ត»'
+  }
+];
+
+const SALES_QUOTES_LIBRARY = [
+  {
+    id: 1,
+    quoteKm: 'អ្នកមិនចាំបាច់ឈ្នះរាល់ថ្ងៃទេ។ ប៉ុន្តែអ្នកត្រូវបន្តធ្វើអ្វីដែលធ្វើឱ្យអ្នកកាន់តែខ្លាំងរាល់ថ្ងៃ។',
+    quoteEn: 'You don\'t have to win every day, but you must keep doing what makes you stronger every day.',
+    author: 'លោកអគ្គនាយក វណ្ណ ស៊ីថា',
+    role: 'Vann Sitha Trading • CEO',
+    category: 'motivation',
+    categoryLabel: '🔥 លើកទឹកចិត្ត',
+    tip: 'កុំបាក់ទឹកចិត្តពេលលក់មិនដាច់ ១ ថ្ងៃ ផ្តោតលើការកែលម្អជំនាញ និងសកម្មភាពឱ្យបានច្រើនជាងម្សិលមិញ។'
+  },
+  {
+    id: 2,
+    quoteKm: 'កុំរង់ចាំឱ្យទីផ្សារល្អ ទើបយើងខ្លាំង។ យើងត្រូវតែខ្លាំងឡើង ដើម្បីអាចឈ្នះ ទោះទីផ្សារពិបាកក៏ដោយ។',
+    quoteEn: 'Don\'t wait for the market to get better to be strong. We must become stronger to win even in a tough market.',
+    author: 'លោកអគ្គនាយក វណ្ណ ស៊ីថា',
+    role: 'Vann Sitha Trading • CEO',
+    category: 'motivation',
+    categoryLabel: '🔥 លើកទឹកចិត្ត',
+    tip: 'ឈប់បន្ទោស Ads ឡើងថ្លៃ ឬទីផ្សារស្ងាត់ រកមើលថាខ្លួនឯងអាច Call ភ្ញៀវបន្ថែមប៉ុន្មាននាក់ថ្ងៃនេះ។'
+  },
+  {
+    id: 3,
+    quoteKm: 'ធ្វើឱ្យបានពិត កុំគ្រាន់តែតាំងចិត្ត។',
+    quoteEn: 'Take real action. Don\'t just set intentions.',
+    author: 'លោកអគ្គនាយក វណ្ណ ស៊ីថា',
+    role: 'Vann Sitha Trading • CEO',
+    category: 'closing',
+    categoryLabel: '🎯 សកម្មភាព & បិទការលក់',
+    tip: 'ផែនការដែលគ្មានសកម្មភាព គ្រាន់តែជាការស្រមៃ។ ចាប់ផ្តើមធ្វើសកម្មភាពសំខាន់បំផុត ១ ឥឡូវនេះ!'
+  },
+  {
+    id: 4,
+    quoteKm: 'ឈប់ព្យាយាមលក់ តែចូរចាប់ផ្តើមជួយដោះស្រាយបញ្ហារបស់ភ្ញៀវ។',
+    quoteEn: 'Stop selling. Start helping.',
+    author: 'Zig Ziglar',
+    role: 'World Renowned Sales Authority',
+    category: 'trust',
+    categoryLabel: '🤝 កសាងទំនុកចិត្ត',
+    tip: 'សួរសំណួរស្វែងយល់ពីផលលំបាករបស់ភ្ញៀវសិន មុនពេលប្រាប់ពីតម្លៃ ឬប្រូម៉ូសិនផលិតផល។'
+  },
+  {
+    id: 5,
+    quoteKm: 'ទ្រព្យសម្បត្តិដ៏មហាសាលរបស់អ្នកលក់អាជីព ស្ថិតនៅលើការតាមដានជាប់លាប់ (Follow-up)។',
+    quoteEn: 'The fortune is in the follow-up.',
+    author: 'Brian Tracy',
+    role: 'Sales & Success Expert',
+    category: 'followup',
+    categoryLabel: '📞 ការតាមដានភ្ញៀវ',
+    tip: 'អតិថិជន ៨០% សម្រេចចិត្តទិញនៅពេលតាមដានលើកទី ៣ ឬទី ៤។ កុំបោះបង់ភ្ញៀវដែលគ្រាន់តែអានមិនទាន់ឆ្លើយ។'
+  },
+  {
+    id: 6,
+    quoteKm: 'ពាក្យថា «ទេ» ពីអតិថិជន មិនមែនជាការបញ្ចប់ឡើយ វាគឺជាការចាប់ផ្តើមនៃការសន្ទនាពិតប្រាកដ។',
+    quoteEn: 'Every ‘No’ gets you closer to a ‘Yes’.',
+    author: 'Jeffrey Gitomer',
+    role: 'The Little Red Book of Selling',
+    category: 'objection',
+    categoryLabel: '🛡️ ដោះស្រាយការជំទាស់',
+    tip: 'ពេលភ្ញៀវប្រកែក កុំទាន់តានតឹង ចូរប្រើរូបមន្ត L.U.C.A. សួរស្វែងយល់ពីមូលហេតុពិតដែលគាត់នៅស្ទាក់ស្ទើរ។'
+  },
+  {
+    id: 7,
+    quoteKm: 'អតិថិជនមិនចូលចិត្តឱ្យគេលក់ឱ្យគាត់ទេ ប៉ុន្តែគាត់ចូលចិត្តអារម្មណ៍នៃការសម្រេចចិត្តទិញដោយខ្លួនឯង។',
+    quoteEn: 'People don\'t like to be sold, but they love to buy.',
+    author: 'Jeffrey Gitomer',
+    role: 'Sales Authority',
+    category: 'trust',
+    categoryLabel: '🤝 កសាងទំនុកចិត្ត',
+    tip: 'ផ្តល់ព័ត៌មាន និងដំណោះស្រាយឱ្យគ្រប់ជ្រុងជ្រោយ ដើម្បីឱ្យគាត់មានអារម្មណ៍ថាគាត់ជាអ្នកឈ្នះក្នុងការទិញនេះ។'
+  },
+  {
+    id: 8,
+    quoteKm: 'អ្នកលក់ដែលពូកែស្តាប់ នឹងបិទការលក់បានលឿនជាងអ្នកលក់ដែលពូកែនិយាយ ៣ ដង។',
+    quoteEn: 'Listening is the secret weapon of master closers.',
+    author: 'Dale Carnegie',
+    role: 'Master of Human Relations',
+    category: 'closing',
+    categoryLabel: '🎯 សកម្មភាព & បិទការលក់',
+    tip: 'អនុវត្តក្បួន ៧០/៣០៖ ទុកឱ្យភ្ញៀវនិយាយ ៧០% ហើយយើងស្តាប់ និងសួរសំណួរគន្លឹះ ៣០%។'
+  },
+  {
+    id: 9,
+    quoteKm: 'ភាពស្ទាក់ស្ទើររបស់អតិថិជន គឺជាការទាមទារសុំព័ត៌មានបន្ថែម មិនមែនជាការបដិសេធឡើយ។',
+    quoteEn: 'An objection is not a rejection; it is simply a request for more information.',
+    author: 'Brian Tracy',
+    role: 'Sales Master',
+    category: 'objection',
+    categoryLabel: '🛡️ ដោះស្រាយការជំទាស់',
+    tip: 'ពេលភ្ញៀវថា «ថ្លៃពេក» មានន័យថាគាត់មិនទាន់ឃើញតម្លៃស្មើនឹងទឹកប្រាក់នៅឡើយ។ បង្ហាញពីលទ្ធផលដែលគាត់នឹងទទួលបាន។'
+  },
+  {
+    id: 10,
+    quoteKm: 'វិន័យប្រចាំថ្ងៃ គឺជាស្ពានឆ្លងរវាងគោលដៅ និងការសម្រេចផលពិតប្រាកដ។',
+    quoteEn: 'Discipline is the bridge between goals and accomplishment.',
+    author: 'Jim Rohn',
+    role: 'Personal Development Legend',
+    category: 'motivation',
+    categoryLabel: '🔥 លើកទឹកចិត្ត',
+    tip: 'កំណត់ចំនួន Call ឬចំនួនឆាតដែលត្រូវឆ្លើយជារៀងរាល់ថ្ងៃ ហើយធ្វើវាឱ្យបានមុនពេលសម្រាក។'
+  }
 ];
 
 function formatUSD(num) {
@@ -4710,21 +5039,642 @@ function getAnalyticsViewHTML() {
 }
 
 // ==========================================
-// 6. View: Daily English (Auto-load 5 Words Option)
+// 6. View: Learning Hub (SALES RESET • Quotes • Daily English)
 // ==========================================
 function getLearningViewHTML() {
+  const currentTab = appState.studyTab || 'sales_reset';
+
+  return `
+    <div class="space-y-4 pb-12" id="study-container">
+      <!-- Top Sticky Segmented Tab Bar (iOS Glassmorphism) -->
+      <div class="sticky top-0 z-30 pt-1 pb-1 backdrop-blur-md">
+        <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
+          <button onclick="setStudyTab('sales_reset')" 
+                  class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${currentTab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
+            <i data-lucide="crown" class="w-3.5 h-3.5 ${currentTab === 'sales_reset' ? 'text-white' : 'text-amber-400'}"></i>
+            <span class="truncate">SALES RESET</span>
+          </button>
+          <button onclick="setStudyTab('quotes')" 
+                  class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${currentTab === 'quotes' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 ${currentTab === 'quotes' ? 'text-white' : 'text-amber-400'}"></i>
+            <span class="truncate">ពាក្យស្លោកលក់</span>
+          </button>
+          <button onclick="setStudyTab('english')" 
+                  class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${currentTab === 'english' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
+            <i data-lucide="languages" class="w-3.5 h-3.5 ${currentTab === 'english' ? 'text-white' : 'text-blue-400'}"></i>
+            <span class="truncate">អង់គ្លេស ៥/ថ្ងៃ</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Content Area -->
+      ${currentTab === 'sales_reset' ? renderSalesResetContent() : ''}
+      ${currentTab === 'quotes' ? renderSalesQuotesContent() : ''}
+      ${currentTab === 'english' ? renderEnglishWordsContent() : ''}
+    </div>
+  `;
+}
+
+function setStudyTab(tab) {
+  appState.studyTab = tab;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+  const container = document.getElementById('study-container');
+  if (container) {
+    container.innerHTML = `
+      <div class="sticky top-0 z-30 pt-1 pb-1 backdrop-blur-md">
+        <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
+          <button onclick="setStudyTab('sales_reset')" 
+                  class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
+            <i data-lucide="crown" class="w-3.5 h-3.5 ${tab === 'sales_reset' ? 'text-white' : 'text-amber-400'}"></i>
+            <span class="truncate">SALES RESET</span>
+          </button>
+          <button onclick="setStudyTab('quotes')" 
+                  class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === 'quotes' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 ${tab === 'quotes' ? 'text-white' : 'text-amber-400'}"></i>
+            <span class="truncate">ពាក្យស្លោកលក់</span>
+          </button>
+          <button onclick="setStudyTab('english')" 
+                  class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === 'english' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
+            <i data-lucide="languages" class="w-3.5 h-3.5 ${tab === 'english' ? 'text-white' : 'text-blue-400'}"></i>
+            <span class="truncate">អង់គ្លេស ៥/ថ្ងៃ</span>
+          </button>
+        </div>
+      </div>
+      ${tab === 'sales_reset' ? renderSalesResetContent() : ''}
+      ${tab === 'quotes' ? renderSalesQuotesContent() : ''}
+      ${tab === 'english' ? renderEnglishWordsContent() : ''}
+    `;
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    renderCurrentView();
+  }
+}
+window.setStudyTab = setStudyTab;
+
+// ------------------------------------------
+// Sub-view 1: SALES RESET (CEO Vann Sitha)
+// ------------------------------------------
+function renderSalesResetContent() {
+  const activeCategory = appState.lessonCategory || 'all';
+  const filteredLessons = activeCategory === 'all' 
+    ? CEO_SALES_RESET_LESSONS 
+    : CEO_SALES_RESET_LESSONS.filter(l => l.category === activeCategory);
+
+  return `
+    <div class="space-y-3.5 animate-fade-in">
+      <!-- Executive Hero VIP Card -->
+      <div class="ios-glass-card rounded-3xl p-5 border border-amber-500/30 relative overflow-hidden bg-gradient-to-b from-[#131D33] via-[#0B1528] to-[#070D18] shadow-2xl">
+        <div class="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10">
+          <div class="flex items-center gap-3.5 mb-3.5">
+            <div class="relative shrink-0">
+              <img src="ceo-vann-sitha.jpg" alt="CEO Vann Sitha" 
+                   class="w-13 h-13 rounded-2xl object-cover border-2 border-amber-400 shadow-lg shadow-amber-500/25">
+              <span class="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-[8px] font-black text-black tracking-wider uppercase">CEO</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-bold text-amber-400 tracking-wider uppercase">Vann Sitha Trading</span>
+                <span class="text-[10px] text-slate-500">•</span>
+                <span class="text-[10px] text-slate-400 font-mono">តុលា ២០២៦</span>
+              </div>
+              <h2 class="text-base font-black text-white tracking-wide leading-tight mt-0.5">SALES RESET</h2>
+              <p class="text-[11px] text-slate-300 font-medium">បង្រៀនដោយ <strong class="text-amber-300">អគ្គនាយក វណ្ណ ស៊ីថា</strong></p>
+            </div>
+          </div>
+
+          <!-- Key Banner Quote -->
+          <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 backdrop-blur-md mb-3">
+            <div class="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
+              <span>👑</span>
+              <span>សារដាស់ស្មារតីស្នូល ៖</span>
+            </div>
+            <h3 class="text-sm font-bold text-white leading-relaxed">
+              «ពេលការលក់ធ្លាក់ចុះ យើងត្រូវតែខ្លាំងឡើង»
+            </h3>
+            <p class="text-[11px] text-amber-200/90 font-kantumruy leading-relaxed mt-1">
+              “ការលក់ធ្លាក់ ≠ យើងធ្លាក់! គោលដៅមិនមែនគ្រាន់តែមានអារម្មណ៍ល្អទេ គឺឱ្យសកម្មភាព ជំនាញ វិន័យ និងលទ្ធផលរបស់យើងចាប់ផ្តើមផ្លាស់ប្តូរ។”
+            </p>
+          </div>
+
+          <!-- 3 Quick Pillars Pills -->
+          <div class="grid grid-cols-3 gap-2 text-center select-none">
+            <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+              <span class="text-xs">🎯</span>
+              <p class="text-[10px] font-bold text-white mt-0.5">១០ មេរៀន</p>
+              <span class="text-[8.5px] text-slate-400 block">អនុវត្តផ្ទាល់</span>
+            </div>
+            <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+              <span class="text-xs">⚡</span>
+              <p class="text-[10px] font-bold text-amber-400 mt-0.5">រូបមន្ត L.U.C.A.</p>
+              <span class="text-[8.5px] text-slate-400 block">ឆ្លើយតបភ្ញៀវ</span>
+            </div>
+            <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+              <span class="text-xs">📈</span>
+              <p class="text-[10px] font-bold text-emerald-400 mt-0.5">លទ្ធផល = ស × ជ</p>
+              <span class="text-[8.5px] text-slate-400 block">សកម្មភាព x ជំនាញ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 select-none" style="-webkit-overflow-scrolling: touch;">
+        <button onclick="setLessonCategory('all')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          ✨ ទាំងអស់ (១០)
+        </button>
+        <button onclick="setLessonCategory('mindset')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'mindset' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          🧠 ផ្នត់គំនិត
+        </button>
+        <button onclick="setLessonCategory('process')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'process' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          🎯 ដំណើរការលក់
+        </button>
+        <button onclick="setLessonCategory('luca')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'luca' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          🛡️ រូបមន្ត L.U.C.A.
+        </button>
+        <button onclick="setLessonCategory('followup')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'followup' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          📞 ការតាមដាន (Follow-up)
+        </button>
+        <button onclick="setLessonCategory('action')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'action' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          🚀 ផែនការសកម្មភាព
+        </button>
+      </div>
+
+      <!-- 10 Lessons Accordion List -->
+      <div class="space-y-3">
+        ${filteredLessons.map(l => {
+          const isExpanded = appState.expandedLessons && appState.expandedLessons[l.num];
+          return `
+            <div class="ios-glass-card rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-amber-500/30">
+              <!-- Header Bar (Click to toggle) -->
+              <div onclick="toggleLessonAccordion(${l.num})" 
+                   class="p-3.5 flex items-start justify-between gap-3 cursor-pointer select-none hover:bg-white/[0.02] active:scale-[0.99] transition">
+                <div class="flex items-start gap-3 min-w-0 flex-1">
+                  <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
+                    ${l.num}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 mb-0.5">
+                      <h4 class="font-bold text-xs sm:text-sm text-white tracking-wide leading-tight">${l.title}</h4>
+                      <span class="px-2 py-0.2 rounded-full text-[9px] font-semibold border ${l.tagColor} shrink-0">
+                        ${l.tag}
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">${l.summary}</p>
+                  </div>
+                </div>
+                <div class="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0 text-slate-400 mt-0.5">
+                  <i id="lesson-chevron-${l.num}" data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}"></i>
+                </div>
+              </div>
+
+              <!-- Expanded Details Body -->
+              <div id="lesson-body-${l.num}" class="${isExpanded ? '' : 'hidden'} px-3.5 pb-3.5 pt-1 border-t border-white/5 space-y-3">
+                ${renderLessonSpecificBody(l)}
+
+                <!-- Bottom Golden Motto Box -->
+                <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2">
+                  <p class="text-[11px] font-semibold text-amber-300 font-kantumruy italic flex-1">
+                    ${l.motto}
+                  </p>
+                  <button onclick="copyObjectionScript('${l.motto.replace(/'/g, "\\'")}')" 
+                          title="ចម្លងពាក្យស្លោក" 
+                          class="p-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 shrink-0 active:scale-90 transition">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderLessonSpecificBody(l) {
+  if (l.num === 1) {
+    return `
+      <div class="space-y-2">
+        <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[11px] font-medium leading-relaxed">
+          ⚠️ <strong>វដ្តគ្រោះថ្នាក់៖</strong> ${l.dangerCycle}
+        </div>
+        <div class="p-2.5 rounded-xl bg-black/30 border border-white/5 space-y-1.5">
+          <p class="text-[11px] font-bold text-white">៤ ច្បាប់ពេលការលក់ធ្លាក់ចុះ៖</p>
+          ${l.rules.map(r => `
+            <div class="flex items-center justify-between text-[11px] py-1 border-b border-white/5 last:border-b-0">
+              <span class="text-slate-300">• ${r.trigger}</span>
+              <span class="text-emerald-400 font-bold">➔ ${r.action}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  if (l.num === 2) {
+    return `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20">
+          <span class="text-[10px] font-bold text-rose-400 block mb-1">❌ មិនអាចគ្រប់គ្រង៖</span>
+          <p class="text-[11px] text-slate-300 leading-relaxed">${l.cantControl}</p>
+        </div>
+        <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <span class="text-[10px] font-bold text-emerald-400 block mb-1">✅ អាចគ្រប់គ្រងបាន៖</span>
+          <p class="text-[11px] text-slate-200 font-medium leading-relaxed">${l.canControl}</p>
+        </div>
+      </div>
+    `;
+  }
+  if (l.num === 3) {
+    return `
+      <div class="space-y-2">
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-[10px] font-bold text-amber-300 bg-black/30 p-2 rounded-xl border border-white/5">
+          ${l.steps.map((st, i) => `
+            <span>${st}</span>
+            ${i < l.steps.length - 1 ? '<span class="text-slate-600">➔</span>' : ''}
+          `).join('')}
+        </div>
+        <div class="p-2.5 rounded-xl bg-black/30 border border-white/5 space-y-1.5">
+          <p class="text-[11px] font-bold text-white">ត្រួតពិនិត្យដំណើរការលក់ (Diagnostics)៖</p>
+          ${l.diagnostics.map(d => `
+            <div class="flex items-start justify-between text-[11px] py-1 border-b border-white/5 last:border-b-0 gap-2">
+              <span class="text-slate-300 font-medium shrink-0">• ${d.issue}</span>
+              <span class="text-amber-400 text-right">➔ ${d.cause}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  if (l.num === 4) {
+    return `
+      <div class="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/20 space-y-2">
+        <div class="flex items-center justify-center gap-2 text-xs font-bold text-teal-300 bg-teal-500/20 py-1.5 rounded-lg border border-teal-500/30">
+          ${l.doctorFormula}
+        </div>
+        <p class="text-[11px] text-slate-200 leading-relaxed">${l.doctorDesc}</p>
+      </div>
+    `;
+  }
+  if (l.num === 5) {
+    return `
+      <div class="space-y-2.5">
+        <!-- 4 L.U.C.A. Steps -->
+        <div class="grid grid-cols-2 gap-2">
+          ${l.lucaSteps.map(s => `
+            <div class="p-2 rounded-xl bg-black/40 border border-white/5">
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 font-bold text-[10px] flex items-center justify-center">${s.letter}</span>
+                <span class="text-[11px] font-bold text-white">${s.km}</span>
+              </div>
+              <p class="text-[10px] text-slate-400 leading-tight">${s.desc}</p>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- 2 Ready-to-Copy Objection Handling Scripts -->
+        <div class="space-y-2">
+          <p class="text-[11px] font-bold text-amber-400">📋 គំរូឆ្លើយតបជាក់ស្តែង (ចុច Copy យកទៅប្រើ)៖</p>
+          ${l.scripts.map(sc => `
+            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-rose-300">ពេលភ្ញៀវថា៖ ${sc.objection}</span>
+                <button onclick="copyObjectionScript('${sc.copyText.replace(/'/g, "\\'")}')" 
+                        class="px-2 py-0.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 text-[10px] font-bold flex items-center gap-1 active:scale-95 transition">
+                  <i data-lucide="copy" class="w-3 h-3"></i>
+                  <span>Copy</span>
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-200 italic font-kantumruy leading-relaxed bg-black/30 p-2 rounded-lg border border-white/5">
+                ${sc.response}
+              </p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  if (l.num === 6) {
+    return `
+      <div class="p-2.5 rounded-xl bg-black/30 border border-white/5 space-y-1.5">
+        <p class="text-[11px] font-bold text-indigo-300">៤ គោលការណ៍តាមដានអតិថិជនអាជីព៖</p>
+        ${l.rules.map(r => `
+          <div class="text-[11px] py-1 border-b border-white/5 last:border-b-0">
+            <span class="text-white font-semibold">• ${r.trigger}៖</span>
+            <span class="text-slate-300"> ${r.action}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  if (l.num === 7) {
+    return `
+      <div class="space-y-2">
+        <div class="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-center">
+          <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider block mb-1">Funnel បំប្លែងការលក់</span>
+          <p class="text-xs font-bold text-white font-mono">${l.funnel}</p>
+          <div class="mt-2 py-1 px-3 rounded-lg bg-purple-500/20 text-purple-200 text-xs font-mono font-bold inline-block border border-purple-500/30">
+            ${l.formula}
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-300 leading-relaxed">${l.funnelDesc}</p>
+      </div>
+    `;
+  }
+  if (l.num === 8) {
+    return `
+      <div class="p-2.5 rounded-xl bg-black/30 border border-white/5 space-y-1">
+        <p class="text-[11px] font-bold text-white mb-1.5">៥ សកម្មភាពស្តារការលក់ប្រចាំថ្ងៃ៖</p>
+        ${l.checklist.map(c => `
+          <div class="text-[11px] text-slate-300 py-0.5">• ${c}</div>
+        `).join('')}
+      </div>
+    `;
+  }
+  if (l.num === 9) {
+    return `
+      <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-slate-200 font-kantumruy leading-relaxed">
+        “${l.quoteBox}”
+      </div>
+    `;
+  }
+  if (l.num === 10) {
+    return `
+      <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
+        <p class="text-[11px] font-bold text-emerald-300 mb-1">៦ វិធានក្រោកឈរឡើងវិញ (Sales Mantra)៖</p>
+        ${l.mantraList.map(m => `
+          <div class="text-[11px] font-semibold text-white py-0.5">${m}</div>
+        `).join('')}
+      </div>
+    `;
+  }
+  return '';
+}
+
+function toggleLessonAccordion(num) {
+  if (!appState.expandedLessons) appState.expandedLessons = {};
+  appState.expandedLessons[num] = !appState.expandedLessons[num];
+  const body = document.getElementById(`lesson-body-${num}`);
+  const chevron = document.getElementById(`lesson-chevron-${num}`);
+  if (body) {
+    if (appState.expandedLessons[num]) {
+      body.classList.remove('hidden');
+      if (chevron) chevron.classList.add('rotate-180');
+    } else {
+      body.classList.add('hidden');
+      if (chevron) chevron.classList.remove('rotate-180');
+    }
+  }
+}
+window.toggleLessonAccordion = toggleLessonAccordion;
+
+function setLessonCategory(cat) {
+  appState.lessonCategory = cat;
+  setStudyTab('sales_reset');
+}
+window.setLessonCategory = setLessonCategory;
+
+// ------------------------------------------
+// Sub-view 2: SALES QUOTES & MINDSET
+// ------------------------------------------
+function renderSalesQuotesContent() {
+  const activeCategory = appState.quoteCategory || 'all';
+  const lib = SALES_QUOTES_LIBRARY;
+  const filtered = activeCategory === 'all' ? lib : lib.filter(q => q.category === activeCategory);
+  const heroIndex = (appState.activeQuoteIndex !== undefined && appState.activeQuoteIndex >= 0) 
+    ? appState.activeQuoteIndex % lib.length 
+    : 0;
+  const heroQuote = lib[heroIndex] || lib[0];
+
+  return `
+    <div class="space-y-4 animate-fade-in">
+      <!-- Hero Daily Quote Card (Today's Mindset) -->
+      <div class="ios-glass-card rounded-3xl p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-b from-[#131D33] via-[#0B1528] to-[#070D18] shadow-2xl">
+        <div class="absolute -top-12 -right-12 w-40 h-40 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+            <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">ពាក្យស្លោកប្រចាំថ្ងៃ (Quote of the Day)</span>
+          </div>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            ${heroQuote.categoryLabel}
+          </span>
+        </div>
+
+        <!-- Big Bold Khmer Quote -->
+        <h3 class="text-base sm:text-lg font-bold text-white leading-relaxed mb-2 font-kantumruy">
+          “${heroQuote.quoteKm}”
+        </h3>
+
+        ${heroQuote.quoteEn ? `
+          <p class="text-xs text-slate-400 italic font-sans mb-3 leading-relaxed">
+            “${heroQuote.quoteEn}”
+          </p>
+        ` : ''}
+
+        <!-- Author Tag -->
+        <div class="flex items-center gap-2 mb-3 pb-3 border-b border-white/10">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+            ★
+          </div>
+          <div>
+            <h5 class="text-xs font-bold text-white leading-tight">${heroQuote.author}</h5>
+            <p class="text-[10px] text-amber-300/80">${heroQuote.role}</p>
+          </div>
+        </div>
+
+        <!-- Daily Action Tip -->
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/5 mb-3.5">
+          <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-400 mb-1">
+            <span>💡</span>
+            <span>គន្លឹះអនុវត្តថ្ងៃនេះ (Action Tip)៖</span>
+          </div>
+          <p class="text-[11px] text-slate-200 leading-relaxed font-kantumruy">
+            ${heroQuote.tip}
+          </p>
+        </div>
+
+        <!-- 3 Interactive Action Buttons (Shuffle, Copy, Share) -->
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="nextSalesQuote()" 
+                  class="py-2.5 px-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="shuffle" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>ស្លោកបន្ទាប់</span>
+          </button>
+          <button onclick="copyCurrentSalesQuote()" 
+                  class="py-2.5 px-2 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 active:scale-95 border border-orange-500/30 text-xs font-semibold text-orange-300 flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-orange-400"></i>
+            <span>ចម្លង (Copy)</span>
+          </button>
+          <button onclick="shareCurrentSalesQuote()" 
+                  class="py-2.5 px-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 active:scale-95 text-xs font-bold text-white flex items-center justify-center gap-1.5 shadow-md shadow-orange-500/20 transition">
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+            <span>ចែករំលែក</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 select-none" style="-webkit-overflow-scrolling: touch;">
+        <button onclick="setQuoteCategory('all')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          ✨ ទាំងអស់
+        </button>
+        <button onclick="setQuoteCategory('motivation')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'motivation' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          🔥 លើកទឹកចិត្ត
+        </button>
+        <button onclick="setQuoteCategory('trust')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'trust' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          🤝 កសាងទំនុកចិត្ត
+        </button>
+        <button onclick="setQuoteCategory('closing')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'closing' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          🎯 បិទការលក់
+        </button>
+        <button onclick="setQuoteCategory('objection')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'objection' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          🛡️ ដោះស្រាយការជំទាស់
+        </button>
+        <button onclick="setQuoteCategory('followup')" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'followup' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          📞 ការតាមដាន (Follow-up)
+        </button>
+      </div>
+
+      <!-- Quotes Library Cards -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-xs font-bold text-slate-300">បណ្ណាល័យពាក្យស្លោក (${filtered.length})</span>
+          <span class="text-[10px] text-slate-500">ចុច Copy ដើម្បីចែករំលែក</span>
+        </div>
+
+        ${filtered.map(q => `
+          <div class="ios-glass-card rounded-2xl p-4 border border-white/10 space-y-2 hover:border-amber-500/30 transition">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-md text-[9px] font-bold bg-white/5 text-amber-400 border border-white/5">
+                ${q.categoryLabel}
+              </span>
+              <button onclick="copySalesQuoteById(${q.id})" 
+                      title="ចម្លងពាក្យស្លោក" 
+                      class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[10px] font-semibold flex items-center gap-1 active:scale-90 transition">
+                <i data-lucide="copy" class="w-3 h-3 text-orange-400"></i>
+                <span>Copy</span>
+              </button>
+            </div>
+            <p class="text-xs sm:text-sm font-bold text-white font-kantumruy leading-relaxed">
+              “${q.quoteKm}”
+            </p>
+            ${q.quoteEn ? `<p class="text-[11px] text-slate-400 italic font-sans leading-tight">“${q.quoteEn}”</p>` : ''}
+            <div class="pt-1 flex items-center justify-between text-[10px] text-slate-400">
+              <span class="font-semibold text-amber-300">— ${q.author} (${q.role})</span>
+            </div>
+            <div class="p-2 rounded-xl bg-black/25 text-[10.5px] text-slate-300 border border-white/5">
+              <span class="text-emerald-400 font-bold">💡 គន្លឹះ៖</span> ${q.tip}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function setQuoteCategory(cat) {
+  appState.quoteCategory = cat;
+  setStudyTab('quotes');
+}
+window.setQuoteCategory = setQuoteCategory;
+
+function nextSalesQuote() {
+  const lib = SALES_QUOTES_LIBRARY;
+  appState.activeQuoteIndex = ((appState.activeQuoteIndex || 0) + 1) % lib.length;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+  setStudyTab('quotes');
+}
+window.nextSalesQuote = nextSalesQuote;
+
+function copyCurrentSalesQuote() {
+  const quote = SALES_QUOTES_LIBRARY[appState.activeQuoteIndex || 0] || SALES_QUOTES_LIBRARY[0];
+  if (!quote) return;
+  const text = `🌟 ពាក្យស្លោកអ្នកលក់អាជីព៖\n“${quote.quoteKm}”\n${quote.quoteEn ? `“${quote.quoteEn}”\n` : ''}— ${quote.author} (${quote.role})\n\n💡 គន្លឹះអនុវត្តថ្ងៃនេះ៖\n${quote.tip}\n\n#VannSithaTrading #SalesReset #ProfessionalSales`;
+  copyTextToClipboard(text, 'បានចម្លងពាក្យស្លោកជោគជ័យ! 🎉');
+}
+window.copyCurrentSalesQuote = copyCurrentSalesQuote;
+
+function copySalesQuoteById(id) {
+  const quote = SALES_QUOTES_LIBRARY.find(q => q.id === id);
+  if (!quote) return;
+  const text = `🌟 ពាក្យស្លោកអ្នកលក់អាជីព៖\n“${quote.quoteKm}”\n${quote.quoteEn ? `“${quote.quoteEn}”\n` : ''}— ${quote.author} (${quote.role})\n\n💡 គន្លឹះអនុវត្ត៖\n${quote.tip}\n\n#VannSithaTrading #SalesReset`;
+  copyTextToClipboard(text, 'បានចម្លងពាក្យស្លោកជោគជ័យ! 🎉');
+}
+window.copySalesQuoteById = copySalesQuoteById;
+
+function shareCurrentSalesQuote() {
+  const quote = SALES_QUOTES_LIBRARY[appState.activeQuoteIndex || 0] || SALES_QUOTES_LIBRARY[0];
+  if (!quote) return;
+  const text = `🌟 “${quote.quoteKm}”\n— ${quote.author}\n\n💡 គន្លឹះអនុវត្ត៖ ${quote.tip}`;
+  if (navigator.share) {
+    navigator.share({
+      title: 'ពាក្យស្លោកអ្នកលក់អាជីព',
+      text: text,
+      url: window.location.href
+    }).catch(() => {});
+  } else {
+    copyCurrentSalesQuote();
+  }
+}
+window.shareCurrentSalesQuote = shareCurrentSalesQuote;
+
+function copyObjectionScript(text) {
+  copyTextToClipboard(text, 'បានចម្លងវិធីឆ្លើយតបភ្ញៀវរួចរាល់! 📋');
+}
+window.copyObjectionScript = copyObjectionScript;
+
+function copyTextToClipboard(text, successMsg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToastNotification(successMsg || 'បានចម្លងជោគជ័យ!');
+    }).catch(() => {
+      fallbackCopyText(text);
+    });
+  } else {
+    fallbackCopyText(text);
+  }
+}
+
+function openFullSalesResetInLearning() {
+  if (typeof closeProfileSubModal === 'function') closeProfileSubModal();
+  if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
+  appState.studyTab = 'sales_reset';
+  if (typeof switchView === 'function') switchView('learning');
+}
+window.openFullSalesResetInLearning = openFullSalesResetInLearning;
+
+// ------------------------------------------
+// Sub-view 3: DAILY ENGLISH (Original 5 Words)
+// ------------------------------------------
+function renderEnglishWordsContent() {
   const visibleWords = DAILY_ENGLISH_WORDS.slice(0, appState.studyWordCount || 5);
   const hasMore = visibleWords.length < DAILY_ENGLISH_WORDS.length;
 
   return `
-    <div class="space-y-4" id="study-container">
+    <div class="space-y-4 animate-fade-in">
       <div class="ios-glass-card rounded-3xl p-5 border border-white/10 text-center relative overflow-hidden">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center mx-auto mb-2 shadow-lg shadow-orange-500/20">
-          <i data-lucide="book-open" class="w-6 h-6"></i>
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-500 text-white flex items-center justify-center mx-auto mb-2 shadow-lg shadow-blue-500/20">
+          <i data-lucide="languages" class="w-6 h-6"></i>
         </div>
         <h3 class="font-bold text-base text-white">រៀនភាសាអង់គ្លេស ១ ថ្ងៃ ៥ ពាក្យ</h3>
         <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1">ពាក្យគន្លឹះសម្រាប់ការងារប្រចាំថ្ងៃ និងកូដបែប UI</p>
-        <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] text-orange-400 font-medium">
+        <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] text-blue-400 font-medium">
           <span id="study-word-counter">បង្ហាញ ${visibleWords.length} នៃ ${DAILY_ENGLISH_WORDS.length} ពាក្យ</span>
           <span>•</span>
           <span>អូសចុះក្រោម ឬចុចប៊ូតុងដើម្បីថែម ៥ ទៀត</span>
@@ -4734,7 +5684,7 @@ function getLearningViewHTML() {
       <div class="space-y-3" id="study-words-list">
         ${visibleWords.map((w, idx) => `
           <div class="ios-glass-card rounded-2xl p-4 border border-white/10 flex items-start gap-3.5 transition-all">
-            <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 font-bold text-sm flex items-center justify-center shrink-0">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 font-bold text-sm flex items-center justify-center shrink-0">
               ${idx + 1}
             </div>
             <div class="flex-1">
@@ -8594,28 +9544,8 @@ function renderNotificationsFeed(d) {
     `;
   }
 
-  // Announcements (if available from Sheet)
+  // Announcements disabled/cleaned
   let announcementsHTML = '';
-  const announcements = d.announcements || [];
-  if (announcements.length > 0) {
-    announcementsHTML = `
-      <div class="space-y-2.5 mb-2.5">
-        ${announcements.map(a => `
-          <div class="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-950/70 to-purple-950/70 border border-indigo-500/30 text-xs text-slate-200 space-y-1.5 shadow-xl relative overflow-hidden">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-indigo-300 flex items-center gap-1.5 text-[12px]">
-                <span>📢</span> ដំណឹង (Announcements)
-              </span>
-              <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">${a.date || 'Today'}</span>
-            </div>
-            <h4 class="font-bold text-white text-xs">${a.title}</h4>
-            <p class="text-[11px] text-slate-300 leading-relaxed">${a.content}</p>
-            <p class="text-[9.5px] text-slate-400 font-mono pt-1 text-right">— ${a.author}</p>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
 
   const birthdayHTML = (typeof buildLeaderBirthdayFeedHTML === 'function') ? buildLeaderBirthdayFeedHTML() : '';
   feedList.innerHTML = birthdayHTML + announcementsHTML + eventsHTML;
@@ -12419,6 +13349,9 @@ function openProfileDrawer() {
   // Trigger dynamic ambient greeting capsule
   setTimeout(triggerDrawerGreetingAnimation, 220);
 
+  // Start frameless executive sales motto rotation
+  startDrawerMottoRotation();
+
   if (window.lucide) window.lucide.createIcons();
   if (navigator.vibrate) navigator.vibrate(15);
 }
@@ -12430,6 +13363,9 @@ function closeProfileDrawer() {
 
   panel.classList.remove('translate-x-0');
   panel.classList.add('-translate-x-full');
+
+  // Stop motto rotation
+  stopDrawerMottoRotation();
 
   // Restore normal active tab brightness on bottom dock
   const dock = document.getElementById('bottom-dock');
@@ -12597,20 +13533,20 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 3. សៀវភៅ & កំណត់ត្រា (Books & Notes - Merged!) ⭐ -->
+        <!-- 3. សៀវភៅ SALES RESET & ផែនការ (Books & Notes - Upgraded with CEO Sales Reset) ⭐ -->
         <div onclick="closeProfileDrawer(); openProfileSubModal('book_notes');" 
-             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-teal-500/40">
+             class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-amber-500/40">
           <div class="flex items-center justify-between mb-1.5">
-            <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center">
-              <i data-lucide="book-marked" class="w-4 h-4"></i>
+            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+              <i data-lucide="crown" class="w-4 h-4"></i>
             </div>
-            <span class="px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-400 font-mono font-bold text-[10px]">
-              ${notes.length} ${isEn ? 'Notes' : 'ច្បាប់'}
+            <span class="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold text-[9px] border border-amber-500/30">
+              SALES RESET
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Books & Notes' : 'សៀវភៅ & កំណត់ត្រា'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Wisdom & Daily Plans' : 'គតិបណ្ឌិត & ផែនការ'}</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Sales Reset & Plans' : 'SALES RESET & ផែនការ'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'CEO Wisdom & Commitments' : 'មេរៀនអគ្គនាយក & ផែនការ'}</p>
           </div>
         </div>
 
@@ -14412,9 +15348,9 @@ function openProfileSubModal(type) {
     const activeTab = (type === 'note') ? 'notes' : (type === 'book' ? 'books' : (window._activeBookNotesTab || 'books'));
     window._activeBookNotesTab = activeTab;
 
-    title = 'សៀវភៅ & កំណត់ត្រា';
-    sub = 'គតិបណ្ឌិតជីវិត និងកត់ត្រាផែនការប្រចាំថ្ងៃ';
-    icon = 'book-marked';
+    title = 'SALES RESET & ផែនការ';
+    sub = 'មេរៀនអគ្គនាយក វណ្ណ ស៊ីថា និងការប្តេជ្ញាចិត្តប្រចាំថ្ងៃ';
+    icon = 'crown';
 
     contentHTML = `
       <div class="space-y-3">
@@ -14422,47 +15358,63 @@ function openProfileSubModal(type) {
         <div class="flex items-center p-1 rounded-2xl bg-black/40 border border-white/10 select-none">
           <button onclick="switchBookNotesTab('books')" 
                   class="flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'books' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
-            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
-            <span>សៀវភៅ (Books)</span>
+            <i data-lucide="crown" class="w-3.5 h-3.5"></i>
+            <span>SALES RESET</span>
           </button>
           <button onclick="switchBookNotesTab('notes')" 
                   class="flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'notes' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
-            <i data-lucide="notebook-pen" class="w-3.5 h-3.5"></i>
-            <span>កំណត់ត្រា (${notes.length})</span>
+            <i data-lucide="target" class="w-3.5 h-3.5"></i>
+            <span>ផែនការប្តេជ្ញាចិត្ត (${notes.length})</span>
           </button>
         </div>
 
-        <!-- Section 1: Books (Life Lessons & Wisdom) -->
+        <!-- Section 1: Books (Executive Sales Reset by CEO Vann Sitha) -->
         <div id="book-notes-panel-books" class="${activeTab === 'books' ? '' : 'hidden'} space-y-2.5">
-          <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
-            <h4 class="text-xs font-bold text-emerald-400 mb-1">📖 ជំពូកទី ១ ៖ ជីវិតជាការរៀនសូត្រមិនចេះចប់</h4>
-            <p class="text-xs text-slate-200 leading-relaxed">
-              ការរៀនសូត្ររាល់ថ្ងៃ ទោះត្រឹមតែ ១% ក៏ដោយ នឹងធ្វើឱ្យយើងរីកចម្រើន gấp ៣៧ ដងក្នុងរយៈពេល ១ ឆ្នាំ។ វិន័យ និងភាពទៀងទាត់ គឺជាកូនសោរនៃភាពជោគជ័យ។
+          <!-- CEO Card Summary -->
+          <div class="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent border border-amber-500/30 relative overflow-hidden">
+            <div class="flex items-center gap-2.5 mb-2">
+              <img src="ceo-vann-sitha.jpg" alt="CEO" class="w-9 h-9 rounded-xl object-cover border border-amber-400/60 shadow-md">
+              <div>
+                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Vann Sitha Trading • តុលា ២០២៦</span>
+                <h4 class="text-xs font-bold text-white">SALES RESET ពេលការលក់ធ្លាក់ចុះ</h4>
+              </div>
+            </div>
+            <p class="text-xs text-amber-200 font-medium italic mb-2">
+              “ការលក់ធ្លាក់ ≠ យើងធ្លាក់! គោលដៅគឺឱ្យសកម្មភាព ជំនាញ វិន័យ និងលទ្ធផលចាប់ផ្តើមផ្លាស់ប្តូរ។”
             </p>
-          </div>
-          <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25">
-            <h4 class="text-xs font-bold text-amber-400 mb-1">💡 ជំពូកទី ២ ៖ សិល្បៈនៃការដឹកនាំ និងបម្រើអតិថិជន</h4>
-            <p class="text-xs text-slate-200 leading-relaxed">
-              អតិថិជនមិនត្រឹមតែទិញផលិតផលទេ តែគាត់ទិញទំនុកចិត្ត និងការយកចិត្តទុកដាក់របស់យើង។
-            </p>
-          </div>
-          <div class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/25">
-            <h4 class="text-xs font-bold text-sky-400 mb-1">🚀 ជំពូកទី ៣ ៖ ការគ្រប់គ្រងពេលវេលា និងគោលដៅ</h4>
-            <p class="text-xs text-slate-200 leading-relaxed">
-              ផ្តោតអារម្មណ៍លើកិច្ចការសំខាន់បំផុតចំនួន ២០% ដែលបង្កើតផល ៨០% ដល់អាជីវកម្ម និងជីវិតរបស់អ្នក។
-            </p>
+            <div class="space-y-1.5 text-[11px] text-slate-300">
+              <div class="flex items-start gap-1.5">
+                <span class="text-emerald-400">✓</span>
+                <span><strong>ផ្តោតលើអ្វីដែលគ្រប់គ្រងបាន៖</strong> សកម្មភាព, ជំនាញ, ការតាមដាន, និងផ្នត់គំនិត។</span>
+              </div>
+              <div class="flex items-start gap-1.5">
+                <span class="text-amber-400">✓</span>
+                <span><strong>រូបមន្ត L.U.C.A.៖</strong> ស្តាប់ • ស្វែងយល់ • សួរបញ្ជាក់ • ឆ្លើយ និងសួរបន្ត។</span>
+              </div>
+              <div class="flex items-start gap-1.5">
+                <span class="text-sky-400">✓</span>
+                <span><strong>លទ្ធផល = សកម្មភាព × ជំនាញ៖</strong> បើជំនាញខ្វះ ត្រូវបង្កើនសកម្មភាព!</span>
+              </div>
+            </div>
+            
+            <button onclick="openFullSalesResetInLearning()" 
+                    class="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 active:scale-95 transition">
+              <i data-lucide="book-open" class="w-4 h-4"></i>
+              <span>បើកមើលមេរៀនពេញលេញទាំង ១០ ចំណុច</span>
+            </button>
           </div>
         </div>
 
         <!-- Section 2: Notes & Plans (Interactive Add, List, Delete) -->
         <div id="book-notes-panel-notes" class="${activeTab === 'notes' ? '' : 'hidden'} space-y-3">
           <div class="space-y-2 p-3 rounded-2xl bg-black/30 border border-white/10">
-            <input type="text" id="new-note-title" placeholder="ចំណងជើងផែនការ..." 
-                   class="w-full text-xs font-bold bg-black/40 border border-white/10 rounded-xl p-2 text-white focus:outline-none">
-            <textarea id="new-note-text" rows="2" placeholder="សរសេរខ្លឹមសារផែនការ..." 
-                      class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2 text-white focus:outline-none"></textarea>
-            <button onclick="addProfileNote()" class="w-full py-2 rounded-xl accent-solid-btn text-xs font-bold active:scale-95 transition">
-              + បន្ថែមផែនការថ្មី
+            <input type="text" id="new-note-title" placeholder="គោលដៅ ឬសកម្មភាពប្តេជ្ញាចិត្តថ្ងៃនេះ..." 
+                   class="w-full text-xs font-bold bg-black/40 border border-white/10 rounded-xl p-2 text-white focus:outline-none focus:border-amber-500">
+            <textarea id="new-note-text" rows="2" placeholder="ឧទាហរណ៍៖ Call ភ្ញៀវចាស់ ១០ នាក់, Follow-up Inbox ៥ នាក់..." 
+                      class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2 text-white focus:outline-none focus:border-amber-500"></textarea>
+            <button onclick="addProfileNote()" class="w-full py-2 rounded-xl accent-solid-btn text-xs font-bold active:scale-95 transition flex items-center justify-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+              <span>រក្សាទុកការប្តេជ្ញាចិត្ត</span>
             </button>
           </div>
           <div class="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
