@@ -5124,9 +5124,9 @@ function setStudyTab(tab) {
 window.setStudyTab = setStudyTab;
 
 // ------------------------------------------
-// Sub-view 1: LEADERSHIP & TRAINERS (Founder, CEO, Closing Coach, Technical Managers, Health Specialist)
+// Sub-view 1: LEADERSHIP & TRAINERS (Founder, CEO, Closing Coach, Technical Managers, Health Specialist, Software Dev Manager)
 // ------------------------------------------
-const TRAINERS_LIST = ['founder', 'ceo', 'yaith', 'chanthy', 'udom', 'leanghak', 'masya'];
+const TRAINERS_LIST = ['founder', 'ceo', 'yaith', 'chanthy', 'udom', 'leanghak', 'masya', 'sdoeung'];
 
 const BECH_NORA_FOUNDER_TOPICS = [
   {
@@ -5374,6 +5374,45 @@ const SOT_MASYA_HEALTH_TOPICS = [
   }
 ];
 
+const SDEY_SDOEUNG_TOPICS = [
+  {
+    id: 'sdoeung-1',
+    num: 1,
+    category: 'tech',
+    title: 'ការអភិវឌ្ឍប្រព័ន្ធឌីជីថល និងប្រព័ន្ធស្វ័យប្រវត្តិកម្មជំនួយការងារលក់',
+    tag: 'Software Dev',
+    tagColor: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+    iconBg: 'from-sky-500 to-blue-600',
+    summary: 'ការកសាង និងច្នៃប្រឌិតប្រព័ន្ធ Dashboard និងឧបករណ៍បច្ចេកវិទ្យាដើម្បីឱ្យការងារលក់កាន់តែងាយស្រួល រហ័ស និងមានប្រសិទ្ធភាពខ្ពស់។',
+    motto: '«បច្ចេកវិទ្យាឆ្លាតវៃ សម្រួលការងារ និងជំរុញអាជីវកម្មឱ្យរីកចម្រើនឥតឈប់ឈរ!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'sdoeung-2',
+    num: 2,
+    category: 'data',
+    title: 'ការវិភាគទិន្នន័យ (Data Analytics) ដើម្បីបង្កើនឱកាសលក់ និងតាមដានប្រសិទ្ធភាព',
+    tag: 'Data & System',
+    tagColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+    iconBg: 'from-indigo-500 to-violet-600',
+    summary: 'វិធីសាស្ត្រទាញយកទិន្នន័យជាក់ស្តែងមកវិភាគ ដើម្បីស្វែងយល់ពីអាកប្បកិរិយាភ្ញៀវ និងរៀបចំយុទ្ធសាស្ត្រលក់ចំគោលដៅ។',
+    motto: '«ទិន្នន័យជាត្រីវិស័យ នាំផ្លូវការសម្រេចចិត្តឱ្យចំគោលដៅ ១០០%!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'sdoeung-3',
+    num: 3,
+    category: 'security',
+    title: 'ស្តង់ដាសុវត្ថិភាពទិន្នន័យ និងការគាំទ្របច្ចេកទេសរលូន ២៤/៧',
+    tag: 'Tech Support',
+    tagColor: 'bg-teal-500/20 text-teal-300 border-teal-500/30',
+    iconBg: 'from-teal-500 to-emerald-600',
+    summary: 'ការការពារសុវត្ថិភាពព័ត៌មាន និងការថែទាំប្រព័ន្ធឱ្យដំណើរការរលូនជានិច្ច គ្មានការរអាក់រអួលដល់ក្រុមការងារ។',
+    motto: '«ប្រព័ន្ធរឹងមាំ សុវត្ថិភាពខ្ពស់ ផ្តល់ទំនុកចិត្តដល់គ្រប់ប្រតិបត្តិការ!»',
+    status: 'coming_soon'
+  }
+];
+
 let trainerScrollTimer = null;
 function handleTrainerCarouselScroll(el) {
   if (!el) return;
@@ -5502,6 +5541,8 @@ function updateTrainerContentArea() {
     container.innerHTML = renderLeanghakLessonsContentHTML();
   } else if (trainer === 'masya') {
     container.innerHTML = renderMasyaHealthContentHTML();
+  } else if (trainer === 'sdoeung') {
+    container.innerHTML = renderSdoeungLessonsContentHTML();
   } else {
     container.innerHTML = renderFounderLessonsContentHTML();
   }
@@ -5971,6 +6012,58 @@ function renderLeanghakLessonsContentHTML() {
   `;
 }
 
+function renderSdoeungLessonsContentHTML() {
+  const activeCategory = appState.sdoeungCategory || 'all';
+  const filtered = activeCategory === 'all' 
+    ? SDEY_SDOEUNG_TOPICS 
+    : SDEY_SDOEUNG_TOPICS.filter(t => t.category === activeCategory);
+
+  return `
+    <!-- Coming Soon Notice Card -->
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-sky-500/10 via-blue-500/10 to-transparent border border-sky-500/25 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 border border-sky-500/30 shadow-md">
+        <i data-lucide="code-2" class="w-5 h-5 text-sky-400"></i>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">បច្ចេកវិទ្យា និងការអភិវឌ្ឍន៍សូហ្វវែរ</h4>
+          <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+            នឹងផ្សាយឆាប់ៗ
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-300 font-kantumruy mt-0.5 leading-relaxed">
+          អត្ថបទ ចំណេះដឹងបច្ចេកវិទ្យា ការវិភាគទិន្នន័យ និងប្រព័ន្ធ Dashboard ពី លោក ស្ដី ស្ដើង (Sdey Sdoeung) នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
+        </p>
+      </div>
+    </div>
+
+    <!-- Category Filter Pills (Auto-Center on Tap) -->
+    <div id="sdoeung-category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+      <button onclick="setSdoeungCategory('all', event)" data-category="all"
+              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ✨ ទាំងអស់ (3)
+      </button>
+      <button onclick="setSdoeungCategory('tech', event)" data-category="tech"
+              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'tech' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        💻 សូហ្វវែរ (Software)
+      </button>
+      <button onclick="setSdoeungCategory('data', event)" data-category="data"
+              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'data' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        📊 វិភាគទិន្នន័យ (Data)
+      </button>
+      <button onclick="setSdoeungCategory('security', event)" data-category="security"
+              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'security' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🛡️ សុវត្ថិភាព & គាំទ្រ
+      </button>
+    </div>
+
+    <!-- Sdoeung Topics List -->
+    <div id="sdoeung-topic-list" class="space-y-3.5">
+      ${filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-sky-500/30')).join('')}
+    </div>
+  `;
+}
+
 function renderSalesResetContent() {
   const activeTrainer = appState.activeTrainer || 'founder';
 
@@ -5992,6 +6085,7 @@ function renderSalesResetContent() {
   else if (activeTrainer === 'udom') initialContent = renderUdomLessonsContentHTML();
   else if (activeTrainer === 'leanghak') initialContent = renderLeanghakLessonsContentHTML();
   else if (activeTrainer === 'masya') initialContent = renderMasyaHealthContentHTML();
+  else if (activeTrainer === 'sdoeung') initialContent = renderSdoeungLessonsContentHTML();
 
   return `
     <div class="space-y-3.5 animate-fade-in">
@@ -6493,6 +6587,78 @@ function renderSalesResetContent() {
           </div>
         </div>
 
+        <!-- Slide 8: លោក ស្ដី ស្ដើង -->
+        <div id="trainer-slide-sdoeung" class="w-full min-w-full shrink-0 snap-center">
+          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-sky-500/35 relative overflow-hidden bg-gradient-to-br from-sky-500/15 via-[#0C1B33] to-[#070D18] shadow-2xl text-left">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-sky-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Header Tags -->
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+                <span>💻</span>
+                <span>បច្ចេកវិទ្យា & អភិវឌ្ឍន៍សូហ្វវែរ</span>
+              </span>
+              <span class="text-[10px] text-sky-400 font-mono font-bold bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/30">MANAGER</span>
+            </div>
+
+            <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
+            <div class="flex items-center gap-3.5 sm:gap-4">
+              <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-sky-400 shadow-xl bg-black/40">
+                <img src="manager-sdey-sdoeung.jpg" alt="Sdey Sdoeung" 
+                     class="w-full h-full object-cover object-[50%_15%] scale-110 transition-transform duration-300">
+                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-sky-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <!-- ជួរទី ១ ៖ ឈ្មោះខ្មែរនៅលើ ធំ និងច្បាស់ -->
+                <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ស្ដី ស្ដើង</h3>
+                <!-- ជួរទី ២ ៖ ឈ្មោះឡាតាំងនៅក្រោម -->
+                <p class="text-xs sm:text-sm font-bold text-sky-400 mt-0.5 tracking-wide">Sdey Sdoeung</p>
+                <!-- ជួរទី ៣ ៖ តួនាទី -->
+                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • Technical & Software Development</p>
+                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 font-bold text-[9.5px] border border-sky-500/40">
+                    TECHNICAL & SOFTWARE DEV
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Banner Quote -->
+            <div class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/25 backdrop-blur-md mt-3">
+              <div class="flex items-center gap-1.5 text-sky-300 text-xs font-bold mb-1">
+                <span>💻</span>
+                <span>ទស្សនៈបច្ចេកវិទ្យា & នវានុវត្តន៍ ៖</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+                «បច្ចេកវិទ្យា គឺជាស្ពានចម្លងក្តីសុបិនឱ្យក្លាយជាលទ្ធផលជាក់ស្តែង»
+              </h3>
+              <p class="text-[11px] text-sky-200/90 font-kantumruy leading-relaxed mt-1">
+                “ការបង្កើត និងអភិវឌ្ឍន៍ប្រព័ន្ធឌីជីថល មិនត្រឹមតែជួយឱ្យការងារលក់មានរបៀបរៀបរយទេ គឺជួយពន្លឿនក្រុមការងារឱ្យសម្រេចគោលដៅធំៗបានកាន់តែរហ័ស។”
+              </p>
+            </div>
+
+            <!-- 3 Quick Pillars Pills -->
+            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">💻</span>
+                <p class="text-[10px] font-bold text-white mt-0.5">សូហ្វវែរ</p>
+                <span class="text-[8.5px] text-slate-400 block">Software Dev</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">📊</span>
+                <p class="text-[10px] font-bold text-sky-400 mt-0.5">វិភាគទិន្នន័យ</p>
+                <span class="text-[8.5px] text-slate-400 block">Data Analytics</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🛡️</span>
+                <p class="text-[10px] font-bold text-emerald-400 mt-0.5">គាំទ្របច្ចេកទេស</p>
+                <span class="text-[8.5px] text-slate-400 block">Tech Support</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Dynamic Content Area (Switches based on active trainer: Founder, CEO, Yaith, Masya) -->
@@ -6911,6 +7077,39 @@ function setHealthCategory(cat, event) {
   }
 }
 window.setHealthCategory = setHealthCategory;
+
+function setSdoeungCategory(cat, event) {
+  appState.sdoeungCategory = cat;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  // Auto-scroll clicked button to center horizontally
+  if (event && event.currentTarget) {
+    event.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  const pills = document.querySelectorAll('.sdoeung-category-pill');
+  pills.forEach(btn => {
+    const isThis = btn.getAttribute('data-category') === cat;
+    if (isThis) {
+      btn.className = "sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition active:scale-95 bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20";
+      if (!event) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    } else {
+      btn.className = "sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5";
+    }
+  });
+
+  const listContainer = document.getElementById('sdoeung-topic-list');
+  if (listContainer) {
+    const filtered = cat === 'all' 
+      ? SDEY_SDOEUNG_TOPICS 
+      : SDEY_SDOEUNG_TOPICS.filter(t => t.category === cat);
+    listContainer.innerHTML = filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-sky-500/30')).join('');
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    updateTrainerContentArea();
+  }
+}
+window.setSdoeungCategory = setSdoeungCategory;
 
 // ------------------------------------------
 // Sub-view 2: SALES QUOTES & MINDSET
