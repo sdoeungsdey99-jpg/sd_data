@@ -3252,6 +3252,74 @@
   </div>
 
   <!-- ======================================================== -->
+  <!-- OFFICE VERIFICATION FAILED MODAL (Wi-Fi or GPS Guidance) -->
+  <!-- ======================================================== -->
+  <div id="attendance-office-verify-modal" class="fixed inset-0 z-[95] bg-[#070D18]/90 backdrop-blur-xl hidden flex items-center justify-center p-4 pb-8 font-kantumruy transition-all">
+    <div class="bg-[#0F1B2E] border border-rose-500/30 rounded-3xl p-5 w-full max-w-sm mx-auto shadow-2xl space-y-4 animate-fade-in">
+      <!-- Icon & Title -->
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto shadow-lg shadow-rose-500/20">
+          <i data-lucide="shield-alert" class="w-7 h-7"></i>
+        </div>
+        <div>
+          <h3 class="font-black text-sm text-white">មិនអាចកត់ត្រាវត្តមានបានទេ ⚠️</h3>
+          <p class="text-[11px] text-rose-300/90 font-medium mt-0.5">ទាមទារផ្ទៀងផ្ទាត់វត្តមាន (At Office Verified)</p>
+        </div>
+      </div>
+
+      <!-- Instruction / Rules Card -->
+      <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2.5 text-xs text-slate-300">
+        <p class="text-[11px] font-bold text-white flex items-center gap-1.5 border-b border-white/10 pb-1.5">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-sky-400"></i>
+          <span>ដើម្បី Check-in បាន តម្រូវឱ្យចូលលក្ខខណ្ឌមួយក្នុងចំណោមពីរ ៖</span>
+        </p>
+
+        <!-- Rule 1: Wi-Fi -->
+        <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-white/5">
+          <div class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="wifi" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="font-bold text-white text-[11px]">ជម្រើសទី ១ ៖ ភ្ជាប់ Wi-Fi ក្រុមហ៊ុន</div>
+            <p class="text-[10px] text-slate-400 mt-0.5">ភ្ជាប់បណ្តាញ Wi-Fi ការិយាល័យ Bostar Group (Office Router)</p>
+          </div>
+        </div>
+
+        <div class="text-center text-[10px] text-amber-400 font-bold tracking-widest">— ឬ —</div>
+
+        <!-- Rule 2: GPS -->
+        <div class="flex items-start gap-2.5 p-2 rounded-xl bg-white/5 border border-white/5">
+          <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="map-pin" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="font-bold text-white text-[11px]">ជម្រើសទី ២ ៖ បើក GPS នៅការិយាល័យ</div>
+            <p class="text-[10px] text-slate-400 mt-0.5">បើក Location / GPS នៅពេលអ្នកស្ថិតនៅក្នុងបរិវេណការិយាល័យ (កាំ 150m)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Diagnosis Status -->
+      <div id="att-verify-debug-info" class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[10px] font-mono text-slate-300 space-y-1">
+        <!-- Injected dynamically -->
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 pt-1">
+        <button type="button" onclick="closeOfficeVerificationModal()" 
+                class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 text-xs font-bold transition active:scale-95">
+          បិទ
+        </button>
+        <button type="button" onclick="retryAttendanceCheckIn()" 
+                class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/25 transition active:scale-95">
+          <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+          <span>សាកល្បងម្តងទៀត</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
   <!-- ADMIN PIN PROTECTION MODAL FOR ATTENDANCE                -->
   <!-- ======================================================== -->
   <div id="attendance-pin-modal" class="fixed inset-0 z-[90] bg-[#070D18]/85 backdrop-blur-xl hidden flex items-center justify-center p-4 pb-8 font-kantumruy">
@@ -4713,6 +4781,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=22.9"></script>
+  <script src="app.js?v=23.0"></script>
 </body>
 </html>

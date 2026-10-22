@@ -9520,6 +9520,231 @@ async function sendAttendanceViaTelegramBot(text) {
 }
 
 // ==========================================
+// OFFICE ATTENDANCE VERIFICATION (Wi-Fi IP + GPS Geofencing)
+// ==========================================
+const DEFAULT_OFFICE_CONFIG = {
+  enabled: true,
+  // Google Maps Coordinates from Bostar Group HQ: https://maps.app.goo.gl/br5qH3k6Nzd6Yyjo7?g_st=ic
+  latitude: 11.5362769,
+  longitude: 104.8865537,
+  radiusMeters: 150, // 150m perimeter around building
+  // Company Wi-Fi Public IP(s)
+  allowedIps: ['45.119.135.224']
+};
+
+function getOfficeConfig() {
+  try {
+    const raw = localStorage.getItem('sd_office_config');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        ...DEFAULT_OFFICE_CONFIG,
+        ...parsed,
+        allowedIps: Array.isArray(parsed.allowedIps) && parsed.allowedIps.length > 0 ? parsed.allowedIps : DEFAULT_OFFICE_CONFIG.allowedIps
+      };
+    }
+  } catch (e) {
+    console.warn('Error reading sd_office_config:', e);
+  }
+  return { ...DEFAULT_OFFICE_CONFIG };
+}
+
+function saveOfficeConfig(cfg) {
+  try {
+    localStorage.setItem('sd_office_config', JSON.stringify(cfg));
+  } catch (e) {
+    console.warn('Error saving sd_office_config:', e);
+  }
+}
+
+function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371e3; // Earth radius in meters
+  const toRad = deg => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c);
+}
+
+async function verifyOfficePresence() {
+  const cfg = getOfficeConfig();
+  if (cfg.enabled === false) {
+    return { verified: true, method: 'disabled', label: 'ការិយាល័យកណ្តាល (At Office Verified)' };
+  }
+
+  let wifiVerified = false;
+  let currentIp = null;
+
+  // 1. Check Wi-Fi IP (Timeout 2500ms)
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
+    const res = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+    clearTimeout(timer);
+    if (res.ok) {
+      const data = await res.json();
+      currentIp = (data.ip || '').trim();
+      if (currentIp && (cfg.allowedIps || []).includes(currentIp)) {
+        wifiVerified = true;
+      }
+    }
+  } catch (e) {
+    console.warn('IP verification fetch error or timeout:', e);
+  }
+
+  // If Wi-Fi IP matches, rule "បានមួយណាក៏បាន" is satisfied!
+  if (wifiVerified) {
+    return {
+      verified: true,
+      method: 'wifi',
+      ip: currentIp,
+      label: 'ការិយាល័យកណ្តាល (At Office Verified)'
+    };
+  }
+
+  // 2. If Wi-Fi didn't match (e.g. mobile data / 4G), check GPS Geofencing (Timeout 4000ms)
+  let gpsVerified = false;
+  let gpsDistance = null;
+  let gpsCoords = null;
+
+  if (navigator.geolocation) {
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 4000,
+          maximumAge: 10000
+        });
+      });
+      if (pos && pos.coords) {
+        gpsCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        gpsDistance = calculateDistanceMeters(
+          pos.coords.latitude,
+          pos.coords.longitude,
+          cfg.latitude,
+          cfg.longitude
+        );
+        if (gpsDistance <= (cfg.radiusMeters || 150)) {
+          gpsVerified = true;
+        }
+      }
+    } catch (e) {
+      console.warn('GPS location error or timeout:', e);
+    }
+  }
+
+  if (gpsVerified) {
+    return {
+      verified: true,
+      method: 'gps',
+      distance: gpsDistance,
+      label: 'ការិយាល័យកណ្តាល (At Office Verified)'
+    };
+  }
+
+  return {
+    verified: false,
+    currentIp,
+    gpsDistance,
+    cfg
+  };
+}
+
+function openOfficeVerificationFailedModal(check) {
+  const modal = document.getElementById('attendance-office-verify-modal');
+  if (!modal) return;
+  const debugEl = document.getElementById('att-verify-debug-info');
+  if (debugEl) {
+    const ipText = check.currentIp 
+      ? `<div class="flex items-center justify-between text-rose-300"><span>📶 IP ទូរសព្ទបច្ចុប្បន្ន៖</span><span class="font-bold">${check.currentIp} (មិនត្រូវគ្នា)</span></div>`
+      : `<div class="flex items-center justify-between text-slate-400"><span>📶 IP ទូរសព្ទ៖</span><span>មិនអាចទាញយក IP បាន</span></div>`;
+    
+    const gpsText = (check.gpsDistance !== null && check.gpsDistance !== undefined)
+      ? `<div class="flex items-center justify-between text-rose-300"><span>📍 ចម្ងាយពីការិយាល័យ៖</span><span class="font-bold">${check.gpsDistance}m (លើសកាំ 150m)</span></div>`
+      : `<div class="flex items-center justify-between text-amber-300"><span>📍 GPS ទូរសព្ទ៖</span><span>មិនទាន់អនុញ្ញាត Location ឬទូរសព្ទបិទ GPS</span></div>`;
+
+    debugEl.innerHTML = `
+      <div class="space-y-1">
+        ${ipText}
+        ${gpsText}
+      </div>
+    `;
+  }
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeOfficeVerificationModal() {
+  const modal = document.getElementById('attendance-office-verify-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function retryAttendanceCheckIn() {
+  closeOfficeVerificationModal();
+  handleAttendanceAction('in');
+}
+
+async function autoCaptureOfficeSettings() {
+  showToastNotification('កំពុងចាប់យក IP និង GPS បច្ចុប្បន្ន... ⏳');
+  let newIp = null;
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    if (res.ok) {
+      const d = await res.json();
+      newIp = (d.ip || '').trim();
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+
+  let newCoords = null;
+  if (navigator.geolocation) {
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 5000 });
+      });
+      if (pos && pos.coords) {
+        newCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+  const cfg = getOfficeConfig();
+  if (newIp && !cfg.allowedIps.includes(newIp)) {
+    cfg.allowedIps.push(newIp);
+  }
+  if (newCoords) {
+    cfg.latitude = Number(newCoords.lat.toFixed(7));
+    cfg.longitude = Number(newCoords.lon.toFixed(7));
+  }
+  saveOfficeConfig(cfg);
+
+  // Update input fields in edit form if open
+  const ipInput = document.getElementById('att-cfg-allowed-ips');
+  const latInput = document.getElementById('att-cfg-lat');
+  const lonInput = document.getElementById('att-cfg-lon');
+  if (ipInput) ipInput.value = cfg.allowedIps.join(', ');
+  if (latInput) latInput.value = cfg.latitude;
+  if (lonInput) lonInput.value = cfg.longitude;
+
+  showToastNotification(`បានកំណត់ Wi-Fi IP (${newIp || 'ដដែល'}) & GPS (${cfg.latitude}, ${cfg.longitude}) ជោគជ័យ! ✅`);
+  if (navigator.vibrate) try { navigator.vibrate(20); } catch(_) {}
+}
+
+window.openOfficeVerificationFailedModal = openOfficeVerificationFailedModal;
+window.closeOfficeVerificationModal = closeOfficeVerificationModal;
+window.retryAttendanceCheckIn = retryAttendanceCheckIn;
+window.verifyOfficePresence = verifyOfficePresence;
+window.getOfficeConfig = getOfficeConfig;
+window.saveOfficeConfig = saveOfficeConfig;
+window.autoCaptureOfficeSettings = autoCaptureOfficeSettings;
+
+// ==========================================
 // ATTENDANCE TRACKER (CheckinMe Style & Telegram Sync)
 // ==========================================
 const DEFAULT_ATTENDANCE_STATE = {
@@ -9528,7 +9753,7 @@ const DEFAULT_ATTENDANCE_STATE = {
   checkOutTime: null,
   duration: null,
   todayLate: false,
-  location: 'ការិយាល័យកណ្តាល (HQ GPS Verified)',
+  location: 'ការិយាល័យកណ្តាល (At Office Verified)',
   note: '',
   records: [
     { day: 1, date: '01/10/2026', checkIn: '08:02 AM', checkOut: '05:02 PM', status: 'present', duration: '9h 00m' },
@@ -9645,7 +9870,7 @@ function generateAttendanceTelegramText(actionType = null, extraNote = null) {
   const cleanId = String(p.memberId || 'BG-001').replace(/^(ID:\s*)+/i, '').trim();
   const staffId = cleanId || 'BG-001';
   const role = p.work || 'Bostar Sales Consultant';
-  const loc = data.location || 'ការិយាល័យកណ្តាល (HQ GPS Verified)';
+  const loc = data.location || 'ការិយាល័យកណ្តាល (At Office Verified)';
 
   const inTime = data.checkInTime || (data.todayStatus !== 'not_checked' ? '08:00 AM' : '—');
   const outTime = data.checkOutTime || (data.todayStatus === 'checked_out' ? now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'កំពុងបំពេញការងារ ⏳');
@@ -9790,6 +10015,7 @@ function renderAttendanceEditForm() {
 
   const data = getAttendanceData();
   const savedGroup = getTelegramGroupUrl();
+  const cfg = getOfficeConfig();
 
   container.innerHTML = `
     <!-- Status Selection -->
@@ -9852,11 +10078,11 @@ function renderAttendanceEditForm() {
     <!-- Location -->
     <div class="space-y-1.5">
       <label class="block text-xs font-bold text-slate-300">ទីតាំងបំពេញការងារ (Location)៖</label>
-      <input type="text" id="att-edit-location" value="${data.location || 'ការិយាល័យកណ្តាល (HQ GPS Verified)'}" 
+      <input type="text" id="att-edit-location" value="${data.location || 'ការិយាល័យកណ្តាល (At Office Verified)'}" 
              placeholder="ទីតាំង..."
              class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
       <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
-        <button type="button" onclick="quickSetAttendanceLocation('ការិយាល័យកណ្តាល (HQ GPS Verified)')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🏢 HQ ការិយាល័យ</button>
+        <button type="button" onclick="quickSetAttendanceLocation('ការិយាល័យកណ្តាល (At Office Verified)')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🏢 HQ ការិយាល័យ</button>
         <button type="button" onclick="quickSetAttendanceLocation('ចុះទីផ្សារ & ជួបអតិថិជន (Field Sales)')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🛵 ចុះទីផ្សារ</button>
         <button type="button" onclick="quickSetAttendanceLocation('ធ្វើការពីផ្ទះ (Work From Home)')" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-300">🏠 ធ្វើការពីផ្ទះ</button>
       </div>
@@ -9868,6 +10094,57 @@ function renderAttendanceEditForm() {
       <input type="text" id="att-edit-note" value="${data.note || ''}" 
              placeholder="ឧ. ជួបភ្ញៀវក្រៅម៉ោង, ភ្លៀងខ្លាំង..."
              class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+    </div>
+
+    <!-- Office Attendance Verification Settings (Wi-Fi + GPS) -->
+    <div class="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-[#0B1528] to-teal-500/10 border border-emerald-500/25 space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+          <span>ផ្ទៀងផ្ទាត់វត្តមាននៅការិយាល័យ (At Office Verified)</span>
+        </span>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="att-cfg-enabled" class="sr-only peer" ${cfg.enabled !== false ? 'checked' : ''}>
+          <div class="w-8 h-4 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"></div>
+        </label>
+      </div>
+      <p class="text-[10px] text-slate-400">បុគ្គលិកត្រូវតែ <b>ភ្ជាប់ Wi-Fi ក្រុមហ៊ុន</b> ឬ <b>ស្ថិតនៅទីតាំងការិយាល័យ (GPS)</b> ទើបអាច Check-in បាន (បានមួយណាក៏បាន)។</p>
+
+      <div class="space-y-1">
+        <label class="block text-[10.5px] text-slate-300 font-semibold flex items-center justify-between">
+          <span>📶 IP Wi-Fi ការិយាល័យ (Allowed IPs)៖</span>
+          <span class="text-[9.5px] text-sky-400 font-mono">ប្រើក្បៀស ( , ) បើមានច្រើនខ្សែ</span>
+        </label>
+        <input type="text" id="att-cfg-allowed-ips" value="${(cfg.allowedIps || []).join(', ')}" 
+               placeholder="45.119.135.224..." 
+               class="w-full text-xs font-mono bg-black/40 border border-emerald-500/30 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-400">
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div class="space-y-1">
+          <label class="block text-[10px] text-slate-300 font-semibold">📍 Latitude៖</label>
+          <input type="text" id="att-cfg-lat" value="${cfg.latitude}" 
+                 class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2 text-white">
+        </div>
+        <div class="space-y-1">
+          <label class="block text-[10px] text-slate-300 font-semibold">📍 Longitude៖</label>
+          <input type="text" id="att-cfg-lon" value="${cfg.longitude}" 
+                 class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2 text-white">
+        </div>
+        <div class="space-y-1">
+          <label class="block text-[10px] text-slate-300 font-semibold">កាំរង្វង់ (ម៉ែត្រ)៖</label>
+          <input type="number" id="att-cfg-radius" value="${cfg.radiusMeters || 150}" 
+                 class="w-full text-xs font-mono bg-black/40 border border-white/10 rounded-xl p-2 text-white">
+        </div>
+      </div>
+
+      <div class="pt-1">
+        <button type="button" onclick="autoCaptureOfficeSettings()" 
+                class="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-emerald-400 hover:text-emerald-300 text-[11px] font-bold flex items-center justify-center gap-1.5 active:scale-95 transition">
+          <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
+          <span>ចាប់យក Wi-Fi & GPS បច្ចុប្បន្នជាការិយាល័យ (Auto-Capture)</span>
+        </button>
+      </div>
     </div>
 
     <!-- Manager / Admin Telegram Bot Configuration & Live Preview -->
@@ -9982,6 +10259,24 @@ function saveAttendanceEditForm(andShare = false) {
   if (tgTokenInput) localStorage.setItem('sd_telegram_bot_token', tgTokenInput.value.trim());
   if (tgChatIdInput) localStorage.setItem('sd_telegram_chat_id', tgChatIdInput.value.trim());
   if (tgGroupInput) localStorage.setItem('sd_telegram_group_url', tgGroupInput.value.trim());
+
+  // Save Office Verification Config
+  const cfgEnabled = document.getElementById('att-cfg-enabled');
+  const cfgIps = document.getElementById('att-cfg-allowed-ips');
+  const cfgLat = document.getElementById('att-cfg-lat');
+  const cfgLon = document.getElementById('att-cfg-lon');
+  const cfgRad = document.getElementById('att-cfg-radius');
+  if (cfgIps) {
+    const rawIps = cfgIps.value.split(',').map(s => s.trim()).filter(Boolean);
+    const cfg = {
+      enabled: cfgEnabled ? cfgEnabled.checked : true,
+      allowedIps: rawIps.length > 0 ? rawIps : ['45.119.135.224'],
+      latitude: Number(cfgLat?.value) || 11.5362769,
+      longitude: Number(cfgLon?.value) || 104.8865537,
+      radiusMeters: Number(cfgRad?.value) || 150
+    };
+    saveOfficeConfig(cfg);
+  }
 
   saveAttendanceData(data);
   closeAttendanceEditModal();
@@ -10668,7 +10963,7 @@ function renderManagerModalContent() {
       <!-- Location -->
       <div class="space-y-1.5">
         <label class="block text-xs font-bold text-slate-300">ទីតាំងបំពេញការងារ (Location)៖</label>
-        <input type="text" id="att-edit-location" value="${data.location || 'ការិយាល័យកណ្តាល (HQ GPS Verified)'}" 
+        <input type="text" id="att-edit-location" value="${data.location || 'ការិយាល័យកណ្តាល (At Office Verified)'}" 
                placeholder="ទីតាំង..."
                class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
       </div>
@@ -11207,12 +11502,27 @@ function updateAttendanceLiveClock() {
   }
 }
 
-function handleAttendanceAction(action) {
+async function handleAttendanceAction(action) {
   const data = getAttendanceData();
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   if (action === 'in') {
+    showToastNotification('កំពុងផ្ទៀងផ្ទាត់ Wi-Fi & ទីតាំងការិយាល័យ... ⏳');
+    const check = await verifyOfficePresence();
+    if (!check.verified) {
+      if (navigator.vibrate) try { navigator.vibrate([100, 50, 100]); } catch(_) {}
+      openOfficeVerificationFailedModal(check);
+      return;
+    }
+
+    data.location = 'ការិយាល័យកណ្តាល (At Office Verified)';
+    if (check.method === 'wifi') {
+      showToastNotification('📶 Wi-Fi ក្រុមហ៊ុនផ្ទៀងផ្ទាត់ជោគជ័យ! (At Office Verified)');
+    } else if (check.method === 'gps') {
+      showToastNotification(`📍 GPS ការិយាល័យផ្ទៀងផ្ទាត់ជោគជ័យ (${check.distance}m)!`);
+    }
+
     const currentHour = now.getHours();
     const currentMin = now.getMinutes();
     const isLate = currentHour > 8 || (currentHour === 8 && currentMin > 15);
