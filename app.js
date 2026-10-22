@@ -5057,9 +5057,9 @@ function getLearningViewHTML() {
   const currentTab = appState.studyTab || 'sales_reset';
 
   return `
-    <div class="space-y-4 pb-12" id="study-container">
+    <div class="space-y-3.5 pb-28 sm:pb-32" id="study-container">
       <!-- Top Sticky Segmented Tab Bar (Auto-hide on scroll like front filter bar) -->
-      <div id="study-sticky-header" class="sticky top-0 z-30 pt-1 pb-1 backdrop-blur-md">
+      <div id="study-sticky-header" class="sticky top-0 z-30 pt-1 pb-1.5 backdrop-blur-md">
         <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
           <button onclick="setStudyTab('sales_reset')" 
                   class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${currentTab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
@@ -5093,7 +5093,7 @@ function setStudyTab(tab) {
   const container = document.getElementById('study-container');
   if (container) {
     container.innerHTML = `
-      <div id="study-sticky-header" class="sticky top-0 z-30 pt-1 pb-1 backdrop-blur-md">
+      <div id="study-sticky-header" class="sticky top-0 z-30 pt-1 pb-1.5 backdrop-blur-md">
         <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
           <button onclick="setStudyTab('sales_reset')" 
                   class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
@@ -5169,7 +5169,7 @@ function renderSalesResetContent() {
         </div>
 
         <!-- Key Banner Quote -->
-        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 backdrop-blur-md mt-3.5">
+        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 backdrop-blur-md mt-3">
           <div class="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
             <span>✨</span>
             <span>សារដាស់ស្មារតីស្នូល ៖</span>
@@ -5183,7 +5183,7 @@ function renderSalesResetContent() {
         </div>
 
         <!-- 3 Quick Pillars Pills -->
-        <div class="grid grid-cols-3 gap-2 text-center select-none mt-3">
+        <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
           <div class="p-2 rounded-xl bg-white/5 border border-white/5">
             <span class="text-xs">🎯</span>
             <p class="text-[10px] font-bold text-white mt-0.5">១០ មេរៀន</p>
@@ -5203,42 +5203,42 @@ function renderSalesResetContent() {
       </div>
 
       <!-- Category Filter Pills -->
-      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 select-none" style="-webkit-overflow-scrolling: touch;">
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch;">
         <button onclick="setLessonCategory('all')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-          ✨ ទាំងអស់ (១០)
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+          ✨ ទាំងអស់ (10)
         </button>
         <button onclick="setLessonCategory('mindset')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'mindset' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'mindset' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🧠 ផ្នត់គំនិត
         </button>
         <button onclick="setLessonCategory('process')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'process' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'process' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🎯 ដំណើរការលក់
         </button>
         <button onclick="setLessonCategory('luca')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'luca' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'luca' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🛡️ រូបមន្ត L.U.C.A.
         </button>
         <button onclick="setLessonCategory('followup')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'followup' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'followup' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           📞 ការតាមដាន (Follow-up)
         </button>
         <button onclick="setLessonCategory('action')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'action' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'action' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🚀 ផែនការសកម្មភាព
         </button>
       </div>
 
-      <!-- 10 Lessons Accordion List -->
-      <div class="space-y-3">
+      <!-- 10 Lessons Accordion List (Standardized Card-to-Card Spacing) -->
+      <div class="space-y-3.5">
         ${filteredLessons.map(l => {
           const isExpanded = appState.expandedLessons && appState.expandedLessons[l.num];
           return `
             <div class="ios-glass-card rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-amber-500/30">
               <!-- Header Bar (Click to toggle) -->
               <div onclick="toggleLessonAccordion(${l.num})" 
-                   class="p-3.5 flex items-start justify-between gap-3 cursor-pointer select-none hover:bg-white/[0.02] active:scale-[0.99] transition">
+                   class="p-3.5 sm:p-4 flex items-start justify-between gap-3 cursor-pointer select-none hover:bg-white/[0.02] active:scale-[0.99] transition">
                 <div class="flex items-start gap-3 min-w-0 flex-1">
                   <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
                     ${l.num}
@@ -5477,9 +5477,9 @@ function renderSalesQuotesContent() {
   const heroQuote = lib[heroIndex] || lib[0];
 
   return `
-    <div class="space-y-4 animate-fade-in">
+    <div class="space-y-3.5 animate-fade-in">
       <!-- Hero Daily Quote Card (Today's Mindset) -->
-      <div class="ios-glass-card rounded-3xl p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-b from-[#131D33] via-[#0B1528] to-[#070D18] shadow-2xl">
+      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-b from-[#131D33] via-[#0B1528] to-[#070D18] shadow-2xl">
         <div class="absolute -top-12 -right-12 w-40 h-40 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="flex items-center justify-between mb-3">
@@ -5515,7 +5515,7 @@ function renderSalesQuotesContent() {
         </div>
 
         <!-- Daily Action Tip -->
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/5 mb-3.5">
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/5 mb-3">
           <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-400 mb-1">
             <span>💡</span>
             <span>គន្លឹះអនុវត្តថ្ងៃនេះ (Action Tip)៖</span>
@@ -5546,35 +5546,35 @@ function renderSalesQuotesContent() {
       </div>
 
       <!-- Category Filter Pills -->
-      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 select-none" style="-webkit-overflow-scrolling: touch;">
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch;">
         <button onclick="setQuoteCategory('all')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           ✨ ទាំងអស់
         </button>
         <button onclick="setQuoteCategory('motivation')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'motivation' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'motivation' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🔥 លើកទឹកចិត្ត
         </button>
         <button onclick="setQuoteCategory('trust')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'trust' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'trust' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🤝 កសាងទំនុកចិត្ត
         </button>
         <button onclick="setQuoteCategory('closing')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'closing' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'closing' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🎯 បិទការលក់
         </button>
         <button onclick="setQuoteCategory('objection')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'objection' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'objection' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🛡️ ដោះស្រាយការជំទាស់
         </button>
         <button onclick="setQuoteCategory('followup')" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'followup' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'followup' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           📞 ការតាមដាន (Follow-up)
         </button>
       </div>
 
-      <!-- Quotes Library Cards -->
-      <div class="space-y-3">
+      <!-- Quotes Library Cards (Standardized Card-to-Card Spacing) -->
+      <div class="space-y-3.5">
         <div class="flex items-center justify-between px-1">
           <span class="text-xs font-bold text-slate-300">បណ្ណាល័យពាក្យស្លោក (${filtered.length})</span>
           <span class="text-[10px] text-slate-500">ចុច Copy ដើម្បីចែករំលែក</span>
@@ -5689,8 +5689,8 @@ function renderEnglishWordsContent() {
   const hasMore = visibleWords.length < DAILY_ENGLISH_WORDS.length;
 
   return `
-    <div class="space-y-4 animate-fade-in">
-      <div class="ios-glass-card rounded-3xl p-5 border border-white/10 text-center relative overflow-hidden">
+    <div class="space-y-3.5 animate-fade-in">
+      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 text-center relative overflow-hidden">
         <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-500 text-white flex items-center justify-center mx-auto mb-2 shadow-lg shadow-blue-500/20">
           <i data-lucide="languages" class="w-6 h-6"></i>
         </div>
@@ -5703,7 +5703,7 @@ function renderEnglishWordsContent() {
         </div>
       </div>
 
-      <div class="space-y-3" id="study-words-list">
+      <div class="space-y-3.5" id="study-words-list">
         ${visibleWords.map((w, idx) => `
           <div class="ios-glass-card rounded-2xl p-4 border border-white/10 flex items-start gap-3.5 transition-all">
             <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 font-bold text-sm flex items-center justify-center shrink-0">
