@@ -5378,37 +5378,49 @@ const SDEY_SDOEUNG_TOPICS = [
   {
     id: 'sdoeung-1',
     num: 1,
-    category: 'tech',
-    title: 'ការអភិវឌ្ឍប្រព័ន្ធឌីជីថល និងប្រព័ន្ធស្វ័យប្រវត្តិកម្មជំនួយការងារលក់',
-    tag: 'Software Dev',
+    category: 'ai_system',
+    title: 'ការប្រើប្រាស់ប្រព័ន្ធ SD Dashboard & ជំនួយការ AI (Gemini, ChatGPT) ពន្លឿនការងារលក់',
+    tag: 'AI & SD Dashboard',
     tagColor: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
     iconBg: 'from-sky-500 to-blue-600',
-    summary: 'ការកសាង និងច្នៃប្រឌិតប្រព័ន្ធ Dashboard និងឧបករណ៍បច្ចេកវិទ្យាដើម្បីឱ្យការងារលក់កាន់តែងាយស្រួល រហ័ស និងមានប្រសិទ្ធភាពខ្ពស់។',
-    motto: '«បច្ចេកវិទ្យាឆ្លាតវៃ សម្រួលការងារ និងជំរុញអាជីវកម្មឱ្យរីកចម្រើនឥតឈប់ឈរ!»',
+    summary: 'របៀបទាញយកផលប្រយោជន៍អតិបរមាពី SD Dashboard និងការប្រើប្រាស់ AI (Gemini, ChatGPT) ដើម្បីសរសេរ Caption, រកគំនិតមាតិកាលក់ និងឆ្លើយតបភ្ញៀវបានរហ័សទាន់ចិត្ត។',
+    motto: '«ប្រើប្រាស់ AI និង Dashboard ឱ្យដូចជាជំនួយការផ្ទាល់ខ្លួន ដើម្បីសម្រាលការងារ និងពន្លឿនលទ្ធផល!»',
     status: 'coming_soon'
   },
   {
     id: 'sdoeung-2',
     num: 2,
-    category: 'data',
-    title: 'ការវិភាគទិន្នន័យ (Data Analytics) ដើម្បីបង្កើនឱកាសលក់ និងតាមដានប្រសិទ្ធភាព',
-    tag: 'Data & System',
-    tagColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
-    iconBg: 'from-indigo-500 to-violet-600',
-    summary: 'វិធីសាស្ត្រទាញយកទិន្នន័យជាក់ស្តែងមកវិភាគ ដើម្បីស្វែងយល់ពីអាកប្បកិរិយាភ្ញៀវ និងរៀបចំយុទ្ធសាស្ត្រលក់ចំគោលដៅ។',
-    motto: '«ទិន្នន័យជាត្រីវិស័យ នាំផ្លូវការសម្រេចចិត្តឱ្យចំគោលដៅ ១០០%!»',
+    category: 'page_media',
+    title: 'យុទ្ធសាស្ត្រគ្រប់គ្រង Facebook Page & ការកសាងទំនុកចិត្តទាក់ទាញអតិថិជន',
+    tag: 'FB Page & Ads',
+    tagColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    iconBg: 'from-blue-600 to-indigo-600',
+    summary: 'គន្លឹះរៀបចំ Facebook Page ឱ្យមានស្តង់ដាវិជ្ជាជីវៈ ការរៀបចំប្រព័ន្ធឆ្លើយតប Inbox ស្វ័យប្រវត្តិ ការជ្រើសរើសម៉ោងផុស និងការបង្កើតទំនុកចិត្តខ្ពស់ជាមួយភ្ញៀវ។',
+    motto: '«Facebook Page មានស្តង់ដា និងឆ្លើយតបរហ័ស បង្កើតទំនុកចិត្ត និងទាក់ទាញភ្ញៀវឥតឈប់ឈរ!»',
     status: 'coming_soon'
   },
   {
     id: 'sdoeung-3',
     num: 3,
-    category: 'security',
-    title: 'ស្តង់ដាសុវត្ថិភាពទិន្នន័យ និងការគាំទ្របច្ចេកទេសរលូន ២៤/៧',
-    tag: 'Tech Support',
+    category: 'pc_video',
+    title: 'ជំនាញកុំព្យូទ័រ និងការកាត់តវីដេអូខ្លី (CapCut/Canva) សម្រាប់អ្នកលក់សម័យ AI',
+    tag: 'PC & Video Editing',
     tagColor: 'bg-teal-500/20 text-teal-300 border-teal-500/30',
     iconBg: 'from-teal-500 to-emerald-600',
-    summary: 'ការការពារសុវត្ថិភាពព័ត៌មាន និងការថែទាំប្រព័ន្ធឱ្យដំណើរការរលូនជានិច្ច គ្មានការរអាក់រអួលដល់ក្រុមការងារ។',
-    motto: '«ប្រព័ន្ធរឹងមាំ សុវត្ថិភាពខ្ពស់ ផ្តល់ទំនុកចិត្តដល់គ្រប់ប្រតិបត្តិការ!»',
+    summary: 'ការប្រើប្រាស់កុំព្យូទ័រក្នុងការរៀបចំឯកសារ ការកាត់តវីដេអូខ្លីៗ (TikTok, Reels) និងការឌីហ្សាញរូបភាពមាតិកាលក់ឱ្យទាក់ទាញភ្នែក និងមានតម្លៃខ្ពស់។',
+    motto: '«វីដេអូស្អាត និងជំនាញកុំព្យូទ័ររហ័ស ធ្វើឱ្យការលក់របស់យើងកាន់តែទាក់ទាញ និងទាន់សម័យ!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'sdoeung-4',
+    num: 4,
+    category: 'growth',
+    title: 'ការអភិវឌ្ឍខ្លួនឱ្យទាន់បច្ចេកវិទ្យា (Continuous Upskilling) និងផ្នត់គំនិតឌីជីថល',
+    tag: 'Digital Mindset',
+    tagColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+    iconBg: 'from-indigo-500 to-purple-600',
+    summary: 'ផ្នត់គំនិតរៀនសូត្របច្ចេកវិទ្យាថ្មីៗរាល់ថ្ងៃ ការបើកចិត្តទទួលយកឧបករណ៍ Digital ទំនើបៗ និងការកែច្នៃទម្លាប់ធ្វើការបែបចាស់ៗមកជាប្រព័ន្ធស្វ័យប្រវត្តិកម្ម។',
+    motto: '«អ្នកដែលរៀនមិនឈប់ គឺជាអ្នកដែលដើរទាន់សម័យកាល និងទទួលបានជោគជ័យ!»',
     status: 'coming_soon'
   }
 ];
@@ -6026,13 +6038,13 @@ function renderSdoeungLessonsContentHTML() {
       </div>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2">
-          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">បច្ចេកវិទ្យា និងការអភិវឌ្ឍន៍សូហ្វវែរ</h4>
+          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">បច្ចេកវិទ្យា AI, ប្រព័ន្ធ Dashboard & ជំនាញឌីជីថល</h4>
           <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
             នឹងផ្សាយឆាប់ៗ
           </span>
         </div>
         <p class="text-[11px] text-slate-300 font-kantumruy mt-0.5 leading-relaxed">
-          អត្ថបទ ចំណេះដឹងបច្ចេកវិទ្យា ការវិភាគទិន្នន័យ និងប្រព័ន្ធ Dashboard ពី លោក ស្ដី ស្ដើង (Sdey Sdoeung) នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
+          អត្ថបទ និងមេរៀនណែនាំពីការប្រើប្រាស់ SD Dashboard, AI (Gemini, ChatGPT), ការគ្រប់គ្រង Facebook Page, ជំនាញកុំព្យូទ័រ និងការកាត់តវីដេអូពី លោក ស្ដី ស្ដើង (Manager) នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
         </p>
       </div>
     </div>
@@ -6041,19 +6053,23 @@ function renderSdoeungLessonsContentHTML() {
     <div id="sdoeung-category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
       <button onclick="setSdoeungCategory('all', event)" data-category="all"
               class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-        ✨ ទាំងអស់ (3)
+        ✨ ទាំងអស់ (4)
       </button>
-      <button onclick="setSdoeungCategory('tech', event)" data-category="tech"
-              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'tech' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-        💻 សូហ្វវែរ (Software)
+      <button onclick="setSdoeungCategory('ai_system', event)" data-category="ai_system"
+              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'ai_system' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🤖 AI & Dashboard
       </button>
-      <button onclick="setSdoeungCategory('data', event)" data-category="data"
-              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'data' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-        📊 វិភាគទិន្នន័យ (Data)
+      <button onclick="setSdoeungCategory('page_media', event)" data-category="page_media"
+              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'page_media' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        📱 Facebook Page
       </button>
-      <button onclick="setSdoeungCategory('security', event)" data-category="security"
-              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'security' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-        🛡️ សុវត្ថិភាព & គាំទ្រ
+      <button onclick="setSdoeungCategory('pc_video', event)" data-category="pc_video"
+              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'pc_video' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🎬 កុំព្យូទ័រ & កាត់តវីដេអូ
+      </button>
+      <button onclick="setSdoeungCategory('growth', event)" data-category="growth"
+              class="sdoeung-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'growth' ? 'bg-sky-500 text-black font-bold shadow-md shadow-sky-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🚀 អភិវឌ្ឍខ្លួនទាន់សម័យ
       </button>
     </div>
 
@@ -6618,7 +6634,7 @@ function renderSalesResetContent() {
                 <p class="text-xs text-slate-300 font-medium mt-0.5">Manager</p>
                 <div class="mt-2 flex items-center gap-1.5 flex-wrap">
                   <span class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 font-bold text-[9.5px] border border-sky-500/40">
-                    TECHNICAL & SOFTWARE DEV
+                    AI • SD DASHBOARD • FB PAGE • VIDEO EDITING
                   </span>
                 </div>
               </div>
@@ -6627,33 +6643,33 @@ function renderSalesResetContent() {
             <!-- Key Banner Quote -->
             <div class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/25 backdrop-blur-md mt-3">
               <div class="flex items-center gap-1.5 text-sky-300 text-xs font-bold mb-1">
-                <span>💻</span>
-                <span>ទស្សនៈបច្ចេកវិទ្យា & នវានុវត្តន៍ ៖</span>
+                <span>🤖</span>
+                <span>ទស្សនៈបច្ចេកវិទ្យា & AI ៖</span>
               </div>
               <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
-                «បច្ចេកវិទ្យា គឺជាស្ពានចម្លងក្តីសុបិនឱ្យក្លាយជាលទ្ធផលជាក់ស្តែង»
+                «AI និងបច្ចេកវិទ្យាមិនជំនួសយើងទេ តែអ្នកចេះប្រើ AI នឹងជំនួសអ្នកមិនចេះប្រើ!»
               </h3>
               <p class="text-[11px] text-sky-200/90 font-kantumruy leading-relaxed mt-1">
-                “ការបង្កើត និងអភិវឌ្ឍន៍ប្រព័ន្ធឌីជីថល មិនត្រឹមតែជួយឱ្យការងារលក់មានរបៀបរៀបរយទេ គឺជួយពន្លឿនក្រុមការងារឱ្យសម្រេចគោលដៅធំៗបានកាន់តែរហ័ស។”
+                “ការអភិវឌ្ឍខ្លួនឱ្យទាន់សម័យកាល តាមរយៈការប្រើប្រាស់ប្រព័ន្ធ SD Dashboard, AI (Gemini, ChatGPT), ការគ្រប់គ្រង Facebook Page, ជំនាញកុំព្យូទ័រ និងការកាត់តវីដេអូ គឺជាកម្លាំងចលករជួយឱ្យការងារលក់ស្ទុះទៅមុខលឿនជាងមុន ១០ដង។”
               </p>
             </div>
 
             <!-- 3 Quick Pillars Pills -->
             <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
               <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🤖</span>
+                <p class="text-[10px] font-bold text-white mt-0.5">AI & Dashboard</p>
+                <span class="text-[8.5px] text-slate-400 block">Gemini & ChatGPT</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">📱</span>
+                <p class="text-[10px] font-bold text-sky-400 mt-0.5">Page & Video</p>
+                <span class="text-[8.5px] text-slate-400 block">Facebook & កាត់ត</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
                 <span class="text-xs">💻</span>
-                <p class="text-[10px] font-bold text-white mt-0.5">សូហ្វវែរ</p>
-                <span class="text-[8.5px] text-slate-400 block">Software Dev</span>
-              </div>
-              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">📊</span>
-                <p class="text-[10px] font-bold text-sky-400 mt-0.5">វិភាគទិន្នន័យ</p>
-                <span class="text-[8.5px] text-slate-400 block">Data Analytics</span>
-              </div>
-              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">🛡️</span>
-                <p class="text-[10px] font-bold text-emerald-400 mt-0.5">គាំទ្របច្ចេកទេស</p>
-                <span class="text-[8.5px] text-slate-400 block">Tech Support</span>
+                <p class="text-[10px] font-bold text-emerald-400 mt-0.5">កុំព្យូទ័រ & ឌីជីថល</p>
+                <span class="text-[8.5px] text-slate-400 block">អភិវឌ្ឍខ្លួនទាន់សម័យ</span>
               </div>
             </div>
           </div>
