@@ -5189,9 +5189,93 @@ function handleTrainerCarouselScroll(el) {
       if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
       updateTrainerContentArea();
     }
-  }, 90);
+  }, 70);
 }
 window.handleTrainerCarouselScroll = handleTrainerCarouselScroll;
+
+function switchTrainer(trainer) {
+  appState.activeTrainer = trainer;
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+  
+  const carousel = document.getElementById('trainer-carousel');
+  if (carousel) {
+    const target = trainer === 'masya' ? carousel.clientWidth : 0;
+    try {
+      carousel.scrollTo({ left: target, behavior: 'smooth' });
+    } catch (_) {
+      carousel.scrollLeft = target;
+    }
+  }
+  updateTrainerContentArea();
+}
+window.switchTrainer = switchTrainer;
+
+function setupTrainerCarouselGesture() {
+  const carousel = document.getElementById('trainer-carousel');
+  if (!carousel) return;
+
+  let startX = 0;
+  let startY = 0;
+  let isSwiping = false;
+
+  // Touch Support for Mobile (iOS Safari & Android Chrome)
+  carousel.ontouchstart = (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isSwiping = true;
+  };
+
+  carousel.ontouchmove = (e) => {
+    if (!isSwiping || !e.touches || e.touches.length !== 1) return;
+  };
+
+  carousel.ontouchend = (e) => {
+    if (!isSwiping || !e.changedTouches || e.changedTouches.length !== 1) return;
+    isSwiping = false;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+
+    // Minimum horizontal swipe distance: 28px, and horizontal dominance
+    if (Math.abs(deltaX) >= 28 && Math.abs(deltaX) > Math.abs(deltaY) * 0.7) {
+      if (deltaX < 0) {
+        // Swiped Left (finger moved right-to-left) -> Switch to Coach Sot Masya
+        switchTrainer('masya');
+      } else {
+        // Swiped Right (finger moved left-to-right) -> Switch to CEO Vann Sitha
+        switchTrainer('ceo');
+      }
+    }
+  };
+
+  // Desktop Mouse Drag Support
+  let isMouseDown = false;
+  let mouseStartX = 0;
+  let mouseStartY = 0;
+
+  carousel.onmousedown = (e) => {
+    isMouseDown = true;
+    mouseStartX = e.clientX;
+    mouseStartY = e.clientY;
+  };
+
+  window.addEventListener('mouseup', (e) => {
+    if (!isMouseDown) return;
+    isMouseDown = false;
+    const deltaX = e.clientX - mouseStartX;
+    const deltaY = e.clientY - mouseStartY;
+    if (Math.abs(deltaX) >= 35 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < 0) {
+        switchTrainer('masya');
+      } else {
+        switchTrainer('ceo');
+      }
+    }
+  });
+}
+window.setupTrainerCarouselGesture = setupTrainerCarouselGesture;
 
 function updateTrainerContentArea() {
   const container = document.getElementById('trainer-content-area');
@@ -5378,11 +5462,12 @@ function renderMasyaHealthContentHTML() {
 function renderSalesResetContent() {
   const isMasya = appState.activeTrainer === 'masya';
 
-  // Schedule scroll alignment if masya is active
+  // Schedule gesture attachment and scroll alignment
   setTimeout(() => {
+    if (typeof setupTrainerCarouselGesture === 'function') setupTrainerCarouselGesture();
     const carousel = document.getElementById('trainer-carousel');
     if (carousel && appState.activeTrainer === 'masya') {
-      carousel.scrollTo({ left: carousel.clientWidth, behavior: 'auto' });
+      carousel.scrollTo({ left: carousel.clientWidth, behavior: 'instant' });
     }
   }, 40);
 
@@ -5391,12 +5476,12 @@ function renderSalesResetContent() {
       
       <!-- Swipeable Trainer Carousel (Gesture works naturally, NO arrows [◄][►], NO dots ●○) -->
       <div id="trainer-carousel" 
-           class="flex overflow-x-auto snap-x snap-mandatory no-scrollbar rounded-3xl select-none" 
-           style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;"
+           class="flex w-full max-w-full overflow-x-auto snap-x snap-mandatory no-scrollbar rounded-3xl" 
+           style="-webkit-overflow-scrolling: touch; touch-action: pan-y;"
            onscroll="handleTrainerCarouselScroll(this)">
         
         <!-- Slide 1: លោកអគ្គនាយក វណ្ណ ស៊ីថា -->
-        <div id="trainer-slide-ceo" class="w-full shrink-0 snap-center">
+        <div id="trainer-slide-ceo" class="w-full min-w-full shrink-0 snap-center">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-br from-amber-500/15 via-[#0C1527] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -5469,7 +5554,7 @@ function renderSalesResetContent() {
         </div>
 
         <!-- Slide 2: អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា -->
-        <div id="trainer-slide-masya" class="w-full shrink-0 snap-center">
+        <div id="trainer-slide-masya" class="w-full min-w-full shrink-0 snap-center">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-pink-500/35 relative overflow-hidden bg-gradient-to-br from-pink-500/15 via-[#170E22] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-pink-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
