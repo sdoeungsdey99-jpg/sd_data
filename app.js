@@ -8191,7 +8191,7 @@ function renderHonorsModalContent() {
       </div>
       <div class="flex items-center gap-3.5">
         <div class="relative shrink-0">
-          <img src="ceo-vann-sitha.jpg" alt="Vann Sitha" 
+          <img src="ceo-vann-sitha.jpg?v=2" alt="Vann Sitha" 
                class="w-20 h-20 rounded-2xl object-cover border-2 border-amber-400 shadow-xl">
           <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
         </div>
@@ -15401,7 +15401,7 @@ function openProfileSubModal(type) {
           <!-- CEO Card Summary -->
           <div class="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent border border-amber-500/30 relative overflow-hidden">
             <div class="flex items-center gap-2.5 mb-2">
-              <img src="ceo-vann-sitha.jpg" alt="CEO" class="w-9 h-9 rounded-xl object-cover border border-amber-400/60 shadow-md">
+              <img src="ceo-vann-sitha.jpg?v=2" alt="CEO" class="w-9 h-9 rounded-xl object-cover border border-amber-400/60 shadow-md">
               <div>
                 <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Vann Sitha Trading • តុលា ២០២៦</span>
                 <h4 class="text-xs font-bold text-white">SALES RESET ពេលការលក់ធ្លាក់ចុះ</h4>
