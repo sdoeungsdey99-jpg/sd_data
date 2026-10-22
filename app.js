@@ -5124,9 +5124,9 @@ function setStudyTab(tab) {
 window.setStudyTab = setStudyTab;
 
 // ------------------------------------------
-// Sub-view 1: LEADERSHIP & TRAINERS (Founder, CEO, Closing Coach, Health Specialist)
+// Sub-view 1: LEADERSHIP & TRAINERS (Founder, CEO, Closing Coach, Technical Managers, Health Specialist)
 // ------------------------------------------
-const TRAINERS_LIST = ['founder', 'ceo', 'yaith', 'masya'];
+const TRAINERS_LIST = ['founder', 'ceo', 'yaith', 'chanthy', 'udom', 'leanghak', 'masya'];
 
 const BECH_NORA_FOUNDER_TOPICS = [
   {
@@ -5202,6 +5202,123 @@ const HOUR_YAITH_CLOSING_TOPICS = [
     iconBg: 'from-cyan-500 to-blue-500',
     summary: 'របៀបសួរផ្តល់ជម្រើស (Option A ឬ Option B) ជំនួសឱ្យការសួរថាទិញ ឬមិនទិញ។',
     motto: '«ការបិទការលក់ គឺជាការជួយអតិថិជនជ្រើសរើសផ្លូវល្អបំផុត!»',
+    status: 'coming_soon'
+  }
+];
+
+const HEM_CHANTHY_TOPICS = [
+  {
+    id: 'chanthy-1',
+    num: 1,
+    category: 'tech',
+    title: 'យុទ្ធសាស្ត្រប្រើប្រាស់បច្ចេកវិទ្យា និងឧបករណ៍ឌីជីថលជំនួយការលក់',
+    tag: 'ជំនាញបច្ចេកទេស',
+    tagColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    iconBg: 'from-blue-500 to-indigo-500',
+    summary: 'គន្លឹះទាញយកប្រយោជន៍ពីឧបករណ៍បច្ចេកវិទ្យាទំនើប ដើម្បីរៀបចំទិន្នន័យ ឆ្លើយតបភ្ញៀវ និងបង្កើនល្បឿនបិទការលក់។',
+    motto: '«បច្ចេកវិទ្យាទំនើប បង្កើនល្បឿន និងប្រសិទ្ធភាពនៃការលក់!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'chanthy-2',
+    num: 2,
+    category: 'team',
+    title: 'តិចនិកដឹកនាំ និងបណ្តុះបណ្តាលសមាជិកក្រុមថ្មីឱ្យឆាប់មានលទ្ធផល',
+    tag: 'ដឹកនាំក្រុមលក់',
+    tagColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+    iconBg: 'from-cyan-500 to-teal-500',
+    summary: 'វិធីសាស្ត្របង្ហាត់បង្ហាញការងារមួយទល់មួយ (One-on-One Coaching) ដើម្បីជួយកូនក្រុមថ្មីចាប់ផ្តើមលក់បានលឿន។',
+    motto: '«ភាពខ្លាំងរបស់មេដឹកនាំ គឺការជួយកូនក្រុមឱ្យជោគជ័យ!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'chanthy-3',
+    num: 3,
+    category: 'kpi',
+    title: 'ការកំណត់ KPI និងការតាមដានសកម្មភាពលក់ប្រចាំថ្ងៃរបស់ក្រុម',
+    tag: 'ការតាមដាន KPI',
+    tagColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    iconBg: 'from-amber-500 to-orange-500',
+    summary: 'រូបមន្តបំបែកគោលដៅប្រចាំខែទៅជាសកម្មភាពប្រចាំថ្ងៃ ដើម្បីធានាថាក្រុមការងារសម្រេចគោលដៅ ១០០%។',
+    motto: '«សកម្មភាពជាប់លាប់ប្រចាំថ្ងៃ បង្កើតលទ្ធផលលក់ដ៏អស្ចារ្យ!»',
+    status: 'coming_soon'
+  }
+];
+
+const BECH_UDOM_TOPICS = [
+  {
+    id: 'udom-1',
+    num: 1,
+    category: 'system',
+    title: 'ការរៀបចំប្រព័ន្ធគ្រប់គ្រងទិន្នន័យអតិថិជន និងការតាមដានស្តង់ដា',
+    tag: 'ប្រព័ន្ធការងារ',
+    tagColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    iconBg: 'from-emerald-500 to-teal-500',
+    summary: 'វិធីសាស្ត្ររៀបចំទិន្នន័យភ្ញៀវឱ្យមានរបៀបរៀបរយ ដើម្បីកុំឱ្យបាត់បង់ឱកាសលក់ និងងាយស្រួលតាមដានបន្ត។',
+    motto: '«ទិន្នន័យច្បាស់លាស់ នាំទៅរកការគ្រប់គ្រងលក់ដ៏មានប្រសិទ្ធភាព!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'udom-2',
+    num: 2,
+    category: 'support',
+    title: 'គន្លឹះដោះស្រាយបញ្ហាបច្ចេកទេស និងការគាំទ្រកូនក្រុមឱ្យទាន់ពេលវេលា',
+    tag: 'គាំទ្រកូនក្រុម',
+    tagColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    iconBg: 'from-blue-500 to-indigo-500',
+    summary: 'ការឈរនៅពីក្រោយ និងផ្តល់ការគាំទ្រផ្នែកបច្ចេកទេសភ្លាមៗពេលកូនក្រុមជួបបញ្ហាជាមួយភ្ញៀវ។',
+    motto: '«ការគាំទ្ររហ័ស បង្កើតទំនុកចិត្តខ្ពស់ក្នុងក្រុមការងារ!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'udom-3',
+    num: 3,
+    category: 'quality',
+    title: 'វិធីសាស្ត្របង្កើនប្រសិទ្ធភាពការងារ និងកាត់បន្ថយកំហុសបច្ចេកទេស',
+    tag: 'គុណភាពការងារ',
+    tagColor: 'bg-teal-500/20 text-teal-300 border-teal-500/30',
+    iconBg: 'from-teal-500 to-emerald-500',
+    summary: 'បញ្ជីត្រួតពិនិត្យ (Checklist) និងវិន័យបច្ចេកទេសដើម្បីធានាការបំពេញការងារបានត្រឹមត្រូវ ១០០%។',
+    motto: '«វិន័យ និងភាពហ្មត់ចត់ បង្កើតភាពឥតខ្ចោះនៃការងារ!»',
+    status: 'coming_soon'
+  }
+];
+
+const SROEUN_LEANGHAK_TOPICS = [
+  {
+    id: 'leanghak-1',
+    num: 1,
+    category: 'resolution',
+    title: 'តិចនិកដោះស្រាយបញ្ហាចំពោះមុខជូនអតិថិជន និងការបម្រើសេវាកម្មរហ័ស',
+    tag: 'ដោះស្រាយរហ័ស',
+    tagColor: 'bg-teal-500/20 text-teal-300 border-teal-500/30',
+    iconBg: 'from-teal-500 to-cyan-500',
+    summary: 'សិល្បៈនៃការស្តាប់ និងការសម្របសម្រួលដោះស្រាយកង្វល់របស់ភ្ញៀវដោយភាពទន់ភ្លន់ និងរហ័សរហួន។',
+    motto: '«ការដោះស្រាយបញ្ហារហ័ស បង្កើតការពេញចិត្តយូរអង្វែង!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'leanghak-2',
+    num: 2,
+    category: 'unity',
+    title: 'ការកសាងសាមគ្គីភាព និងការលើកទឹកចិត្តក្រុមឱ្យរក្សាថាមពលវិជ្ជមាន',
+    tag: 'សាមគ្គីភាពក្រុម',
+    tagColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+    iconBg: 'from-indigo-500 to-purple-500',
+    summary: 'វិធីបង្កើតបរិយាកាសស្និទ្ធស្នាល ជួយគ្នាទៅវិញទៅមក និងរក្សាថាមពលលក់ឱ្យនៅតែសកម្មរាល់ថ្ងៃ។',
+    motto: '«សាមគ្គីភាពជាកម្លាំង ភាពជាក្រុមជាជោគជ័យ!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'leanghak-3',
+    num: 3,
+    category: 'service',
+    title: 'ការកសាងទំនាក់ទំនងល្អជាមួយអតិថិជនដើម្បីទទួលបានការណែនាំបន្ត',
+    tag: 'សេវាកម្មល្អ',
+    tagColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+    iconBg: 'from-rose-500 to-pink-500',
+    summary: 'របៀបថែទាំអតិថិជនចាស់ៗឱ្យក្លាយជាអ្នកណែនាំភ្ញៀវថ្មីៗបន្តទៀត (Referral System)។',
+    motto: '«អតិថិជនសប្បាយចិត្ត គឺជាអ្នកលក់ដ៏ពូកែបំផុតរបស់យើង!»',
     status: 'coming_soon'
   }
 ];
@@ -5377,10 +5494,16 @@ function updateTrainerContentArea() {
     container.innerHTML = renderCeoLessonsContentHTML();
   } else if (trainer === 'yaith') {
     container.innerHTML = renderYaithLessonsContentHTML();
+  } else if (trainer === 'chanthy') {
+    container.innerHTML = renderChanthyLessonsContentHTML();
+  } else if (trainer === 'udom') {
+    container.innerHTML = renderUdomLessonsContentHTML();
+  } else if (trainer === 'leanghak') {
+    container.innerHTML = renderLeanghakLessonsContentHTML();
   } else if (trainer === 'masya') {
     container.innerHTML = renderMasyaHealthContentHTML();
   } else {
-    container.innerHTML = renderCeoLessonsContentHTML();
+    container.innerHTML = renderFounderLessonsContentHTML();
   }
   if (window.lucide) window.lucide.createIcons();
 }
@@ -5692,6 +5815,162 @@ function renderMasyaHealthContentHTML() {
   `;
 }
 
+function renderChanthyLessonsContentHTML() {
+  const activeCategory = appState.chanthyCategory || 'all';
+  const filtered = activeCategory === 'all' 
+    ? HEM_CHANTHY_TOPICS 
+    : HEM_CHANTHY_TOPICS.filter(t => t.category === activeCategory);
+
+  return `
+    <!-- Coming Soon Notice Card -->
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-transparent border border-cyan-500/25 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center shrink-0 border border-cyan-500/30 shadow-md">
+        <i data-lucide="cpu" class="w-5 h-5 text-cyan-400"></i>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">ជំនាញបច្ចេកទេស និងការដឹកនាំក្រុមលក់</h4>
+          <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            នឹងផ្សាយឆាប់ៗ
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-300 font-kantumruy mt-0.5 leading-relaxed">
+          អត្ថបទ និងការបណ្តុះបណ្តាលជំនាញបច្ចេកទេស ព្រមទាំងយុទ្ធសាស្ត្រដឹកនាំក្រុមលក់ពី លោក ហែម ចន្ធី (Hem Chanthy) នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
+        </p>
+      </div>
+    </div>
+
+    <!-- Category Filter Pills (Auto-Center on Tap) -->
+    <div id="chanthy-category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+      <button onclick="setChanthyCategory('all', event)" data-category="all"
+              class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ✨ ទាំងអស់ (3)
+      </button>
+      <button onclick="setChanthyCategory('tech', event)" data-category="tech"
+              class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'tech' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🛠️ ជំនាញបច្ចេកទេស
+      </button>
+      <button onclick="setChanthyCategory('team', event)" data-category="team"
+              class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'team' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        👥 ដឹកនាំក្រុមលក់
+      </button>
+      <button onclick="setChanthyCategory('kpi', event)" data-category="kpi"
+              class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'kpi' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        📊 តាមដាន KPI
+      </button>
+    </div>
+
+    <!-- Chanthy Topics List -->
+    <div id="chanthy-topic-list" class="space-y-3.5">
+      ${filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-cyan-500/30')).join('')}
+    </div>
+  `;
+}
+
+function renderUdomLessonsContentHTML() {
+  const activeCategory = appState.udomCategory || 'all';
+  const filtered = activeCategory === 'all' 
+    ? BECH_UDOM_TOPICS 
+    : BECH_UDOM_TOPICS.filter(t => t.category === activeCategory);
+
+  return `
+    <!-- Coming Soon Notice Card -->
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-transparent border border-emerald-500/25 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-500/30 shadow-md">
+        <i data-lucide="sliders" class="w-5 h-5 text-emerald-400"></i>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">ប្រព័ន្ធការងារ និងការគាំទ្របច្ចេកទេស</h4>
+          <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            នឹងផ្សាយឆាប់ៗ
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-300 font-kantumruy mt-0.5 leading-relaxed">
+          អត្ថបទ និងការណែនាំប្រព័ន្ធរៀបចំទិន្នន័យ ព្រមទាំងការដោះស្រាយបញ្ហាបច្ចេកទេសពី លោក ប៊ិច ឧត្តម (Bech Udom) នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
+        </p>
+      </div>
+    </div>
+
+    <!-- Category Filter Pills (Auto-Center on Tap) -->
+    <div id="udom-category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+      <button onclick="setUdomCategory('all', event)" data-category="all"
+              class="udom-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ✨ ទាំងអស់ (3)
+      </button>
+      <button onclick="setUdomCategory('system', event)" data-category="system"
+              class="udom-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'system' ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🗂️ ប្រព័ន្ធការងារ
+      </button>
+      <button onclick="setUdomCategory('support', event)" data-category="support"
+              class="udom-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'support' ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ⚡ គាំទ្រកូនក្រុម
+      </button>
+      <button onclick="setUdomCategory('quality', event)" data-category="quality"
+              class="udom-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'quality' ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🎯 គុណភាពការងារ
+      </button>
+    </div>
+
+    <!-- Udom Topics List -->
+    <div id="udom-topic-list" class="space-y-3.5">
+      ${filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-emerald-500/30')).join('')}
+    </div>
+  `;
+}
+
+function renderLeanghakLessonsContentHTML() {
+  const activeCategory = appState.leanghakCategory || 'all';
+  const filtered = activeCategory === 'all' 
+    ? SROEUN_LEANGHAK_TOPICS 
+    : SROEUN_LEANGHAK_TOPICS.filter(t => t.category === activeCategory);
+
+  return `
+    <!-- Coming Soon Notice Card -->
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 via-cyan-500/10 to-transparent border border-teal-500/25 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0 border border-teal-500/30 shadow-md">
+        <i data-lucide="heart-handshake" class="w-5 h-5 text-teal-400"></i>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">សេវាកម្មអតិថិជន និងសាមគ្គីភាពក្រុម</h4>
+          <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+            នឹងផ្សាយឆាប់ៗ
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-300 font-kantumruy mt-0.5 leading-relaxed">
+          អត្ថបទ និងគន្លឹះដោះស្រាយបញ្ហាជូនអតិថិជន ព្រមទាំងការកសាងសាមគ្គីភាពក្នុងក្រុមពី លោក ស្រឿន លាងហាក់ (Sroeun Leanghak) នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
+        </p>
+      </div>
+    </div>
+
+    <!-- Category Filter Pills (Auto-Center on Tap) -->
+    <div id="leanghak-category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+      <button onclick="setLeanghakCategory('all', event)" data-category="all"
+              class="leanghak-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-teal-500 text-black font-bold shadow-md shadow-teal-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ✨ ទាំងអស់ (3)
+      </button>
+      <button onclick="setLeanghakCategory('resolution', event)" data-category="resolution"
+              class="leanghak-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'resolution' ? 'bg-teal-500 text-black font-bold shadow-md shadow-teal-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🤝 ដោះស្រាយរហ័ស
+      </button>
+      <button onclick="setLeanghakCategory('unity', event)" data-category="unity"
+              class="leanghak-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'unity' ? 'bg-teal-500 text-black font-bold shadow-md shadow-teal-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        👥 សាមគ្គីភាពក្រុម
+      </button>
+      <button onclick="setLeanghakCategory('service', event)" data-category="service"
+              class="leanghak-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'service' ? 'bg-teal-500 text-black font-bold shadow-md shadow-teal-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🌟 សេវាកម្មល្អ
+      </button>
+    </div>
+
+    <!-- Leanghak Topics List -->
+    <div id="leanghak-topic-list" class="space-y-3.5">
+      ${filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-teal-500/30')).join('')}
+    </div>
+  `;
+}
+
 function renderSalesResetContent() {
   const activeTrainer = appState.activeTrainer || 'founder';
 
@@ -5709,6 +5988,9 @@ function renderSalesResetContent() {
   let initialContent = renderFounderLessonsContentHTML();
   if (activeTrainer === 'ceo') initialContent = renderCeoLessonsContentHTML();
   else if (activeTrainer === 'yaith') initialContent = renderYaithLessonsContentHTML();
+  else if (activeTrainer === 'chanthy') initialContent = renderChanthyLessonsContentHTML();
+  else if (activeTrainer === 'udom') initialContent = renderUdomLessonsContentHTML();
+  else if (activeTrainer === 'leanghak') initialContent = renderLeanghakLessonsContentHTML();
   else if (activeTrainer === 'masya') initialContent = renderMasyaHealthContentHTML();
 
   return `
@@ -5931,7 +6213,214 @@ function renderSalesResetContent() {
           </div>
         </div>
 
-        <!-- Slide 4: អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា -->
+        <!-- Slide 4: លោក ហែម ចន្ធី -->
+        <div id="trainer-slide-chanthy" class="w-full min-w-full shrink-0 snap-center">
+          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-cyan-500/35 relative overflow-hidden bg-gradient-to-br from-cyan-500/15 via-[#0A1A2F] to-[#070D18] shadow-2xl text-left">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Header Tags -->
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+                <span>🎯</span>
+                <span>ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</span>
+              </span>
+              <span class="text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">MANAGER</span>
+            </div>
+
+            <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
+            <div class="flex items-center gap-3.5 sm:gap-4">
+              <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-cyan-400 shadow-xl bg-black/40">
+                <img src="manager-hem-chanthy.jpg" alt="Hem Chanthy" 
+                     class="w-full h-full object-cover object-[50%_20%] scale-110 transition-transform duration-300">
+                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-cyan-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ហែម ចន្ធី</h3>
+                <p class="text-xs sm:text-sm font-bold text-cyan-400 mt-0.5 tracking-wide">Hem Chanthy</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</p>
+                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold text-[9.5px] border border-cyan-500/40">
+                    TECHNICAL & TEAM LEADER
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Banner Quote -->
+            <div class="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 backdrop-blur-md mt-3">
+              <div class="flex items-center gap-1.5 text-cyan-300 text-xs font-bold mb-1">
+                <span>🎯</span>
+                <span>ទស្សនៈដឹកនាំ & បច្ចេកទេស ៖</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+                «ភាពជាអ្នកដឹកនាំ គឺការឈរនៅពីក្រោយ និងជួយកូនក្រុមឱ្យដើរទៅមុខដោយរលូន»
+              </h3>
+              <p class="text-[11px] text-cyan-200/90 font-kantumruy leading-relaxed mt-1">
+                “ការបញ្ចូលគ្នារវាងបច្ចេកវិទ្យា និងការគ្រប់គ្រងក្រុមការងារប្រកបដោយភាពកក់ក្តៅ គឺជាគន្លឹះជំរុញឱ្យការលក់កើនឡើងជាលំដាប់។”
+              </p>
+            </div>
+
+            <!-- 3 Quick Pillars Pills -->
+            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🛠️</span>
+                <p class="text-[10px] font-bold text-white mt-0.5">បច្ចេកទេស</p>
+                <span class="text-[8.5px] text-slate-400 block">ឧបករណ៍ឌីជីថល</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">👥</span>
+                <p class="text-[10px] font-bold text-cyan-400 mt-0.5">ដឹកនាំក្រុម</p>
+                <span class="text-[8.5px] text-slate-400 block">បណ្តុះបណ្តាលផ្ទាល់</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">📊</span>
+                <p class="text-[10px] font-bold text-amber-400 mt-0.5">តាមដាន KPI</p>
+                <span class="text-[8.5px] text-slate-400 block">លទ្ធផលជាប់លាប់</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 5: លោក ប៊ិច ឧត្តម -->
+        <div id="trainer-slide-udom" class="w-full min-w-full shrink-0 snap-center">
+          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-emerald-500/35 relative overflow-hidden bg-gradient-to-br from-emerald-500/15 via-[#0A261E] to-[#070D18] shadow-2xl text-left">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Header Tags -->
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+                <span>🎯</span>
+                <span>ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</span>
+              </span>
+              <span class="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">MANAGER</span>
+            </div>
+
+            <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
+            <div class="flex items-center gap-3.5 sm:gap-4">
+              <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-emerald-400 shadow-xl bg-black/40">
+                <img src="manager-bech-udom.jpg" alt="Bech Udom" 
+                     class="w-full h-full object-cover object-[50%_15%] scale-110 transition-transform duration-300">
+                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ប៊ិច ឧត្តម</h3>
+                <p class="text-xs sm:text-sm font-bold text-emerald-400 mt-0.5 tracking-wide">Bech Udom</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</p>
+                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold text-[9.5px] border border-emerald-500/40">
+                    SYSTEM & TECH SUPPORT
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Banner Quote -->
+            <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 backdrop-blur-md mt-3">
+              <div class="flex items-center gap-1.5 text-emerald-300 text-xs font-bold mb-1">
+                <span>⚡</span>
+                <span>ទស្សនៈប្រព័ន្ធ & គុណភាព ៖</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+                «ប្រព័ន្ធការងារច្បាស់លាស់ កាត់បន្ថយកំហុស និងបង្កើនល្បឿនបិទការលក់»
+              </h3>
+              <p class="text-[11px] text-emerald-200/90 font-kantumruy leading-relaxed mt-1">
+                “ការរៀបចំទិន្នន័យឱ្យមានរបៀប និងការគាំទ្រផ្នែកបច្ចេកទេសទាន់ពេល ជួយឱ្យក្រុមការងារមានទំនុកចិត្តខ្ពស់ក្នុងការជួបភ្ញៀវ។”
+              </p>
+            </div>
+
+            <!-- 3 Quick Pillars Pills -->
+            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🗂️</span>
+                <p class="text-[10px] font-bold text-white mt-0.5">ប្រព័ន្ធការងារ</p>
+                <span class="text-[8.5px] text-slate-400 block">គ្រប់គ្រងទិន្នន័យ</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">⚡</span>
+                <p class="text-[10px] font-bold text-emerald-400 mt-0.5">គាំទ្រកូនក្រុម</p>
+                <span class="text-[8.5px] text-slate-400 block">ដោះស្រាយរហ័ស</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🎯</span>
+                <p class="text-[10px] font-bold text-teal-400 mt-0.5">គុណភាព</p>
+                <span class="text-[8.5px] text-slate-400 block">ស្តង់ដា Checklist</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 6: លោក ស្រឿន លាងហាក់ -->
+        <div id="trainer-slide-leanghak" class="w-full min-w-full shrink-0 snap-center">
+          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-teal-500/35 relative overflow-hidden bg-gradient-to-br from-teal-500/15 via-[#0E202B] to-[#070D18] shadow-2xl text-left">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-teal-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Header Tags -->
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full bg-teal-500/20 border border-teal-500/40 text-teal-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+                <span>🎯</span>
+                <span>ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</span>
+              </span>
+              <span class="text-[10px] text-teal-400 font-mono font-bold bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/30">MANAGER</span>
+            </div>
+
+            <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
+            <div class="flex items-center gap-3.5 sm:gap-4">
+              <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-teal-400 shadow-xl bg-black/40">
+                <img src="manager-sroeun-leanghak.jpg" alt="Sroeun Leanghak" 
+                     class="w-full h-full object-cover object-[50%_15%] scale-110 transition-transform duration-300">
+                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-teal-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ស្រឿន លាងហាក់</h3>
+                <p class="text-xs sm:text-sm font-bold text-teal-400 mt-0.5 tracking-wide">Sroeun Leanghak</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</p>
+                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-teal-500/20 text-teal-300 font-bold text-[9.5px] border border-teal-500/40">
+                    CUSTOMER CARE & TEAM UNITY
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Banner Quote -->
+            <div class="p-3.5 rounded-2xl bg-teal-500/10 border border-teal-500/25 backdrop-blur-md mt-3">
+              <div class="flex items-center gap-1.5 text-teal-300 text-xs font-bold mb-1">
+                <span>🌟</span>
+                <span>ទស្សនៈសេវាកម្ម & សាមគ្គីភាព ៖</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+                «ការដោះស្រាយបញ្ហារហ័ស បង្កើតការពេញចិត្ត និងទំនុកចិត្តយូរអង្វែង»
+              </h3>
+              <p class="text-[11px] text-teal-200/90 font-kantumruy leading-relaxed mt-1">
+                “សាមគ្គីភាព និងថាមពលវិជ្ជមានក្នុងក្រុម គឺជាកម្លាំងចលកររុញច្រានការលក់ឱ្យសម្រេចគោលដៅ និងរក្សាទំនាក់ទំនងល្អជាមួយភ្ញៀវ។”
+              </p>
+            </div>
+
+            <!-- 3 Quick Pillars Pills -->
+            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🤝</span>
+                <p class="text-[10px] font-bold text-white mt-0.5">ដោះស្រាយរហ័ស</p>
+                <span class="text-[8.5px] text-slate-400 block">យកចិត្តទុកដាក់</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">👥</span>
+                <p class="text-[10px] font-bold text-teal-400 mt-0.5">សាមគ្គីភាព</p>
+                <span class="text-[8.5px] text-slate-400 block">ថាមពលវិជ្ជមាន</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🌟</span>
+                <p class="text-[10px] font-bold text-rose-400 mt-0.5">សេវាកម្មល្អ</p>
+                <span class="text-[8.5px] text-slate-400 block">ភ្ញៀវណែនាំបន្ត</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 7: អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា -->
         <div id="trainer-slide-masya" class="w-full min-w-full shrink-0 snap-center">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-pink-500/35 relative overflow-hidden bg-gradient-to-br from-pink-500/15 via-[#170E22] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-pink-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -6290,6 +6779,105 @@ function setYaithCategory(cat, event) {
   }
 }
 window.setYaithCategory = setYaithCategory;
+
+function setChanthyCategory(cat, event) {
+  appState.chanthyCategory = cat;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  // Auto-scroll clicked button to center horizontally
+  if (event && event.currentTarget) {
+    event.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  const pills = document.querySelectorAll('.chanthy-category-pill');
+  pills.forEach(btn => {
+    const isThis = btn.getAttribute('data-category') === cat;
+    if (isThis) {
+      btn.className = "chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition active:scale-95 bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20";
+      if (!event) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    } else {
+      btn.className = "chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5";
+    }
+  });
+
+  const listContainer = document.getElementById('chanthy-topic-list');
+  if (listContainer) {
+    const filtered = cat === 'all' 
+      ? HEM_CHANTHY_TOPICS 
+      : HEM_CHANTHY_TOPICS.filter(t => t.category === cat);
+    listContainer.innerHTML = filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-cyan-500/30')).join('');
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    updateTrainerContentArea();
+  }
+}
+window.setChanthyCategory = setChanthyCategory;
+
+function setUdomCategory(cat, event) {
+  appState.udomCategory = cat;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  // Auto-scroll clicked button to center horizontally
+  if (event && event.currentTarget) {
+    event.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  const pills = document.querySelectorAll('.udom-category-pill');
+  pills.forEach(btn => {
+    const isThis = btn.getAttribute('data-category') === cat;
+    if (isThis) {
+      btn.className = "udom-category-pill px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition active:scale-95 bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/20";
+      if (!event) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    } else {
+      btn.className = "udom-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5";
+    }
+  });
+
+  const listContainer = document.getElementById('udom-topic-list');
+  if (listContainer) {
+    const filtered = cat === 'all' 
+      ? BECH_UDOM_TOPICS 
+      : BECH_UDOM_TOPICS.filter(t => t.category === cat);
+    listContainer.innerHTML = filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-emerald-500/30')).join('');
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    updateTrainerContentArea();
+  }
+}
+window.setUdomCategory = setUdomCategory;
+
+function setLeanghakCategory(cat, event) {
+  appState.leanghakCategory = cat;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  // Auto-scroll clicked button to center horizontally
+  if (event && event.currentTarget) {
+    event.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  const pills = document.querySelectorAll('.leanghak-category-pill');
+  pills.forEach(btn => {
+    const isThis = btn.getAttribute('data-category') === cat;
+    if (isThis) {
+      btn.className = "leanghak-category-pill px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition active:scale-95 bg-teal-500 text-black font-bold shadow-md shadow-teal-500/20";
+      if (!event) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    } else {
+      btn.className = "leanghak-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5";
+    }
+  });
+
+  const listContainer = document.getElementById('leanghak-topic-list');
+  if (listContainer) {
+    const filtered = cat === 'all' 
+      ? SROEUN_LEANGHAK_TOPICS 
+      : SROEUN_LEANGHAK_TOPICS.filter(t => t.category === cat);
+    listContainer.innerHTML = filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-teal-500/30')).join('');
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    updateTrainerContentArea();
+  }
+}
+window.setLeanghakCategory = setLeanghakCategory;
 
 function setHealthCategory(cat, event) {
   appState.healthCategory = cat;
