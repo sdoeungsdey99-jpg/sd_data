@@ -1668,14 +1668,16 @@
     /* Auto-hide Sticky Filter Bar (Zero-Height Collapse: eliminates any blank gap completely) */
     #sticky-filter-bar,
     #expenses-modal-date-filter-bar,
-    #analytics-sticky-header {
+    #analytics-sticky-header,
+    #study-sticky-header {
       max-height: 120px;
       transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, padding 0.3s ease, margin 0.3s ease;
       overflow: visible;
     }
     #sticky-filter-bar.filter-hidden,
     #expenses-modal-date-filter-bar.filter-hidden,
-    #analytics-sticky-header.filter-hidden {
+    #analytics-sticky-header.filter-hidden,
+    #study-sticky-header.filter-hidden {
       max-height: 0 !important;
       opacity: 0 !important;
       padding-top: 0 !important;
@@ -4852,6 +4854,6 @@
   </div>
 
   <script src="dataService.js?v=7.0"></script>
-  <script src="app.js?v=25.0"></script>
+  <script src="app.js?v=26.0"></script>
 </body>
 </html>

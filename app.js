@@ -1798,6 +1798,12 @@ function hookScrollableForDock(el, isMain = false) {
           analyticsHeader.classList.add('filter-hidden');
         }
       }
+      if (isMain && appState.currentView === 'learning') {
+        const studyHeader = document.getElementById('study-sticky-header');
+        if (studyHeader && !studyHeader.classList.contains('filter-hidden')) {
+          studyHeader.classList.add('filter-hidden');
+        }
+      }
       if (el.id === 'expenses-modal-list') {
         const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
         if (expFilterBar && !expFilterBar.classList.contains('filter-hidden')) {
@@ -1817,6 +1823,12 @@ function hookScrollableForDock(el, isMain = false) {
           const analyticsHeader = document.getElementById('analytics-sticky-header');
           if (analyticsHeader && analyticsHeader.classList.contains('filter-hidden')) {
             analyticsHeader.classList.remove('filter-hidden');
+          }
+        }
+        if (isMain && appState.currentView === 'learning') {
+          const studyHeader = document.getElementById('study-sticky-header');
+          if (studyHeader && studyHeader.classList.contains('filter-hidden')) {
+            studyHeader.classList.remove('filter-hidden');
           }
         }
         if (el.id === 'expenses-modal-list') {
@@ -9267,6 +9279,7 @@ function getTodayTeamBirthdaysCount() {
 }
 
 function buildLeaderBirthdayFeedHTML() {
+  return ''; // Disabled/hidden for now
   if (!isUserTeamLeader()) return '';
 
   const list = getTeamBirthdays();
@@ -9547,7 +9560,8 @@ function renderNotificationsFeed(d) {
   // Announcements disabled/cleaned
   let announcementsHTML = '';
 
-  const birthdayHTML = (typeof buildLeaderBirthdayFeedHTML === 'function') ? buildLeaderBirthdayFeedHTML() : '';
+  // Birthdays & Announcements disabled/cleaned for now
+  const birthdayHTML = '';
   feedList.innerHTML = birthdayHTML + announcementsHTML + eventsHTML;
   if (window.lucide) window.lucide.createIcons();
 }
