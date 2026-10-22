@@ -5058,8 +5058,8 @@ function getLearningViewHTML() {
 
   return `
     <div class="space-y-4 pb-12" id="study-container">
-      <!-- Top Sticky Segmented Tab Bar (iOS Glassmorphism) -->
-      <div class="sticky top-0 z-30 pt-1 pb-1 backdrop-blur-md">
+      <!-- Top Sticky Segmented Tab Bar (Auto-hide on scroll like front filter bar) -->
+      <div id="study-sticky-header" class="sticky top-0 z-30 pt-1 pb-1 backdrop-blur-md">
         <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
           <button onclick="setStudyTab('sales_reset')" 
                   class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${currentTab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
@@ -5093,7 +5093,7 @@ function setStudyTab(tab) {
   const container = document.getElementById('study-container');
   if (container) {
     container.innerHTML = `
-      <div class="sticky top-0 z-30 pt-1 pb-1 backdrop-blur-md">
+      <div id="study-sticky-header" class="sticky top-0 z-30 pt-1 pb-1 backdrop-blur-md">
         <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
           <button onclick="setStudyTab('sales_reset')" 
                   class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
@@ -5134,60 +5134,70 @@ function renderSalesResetContent() {
 
   return `
     <div class="space-y-3.5 animate-fade-in">
-      <!-- Executive Hero VIP Card -->
-      <div class="ios-glass-card rounded-3xl p-5 border border-amber-500/30 relative overflow-hidden bg-gradient-to-b from-[#131D33] via-[#0B1528] to-[#070D18] shadow-2xl">
+      <!-- Executive Hero VIP Card (Horizontal Card ដូចកាតខាងមុខ មិនបញ្ឈរទេ) -->
+      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-br from-amber-500/15 via-[#0C1527] to-[#070D18] shadow-2xl text-left">
         <div class="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10">
-          <div class="flex items-center gap-3.5 mb-3.5">
-            <div class="relative shrink-0">
-              <img src="ceo-vann-sitha.jpg" alt="CEO Vann Sitha" 
-                   class="w-13 h-13 rounded-2xl object-cover border-2 border-amber-400 shadow-lg shadow-amber-500/25">
-              <span class="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-[8px] font-black text-black tracking-wider uppercase">CEO</span>
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-1.5">
-                <span class="text-[10px] font-bold text-amber-400 tracking-wider uppercase">Vann Sitha Trading</span>
-                <span class="text-[10px] text-slate-500">•</span>
-                <span class="text-[10px] text-slate-400 font-mono">តុលា ២០២៦</span>
-              </div>
-              <h2 class="text-base font-black text-white tracking-wide leading-tight mt-0.5">SALES RESET</h2>
-              <p class="text-[11px] text-slate-300 font-medium">បង្រៀនដោយ <strong class="text-amber-300">អគ្គនាយក វណ្ណ ស៊ីថា</strong></p>
-            </div>
+        <!-- Top Header Tags -->
+        <div class="flex items-center justify-between mb-3">
+          <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+            <span>👑</span>
+            <span>អ្នកបណ្ដុះបណ្ដាល • SALES RESET</span>
+          </span>
+          <span class="text-[10px] text-amber-400 font-mono font-bold bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">CEO</span>
+        </div>
+
+        <!-- Horizontal Profile Row (ដូចកាតខាងមុខ) -->
+        <div class="flex items-center gap-3.5 sm:gap-4">
+          <!-- Zoomed Photo in Card Frame with Gold Border & Verified Star -->
+          <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-xl bg-black/40">
+            <img src="ceo-vann-sitha-2.jpg" alt="CEO Vann Sitha" 
+                 class="w-full h-full object-cover object-[52%_25%] scale-125 transition-transform duration-300">
+            <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
           </div>
 
-          <!-- Key Banner Quote -->
-          <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 backdrop-blur-md mb-3">
-            <div class="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
-              <span>👑</span>
-              <span>សារដាស់ស្មារតីស្នូល ៖</span>
+          <div class="min-w-0 flex-1">
+            <span class="text-[10px] font-bold text-amber-400 tracking-wider uppercase block">Vann Sitha Trading</span>
+            <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight mt-0.5">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
+            <p class="text-xs text-amber-300 font-semibold mt-0.5">អគ្គនាយក & គ្រូបង្វឹកធំ</p>
+            <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+              <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[9.5px] border border-amber-500/40">
+                SALES RESET • តុលា ២០២៦
+              </span>
             </div>
-            <h3 class="text-sm font-bold text-white leading-relaxed">
-              «ពេលការលក់ធ្លាក់ចុះ យើងត្រូវតែខ្លាំងឡើង»
-            </h3>
-            <p class="text-[11px] text-amber-200/90 font-kantumruy leading-relaxed mt-1">
-              “ការលក់ធ្លាក់ ≠ យើងធ្លាក់! គោលដៅមិនមែនគ្រាន់តែមានអារម្មណ៍ល្អទេ គឺឱ្យសកម្មភាព ជំនាញ វិន័យ និងលទ្ធផលរបស់យើងចាប់ផ្តើមផ្លាស់ប្តូរ។”
-            </p>
           </div>
+        </div>
 
-          <!-- 3 Quick Pillars Pills -->
-          <div class="grid grid-cols-3 gap-2 text-center select-none">
-            <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-              <span class="text-xs">🎯</span>
-              <p class="text-[10px] font-bold text-white mt-0.5">១០ មេរៀន</p>
-              <span class="text-[8.5px] text-slate-400 block">អនុវត្តផ្ទាល់</span>
-            </div>
-            <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-              <span class="text-xs">⚡</span>
-              <p class="text-[10px] font-bold text-amber-400 mt-0.5">រូបមន្ត L.U.C.A.</p>
-              <span class="text-[8.5px] text-slate-400 block">ឆ្លើយតបភ្ញៀវ</span>
-            </div>
-            <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-              <span class="text-xs">📈</span>
-              <p class="text-[10px] font-bold text-emerald-400 mt-0.5">លទ្ធផល = ស × ជ</p>
-              <span class="text-[8.5px] text-slate-400 block">សកម្មភាព x ជំនាញ</span>
-            </div>
+        <!-- Key Banner Quote -->
+        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 backdrop-blur-md mt-3.5">
+          <div class="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
+            <span>✨</span>
+            <span>សារដាស់ស្មារតីស្នូល ៖</span>
+          </div>
+          <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+            «ពេលការលក់ធ្លាក់ចុះ យើងត្រូវតែខ្លាំងឡើង»
+          </h3>
+          <p class="text-[11px] text-amber-200/90 font-kantumruy leading-relaxed mt-1">
+            “ការលក់ធ្លាក់ ≠ យើងធ្លាក់! គោលដៅមិនមែនគ្រាន់តែមានអារម្មណ៍ល្អទេ គឺឱ្យសកម្មភាព ជំនាញ វិន័យ និងលទ្ធផលរបស់យើងចាប់ផ្តើមផ្លាស់ប្តូរ។”
+          </p>
+        </div>
+
+        <!-- 3 Quick Pillars Pills -->
+        <div class="grid grid-cols-3 gap-2 text-center select-none mt-3">
+          <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+            <span class="text-xs">🎯</span>
+            <p class="text-[10px] font-bold text-white mt-0.5">១០ មេរៀន</p>
+            <span class="text-[8.5px] text-slate-400 block">អនុវត្តផ្ទាល់</span>
+          </div>
+          <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+            <span class="text-xs">⚡</span>
+            <p class="text-[10px] font-bold text-amber-400 mt-0.5">រូបមន្ត L.U.C.A.</p>
+            <span class="text-[8.5px] text-slate-400 block">ឆ្លើយតបភ្ញៀវ</span>
+          </div>
+          <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+            <span class="text-xs">📈</span>
+            <p class="text-[10px] font-bold text-emerald-400 mt-0.5">លទ្ធផល = ស × ជ</p>
+            <span class="text-[8.5px] text-slate-400 block">សកម្មភាព x ជំនាញ</span>
           </div>
         </div>
       </div>
@@ -9862,12 +9872,16 @@ function handleLearningClick(e) {
     if (navigator.vibrate) navigator.vibrate([15, 50, 15]);
     const main = document.getElementById('main-content');
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+    const studyHeader = document.getElementById('study-sticky-header');
+    if (studyHeader) studyHeader.classList.remove('filter-hidden');
     setDockVisible(true);
     manualReload();
   } else {
     // 👆 SINGLE TAP: Smooth scroll to top & restore dock
     const main = document.getElementById('main-content');
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+    const studyHeader = document.getElementById('study-sticky-header');
+    if (studyHeader) studyHeader.classList.remove('filter-hidden');
     setDockVisible(true);
     if (navigator.vibrate) navigator.vibrate(10);
   }
