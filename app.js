@@ -5124,8 +5124,88 @@ function setStudyTab(tab) {
 window.setStudyTab = setStudyTab;
 
 // ------------------------------------------
-// Sub-view 1: LEADERSHIP & TRAINERS (CEO Vann Sitha & Coach Sot Masya)
+// Sub-view 1: LEADERSHIP & TRAINERS (Founder, CEO, Closing Coach, Health Specialist)
 // ------------------------------------------
+const TRAINERS_LIST = ['founder', 'ceo', 'yaith', 'masya'];
+
+const BECH_NORA_FOUNDER_TOPICS = [
+  {
+    id: 'founder-1',
+    num: 1,
+    category: 'vision',
+    title: 'ទស្សនវិស័យ និងការកសាងប្រព័ន្ធអាជីវកម្មប្រកបដោយចីរភាព',
+    tag: 'ចក្ខុវិស័យ',
+    tagColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    iconBg: 'from-amber-500 to-orange-500',
+    summary: 'យុទ្ធសាស្ត្រក្នុងការកំណត់ទិសដៅធំ និងការរៀបចំគ្រឹះអាជីវកម្មឱ្យមានស្ថិរភាព និងរីកចម្រើនទៅមុខជានិច្ច។',
+    motto: '«ចក្ខុវិស័យច្បាស់លាស់ នាំទៅរកលទ្ធផលអស្ចារ្យ!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'founder-2',
+    num: 2,
+    category: 'leadership',
+    title: 'ភាពជាអ្នកដឹកនាំ និងការលើកទឹកចិត្តក្រុមការងារឆ្ពោះទៅរកគោលដៅរួម',
+    tag: 'ភាពជាអ្នកដឹកនាំ',
+    tagColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    iconBg: 'from-blue-500 to-indigo-500',
+    summary: 'សិល្បៈនៃការដឹកនាំមនុស្ស ការបង្កើតបរិយាកាសការងារវិជ្ជមាន និងការបណ្តុះស្មារតីទទួលខុសត្រូវខ្ពស់។',
+    motto: '«ភាពជាអ្នកដឹកនាំ គឺការបង្កើតអ្នកដឹកនាំបន្ត!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'founder-3',
+    num: 3,
+    category: 'strategy',
+    title: 'យុទ្ធសាស្ត្រពង្រីកទីផ្សារ និងការបង្កើតកាលានុវត្តភាពថ្មីៗ',
+    tag: 'យុទ្ធសាស្ត្រ',
+    tagColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    iconBg: 'from-emerald-500 to-teal-500',
+    summary: 'ការវិភាគឱកាសទីផ្សារ ការពង្រីកបណ្តាញលក់ និងការច្នៃប្រឌិតដំណោះស្រាយដើម្បីឆ្លើយតបតម្រូវការអតិថិជន។',
+    motto: '«ការរីកចម្រើនពិតប្រាកដ ចាប់ផ្តើមពីការហ៊ានផ្លាស់ប្តូរ និងសកម្មភាព!»',
+    status: 'coming_soon'
+  }
+];
+
+const HOUR_YAITH_CLOSING_TOPICS = [
+  {
+    id: 'yaith-1',
+    num: 1,
+    category: 'closing',
+    title: 'តិចនិកសួរដេញដោល ដើម្បីឈានទៅរកការបិទការលក់ដោយស្វ័យប្រវត្ត',
+    tag: 'តិចនិកបិទការលក់',
+    tagColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+    iconBg: 'from-indigo-500 to-purple-500',
+    summary: 'របៀបប្រើសំណួរបើក និងសំណួរនាំផ្លូវ ដើម្បីឱ្យអតិថិជនបង្ហាញតម្រូវការ និងយល់ព្រមទិញដោយខ្លួនឯង។',
+    motto: '«សំណួរត្រឹមត្រូវ នាំទៅរកការបិទការលក់ដ៏រលូន!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'yaith-2',
+    num: 2,
+    category: 'objection',
+    title: 'វិធីដោះស្រាយការស្ទាក់ស្ទើររបស់អតិថិជននៅវិនាទីចុងក្រោយ',
+    tag: 'ដោះស្រាយស្ទាក់ស្ទើរ',
+    tagColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+    iconBg: 'from-rose-500 to-pink-500',
+    summary: 'តិចនិកស្រាយចម្ងល់ពេលភ្ញៀវថា "ចាំគិតសិន" ឬ "ពិភាក្សាជាមួយគ្រួសារសិន" ប្រកបដោយភាពកក់ក្តៅ និងវិជ្ជាជីវៈ។',
+    motto: '«ការស្ទាក់ស្ទើរ គឺជាសញ្ញានៃការចាប់អារម្មណ៍!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'yaith-3',
+    num: 3,
+    category: 'technique',
+    title: 'សិល្បៈនៃការផ្តល់ជម្រើស (Alternative Choice Close) ក្នុងការបិទការលក់',
+    tag: 'សិល្បៈផ្តល់ជម្រើស',
+    tagColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+    iconBg: 'from-cyan-500 to-blue-500',
+    summary: 'របៀបសួរផ្តល់ជម្រើស (Option A ឬ Option B) ជំនួសឱ្យការសួរថាទិញ ឬមិនទិញ។',
+    motto: '«ការបិទការលក់ គឺជាការជួយអតិថិជនជ្រើសរើសផ្លូវល្អបំផុត!»',
+    status: 'coming_soon'
+  }
+];
+
 const SOT_MASYA_HEALTH_TOPICS = [
   {
     id: 'health-1',
@@ -5182,8 +5262,10 @@ function handleTrainerCarouselScroll(el) {
   if (!el) return;
   if (trainerScrollTimer) clearTimeout(trainerScrollTimer);
   trainerScrollTimer = setTimeout(() => {
-    const isMasya = el.scrollLeft > (el.clientWidth / 2);
-    const newTrainer = isMasya ? 'masya' : 'ceo';
+    const slideWidth = el.clientWidth || 360;
+    const index = Math.round(el.scrollLeft / slideWidth);
+    const clampedIndex = Math.max(0, Math.min(TRAINERS_LIST.length - 1, index));
+    const newTrainer = TRAINERS_LIST[clampedIndex] || 'founder';
     if (appState.activeTrainer !== newTrainer) {
       appState.activeTrainer = newTrainer;
       if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
@@ -5199,11 +5281,13 @@ function switchTrainer(trainer) {
   
   const carousel = document.getElementById('trainer-carousel');
   if (carousel) {
-    const target = trainer === 'masya' ? carousel.clientWidth : 0;
-    try {
-      carousel.scrollTo({ left: target, behavior: 'smooth' });
-    } catch (_) {
-      carousel.scrollLeft = target;
+    const slide = document.getElementById('trainer-slide-' + trainer);
+    if (slide) {
+      try {
+        carousel.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
+      } catch (_) {
+        carousel.scrollLeft = slide.offsetLeft;
+      }
     }
   }
   updateTrainerContentArea();
@@ -5240,12 +5324,15 @@ function setupTrainerCarouselGesture() {
 
     // Minimum horizontal swipe distance: 28px, and horizontal dominance
     if (Math.abs(deltaX) >= 28 && Math.abs(deltaX) > Math.abs(deltaY) * 0.7) {
+      const curIndex = TRAINERS_LIST.indexOf(appState.activeTrainer || 'founder');
       if (deltaX < 0) {
-        // Swiped Left (finger moved right-to-left) -> Switch to Coach Sot Masya
-        switchTrainer('masya');
+        // Swiped Left -> Next trainer
+        const nextIdx = Math.min(TRAINERS_LIST.length - 1, (curIndex === -1 ? 0 : curIndex) + 1);
+        switchTrainer(TRAINERS_LIST[nextIdx]);
       } else {
-        // Swiped Right (finger moved left-to-right) -> Switch to CEO Vann Sitha
-        switchTrainer('ceo');
+        // Swiped Right -> Previous trainer
+        const prevIdx = Math.max(0, (curIndex === -1 ? 0 : curIndex) - 1);
+        switchTrainer(TRAINERS_LIST[prevIdx]);
       }
     }
   };
@@ -5267,10 +5354,13 @@ function setupTrainerCarouselGesture() {
     const deltaX = e.clientX - mouseStartX;
     const deltaY = e.clientY - mouseStartY;
     if (Math.abs(deltaX) >= 35 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      const curIndex = TRAINERS_LIST.indexOf(appState.activeTrainer || 'founder');
       if (deltaX < 0) {
-        switchTrainer('masya');
+        const nextIdx = Math.min(TRAINERS_LIST.length - 1, (curIndex === -1 ? 0 : curIndex) + 1);
+        switchTrainer(TRAINERS_LIST[nextIdx]);
       } else {
-        switchTrainer('ceo');
+        const prevIdx = Math.max(0, (curIndex === -1 ? 0 : curIndex) - 1);
+        switchTrainer(TRAINERS_LIST[prevIdx]);
       }
     }
   });
@@ -5280,8 +5370,18 @@ window.setupTrainerCarouselGesture = setupTrainerCarouselGesture;
 function updateTrainerContentArea() {
   const container = document.getElementById('trainer-content-area');
   if (!container) return;
-  const isMasya = appState.activeTrainer === 'masya';
-  container.innerHTML = isMasya ? renderMasyaHealthContentHTML() : renderCeoLessonsContentHTML();
+  const trainer = appState.activeTrainer || 'founder';
+  if (trainer === 'founder') {
+    container.innerHTML = renderFounderLessonsContentHTML();
+  } else if (trainer === 'ceo') {
+    container.innerHTML = renderCeoLessonsContentHTML();
+  } else if (trainer === 'yaith') {
+    container.innerHTML = renderYaithLessonsContentHTML();
+  } else if (trainer === 'masya') {
+    container.innerHTML = renderMasyaHealthContentHTML();
+  } else {
+    container.innerHTML = renderCeoLessonsContentHTML();
+  }
   if (window.lucide) window.lucide.createIcons();
 }
 window.updateTrainerContentArea = updateTrainerContentArea;
@@ -5328,6 +5428,139 @@ function renderSingleLessonCardHTML(l) {
           </button>
         </div>
       </div>
+    </div>
+  `;
+}
+
+function renderSingleTopicPreviewCardHTML(item, borderColor = 'hover:border-amber-500/30') {
+  return `
+    <div class="ios-glass-card rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 ${borderColor}">
+      <div class="p-3.5 sm:p-4 flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3 min-w-0 flex-1">
+          <div class="w-7 h-7 rounded-xl bg-gradient-to-tr ${item.iconBg} text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-md">
+            ${item.num}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <h4 class="font-bold text-xs sm:text-sm text-white tracking-wide leading-tight">${item.title}</h4>
+              <span class="px-2 py-0.2 rounded-full text-[9px] font-semibold border ${item.tagColor} shrink-0">
+                ${item.tag}
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-300 leading-relaxed font-kantumruy">${item.summary}</p>
+            <div class="mt-2.5 p-2 rounded-xl bg-white/5 border border-white/10 text-[10.5px] text-amber-300 font-kantumruy italic">
+              💡 ${item.motto}
+            </div>
+          </div>
+        </div>
+        <span class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[9.5px] text-slate-400 font-medium shrink-0">
+          កំពុងរៀបចំ
+        </span>
+      </div>
+    </div>
+  `;
+}
+
+function renderFounderLessonsContentHTML() {
+  const activeCategory = appState.founderCategory || 'all';
+  const filtered = activeCategory === 'all' 
+    ? BECH_NORA_FOUNDER_TOPICS 
+    : BECH_NORA_FOUNDER_TOPICS.filter(t => t.category === activeCategory);
+
+  return `
+    <!-- Coming Soon Notice Card -->
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent border border-amber-500/25 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 border border-amber-500/30 shadow-md">
+        <i data-lucide="crown" class="w-5 h-5 text-amber-400"></i>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">ទស្សនវិស័យ និងការដឹកនាំ</h4>
+          <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            នឹងផ្សាយឆាប់ៗ
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-300 font-kantumruy mt-0.5 leading-relaxed">
+          អត្ថបទ និងមេរៀនភាពជាអ្នកដឹកនាំពី លោក ប៊ិច នោរ៉ា (ស្ថាបនិក បូស្តារ គ្រុប) នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
+        </p>
+      </div>
+    </div>
+
+    <!-- Category Filter Pills (Auto-Center on Tap) -->
+    <div id="founder-category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+      <button onclick="setFounderCategory('all', event)" data-category="all"
+              class="founder-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ✨ ទាំងអស់ (3)
+      </button>
+      <button onclick="setFounderCategory('vision', event)" data-category="vision"
+              class="founder-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'vision' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🏛️ ចក្ខុវិស័យ
+      </button>
+      <button onclick="setFounderCategory('leadership', event)" data-category="leadership"
+              class="founder-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'leadership' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        👥 ភាពជាអ្នកដឹកនាំ
+      </button>
+      <button onclick="setFounderCategory('strategy', event)" data-category="strategy"
+              class="founder-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'strategy' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🚀 យុទ្ធសាស្ត្រ
+      </button>
+    </div>
+
+    <!-- Founder Topics List -->
+    <div id="founder-topic-list" class="space-y-3.5">
+      ${filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-amber-500/30')).join('')}
+    </div>
+  `;
+}
+
+function renderYaithLessonsContentHTML() {
+  const activeCategory = appState.yaithCategory || 'all';
+  const filtered = activeCategory === 'all' 
+    ? HOUR_YAITH_CLOSING_TOPICS 
+    : HOUR_YAITH_CLOSING_TOPICS.filter(t => t.category === activeCategory);
+
+  return `
+    <!-- Coming Soon Notice Card -->
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-transparent border border-indigo-500/25 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 border border-indigo-500/30 shadow-md">
+        <i data-lucide="target" class="w-5 h-5 text-indigo-400"></i>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">តិចនិក និងសិល្បៈនៃការបិទការលក់</h4>
+          <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            នឹងផ្សាយឆាប់ៗ
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-300 font-kantumruy mt-0.5 leading-relaxed">
+          អត្ថបទ និងគន្លឹះដោះស្រាយការស្ទាក់ស្ទើរដើម្បីបិទការលក់ពី លោក ហ៊ួរ យ៉ារិទ្ធ (Manager & Closing Coach) នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
+        </p>
+      </div>
+    </div>
+
+    <!-- Category Filter Pills (Auto-Center on Tap) -->
+    <div id="yaith-category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+      <button onclick="setYaithCategory('all', event)" data-category="all"
+              class="yaith-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-indigo-500 text-white font-bold shadow-md shadow-indigo-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ✨ ទាំងអស់ (3)
+      </button>
+      <button onclick="setYaithCategory('closing', event)" data-category="closing"
+              class="yaith-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'closing' ? 'bg-indigo-500 text-white font-bold shadow-md shadow-indigo-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🎯 តិចនិកបិទការលក់
+      </button>
+      <button onclick="setYaithCategory('objection', event)" data-category="objection"
+              class="yaith-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'objection' ? 'bg-indigo-500 text-white font-bold shadow-md shadow-indigo-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🛡️ ដោះស្រាយស្ទាក់ស្ទើរ
+      </button>
+      <button onclick="setYaithCategory('technique', event)" data-category="technique"
+              class="yaith-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'technique' ? 'bg-indigo-500 text-white font-bold shadow-md shadow-indigo-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ⚡ សិល្បៈផ្តល់ជម្រើស
+      </button>
+    </div>
+
+    <!-- Yaith Topics List -->
+    <div id="yaith-topic-list" class="space-y-3.5">
+      ${filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-indigo-500/30')).join('')}
     </div>
   `;
 }
@@ -5460,27 +5693,103 @@ function renderMasyaHealthContentHTML() {
 }
 
 function renderSalesResetContent() {
-  const isMasya = appState.activeTrainer === 'masya';
+  const activeTrainer = appState.activeTrainer || 'founder';
 
   // Schedule gesture attachment and scroll alignment
   setTimeout(() => {
     if (typeof setupTrainerCarouselGesture === 'function') setupTrainerCarouselGesture();
     const carousel = document.getElementById('trainer-carousel');
-    if (carousel && appState.activeTrainer === 'masya') {
-      carousel.scrollTo({ left: carousel.clientWidth, behavior: 'instant' });
+    const targetTrainer = appState.activeTrainer || 'founder';
+    const slide = document.getElementById('trainer-slide-' + targetTrainer);
+    if (carousel && slide) {
+      carousel.scrollTo({ left: slide.offsetLeft, behavior: 'instant' });
     }
   }, 40);
+
+  let initialContent = renderFounderLessonsContentHTML();
+  if (activeTrainer === 'ceo') initialContent = renderCeoLessonsContentHTML();
+  else if (activeTrainer === 'yaith') initialContent = renderYaithLessonsContentHTML();
+  else if (activeTrainer === 'masya') initialContent = renderMasyaHealthContentHTML();
 
   return `
     <div class="space-y-3.5 animate-fade-in">
       
-      <!-- Swipeable Trainer Carousel (Gesture works naturally, NO arrows [◄][►], NO dots ●○) -->
+      <!-- Swipeable Trainer Carousel (4 VIP Leaders / Trainers - Gesture works naturally) -->
       <div id="trainer-carousel" 
            class="flex w-full max-w-full overflow-x-auto snap-x snap-mandatory no-scrollbar rounded-3xl" 
            style="-webkit-overflow-scrolling: touch; touch-action: pan-y;"
            onscroll="handleTrainerCarouselScroll(this)">
         
-        <!-- Slide 1: លោកអគ្គនាយក វណ្ណ ស៊ីថា -->
+        <!-- Slide 1: ស្ថាបនិក បូស្តារ គ្រុប លោក ប៊ិច នោរ៉ា -->
+        <div id="trainer-slide-founder" class="w-full min-w-full shrink-0 snap-center">
+          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-br from-amber-500/20 via-[#181528] to-[#070D18] shadow-2xl text-left">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Header Tags -->
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+                <span>👑</span>
+                <span>ស្ថាបនិក • BOSTAR GROUP</span>
+              </span>
+              <span class="text-[10px] text-amber-400 font-mono font-bold bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">FOUNDER</span>
+            </div>
+
+            <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
+            <div class="flex items-center gap-3.5 sm:gap-4">
+              <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-xl bg-black/40">
+                <img src="founder-bech-nora.jpg" alt="BECH NORA" 
+                     class="w-full h-full object-cover object-[50%_15%] scale-110 transition-transform duration-300">
+                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ប៊ិច នោរ៉ា</h3>
+                <p class="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 tracking-wide">BECH NORA</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5">ស្ថាបនិក • BOSTAR GROUP CO.,LTD</p>
+                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[9.5px] border border-amber-500/40">
+                    BOSTAR GROUP • FOUNDER
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Banner Quote -->
+            <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 backdrop-blur-md mt-3">
+              <div class="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
+                <span>🏛️</span>
+                <span>ទស្សនវិស័យស្ថាបនិក ៖</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+                «ភាពជាអ្នកដឹកនាំ គឺការបង្កើតអ្នកដឹកនាំបន្ត»
+              </h3>
+              <p class="text-[11px] text-amber-200/90 font-kantumruy leading-relaxed mt-1">
+                “ភាពជោគជ័យយូរអង្វែងរបស់ស្ថាប័នមួយ មិនមែនកើតចេញពីមនុស្សម្នាក់ទេ គឺកើតចេញពីការកសាងប្រព័ន្ធ និងការបណ្តុះបណ្តាលក្រុមការងារឱ្យខ្លាំងពិតប្រាកដ។”
+              </p>
+            </div>
+
+            <!-- 3 Quick Pillars Pills -->
+            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🏛️</span>
+                <p class="text-[10px] font-bold text-white mt-0.5">ចក្ខុវិស័យ</p>
+                <span class="text-[8.5px] text-slate-400 block">កសាងប្រព័ន្ធ</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">👥</span>
+                <p class="text-[10px] font-bold text-amber-400 mt-0.5">អ្នកដឹកនាំ</p>
+                <span class="text-[8.5px] text-slate-400 block">អភិវឌ្ឍមនុស្ស</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🚀</span>
+                <p class="text-[10px] font-bold text-emerald-400 mt-0.5">ការរីកចម្រើន</p>
+                <span class="text-[8.5px] text-slate-400 block">ចីរភាពអាជីវកម្ម</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 2: លោកអគ្គនាយក វណ្ណ ស៊ីថា -->
         <div id="trainer-slide-ceo" class="w-full min-w-full shrink-0 snap-center">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-br from-amber-500/15 via-[#0C1527] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -5553,7 +5862,76 @@ function renderSalesResetContent() {
           </div>
         </div>
 
-        <!-- Slide 2: អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា -->
+        <!-- Slide 3: លោក ហ៊ួរ យ៉ារិទ្ធ -->
+        <div id="trainer-slide-yaith" class="w-full min-w-full shrink-0 snap-center">
+          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-indigo-500/35 relative overflow-hidden bg-gradient-to-br from-indigo-500/20 via-[#0F1B38] to-[#070D18] shadow-2xl text-left">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Header Tags -->
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+                <span>🎯</span>
+                <span>អ្នកបង្វឹកផ្នែកបិទការលក់</span>
+              </span>
+              <span class="text-[10px] text-indigo-400 font-mono font-bold bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/30">MANAGER</span>
+            </div>
+
+            <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
+            <div class="flex items-center gap-3.5 sm:gap-4">
+              <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-indigo-400 shadow-xl bg-black/40">
+                <img src="coach-hour-yaith.jpg" alt="Hour Yaith" 
+                     class="w-full h-full object-cover object-[50%_18%] scale-110 transition-transform duration-300">
+                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-indigo-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-white font-black shadow">★</span>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ហ៊ួរ យ៉ារិទ្ធ</h3>
+                <p class="text-xs sm:text-sm font-bold text-indigo-400 mt-0.5 tracking-wide">Hour Yaith</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • អ្នកបង្វឹកផ្នែកបិទការលក់</p>
+                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-300 font-bold text-[9.5px] border border-indigo-500/40">
+                    SALES CLOSING COACH
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Banner Quote -->
+            <div class="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 backdrop-blur-md mt-3">
+              <div class="flex items-center gap-1.5 text-indigo-300 text-xs font-bold mb-1">
+                <span>🎯</span>
+                <span>គន្លឹះបិទការលក់ ៖</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+                «ការបិទការលក់ គឺជាការជួយភ្ញៀវធ្វើការសម្រេចចិត្តដ៏ល្អបំផុត»
+              </h3>
+              <p class="text-[11px] text-indigo-200/90 font-kantumruy leading-relaxed mt-1">
+                “កុំខ្លាចក្នុងការសួរដេញដោល និងបិទការលក់! ពេលយើងមានទំនុកចិត្តលើផលិតផល និងតម្លៃពិតប្រាកដ ការបិទការលក់គឺជាការជួយអតិថិជនដោះស្រាយបញ្ហារបស់ពួកគេ។”
+              </p>
+            </div>
+
+            <!-- 3 Quick Pillars Pills -->
+            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🎯</span>
+                <p class="text-[10px] font-bold text-white mt-0.5">បិទការលក់</p>
+                <span class="text-[8.5px] text-slate-400 block">តិចនិកបិទលឿន</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">⚡</span>
+                <p class="text-[10px] font-bold text-indigo-400 mt-0.5">ដេញដោល</p>
+                <span class="text-[8.5px] text-slate-400 block">សួរបំភ្លឺតម្រូវការ</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🤝</span>
+                <p class="text-[10px] font-bold text-cyan-400 mt-0.5">ទំនុកចិត្ត</p>
+                <span class="text-[8.5px] text-slate-400 block">ផ្តល់តម្លៃពិត</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 4: អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា -->
         <div id="trainer-slide-masya" class="w-full min-w-full shrink-0 snap-center">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-pink-500/35 relative overflow-hidden bg-gradient-to-br from-pink-500/15 via-[#170E22] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-pink-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -5628,9 +6006,9 @@ function renderSalesResetContent() {
 
       </div>
 
-      <!-- Dynamic Content Area (Switches between CEO 10 Lessons & Masya Health Topics) -->
+      <!-- Dynamic Content Area (Switches based on active trainer: Founder, CEO, Yaith, Masya) -->
       <div id="trainer-content-area" class="space-y-3.5">
-        ${isMasya ? renderMasyaHealthContentHTML() : renderCeoLessonsContentHTML()}
+        ${initialContent}
       </div>
 
     </div>
@@ -5813,6 +6191,39 @@ function toggleLessonAccordion(num) {
 }
 window.toggleLessonAccordion = toggleLessonAccordion;
 
+function setFounderCategory(cat, event) {
+  appState.founderCategory = cat;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  // Auto-scroll the clicked pill to center horizontally
+  if (event && event.currentTarget) {
+    event.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  const pills = document.querySelectorAll('.founder-category-pill');
+  pills.forEach(btn => {
+    const isThis = btn.getAttribute('data-category') === cat;
+    if (isThis) {
+      btn.className = "founder-category-pill px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition active:scale-95 bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20";
+      if (!event) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    } else {
+      btn.className = "founder-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5";
+    }
+  });
+
+  const listContainer = document.getElementById('founder-topic-list');
+  if (listContainer) {
+    const filtered = cat === 'all' 
+      ? BECH_NORA_FOUNDER_TOPICS 
+      : BECH_NORA_FOUNDER_TOPICS.filter(t => t.category === cat);
+    listContainer.innerHTML = filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-amber-500/30')).join('');
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    updateTrainerContentArea();
+  }
+}
+window.setFounderCategory = setFounderCategory;
+
 function setLessonCategory(cat, event) {
   appState.lessonCategory = cat;
   if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
@@ -5846,6 +6257,39 @@ function setLessonCategory(cat, event) {
   }
 }
 window.setLessonCategory = setLessonCategory;
+
+function setYaithCategory(cat, event) {
+  appState.yaithCategory = cat;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  // Auto-scroll clicked button to center horizontally
+  if (event && event.currentTarget) {
+    event.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  const pills = document.querySelectorAll('.yaith-category-pill');
+  pills.forEach(btn => {
+    const isThis = btn.getAttribute('data-category') === cat;
+    if (isThis) {
+      btn.className = "yaith-category-pill px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition active:scale-95 bg-indigo-500 text-white font-bold shadow-md shadow-indigo-500/20";
+      if (!event) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    } else {
+      btn.className = "yaith-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5";
+    }
+  });
+
+  const listContainer = document.getElementById('yaith-topic-list');
+  if (listContainer) {
+    const filtered = cat === 'all' 
+      ? HOUR_YAITH_CLOSING_TOPICS 
+      : HOUR_YAITH_CLOSING_TOPICS.filter(t => t.category === cat);
+    listContainer.innerHTML = filtered.map(t => renderSingleTopicPreviewCardHTML(t, 'hover:border-indigo-500/30')).join('');
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    updateTrainerContentArea();
+  }
+}
+window.setYaithCategory = setYaithCategory;
 
 function setHealthCategory(cat, event) {
   appState.healthCategory = cat;
