@@ -3581,6 +3581,63 @@
   </div>
 
   <!-- ======================================================== -->
+  <!-- ATTENDANCE CERTIFICATE SHOWCASE MODAL (Top 3 Excellence) -->
+  <!-- ======================================================== -->
+  <div id="attendance-certificate-modal" class="fixed inset-0 z-[80] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300 ease-out">
+    <div class="w-full max-w-lg lg:max-w-xl mx-auto flex flex-col h-full overflow-hidden">
+      <!-- Top Bar -->
+      <div onclick="handleHeaderScrollToTop(event, 'attendance-cert-body')" 
+           class="relative z-30 px-3.5 sm:px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-2xl shrink-0 flex items-center justify-between gap-2 cursor-pointer select-none transition">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button type="button" onclick="closeAttendanceCertificateModal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
+                  title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
+          <div class="min-w-0">
+            <h3 class="font-bold text-xs sm:text-sm text-white leading-tight">
+              <span>វិញ្ញាបនបត្រកិត្តិយសផ្លូវការ</span>
+            </h3>
+            <p class="text-[10px] text-amber-300 font-medium">Top 3 Attendance Excellence Showcase</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button type="button" onclick="printAttendanceCertificate()" 
+                  class="h-8 px-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 text-slate-950 font-bold text-[11px] flex items-center gap-1.5 active:scale-95 transition shadow-md shadow-amber-500/25">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>បោះពុម្ព</span>
+          </button>
+          <button type="button" onclick="closeAttendanceCertificateModal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 flex items-center justify-center transition">
+            <i data-lucide="x" class="w-4 h-4 text-slate-400"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Buttons for Top 1, Top 2, Top 3 -->
+      <div class="px-3 pt-2 pb-2 border-b border-white/10 bg-[#0A1220] flex items-center gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
+        <button type="button" onclick="switchCertificateRank(1)" id="cert-tab-btn-1" 
+                class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold text-amber-300 bg-amber-500/20 border border-amber-500/40 flex items-center justify-center gap-1 whitespace-nowrap transition">
+          <span>🥇 Top 1 ឆ្នើម</span>
+        </button>
+        <button type="button" onclick="switchCertificateRank(2)" id="cert-tab-btn-2" 
+                class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold text-slate-400 hover:text-white bg-white/5 border border-white/10 flex items-center justify-center gap-1 whitespace-nowrap transition">
+          <span>🥈 Top 2 គំរូ</span>
+        </button>
+        <button type="button" onclick="switchCertificateRank(3)" id="cert-tab-btn-3" 
+                class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold text-slate-400 hover:text-white bg-white/5 border border-white/10 flex items-center justify-center gap-1 whitespace-nowrap transition">
+          <span>🥉 Top 3 ទៀងទាត់</span>
+        </button>
+      </div>
+
+      <!-- Scrollable Body with Auto Dock Hook -->
+      <div id="attendance-cert-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-3.5 pb-36" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
   <!-- HR DOCUMENTS & LETTERS MODAL (Full Screen Responsive)    -->
   <!-- ======================================================== -->
   <div id="attendance-documents-modal" class="fixed inset-0 z-[75] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300 ease-out">
@@ -4781,6 +4838,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=23.1"></script>
+  <script src="app.js?v=23.2"></script>
 </body>
 </html>

@@ -975,6 +975,11 @@ function handleBackNavigation() {
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
+  if (!document.getElementById('attendance-certificate-modal')?.classList?.contains('hidden')) {
+    closeAttendanceCertificateModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
   if (!document.getElementById('attendance-top10-modal')?.classList?.contains('hidden')) {
     closeAttendanceTop10Modal();
     if (navigator.vibrate) navigator.vibrate(15);
@@ -1540,6 +1545,7 @@ function setupSmartDockScroll() {
     'attendance-leave-body',
     'attendance-manager-body',
     'attendance-top10-body',
+    'attendance-cert-body',
     'attendance-documents-body'
   ];
 
@@ -1914,6 +1920,7 @@ function closeAllModals() {
     'attendance-leave-modal',
     'attendance-manager-modal',
     'attendance-top10-modal',
+    'attendance-certificate-modal',
     'attendance-documents-modal'
   ];
   modals.forEach(id => {
@@ -8940,6 +8947,7 @@ function handleHeaderScrollToTop(e, targetId = null) {
       { modalId: 'attendance-leave-modal', listId: 'attendance-leave-body' },
       { modalId: 'attendance-manager-modal', listId: 'attendance-manager-body' },
       { modalId: 'attendance-top10-modal', listId: 'attendance-top10-body' },
+      { modalId: 'attendance-certificate-modal', listId: 'attendance-cert-body' },
       { modalId: 'attendance-documents-modal', listId: 'attendance-documents-body' },
       { modalId: 'attendance-modal', listId: 'attendance-modal-body' },
       { modalId: 'all-customers-modal', listId: 'all-customers-list' },
@@ -11186,16 +11194,16 @@ function renderAttendanceTop10Content() {
   if (!container) return;
 
   const top10Data = [
-    { rank: 1, name: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥇 Top 1 ឆ្នើមប្រចាំខែ', border: 'border-amber-400/50' },
-    { rank: 2, name: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥈 Top 2 គំរូវិន័យ', border: 'border-slate-300/40' },
-    { rank: 3, name: 'ញែក សុគន្ធ', en: 'Nhek Sokun', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: '🥉 Top 3 ទៀងទាត់', border: 'border-amber-600/40' },
-    { rank: 4, name: 'អយ ស្រីនី', en: 'Oy Sreyny', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: 'Star Performer', border: 'border-blue-400/30' },
-    { rank: 5, name: 'ផាត់ ណាវី', en: 'Phat Navy', rate: '97%', days: '២១/២២ ថ្ងៃ', badge: 'Consistent', border: 'border-teal-400/30' },
-    { rank: 6, name: 'ម៉ាន់ សុគន្ធលីហ្សា', en: 'Man Sokunlyza', rate: '96%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-purple-400/30' },
-    { rank: 7, name: 'មុំចាន់នី', en: 'Mom Channy', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-sky-400/30' },
-    { rank: 8, name: 'ជា ស្រីណាត់', en: 'Chea Sreynat', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-orange-400/30' },
-    { rank: 9, name: 'ប៊ិច ស្រីមុំ', en: 'Bech Sreymom', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-rose-400/30' },
-    { rank: 10, name: 'និន ណែត', en: 'Nin Net', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-emerald-400/30' }
+    { rank: 1, name: 'វ៉ន ស្រីនិច', en: 'Ms. Vorn Sreynich', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥇 Top 1 ឆ្នើមប្រចាំខែ', border: 'border-amber-400/50', certRank: 1 },
+    { rank: 2, name: 'ឆេង ស៊ុង', en: 'Mr. Chheng Sung', rate: '100%', days: '២២/២២ ថ្ងៃ', badge: '🥈 Top 2 គំរូវិន័យ', border: 'border-slate-300/40', certRank: 2 },
+    { rank: 3, name: 'អយ ស្រីនី', en: 'Ms. Ory Sreyny', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: '🥉 Top 3 ទៀងទាត់', border: 'border-amber-600/40', certRank: 3 },
+    { rank: 4, name: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: 'Star Performer', border: 'border-blue-400/30' },
+    { rank: 5, name: 'ញែក សុគន្ធ', en: 'Nhek Sokun', rate: '98%', days: '២១/២២ ថ្ងៃ', badge: 'Consistent', border: 'border-teal-400/30' },
+    { rank: 6, name: 'ផាត់ ណាវី', en: 'Phat Navy', rate: '97%', days: '២១/២២ ថ្ងៃ', badge: 'Consistent', border: 'border-teal-400/30' },
+    { rank: 7, name: 'ម៉ាន់ សុគន្ធលីហ្សា', en: 'Man Sokunlyza', rate: '96%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-purple-400/30' },
+    { rank: 8, name: 'មុំចាន់នី', en: 'Mom Channy', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-sky-400/30' },
+    { rank: 9, name: 'ជា ស្រីណាត់', en: 'Chea Sreynat', rate: '95%', days: '២០/២២ ថ្ងៃ', badge: 'Punctual', border: 'border-orange-400/30' },
+    { rank: 10, name: 'ប៊ិច ស្រីមុំ', en: 'Bech Sreymom', rate: '94%', days: '១៩/២២ ថ្ងៃ', badge: 'Dedicated', border: 'border-rose-400/30' }
   ];
 
   const itemsHTML = top10Data.map(item => {
@@ -11204,6 +11212,15 @@ function renderAttendanceTop10Content() {
     else if (item.rank === 2) rankBadge = '<span class="w-7 h-7 rounded-full bg-gradient-to-tr from-slate-200 to-slate-400 text-black font-extrabold text-xs flex items-center justify-center shadow-md">2</span>';
     else if (item.rank === 3) rankBadge = '<span class="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-600 to-amber-700 text-white font-extrabold text-xs flex items-center justify-center shadow-md">3</span>';
     else rankBadge = `<span class="w-7 h-7 rounded-full bg-white/10 text-slate-300 font-bold text-xs flex items-center justify-center">${item.rank}</span>`;
+
+    const certBtn = item.certRank ? `
+      <button type="button" onclick="openAttendanceCertificateModal(${item.certRank})" 
+              class="mt-1 px-2 py-0.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-[9px] text-amber-300 font-bold flex items-center gap-1 transition active:scale-95"
+              title="មើលវិញ្ញាបនបត្រ">
+        <i data-lucide="award" class="w-2.5 h-2.5"></i>
+        <span>វិញ្ញាបនបត្រ</span>
+      </button>
+    ` : '';
 
     return `
       <div class="p-3 rounded-2xl bg-[#111C2E] border ${item.border} flex items-center justify-between gap-3 shadow-md hover:scale-[1.01] transition">
@@ -11221,9 +11238,10 @@ function renderAttendanceTop10Content() {
           </div>
         </div>
 
-        <div class="text-right shrink-0">
+        <div class="text-right shrink-0 flex flex-col items-end">
           <span class="text-xs font-extrabold font-mono text-emerald-400">${item.rate}</span>
           <p class="text-[8.5px] text-slate-400">ទាន់ពេល</p>
+          ${certBtn}
         </div>
       </div>
     `;
@@ -11233,15 +11251,174 @@ function renderAttendanceTop10Content() {
     <!-- Month Banner -->
     <div class="p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-[#0B1528] border border-amber-500/25 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-          <i data-lucide="award" class="w-5 h-5"></i>
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-md">
+          <i data-lucide="trophy" class="w-5 h-5"></i>
         </div>
         <div>
           <h4 class="text-xs font-bold text-white">កិត្តិយសវត្តមានប្រចាំខែតុលា ២០២៦</h4>
           <p class="text-[9.5px] text-amber-300/80">ផ្អែកលើទិន្នន័យវត្តមានប្រចាំខែ (Bostar HR Attendance)</p>
         </div>
       </div>
-      <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold">100% On-Time</span>
+      <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30">100% On-Time</span>
+    </div>
+
+    <!-- 3D Champion Podium Section (Top 3 Excellence) -->
+    <div class="pt-3 pb-3 px-3 rounded-2xl bg-gradient-to-b from-[#16233B] via-[#0E1726] to-[#0A101D] border border-amber-500/25 shadow-xl relative overflow-hidden">
+      <!-- Glow effect -->
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-20 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+      <!-- Section Title -->
+      <div class="flex items-center justify-between mb-2 border-b border-white/5 pb-2">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base">🏆</span>
+          <div>
+            <h4 class="text-xs font-bold text-white leading-tight">វេទិកាម្ចាស់ជ័យលាភី Top 3 (Honor Podium)</h4>
+            <p class="text-[9px] text-amber-300/80">គំរូផ្លូវការ CheckinMe • រង់ចាំម្ចាស់ជ័យលាភីខែវិច្ឆិកា ២០២៦</p>
+          </div>
+        </div>
+        <button type="button" onclick="openAttendanceCertificateModal(1)" class="px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 font-bold text-[10px] flex items-center gap-1 transition active:scale-95 shadow">
+          <i data-lucide="award" class="w-3 h-3"></i>
+          <span>មើលវិញ្ញាបនបត្រ</span>
+        </button>
+      </div>
+
+      <!-- Podium Grid -->
+      <div class="grid grid-cols-3 gap-2 items-end pt-3 pb-1">
+        
+        <!-- Rank 2: Silver (Left) -->
+        <div class="flex flex-col items-center text-center cursor-pointer group" onclick="openAttendanceCertificateModal(2)">
+          <!-- Avatar with Silver Ring -->
+          <div class="relative mb-1.5">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-slate-400 via-slate-200 to-white p-[2px] shadow-lg shadow-slate-500/20 group-hover:scale-105 transition-transform duration-200">
+              <div class="w-full h-full rounded-full bg-[#131F33] flex flex-col items-center justify-center overflow-hidden relative">
+                <i data-lucide="user-check" class="w-6 h-6 sm:w-7 sm:h-7 text-slate-300"></i>
+              </div>
+            </div>
+            <!-- Rank Badge -->
+            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded-full bg-gradient-to-r from-slate-300 to-slate-400 text-slate-950 font-black text-[9px] shadow-sm">
+              🥈 2nd
+            </span>
+          </div>
+
+          <!-- Name & Details -->
+          <h5 class="text-[11px] sm:text-xs font-bold text-white truncate max-w-full group-hover:text-amber-300 transition">ឆេង ស៊ុង</h5>
+          <p class="text-[9px] text-slate-400 truncate max-w-full font-mono">Mr. Chheng Sung</p>
+          <span class="text-[9px] font-mono font-bold text-emerald-400 mt-0.5">100% On-Time</span>
+
+          <!-- Silver Step Pedestal -->
+          <div class="w-full mt-2 pt-2 pb-2 rounded-t-xl bg-gradient-to-b from-slate-400/25 via-slate-600/15 to-slate-800/30 border-t-2 border-x border-slate-300/40 flex flex-col items-center justify-center h-20 shadow-inner">
+            <span class="text-xl font-black text-slate-300 font-mono drop-shadow">2</span>
+            <span class="text-[8px] text-slate-300 font-medium">គំរូវិន័យ</span>
+            <span class="text-[7.5px] mt-1 text-slate-300 bg-white/10 px-1.5 py-0.2 rounded border border-white/15">📜 ចុចមើល</span>
+          </div>
+        </div>
+
+        <!-- Rank 1: Gold (Center - Highest) -->
+        <div class="flex flex-col items-center text-center cursor-pointer group -mt-3" onclick="openAttendanceCertificateModal(1)">
+          <!-- Floating Crown -->
+          <div class="text-base sm:text-lg animate-bounce mb-0.5 filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.6)]">👑</div>
+
+          <!-- Avatar with Gold Ring -->
+          <div class="relative mb-1.5">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-300 to-amber-200 p-[2.5px] shadow-xl shadow-amber-500/40 ring-4 ring-amber-500/20 group-hover:scale-105 transition-transform duration-200">
+              <div class="w-full h-full rounded-full bg-[#182313] flex flex-col items-center justify-center overflow-hidden relative">
+                <i data-lucide="crown" class="w-7 h-7 sm:w-8 sm:h-8 text-amber-300"></i>
+              </div>
+            </div>
+            <!-- Rank Badge -->
+            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.2 rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 font-black text-[10px] shadow-md border border-yellow-200/50">
+              🥇 1st
+            </span>
+          </div>
+
+          <!-- Name & Details -->
+          <h5 class="text-xs sm:text-sm font-extrabold text-amber-300 truncate max-w-full drop-shadow">វ៉ន ស្រីនិច</h5>
+          <p class="text-[9.5px] text-amber-200/80 truncate max-w-full font-mono font-medium">Ms. Vorn Sreynich</p>
+          <span class="text-[9.5px] font-mono font-black text-emerald-400 mt-0.5">100% On-Time</span>
+
+          <!-- Gold Step Pedestal -->
+          <div class="w-full mt-2 pt-2.5 pb-2 rounded-t-xl bg-gradient-to-b from-amber-500/35 via-amber-600/20 to-amber-900/40 border-t-2 border-x border-amber-400/60 flex flex-col items-center justify-center h-28 shadow-inner relative">
+            <div class="absolute inset-0 bg-yellow-400/5 rounded-t-xl pointer-events-none"></div>
+            <span class="text-2xl font-black text-amber-300 font-mono drop-shadow-[0_2px_8px_rgba(245,158,11,0.5)]">1</span>
+            <span class="text-[8.5px] text-amber-200 font-bold">ឆ្នើមប្រចាំខែ</span>
+            <span class="text-[8px] mt-1 text-slate-950 font-bold bg-gradient-to-r from-amber-400 to-yellow-400 px-1.5 py-0.5 rounded shadow">📜 វិញ្ញាបនបត្រ</span>
+          </div>
+        </div>
+
+        <!-- Rank 3: Bronze (Right) -->
+        <div class="flex flex-col items-center text-center cursor-pointer group" onclick="openAttendanceCertificateModal(3)">
+          <!-- Avatar with Bronze Ring -->
+          <div class="relative mb-1.5">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-amber-700 via-orange-400 to-amber-600 p-[2px] shadow-lg shadow-amber-800/20 group-hover:scale-105 transition-transform duration-200">
+              <div class="w-full h-full rounded-full bg-[#241712] flex flex-col items-center justify-center overflow-hidden relative">
+                <i data-lucide="user-check" class="w-6 h-6 sm:w-7 sm:h-7 text-amber-400"></i>
+              </div>
+            </div>
+            <!-- Rank Badge -->
+            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 text-white font-black text-[9px] shadow-sm">
+              🥉 3rd
+            </span>
+          </div>
+
+          <!-- Name & Details -->
+          <h5 class="text-[11px] sm:text-xs font-bold text-white truncate max-w-full group-hover:text-amber-300 transition">អយ ស្រីនី</h5>
+          <p class="text-[9px] text-slate-400 truncate max-w-full font-mono">Ms. Ory Sreyny</p>
+          <span class="text-[9px] font-mono font-bold text-emerald-400 mt-0.5">98% On-Time</span>
+
+          <!-- Bronze Step Pedestal -->
+          <div class="w-full mt-2 pt-2 pb-2 rounded-t-xl bg-gradient-to-b from-amber-700/25 via-amber-800/15 to-amber-950/30 border-t-2 border-x border-amber-600/40 flex flex-col items-center justify-center h-16 shadow-inner">
+            <span class="text-xl font-black text-amber-500 font-mono drop-shadow">3</span>
+            <span class="text-[8px] text-amber-300 font-medium">ទៀងទាត់</span>
+            <span class="text-[7.5px] mt-1 text-slate-300 bg-white/10 px-1.5 py-0.2 rounded border border-white/15">📜 ចុចមើល</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Next Month Aspiration Banner inside Podium Card -->
+      <div class="mt-2.5 pt-2.5 border-t border-white/10 flex items-center justify-between gap-2 text-[9.5px]">
+        <div class="flex items-center gap-1.5 text-amber-300 min-w-0">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 shrink-0 text-amber-400 animate-spin" style="animation-duration: 6s;"></i>
+          <span class="truncate"><b>រង់ចាំម្ចាស់ពិតប្រាកដ៖</b> ឱកាសខែវិច្ឆិកា ២០២៦ សម្រាប់អ្នករក្សាវត្តមាន ១០០%</span>
+        </div>
+        <button type="button" onclick="openAttendanceCertificateModal(1)" class="text-amber-400 hover:text-amber-300 font-bold shrink-0 underline underline-offset-2">
+          មើលគំរូ »
+        </button>
+      </div>
+    </div>
+
+    <!-- Dedicated Certificate Showcase Card -->
+    <div class="p-3.5 rounded-2xl bg-gradient-to-br from-amber-950/40 via-[#111C2E] to-blue-950/40 border border-amber-500/30 shadow-xl relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="flex items-start gap-3 relative z-10">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+          <i data-lucide="award" class="w-6 h-6"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h4 class="text-xs sm:text-sm font-bold text-white">វិញ្ញាបនបត្រកិត្តិយសផ្លូវការ CheckinMe</h4>
+            <span class="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[9px] font-bold border border-amber-500/30">គំរូខែតុលា</span>
+          </div>
+          <p class="text-[10px] text-slate-300 mt-1 leading-relaxed">
+            បង្ហាញគំរូវិញ្ញាបនបត្រជ័យលាភី Top 3 ឆ្នើម និងត្រៀមកត់ត្រាជូនម្ចាស់ពិតប្រាកដដែលរក្សាវត្តមាន ១០០% ទៀងទាត់នៅខែវិច្ឆិកា ២០២៦!
+          </p>
+          <div class="mt-2.5 flex items-center gap-2">
+            <button type="button" onclick="openAttendanceCertificateModal(1)" class="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:brightness-110 active:scale-[0.98] text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/25 transition">
+              <i data-lucide="file-check-2" class="w-4 h-4"></i>
+              <span>បើកមើលវិញ្ញាបនបត្រទាំង ៣ សន្លឹក</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard Header -->
+    <div class="flex items-center justify-between pt-1 px-1">
+      <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+        <i data-lucide="list-ordered" class="w-4 h-4 text-amber-400"></i>
+        <span>តារាងចំណាត់ថ្នាក់បុគ្គលិកឆ្នើម Top 10</span>
+      </h4>
+      <span class="text-[10px] text-slate-400 font-mono">10 រូបសរុប</span>
     </div>
 
     <!-- Leaderboard List -->
@@ -11258,6 +11435,237 @@ function renderAttendanceTop10Content() {
   `;
 
   if (window.lucide) window.lucide.createIcons();
+}
+
+// ==========================================
+// ATTENDANCE CERTIFICATE SHOWCASE CONTROLLER
+// ==========================================
+window._currentCertRank = 1;
+
+const ATTENDANCE_CERTIFICATES = {
+  1: {
+    rank: 1,
+    titleKh: 'ជ័យលាភីឆ្នើមលេខ ១',
+    titleEn: 'Top 1 Attendance Excellence Award',
+    nameKh: 'វ៉ន ស្រីនិច',
+    nameEn: 'Ms. VORN SREYNICH',
+    rate: '100% On-Time',
+    days: '២២/២២ ថ្ងៃ',
+    month: 'តុលា ២០២៦ (October 2026)',
+    system: 'Bostar HR Attendance & CheckinMe Verified',
+    image: 'cert-rank1.png',
+    badgeClass: 'from-amber-400 to-yellow-500 text-slate-950',
+    borderClass: 'border-amber-400/50'
+  },
+  2: {
+    rank: 2,
+    titleKh: 'ជ័យលាភីគំរូវិន័យលេខ ២',
+    titleEn: 'Top 2 Attendance Excellence Award',
+    nameKh: 'ឆេង ស៊ុង',
+    nameEn: 'Mr. CHHENG SUNG',
+    rate: '100% On-Time',
+    days: '២២/២២ ថ្ងៃ',
+    month: 'តុលា ២០២៦ (October 2026)',
+    system: 'Bostar HR Attendance & CheckinMe Verified',
+    image: 'cert-rank2.png',
+    badgeClass: 'from-slate-200 to-slate-400 text-slate-950',
+    borderClass: 'border-slate-300/50'
+  },
+  3: {
+    rank: 3,
+    titleKh: 'ជ័យលាភីទៀងទាត់លេខ ៣',
+    titleEn: 'Top 3 Attendance Excellence Award',
+    nameKh: 'អយ ស្រីនី',
+    nameEn: 'Ms. ORY SREYNY',
+    rate: '98% On-Time',
+    days: '២១/២២ ថ្ងៃ',
+    month: 'តុលា ២០២៦ (October 2026)',
+    system: 'Bostar HR Attendance & CheckinMe Verified',
+    image: 'cert-rank3.png',
+    badgeClass: 'from-amber-600 to-amber-700 text-white',
+    borderClass: 'border-amber-600/50'
+  }
+};
+
+function openAttendanceCertificateModal(rank = 1) {
+  window._currentCertRank = rank;
+  const modal = document.getElementById('attendance-certificate-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  switchCertificateRank(rank);
+  setDockVisible(true);
+  const scrollEl = document.getElementById('attendance-cert-body');
+  if (scrollEl) {
+    scrollEl.scrollTop = 0;
+    if (typeof hookScrollableForDock === 'function') {
+      hookScrollableForDock(scrollEl, false);
+    }
+  }
+}
+
+function closeAttendanceCertificateModal() {
+  const modal = document.getElementById('attendance-certificate-modal');
+  if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
+}
+
+function switchCertificateRank(rank) {
+  window._currentCertRank = rank;
+
+  // Update tabs
+  for (let r = 1; r <= 3; r++) {
+    const btn = document.getElementById(`cert-tab-btn-${r}`);
+    if (!btn) continue;
+    if (r === rank) {
+      btn.className = 'flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold text-amber-300 bg-amber-500/20 border border-amber-500/40 flex items-center justify-center gap-1 whitespace-nowrap transition shadow-sm';
+    } else {
+      btn.className = 'flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold text-slate-400 hover:text-white bg-white/5 border border-white/10 flex items-center justify-center gap-1 whitespace-nowrap transition';
+    }
+  }
+
+  renderAttendanceCertificateView(rank);
+}
+
+function renderAttendanceCertificateView(rank) {
+  const container = document.getElementById('attendance-cert-body');
+  if (!container) return;
+
+  const data = ATTENDANCE_CERTIFICATES[rank] || ATTENDANCE_CERTIFICATES[1];
+
+  container.innerHTML = `
+    <!-- Certificate Preview Card -->
+    <div class="relative group rounded-2xl overflow-hidden border-2 ${data.borderClass} bg-black/60 shadow-2xl p-1.5 sm:p-2">
+      <!-- High-res Certificate Image -->
+      <div class="relative rounded-xl overflow-hidden cursor-pointer" onclick="window.open('${data.image}', '_blank')">
+        <img src="${data.image}" 
+             alt="Certificate of Attendance - ${data.nameEn}" 
+             class="w-full h-auto object-contain rounded-xl shadow-lg hover:scale-[1.01] transition-transform duration-300"
+             loading="eager" />
+        <div class="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-black/75 backdrop-blur-md border border-white/20 text-white text-[9.5px] font-bold flex items-center gap-1 shadow">
+          <i data-lucide="maximize-2" class="w-3 h-3 text-amber-400"></i>
+          <span>ចុចពង្រីកពេញអេក្រង់</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recipient & Details Card -->
+    <div class="p-3.5 rounded-2xl bg-[#111C2E] border border-white/10 space-y-3 shadow-lg">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <span class="px-2 py-0.5 rounded-full bg-gradient-to-r ${data.badgeClass} font-black text-[9.5px] shadow-sm">
+            ${data.titleKh}
+          </span>
+          <h4 class="text-sm sm:text-base font-extrabold text-white mt-1.5 flex items-center gap-2">
+            <span>${data.nameKh}</span>
+            <span class="text-xs text-amber-300 font-mono">(${data.nameEn})</span>
+          </h4>
+          <p class="text-[10px] text-slate-400 mt-0.5">${data.titleEn}</p>
+        </div>
+
+        <div class="text-right shrink-0">
+          <span class="text-xs font-black font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+            ${data.rate}
+          </span>
+          <p class="text-[9px] text-slate-400 mt-0.5 font-mono">${data.days}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-[10px]">
+        <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+          <span class="text-slate-400 block text-[9px]">📅 ប្រចាំកាលបរិច្ឆេទ</span>
+          <span class="font-bold text-white">${data.month}</span>
+        </div>
+        <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+          <span class="text-slate-400 block text-[9px]">🏢 ស្ថាប័នបញ្ជាក់</span>
+          <span class="font-bold text-white">CheckinMe & Bostar HR</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aspiration / Next Month Placeholder Notice (រង់ចាំអ្នកធ្វើបានពិតប្រាកដ) -->
+    <div class="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-[#0F1A2C] border border-amber-500/30 space-y-2 shadow-md">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 border border-amber-500/30">
+          <i data-lucide="hourglass" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h5 class="text-xs font-bold text-white">គំរូវិញ្ញាបនបត្រកិត្តិយសផ្លូវការ</h5>
+          <p class="text-[9.5px] text-amber-300 font-medium">រង់ចាំកត់ត្រាម្ចាស់ជ័យលាភីពិតប្រាកដនៅខែក្រោយ!</p>
+        </div>
+      </div>
+      <p class="text-[10px] text-slate-300 leading-relaxed pl-1">
+        វិញ្ញាបនបត្រទាំង ៣ សន្លឹកនេះត្រូវបានរចនាឡើងជាគំរូស្តង់ដារកិត្តិយសផ្លូវការ។ ចាប់ពី <b>ខែវិច្ឆិកា ២០២៦</b> តទៅ បុគ្គលិកដែលរក្សាវត្តមាន ១០០% ទៀងទាត់តាមប្រព័ន្ធ CheckinMe នឹងត្រូវទទួលបានវិញ្ញាបនបត្រផ្លូវការផ្ទាល់ខ្លួន និងការផ្តល់កិត្តិយសជាផ្លូវការនៅលើ Dashboard។
+      </p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="grid grid-cols-2 gap-2.5 pt-1">
+      <button type="button" onclick="printAttendanceCertificate()" 
+              class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:brightness-110 active:scale-[0.98] text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/25 transition">
+        <i data-lucide="printer" class="w-4 h-4"></i>
+        <span>បោះពុម្ព / Print PDF</span>
+      </button>
+
+      <button type="button" onclick="downloadAttendanceCertificate()" 
+              class="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 active:scale-[0.98] border border-white/15 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span>ទាញយករូបភាព</span>
+      </button>
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function printAttendanceCertificate() {
+  const rank = window._currentCertRank || 1;
+  const data = ATTENDANCE_CERTIFICATES[rank] || ATTENDANCE_CERTIFICATES[1];
+  
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    window.open(data.image, '_blank');
+    return;
+  }
+  printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Certificate - ${data.nameEn}</title>
+  <style>
+    @page { size: landscape; margin: 0; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    img {
+      max-width: 100%;
+      max-height: 100vh;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  <img src="${data.image}" onload="setTimeout(function(){ window.print(); }, 250);" />
+</body>
+</html>`);
+  printWindow.document.close();
+}
+
+function downloadAttendanceCertificate() {
+  const rank = window._currentCertRank || 1;
+  const data = ATTENDANCE_CERTIFICATES[rank] || ATTENDANCE_CERTIFICATES[1];
+  const a = document.createElement('a');
+  a.href = data.image;
+  a.download = `Certificate_${data.nameEn.replace(/\\s+/g, '_')}_Rank${rank}.png`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // ==========================================
@@ -18819,10 +19227,16 @@ window.handleRejectLeave = handleRejectLeave;
 window.getLateCheckInLogs = getLateCheckInLogs;
 window.recordLateCheckInLog = recordLateCheckInLog;
 
-// Top 10 On-Time Honor Roll
+// Top 10 On-Time Honor Roll & Certificate Showcase
 window.openAttendanceTop10Modal = openAttendanceTop10Modal;
 window.closeAttendanceTop10Modal = closeAttendanceTop10Modal;
 window.renderAttendanceTop10Content = renderAttendanceTop10Content;
+window.openAttendanceCertificateModal = openAttendanceCertificateModal;
+window.closeAttendanceCertificateModal = closeAttendanceCertificateModal;
+window.switchCertificateRank = switchCertificateRank;
+window.renderAttendanceCertificateView = renderAttendanceCertificateView;
+window.printAttendanceCertificate = printAttendanceCertificate;
+window.downloadAttendanceCertificate = downloadAttendanceCertificate;
 
 // HR Letters & Certificates
 window.openAttendanceDocumentsModal = openAttendanceDocumentsModal;
