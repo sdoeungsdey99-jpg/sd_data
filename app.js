@@ -5124,160 +5124,430 @@ function setStudyTab(tab) {
 window.setStudyTab = setStudyTab;
 
 // ------------------------------------------
-// Sub-view 1: SALES RESET (CEO Vann Sitha)
+// Sub-view 1: LEADERSHIP & TRAINERS (CEO Vann Sitha & Coach Sot Masya)
 // ------------------------------------------
-function renderSalesResetContent() {
+const SOT_MASYA_HEALTH_TOPICS = [
+  {
+    id: 'health-1',
+    num: 1,
+    category: 'nutrition',
+    title: 'របបអាហារូបត្ថម្ភបង្កើនថាមពល និងការផ្តោតអារម្មណ៍របស់អ្នកលក់',
+    tag: 'អាហារូបត្ថម្ភ',
+    tagColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    iconBg: 'from-emerald-500 to-teal-500',
+    summary: 'គន្លឹះជ្រើសរើសអាហារពេលព្រឹក និងភេសជ្ជៈដែលផ្តល់ថាមពលពេញមួយថ្ងៃ ដោយមិនអស់កម្លាំង ឬងងុយគេងពេលធ្វើការ។',
+    motto: '«ថាមពលរាងកាយ គឺជាកម្លាំងជំរុញការបិទការលក់!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'health-2',
+    num: 2,
+    category: 'mindset',
+    title: 'តិចនិកគ្រប់គ្រងសម្ពាធ (Stress) និងរក្សាអារម្មណ៍វិជ្ជមានប្រចាំថ្ងៃ',
+    tag: 'ថាមពល & ស្មារតី',
+    tagColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    iconBg: 'from-purple-500 to-pink-500',
+    summary: 'វិធីដកដង្ហើម និងការលុបបំបាត់អារម្មណ៍តានតឹងបន្ទាប់ពីជួបការបដិសេធពីភ្ញៀវ ឬពេលការលក់ជួបបញ្ហាប្រឈម។',
+    motto: '«ចិត្តស្ងប់ គំនិតភ្លឺថ្លា ការលក់រលូន!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'health-3',
+    num: 3,
+    category: 'lifestyle',
+    title: 'សារៈសំខាន់នៃការគេងលក់ស្កប់ស្កល់ និងការញ៉ាំទឹកឱ្យបានគ្រប់គ្រាន់',
+    tag: 'ទម្លាប់រស់នៅល្អ',
+    tagColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    iconBg: 'from-blue-500 to-indigo-500',
+    summary: 'រូបមន្តផឹកទឹកតាមទម្ងន់ខ្លួន និងទម្លាប់គេង ៧-៨ ម៉ោង ដើម្បីឱ្យខួរក្បាល និងរាងកាយស្តារថាមពលបាន ១០០%។',
+    motto: '«សុខភាពរឹងមាំ ចាប់ផ្តើមពីការសម្រាកត្រឹមត្រូវ!»',
+    status: 'coming_soon'
+  },
+  {
+    id: 'health-4',
+    num: 4,
+    category: 'beauty',
+    title: 'វិធីសាស្ត្រថែទាំសម្រស់ និងស្បែកឱ្យស្រស់ថ្លា បង្កើនទំនុកចិត្ត',
+    tag: 'សម្រស់ & ស្បែក',
+    tagColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+    iconBg: 'from-rose-500 to-pink-500',
+    summary: 'ការថែទាំស្បែកមុខ និងរូបរាងឱ្យមានភាពទាក់ទាញ បង្កើតភាពរួសរាយ និងភាពជឿជាក់ខ្ពស់នៅចំពោះមុខអតិថិជន។',
+    motto: '«ភាពស្រស់ថ្លាពីខាងក្នុង បង្កើតទំនុកចិត្តនៅខាងក្រៅ!»',
+    status: 'coming_soon'
+  }
+];
+
+let trainerScrollTimer = null;
+function handleTrainerCarouselScroll(el) {
+  if (!el) return;
+  if (trainerScrollTimer) clearTimeout(trainerScrollTimer);
+  trainerScrollTimer = setTimeout(() => {
+    const isMasya = el.scrollLeft > (el.clientWidth / 2);
+    const newTrainer = isMasya ? 'masya' : 'ceo';
+    if (appState.activeTrainer !== newTrainer) {
+      appState.activeTrainer = newTrainer;
+      if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+      updateTrainerContentArea();
+    }
+  }, 90);
+}
+window.handleTrainerCarouselScroll = handleTrainerCarouselScroll;
+
+function updateTrainerContentArea() {
+  const container = document.getElementById('trainer-content-area');
+  if (!container) return;
+  const isMasya = appState.activeTrainer === 'masya';
+  container.innerHTML = isMasya ? renderMasyaHealthContentHTML() : renderCeoLessonsContentHTML();
+  if (window.lucide) window.lucide.createIcons();
+}
+window.updateTrainerContentArea = updateTrainerContentArea;
+
+function renderSingleLessonCardHTML(l) {
+  const isExpanded = appState.expandedLessons && appState.expandedLessons[l.num];
+  return `
+    <div class="ios-glass-card rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-amber-500/30">
+      <!-- Header Bar (Click to toggle) -->
+      <div onclick="toggleLessonAccordion(${l.num})" 
+           class="p-3.5 sm:p-4 flex items-start justify-between gap-3 cursor-pointer select-none hover:bg-white/[0.02] active:scale-[0.99] transition">
+        <div class="flex items-start gap-3 min-w-0 flex-1">
+          <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
+            ${l.num}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 mb-0.5">
+              <h4 class="font-bold text-xs sm:text-sm text-white tracking-wide leading-tight">${l.title}</h4>
+              <span class="px-2 py-0.2 rounded-full text-[9px] font-semibold border ${l.tagColor} shrink-0">
+                ${l.tag}
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">${l.summary}</p>
+          </div>
+        </div>
+        <div class="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0 text-slate-400 mt-0.5">
+          <i id="lesson-chevron-${l.num}" data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}"></i>
+        </div>
+      </div>
+
+      <!-- Expanded Details Body -->
+      <div id="lesson-body-${l.num}" class="${isExpanded ? '' : 'hidden'} px-3.5 pb-3.5 pt-1 border-t border-white/5 space-y-3">
+        ${renderLessonSpecificBody(l)}
+
+        <!-- Bottom Golden Motto Box -->
+        <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2">
+          <p class="text-[11px] font-semibold text-amber-300 font-kantumruy italic flex-1">
+            ${l.motto}
+          </p>
+          <button onclick="copyObjectionScript('${l.motto.replace(/'/g, "\\'")}')" 
+                  title="ចម្លងពាក្យស្លោក" 
+                  class="p-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 shrink-0 active:scale-90 transition">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCeoLessonsContentHTML() {
   const activeCategory = appState.lessonCategory || 'all';
   const filteredLessons = activeCategory === 'all' 
     ? CEO_SALES_RESET_LESSONS 
     : CEO_SALES_RESET_LESSONS.filter(l => l.category === activeCategory);
 
   return `
-    <div class="space-y-3.5 animate-fade-in">
-      <!-- Executive Hero VIP Card (Horizontal Card ដូចកាតខាងមុខ មិនបញ្ឈរទេ) -->
-      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-br from-amber-500/15 via-[#0C1527] to-[#070D18] shadow-2xl text-left">
-        <div class="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Category Filter Pills (Auto-Center on Tap) -->
+    <div id="lesson-category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+      <button onclick="setLessonCategory('all', event)" data-category="all"
+              class="lesson-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ✨ ទាំងអស់ (10)
+      </button>
+      <button onclick="setLessonCategory('mindset', event)" data-category="mindset"
+              class="lesson-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'mindset' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🧠 ផ្នត់គំនិត
+      </button>
+      <button onclick="setLessonCategory('process', event)" data-category="process"
+              class="lesson-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'process' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🎯 ដំណើរការលក់
+      </button>
+      <button onclick="setLessonCategory('luca', event)" data-category="luca"
+              class="lesson-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'luca' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🛡️ រូបមន្ត L.U.C.A.
+      </button>
+      <button onclick="setLessonCategory('followup', event)" data-category="followup"
+              class="lesson-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'followup' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        📞 ការតាមដាន (Follow-up)
+      </button>
+      <button onclick="setLessonCategory('action', event)" data-category="action"
+              class="lesson-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'action' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🚀 ផែនការសកម្មភាព
+      </button>
+    </div>
 
-        <!-- Top Header Tags -->
-        <div class="flex items-center justify-between mb-3">
-          <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
-            <span>👑</span>
-            <span>អ្នកបណ្ដុះបណ្ដាល • SALES RESET</span>
-          </span>
-          <span class="text-[10px] text-amber-400 font-mono font-bold bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">CEO</span>
-        </div>
+    <!-- 10 Lessons Accordion List (Standardized Card-to-Card Spacing) -->
+    <div id="lesson-accordion-list" class="space-y-3.5">
+      ${filteredLessons.map(l => renderSingleLessonCardHTML(l)).join('')}
+    </div>
+  `;
+}
 
-        <!-- Horizontal Profile Row (ដូចកាតខាងមុខ) -->
-        <div class="flex items-center gap-3.5 sm:gap-4">
-          <!-- Zoomed Photo in Card Frame with Gold Border & Verified Star -->
-          <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-xl bg-black/40">
-            <img src="ceo-vann-sitha-2.jpg" alt="CEO Vann Sitha" 
-                 class="w-full h-full object-cover object-[52%_25%] scale-125 transition-transform duration-300">
-            <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
+function renderSingleHealthCardHTML(item) {
+  return `
+    <div class="ios-glass-card rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-pink-500/30">
+      <div class="p-3.5 sm:p-4 flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3 min-w-0 flex-1">
+          <div class="w-7 h-7 rounded-xl bg-gradient-to-tr ${item.iconBg} text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-md">
+            ${item.num}
           </div>
-
           <div class="min-w-0 flex-1">
-            <span class="text-[10px] font-bold text-amber-400 tracking-wider uppercase block">Vann Sitha Trading</span>
-            <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight mt-0.5">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
-            <p class="text-xs text-amber-300 font-semibold mt-0.5">អគ្គនាយក & គ្រូបង្វឹកធំ</p>
-            <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-              <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[9.5px] border border-amber-500/40">
-                SALES RESET • តុលា ២០២៦
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <h4 class="font-bold text-xs sm:text-sm text-white tracking-wide leading-tight">${item.title}</h4>
+              <span class="px-2 py-0.2 rounded-full text-[9px] font-semibold border ${item.tagColor} shrink-0">
+                ${item.tag}
               </span>
             </div>
+            <p class="text-[11px] text-slate-300 leading-relaxed font-kantumruy">${item.summary}</p>
+            <div class="mt-2.5 p-2 rounded-xl bg-pink-500/10 border border-pink-500/20 text-[10.5px] text-rose-300 font-kantumruy italic">
+              💡 ${item.motto}
+            </div>
           </div>
         </div>
-
-        <!-- Key Banner Quote -->
-        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 backdrop-blur-md mt-3">
-          <div class="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
-            <span>✨</span>
-            <span>សារដាស់ស្មារតីស្នូល ៖</span>
-          </div>
-          <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
-            «ពេលការលក់ធ្លាក់ចុះ យើងត្រូវតែខ្លាំងឡើង»
-          </h3>
-          <p class="text-[11px] text-amber-200/90 font-kantumruy leading-relaxed mt-1">
-            “ការលក់ធ្លាក់ ≠ យើងធ្លាក់! គោលដៅមិនមែនគ្រាន់តែមានអារម្មណ៍ល្អទេ គឺឱ្យសកម្មភាព ជំនាញ វិន័យ និងលទ្ធផលរបស់យើងចាប់ផ្តើមផ្លាស់ប្តូរ។”
-          </p>
-        </div>
-
-        <!-- 3 Quick Pillars Pills -->
-        <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
-          <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-            <span class="text-xs">🎯</span>
-            <p class="text-[10px] font-bold text-white mt-0.5">១០ មេរៀន</p>
-            <span class="text-[8.5px] text-slate-400 block">អនុវត្តផ្ទាល់</span>
-          </div>
-          <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-            <span class="text-xs">⚡</span>
-            <p class="text-[10px] font-bold text-amber-400 mt-0.5">រូបមន្ត L.U.C.A.</p>
-            <span class="text-[8.5px] text-slate-400 block">ឆ្លើយតបភ្ញៀវ</span>
-          </div>
-          <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-            <span class="text-xs">📈</span>
-            <p class="text-[10px] font-bold text-emerald-400 mt-0.5">លទ្ធផល = ស × ជ</p>
-            <span class="text-[8.5px] text-slate-400 block">សកម្មភាព x ជំនាញ</span>
-          </div>
-        </div>
+        <span class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[9.5px] text-slate-400 font-medium shrink-0">
+          កំពុងរៀបចំ
+        </span>
       </div>
+    </div>
+  `;
+}
 
-      <!-- Category Filter Pills -->
-      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch;">
-        <button onclick="setLessonCategory('all')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-          ✨ ទាំងអស់ (10)
-        </button>
-        <button onclick="setLessonCategory('mindset')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'mindset' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-          🧠 ផ្នត់គំនិត
-        </button>
-        <button onclick="setLessonCategory('process')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'process' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-          🎯 ដំណើរការលក់
-        </button>
-        <button onclick="setLessonCategory('luca')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'luca' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-          🛡️ រូបមន្ត L.U.C.A.
-        </button>
-        <button onclick="setLessonCategory('followup')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'followup' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-          📞 ការតាមដាន (Follow-up)
-        </button>
-        <button onclick="setLessonCategory('action')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'action' ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-          🚀 ផែនការសកម្មភាព
-        </button>
+function renderMasyaHealthContentHTML() {
+  const activeCategory = appState.healthCategory || 'all';
+  const filtered = activeCategory === 'all' 
+    ? SOT_MASYA_HEALTH_TOPICS 
+    : SOT_MASYA_HEALTH_TOPICS.filter(t => t.category === activeCategory);
+
+  return `
+    <!-- Coming Soon Notice Card -->
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-transparent border border-pink-500/25 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-pink-500/20 text-rose-300 flex items-center justify-center shrink-0 border border-pink-500/30 shadow-md">
+        <i data-lucide="sparkles" class="w-5 h-5 text-rose-400"></i>
       </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">បណ្ណាល័យចំណេះដឹងសុខភាព</h4>
+          <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-pink-500/20 text-rose-300 border border-pink-500/30">
+            នឹងផ្សាយឆាប់ៗ
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-300 font-kantumruy mt-0.5 leading-relaxed">
+          អត្ថបទ មេរៀន និងគន្លឹះថែទាំសុខភាពពី អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
+        </p>
+      </div>
+    </div>
 
-      <!-- 10 Lessons Accordion List (Standardized Card-to-Card Spacing) -->
-      <div class="space-y-3.5">
-        ${filteredLessons.map(l => {
-          const isExpanded = appState.expandedLessons && appState.expandedLessons[l.num];
-          return `
-            <div class="ios-glass-card rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-amber-500/30">
-              <!-- Header Bar (Click to toggle) -->
-              <div onclick="toggleLessonAccordion(${l.num})" 
-                   class="p-3.5 sm:p-4 flex items-start justify-between gap-3 cursor-pointer select-none hover:bg-white/[0.02] active:scale-[0.99] transition">
-                <div class="flex items-start gap-3 min-w-0 flex-1">
-                  <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
-                    ${l.num}
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 mb-0.5">
-                      <h4 class="font-bold text-xs sm:text-sm text-white tracking-wide leading-tight">${l.title}</h4>
-                      <span class="px-2 py-0.2 rounded-full text-[9px] font-semibold border ${l.tagColor} shrink-0">
-                        ${l.tag}
-                      </span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">${l.summary}</p>
-                  </div>
-                </div>
-                <div class="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0 text-slate-400 mt-0.5">
-                  <i id="lesson-chevron-${l.num}" data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}"></i>
-                </div>
+    <!-- Category Filter Pills (Auto-Center on Tap) -->
+    <div id="health-category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+      <button onclick="setHealthCategory('all', event)" data-category="all"
+              class="health-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-pink-500 text-white font-bold shadow-md shadow-pink-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ✨ ទាំងអស់ (4)
+      </button>
+      <button onclick="setHealthCategory('nutrition', event)" data-category="nutrition"
+              class="health-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'nutrition' ? 'bg-pink-500 text-white font-bold shadow-md shadow-pink-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🥗 អាហារូបត្ថម្ភ
+      </button>
+      <button onclick="setHealthCategory('mindset', event)" data-category="mindset"
+              class="health-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'mindset' ? 'bg-pink-500 text-white font-bold shadow-md shadow-pink-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🧘 ថាមពល & ស្មារតី
+      </button>
+      <button onclick="setHealthCategory('lifestyle', event)" data-category="lifestyle"
+              class="health-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'lifestyle' ? 'bg-pink-500 text-white font-bold shadow-md shadow-pink-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        💧 ទម្លាប់រស់នៅល្អ
+      </button>
+      <button onclick="setHealthCategory('beauty', event)" data-category="beauty"
+              class="health-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'beauty' ? 'bg-pink-500 text-white font-bold shadow-md shadow-pink-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        ✨ សម្រស់ & ស្បែក
+      </button>
+    </div>
+
+    <!-- Health Topics List -->
+    <div id="health-topic-list" class="space-y-3.5">
+      ${filtered.map(t => renderSingleHealthCardHTML(t)).join('')}
+    </div>
+  `;
+}
+
+function renderSalesResetContent() {
+  const isMasya = appState.activeTrainer === 'masya';
+
+  // Schedule scroll alignment if masya is active
+  setTimeout(() => {
+    const carousel = document.getElementById('trainer-carousel');
+    if (carousel && appState.activeTrainer === 'masya') {
+      carousel.scrollTo({ left: carousel.clientWidth, behavior: 'auto' });
+    }
+  }, 40);
+
+  return `
+    <div class="space-y-3.5 animate-fade-in">
+      
+      <!-- Swipeable Trainer Carousel (Gesture works naturally, NO arrows [◄][►], NO dots ●○) -->
+      <div id="trainer-carousel" 
+           class="flex overflow-x-auto snap-x snap-mandatory no-scrollbar rounded-3xl select-none" 
+           style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;"
+           onscroll="handleTrainerCarouselScroll(this)">
+        
+        <!-- Slide 1: លោកអគ្គនាយក វណ្ណ ស៊ីថា -->
+        <div id="trainer-slide-ceo" class="w-full shrink-0 snap-center">
+          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-br from-amber-500/15 via-[#0C1527] to-[#070D18] shadow-2xl text-left">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Header Tags -->
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+                <span>👑</span>
+                <span>អ្នកបណ្ដុះបណ្ដាល • SALES RESET</span>
+              </span>
+              <span class="text-[10px] text-amber-400 font-mono font-bold bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">CEO</span>
+            </div>
+
+            <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
+            <div class="flex items-center gap-3.5 sm:gap-4">
+              <!-- Zoomed Photo in Card Frame with Gold Border & Verified Star -->
+              <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-xl bg-black/40">
+                <img src="ceo-vann-sitha-2.jpg" alt="CEO Vann Sitha" 
+                     class="w-full h-full object-cover object-[52%_25%] scale-125 transition-transform duration-300">
+                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
               </div>
 
-              <!-- Expanded Details Body -->
-              <div id="lesson-body-${l.num}" class="${isExpanded ? '' : 'hidden'} px-3.5 pb-3.5 pt-1 border-t border-white/5 space-y-3">
-                ${renderLessonSpecificBody(l)}
-
-                <!-- Bottom Golden Motto Box -->
-                <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2">
-                  <p class="text-[11px] font-semibold text-amber-300 font-kantumruy italic flex-1">
-                    ${l.motto}
-                  </p>
-                  <button onclick="copyObjectionScript('${l.motto.replace(/'/g, "\\'")}')" 
-                          title="ចម្លងពាក្យស្លោក" 
-                          class="p-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 shrink-0 active:scale-90 transition">
-                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                  </button>
+              <div class="min-w-0 flex-1">
+                <!-- ជួរទី ១ ៖ ឈ្មោះខ្មែរនៅលើ ធំ និងច្បាស់ -->
+                <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
+                <!-- ជួរទី ២ ៖ ឈ្មោះឡាតាំងនៅក្រោម -->
+                <p class="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 tracking-wide">CEO Vann Sitha</p>
+                <!-- ជួរទី ៣ ៖ តួនាទី -->
+                <p class="text-xs text-slate-300 font-medium mt-0.5">អគ្គនាយក • Vann Sitha Trading</p>
+                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[9.5px] border border-amber-500/40">
+                    SALES RESET • តុលា ២០២៦
+                  </span>
                 </div>
               </div>
             </div>
-          `;
-        }).join('')}
+
+            <!-- Key Banner Quote -->
+            <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 backdrop-blur-md mt-3">
+              <div class="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
+                <span>✨</span>
+                <span>សារដាស់ស្មារតីស្នូល ៖</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+                «ពេលការលក់ធ្លាក់ចុះ យើងត្រូវតែខ្លាំងឡើង»
+              </h3>
+              <p class="text-[11px] text-amber-200/90 font-kantumruy leading-relaxed mt-1">
+                “ការលក់ធ្លាក់ ≠ យើងធ្លាក់! គោលដៅមិនមែនគ្រាន់តែមានអារម្មណ៍ល្អទេ គឺឱ្យសកម្មភាព ជំនាញ វិន័យ និងលទ្ធផលរបស់យើងចាប់ផ្តើមផ្លាស់ប្តូរ។”
+              </p>
+            </div>
+
+            <!-- 3 Quick Pillars Pills -->
+            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🎯</span>
+                <p class="text-[10px] font-bold text-white mt-0.5">១០ មេរៀន</p>
+                <span class="text-[8.5px] text-slate-400 block">អនុវត្តផ្ទាល់</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">⚡</span>
+                <p class="text-[10px] font-bold text-amber-400 mt-0.5">រូបមន្ត L.U.C.A.</p>
+                <span class="text-[8.5px] text-slate-400 block">ឆ្លើយតបភ្ញៀវ</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">📈</span>
+                <p class="text-[10px] font-bold text-emerald-400 mt-0.5">លទ្ធផល = ស × ជ</p>
+                <span class="text-[8.5px] text-slate-400 block">សកម្មភាព x ជំនាញ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 2: អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា -->
+        <div id="trainer-slide-masya" class="w-full shrink-0 snap-center">
+          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-pink-500/35 relative overflow-hidden bg-gradient-to-br from-pink-500/15 via-[#170E22] to-[#070D18] shadow-2xl text-left">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-pink-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Header Tags -->
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-500/40 text-rose-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+                <span>🌸</span>
+                <span>អ្នកជំនាញសុខភាព</span>
+              </span>
+              <span class="text-[10px] text-rose-400 font-mono font-bold bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/30">HEALTH</span>
+            </div>
+
+            <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
+            <div class="flex items-center gap-3.5 sm:gap-4">
+              <!-- HD Photo in Card Frame with Rose Border & Star -->
+              <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-pink-400 shadow-xl bg-black/40">
+                <img src="coach-sot-masya.jpg" alt="Coach Sot Masya" 
+                     class="w-full h-full object-cover object-[50%_15%] scale-105 transition-transform duration-300">
+                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-pink-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-white font-black shadow">★</span>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <!-- ជួរទី ១ ៖ ឈ្មោះខ្មែរនៅលើ ធំ និងច្បាស់ -->
+                <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា</h3>
+                <!-- ជួរទី ២ ៖ ឈ្មោះឡាតាំងនៅក្រោម -->
+                <p class="text-xs sm:text-sm font-bold text-rose-300 mt-0.5 tracking-wide">Coach Sot Masya</p>
+                <!-- ជួរទី ៣ ៖ តួនាទី -->
+                <p class="text-xs text-slate-300 font-medium mt-0.5">អ្នកចែករំលែកចំណេះដឹងសុខភាព</p>
+                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-pink-500/20 text-rose-300 font-bold text-[9.5px] border border-pink-500/40">
+                    HEALTH & WELLNESS
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Banner Quote -->
+            <div class="p-3.5 rounded-2xl bg-pink-500/10 border border-pink-500/25 backdrop-blur-md mt-3">
+              <div class="flex items-center gap-1.5 text-rose-300 text-xs font-bold mb-1">
+                <span>🌸</span>
+                <span>សារដាស់ស្មារតីសុខភាព ៖</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+                «សុខភាពល្អ គឺជាទ្រព្យសម្បត្តិទី១ និងជាគ្រឹះនៃថាមពលលក់»
+              </h3>
+              <p class="text-[11px] text-rose-200/90 font-kantumruy leading-relaxed mt-1">
+                “អ្នកលក់ដែលពូកែ និងមានថាមពលទាក់ទាញ គឺជាអ្នកដែលមានសុខភាពរាងកាយរឹងមាំ ស្មារតីស្រស់ស្រាយ និងសម្រស់ភ្លឺថ្លាជានិច្ច។”
+              </p>
+            </div>
+
+            <!-- 3 Quick Pillars Pills -->
+            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🥗</span>
+                <p class="text-[10px] font-bold text-white mt-0.5">អាហារូបត្ថម្ភ</p>
+                <span class="text-[8.5px] text-slate-400 block">បង្កើនថាមពល</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🧘</span>
+                <p class="text-[10px] font-bold text-rose-300 mt-0.5">ស្មារតីវិជ្ជមាន</p>
+                <span class="text-[8.5px] text-slate-400 block">គ្រប់គ្រង Stress</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">✨</span>
+                <p class="text-[10px] font-bold text-pink-300 mt-0.5">សម្រស់ & ស្បែក</p>
+                <span class="text-[8.5px] text-slate-400 block">បង្កើនទំនុកចិត្ត</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
+
+      <!-- Dynamic Content Area (Switches between CEO 10 Lessons & Masya Health Topics) -->
+      <div id="trainer-content-area" class="space-y-3.5">
+        ${isMasya ? renderMasyaHealthContentHTML() : renderCeoLessonsContentHTML()}
+      </div>
+
     </div>
   `;
 }
@@ -5458,15 +5728,104 @@ function toggleLessonAccordion(num) {
 }
 window.toggleLessonAccordion = toggleLessonAccordion;
 
-function setLessonCategory(cat) {
+function setLessonCategory(cat, event) {
   appState.lessonCategory = cat;
-  setStudyTab('sales_reset');
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  // Auto-scroll the clicked pill to center horizontally
+  if (event && event.currentTarget) {
+    event.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  // Update button active styles
+  const pills = document.querySelectorAll('.lesson-category-pill');
+  pills.forEach(btn => {
+    const isThis = btn.getAttribute('data-category') === cat;
+    if (isThis) {
+      btn.className = "lesson-category-pill px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition active:scale-95 bg-amber-500 text-black font-bold shadow-md shadow-amber-500/20";
+      if (!event) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    } else {
+      btn.className = "lesson-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5";
+    }
+  });
+
+  const listContainer = document.getElementById('lesson-accordion-list');
+  if (listContainer) {
+    const filteredLessons = cat === 'all' 
+      ? CEO_SALES_RESET_LESSONS 
+      : CEO_SALES_RESET_LESSONS.filter(l => l.category === cat);
+    listContainer.innerHTML = filteredLessons.map(l => renderSingleLessonCardHTML(l)).join('');
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    updateTrainerContentArea();
+  }
 }
 window.setLessonCategory = setLessonCategory;
+
+function setHealthCategory(cat, event) {
+  appState.healthCategory = cat;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  // Auto-scroll clicked button to center horizontally
+  if (event && event.currentTarget) {
+    event.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  const pills = document.querySelectorAll('.health-category-pill');
+  pills.forEach(btn => {
+    const isThis = btn.getAttribute('data-category') === cat;
+    if (isThis) {
+      btn.className = "health-category-pill px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition active:scale-95 bg-pink-500 text-white font-bold shadow-md shadow-pink-500/20";
+      if (!event) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    } else {
+      btn.className = "health-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5";
+    }
+  });
+
+  const listContainer = document.getElementById('health-topic-list');
+  if (listContainer) {
+    const filtered = cat === 'all' 
+      ? SOT_MASYA_HEALTH_TOPICS 
+      : SOT_MASYA_HEALTH_TOPICS.filter(t => t.category === cat);
+    listContainer.innerHTML = filtered.map(t => renderSingleHealthCardHTML(t)).join('');
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    updateTrainerContentArea();
+  }
+}
+window.setHealthCategory = setHealthCategory;
 
 // ------------------------------------------
 // Sub-view 2: SALES QUOTES & MINDSET
 // ------------------------------------------
+function renderSingleQuoteCardHTML(q) {
+  return `
+    <div class="ios-glass-card rounded-2xl p-4 border border-white/10 space-y-2 hover:border-amber-500/30 transition">
+      <div class="flex items-center justify-between">
+        <span class="px-2 py-0.5 rounded-md text-[9px] font-bold bg-white/5 text-amber-400 border border-white/5">
+          ${q.categoryLabel}
+        </span>
+        <button onclick="copySalesQuoteById(${q.id})" 
+                title="ចម្លងពាក្យស្លោក" 
+                class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[10px] font-semibold flex items-center gap-1 active:scale-90 transition">
+          <i data-lucide="copy" class="w-3 h-3 text-orange-400"></i>
+          <span>Copy</span>
+        </button>
+      </div>
+      <p class="text-xs sm:text-sm font-bold text-white font-kantumruy leading-relaxed">
+        “${q.quoteKm}”
+      </p>
+      ${q.quoteEn ? `<p class="text-[11px] text-slate-400 italic font-sans leading-tight">“${q.quoteEn}”</p>` : ''}
+      <div class="pt-1 flex items-center justify-between text-[10px] text-slate-400">
+        <span class="font-semibold text-amber-300">— ${q.author} (${q.role})</span>
+      </div>
+      <div class="p-2 rounded-xl bg-black/25 text-[10.5px] text-slate-300 border border-white/5">
+        <span class="text-emerald-400 font-bold">💡 គន្លឹះ៖</span> ${q.tip}
+      </div>
+    </div>
+  `;
+}
+
 function renderSalesQuotesContent() {
   const activeCategory = appState.quoteCategory || 'all';
   const lib = SALES_QUOTES_LIBRARY;
@@ -5545,30 +5904,30 @@ function renderSalesQuotesContent() {
         </div>
       </div>
 
-      <!-- Category Filter Pills -->
-      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch;">
-        <button onclick="setQuoteCategory('all')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+      <!-- Category Filter Pills (Auto-Center on Tap) -->
+      <div id="quotes-category-pills" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+        <button onclick="setQuoteCategory('all', event)" data-category="all"
+                class="quote-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           ✨ ទាំងអស់
         </button>
-        <button onclick="setQuoteCategory('motivation')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'motivation' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        <button onclick="setQuoteCategory('motivation', event)" data-category="motivation"
+                class="quote-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'motivation' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🔥 លើកទឹកចិត្ត
         </button>
-        <button onclick="setQuoteCategory('trust')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'trust' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        <button onclick="setQuoteCategory('trust', event)" data-category="trust"
+                class="quote-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'trust' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🤝 កសាងទំនុកចិត្ត
         </button>
-        <button onclick="setQuoteCategory('closing')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'closing' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        <button onclick="setQuoteCategory('closing', event)" data-category="closing"
+                class="quote-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'closing' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🎯 បិទការលក់
         </button>
-        <button onclick="setQuoteCategory('objection')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'objection' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        <button onclick="setQuoteCategory('objection', event)" data-category="objection"
+                class="quote-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'objection' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           🛡️ ដោះស្រាយការជំទាស់
         </button>
-        <button onclick="setQuoteCategory('followup')" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'followup' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        <button onclick="setQuoteCategory('followup', event)" data-category="followup"
+                class="quote-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'followup' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
           📞 ការតាមដាន (Follow-up)
         </button>
       </div>
@@ -5576,43 +5935,49 @@ function renderSalesQuotesContent() {
       <!-- Quotes Library Cards (Standardized Card-to-Card Spacing) -->
       <div class="space-y-3.5">
         <div class="flex items-center justify-between px-1">
-          <span class="text-xs font-bold text-slate-300">បណ្ណាល័យពាក្យស្លោក (${filtered.length})</span>
+          <span id="quotes-count-label" class="text-xs font-bold text-slate-300">បណ្ណាល័យពាក្យស្លោក (${filtered.length})</span>
           <span class="text-[10px] text-slate-500">ចុច Copy ដើម្បីចែករំលែក</span>
         </div>
 
-        ${filtered.map(q => `
-          <div class="ios-glass-card rounded-2xl p-4 border border-white/10 space-y-2 hover:border-amber-500/30 transition">
-            <div class="flex items-center justify-between">
-              <span class="px-2 py-0.5 rounded-md text-[9px] font-bold bg-white/5 text-amber-400 border border-white/5">
-                ${q.categoryLabel}
-              </span>
-              <button onclick="copySalesQuoteById(${q.id})" 
-                      title="ចម្លងពាក្យស្លោក" 
-                      class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[10px] font-semibold flex items-center gap-1 active:scale-90 transition">
-                <i data-lucide="copy" class="w-3 h-3 text-orange-400"></i>
-                <span>Copy</span>
-              </button>
-            </div>
-            <p class="text-xs sm:text-sm font-bold text-white font-kantumruy leading-relaxed">
-              “${q.quoteKm}”
-            </p>
-            ${q.quoteEn ? `<p class="text-[11px] text-slate-400 italic font-sans leading-tight">“${q.quoteEn}”</p>` : ''}
-            <div class="pt-1 flex items-center justify-between text-[10px] text-slate-400">
-              <span class="font-semibold text-amber-300">— ${q.author} (${q.role})</span>
-            </div>
-            <div class="p-2 rounded-xl bg-black/25 text-[10.5px] text-slate-300 border border-white/5">
-              <span class="text-emerald-400 font-bold">💡 គន្លឹះ៖</span> ${q.tip}
-            </div>
-          </div>
-        `).join('')}
+        <div id="quotes-library-list" class="space-y-3.5">
+          ${filtered.map(q => renderSingleQuoteCardHTML(q)).join('')}
+        </div>
       </div>
     </div>
   `;
 }
 
-function setQuoteCategory(cat) {
+function setQuoteCategory(cat, event) {
   appState.quoteCategory = cat;
-  setStudyTab('quotes');
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  // Auto-scroll clicked button to center horizontally
+  if (event && event.currentTarget) {
+    event.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  const pills = document.querySelectorAll('.quote-category-pill');
+  pills.forEach(btn => {
+    const isThis = btn.getAttribute('data-category') === cat;
+    if (isThis) {
+      btn.className = "quote-category-pill px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition active:scale-95 bg-orange-500 text-white font-bold shadow-md shadow-orange-500/20";
+      if (!event) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    } else {
+      btn.className = "quote-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5";
+    }
+  });
+
+  const listContainer = document.getElementById('quotes-library-list');
+  const countLabel = document.getElementById('quotes-count-label');
+  if (listContainer) {
+    const lib = SALES_QUOTES_LIBRARY;
+    const filtered = cat === 'all' ? lib : lib.filter(q => q.category === cat);
+    listContainer.innerHTML = filtered.map(q => renderSingleQuoteCardHTML(q)).join('');
+    if (countLabel) countLabel.textContent = `បណ្ណាល័យពាក្យស្លោក (${filtered.length})`;
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    setStudyTab('quotes');
+  }
 }
 window.setQuoteCategory = setQuoteCategory;
 
