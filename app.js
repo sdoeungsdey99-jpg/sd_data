@@ -9234,7 +9234,7 @@ function showToastNotification(msg) {
 
 const DEFAULT_PROFILE_DATA = {
   name: 'សមាជិក Bostar',
-  memberId: 'ID: BG-001',
+  memberId: 'BG-001',
   subtitle: 'BostarGroup Member',
   avatar: 'bostar-logo.png',
   work: 'សមាជិកក្រុម BostarGroup',
@@ -9257,7 +9257,7 @@ const DEFAULT_PROFILE_DATA = {
 
 const DEFAULT_GUEST_PROFILE_DATA = {
   name: 'សមាជិក Bostar',
-  memberId: 'ID: BG-001',
+  memberId: 'BG-001',
   subtitle: 'BostarGroup Member',
   avatar: 'bostar-logo.png',
   work: 'សមាជិកក្រុម BostarGroup',
@@ -9637,7 +9637,8 @@ function generateAttendanceTelegramText(actionType = null, extraNote = null) {
   const fullDateKm = `ថ្ងៃ${dayName} ទី${dateNum} ខែ${monthName} ឆ្នាំ${yearNum}`;
   
   const staffName = p.name || 'ស្តី ស្តើង';
-  const staffId = p.memberId || 'SD-8899';
+  const cleanId = String(p.memberId || 'BG-001').replace(/^(ID:\s*)+/i, '').trim();
+  const staffId = cleanId || 'BG-001';
   const role = p.work || 'Bostar Sales Consultant';
   const loc = data.location || 'ការិយាល័យកណ្តាល (HQ GPS Verified)';
 
@@ -11778,7 +11779,7 @@ function renderProfileDrawerContent() {
   const drawerId = document.getElementById('drawer-prof-id');
   if (drawerAvatar) drawerAvatar.src = p.avatar || 'profile.png';
   if (drawerName) drawerName.textContent = p.name || 'ស្តី ស្តើង';
-  if (drawerId) drawerId.textContent = p.memberId || 'SD-8899';
+  if (drawerId) drawerId.textContent = 'ID: ' + String(p.memberId || 'BG-001').replace(/^(ID:\s*)+/i, '').trim();
 
   const infoItems = [
     { key: 'showWork', icon: 'briefcase', color: 'text-orange-400', label: 'ធ្វើការនៅ', val: p.work },
@@ -12092,7 +12093,7 @@ function getProfileViewHTML() {
         </div>
 
         <!-- Centered Member ID & Subtitle Below Name -->
-        <p class="text-xs font-mono font-bold text-orange-400 mt-0.5">${p.memberId}</p>
+        <p class="text-xs font-mono font-bold text-orange-400 mt-0.5">ID: ${String(p.memberId || 'BG-001').replace(/^(ID:\s*)+/i, '').trim()}</p>
         ${p.subtitle ? `<p class="text-[11px] text-slate-400 mt-0.5">${p.subtitle}</p>` : ''}
 
 
@@ -12520,7 +12521,7 @@ function saveProfileData() {
     ...current,
     avatar: tempAvatarDataUrl || current.avatar || (isMaster ? 'profile.png' : 'bostar-logo.png'),
     name: getVal('edit-prof-name') || (isMaster ? 'ស្តី ស្តើង' : 'សមាជិក Bostar'),
-    memberId: getVal('edit-prof-id') || (isMaster ? 'ID: SD-0001' : 'ID: BG-001'),
+    memberId: (getVal('edit-prof-id') || (isMaster ? 'SD-0001' : 'BG-001')).replace(/^(ID:\s*)+/i, '').trim(),
     subtitle: getVal('edit-prof-sub') || (isMaster ? 'SDEY SDOEUNG' : 'BostarGroup Member'),
     work: getVal('edit-prof-work') || (isMaster ? current.work : 'សមាជិកក្រុម BostarGroup'),
     study: getVal('edit-prof-study') || (isMaster ? current.study : 'BostarGroup'),
@@ -13214,7 +13215,7 @@ async function submitOnboardingConnection() {
     const memberName = name || 'សមាជិក Bostar';
     const memberProfile = {
       name: memberName,
-      memberId: 'ID: BG-' + Math.floor(100 + Math.random() * 900),
+      memberId: 'BG-' + Math.floor(100 + Math.random() * 900),
       subtitle: name ? `${memberName} • BostarGroup` : 'BostarGroup Member',
       avatar: 'bostar-logo.png',
       work: 'សមាជិកក្រុម BostarGroup',
