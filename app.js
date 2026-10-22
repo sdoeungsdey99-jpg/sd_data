@@ -1909,7 +1909,12 @@ function closeAllModals() {
     'daily-report-modal',
     'honors-modal',
     'tutorial-modal',
-    'birthday-celebration-modal'
+    'birthday-celebration-modal',
+    'attendance-modal',
+    'attendance-leave-modal',
+    'attendance-manager-modal',
+    'attendance-top10-modal',
+    'attendance-documents-modal'
   ];
   modals.forEach(id => {
     const el = document.getElementById(id);
@@ -10292,6 +10297,37 @@ function saveAttendanceEditForm(andShare = false) {
   }
 }
 
+let attendanceScrollInitialized = false;
+function setupAttendanceScroll() {
+  const scrollEl = document.getElementById('attendance-modal-body');
+  if (!scrollEl || attendanceScrollInitialized) return;
+  attendanceScrollInitialized = true;
+
+  let lastScrollTop = scrollEl.scrollTop || 0;
+  let dockIdleTimer = null;
+
+  scrollEl.addEventListener('scroll', () => {
+    const currentScrollTop = scrollEl.scrollTop;
+    const diff = currentScrollTop - lastScrollTop;
+
+    // 1. Scrolling down into deeper items (finger dragging up) -> Smoothly hide Dock
+    if (diff > 8 && currentScrollTop > 30) {
+      setDockVisible(false);
+    }
+    // 2. Scrolling back up towards top (finger dragging down) OR near top -> Immediately restore Dock
+    else if (diff < -5 || currentScrollTop <= 15) {
+      setDockVisible(true);
+    }
+
+    lastScrollTop = currentScrollTop;
+    // 3. When scrolling stops / screen is still -> Smoothly restore Dock
+    clearTimeout(dockIdleTimer);
+    dockIdleTimer = setTimeout(() => {
+      setDockVisible(true);
+    }, 450);
+  }, { passive: true });
+}
+
 function openAttendanceModal() {
   const modal = document.getElementById('attendance-modal');
   if (!modal) return;
@@ -10303,10 +10339,8 @@ function openAttendanceModal() {
   const scrollEl = document.getElementById('attendance-modal-body');
   if (scrollEl) {
     scrollEl.scrollTop = 0;
-    if (typeof hookScrollableForDock === 'function') {
-      hookScrollableForDock(scrollEl, false);
-    }
   }
+  setupAttendanceScroll();
 
   if (window._attendanceClockInterval) clearInterval(window._attendanceClockInterval);
   window._attendanceClockInterval = setInterval(updateAttendanceLiveClock, 1000);
