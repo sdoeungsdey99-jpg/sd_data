@@ -13561,7 +13561,7 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 3. សៀវភៅ SALES RESET & ផែនការ (Books & Notes - Upgraded with CEO Sales Reset) ⭐ -->
+        <!-- 3. ឯកសារ និង ផែនការ (Documents & Notes - Upgraded with CEO Sales Reset) ⭐ -->
         <div onclick="closeProfileDrawer(); openProfileSubModal('book_notes');" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-amber-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -13573,7 +13573,7 @@ function renderProfileDrawerContent() {
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Sales Reset & Plans' : 'SALES RESET & ផែនការ'}</h3>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Documents & Plans' : 'ឯកសារ និង ផែនការ'}</h3>
             <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'CEO Wisdom & Commitments' : 'មេរៀនអគ្គនាយក & ផែនការ'}</p>
           </div>
         </div>
@@ -15376,7 +15376,7 @@ function openProfileSubModal(type) {
     const activeTab = (type === 'note') ? 'notes' : (type === 'book' ? 'books' : (window._activeBookNotesTab || 'books'));
     window._activeBookNotesTab = activeTab;
 
-    title = 'SALES RESET & ផែនការ';
+    title = (appState.language === 'en') ? 'Documents & Plans' : 'ឯកសារ និង ផែនការ';
     sub = 'មេរៀនអគ្គនាយក វណ្ណ ស៊ីថា និងការប្តេជ្ញាចិត្តប្រចាំថ្ងៃ';
     icon = 'crown';
 
