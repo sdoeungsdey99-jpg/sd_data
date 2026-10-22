@@ -8173,19 +8173,19 @@ function renderHonorsModalContent() {
         <span class="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 font-black text-xs tracking-wider uppercase mb-1.5 shadow-sm">
           ★ BOSTAR GROUP LEADERSHIP ★
         </span>
-        <h2 class="text-lg font-black text-white brand-title tracking-wide">កាតកិត្តិយស និង ការដឹងគុណ</h2>
+        <h2 class="text-lg font-black text-white brand-title tracking-wide">កាតកិត្តិយស & ការដឹងគុណ</h2>
         <p class="text-[11px] text-slate-300 max-w-xs mt-1 leading-relaxed">
           សូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះគណៈស្ថាបនិក និងថ្នាក់ដឹកនាំទាំងអស់
         </p>
       </div>
     </div>
 
-    <!-- 1. អ្នកបណ្ដុះបណ្ដាល៖ លោកអគ្គនាយក វណ្ណ ស៊ីថា (Corporate Coach & CEO) -->
+    <!-- 1. អ្នកបណ្តុះបណ្តាល៖ លោកអគ្គនាយក វណ្ណ ស៊ីថា (Corporate Coach & CEO) -->
     <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/35 relative overflow-hidden shadow-xl text-left">
       <div class="flex items-center justify-between mb-3">
         <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
           <span>🎓</span>
-          <span>${isKm ? 'អ្នកបណ្ដុះបណ្ដាល' : 'Corporate Coach / Trainer'}</span>
+          <span>${isKm ? 'អ្នកបណ្តុះបណ្តាល' : 'Corporate Coach / Trainer'}</span>
         </span>
         <span class="text-[10px] text-amber-400/90 font-mono font-bold">CEO</span>
       </div>
@@ -8210,12 +8210,12 @@ function renderHonorsModalContent() {
       </div>
     </div>
 
-    <!-- 2. អ្នកផ្ដើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិច នោរ៉ា -->
+    <!-- 2. អ្នកផ្តើមគំនិតបង្កើត App៖ ស្ថាបនិក ប៊ិច នោរ៉ា -->
     <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-orange-500/15 via-white/[0.03] to-transparent border border-orange-500/35 relative overflow-hidden shadow-xl text-left">
       <div class="flex items-center justify-between mb-3">
         <span class="px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
           <span>💡</span>
-          <span>${isKm ? 'អ្នកផ្ដើមគំនិតបង្កើត App' : 'App Visionary & Founder'}</span>
+          <span>${isKm ? 'អ្នកផ្តើមគំនិតបង្កើត App' : 'App Visionary & Founder'}</span>
         </span>
         <span class="text-[10px] text-orange-400/90 font-mono font-bold">FOUNDER</span>
       </div>
@@ -8244,7 +8244,7 @@ function renderHonorsModalContent() {
           <span>🤝</span>
           <span>${isKm ? 'ថ្នាក់ដឹកនាំគាំទ្រ (Managers)' : 'Supporting Managers'}</span>
         </span>
-        <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-bold">៥ រូប</span>
+        <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-bold">5 រូប</span>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -13740,7 +13740,7 @@ function renderProfileDrawerContent() {
             <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Honors & Dedication' : '🌟 កាតកិត្តិយស និង ការដឹងគុណ'}</h4>
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Honors & Dedication' : '🌟 កាតកិត្តិយស & ការដឹងគុណ'}</h4>
             <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'BostarGroup Visionaries & Leadership' : 'ស្ថាបនិក • គណៈគ្រប់គ្រង • អ្នករៀបចំប្រព័ន្ធ'}</p>
           </div>
         </div>
