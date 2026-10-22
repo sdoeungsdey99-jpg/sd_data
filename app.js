@@ -15147,6 +15147,31 @@ function removeDailyReportPage(pageName, event) {
   }
 }
 
+function onReportDatePicked(isoDate) {
+  if (!isoDate) return;
+  const parts = isoDate.split('-');
+  if (parts.length === 3) {
+    const formatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    const dateInput = document.getElementById('rep-field-date');
+    if (dateInput) dateInput.value = formatted;
+  }
+}
+
+function triggerReportDatePicker() {
+  const picker = document.getElementById('rep-native-date-picker');
+  if (picker) {
+    if (typeof picker.showPicker === 'function') {
+      try { picker.showPicker(); } catch (_) { picker.focus(); picker.click(); }
+    } else {
+      picker.focus();
+      picker.click();
+    }
+  }
+}
+
+window.onReportDatePicked = onReportDatePicked;
+window.triggerReportDatePicker = triggerReportDatePicker;
+
 function renderDailyReportPagePills() {
   const container = document.getElementById('rep-pages-pills-container');
   if (!container) return;
@@ -15159,17 +15184,16 @@ function renderDailyReportPagePills() {
     return `
       <div class="inline-flex items-center rounded-xl border text-[11px] font-semibold transition cursor-pointer select-none ${isActive ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}"
            onclick="selectDailyReportPage('${escaped}')">
-        <span class="pl-2 pr-1.5 py-1 flex items-center gap-1.5">
-          <img src="facebook-page-icon.png" class="w-3.5 h-3.5 object-contain shrink-0" alt="FB">
+        <span class="px-2.5 py-1 flex items-center gap-1.5">
           <span>${page}</span>
-          ${isActive ? '<i data-lucide="check" class="w-3 h-3 text-emerald-400 ml-0.5"></i>' : ''}
+          ${isActive ? '<i data-lucide="check" class="w-3 h-3 text-emerald-400"></i>' : ''}
         </span>
         ${list.length > 1 ? `
           <button type="button" onclick="removeDailyReportPage('${escaped}', event)" 
                   class="pr-2 pl-0.5 py-1 text-slate-400 hover:text-red-400 transition" title="លុបផេក">
             <i data-lucide="x" class="w-3 h-3"></i>
           </button>
-        ` : '<span class="pr-2"></span>'}
+        ` : '<span class="pr-1.5"></span>'}
       </div>
     `;
   }).join('');
@@ -15234,8 +15258,7 @@ function renderDailyReportModal() {
 
         <!-- Multi-page Quick Switching Pills -->
         <div class="space-y-1.5">
-          <label class="block text-xs sm:text-sm text-slate-300 font-bold flex items-center gap-1.5">
-            <img src="facebook-page-icon.png" class="w-4 h-4 object-contain shrink-0" alt="FB">
+          <label class="block text-xs sm:text-sm text-slate-300 font-bold">
             <span>ជ្រើសរើសផេកលក់ (ប្តូររហ័ស 1-Tap)៖</span>
           </label>
           <div id="rep-pages-pills-container" class="flex flex-wrap items-center gap-1.5">
@@ -15244,40 +15267,45 @@ function renderDailyReportModal() {
         </div>
 
         <div class="space-y-2.5 pt-1">
-          <!-- ឈ្មោះផេក (Full width with official Page Icon) -->
+          <!-- ឈ្មោះផេក (Full width with single clean Page Icon) -->
           <div>
-            <label class="block text-xs text-slate-300 mb-1.5 font-bold flex items-center gap-1.5">
-              <img src="facebook-page-icon.png" class="w-4 h-4 object-contain shrink-0" alt="FB">
+            <label class="block text-xs text-slate-300 mb-1 font-bold flex items-center gap-1.5">
+              <img src="facebook-page-icon.png" class="w-3.5 h-3.5 object-contain shrink-0" alt="FB">
               <span>ឈ្មោះផេក៖</span>
             </label>
-            <div class="relative flex items-center">
-              <span class="absolute left-3 pointer-events-none flex items-center justify-center">
-                <img src="facebook-page-icon.png" class="w-4 h-4 object-contain" alt="FB">
-              </span>
-              <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
-                     oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
-                     class="w-full bg-black/50 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
-            </div>
+            <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
+                   oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
+                   class="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
           </div>
 
           <!-- ជួរកាលបរិច្ឆេទ & ឈ្មោះអ្នកលក់ / អ្នកទទួលខុសត្រូវ (2 Columns) -->
           <div class="grid grid-cols-2 gap-2.5">
+            <!-- Date Field with Integrated Mini Calendar -->
             <div>
-              <label class="block text-xs text-slate-300 mb-1.5 font-bold flex items-center gap-1.5">
+              <label class="block text-xs text-slate-300 mb-1 font-bold flex items-center gap-1.5">
                 <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
                 <span>កាលបរិច្ឆេទ៖</span>
               </label>
-              <input type="text" id="rep-field-date" value="${defaultDate}" 
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white font-mono text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
+              <div class="relative flex items-center cursor-pointer">
+                <input type="text" id="rep-field-date" value="${defaultDate}" readonly
+                       onclick="triggerReportDatePicker()"
+                       class="w-full bg-black/50 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-white font-mono text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer select-none">
+                <span class="absolute right-2.5 pointer-events-none text-emerald-400 flex items-center justify-center">
+                  <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                </span>
+                <!-- Hidden native date picker overlay for 1-tap Mini Calendar popup -->
+                <input type="date" id="rep-native-date-picker" onchange="onReportDatePicked(this.value)"
+                       class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10">
+              </div>
             </div>
             <div>
-              <label class="block text-xs text-slate-300 mb-1.5 font-bold flex items-center gap-1.5">
+              <label class="block text-xs text-slate-300 mb-1 font-bold flex items-center gap-1.5">
                 <i data-lucide="user" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
                 <span>អ្នកលក់ / ទទួលខុសត្រូវ៖</span>
               </label>
               <input type="text" id="rep-field-staff" value="${savedStaff}" placeholder="ឈ្មោះអ្នកលក់" 
                      oninput="try { localStorage.setItem('sd_report_staff', this.value); } catch(_) {}"
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
+                     class="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-white text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500">
             </div>
           </div>
         </div>
