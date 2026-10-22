@@ -5210,37 +5210,37 @@ const HEM_CHANTHY_TOPICS = [
   {
     id: 'chanthy-1',
     num: 1,
-    category: 'tech',
-    title: 'យុទ្ធសាស្ត្រប្រើប្រាស់បច្ចេកវិទ្យា និងឧបករណ៍ឌីជីថលជំនួយការលក់',
-    tag: 'ជំនាញបច្ចេកទេស',
-    tagColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-    iconBg: 'from-blue-500 to-indigo-500',
-    summary: 'គន្លឹះទាញយកប្រយោជន៍ពីឧបករណ៍បច្ចេកវិទ្យាទំនើប ដើម្បីរៀបចំទិន្នន័យ ឆ្លើយតបភ្ញៀវ និងបង្កើនល្បឿនបិទការលក់។',
-    motto: '«បច្ចេកវិទ្យាទំនើប បង្កើនល្បឿន និងប្រសិទ្ធភាពនៃការលក់!»',
+    category: 'finance',
+    title: 'រូបមន្តគ្រប់គ្រងហិរញ្ញវត្ថុផ្ទាល់ខ្លួន ការបែងចែកចំណូលចំណាយ និងការសន្សំសម្រាប់អ្នកលក់',
+    tag: 'ហិរញ្ញវត្ថុ & ចំណូលចំណាយ',
+    tagColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    iconBg: 'from-amber-500 to-emerald-600',
+    summary: 'វិធីសាស្ត្របែងចែកចំណូលពីការលក់ (ក្បួនគ្រប់គ្រងលុយ) ការកាត់បន្ថយចំណាយមិនចាំបាច់ និងការបង្កើតទម្លាប់សន្សំដើម្បីកសាងទ្រព្យសម្បត្តិ និងស្ថិរភាពជីវិត។',
+    motto: '«រកបានច្រើនមិនសំខាន់ស្មើនឹងចេះទុកដាក់! វិន័យហិរញ្ញវត្ថុ បង្កើតសេរីភាពពិតប្រាកដ។»',
     status: 'coming_soon'
   },
   {
     id: 'chanthy-2',
     num: 2,
-    category: 'team',
-    title: 'តិចនិកដឹកនាំ និងបណ្តុះបណ្តាលសមាជិកក្រុមថ្មីឱ្យឆាប់មានលទ្ធផល',
-    tag: 'ដឹកនាំក្រុមលក់',
+    category: 'self_discovery',
+    title: 'សិល្បៈនៃការស្គាល់ខ្លួនឯង (Self-Awareness) ស្វែងរកចំណុចខ្លាំង និងអភិវឌ្ឍសក្ដានុពលលាក់កំបាំង',
+    tag: 'ស្គាល់ខ្លួនឯង',
     tagColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
-    iconBg: 'from-cyan-500 to-teal-500',
-    summary: 'វិធីសាស្ត្របង្ហាត់បង្ហាញការងារមួយទល់មួយ (One-on-One Coaching) ដើម្បីជួយកូនក្រុមថ្មីចាប់ផ្តើមលក់បានលឿន។',
-    motto: '«ភាពខ្លាំងរបស់មេដឹកនាំ គឺការជួយកូនក្រុមឱ្យជោគជ័យ!»',
+    iconBg: 'from-cyan-500 to-blue-600',
+    summary: 'ការឆ្លុះបញ្ចាំងពីខ្លួនឯង ស្គាល់ពីតម្លៃពិត និងចំណុចខ្លាំងផ្ទាល់ខ្លួន ដើម្បីយកមកប្រើប្រាស់ក្នុងការលក់ និងការរស់នៅប្រកបដោយក្តីជឿជាក់ខ្ពស់។',
+    motto: '«ពេលអ្នកស្គាល់ខ្លួនឯងច្បាស់ គ្មានឧបសគ្គណាអាចរារាំងដំណើរជោគជ័យរបស់អ្នកបានឡើយ!»',
     status: 'coming_soon'
   },
   {
     id: 'chanthy-3',
     num: 3,
-    category: 'kpi',
-    title: 'ការកំណត់ KPI និងការតាមដានសកម្មភាពលក់ប្រចាំថ្ងៃរបស់ក្រុម',
-    tag: 'ការតាមដាន KPI',
-    tagColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-    iconBg: 'from-amber-500 to-orange-500',
-    summary: 'រូបមន្តបំបែកគោលដៅប្រចាំខែទៅជាសកម្មភាពប្រចាំថ្ងៃ ដើម្បីធានាថាក្រុមការងារសម្រេចគោលដៅ ១០០%។',
-    motto: '«សកម្មភាពជាប់លាប់ប្រចាំថ្ងៃ បង្កើតលទ្ធផលលក់ដ៏អស្ចារ្យ!»',
+    category: 'workplace_ethics',
+    title: 'ឥរិយាបថនៅកន្លែងធ្វើការ ក្រមសីលធម៌វិជ្ជាជីវៈ និងការកសាងទំនាក់ទំនងល្អក្នុងស្ថាប័ន',
+    tag: 'ឥរិយាបថការងារ',
+    tagColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+    iconBg: 'from-indigo-500 to-purple-600',
+    summary: 'ការគោរពវិន័យ ការទំនាក់ទំនងបែបវិជ្ជមាន ការផ្តល់តម្លៃឱ្យសហការី និងការរក្សាឥរិយាបថថ្លៃថ្នូរ ដែលជាកត្តាធ្វើឱ្យមនុស្សគ្រប់គ្នាគោរពស្រលាញ់។',
+    motto: '«ជំនាញធ្វើឱ្យយើងចាប់ផ្តើមបាន តែឥរិយាបថល្អធ្វើឱ្យយើងឈរជើងបានយូរអង្វែង!»',
     status: 'coming_soon'
   }
 ];
@@ -5876,19 +5876,19 @@ function renderChanthyLessonsContentHTML() {
 
   return `
     <!-- Coming Soon Notice Card -->
-    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-transparent border border-cyan-500/25 flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center shrink-0 border border-cyan-500/30 shadow-md">
-        <i data-lucide="cpu" class="w-5 h-5 text-cyan-400"></i>
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-cyan-500/10 to-transparent border border-cyan-500/25 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 border border-amber-500/30 shadow-md">
+        <i data-lucide="wallet" class="w-5 h-5 text-amber-400"></i>
       </div>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2">
-          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">ជំនាញបច្ចេកទេស និងការដឹកនាំក្រុមលក់</h4>
-          <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+          <h4 class="text-xs sm:text-sm font-bold text-white leading-tight">ហិរញ្ញវត្ថុ ចំណូលចំណាយ, ស្គាល់ខ្លួនឯង & ឥរិយាបថការងារ</h4>
+          <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
             នឹងផ្សាយឆាប់ៗ
           </span>
         </div>
         <p class="text-[11px] text-slate-300 font-kantumruy mt-0.5 leading-relaxed">
-          អត្ថបទ និងការបណ្តុះបណ្តាលជំនាញបច្ចេកទេស ព្រមទាំងយុទ្ធសាស្ត្រដឹកនាំក្រុមលក់ពី លោក ហែម ចន្ធី (Hem Chanthy) នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
+          អត្ថបទ និងមេរៀនចែករំលែកពីការគ្រប់គ្រងហិរញ្ញវត្ថុចំណូលចំណាយ ការស្វែងរកចំណុចខ្លាំងផ្ទាល់ខ្លួន និងការកសាងឥរិយាបថល្អនៅកន្លែងធ្វើការពី លោក ហែម ចន្ធី (Manager) នឹងត្រូវផ្សាយជូនលើ SD Dashboard ឆាប់ៗនេះ!
         </p>
       </div>
     </div>
@@ -5899,17 +5899,17 @@ function renderChanthyLessonsContentHTML() {
               class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'all' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
         ✨ ទាំងអស់ (3)
       </button>
-      <button onclick="setChanthyCategory('tech', event)" data-category="tech"
-              class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'tech' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-        🛠️ ជំនាញបច្ចេកទេស
+      <button onclick="setChanthyCategory('finance', event)" data-category="finance"
+              class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'finance' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        💰 ហិរញ្ញវត្ថុ ចំណូលចំណាយ
       </button>
-      <button onclick="setChanthyCategory('team', event)" data-category="team"
-              class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'team' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-        👥 ដឹកនាំក្រុមលក់
+      <button onclick="setChanthyCategory('self_discovery', event)" data-category="self_discovery"
+              class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'self_discovery' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🧠 ស្គាល់ខ្លួនឯង
       </button>
-      <button onclick="setChanthyCategory('kpi', event)" data-category="kpi"
-              class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'kpi' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
-        📊 តាមដាន KPI
+      <button onclick="setChanthyCategory('workplace_ethics', event)" data-category="workplace_ethics"
+              class="chanthy-category-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeCategory === 'workplace_ethics' ? 'bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20' : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5'}">
+        🤝 ឥរិយាបថការងារ
       </button>
     </div>
 
@@ -6331,8 +6331,8 @@ function renderSalesResetContent() {
             <!-- Top Header Tags -->
             <div class="flex items-center justify-between mb-3">
               <span class="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
-                <span>🎯</span>
-                <span>ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</span>
+                <span>💰</span>
+                <span>ហិរញ្ញវត្ថុ • ស្គាល់ខ្លួនឯង • ឥរិយាបថការងារ</span>
               </span>
               <span class="text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">MANAGER</span>
             </div>
@@ -6348,10 +6348,10 @@ function renderSalesResetContent() {
               <div class="min-w-0 flex-1">
                 <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ហែម ចន្ធី</h3>
                 <p class="text-xs sm:text-sm font-bold text-cyan-400 mt-0.5 tracking-wide">Hem Chanthy</p>
-                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager</p>
                 <div class="mt-2 flex items-center gap-1.5 flex-wrap">
                   <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold text-[9.5px] border border-cyan-500/40">
-                    TECHNICAL & TEAM LEADER
+                    FINANCE • SELF-AWARENESS • WORK ETHICS
                   </span>
                 </div>
               </div>
@@ -6360,33 +6360,33 @@ function renderSalesResetContent() {
             <!-- Key Banner Quote -->
             <div class="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 backdrop-blur-md mt-3">
               <div class="flex items-center gap-1.5 text-cyan-300 text-xs font-bold mb-1">
-                <span>🎯</span>
-                <span>ទស្សនៈដឹកនាំ & បច្ចេកទេស ៖</span>
+                <span>💡</span>
+                <span>សារដាស់តឿន & ការគ្រប់គ្រងហិរញ្ញវត្ថុ ៖</span>
               </div>
               <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
-                «ភាពជាអ្នកដឹកនាំ គឺការឈរនៅពីក្រោយ និងជួយកូនក្រុមឱ្យដើរទៅមុខដោយរលូន»
+                «ស្គាល់ខ្លួនឯងច្បាស់ គ្រប់គ្រងលុយកាក់បានល្អ និងមានឥរិយាបថវិជ្ជាជីវៈ នាំទៅរកជោគជ័យយូរអង្វែង»
               </h3>
               <p class="text-[11px] text-cyan-200/90 font-kantumruy leading-relaxed mt-1">
-                “ការបញ្ចូលគ្នារវាងបច្ចេកវិទ្យា និងការគ្រប់គ្រងក្រុមការងារប្រកបដោយភាពកក់ក្តៅ គឺជាគន្លឹះជំរុញឱ្យការលក់កើនឡើងជាលំដាប់។”
+                “ការចេះគ្រប់គ្រងចំណូលចំណាយឱ្យមានវិន័យ ការស្វែងយល់ពីចំណុចខ្លាំងរបស់ខ្លួនឯង និងការរក្សាឥរិយាបថវិជ្ជមាននៅកន្លែងធ្វើការ គឺជាទ្រព្យសម្បត្តិដែលមិនអាចកាត់ថ្លៃបានសម្រាប់អ្នកលក់គ្រប់រូប។”
               </p>
             </div>
 
             <!-- 3 Quick Pillars Pills -->
             <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
               <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">🛠️</span>
-                <p class="text-[10px] font-bold text-white mt-0.5">បច្ចេកទេស</p>
-                <span class="text-[8.5px] text-slate-400 block">ឧបករណ៍ឌីជីថល</span>
+                <span class="text-xs">💰</span>
+                <p class="text-[10px] font-bold text-white mt-0.5">ហិរញ្ញវត្ថុ</p>
+                <span class="text-[8.5px] text-slate-400 block">ចំណូល & ចំណាយ</span>
               </div>
               <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">👥</span>
-                <p class="text-[10px] font-bold text-cyan-400 mt-0.5">ដឹកនាំក្រុម</p>
-                <span class="text-[8.5px] text-slate-400 block">បណ្តុះបណ្តាលផ្ទាល់</span>
+                <span class="text-xs">🧠</span>
+                <p class="text-[10px] font-bold text-cyan-400 mt-0.5">ស្គាល់ខ្លួនឯង</p>
+                <span class="text-[8.5px] text-slate-400 block">សក្ដានុពលផ្ទាល់ខ្លួន</span>
               </div>
               <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">📊</span>
-                <p class="text-[10px] font-bold text-amber-400 mt-0.5">តាមដាន KPI</p>
-                <span class="text-[8.5px] text-slate-400 block">លទ្ធផលជាប់លាប់</span>
+                <span class="text-xs">🤝</span>
+                <p class="text-[10px] font-bold text-indigo-400 mt-0.5">ឥរិយាបថការងារ</p>
+                <span class="text-[8.5px] text-slate-400 block">ក្រមសីលធម៌ & ក្រុម</span>
               </div>
             </div>
           </div>
