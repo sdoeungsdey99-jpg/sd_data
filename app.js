@@ -7176,10 +7176,15 @@ function renderHonorsModalContent() {
     <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent border border-amber-500/30 text-center relative overflow-hidden shadow-xl">
       <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-amber-500/20 blur-3xl pointer-events-none"></div>
       <div class="relative z-10 flex flex-col items-center">
-        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 p-0.5 shadow-xl shadow-amber-500/30 mb-2.5 flex items-center justify-center">
-          <div class="w-full h-full rounded-2xl bg-[#09111D] flex items-center justify-center p-1">
-            <img src="bostar-gold-crest.png" alt="BostarGroup" class="w-full h-full object-contain filter drop-shadow-[0_2px_10px_rgba(245,158,11,0.5)]">
-          </div>
+        <!-- Cosmic Celestial Aura & Bostar 3D Gold Crest (No outer frame) -->
+        <div class="relative w-28 h-28 flex items-center justify-center mb-1.5">
+          <!-- Subtle Cosmic Universe Halo -->
+          <div class="absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(251,191,36,0.26)_0%,rgba(147,51,234,0.18)_35%,rgba(30,58,138,0.14)_60%,transparent_75%)] blur-md cosmic-halo-breath pointer-events-none"></div>
+          <div class="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.16)_0%,transparent_70%)] blur-xl pointer-events-none"></div>
+          <!-- Subtle cosmic starlight dust sparkles -->
+          <div class="absolute inset-0 pointer-events-none opacity-65 celestial-star-twinkle" style="background-image: radial-gradient(1.5px 1.5px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 78% 22%, #fde047, transparent), radial-gradient(1.5px 1.5px at 82% 65%, #fff, transparent), radial-gradient(1px 1px at 28% 78%, #93c5fd, transparent), radial-gradient(1.5px 1.5px at 62% 86%, #fde047, transparent);"></div>
+          <!-- 3D Gold Bostar Emblem -->
+          <img src="bostar-gold-crest.png" alt="BostarGroup" class="relative z-10 w-24 h-24 object-contain filter drop-shadow-[0_6px_22px_rgba(245,158,11,0.55)] drop-shadow-[0_0_15px_rgba(251,191,36,0.35)] active:scale-95 transition-transform duration-300">
         </div>
         <span class="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 font-black text-xs tracking-wider uppercase mb-1.5 shadow-sm">
           ★ BOSTAR GROUP LEADERSHIP ★
@@ -7304,7 +7309,7 @@ function renderHonorsModalContent() {
           <img src="leader-sdey-sdoeung.jpg" alt="Sdey Sdoeung" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
           <div class="min-w-0">
             <h4 class="text-xs font-bold text-white truncate">លោក ស្ដី ស្ដើង</h4>
-            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager ជំនាញបច្ចេកទេស & អភិវឌ្ឍ</p>
+            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager បច្ចេកទេស និង អភិវឌ្ឍន៍កម្មវិធី</p>
             <p class="text-[9px] text-slate-400 font-mono truncate">Sdey_Sdoeung</p>
           </div>
         </div>

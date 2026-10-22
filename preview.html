@@ -329,6 +329,20 @@
       animation: starTwinkleGlow 4s ease-in-out infinite;
     }
 
+    @keyframes cosmicHaloBreath {
+      0%, 100% {
+        transform: scale(0.96);
+        opacity: 0.75;
+      }
+      50% {
+        transform: scale(1.06);
+        opacity: 1;
+      }
+    }
+    .cosmic-halo-breath {
+      animation: cosmicHaloBreath 4.5s ease-in-out infinite;
+    }
+
     /* Strict Anti-Drift Lock: Prevent any horizontal swaying/rubberbanding on iPhone Safari */
     html, body {
       overflow-x: hidden !important;
@@ -4699,6 +4713,6 @@
   </div>
 
   <script src="dataService.js?v=6.1"></script>
-  <script src="app.js?v=22.7"></script>
+  <script src="app.js?v=22.8"></script>
 </body>
 </html>
