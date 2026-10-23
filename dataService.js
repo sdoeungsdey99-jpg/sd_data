@@ -5,7 +5,7 @@
 
 const MASTER_SDOEUNG_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
 const DEFAULT_MASTER_SHEET_ID = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
-const TEAM_HIERARCHY_SHEET_ID = '129WGuA42r-cfNkMnT-djA6v8b6sez6BImjquAeNtlo4';
+const TEAM_HIERARCHY_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
 const TEAM_HIERARCHY_GID = '1865868146';
 const BOSTAR_TRACK_GID = '1127553691';
 
@@ -774,17 +774,20 @@ window.DataService = {
       const teamMembers = [];
       const teamLeadersList = [];
       const teamManagersList = [];
+      const teamDirectorsList = [];
 
       if (Array.isArray(teamHierarchyCsvRows) && teamHierarchyCsvRows.length > 2) {
         for (let i = 2; i < teamHierarchyCsvRows.length; i++) {
           const r = teamHierarchyCsvRows[i];
           if (!r) continue;
 
-          // Member columns: 0: No, 1: Km, 2: En, 3: Leader, 4: Orders
+          // Member columns: 0: No, 1: Km, 2: En, 3: Leader, 4: Orders, 5: Boxes
           const noRaw = String(r[0] || '').trim();
           const kmName = String(r[1] || '').trim();
           const enName = String(r[2] || '').trim();
           const leader = String(r[3] || '').trim();
+          const orders = cleanNumber(r[4]);
+          const boxes = cleanNumber(r[5]);
 
           if (kmName) {
             const no = parseInt(noRaw, 10) || (teamMembers.length + 1);
@@ -792,38 +795,72 @@ window.DataService = {
               no,
               km: kmName,
               en: enName || kmName,
-              leader: leader || ''
+              leader: leader || '',
+              orders,
+              boxes
             });
           }
 
-          // Leader columns: 7: No, 8: Km, 9: En, 10: Role, 11: Manager, 12: MemberCount, 13: Orders
+          // Leader columns: 7: No, 8: Km, 9: En, 10: Role, 11: Manager, 12: MemberCount, 13: Orders, 14: Boxes
           if (r.length > 8) {
             const lKm = String(r[8] || '').trim();
             const lEn = String(r[9] || '').trim();
             const lRole = String(r[10] || '').trim();
             const lManager = String(r[11] || '').trim();
+            const lMembers = cleanNumber(r[12]);
+            const lOrders = cleanNumber(r[13]);
+            const lBoxes = cleanNumber(r[14]);
             if (lKm) {
               teamLeadersList.push({
                 km: lKm,
                 en: lEn || lKm,
                 role: lRole || 'Leader',
-                manager: lManager || ''
+                manager: lManager || '',
+                members: lMembers,
+                orders: lOrders,
+                boxes: lBoxes
               });
             }
           }
 
-          // Manager columns: 16: No, 17: Km, 18: En, 19: Role, 20: Dept, 21: LeadersCount, 22: TotalMembers
+          // Manager columns: 16: No, 17: Km, 18: En, 19: Role, 20: Dept, 21: LeadersCount, 22: TotalMembers, 23: Orders, 24: Boxes
           if (r.length > 17) {
             const mKm = String(r[17] || '').trim();
             const mEn = String(r[18] || '').trim();
             const mRole = String(r[19] || '').trim();
             const mDept = String(r[20] || '').trim();
+            const mLeaders = cleanNumber(r[21]);
+            const mMembers = cleanNumber(r[22]);
+            const mOrders = cleanNumber(r[23]);
+            const mBoxes = cleanNumber(r[24]);
             if (mKm) {
               teamManagersList.push({
                 km: mKm,
                 en: mEn || mKm,
                 role: mRole || 'Manager',
-                dept: mDept || ''
+                dept: mDept || '',
+                leaders: mLeaders,
+                members: mMembers,
+                orders: mOrders,
+                boxes: mBoxes
+              });
+            }
+          }
+
+          // Director columns: 26: No, 27: Km, 28: En, 29: Role, 30: Orders, 31: Boxes
+          if (r.length > 27) {
+            const dKm = String(r[27] || '').trim();
+            const dEn = String(r[28] || '').trim();
+            const dRole = String(r[29] || '').trim();
+            const dOrders = cleanNumber(r[30]);
+            const dBoxes = cleanNumber(r[31]);
+            if (dKm) {
+              teamDirectorsList.push({
+                km: dKm,
+                en: dEn || dKm,
+                role: dRole || 'Director',
+                orders: dOrders,
+                boxes: dBoxes
               });
             }
           }
@@ -918,7 +955,8 @@ window.DataService = {
         teamHierarchy: {
           members: teamMembers,
           leaders: teamLeadersList,
-          managers: teamManagersList
+          managers: teamManagersList,
+          directors: teamDirectorsList
         },
         targetsByMonth,
         boostByMonth,
