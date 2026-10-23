@@ -3874,7 +3874,7 @@ function renderExecutiveHierarchyModalContent() {
         <div class="min-w-0">
           <div class="flex items-center gap-1.5 flex-wrap">
             <h4 class="font-bold text-sm text-white truncate">${directorRaw ? directorRaw.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
-            <img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">
+            <img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">
             <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30 shrink-0">Director</span>
           </div>
           <p class="text-[10px] text-slate-400 mt-0.5 truncate">${directorRaw ? directorRaw.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
@@ -3923,7 +3923,7 @@ function renderExecutiveHierarchyModalContent() {
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
-                  ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                  ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                   ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                   <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                 </div>
@@ -4023,7 +4023,7 @@ function renderExecutiveHierarchyModalContent() {
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="font-bold text-sm text-white">${selectedM.km}</span>
-                  ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                  ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                   ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                   <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
                 </div>
@@ -4077,7 +4077,7 @@ function renderExecutiveHierarchyModalContent() {
                   <div>
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span class="font-bold text-slate-200">${tl.km}</span>
-                      ${isTlBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                      ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                       ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
                     </div>
                     <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
@@ -4112,7 +4112,7 @@ function renderExecutiveHierarchyModalContent() {
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span class="font-bold text-xs text-white truncate">${mem.km}</span>
-                      ${isMemBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                      ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                       ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
                       <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
                     </div>
@@ -4809,7 +4809,7 @@ function getDashboardViewHTML() {
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
-                    ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                   </div>
@@ -4909,7 +4909,7 @@ function getDashboardViewHTML() {
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold text-sm text-white">${selectedM.km}</span>
-                    ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
                   </div>
@@ -4962,7 +4962,7 @@ function getDashboardViewHTML() {
                     <div>
                       <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="font-bold text-slate-200">${tl.km}</span>
-                        ${isTlBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                        ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                         ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
                       </div>
                       <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
@@ -4994,7 +4994,7 @@ function getDashboardViewHTML() {
                     <div class="min-w-0">
                       <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="font-bold text-xs text-white truncate">${mem.km}</span>
-                        ${isMemBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                        ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                         ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
                         <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
                       </div>
@@ -5067,7 +5067,7 @@ function getDashboardViewHTML() {
             <div class="min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <h4 class="font-bold text-sm text-white truncate">${directorRaw ? directorRaw.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
-                <img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">
+                <img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">
                 <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30 shrink-0">Director</span>
               </div>
               <p class="text-[10px] text-slate-400 mt-0.5 truncate">${directorRaw ? directorRaw.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
@@ -7809,7 +7809,7 @@ function renderSalesResetContent() {
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ប៊ិច នោរ៉ា</h3>
-                  <img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">
+                  <img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">
                 </div>
                 <p class="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 tracking-wide">BECH NORA</p>
                 <p class="text-xs text-slate-300 font-medium mt-0.5">ស្ថាបនិក • BOSTAR GROUP CO.,LTD</p>
@@ -9251,7 +9251,7 @@ function getSettingsViewHTML() {
           <div class="flex items-center gap-2 py-0.5 overflow-visible">
             <h1 class="font-black text-xl text-white leading-normal tracking-normal brand-title overflow-visible select-none group-hover:text-orange-400 transition">${prof.name || 'ស្តី ស្តើង'}</h1>
             ${(prof.name && (prof.name.includes('ប៊ិច នោរ៉ា') || (prof.subtitle && prof.subtitle.toLowerCase().includes('bech nora'))))
-              ? '<img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;" title="Director Verified 🌟">'
+              ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;" title="Director Verified 🌟">'
               : '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;">'}
           </div>
           <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">${prof.subtitle || 'SDEY SDOEUNG'}</p>
@@ -10503,7 +10503,7 @@ function renderTeamSetsModalContent() {
     const isBechNoraLeader = leader.name && (leader.name.includes('ប៊ិច នោរ៉ា') || leader.name.toLowerCase().includes('bech nora'));
     titleEl.innerHTML = `
       <span>${leader.name}</span>
-      ${isBechNoraLeader ? '<img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain inline shrink-0" title="Director Verified 🌟">' : ''}
+      ${isBechNoraLeader ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain inline shrink-0" title="Director Verified 🌟">' : ''}
       ${leader.name === 'ស្តី ស្តើង' ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain inline shrink-0">' : ''}
     `;
   }
@@ -11960,7 +11960,7 @@ function renderHonorsModalContent() {
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5 flex-wrap">
             <h3 class="text-base font-black text-white brand-title leading-tight">លោក ប៊ិច នោរ៉ា</h3>
-            <img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" style="width: 16px; height: 16px;" title="Director Verified 🌟">
+            <img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" style="width: 16px; height: 16px;" title="Director Verified 🌟">
           </div>
           <p class="text-xs text-orange-300 font-bold tracking-wide mt-0.5">BECH NORA</p>
           <div class="mt-1.5">
@@ -14024,7 +14024,7 @@ function syncHeaderProfileUI() {
     if (isMaster) {
       badgeEl.classList.remove('hidden');
       const isBechNoraProf = p.name && (p.name.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora')));
-      badgeEl.src = isBechNoraProf ? 'gold-tick.png' : 'blue-tick.png';
+      badgeEl.src = isBechNoraProf ? 'gold-tick.png?v=39.6' : 'blue-tick.png';
       badgeEl.title = isBechNoraProf ? 'Director Verified 🌟' : 'Verified';
     } else {
       badgeEl.classList.add('hidden');
@@ -17852,7 +17852,7 @@ function getProfileViewHTML() {
         <div class="flex items-center justify-center gap-1.5">
           <h2 class="text-lg font-black text-white leading-tight">${p.name}</h2>
           ${(p.name && (p.name.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora'))))
-            ? '<img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">'
+            ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">'
             : '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">'}
         </div>
 
@@ -19379,7 +19379,7 @@ function openProfileSubModal(type) {
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 truncate">
                     <span class="text-xs font-bold text-white group-hover:text-orange-400 transition truncate">${seller.km}</span>
-                    ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[10px] text-slate-400 font-mono">(${seller.en})</span>
                   </div>
@@ -20153,7 +20153,7 @@ function renderTeamMembersList() {
           <div class="min-w-0">
             <div class="flex items-center gap-1.5 truncate">
               <span class="text-xs sm:text-sm font-bold text-white group-hover:text-orange-400 transition truncate">${seller.km}</span>
-              ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+              ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
               ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
               <span class="text-[10px] text-slate-400 font-mono">(${seller.en})</span>
             </div>
@@ -20238,7 +20238,7 @@ function openTeamMemberDetail(sellerKmName) {
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
-            ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+            ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">' : ''}
             ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">' : ''}
             <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-mono text-[9px] font-bold">👤 គណនីរបស់អ្នក</span>
           </div>
@@ -20329,7 +20329,7 @@ function openTeamMemberDetail(sellerKmName) {
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
-            ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+            ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">' : ''}
             ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">' : ''}
             <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">ACTIVE</span>
           </div>
