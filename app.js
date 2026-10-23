@@ -3872,8 +3872,9 @@ function renderExecutiveHierarchyModalContent() {
           <i data-lucide="award" class="w-6 h-6"></i>
         </div>
         <div class="min-w-0">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 flex-wrap">
             <h4 class="font-bold text-sm text-white truncate">${directorRaw ? directorRaw.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
+            <img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">
             <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30 shrink-0">Director</span>
           </div>
           <p class="text-[10px] text-slate-400 mt-0.5 truncate">${directorRaw ? directorRaw.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
@@ -3904,6 +3905,7 @@ function renderExecutiveHierarchyModalContent() {
       else if (rank === 6) borderAccent = 'border-sky-500/20 hover:border-sky-500/40';
 
       const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
+      const isBechNora = (m.km && (m.km.includes('ប៊ិច នោរ៉ា') || (m.en && m.en.toLowerCase().includes('bech nora'))));
       const canViewEdit = canViewAndEditManagerTarget(m);
       const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].displayBoxes || 1) : 1;
       const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
@@ -3921,6 +3923,7 @@ function renderExecutiveHierarchyModalContent() {
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
+                  ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                   ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                   <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                 </div>
@@ -3980,6 +3983,7 @@ function renderExecutiveHierarchyModalContent() {
   } else {
     // DRILL-DOWN INTO SELECTED MANAGER (Tapping him again collapses him and reveals all managers!)
     const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
+    const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
     const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
     const rankBadge = getManagerRankBadge(origRank);
     const canViewEditSelected = canViewAndEditManagerTarget(selectedM);
@@ -4019,6 +4023,7 @@ function renderExecutiveHierarchyModalContent() {
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="font-bold text-sm text-white">${selectedM.km}</span>
+                  ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                   ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                   <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
                 </div>
@@ -4064,10 +4069,17 @@ function renderExecutiveHierarchyModalContent() {
               <span>Leader ក្នុងក្រុម (${processedLeaders.length} រូប)</span>
             </span>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              ${processedLeaders.map(tl => `
+              ${processedLeaders.map(tl => {
+                const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
+                const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
+                return `
                 <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
                   <div>
-                    <span class="font-bold text-slate-200 block">${tl.km}</span>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-bold text-slate-200">${tl.km}</span>
+                      ${isTlBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                      ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
+                    </div>
                     <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
                   </div>
                   <div class="text-right font-mono">
@@ -4075,7 +4087,7 @@ function renderExecutiveHierarchyModalContent() {
                     <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
                   </div>
                 </div>
-              `).join('')}
+              `;}).join('')}
             </div>
           </div>
         ` : ''}
@@ -4090,13 +4102,18 @@ function renderExecutiveHierarchyModalContent() {
           </div>
 
           <div class="space-y-1.5">
-            ${processedMembers.length > 0 ? processedMembers.map(mem => `
+            ${processedMembers.length > 0 ? processedMembers.map(mem => {
+              const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
+              const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+              return `
               <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
                 <div class="flex items-center gap-2 min-w-0">
                   <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                      ${isMemBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                      ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
                       <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
                     </div>
                     <div class="text-[10px] text-slate-400 mt-0.5">
@@ -4110,7 +4127,7 @@ function renderExecutiveHierarchyModalContent() {
                   <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
                 </div>
               </div>
-            `).join('') : `
+            `;}).join('') : `
               <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
                 មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
               </div>
@@ -4775,6 +4792,7 @@ function getDashboardViewHTML() {
         else if (rank === 6) borderAccent = 'border-sky-500/20 hover:border-sky-500/40';
 
         const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
+        const isBechNora = (m.km && (m.km.includes('ប៊ិច នោរ៉ា') || (m.en && m.en.toLowerCase().includes('bech nora'))));
         const canViewEdit = canViewAndEditManagerTarget(m);
         const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
         const barWidth = canViewEdit ? Math.min(100, m.targetPercent) : percentOfTop;
@@ -4791,6 +4809,7 @@ function getDashboardViewHTML() {
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
+                    ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                   </div>
@@ -4850,6 +4869,7 @@ function getDashboardViewHTML() {
     } else {
       // Home Screen Drill-down into Selected Manager
       const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
+      const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
       const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
       const rankBadge = getManagerRankBadge(origRank);
       const canViewEditSelected = canViewAndEditManagerTarget(selectedM);
@@ -4889,6 +4909,7 @@ function getDashboardViewHTML() {
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold text-sm text-white">${selectedM.km}</span>
+                    ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
                   </div>
@@ -4933,10 +4954,17 @@ function getDashboardViewHTML() {
                 <span>Leader ក្នុងក្រុម (${processedLeaders.length} រូប)</span>
               </span>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                ${processedLeaders.map(tl => `
+                ${processedLeaders.map(tl => {
+                  const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
+                  const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
+                  return `
                   <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
                     <div>
-                      <span class="font-bold text-slate-200 block">${tl.km}</span>
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-slate-200">${tl.km}</span>
+                        ${isTlBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                        ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
+                      </div>
                       <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
                     </div>
                     <div class="text-right font-mono">
@@ -4944,7 +4972,7 @@ function getDashboardViewHTML() {
                       <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
                     </div>
                   </div>
-                `).join('')}
+                `;}).join('')}
               </div>
             </div>
           ` : ''}
@@ -4956,13 +4984,18 @@ function getDashboardViewHTML() {
             </span>
 
             <div class="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar pr-1">
-              ${processedMembers.length > 0 ? processedMembers.map(mem => `
+              ${processedMembers.length > 0 ? processedMembers.map(mem => {
+                const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
+                const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+                return `
                 <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
                   <div class="flex items-center gap-2 min-w-0">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
                     <div class="min-w-0">
                       <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                        ${isMemBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                        ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
                         <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
                       </div>
                       <div class="text-[10px] text-slate-400 mt-0.5">
@@ -4976,7 +5009,7 @@ function getDashboardViewHTML() {
                     <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
                   </div>
                 </div>
-              `).join('') : `
+              `;}).join('') : `
                 <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
                   មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
                 </div>
@@ -5034,6 +5067,7 @@ function getDashboardViewHTML() {
             <div class="min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <h4 class="font-bold text-sm text-white truncate">${directorRaw ? directorRaw.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
+                <img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">
                 <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30 shrink-0">Director</span>
               </div>
               <p class="text-[10px] text-slate-400 mt-0.5 truncate">${directorRaw ? directorRaw.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
@@ -7773,7 +7807,10 @@ function renderSalesResetContent() {
               </div>
 
               <div class="min-w-0 flex-1">
-                <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ប៊ិច នោរ៉ា</h3>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ប៊ិច នោរ៉ា</h3>
+                  <img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">
+                </div>
                 <p class="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 tracking-wide">BECH NORA</p>
                 <p class="text-xs text-slate-300 font-medium mt-0.5">ស្ថាបនិក • BOSTAR GROUP CO.,LTD</p>
                 <div class="mt-2 flex items-center gap-1.5 flex-wrap">
@@ -9213,7 +9250,9 @@ function getSettingsViewHTML() {
         <div class="min-w-0 flex-1 overflow-visible">
           <div class="flex items-center gap-2 py-0.5 overflow-visible">
             <h1 class="font-black text-xl text-white leading-normal tracking-normal brand-title overflow-visible select-none group-hover:text-orange-400 transition">${prof.name || 'ស្តី ស្តើង'}</h1>
-            <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;">
+            ${(prof.name && (prof.name.includes('ប៊ិច នោរ៉ា') || (prof.subtitle && prof.subtitle.toLowerCase().includes('bech nora'))))
+              ? '<img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;" title="Director Verified 🌟">'
+              : '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;">'}
           </div>
           <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">${prof.subtitle || 'SDEY SDOEUNG'}</p>
         </div>
@@ -10461,8 +10500,10 @@ function renderTeamSetsModalContent() {
   // 1. Title & Subtitle
   const titleEl = document.getElementById('team-sets-modal-title');
   if (titleEl) {
+    const isBechNoraLeader = leader.name && (leader.name.includes('ប៊ិច នោរ៉ា') || leader.name.toLowerCase().includes('bech nora'));
     titleEl.innerHTML = `
       <span>${leader.name}</span>
+      ${isBechNoraLeader ? '<img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain inline shrink-0" title="Director Verified 🌟">' : ''}
       ${leader.name === 'ស្តី ស្តើង' ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain inline shrink-0">' : ''}
     `;
   }
@@ -11917,7 +11958,10 @@ function renderHonorsModalContent() {
           <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-white font-black shadow">✓</span>
         </div>
         <div class="min-w-0 flex-1">
-          <h3 class="text-base font-black text-white brand-title leading-tight">លោក ប៊ិច នោរ៉ា</h3>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h3 class="text-base font-black text-white brand-title leading-tight">លោក ប៊ិច នោរ៉ា</h3>
+            <img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" style="width: 16px; height: 16px;" title="Director Verified 🌟">
+          </div>
           <p class="text-xs text-orange-300 font-bold tracking-wide mt-0.5">BECH NORA</p>
           <div class="mt-1.5">
             <span class="inline-block px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-300 font-bold text-[10px] border border-orange-500/40 leading-snug">
@@ -13979,6 +14023,9 @@ function syncHeaderProfileUI() {
   if (badgeEl) {
     if (isMaster) {
       badgeEl.classList.remove('hidden');
+      const isBechNoraProf = p.name && (p.name.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora')));
+      badgeEl.src = isBechNoraProf ? 'gold-tick.png' : 'blue-tick.png';
+      badgeEl.title = isBechNoraProf ? 'Director Verified 🌟' : 'Verified';
     } else {
       badgeEl.classList.add('hidden');
     }
@@ -17801,10 +17848,12 @@ function getProfileViewHTML() {
           </button>
         </div>
 
-        <!-- Centered Name + Verified Blue Tick -->
+        <!-- Centered Name + Verified Badge -->
         <div class="flex items-center justify-center gap-1.5">
           <h2 class="text-lg font-black text-white leading-tight">${p.name}</h2>
-          <img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">
+          ${(p.name && (p.name.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora'))))
+            ? '<img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">'
+            : '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">'}
         </div>
 
         <!-- Centered Member ID & Subtitle Below Name -->
@@ -19318,6 +19367,8 @@ function openProfileSubModal(type) {
         <p class="text-[11px] text-slate-400 mb-2 px-1">ចុចលើឈ្មោះសមាជិកដើម្បីមើល «កាតទិន្នន័យសមាជិក» លម្អិត៖</p>
         ${BOSTAR_TEAM_SELLERS.map((seller, idx) => {
           const stats = getSellerAggregatedStats(seller, sellerStats);
+          const isBechNora = (seller.km && (seller.km.includes('ប៊ិច នោរ៉ា') || (seller.en && seller.en.toLowerCase().includes('bech nora'))));
+          const isSdoeung = (seller.km && (seller.km.includes('ស្ដី ស្ដើង') || seller.km.includes('ស្តី ស្តើង')));
           return `
             <div onclick="openMemberDetailCard('${seller.km}')" 
                  class="p-3 rounded-2xl bg-black/30 hover:bg-white/5 border border-white/10 hover:border-orange-500/30 flex items-center justify-between cursor-pointer active:scale-98 transition group">
@@ -19328,6 +19379,8 @@ function openProfileSubModal(type) {
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 truncate">
                     <span class="text-xs font-bold text-white group-hover:text-orange-400 transition truncate">${seller.km}</span>
+                    ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[10px] text-slate-400 font-mono">(${seller.en})</span>
                   </div>
                   <span class="text-[10px] text-slate-400 font-mono">${stats.orders} កុម្ម៉ង់</span>
@@ -20087,6 +20140,8 @@ function renderTeamMembersList() {
 
   listEl.innerHTML = filtered.map((seller, idx) => {
     const stats = getSellerAggregatedStats(seller, sellerStats);
+    const isBechNora = (seller.km && (seller.km.includes('ប៊ិច នោរ៉ា') || (seller.en && seller.en.toLowerCase().includes('bech nora'))));
+    const isSdoeung = (seller.km && (seller.km.includes('ស្ដី ស្ដើង') || seller.km.includes('ស្តី ស្តើង')));
 
     return `
       <div onclick="openTeamMemberDetail('${escapeHtml(seller.km)}')" 
@@ -20098,6 +20153,8 @@ function renderTeamMembersList() {
           <div class="min-w-0">
             <div class="flex items-center gap-1.5 truncate">
               <span class="text-xs sm:text-sm font-bold text-white group-hover:text-orange-400 transition truncate">${seller.km}</span>
+              ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+              ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
               <span class="text-[10px] text-slate-400 font-mono">(${seller.en})</span>
             </div>
             <div class="flex items-center gap-2 mt-0.5">
@@ -20141,6 +20198,8 @@ function openTeamMemberDetail(sellerKmName) {
   const totalRevenue = sales.reduce((sum, s) => sum + Number(s.totalAmount || s.price || 0), 0);
   const totalOrders = sales.length;
   const isSelf = isCurrentUserSeller(seller);
+  const isBechNora = (seller.km && (seller.km.includes('ប៊ិច នោរ៉ា') || (seller.en && seller.en.toLowerCase().includes('bech nora'))));
+  const isSdoeung = (seller.km && (seller.km.includes('ស្ដី ស្ដើង') || seller.km.includes('ស្តី ស្តើង')));
 
   const modal = document.getElementById('team-members-modal');
   if (modal && modal.classList.contains('hidden')) {
@@ -20177,8 +20236,10 @@ function openTeamMemberDetail(sellerKmName) {
           ${seller.km.slice(0, 2)}
         </div>
         <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
             <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
+            ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+            ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">' : ''}
             <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-mono text-[9px] font-bold">👤 គណនីរបស់អ្នក</span>
           </div>
           <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
@@ -20266,8 +20327,10 @@ function openTeamMemberDetail(sellerKmName) {
           ${seller.km.slice(0, 2)}
         </div>
         <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
             <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
+            ${isBechNora ? '<img src="gold-tick.png" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+            ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">' : ''}
             <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">ACTIVE</span>
           </div>
           <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
