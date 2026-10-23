@@ -12192,7 +12192,7 @@ const DEFAULT_OFFICE_CONFIG = {
   // Google Maps Coordinates from Bostar Group HQ: https://maps.app.goo.gl/br5qH3k6Nzd6Yyjo7?g_st=ic
   latitude: 11.5362769,
   longitude: 104.8865537,
-  radiusMeters: 150, // 150m perimeter around building
+  radiusMeters: 250, // 250m perimeter around building
   // Company Wi-Fi Public IP(s)
   allowedIps: ['45.119.135.224']
 };
@@ -12234,30 +12234,76 @@ function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
   return Math.round(R * c);
 }
 
+async function fetchPublicIpWithTimeout(timeoutMs = 2000) {
+  const urls = [
+    'https://api.ipify.org?format=json',
+    'https://api64.ipify.org?format=json'
+  ];
+  for (const u of urls) {
+    try {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), timeoutMs);
+      const res = await fetch(u, { signal: controller.signal });
+      clearTimeout(t);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.ip) return String(data.ip).trim();
+      }
+    } catch (_) {}
+  }
+  return null;
+}
+
+async function fetchGpsWithTimeout(timeoutMs = 2500) {
+  if (!navigator.geolocation) return null;
+  return new Promise((resolve) => {
+    let done = false;
+    const timer = setTimeout(() => {
+      if (!done) {
+        done = true;
+        resolve(null);
+      }
+    }, timeoutMs);
+
+    try {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (!done) {
+            done = true;
+            clearTimeout(timer);
+            resolve(pos);
+          }
+        },
+        (err) => {
+          if (!done) {
+            done = true;
+            clearTimeout(timer);
+            resolve(null);
+          }
+        },
+        { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 15000 }
+      );
+    } catch (_) {
+      if (!done) {
+        done = true;
+        clearTimeout(timer);
+        resolve(null);
+      }
+    }
+  });
+}
+
 async function verifyOfficePresence() {
   const cfg = getOfficeConfig();
   if (cfg.enabled === false) {
     return { verified: true, method: 'disabled', label: 'ការិយាល័យកណ្តាល (At Office Verified)' };
   }
 
+  // 1. Check Wi-Fi IP (Timeout 2000ms max)
+  const currentIp = await fetchPublicIpWithTimeout(2000);
   let wifiVerified = false;
-  let currentIp = null;
-
-  // 1. Check Wi-Fi IP (Timeout 2500ms)
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2500);
-    const res = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
-    clearTimeout(timer);
-    if (res.ok) {
-      const data = await res.json();
-      currentIp = (data.ip || '').trim();
-      if (currentIp && (cfg.allowedIps || []).includes(currentIp)) {
-        wifiVerified = true;
-      }
-    }
-  } catch (e) {
-    console.warn('IP verification fetch error or timeout:', e);
+  if (currentIp && (cfg.allowedIps || []).includes(currentIp)) {
+    wifiVerified = true;
   }
 
   // If Wi-Fi IP matches, rule "បានមួយណាក៏បាន" is satisfied!
@@ -12270,34 +12316,20 @@ async function verifyOfficePresence() {
     };
   }
 
-  // 2. If Wi-Fi didn't match (e.g. mobile data / 4G), check GPS Geofencing (Timeout 4000ms)
+  // 2. If Wi-Fi didn't match (e.g. mobile data / 4G), check GPS Geofencing (Timeout 2500ms max)
   let gpsVerified = false;
   let gpsDistance = null;
-  let gpsCoords = null;
+  const pos = await fetchGpsWithTimeout(2500);
 
-  if (navigator.geolocation) {
-    try {
-      const pos = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 4000,
-          maximumAge: 10000
-        });
-      });
-      if (pos && pos.coords) {
-        gpsCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-        gpsDistance = calculateDistanceMeters(
-          pos.coords.latitude,
-          pos.coords.longitude,
-          cfg.latitude,
-          cfg.longitude
-        );
-        if (gpsDistance <= (cfg.radiusMeters || 150)) {
-          gpsVerified = true;
-        }
-      }
-    } catch (e) {
-      console.warn('GPS location error or timeout:', e);
+  if (pos && pos.coords) {
+    gpsDistance = calculateDistanceMeters(
+      pos.coords.latitude,
+      pos.coords.longitude,
+      cfg.latitude,
+      cfg.longitude
+    );
+    if (gpsDistance <= (cfg.radiusMeters || 250)) {
+      gpsVerified = true;
     }
   }
 
@@ -12323,18 +12355,29 @@ function openOfficeVerificationFailedModal(check) {
   if (!modal) return;
   const debugEl = document.getElementById('att-verify-debug-info');
   if (debugEl) {
+    const addIpBtn = check.currentIp ? `
+      <div class="mt-1 pt-1 border-t border-rose-500/20 flex items-center justify-between">
+        <span class="text-[9px] text-slate-400">ជា Wi-Fi ក្រុមហ៊ុនមែនទេ?</span>
+        <button type="button" onclick="addCurrentIpToOfficeConfig('${check.currentIp}')" 
+                class="px-2 py-0.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-bold text-[9px] border border-sky-500/30 transition">
+          ➕ កត់ត្រា IP នេះ
+        </button>
+      </div>
+    ` : '';
+
     const ipText = check.currentIp 
       ? `<div class="flex items-center justify-between text-rose-300"><span>📶 IP ទូរសព្ទបច្ចុប្បន្ន៖</span><span class="font-bold">${check.currentIp} (មិនត្រូវគ្នា)</span></div>`
       : `<div class="flex items-center justify-between text-slate-400"><span>📶 IP ទូរសព្ទ៖</span><span>មិនអាចទាញយក IP បាន</span></div>`;
     
     const gpsText = (check.gpsDistance !== null && check.gpsDistance !== undefined)
-      ? `<div class="flex items-center justify-between text-rose-300"><span>📍 ចម្ងាយពីការិយាល័យ៖</span><span class="font-bold">${check.gpsDistance}m (លើសកាំ 150m)</span></div>`
+      ? `<div class="flex items-center justify-between text-rose-300"><span>📍 ចម្ងាយពីការិយាល័យ៖</span><span class="font-bold">${check.gpsDistance}m (លើសកាំ ${check.cfg?.radiusMeters || 250}m)</span></div>`
       : `<div class="flex items-center justify-between text-amber-300"><span>📍 GPS ទូរសព្ទ៖</span><span>មិនទាន់អនុញ្ញាត Location ឬទូរសព្ទបិទ GPS</span></div>`;
 
     debugEl.innerHTML = `
       <div class="space-y-1">
         ${ipText}
         ${gpsText}
+        ${addIpBtn}
       </div>
     `;
   }
@@ -12350,6 +12393,24 @@ function closeOfficeVerificationModal() {
 function retryAttendanceCheckIn() {
   closeOfficeVerificationModal();
   handleAttendanceAction('in');
+}
+
+function addCurrentIpToOfficeConfig(ip) {
+  if (!ip) return;
+  const cfg = getOfficeConfig();
+  if (!cfg.allowedIps) cfg.allowedIps = [];
+  if (!cfg.allowedIps.includes(ip)) {
+    cfg.allowedIps.push(ip);
+    saveOfficeConfig(cfg);
+    showToastNotification(`បានកត់ត្រា IP ${ip} ជា Wi-Fi ក្រុមហ៊ុនជោគជ័យ! ✅`);
+  }
+  closeOfficeVerificationModal();
+  handleAttendanceAction('in');
+}
+
+function openLeaderBypassCheckInModal() {
+  closeOfficeVerificationModal();
+  checkAttendanceAdminAccess('leader_bypass');
 }
 
 async function autoCaptureOfficeSettings() {
@@ -12404,6 +12465,9 @@ async function autoCaptureOfficeSettings() {
 window.openOfficeVerificationFailedModal = openOfficeVerificationFailedModal;
 window.closeOfficeVerificationModal = closeOfficeVerificationModal;
 window.retryAttendanceCheckIn = retryAttendanceCheckIn;
+window.addCurrentIpToOfficeConfig = addCurrentIpToOfficeConfig;
+window.openLeaderBypassCheckInModal = openLeaderBypassCheckInModal;
+window.proceedWithAttendanceCheckIn = proceedWithAttendanceCheckIn;
 window.verifyOfficePresence = verifyOfficePresence;
 window.getOfficeConfig = getOfficeConfig;
 window.saveOfficeConfig = saveOfficeConfig;
@@ -12433,11 +12497,41 @@ const DEFAULT_ATTENDANCE_STATE = {
   ]
 };
 
+function getTodayAttendanceKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function getAttendanceData() {
+  const todayKey = getTodayAttendanceKey();
   try {
     const raw = localStorage.getItem('sd_attendance_data');
     if (raw) {
       const parsed = JSON.parse(raw);
+      
+      const todayDay = new Date().getDate();
+      const hasTodaySession = Array.isArray(parsed.records) && parsed.records.some(r => r.day === todayDay && r.checkIn && r.checkIn !== '—');
+
+      // Auto-reset when calendar day changes or if leftover from yesterday
+      const isPastDay = (parsed.lastActiveDate && parsed.lastActiveDate !== todayKey) ||
+                        (!parsed.lastActiveDate && !hasTodaySession && (parsed.todayStatus === 'checked_out' || parsed.todayStatus === 'checked_in'));
+
+      if (isPastDay) {
+        parsed.todayStatus = 'not_checked';
+        parsed.checkInTime = null;
+        parsed.checkOutTime = null;
+        parsed.duration = null;
+        parsed.todayLate = false;
+        parsed.lateMinutes = null;
+        parsed.earlyMinutes = null;
+        parsed.note = '';
+        parsed.lastActiveDate = todayKey;
+        try { localStorage.setItem('sd_attendance_data', JSON.stringify(parsed)); } catch (_) {}
+      } else if (!parsed.lastActiveDate) {
+        parsed.lastActiveDate = todayKey;
+        try { localStorage.setItem('sd_attendance_data', JSON.stringify(parsed)); } catch (_) {}
+      }
+
       return { 
         ...DEFAULT_ATTENDANCE_STATE, 
         ...parsed,
@@ -12448,7 +12542,7 @@ function getAttendanceData() {
   } catch (e) {
     console.warn('Error reading sd_attendance_data:', e);
   }
-  return { ...DEFAULT_ATTENDANCE_STATE };
+  return { ...DEFAULT_ATTENDANCE_STATE, lastActiveDate: todayKey };
 }
 
 function saveAttendanceData(data) {
@@ -13108,7 +13202,8 @@ function submitAttendancePin() {
   const err = document.getElementById('att-admin-pin-err');
   const val = input ? input.value.trim() : '';
 
-  if (val === '2026' || val === 'sd2026' || val === '1234' || val === '5136' || val === '8899' || val === '7788' || val === '9988') {
+  const validPins = ['2026', 'sd2026', '1234', '5136', '8899', '7788', '9988', '1999', '8888', '9999'];
+  if (validPins.includes(val)) {
     window._attendanceAdminUnlocked = true;
     closeAttendancePinModal();
     executeAdminAttendanceAction(pendingAdminAttendanceAction);
@@ -13125,6 +13220,8 @@ function executeAdminAttendanceAction(action) {
     openAttendanceManagerModal('settings');
   } else if (action === 'reset') {
     resetTodayAttendanceConfirmed();
+  } else if (action === 'leader_bypass') {
+    proceedWithAttendanceCheckIn({ verified: true, method: 'leader_bypass', label: 'ការិយាល័យកណ្តាល (At Office Verified)' });
   }
 }
 
@@ -14596,6 +14693,44 @@ function updateAttendanceLiveClock() {
   }
 }
 
+function proceedWithAttendanceCheckIn(check) {
+  const data = getAttendanceData();
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+  data.location = 'ការិយាល័យកណ្តាល (At Office Verified)';
+  if (check && check.method === 'wifi') {
+    showToastNotification('📶 Wi-Fi ក្រុមហ៊ុនផ្ទៀងផ្ទាត់ជោគជ័យ! (At Office Verified)');
+  } else if (check && check.method === 'gps') {
+    showToastNotification(`📍 GPS ការិយាល័យផ្ទៀងផ្ទាត់ជោគជ័យ (${check.distance}m)!`);
+  } else if (check && check.method === 'leader_bypass') {
+    showToastNotification('🔑 បានអនុញ្ញាតដោយ Leader/Admin! (At Office Verified)');
+  }
+
+  const currentHour = now.getHours();
+  const currentMin = now.getMinutes();
+  const isLate = currentHour > 8 || (currentHour === 8 && currentMin > 15);
+
+  if (isLate) {
+    const lateMins = (currentHour * 60 + currentMin) - (8 * 60 + 15);
+    data.lateMinutes = lateMins > 0 ? lateMins : (currentMin > 0 ? currentMin : 5);
+    data.earlyMinutes = null;
+    openAttendanceLateModal(data.lateMinutes);
+    return;
+  } else {
+    const startMinTotal = 8 * 60;
+    const currentMinTotal = currentHour * 60 + currentMin;
+    const earlyMins = startMinTotal - currentMinTotal;
+    data.earlyMinutes = earlyMins > 0 ? earlyMins : null;
+    data.lateMinutes = null;
+    data.todayLate = false;
+    data.todayStatus = 'checked_in';
+    data.checkInTime = timeStr;
+    finalizeCheckIn(data);
+    return;
+  }
+}
+
 async function handleAttendanceAction(action) {
   const data = getAttendanceData();
   const now = new Date();
@@ -14609,36 +14744,8 @@ async function handleAttendanceAction(action) {
       openOfficeVerificationFailedModal(check);
       return;
     }
-
-    data.location = 'ការិយាល័យកណ្តាល (At Office Verified)';
-    if (check.method === 'wifi') {
-      showToastNotification('📶 Wi-Fi ក្រុមហ៊ុនផ្ទៀងផ្ទាត់ជោគជ័យ! (At Office Verified)');
-    } else if (check.method === 'gps') {
-      showToastNotification(`📍 GPS ការិយាល័យផ្ទៀងផ្ទាត់ជោគជ័យ (${check.distance}m)!`);
-    }
-
-    const currentHour = now.getHours();
-    const currentMin = now.getMinutes();
-    const isLate = currentHour > 8 || (currentHour === 8 && currentMin > 15);
-
-    if (isLate) {
-      const lateMins = (currentHour * 60 + currentMin) - (8 * 60 + 15);
-      data.lateMinutes = lateMins > 0 ? lateMins : (currentMin > 0 ? currentMin : 5);
-      data.earlyMinutes = null;
-      openAttendanceLateModal(data.lateMinutes);
-      return;
-    } else {
-      const startMinTotal = 8 * 60;
-      const currentMinTotal = currentHour * 60 + currentMin;
-      const earlyMins = startMinTotal - currentMinTotal;
-      data.earlyMinutes = earlyMins > 0 ? earlyMins : null;
-      data.lateMinutes = null;
-      data.todayLate = false;
-      data.todayStatus = 'checked_in';
-      data.checkInTime = timeStr;
-      finalizeCheckIn(data);
-      return;
-    }
+    proceedWithAttendanceCheckIn(check);
+    return;
   } else if (action === 'out') {
     data.todayStatus = 'checked_out';
     data.checkOutTime = timeStr;
@@ -14761,17 +14868,24 @@ function renderAttendanceContent() {
     `;
   } else {
     actionButtonHTML = `
-      <div class="relative my-4">
-        <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full blur-md opacity-40"></div>
-        <div class="relative w-36 h-36 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 p-[3px] shadow-[0_0_30px_rgba(59,130,246,0.35)] mx-auto flex items-center justify-center">
-          <div class="w-full h-full rounded-full bg-[#0B1528] flex flex-col items-center justify-center p-2">
-            <div class="w-11 h-11 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-1 border border-emerald-500/30">
-              <i data-lucide="badge-check" class="w-6 h-6"></i>
+      <div class="relative my-4 flex flex-col items-center">
+        <div class="relative group cursor-pointer" onclick="resetTodayAttendance(event)" title="ចុចដើម្បីកំណត់ឡើងវិញ">
+          <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full blur-md opacity-40 group-hover:opacity-70 transition"></div>
+          <div class="relative w-36 h-36 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 p-[3px] shadow-[0_0_30px_rgba(59,130,246,0.35)] mx-auto flex items-center justify-center">
+            <div class="w-full h-full rounded-full bg-[#0B1528] flex flex-col items-center justify-center p-2 group-hover:bg-[#0E1B33] transition">
+              <div class="w-11 h-11 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-1 border border-emerald-500/30">
+                <i data-lucide="badge-check" class="w-6 h-6"></i>
+              </div>
+              <span class="text-xs font-bold text-white leading-tight font-kantumruy">${data.todayStatus === 'leave' ? (isEn ? 'On Leave' : 'សុំច្បាប់សម្រាក') : (isEn ? 'Completed' : 'បានបញ្ចប់វត្តមាន')}</span>
+              <span class="text-[9px] text-emerald-400 font-mono font-bold mt-0.5">Day Complete ✓</span>
             </div>
-            <span class="text-xs font-bold text-white leading-tight font-kantumruy">${data.todayStatus === 'leave' ? (isEn ? 'On Leave' : 'សុំច្បាប់សម្រាក') : (isEn ? 'Completed' : 'បានបញ្ចប់វត្តមាន')}</span>
-            <span class="text-[9px] text-emerald-400 font-mono font-bold mt-0.5">Day Complete ✓</span>
           </div>
         </div>
+        <button type="button" onclick="resetTodayAttendance(event)" 
+                class="mt-2.5 px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 text-[10px] font-bold flex items-center gap-1.5 transition">
+          <i data-lucide="rotate-ccw" class="w-3 h-3 text-amber-400"></i>
+          <span>ចាប់ផ្តើម Check-in ឡើងវិញ</span>
+        </button>
       </div>
     `;
   }
@@ -14780,9 +14894,10 @@ function renderAttendanceContent() {
   for (let i = 0; i < 3; i++) {
     calendarDaysHTML += `<div class="h-8 rounded-lg bg-white/[0.02] border border-transparent"></div>`;
   }
+  const actualToday = now.getDate();
   for (let d = 1; d <= 31; d++) {
-    const isToday = d === 14;
-    const isPast = d < 14;
+    const isToday = d === actualToday;
+    const isPast = d < actualToday;
     const isSunday = (d + 2) % 7 === 0;
     const isSaturday = (d + 2) % 7 === 6;
     const rec = records.find(r => r.day === d);
