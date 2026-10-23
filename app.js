@@ -238,7 +238,7 @@ const appState = {
         const parsed = JSON.parse(saved);
         if (parsed.pureCash === undefined) parsed.pureCash = false;
         if (parsed.autoHideEmpty === undefined) parsed.autoHideEmpty = false;
-        if (parsed.teamSales === undefined) parsed.teamSales = false;
+        if (parsed.teamSales === undefined) parsed.teamSales = true;
         if (parsed.netCash === undefined) parsed.netCash = false;
         return parsed;
       }
@@ -249,7 +249,7 @@ const appState = {
       salesPerformance: true,
       netCash: false, // Default: false (Hidden by default as requested by Brother Sdoeung)
       expenses: true,
-      teamSales: false, // Default: false (Hidden by default as requested by Brother Sdoeung)
+      teamSales: true, // Default: true (Executive Team Sales & Hierarchy enabled)
       tools: true
     };
   })()
@@ -2923,6 +2923,143 @@ function updateStaticLabels() {
 }
 
 // ==========================================
+// Executive Team Sales & Hierarchy Security (1MBOSTAR)
+// ==========================================
+function openExecutivePasscodeModal() {
+  let modal = document.getElementById('executive-passcode-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'executive-passcode-modal';
+    document.body.appendChild(modal);
+  }
+  modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-200';
+  modal.innerHTML = `
+    <div class="w-full max-w-sm rounded-3xl bg-[#0C1425]/95 border border-amber-500/30 p-5 shadow-2xl space-y-4 text-white relative">
+      <button type="button" onclick="closeExecutivePasscodeModal()" 
+              class="absolute top-4 right-4 p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div class="text-center space-y-2 pt-2">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wide">កូដសម្ងាត់ថ្នាក់ដឹកនាំ</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Manager & Director Passcode Access</p>
+        </div>
+      </div>
+
+      <form onsubmit="event.preventDefault(); submitExecutivePasscode();" class="space-y-3">
+        <div class="relative">
+          <input type="password" id="exec-passcode-input" placeholder="វាយលេខកូដសម្ងាត់" 
+                 autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+                 class="w-full bg-black/60 border border-white/15 focus:border-amber-400 rounded-2xl px-4 py-3 text-center text-sm font-mono tracking-widest text-white placeholder:text-slate-500 placeholder:text-xs placeholder:font-sans focus:outline-none transition">
+          <button type="button" onclick="togglePasscodeVisibility()" 
+                  class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white transition" title="បង្ហាញ/លាក់">
+            <i id="exec-passcode-eye" data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <p id="exec-passcode-error" class="hidden text-rose-400 text-[11px] text-center font-medium"></p>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" onclick="closeExecutivePasscodeModal()" 
+                  class="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold text-xs active:scale-95 transition">
+            បោះបង់
+          </button>
+          <button type="submit" 
+                  class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs shadow-lg shadow-amber-500/25 active:scale-95 transition">
+            ដោះសោរ
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+  setTimeout(() => {
+    const input = document.getElementById('exec-passcode-input');
+    if (input) input.focus();
+  }, 100);
+}
+
+function closeExecutivePasscodeModal() {
+  const modal = document.getElementById('executive-passcode-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function togglePasscodeVisibility() {
+  const input = document.getElementById('exec-passcode-input');
+  const eye = document.getElementById('exec-passcode-eye');
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (eye) eye.setAttribute('data-lucide', 'eye-off');
+  } else {
+    input.type = 'password';
+    if (eye) eye.setAttribute('data-lucide', 'eye');
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function submitExecutivePasscode(enteredVal) {
+  const code = (enteredVal || document.getElementById('exec-passcode-input')?.value || '').trim();
+  if (code.toUpperCase() === '1MBOSTAR') {
+    sessionStorage.setItem('sd_exec_unlocked', 'true');
+    closeExecutivePasscodeModal();
+    if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('ដោះសោរកាតថ្នាក់ដឹកនាំជោគជ័យ! 👑✨');
+    }
+    renderCurrentView();
+  } else {
+    const errEl = document.getElementById('exec-passcode-error');
+    if (errEl) {
+      errEl.textContent = 'លេខកូដមិនត្រឹមត្រូវទេ!';
+      errEl.classList.remove('hidden');
+    }
+    const input = document.getElementById('exec-passcode-input');
+    if (input) {
+      input.classList.add('border-rose-500');
+      input.focus();
+      input.select();
+    }
+    if (navigator.vibrate) try { navigator.vibrate([40, 60, 40]); } catch (_) {}
+  }
+}
+
+function relockExecutiveCard(event) {
+  if (event) event.stopPropagation();
+  sessionStorage.removeItem('sd_exec_unlocked');
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+  if (typeof showToastNotification === 'function') {
+    showToastNotification('បានចាក់សោរកាតថ្នាក់ដឹកនាំវិញជោគជ័យ! 🔒');
+  }
+}
+
+function toggleManagerRoster(idx, event) {
+  if (event) event.stopPropagation();
+  const roster = document.getElementById(`mgr-roster-${idx}`);
+  const chev = document.getElementById(`mgr-chev-${idx}`);
+  if (roster) {
+    const isNowHidden = roster.classList.toggle('hidden');
+    if (chev) {
+      chev.style.transform = isNowHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+  }
+  if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
+}
+
+window.openExecutivePasscodeModal = openExecutivePasscodeModal;
+window.closeExecutivePasscodeModal = closeExecutivePasscodeModal;
+window.togglePasscodeVisibility = togglePasscodeVisibility;
+window.submitExecutivePasscode = submitExecutivePasscode;
+window.relockExecutiveCard = relockExecutiveCard;
+window.toggleManagerRoster = toggleManagerRoster;
+
+// ==========================================
 // 4. View: Dashboard
 // ==========================================
 function getDashboardViewHTML() {
@@ -3365,67 +3502,269 @@ function getDashboardViewHTML() {
     </div>
   `;
 
-  const cardTeamSales = `
-    <!-- CARD E: TEAM SALES - DYNAMIC TARGET FROM GOOGLE SHEET (High-Security Style Badge) -->
-    <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
-            <i data-lucide="users" class="w-4 h-4"></i>
+  // ==========================================
+  // Executive Team Sales & Hierarchy Card Logic (1MBOSTAR)
+  // ==========================================
+  const isExecUnlocked = (sessionStorage.getItem('sd_exec_unlocked') === 'true');
+  const hierarchy = (d && d.teamHierarchy) ? d.teamHierarchy : null;
+
+  let cardTeamSales = '';
+
+  if (!isExecUnlocked) {
+    // ------------------------------------------
+    // 1. LOCKED STATE: VIP Executive Vault Card
+    // ------------------------------------------
+    cardTeamSales = `
+      <!-- CARD E: VIP EXECUTIVE VAULT (LOCKED STATE) -->
+      <div class="ios-glass-card rounded-3xl p-5 border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[#0C1425]/90 to-[#0A0F1D]/90 shadow-2xl relative overflow-hidden group cursor-pointer active:scale-[0.99] transition"
+           onclick="openExecutivePasscodeModal()">
+        <!-- Ambient Decorative Glows -->
+        <div class="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -left-8 -bottom-8 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex items-center justify-between mb-3 relative z-10">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-inner shrink-0">
+              <i data-lucide="crown" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h3 class="font-bold text-xs uppercase text-white tracking-wide">រចនាសម្ព័ន្ធលក់ & ថ្នាក់ដឹកនាំ</h3>
+                <span class="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[9px] font-bold text-amber-300">VIP</span>
+              </div>
+              <p class="text-[10px] text-slate-400 font-mono mt-0.5">BOSTAR GROUP • Executive Only</p>
+            </div>
+          </div>
+
+          <div class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 flex items-center gap-1.5 text-slate-300 text-[10px] font-semibold shrink-0">
+            <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
+            <span>ការពារកូដសម្ងាត់</span>
+          </div>
+        </div>
+
+        <!-- Center Locked Teaser Badge -->
+        <div class="py-5 px-4 rounded-2xl bg-black/40 border border-white/5 text-center flex flex-col items-center justify-center gap-2.5 relative z-10 backdrop-blur-md">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/10 animate-pulse">
+            <i data-lucide="shield-check" class="w-6 h-6"></i>
           </div>
           <div>
-            <h3 class="font-bold text-xs uppercase text-white leading-tight">
-              ${t('teamSalesTitle')}
-            </h3>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Team Sales Targets</p>
+            <h4 class="text-xs font-bold text-white">ទិន្នន័យគ្រប់គ្រងផ្ទៃក្នុង (Internal Hierarchy)</h4>
+            <p class="text-[10px] text-slate-400 mt-0.5">តារាងចំណាត់ថ្នាក់ ៦ Managers, Leaders & ៤៤ Members</p>
           </div>
-        </div>
-        
-        <!-- Target Highlight Badge (ដូចកន្លែង សុវត្ថិភាពខ្ពស់ / High Security Badge) -->
-        <div class="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1.5 shadow-sm shrink-0">
-          <i data-lucide="target" class="w-3.5 h-3.5 text-blue-400"></i>
-          <span class="text-xs text-blue-400 font-bold font-mono">
-            ${(currentTeamLeaders.reduce((acc, cur) => acc + (cur.targetGoal || 100), 0))} ប្រអប់
-          </span>
+          <button type="button" 
+                  class="mt-1 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/25 active:scale-95 transition">
+            <i data-lucide="key" class="w-3.5 h-3.5"></i>
+            <span>ចុចទីនេះដើម្បីវាយកូដដោះសោរ</span>
+          </button>
         </div>
       </div>
+    `;
+  } else {
+    // ------------------------------------------
+    // 2. UNLOCKED STATE: Full Executive Command Center
+    // ------------------------------------------
+    const fallbackManagers = [
+      { km: 'លោក ស្រឿន លាងហាក់', en: 'Sroeun Leanghak', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 1, members: 7, orders: 6, boxes: 16 },
+      { km: 'លោក ហែម ចន្ធី', en: 'Hem Chanthy', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 3, members: 10, orders: 6, boxes: 13 },
+      { km: 'លោក ហ៊ួរ យ៉ារិទ្ធ', en: 'Hour Yaith', role: 'Manager', dept: 'អ្នកបង្វឹកផ្នែកបិទការលក់', leaders: 2, members: 8, orders: 6, boxes: 12 },
+      { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', dept: 'BOSTAR GROUP CO.,LTD', leaders: 3, members: 10, orders: 4, boxes: 10 },
+      { km: 'លោក ប៊ិច ឧត្តម', en: 'Bech Udom', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 2, members: 6, orders: 4, boxes: 10 },
+      { km: 'លោក ស្ដី ស្ដើង', en: 'Sdey Sdoeung', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 1, members: 3, orders: 3, boxes: 6 }
+    ];
 
-      <div class="space-y-2.5">
-        ${currentTeamLeaders.map(tl => `
-          <div class="p-3 rounded-2xl bg-black/25 border border-white/5 flex flex-col gap-2 cursor-pointer hover:border-blue-500/30 hover:bg-white/[0.04] active:scale-[0.99] transition group" onclick="openTeamSetsModal('${tl.name}', ${selectedMonthInt})">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-1.5">
-                <span class="font-bold text-xs text-white whitespace-nowrap group-hover:text-blue-300 transition">${tl.name}</span>
-                ${tl.name === 'ស្តី ស្តើង' ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                <!-- Leader Target Badge -->
-                <span class="px-1.5 py-0.5 rounded-md bg-white/5 text-[9px] text-slate-400 font-mono border border-white/5">
-                  គោលដៅ: <strong class="text-blue-300">${tl.targetGoal || 100}</strong>
-                </span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="font-mono text-xs font-bold ${tl.targetPercent >= 100 ? 'text-emerald-400' : 'text-orange-400'} whitespace-nowrap">
-                  ${tl.totalBoxes} ${t('boxUnit')} (${tl.targetPercent}%)
-                </span>
-                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition"></i>
+    const rawManagers = (hierarchy && Array.isArray(hierarchy.managers) && hierarchy.managers.length > 0) ? hierarchy.managers : fallbackManagers;
+    const sortedManagers = [...rawManagers].sort((a, b) => (Number(b.boxes) || 0) - (Number(a.boxes) || 0));
+    const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].boxes || 1) : 1;
+
+    const director = (hierarchy && hierarchy.directors && hierarchy.directors.length > 0) ? hierarchy.directors[0] : { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', orders: 29, boxes: 67 };
+    const allLeaders = (hierarchy && Array.isArray(hierarchy.leaders)) ? hierarchy.leaders : [];
+    const allMembers = (hierarchy && Array.isArray(hierarchy.members)) ? hierarchy.members : [];
+
+    const managersHtml = sortedManagers.map((m, idx) => {
+      const rank = idx + 1;
+      let rankBadge = '';
+      let borderAccent = 'border-white/5 hover:border-white/15';
+      if (rank === 1) {
+        rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20">🥇</span>`;
+        borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
+      } else if (rank === 2) {
+        rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300/20 border border-slate-300/40 text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">🥈</span>`;
+        borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
+      } else if (rank === 3) {
+        rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700/20 border border-amber-700/40 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">🥉</span>`;
+        borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
+      } else {
+        rankBadge = `<span class="w-6 h-6 rounded-full bg-white/5 border border-white/10 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">#${rank}</span>`;
+      }
+
+      const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
+      const percentOfTop = Math.min(100, Math.round(((Number(m.boxes) || 0) / topBoxes) * 100));
+
+      const m_clean = m.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+      const teamLeaders = allLeaders.filter(l => l.manager === m.km || (m_clean && l.manager.includes(m_clean)));
+      const l_names = new Set(teamLeaders.map(l => l.km));
+      l_names.add(m.km);
+      const l_clean_names = Array.from(l_names).map(l => l.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim());
+      const teamMembers = allMembers.filter(mem => l_names.has(mem.leader) || l_clean_names.some(c => c && mem.leader.includes(c)));
+
+      return `
+        <div class="rounded-2xl bg-black/40 border ${borderAccent} overflow-hidden transition">
+          <div class="p-3 cursor-pointer flex items-center justify-between gap-2.5 active:scale-[0.99] transition select-none"
+               onclick="toggleManagerRoster(${idx}, event)">
+            <div class="flex items-center gap-2.5 min-w-0">
+              ${rankBadge}
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-bold text-xs text-white leading-tight">${m.km}</span>
+                  ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                  <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                  <span class="truncate max-w-[130px] sm:max-w-none">${m.dept || 'ដឹកនាំក្រុមលក់'}</span>
+                  <span>•</span>
+                  <span>${teamMembers.length || m.members} សមាជិក</span>
+                </div>
               </div>
             </div>
 
-            <div class="flex items-center gap-1 text-[10px] text-slate-400">
-              <span class="px-1.5 py-0.5 rounded bg-white/5">Set 1: <strong class="text-white">${tl.set1}</strong></span>
-              <span class="px-1.5 py-0.5 rounded bg-white/5">Set 2: <strong class="text-white">${tl.set2}</strong></span>
-              <span class="px-1.5 py-0.5 rounded bg-white/5">Set 3: <strong class="text-white">${tl.set3}</strong></span>
-              <span class="px-1.5 py-0.5 rounded bg-white/5">Set 4: <strong class="text-white">${tl.set4}</strong></span>
-              ${tl.set5 > 0 ? `<span class="px-1.5 py-0.5 rounded bg-white/5">Set 5: <strong class="text-white">${tl.set5}</strong></span>` : ''}
-            </div>
-
-            <div class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
-              <div class="bg-gradient-to-r from-orange-500 to-amber-400 h-1.5 rounded-full" style="width: ${Math.min(100, tl.targetPercent)}%"></div>
+            <div class="flex items-center gap-2 shrink-0">
+              <div class="text-right">
+                <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
+                  ${m.boxes} ប្រអប់
+                </div>
+                <div class="text-[10px] font-mono text-slate-400">
+                  ${m.orders} កុម្ម៉ង់
+                </div>
+              </div>
+              <i id="mgr-chev-${idx}" data-lucide="chevron-down" class="w-4 h-4 text-slate-500 transition-transform duration-200"></i>
             </div>
           </div>
-        `).join('')}
+
+          <div class="w-full bg-white/5 h-1">
+            <div class="h-1 ${rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400'}" style="width: ${percentOfTop}%"></div>
+          </div>
+
+          <div id="mgr-roster-${idx}" class="hidden p-3 bg-black/50 border-t border-white/5 space-y-2.5">
+            ${teamLeaders.length > 0 ? `
+              <div class="space-y-1">
+                <span class="text-[10px] font-bold text-sky-400 uppercase tracking-wide flex items-center gap-1">
+                  <i data-lucide="user-check" class="w-3 h-3"></i>
+                  <span>Leader ក្នុងក្រុម (${teamLeaders.length} រូប)៖</span>
+                </span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  ${teamLeaders.map(tl => `
+                    <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-[11px]">
+                      <div>
+                        <span class="font-bold text-slate-200">${tl.km}</span>
+                        <span class="text-[9px] text-slate-400 block">${tl.role || 'Leader'}</span>
+                      </div>
+                      <div class="text-right font-mono text-[10px]">
+                        <span class="text-sky-300 font-bold">${tl.boxes} ប្រអប់</span>
+                        <span class="text-slate-400 block">${tl.orders} កុម្ម៉ង់</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            <div class="space-y-1">
+              <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wide flex items-center gap-1">
+                <i data-lucide="users" class="w-3 h-3"></i>
+                <span>សមាជិកលក់ (${teamMembers.length} នាក់)៖</span>
+              </span>
+              ${teamMembers.length > 0 ? `
+                <div class="space-y-1 max-h-48 overflow-y-auto no-scrollbar pr-1">
+                  ${teamMembers.map(mem => `
+                    <div class="p-1.5 px-2.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 flex items-center justify-between text-[11px] transition">
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                        <span class="font-semibold text-slate-200 truncate">${mem.km}</span>
+                        <span class="text-[9px] text-slate-500 font-mono shrink-0">(${mem.leader})</span>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0 font-mono text-[10px]">
+                        <span class="text-slate-400">${mem.orders} កុម្ម៉ង់</span>
+                        <span class="text-emerald-400 font-bold">${mem.boxes} ប្រអប់</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : `
+                <p class="text-[10px] text-slate-500 italic p-1">មិនទាន់មានសមាជិករាយការណ៍</p>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    cardTeamSales = `
+      <!-- CARD E: VIP EXECUTIVE COMMAND CENTER (UNLOCKED STATE) -->
+      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/30 bg-[#0C1425]/95 shadow-2xl relative overflow-hidden space-y-4">
+        <div class="absolute -right-12 -top-12 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Card Header with Re-Lock Button -->
+        <div class="flex items-center justify-between pb-3 border-b border-white/10 relative z-10">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-inner shrink-0">
+              <i data-lucide="crown" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h3 class="font-bold text-xs uppercase text-white tracking-wide">រចនាសម្ព័ន្ធលក់ & ថ្នាក់ដឹកនាំ</h3>
+                <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[9px] font-bold text-emerald-300 font-mono">UNLOCKED</span>
+              </div>
+              <p class="text-[10px] text-slate-400 font-mono mt-0.5">BOSTAR GROUP • Executive Overview</p>
+            </div>
+          </div>
+
+          <button type="button" onclick="relockExecutiveCard(event)" 
+                  class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5 text-slate-300 text-[10px] font-semibold active:scale-95 transition hover:text-amber-300" title="ចាក់សោរវិញ">
+            <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
+            <span>ចាក់សោរវិញ</span>
+          </button>
+        </div>
+
+        <!-- 1. TOP TIER: DIRECTOR PROFILE & COMPANY HEALTH -->
+        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-black/40 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 relative z-10">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-black flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/30 shrink-0">
+              <i data-lucide="award" class="w-6 h-6"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h4 class="font-bold text-sm text-white truncate">${director ? director.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
+                <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30 shrink-0">Director</span>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${director ? director.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="text-right">
+              <div class="text-xs font-mono font-bold text-amber-300">${director ? director.boxes : 67} ប្រអប់</div>
+              <div class="text-[10px] font-mono text-slate-400">${director ? director.orders : 29} កុម្ម៉ង់</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. MIDDLE TIER: MANAGER LEADERBOARD (Ranked from Highest to Lowest) -->
+        <div class="space-y-2 relative z-10">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
+              <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>តារាងចំណាត់ថ្នាក់ MANAGERS (៦ ក្រុម)</span>
+            </span>
+            <span class="text-[10px] text-slate-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម</span>
+          </div>
+
+          <div class="space-y-2">
+            ${managersHtml}
+          </div>
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  }
 
   const cardTools = `
     <!-- AI & TOOLS SECTION (Clean iPhone Home Screen Style - iOS Standard Header) -->
@@ -3498,13 +3837,13 @@ function getDashboardViewHTML() {
   const isExpensesEmpty = (sortedFilteredExpenses.length === 0);
   const isPureCashEmpty = (pureUsd === 0 && pureKhr === 0);
   const isNetCashEmpty = (netCash.totalActualCash === 0 && netCash.pendingCodReceivables === 0 && netCash.totalAccountsPayable === 0);
-  const isTeamSalesEmpty = (!currentTeamLeaders || currentTeamLeaders.length === 0);
+  const isTeamSalesEmpty = false;
 
   const showPureCash = cv.pureCash !== false && !(cv.autoHideEmpty && isPureCashEmpty);
   const showPerformance = cv.salesPerformance !== false && !(cv.autoHideEmpty && isPerformanceEmpty);
   const showNetCash = cv.netCash !== false && !(cv.autoHideEmpty && isNetCashEmpty);
   const showExpenses = cv.expenses !== false && !(cv.autoHideEmpty && isExpensesEmpty);
-  const showTeamSales = cv.teamSales !== false && !(cv.autoHideEmpty && isTeamSalesEmpty);
+  const showTeamSales = cv.teamSales !== false;
   const showTools = cv.tools !== false;
 
   const layout = appState.cardLayout || '1';
