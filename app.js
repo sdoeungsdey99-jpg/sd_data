@@ -15294,11 +15294,14 @@ let BOSTAR_TEAM_SELLERS = [
 
 function updateBostarTeamSellers(liveList) {
   if (Array.isArray(liveList) && liveList.length > 0) {
-    BOSTAR_TEAM_SELLERS = liveList;
-    const badge = document.getElementById('team-members-count-badge');
-    const searchInput = document.getElementById('team-members-search-input');
-    if (badge && (!searchInput || !searchInput.value.trim())) {
-      badge.textContent = `(${liveList.length} នាក់)`;
+    const valid = liveList.filter(m => m && m.km && m.km.trim().length > 0);
+    if (valid.length >= 10) {
+      BOSTAR_TEAM_SELLERS = valid;
+      const badge = document.getElementById('team-members-count-badge');
+      const searchInput = document.getElementById('team-members-search-input');
+      if (badge && (!searchInput || !searchInput.value.trim())) {
+        badge.textContent = `(${valid.length} នាក់)`;
+      }
     }
   }
 }

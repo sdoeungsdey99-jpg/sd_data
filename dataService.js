@@ -172,77 +172,61 @@ function parseCSV(text) {
   return rows;
 }
 
-// Fetch Team Hierarchy tab (Live Sync for 45+ Team Members & Leaders)
+// Fetch Team Hierarchy tab (Always 100% directly from BostarGroup Official Sheet)
 async function fetchTeamHierarchyCSV() {
-  const activeSheetId = getActiveSheetId();
-  const sheetIdsToTry = [];
-  if (activeSheetId) sheetIdsToTry.push(activeSheetId);
-  if (!sheetIdsToTry.includes(TEAM_HIERARCHY_SHEET_ID)) {
-    sheetIdsToTry.push(TEAM_HIERARCHY_SHEET_ID);
-  }
-
-  for (const sId of sheetIdsToTry) {
-    try {
-      const exportUrl = `https://docs.google.com/spreadsheets/d/${sId}/export?format=csv&gid=${TEAM_HIERARCHY_GID}`;
-      const resp = await fetch(exportUrl);
-      if (resp && resp.ok) {
-        const text = await resp.text();
-        if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Member')) {
-          const rows = parseCSV(text);
-          if (rows && rows.length > 2) return rows;
-        }
+  const sId = TEAM_HIERARCHY_SHEET_ID;
+  try {
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${sId}/export?format=csv&gid=${TEAM_HIERARCHY_GID}`;
+    const resp = await fetch(exportUrl);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Member')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 2) return rows;
       }
-    } catch (_) {}
+    }
+  } catch (_) {}
 
-    try {
-      const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Team Hierarchy')}`;
-      const resp = await fetch(gvizUrl);
-      if (resp && resp.ok) {
-        const text = await resp.text();
-        if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
-          const rows = parseCSV(text);
-          if (rows && rows.length > 2) return rows;
-        }
+  try {
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Team Hierarchy')}`;
+    const resp = await fetch(gvizUrl);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 2) return rows;
       }
-    } catch (_) {}
-  }
+    }
+  } catch (_) {}
   return [];
 }
 
-// Fetch BostarTrack Sales Orders tab (Live Orders for 45 Team Members)
+// Fetch BostarTrack Sales Orders tab (Always 100% directly from BostarGroup Official Sheet)
 async function fetchBostarTrackSalesCSV() {
-  const activeSheetId = getActiveSheetId();
-  const sheetIdsToTry = [];
-  if (activeSheetId) sheetIdsToTry.push(activeSheetId);
-  if (!sheetIdsToTry.includes(TEAM_HIERARCHY_SHEET_ID)) {
-    sheetIdsToTry.push(TEAM_HIERARCHY_SHEET_ID);
-  }
-
-  for (const sId of sheetIdsToTry) {
-    try {
-      const exportUrl = `https://docs.google.com/spreadsheets/d/${sId}/export?format=csv&gid=${BOSTAR_TRACK_GID}`;
-      const resp = await fetch(exportUrl);
-      if (resp && resp.ok) {
-        const text = await resp.text();
-        if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
-          const rows = parseCSV(text);
-          if (rows && rows.length > 1) return rows;
-        }
+  const sId = TEAM_HIERARCHY_SHEET_ID;
+  try {
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${sId}/export?format=csv&gid=${BOSTAR_TRACK_GID}`;
+    const resp = await fetch(exportUrl);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 1) return rows;
       }
-    } catch (_) {}
+    }
+  } catch (_) {}
 
-    try {
-      const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('BostarTrack')}`;
-      const resp = await fetch(gvizUrl);
-      if (resp && resp.ok) {
-        const text = await resp.text();
-        if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
-          const rows = parseCSV(text);
-          if (rows && rows.length > 1) return rows;
-        }
+  try {
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('BostarTrack')}`;
+    const resp = await fetch(gvizUrl);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 1) return rows;
       }
-    } catch (_) {}
-  }
+    }
+  } catch (_) {}
   return [];
 }
 
