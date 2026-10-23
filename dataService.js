@@ -5,6 +5,8 @@
 
 const MASTER_SDOEUNG_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
 const DEFAULT_MASTER_SHEET_ID = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
+const TEAM_HIERARCHY_SHEET_ID = '129WGuA42r-cfNkMnT-djA6v8b6sez6BImjquAeNtlo4';
+const TEAM_HIERARCHY_GID = '1865868146';
 
 function extractSheetId(input) {
   if (!input) return '';
@@ -169,6 +171,43 @@ function parseCSV(text) {
   return rows;
 }
 
+// Fetch Team Hierarchy tab (Live Sync for 45+ Team Members & Leaders)
+async function fetchTeamHierarchyCSV() {
+  const activeSheetId = getActiveSheetId();
+  const sheetIdsToTry = [];
+  if (activeSheetId) sheetIdsToTry.push(activeSheetId);
+  if (!sheetIdsToTry.includes(TEAM_HIERARCHY_SHEET_ID)) {
+    sheetIdsToTry.push(TEAM_HIERARCHY_SHEET_ID);
+  }
+
+  for (const sId of sheetIdsToTry) {
+    try {
+      const exportUrl = `https://docs.google.com/spreadsheets/d/${sId}/export?format=csv&gid=${TEAM_HIERARCHY_GID}`;
+      const resp = await fetch(exportUrl);
+      if (resp && resp.ok) {
+        const text = await resp.text();
+        if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Member')) {
+          const rows = parseCSV(text);
+          if (rows && rows.length > 2) return rows;
+        }
+      }
+    } catch (_) {}
+
+    try {
+      const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Team Hierarchy')}`;
+      const resp = await fetch(gvizUrl);
+      if (resp && resp.ok) {
+        const text = await resp.text();
+        if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
+          const rows = parseCSV(text);
+          if (rows && rows.length > 2) return rows;
+        }
+      }
+    } catch (_) {}
+  }
+  return [];
+}
+
 window.DataService = {
   data: null,
   isLoading: false,
@@ -205,12 +244,13 @@ window.DataService = {
     }
 
     try {
-      const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows] = await Promise.all([
+      const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows] = await Promise.all([
         fetchGoogleSheetGViz('1802751802', 'Personal Sales'),
         fetchGoogleSheetCSV('1413782774', 'Daily Expenses'),
         fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance'),
         fetchGoogleSheetGViz('30391871', 'Team Monthly View'),
-        fetchGoogleSheetCSV('608899183', 'Team Sales')
+        fetchGoogleSheetCSV('608899183', 'Team Sales'),
+        fetchTeamHierarchyCSV()
       ]);
 
       // ==========================================
@@ -705,6 +745,68 @@ window.DataService = {
         }
       } catch (_) {}
 
+      // ==========================================
+      // 5. Process Team Hierarchy (Dynamic Team Members & Leaders)
+      // ==========================================
+      const teamMembers = [];
+      const teamLeadersList = [];
+      const teamManagersList = [];
+
+      if (Array.isArray(teamHierarchyCsvRows) && teamHierarchyCsvRows.length > 2) {
+        for (let i = 2; i < teamHierarchyCsvRows.length; i++) {
+          const r = teamHierarchyCsvRows[i];
+          if (!r) continue;
+
+          // Member columns: 0: No, 1: Km, 2: En, 3: Leader, 4: Orders
+          const noRaw = String(r[0] || '').trim();
+          const kmName = String(r[1] || '').trim();
+          const enName = String(r[2] || '').trim();
+          const leader = String(r[3] || '').trim();
+
+          if (kmName) {
+            const no = parseInt(noRaw, 10) || (teamMembers.length + 1);
+            teamMembers.push({
+              no,
+              km: kmName,
+              en: enName || kmName,
+              leader: leader || ''
+            });
+          }
+
+          // Leader columns: 7: No, 8: Km, 9: En, 10: Role, 11: Manager, 12: MemberCount, 13: Orders
+          if (r.length > 8) {
+            const lKm = String(r[8] || '').trim();
+            const lEn = String(r[9] || '').trim();
+            const lRole = String(r[10] || '').trim();
+            const lManager = String(r[11] || '').trim();
+            if (lKm) {
+              teamLeadersList.push({
+                km: lKm,
+                en: lEn || lKm,
+                role: lRole || 'Leader',
+                manager: lManager || ''
+              });
+            }
+          }
+
+          // Manager columns: 16: No, 17: Km, 18: En, 19: Role, 20: Dept, 21: LeadersCount, 22: TotalMembers
+          if (r.length > 17) {
+            const mKm = String(r[17] || '').trim();
+            const mEn = String(r[18] || '').trim();
+            const mRole = String(r[19] || '').trim();
+            const mDept = String(r[20] || '').trim();
+            if (mKm) {
+              teamManagersList.push({
+                km: mKm,
+                en: mEn || mKm,
+                role: mRole || 'Manager',
+                dept: mDept || ''
+              });
+            }
+          }
+        }
+      }
+
       this.data = {
         personalSales,
         expenses,
@@ -718,13 +820,20 @@ window.DataService = {
         },
         teamLeaders,
         teamLeadersByMonth,
+        teamMembers,
+        teamHierarchy: {
+          members: teamMembers,
+          leaders: teamLeadersList,
+          managers: teamManagersList
+        },
         targetsByMonth,
         boostByMonth,
         recentBoostEntries,
         announcements: [],
         meta: {
           totalSalesCount: personalSales.length,
-          totalExpensesCount: expenses.length
+          totalExpensesCount: expenses.length,
+          totalTeamMembersCount: teamMembers.length
         }
       };
 

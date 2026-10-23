@@ -1077,6 +1077,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function onDataUpdated(service) {
+  if (service && service.data && Array.isArray(service.data.teamMembers) && service.data.teamMembers.length > 0) {
+    if (typeof updateBostarTeamSellers === 'function') {
+      updateBostarTeamSellers(service.data.teamMembers);
+    }
+    const tmModal = document.getElementById('team-members-modal');
+    if (tmModal && !tmModal.classList.contains('hidden')) {
+      const listView = document.getElementById('team-members-list-view');
+      if (listView && !listView.classList.contains('hidden') && typeof renderTeamMembersList === 'function') {
+        renderTeamMembersList();
+      }
+    }
+  }
+
   updateReloadBadge(service);
   renderCurrentView();
   const urlParams = new URLSearchParams(window.location.search);
@@ -15231,7 +15244,7 @@ function closeProfileDrawer() {
   if (navigator.vibrate) navigator.vibrate(12);
 }
 
-const BOSTAR_TEAM_SELLERS = [
+let BOSTAR_TEAM_SELLERS = [
   { no: 1, km: 'សុង ស្រីឡែន', en: 'Song Sreylen', leader: 'ពុធ ធារ៉ា' },
   { no: 2, km: 'សុមុន្នី ស្រីណុច', en: 'Somony Sreynoch', leader: 'លោក ហែម ចន្ធី' },
   { no: 3, km: 'ជាន ស្រីនិច', en: 'Chean Sreynich', leader: 'ម៉ិច ច័ន្ទសុជាតា' },
@@ -15269,15 +15282,26 @@ const BOSTAR_TEAM_SELLERS = [
   { no: 35, km: 'ជា វឌ្ឍនា', en: 'Chea Vathana', leader: 'យឹម សីហា' },
   { no: 36, km: 'សាប់ លក្ខិណា', en: 'Sab Leakhena', leader: 'ម៉ិច ច័ន្ទសុជាតា' },
   { no: 37, km: 'សឹម សិត', en: 'Sim Seth', leader: 'ពុធ ធារ៉ា' },
-  { no: 38, km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', leader: 'លោក ប៊ិច នោរ៉ា' },
-  { no: 39, km: 'លោក ហ៊ួរ យ៉ារិទ្ធ', en: 'Hour Yaith', leader: 'លោក ហ៊ួរ យ៉ារិទ្ធ' },
-  { no: 40, km: 'លោក ហែម ចន្ធី', en: 'Hem Chanthy', leader: 'លោក ហែម ចន្ធី' },
-  { no: 41, km: 'លោក ប៊ិច ឧត្តម', en: 'Bech Udom', leader: 'លោក ប៊ិច ឧត្តម' },
-  { no: 42, km: 'លោក ស្រឿន លាងហាក់', en: 'Sroeun Leanghak', leader: 'លោក ស្រឿន លាងហាក់' },
-  { no: 43, km: 'អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា', en: 'Sot Masya', leader: 'លោក ហែម ចន្ធី' },
-  { no: 44, km: 'អ្នកគ្រូ ម៉ិច ច័ន្ទសុជាតា', en: 'Mech Chansocheata', leader: 'លោក ប៊ិច នោរ៉ា' },
-  { no: 45, km: 'លោក ពុធ ធារ៉ា', en: 'Puth Theara', leader: 'លោក ប៊ិច នោរ៉ា' }
+  { no: 38, km: 'ប៊ិច នោរ៉ា', en: 'BECH NORA', leader: 'លោក ប៊ិច នោរ៉ា' },
+  { no: 39, km: 'ហ៊ួរ យ៉ារិទ្ធ', en: 'Hour Yaith', leader: 'លោក ហ៊ួរ យ៉ារិទ្ធ' },
+  { no: 40, km: 'ហែម ចន្ធី', en: 'Hem Chanthy', leader: 'លោក ហែម ចន្ធី' },
+  { no: 41, km: 'ប៊ិច ឧត្តម', en: 'Bech Udom', leader: 'លោក ប៊ិច ឧត្តម' },
+  { no: 42, km: 'ស្រឿន លាងហាក់', en: 'Sroeun Leanghak', leader: 'លោក ស្រឿន លាងហាក់' },
+  { no: 43, km: 'សូត្រ ម៉ាស់យ៉ា', en: 'Sot Masya', leader: 'លោក ហែម ចន្ធី' },
+  { no: 44, km: 'ម៉ិច ច័ន្ទសុជាតា', en: 'Mech Chansocheata', leader: 'លោក ប៊ិច នោរ៉ា' },
+  { no: 45, km: 'ពុធ ធារ៉ា', en: 'Puth Theara', leader: 'លោក ប៊ិច នោរ៉ា' }
 ];
+
+function updateBostarTeamSellers(liveList) {
+  if (Array.isArray(liveList) && liveList.length > 0) {
+    BOSTAR_TEAM_SELLERS = liveList;
+    const badge = document.getElementById('team-members-count-badge');
+    const searchInput = document.getElementById('team-members-search-input');
+    if (badge && (!searchInput || !searchInput.value.trim())) {
+      badge.textContent = `(${liveList.length} នាក់)`;
+    }
+  }
+}
 
 function normalizeSellerName(name) {
   if (!name) return '';
