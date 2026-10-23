@@ -15287,9 +15287,8 @@ let BOSTAR_TEAM_SELLERS = [
   { no: 40, km: 'ហែម ចន្ធី', en: 'Hem Chanthy', leader: 'លោក ហែម ចន្ធី' },
   { no: 41, km: 'ប៊ិច ឧត្តម', en: 'Bech Udom', leader: 'លោក ប៊ិច ឧត្តម' },
   { no: 42, km: 'ស្រឿន លាងហាក់', en: 'Sroeun Leanghak', leader: 'លោក ស្រឿន លាងហាក់' },
-  { no: 43, km: 'សូត្រ ម៉ាស់យ៉ា', en: 'Sot Masya', leader: 'លោក ហែម ចន្ធី' },
-  { no: 44, km: 'ម៉ិច ច័ន្ទសុជាតា', en: 'Mech Chansocheata', leader: 'លោក ប៊ិច នោរ៉ា' },
-  { no: 45, km: 'ពុធ ធារ៉ា', en: 'Puth Theara', leader: 'លោក ប៊ិច នោរ៉ា' }
+  { no: 43, km: 'ម៉ិច ច័ន្ទសុជាតា', en: 'Mech Chansocheata', leader: 'លោក ប៊ិច នោរ៉ា' },
+  { no: 44, km: 'ពុធ ធារ៉ា', en: 'Puth Theara', leader: 'លោក ប៊ិច នោរ៉ា' }
 ];
 
 function updateBostarTeamSellers(liveList) {
