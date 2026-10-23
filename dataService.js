@@ -4,10 +4,11 @@
  */
 
 const MASTER_SDOEUNG_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
-const DEFAULT_MASTER_SHEET_ID = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
+const DEFAULT_MASTER_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
 const TEAM_HIERARCHY_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
 const TEAM_HIERARCHY_GID = '1865868146';
 const BOSTAR_TRACK_GID = '1127553691';
+const REPORT_TAB_GID = '1381931511';
 
 function extractSheetId(input) {
   if (!input) return '';

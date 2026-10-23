@@ -19667,6 +19667,138 @@ function generateDailyReportText() {
 ⏰ ម៉ោងរាយការណ៍៖ ៩:០០ យប់`;
 }
 
+function getDailyReportData() {
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, '0');
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const yyyy = today.getFullYear();
+  const todayStr = `${dd}/${mm}/${yyyy}`;
+
+  const date = (document.getElementById('rep-field-date')?.value || todayStr).trim();
+  const savedPages = (typeof getDailyReportPagesList === 'function') ? getDailyReportPagesList() : [];
+  const page = (document.getElementById('rep-field-page')?.value || localStorage.getItem('sd_report_page') || (savedPages[0] || 'Bostar Store')).trim();
+  const staff = (document.getElementById('rep-field-staff')?.value || localStorage.getItem('sd_report_staff') || p.name || 'សមាជិក Bostar').trim();
+
+  const chatTotal = Number(document.getElementById('rep-field-chat-total')?.value) || 0;
+  const chatMistake = Number(document.getElementById('rep-field-chat-mistake')?.value) || 0;
+  const chatTarget = Number(document.getElementById('rep-field-chat-target')?.value) || 0;
+  const callDirect = Number(document.getElementById('rep-field-call-direct')?.value) || 0;
+
+  const followOld = Number(document.getElementById('rep-field-follow-old')?.value) || 0;
+  const followPending = Number(document.getElementById('rep-field-follow-pending')?.value) || 0;
+  const followLeads = followOld + followPending;
+
+  const buyNewP = Number(document.getElementById('rep-buy-new-p')?.value) || 0;
+  const buyNewB = Number(document.getElementById('rep-buy-new-b')?.value) || 0;
+  const buyOldP = Number(document.getElementById('rep-buy-old-p')?.value) || 0;
+  const buyOldB = Number(document.getElementById('rep-buy-old-b')?.value) || 0;
+  const buyFollowP = Number(document.getElementById('rep-buy-follow-p')?.value) || 0;
+  const buyFollowB = Number(document.getElementById('rep-buy-follow-b')?.value) || 0;
+
+  const totalOrders = buyNewP + buyOldP + buyFollowP;
+  const totalBoxes = buyNewB + buyOldB + buyFollowB;
+  const challenges = (document.getElementById('rep-field-challenges')?.value || '').trim() || 'គ្មាន (None)';
+
+  return {
+    date: date,
+    time: '9:00 PM',
+    page: page || 'Bostar Store',
+    team: 'BostarGroup',
+    reporter: staff || 'សមាជិក Bostar',
+    status: 'បញ្ចប់',
+    chatTotal: chatTotal,
+    chatMistake: chatMistake,
+    chatTarget: chatTarget,
+    callDirect: callDirect,
+    followLeads: followLeads,
+    totalOrders: totalOrders,
+    totalBoxes: totalBoxes,
+    buyNewP: buyNewP,
+    buyNewB: buyNewB,
+    buyOldP: buyOldP,
+    buyOldB: buyOldB,
+    buyFollowP: buyFollowP,
+    buyFollowB: buyFollowB,
+    challenges: challenges
+  };
+}
+
+let lastReportSyncSignature = '';
+let lastReportSyncTimestamp = 0;
+let isReportSyncing = false;
+
+async function syncDailyReportToGoogleSheet(options = {}) {
+  const report = getDailyReportData();
+  if (!report.date || !report.page || !report.reporter) return false;
+
+  // Composite signature for client-side deduplication (reduced to 2s window)
+  const signature = `${report.date}__${report.page}__${report.reporter}__${report.totalBoxes}__${report.chatTotal}__${report.challenges}`;
+  const now = Date.now();
+
+  // If identical report data was synced within the last 2 seconds, avoid redundant network requests
+  if (signature === lastReportSyncSignature && (now - lastReportSyncTimestamp < 2000)) {
+    return true;
+  }
+
+  if (isReportSyncing) return false;
+  isReportSyncing = true;
+
+  const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function' ? getAppsScriptWebhookUrl() : null) || DEFAULT_APPS_SCRIPT_URL;
+  const bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+
+  console.log('[DailyReport] Syncing to Google Sheet via webhook:', webhookUrl, report);
+
+  try {
+    lastReportSyncSignature = signature;
+    lastReportSyncTimestamp = now;
+
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'add_or_update_report',
+          sheetId: bostarTrackId,
+          data: report
+        })
+      });
+
+      console.log('[DailyReport] Sync request successfully dispatched!');
+
+      // Save locally into history cache
+      try {
+        const rawHistory = localStorage.getItem('sd_saved_daily_reports') || '[]';
+        let history = JSON.parse(rawHistory);
+        if (!Array.isArray(history)) history = [];
+        const existingIdx = history.findIndex(h => h.date === report.date && h.page === report.page && h.reporter === report.reporter);
+        if (existingIdx > -1) {
+          history[existingIdx] = { ...report, syncedAt: new Date().toISOString() };
+        } else {
+          history.unshift({ ...report, syncedAt: new Date().toISOString() });
+        }
+        localStorage.setItem('sd_saved_daily_reports', JSON.stringify(history.slice(0, 50)));
+      } catch (_) {}
+
+      if (typeof addAppNotification === 'function') {
+        addAppNotification({
+          type: 'success',
+          title: 'រក្សាទុករបាយការណ៍ជោគជ័យ ✅',
+          message: `ទិន្នន័យរបាយការណ៍ ${report.page} ត្រូវបានបញ្ចូលក្នុង Google Sheet រួចរាល់!`,
+          time: new Date().toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit' })
+        });
+      }
+      return true;
+    }
+  } catch (err) {
+    console.warn('Daily report sync warning:', err);
+  } finally {
+    isReportSyncing = false;
+  }
+  return false;
+}
+
 async function copyDailyReportText() {
   const text = generateDailyReportText();
   try {
@@ -19680,20 +19812,32 @@ async function copyDailyReportText() {
       document.execCommand('copy');
       document.body.removeChild(ta);
     }
-    showToastNotification('បានចម្លងរបាយការណ៍ជោគជ័យ! ត្រៀម Paste ចូល Telegram 📋');
+    showToastNotification('បានចម្លង & រក្សាទុកក្នុង Google Sheet ជោគជ័យ! 📋✅');
   } catch (_) {
-    showToastNotification('ចម្លងបានជោគជ័យ!');
+    showToastNotification('បានចម្លងរបាយការណ៍ជោគជ័យ!');
   }
+
+  // Seamless background sync to Google Sheet
+  syncDailyReportToGoogleSheet({ source: 'copy' });
 }
 
 async function shareDailyReportToTelegram() {
   const text = generateDailyReportText();
-  copyDailyReportText();
   
+  // 1. Copy to clipboard silently
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    }
+  } catch (_) {}
+
+  // 2. Seamless background sync to Google Sheet (Deduplication prevents double entries)
+  syncDailyReportToGoogleSheet({ source: 'telegram' });
+
   showToastNotification('កំពុងផ្ញើរបាយការណ៍លក់ទៅ Telegram... ⏳');
   const botSuccess = await sendAttendanceViaTelegramBot(text);
   if (botSuccess) {
-    showToastNotification('បានផ្ញើរបាយការណ៍លក់ចូល Telegram Group ជោគជ័យ! 🚀');
+    showToastNotification('បានផ្ញើ & រក្សាទុកក្នុង Google Sheet ជោគជ័យ! 🚀✅');
     if (navigator.vibrate) try { navigator.vibrate([40, 60, 40]); } catch(_) {}
   } else {
     const savedGroup = getTelegramGroupUrl();
@@ -20285,6 +20429,8 @@ window.closeDailyReportModal = closeDailyReportModal;
 window.resetDailyReportFields = resetDailyReportFields;
 window.openDailyReportModal = openDailyReportModal;
 window.calculateDailyReportMetrics = calculateDailyReportMetrics;
+window.getDailyReportData = getDailyReportData;
+window.syncDailyReportToGoogleSheet = syncDailyReportToGoogleSheet;
 window.copyDailyReportText = copyDailyReportText;
 window.shareDailyReportToTelegram = shareDailyReportToTelegram;
 window.setActiveReportField = setActiveReportField;
@@ -20458,7 +20604,7 @@ const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGLHc2
 
 function getAppsScriptWebhookUrl() {
   const saved = localStorage.getItem('sd_apps_script_url');
-  if (!saved || saved.includes('AKfycbx3nkhqs8') || saved.includes('AKfycbw_BgUgVS0le9') || saved.includes('AKfycbxlkNwEyMcrLb3tm0Fzuc4tefQ4EfP2MNUBKSGGyaaZiqiO8XoZCysQebZ3xYTlbYjP')) {
+  if (!saved || !saved.includes('AKfycbzGLHc2-bPoKyfjo2jb2Rv2MymxXG7uqvDtgGiv2fQ6FD5Hqz4AbIAUTHrFwGLFqWT-')) {
     localStorage.setItem('sd_apps_script_url', DEFAULT_APPS_SCRIPT_URL);
     return DEFAULT_APPS_SCRIPT_URL;
   }
