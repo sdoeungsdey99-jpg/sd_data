@@ -20665,7 +20665,10 @@ function openNewOrderModal(mode = 'dock') {
     if (btnHeaderPass) btnHeaderPass.classList.remove('hidden');
     if (card3in1) card3in1.classList.add('hidden'); // Removed from Telegram mode
     if (syncToggle) syncToggle.checked = false; // Strictly OFF for telegram mode by default!
-    if (orderTypeCard) orderTypeCard.classList.remove('hidden');
+    if (orderTypeCard) {
+      orderTypeCard.classList.remove('hidden');
+      orderTypeCard.style.setProperty('display', 'block', 'important');
+    }
     if (stockCapsuleBtn) {
       stockCapsuleBtn.classList.add('hidden');
       stockCapsuleBtn.style.display = 'none';
@@ -20689,7 +20692,10 @@ function openNewOrderModal(mode = 'dock') {
     if (btnHeaderPass) btnHeaderPass.classList.add('hidden');
     if (card3in1) card3in1.classList.add('hidden'); // Removed from New Order mode
     if (syncToggle) syncToggle.checked = true; // Auto-sync active for 3-in-1 in background
-    if (orderTypeCard) orderTypeCard.classList.add('hidden'); // លាក់ដាច់ខាតលើ Order Dock (ការកុម្ម៉ង់ថ្មី)
+    if (orderTypeCard) {
+      orderTypeCard.classList.add('hidden');
+      orderTypeCard.style.setProperty('display', 'none', 'important');
+    }
     setOrderType('standard'); // ស្តុកក្រុមហ៊ុនស្តង់ដារជានិច្ច
     // សម្រាប់ការកុម្ម៉ង់ថ្មី ថ្នាក់ដឹកនាំគឺ Bech_Nora តែមួយគត់
     const teamInput = document.getElementById('order-field-team');
@@ -20745,7 +20751,7 @@ function openNewOrderModal(mode = 'dock') {
   const teamInput = document.getElementById('order-field-team');
   const savedTeam = localStorage.getItem('sd_last_team_leader') || 'Bech_Nora';
   if (teamInput) {
-    teamInput.value = savedTeam;
+    teamInput.value = (currentOrderEntryMode === 'dock') ? 'Bech_Nora' : (savedTeam || 'Bech_Nora');
   }
   closeOrderTeamDropdown();
 
@@ -20799,6 +20805,17 @@ function openNewOrderModal(mode = 'dock') {
   if (typeof updateModalLanguage === 'function') updateModalLanguage();
   checkOrderSubmitValidation();
 
+  const orderTypeCardEl = document.getElementById('order-type-card');
+  if (orderTypeCardEl) {
+    if (currentOrderEntryMode === 'telegram') {
+      orderTypeCardEl.classList.remove('hidden');
+      orderTypeCardEl.style.setProperty('display', 'block', 'important');
+    } else {
+      orderTypeCardEl.classList.add('hidden');
+      orderTypeCardEl.style.setProperty('display', 'none', 'important');
+    }
+  }
+
   if (stockCapsuleBtn) {
     if (currentOrderEntryMode === 'telegram') {
       stockCapsuleBtn.classList.add('hidden');
@@ -20806,6 +20823,11 @@ function openNewOrderModal(mode = 'dock') {
     } else {
       stockCapsuleBtn.classList.remove('hidden');
       stockCapsuleBtn.style.display = '';
+      stockCapsuleBtn.onclick = null;
+      stockCapsuleBtn.style.cursor = 'default';
+      stockCapsuleBtn.classList.remove('active:scale-95');
+      stockCapsuleBtn.title = 'ស្តុក';
+      stockCapsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ស្តុក</span>`;
     }
   }
 
@@ -21172,6 +21194,11 @@ function updateAutoOrderNote() {
 function setOrderType(type) {
   if (currentOrderEntryMode === 'dock') {
     type = 'standard'; // សម្រាប់ផ្ទាំងការកុម្ម៉ង់ថ្មី (Order Dock) គឺស្តង់ដារ «ស្តុកក្រុមហ៊ុន» ជានិច្ច គ្មានផ្ទាំងរើសនេះទេ
+    const otCard = document.getElementById('order-type-card');
+    if (otCard) {
+      otCard.classList.add('hidden');
+      otCard.style.setProperty('display', 'none', 'important');
+    }
   } else if (!type || !['standard', 'reward', 'return'].includes(type)) {
     type = 'standard';
   }
@@ -21222,6 +21249,12 @@ function setOrderType(type) {
     if (desc) desc.innerText = 'ស្តុកក្រុមហ៊ុន: គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។';
     if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
     if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
+  }
+
+  if (currentOrderEntryMode === 'dock' && capsuleBtn) {
+    capsuleBtn.onclick = null;
+    capsuleBtn.style.cursor = 'default';
+    capsuleBtn.classList.remove('active:scale-95');
   }
 
   updateAutoOrderNote();
