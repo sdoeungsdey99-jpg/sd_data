@@ -4781,6 +4781,7 @@ function getDashboardViewHTML() {
     let homeHierarchyBodyHtml = '';
 
     if (!selectedM) {
+      const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].displayBoxes || 1) : 1;
       const managersCardsHtml = sortedManagers.map((m, idx) => {
         const rank = idx + 1;
         const rankBadge = getManagerRankBadge(rank);
