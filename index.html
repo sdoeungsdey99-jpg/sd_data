@@ -3132,6 +3132,9 @@
   <!-- FULL-SCREEN EXECUTIVE LEADERSHIP & HIERARCHY MODAL (100% SCREEN) -->
   <!-- ======================================================== -->
   <div id="executive-hierarchy-modal" class="fixed inset-0 z-[75] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy">
+    <!-- Backdrop Blur Overlay for Exec Filter Dropdowns -->
+    <div id="exec-dropdown-backdrop" onclick="closeAllExecDropdowns()" class="hidden absolute inset-0 z-30 bg-black/60 backdrop-blur-sm transition-opacity duration-200"></div>
+
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden relative">
       <!-- Top Sticky Bar -->
       <div class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2">
@@ -3149,21 +3152,23 @@
               <i data-lucide="crown" class="w-3.5 h-3.5"></i>
             </div>
             <h3 class="font-bold text-xs sm:text-sm text-white truncate leading-tight">
-              រចនាសម្ព័ន្ធលក់ & ថ្នាក់ដឹកនាំ
+              រចនាសម្ព័ន្ធលក់
             </h3>
-            <span class="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold border border-emerald-500/30">UNLOCKED</span>
           </div>
 
-          <!-- Re-Lock Button -->
+          <!-- Consolidated Lock/Unlock Toggle Button -->
           <button type="button" onclick="relockExecutiveHierarchyModal()" 
-                  class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5 text-slate-300 text-[10px] font-semibold active:scale-95 transition hover:text-amber-300 shrink-0" title="ចាក់សោរវិញ">
-            <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
-            <span>ចាក់សោរវិញ</span>
+                  class="px-2.5 py-1 rounded-full bg-emerald-500/10 hover:bg-rose-500/15 border border-emerald-500/30 hover:border-rose-500/30 text-emerald-400 hover:text-rose-400 text-[10px] font-semibold flex items-center gap-1.5 transition active:scale-95 group shrink-0" title="ចុចដើម្បីចាក់សោរវិញ">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 group-hover:bg-rose-400 transition-colors"></span>
+            <i data-lucide="unlock" class="w-3 h-3 group-hover:hidden"></i>
+            <i data-lucide="lock" class="w-3 h-3 hidden group-hover:inline"></i>
+            <span class="group-hover:hidden">Unlocked</span>
+            <span class="hidden group-hover:inline">ចាក់សោរ</span>
           </button>
         </div>
 
         <!-- Date Filter Bar (Auto-hides on drag up, reveals on scroll down) -->
-        <div id="exec-modal-date-filter-bar" class="relative z-40 transition-all duration-300 overflow-hidden">
+        <div id="exec-modal-date-filter-bar" class="relative z-40 transition-all duration-300">
           <!-- Injected dynamically by renderExecutiveHierarchyDateFilterBar() -->
         </div>
       </div>
@@ -5000,6 +5005,6 @@
   </div>
 
   <script src="dataService.js?v=7.1"></script>
-  <script src="app.js?v=38.9"></script>
+  <script src="app.js?v=39.0"></script>
 </body>
 </html>

@@ -2945,7 +2945,7 @@ function openExecutivePasscodeModal() {
           <i data-lucide="shield-alert" class="w-6 h-6"></i>
         </div>
         <div>
-          <h3 class="text-sm font-bold text-white uppercase tracking-wide">កូដសម្ងាត់ថ្នាក់ដឹកនាំ</h3>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wide">កូដសម្ងាត់រចនាសម្ព័ន្ធលក់</h3>
           <p class="text-[11px] text-slate-400 mt-0.5">Manager & Director Passcode Access</p>
         </div>
       </div>
@@ -3055,11 +3055,357 @@ function toggleManagerRoster(idx, event) {
 }
 
 let execHierarchyFilterState = {
-  mode: 'all',
-  selectedManager: 'all',
-  searchQuery: ''
+  mode: 'all', // 'day' | 'month' | 'year' | 'all'
+  selectedDate: null,
+  selectedMonth: null,
+  selectedYear: null,
+  calYear: (new Date()).getFullYear(),
+  calMonth: (new Date()).getMonth() + 1,
+  isDirectorExpanded: true,
+  selectedManager: null
 };
 let execHierarchyScrollInitialized = false;
+
+function closeAllExecDropdowns(except = null) {
+  const backdrop = document.getElementById('exec-dropdown-backdrop');
+  if (except !== 'day') {
+    const d = document.getElementById('exec-day-dropdown-menu');
+    if (d) d.classList.add('hidden');
+  }
+  if (except !== 'month') {
+    const m = document.getElementById('exec-month-dropdown-menu');
+    if (m) m.classList.add('hidden');
+  }
+  if (except !== 'year') {
+    const y = document.getElementById('exec-year-dropdown-menu');
+    if (y) y.classList.add('hidden');
+  }
+  if (!except && backdrop) {
+    backdrop.classList.add('hidden');
+  }
+}
+
+function toggleExecDayDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('exec-day-dropdown-menu');
+  const backdrop = document.getElementById('exec-dropdown-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  closeAllExecDropdowns('day');
+  if (isHidden) {
+    renderExecMiniCalendar();
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+function renderExecMiniCalendar() {
+  const menu = document.getElementById('exec-day-dropdown-menu');
+  if (!menu) return;
+
+  const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const monthTitle = `${khmerMonths[execHierarchyFilterState.calMonth - 1]} ${execHierarchyFilterState.calYear}`;
+
+  const now = new Date();
+  const realTodayIso = getLocalIsoDate(now);
+  const selectedIso = execHierarchyFilterState.selectedDate || realTodayIso;
+
+  const firstDayOfWeek = new Date(execHierarchyFilterState.calYear, execHierarchyFilterState.calMonth - 1, 1).getDay();
+  const daysInMonth = new Date(execHierarchyFilterState.calYear, execHierarchyFilterState.calMonth, 0).getDate();
+
+  const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : null;
+  const salesDaysSet = new Set();
+  if (d && Array.isArray(d.bostarTrackSales)) {
+    const prefix = `${execHierarchyFilterState.calYear}-${String(execHierarchyFilterState.calMonth).padStart(2, '0')}`;
+    d.bostarTrackSales.forEach(s => {
+      if (s.isoDate && s.isoDate.startsWith(prefix)) {
+        salesDaysSet.add(s.isoDate);
+      }
+    });
+  }
+
+  let daysGridHtml = '';
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    daysGridHtml += `<div class="h-8"></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayStr = String(day).padStart(2, '0');
+    const monthStr = String(execHierarchyFilterState.calMonth).padStart(2, '0');
+    const thisDateIso = `${execHierarchyFilterState.calYear}-${monthStr}-${dayStr}`;
+
+    const isSelected = execHierarchyFilterState.mode === 'day' && thisDateIso === selectedIso;
+    const isToday = thisDateIso === realTodayIso;
+    const hasSales = salesDaysSet.has(thisDateIso);
+
+    let cellClasses = 'relative h-8 rounded-full flex flex-col items-center justify-center text-xs font-semibold cursor-pointer active:scale-95 transition ';
+    if (isSelected) {
+      cellClasses += 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/30';
+    } else if (isToday) {
+      cellClasses += 'border border-amber-500/60 text-amber-400 hover:bg-amber-500/20';
+    } else {
+      cellClasses += 'text-slate-200 hover:bg-white/10';
+    }
+
+    daysGridHtml += `
+      <button onclick="selectExecCalendarDay('${thisDateIso}', event)" class="${cellClasses}">
+        <span>${day}</span>
+        ${hasSales ? `<span class="w-1 h-1 rounded-full ${isSelected ? 'bg-black' : 'bg-amber-400'} absolute bottom-0.5"></span>` : ''}
+      </button>
+    `;
+  }
+
+  menu.innerHTML = `
+    <!-- Header: Month Year + Prev/Next Arrow Buttons -->
+    <div class="flex items-center justify-between pb-2 border-b border-white/10">
+      <button onclick="navigateExecCalendarMonth(-1, event)" 
+              class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-90">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
+
+      <span class="text-xs font-bold text-white tracking-wide font-sans">
+        ${monthTitle}
+      </span>
+
+      <button onclick="navigateExecCalendarMonth(1, event)" 
+              class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-90">
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Quick Pick Shortcuts (Today / Yesterday) -->
+    <div class="grid grid-cols-2 gap-1.5 pb-2 border-b border-white/10">
+      <button onclick="selectExecQuickDay('today', event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${execHierarchyFilterState.mode === 'day' && execHierarchyFilterState.selectedDate === realTodayIso ? 'bg-amber-500 text-black font-bold' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        ☀️ ថ្ងៃនេះ
+      </button>
+      <button onclick="selectExecQuickDay('yesterday', event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${execHierarchyFilterState.mode === 'day' && execHierarchyFilterState.selectedDate === getYesterdayIso() ? 'bg-amber-500 text-black font-bold' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        🌙 ម្សិលមិញ
+      </button>
+    </div>
+
+    <!-- Weekday Headers -->
+    <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+      <span>អា</span><span>ច</span><span>អ</span><span>ព</span><span>ព្រ</span><span>សុ</span><span>ស</span>
+    </div>
+
+    <!-- Calendar Days Grid (7 cols) -->
+    <div class="grid grid-cols-7 gap-1 text-center">
+      ${daysGridHtml}
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function navigateExecCalendarMonth(delta, event) {
+  if (event) event.stopPropagation();
+  execHierarchyFilterState.calMonth += delta;
+  if (execHierarchyFilterState.calMonth < 1) {
+    execHierarchyFilterState.calMonth = 12;
+    execHierarchyFilterState.calYear--;
+  } else if (execHierarchyFilterState.calMonth > 12) {
+    execHierarchyFilterState.calMonth = 1;
+    execHierarchyFilterState.calYear++;
+  }
+  renderExecMiniCalendar();
+}
+
+function selectExecCalendarDay(isoDate, event) {
+  if (event) event.stopPropagation();
+  closeAllExecDropdowns();
+  execHierarchyFilterState.mode = 'day';
+  execHierarchyFilterState.selectedDate = isoDate;
+  const parts = isoDate.split('-');
+  execHierarchyFilterState.calYear = parseInt(parts[0], 10);
+  execHierarchyFilterState.calMonth = parseInt(parts[1], 10);
+  renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveHierarchyModalContent();
+  renderCurrentView();
+}
+
+function selectExecQuickDay(type, event) {
+  if (event) event.stopPropagation();
+  closeAllExecDropdowns();
+  execHierarchyFilterState.mode = 'day';
+  if (type === 'today') {
+    execHierarchyFilterState.selectedDate = getLocalIsoDate(new Date());
+  } else if (type === 'yesterday') {
+    execHierarchyFilterState.selectedDate = getYesterdayIso();
+  }
+  const parts = execHierarchyFilterState.selectedDate.split('-');
+  execHierarchyFilterState.calYear = parseInt(parts[0], 10);
+  execHierarchyFilterState.calMonth = parseInt(parts[1], 10);
+  renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveHierarchyModalContent();
+  renderCurrentView();
+}
+
+function toggleExecMonthDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('exec-month-dropdown-menu');
+  const backdrop = document.getElementById('exec-dropdown-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  closeAllExecDropdowns('month');
+  if (isHidden) {
+    renderExecMonthDropdown();
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+function renderExecMonthDropdown() {
+  const menu = document.getElementById('exec-month-dropdown-menu');
+  if (!menu) return;
+
+  const monthsList = [
+    { num: 1, name: 'មករា', en: 'Jan' },
+    { num: 2, name: 'កុម្ភៈ', en: 'Feb' },
+    { num: 3, name: 'មីនា', en: 'Mar' },
+    { num: 4, name: 'មេសា', en: 'Apr' },
+    { num: 5, name: 'ឧសភា', en: 'May' },
+    { num: 6, name: 'មិថុនា', en: 'Jun' },
+    { num: 7, name: 'កក្កដា', en: 'Jul' },
+    { num: 8, name: 'សីហា', en: 'Aug' },
+    { num: 9, name: 'កញ្ញា', en: 'Sep' },
+    { num: 10, name: 'តុលា', en: 'Oct' },
+    { num: 11, name: 'វិច្ឆិកា', en: 'Nov' },
+    { num: 12, name: 'ធ្នូ', en: 'Dec' }
+  ];
+
+  const now = new Date();
+  const currentMonthNum = now.getMonth() + 1;
+  const activeMonthKey = execHierarchyFilterState.selectedMonth || `${execHierarchyFilterState.calYear}-${String(currentMonthNum).padStart(2, '0')}`;
+  const activeYearStr = activeMonthKey.split('-')[0];
+  const activeMonthNum = parseInt(activeMonthKey.split('-')[1], 10);
+
+  const yearHeader = `
+    <div class="flex items-center justify-between pb-2 mb-1.5 border-b border-white/10 px-1">
+      <button type="button" onclick="navigateExecMonthYear(-1, event)" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition" title="ឆ្នាំមុន">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
+      <span class="text-xs font-bold font-mono text-white">ឆ្នាំ ${execHierarchyFilterState.calYear}</span>
+      <button type="button" onclick="navigateExecMonthYear(1, event)" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition" title="ឆ្នាំបន្ទាប់">
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+  `;
+
+  menu.innerHTML = yearHeader + monthsList.map(m => {
+    const isSelected = execHierarchyFilterState.mode === 'month' && m.num === activeMonthNum && String(execHierarchyFilterState.calYear) === activeYearStr;
+    return `
+      <button onclick="selectExecMonth(${m.num}, event)" 
+              class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-white bg-amber-500/20 border border-amber-500/30' : 'text-slate-300 hover:bg-white/10'}">
+        <span>${String(m.num).padStart(2, '0')} ${m.name}</span>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-amber-400"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function navigateExecMonthYear(delta, event) {
+  if (event) event.stopPropagation();
+  execHierarchyFilterState.calYear += delta;
+  renderExecMonthDropdown();
+}
+
+function selectExecMonth(mNum, event) {
+  if (event) event.stopPropagation();
+  closeAllExecDropdowns();
+  const paddedMonth = String(mNum).padStart(2, '0');
+  execHierarchyFilterState.mode = 'month';
+  execHierarchyFilterState.selectedMonth = `${execHierarchyFilterState.calYear}-${paddedMonth}`;
+  renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveHierarchyModalContent();
+  renderCurrentView();
+}
+
+function toggleExecYearDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('exec-year-dropdown-menu');
+  const backdrop = document.getElementById('exec-dropdown-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  closeAllExecDropdowns('year');
+  if (isHidden) {
+    renderExecYearDropdown();
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+function renderExecYearDropdown() {
+  const menu = document.getElementById('exec-year-dropdown-menu');
+  if (!menu) return;
+
+  const currentYear = (new Date()).getFullYear();
+  const years = [2028, 2027, 2026, 2025];
+  const activeYear = execHierarchyFilterState.selectedYear ? parseInt(execHierarchyFilterState.selectedYear, 10) : currentYear;
+
+  menu.innerHTML = years.map(y => {
+    const isSelected = execHierarchyFilterState.mode === 'year' && y === activeYear;
+    return `
+      <button onclick="selectExecYear(${y}, event)" 
+              class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-white bg-amber-500/20 border border-amber-500/30' : 'text-slate-300 hover:bg-white/10'}">
+        <span>ឆ្នាំ ${y}</span>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-amber-400"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function selectExecYear(y, event) {
+  if (event) event.stopPropagation();
+  closeAllExecDropdowns();
+  execHierarchyFilterState.mode = 'year';
+  execHierarchyFilterState.selectedYear = String(y);
+  execHierarchyFilterState.calYear = y;
+  renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveHierarchyModalContent();
+  renderCurrentView();
+}
+
+function setExecPeriodFilter(mode, val, event) {
+  if (event) event.stopPropagation();
+  closeAllExecDropdowns();
+  execHierarchyFilterState.mode = mode;
+  renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveHierarchyModalContent();
+  renderCurrentView();
+}
+
+function toggleExecDirectorExpanded() {
+  execHierarchyFilterState.isDirectorExpanded = !execHierarchyFilterState.isDirectorExpanded;
+  renderExecutiveHierarchyModalContent();
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
+}
+
+function selectExecutiveManager(mgrName) {
+  if (execHierarchyFilterState.selectedManager === mgrName) {
+    execHierarchyFilterState.selectedManager = null;
+  } else {
+    execHierarchyFilterState.selectedManager = mgrName;
+  }
+  renderExecutiveHierarchyModalContent();
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
 
 function openExecutiveHierarchyFromDrawer() {
   const isUnlocked = (sessionStorage.getItem('sd_exec_unlocked') === 'true');
@@ -3095,7 +3441,7 @@ function relockExecutiveHierarchyModal() {
   renderCurrentView();
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
   if (typeof showToastNotification === 'function') {
-    showToastNotification('បានចាក់សោរកាតថ្នាក់ដឹកនាំវិញជោគជ័យ! 🔒');
+    showToastNotification('បានចាក់សោរកាតរចនាសម្ព័ន្ធលក់វិញជោគជ័យ! 🔒');
   }
 }
 
@@ -3107,6 +3453,7 @@ function setupExecutiveHierarchyScroll() {
 
   let lastScrollTop = scrollEl.scrollTop || 0;
   scrollEl.addEventListener('scroll', () => {
+    closeAllExecDropdowns();
     const currentScrollTop = scrollEl.scrollTop;
     const diff = currentScrollTop - lastScrollTop;
 
@@ -3114,10 +3461,12 @@ function setupExecutiveHierarchyScroll() {
       filterBar.style.maxHeight = '0px';
       filterBar.style.opacity = '0';
       filterBar.style.transform = 'translateY(-8px)';
+      filterBar.style.pointerEvents = 'none';
     } else if (diff < -8 || currentScrollTop <= 10) {
       filterBar.style.maxHeight = '80px';
       filterBar.style.opacity = '1';
       filterBar.style.transform = 'translateY(0)';
+      filterBar.style.pointerEvents = 'auto';
     }
     lastScrollTop = currentScrollTop;
   }, { passive: true });
@@ -3126,46 +3475,129 @@ function setupExecutiveHierarchyScroll() {
 function renderExecutiveHierarchyDateFilterBar() {
   const container = document.getElementById('exec-modal-date-filter-bar');
   if (!container) return;
+
   const mode = execHierarchyFilterState.mode || 'all';
+  const now = new Date();
+  const currentIsoDay = getLocalIsoDate(now);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  const currentIsoYear = currentIsoDay.slice(0, 4);
+
+  let dayLabel = 'ថ្ងៃទី';
+  if (mode === 'day') {
+    const selectedDay = execHierarchyFilterState.selectedDate || currentIsoDay;
+    if (selectedDay === currentIsoDay) {
+      dayLabel = 'ថ្ងៃនេះ';
+    } else if (selectedDay === getYesterdayIso()) {
+      dayLabel = 'ម្សិលមិញ';
+    } else {
+      const parts = selectedDay.split('-');
+      dayLabel = `ថ្ងៃទី ${parts[2]}`;
+    }
+  }
+
+  const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  let monthLabel = 'ខែ';
+  if (mode === 'month') {
+    const mKey = execHierarchyFilterState.selectedMonth || currentIsoMonth;
+    const parts = mKey.split('-');
+    const mIndex = parseInt(parts[1], 10) - 1;
+    monthLabel = `ខែ ${khmerMonths[mIndex] || parts[1]}`;
+  }
+
+  let yearLabel = 'ឆ្នាំ';
+  if (mode === 'year') {
+    const yStr = execHierarchyFilterState.selectedYear || currentIsoYear;
+    yearLabel = `ឆ្នាំ ${yStr}`;
+  }
+
+  const activeBtnClasses = 'accent-solid-btn shadow-md text-white';
+  const inactiveBtnClasses = 'text-slate-400 hover:text-white';
 
   container.innerHTML = `
     <div class="flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/5 w-full relative">
-      <button type="button" onclick="selectExecutiveDateFilter('today')" 
-              class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition active:scale-95 ${mode === 'today' ? 'bg-amber-500 text-black font-bold shadow-md' : 'text-slate-400 hover:text-white'}">
-        ☀️ ថ្ងៃនេះ
-      </button>
-      <button type="button" onclick="selectExecutiveDateFilter('yesterday')" 
-              class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition active:scale-95 ${mode === 'yesterday' ? 'bg-amber-500 text-black font-bold shadow-md' : 'text-slate-400 hover:text-white'}">
-        🌙 ម្សិលមិញ
-      </button>
-      <button type="button" onclick="selectExecutiveDateFilter('month')" 
-              class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition active:scale-95 ${mode === 'month' ? 'bg-amber-500 text-black font-bold shadow-md' : 'text-slate-400 hover:text-white'}">
-        📅 ខែនេះ
-      </button>
-      <button type="button" onclick="selectExecutiveDateFilter('all')" 
-              class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition active:scale-95 ${mode === 'all' ? 'bg-amber-500 text-black font-bold shadow-md' : 'text-slate-400 hover:text-white'}">
-        🌟 ទាំងអស់
+      <!-- 1. Day Pill -->
+      <div class="relative flex-1">
+        <button onclick="toggleExecDayDropdown(event)" id="exec-filter-btn-day" 
+                class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn flex items-center justify-center gap-1 ${mode === 'day' ? activeBtnClasses : inactiveBtnClasses}">
+          <span id="exec-day-pill-label">${dayLabel}</span>
+          <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
+        </button>
+
+        <div id="exec-day-dropdown-menu" 
+             class="hidden absolute top-full left-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-[#0C1425]/98 backdrop-blur-3xl border border-white/20 rounded-3xl shadow-2xl p-3.5 z-50 flex flex-col gap-2.5 font-sans ring-1 ring-white/10 animate-fade-in">
+        </div>
+      </div>
+
+      <!-- 2. Month Pill -->
+      <div class="relative flex-1">
+        <button onclick="toggleExecMonthDropdown(event)" id="exec-filter-btn-month" 
+                class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn flex items-center justify-center gap-1 ${mode === 'month' ? activeBtnClasses : inactiveBtnClasses}">
+          <span id="exec-month-pill-label">${monthLabel}</span>
+          <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
+        </button>
+
+        <div id="exec-month-dropdown-menu" 
+             class="hidden absolute top-full left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-48 bg-[#0C1425]/98 backdrop-blur-3xl border border-white/20 rounded-2xl shadow-2xl p-1.5 z-50 flex flex-col gap-0.5 font-sans ring-1 ring-white/10 animate-fade-in">
+        </div>
+      </div>
+
+      <!-- 3. Year Pill -->
+      <div class="relative flex-1">
+        <button onclick="toggleExecYearDropdown(event)" id="exec-filter-btn-year" 
+                class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn flex items-center justify-center gap-1 ${mode === 'year' ? activeBtnClasses : inactiveBtnClasses}">
+          <span id="exec-year-pill-label">${yearLabel}</span>
+          <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
+        </button>
+
+        <div id="exec-year-dropdown-menu" 
+             class="hidden absolute top-full right-0 mt-2 w-36 bg-[#0C1425]/98 backdrop-blur-3xl border border-white/20 rounded-2xl shadow-2xl p-1.5 z-50 flex flex-col gap-0.5 font-sans ring-1 ring-white/10 animate-fade-in">
+        </div>
+      </div>
+
+      <!-- 4. All Period Pill -->
+      <button onclick="setExecPeriodFilter('all', null, event)" id="exec-filter-btn-all" 
+              class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn flex items-center justify-center gap-0.5 ${mode === 'all' ? activeBtnClasses : inactiveBtnClasses}">
+        <span>ទាំងអស់</span>
+        <i data-lucide="layers" class="w-3 h-3 opacity-80"></i>
       </button>
     </div>
   `;
+
+  if (window.lucide) window.lucide.createIcons();
 }
 
-function selectExecutiveDateFilter(mode) {
-  execHierarchyFilterState.mode = mode;
-  renderExecutiveHierarchyDateFilterBar();
-  renderExecutiveHierarchyModalContent();
-  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
-}
+function getExecFilteredStats(d) {
+  const mode = execHierarchyFilterState.mode || 'all';
+  if (mode === 'all') return null;
 
-function selectExecutiveManagerFilter(mgrName) {
-  execHierarchyFilterState.selectedManager = mgrName;
-  renderExecutiveHierarchyModalContent();
-  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
-}
+  const allOrders = (d && Array.isArray(d.bostarTrackSales)) ? d.bostarTrackSales : [];
+  const now = new Date();
+  const currentIsoDay = getLocalIsoDate(now);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  const currentIsoYear = currentIsoDay.slice(0, 4);
 
-function handleExecutiveMemberSearch(query) {
-  execHierarchyFilterState.searchQuery = (query || '').trim().toLowerCase();
-  renderExecutiveHierarchyModalContent();
+  let filtered = allOrders;
+  if (mode === 'day') {
+    const targetDay = execHierarchyFilterState.selectedDate || currentIsoDay;
+    filtered = allOrders.filter(o => o.isoDate === targetDay);
+  } else if (mode === 'month') {
+    const targetMonth = execHierarchyFilterState.selectedMonth || currentIsoMonth;
+    filtered = allOrders.filter(o => o.isoDate && o.isoDate.startsWith(targetMonth));
+  } else if (mode === 'year') {
+    const targetYear = execHierarchyFilterState.selectedYear || currentIsoYear;
+    filtered = allOrders.filter(o => o.isoDate && o.isoDate.startsWith(targetYear));
+  }
+
+  const statsMap = {};
+  filtered.forEach(o => {
+    const sName = (o.seller || '').trim();
+    if (!sName) return;
+    if (!statsMap[sName]) statsMap[sName] = { boxes: 0, orders: 0 };
+    const b = Number(o.totalBoxQty || o.boxes || 0);
+    statsMap[sName].boxes += b;
+    statsMap[sName].orders += 1;
+  });
+  return statsMap;
 }
 
 function renderExecutiveHierarchyModalContent() {
@@ -3185,194 +3617,325 @@ function renderExecutiveHierarchyModalContent() {
   ];
 
   const rawManagers = (hierarchy && Array.isArray(hierarchy.managers) && hierarchy.managers.length > 0) ? hierarchy.managers : fallbackManagers;
-  const sortedManagers = [...rawManagers].sort((a, b) => (Number(b.boxes) || 0) - (Number(a.boxes) || 0));
-  const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].boxes || 1) : 1;
-
-  const director = (hierarchy && hierarchy.directors && hierarchy.directors.length > 0) ? hierarchy.directors[0] : { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', orders: 29, boxes: 67 };
+  const directorRaw = (hierarchy && hierarchy.directors && hierarchy.directors.length > 0) ? hierarchy.directors[0] : { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', orders: 29, boxes: 67 };
   const allLeaders = (hierarchy && Array.isArray(hierarchy.leaders)) ? hierarchy.leaders : [];
   const allMembers = (hierarchy && Array.isArray(hierarchy.members)) ? hierarchy.members : [];
 
-  const selectedMgr = execHierarchyFilterState.selectedManager || 'all';
-  const query = execHierarchyFilterState.searchQuery || '';
+  const statsMap = getExecFilteredStats(d);
 
-  let filteredMembers = allMembers;
-  if (selectedMgr !== 'all') {
-    const m_clean = selectedMgr.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
-    const targetLeaders = allLeaders.filter(l => l.manager === selectedMgr || (m_clean && l.manager.includes(m_clean)));
-    const l_names = new Set(targetLeaders.map(l => l.km));
-    l_names.add(selectedMgr);
+  // Compute calculated boxes & orders for each person
+  let directorBoxes = Number(directorRaw.boxes) || 67;
+  let directorOrders = Number(directorRaw.orders) || 29;
+
+  if (statsMap !== null) {
+    directorBoxes = Object.values(statsMap).reduce((acc, s) => acc + s.boxes, 0);
+    directorOrders = Object.values(statsMap).reduce((acc, s) => acc + s.orders, 0);
+  }
+
+  const enrichedManagers = rawManagers.map(m => {
+    const m_clean = m.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+    const teamLeaders = allLeaders.filter(l => l.manager === m.km || (m_clean && l.manager.includes(m_clean)));
+    const l_names = new Set(teamLeaders.map(l => l.km));
+    l_names.add(m.km);
     const l_clean_names = Array.from(l_names).map(l => l.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim());
-    filteredMembers = allMembers.filter(mem => l_names.has(mem.leader) || l_clean_names.some(c => c && mem.leader.includes(c)));
-  }
-  if (query) {
-    filteredMembers = filteredMembers.filter(mem => 
-      mem.km.toLowerCase().includes(query) || 
-      (mem.en && mem.en.toLowerCase().includes(query)) ||
-      (mem.leader && mem.leader.toLowerCase().includes(query))
-    );
-  }
+    const teamMembers = allMembers.filter(mem => l_names.has(mem.leader) || l_clean_names.some(c => c && mem.leader.includes(c)));
 
-  const managersCardsHtml = sortedManagers.map((m, idx) => {
-    const rank = idx + 1;
-    let rankBadge = '';
-    let borderAccent = 'border-white/5 hover:border-white/15';
-    if (rank === 1) {
-      rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20">🥇</span>`;
-      borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
-    } else if (rank === 2) {
-      rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300/20 border border-slate-300/40 text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">🥈</span>`;
-      borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
-    } else if (rank === 3) {
-      rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700/20 border border-amber-700/40 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">🥉</span>`;
-      borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
-    } else {
-      rankBadge = `<span class="w-6 h-6 rounded-full bg-white/5 border border-white/10 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">#${rank}</span>`;
+    let displayBoxes = Number(m.boxes) || 0;
+    let displayOrders = Number(m.orders) || 0;
+
+    if (statsMap !== null) {
+      let bSum = 0;
+      let oSum = 0;
+      teamMembers.forEach(mem => {
+        const memStat = getSellerAggregatedStats(mem, statsMap);
+        bSum += memStat.boxes;
+        oSum += memStat.orders;
+      });
+      teamLeaders.forEach(tl => {
+        const tlStat = getSellerAggregatedStats(tl, statsMap);
+        bSum += tlStat.boxes;
+        oSum += tlStat.orders;
+      });
+      const mgrStat = getSellerAggregatedStats(m, statsMap);
+      bSum += mgrStat.boxes;
+      oSum += mgrStat.orders;
+      displayBoxes = bSum;
+      displayOrders = oSum;
     }
 
-    const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
-    const percentOfTop = Math.min(100, Math.round(((Number(m.boxes) || 0) / topBoxes) * 100));
-    const isSelected = (selectedMgr === m.km);
+    return {
+      ...m,
+      displayBoxes,
+      displayOrders,
+      teamLeaders,
+      teamMembers
+    };
+  });
 
-    return `
-      <div onclick="selectExecutiveManagerFilter('${m.km}')" 
-           class="p-3 rounded-2xl bg-black/40 border ${isSelected ? 'border-amber-400 shadow-lg shadow-amber-500/10' : borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2">
-        <div class="flex items-center justify-between gap-2.5">
-          <div class="flex items-center gap-2.5 min-w-0">
-            ${rankBadge}
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-bold text-xs text-white leading-tight">${m.km}</span>
-                ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
-              </div>
-              <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                <span class="truncate max-w-[130px] sm:max-w-none">${m.dept || 'ដឹកនាំក្រុមលក់'}</span>
-                <span>•</span>
-                <span>${m.members} សមាជិក</span>
-              </div>
-            </div>
-          </div>
+  const sortedManagers = [...enrichedManagers].sort((a, b) => b.displayBoxes - a.displayBoxes);
+  const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].displayBoxes || 1) : 1;
 
-          <div class="text-right shrink-0">
-            <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
-              ${m.boxes} ប្រអប់
-            </div>
-            <div class="text-[10px] font-mono text-slate-400">
-              ${m.orders} កុម្ម៉ង់
-            </div>
-          </div>
-        </div>
+  const isDirectorExpanded = execHierarchyFilterState.isDirectorExpanded !== false;
+  const selectedMgrName = execHierarchyFilterState.selectedManager;
+  const selectedM = selectedMgrName ? sortedManagers.find(m => m.km === selectedMgrName) : null;
 
-        <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-          <div class="h-1 ${rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400'}" style="width: ${percentOfTop}%"></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  container.innerHTML = `
-    <!-- 1. TOP TIER: DIRECTOR SHOWCASE -->
-    <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-black/40 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3">
+  // 1. DIRECTOR SHOWCASE CARD
+  const directorHtml = `
+    <div onclick="toggleExecDirectorExpanded()" 
+         class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0C1425]/90 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-black flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/30 shrink-0">
           <i data-lucide="award" class="w-6 h-6"></i>
         </div>
         <div class="min-w-0">
           <div class="flex items-center gap-1.5">
-            <h4 class="font-bold text-sm text-white truncate">${director ? director.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
+            <h4 class="font-bold text-sm text-white truncate">${directorRaw ? directorRaw.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
             <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30 shrink-0">Director</span>
           </div>
-          <p class="text-[10px] text-slate-400 mt-0.5 truncate">${director ? director.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
+          <p class="text-[10px] text-slate-400 mt-0.5 truncate">${directorRaw ? directorRaw.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
+          <span class="text-[9px] text-amber-400/80 font-medium">ចុចលើនេះដើម្បី ${isDirectorExpanded ? 'បង្រួម (លាក់)' : 'ពង្រីក (បង្ហាញ)'} Managers</span>
         </div>
       </div>
 
-      <div class="text-right shrink-0">
-        <div class="text-xs font-mono font-bold text-amber-300">${director ? director.boxes : 67} ប្រអប់</div>
-        <div class="text-[10px] font-mono text-slate-400">${director ? director.orders : 29} កុម្ម៉ង់សរុប</div>
+      <div class="flex items-center gap-2.5 shrink-0">
+        <div class="text-right">
+          <div class="text-xs font-mono font-bold text-amber-300">${directorBoxes} ប្រអប់</div>
+          <div class="text-[10px] font-mono text-slate-400">${directorOrders} កុម្ម៉ង់</div>
+        </div>
+        <div class="w-7 h-7 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 transition-transform duration-200 ${isDirectorExpanded ? 'rotate-180 text-amber-400' : ''}">
+          <i data-lucide="chevron-down" class="w-4 h-4"></i>
+        </div>
       </div>
     </div>
+  `;
 
-    <!-- 2. MIDDLE TIER: MANAGERS LEADERBOARD -->
-    <div class="space-y-2">
-      <div class="flex items-center justify-between px-1">
-        <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
-          <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
-          <span>តារាងចំណាត់ថ្នាក់ MANAGERS (៦ ក្រុម)</span>
-        </span>
-        <span class="text-[10px] text-slate-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម</span>
+  // 2. MANAGERS & DRILL-DOWN LOGIC
+  let bodyContentHtml = '';
+
+  if (!isDirectorExpanded) {
+    bodyContentHtml = `
+      <div onclick="toggleExecDirectorExpanded()" 
+           class="p-4 text-center text-xs text-amber-300/80 bg-black/30 rounded-2xl border border-white/5 cursor-pointer active:scale-95 transition flex items-center justify-center gap-2 hover:bg-white/[0.04]">
+        <span>👆 ចុចលើ Director ខាងលើដើម្បីបង្ហាញ Managers</span>
+        <i data-lucide="chevron-down" class="w-4 h-4"></i>
       </div>
+    `;
+  } else if (!selectedM) {
+    // Show all 6 Managers
+    const managersListHtml = sortedManagers.map((m, idx) => {
+      const rank = idx + 1;
+      let rankBadge = '';
+      let borderAccent = 'border-white/5 hover:border-amber-400/30';
+      if (rank === 1) {
+        rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20">🥇</span>`;
+        borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
+      } else if (rank === 2) {
+        rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300/20 border border-slate-300/40 text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">🥈</span>`;
+        borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
+      } else if (rank === 3) {
+        rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700/20 border border-amber-700/40 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">🥉</span>`;
+        borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
+      } else {
+        rankBadge = `<span class="w-6 h-6 rounded-full bg-white/5 border border-white/10 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">#${rank}</span>`;
+      }
 
-      <div class="space-y-2">
-        ${managersCardsHtml}
-      </div>
-    </div>
+      const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
+      const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
 
-    <!-- 3. BOTTOM TIER: MEMBERS & LEADERS ROSTER (របារសមាជិក) -->
-    <div class="space-y-2.5 pt-1">
-      <div class="flex items-center justify-between px-1">
-        <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider">
-          <i data-lucide="users" class="w-3.5 h-3.5"></i>
-          <span>របារសមាជិក (${filteredMembers.length} នាក់)</span>
-        </span>
-        ${selectedMgr !== 'all' ? `
-          <button type="button" onclick="selectExecutiveManagerFilter('all')" 
-                  class="text-[10px] text-amber-300 hover:underline">
-            បង្ហាញទាំងអស់ ✕
-          </button>
-        ` : ''}
-      </div>
-
-      <!-- Manager Filter Pills Strip -->
-      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-        <button type="button" onclick="selectExecutiveManagerFilter('all')" 
-                class="px-2.5 py-1 rounded-xl text-[11px] font-semibold whitespace-nowrap transition active:scale-95 ${selectedMgr === 'all' ? 'bg-amber-500 text-black font-bold shadow-sm' : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10'}">
-          ទាំងអស់ (${allMembers.length})
-        </button>
-        ${sortedManagers.map(m => `
-          <button type="button" onclick="selectExecutiveManagerFilter('${m.km}')" 
-                  class="px-2.5 py-1 rounded-xl text-[11px] font-semibold whitespace-nowrap transition active:scale-95 ${selectedMgr === m.km ? 'bg-amber-500 text-black font-bold shadow-sm' : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10'}">
-            ${m.km.replace('លោក ', '')} (${m.boxes} ប)
-          </button>
-        `).join('')}
-      </div>
-
-      <!-- Member Search Input -->
-      <div class="relative">
-        <input type="text" value="${query}" oninput="handleExecutiveMemberSearch(this.value)"
-               placeholder="ស្វែងរកឈ្មោះសមាជិក (ខ្មែរ / English / Leader)..." 
-               class="w-full bg-black/50 border border-white/10 focus:border-amber-400 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none transition font-sans">
-        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-      </div>
-
-      <!-- Member List Cards -->
-      <div class="space-y-1.5">
-        ${filteredMembers.length > 0 ? filteredMembers.map(mem => `
-          <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+      return `
+        <div onclick="selectExecutiveManager('${m.km}')" 
+             class="p-3.5 rounded-2xl bg-black/40 border ${borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2.5 hover:bg-white/[0.03] group shadow-sm">
+          <div class="flex items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
+              ${rankBadge}
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-bold text-xs text-white truncate">${mem.km}</span>
-                  <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
+                  <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
+                  ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                  <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                 </div>
-                <div class="text-[10px] text-slate-400 mt-0.5">
-                  Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                  <span class="truncate max-w-[130px] sm:max-w-none">${m.dept || 'ដឹកនាំក្រុមលក់'}</span>
+                  <span>•</span>
+                  <span>${m.teamMembers.length || m.members} សមាជិក</span>
                 </div>
               </div>
             </div>
 
-            <div class="text-right shrink-0 font-mono">
-              <div class="text-xs font-bold text-emerald-400">${mem.boxes} ប្រអប់</div>
-              <div class="text-[10px] text-slate-400">${mem.orders} កុម្ម៉ង់</div>
+            <div class="flex items-center gap-2 shrink-0">
+              <div class="text-right">
+                <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
+                  ${m.displayBoxes} ប្រអប់
+                </div>
+                <div class="text-[10px] font-mono text-slate-400">
+                  ${m.displayOrders} កុម្ម៉ង់
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all"></i>
             </div>
           </div>
-        `).join('') : `
-          <div class="p-6 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
-            រកមិនឃើញសមាជិកដែលត្រូវនឹងការស្វែងរកឡើយ
+
+          <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+            <div class="h-1 ${rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400'}" style="width: ${percentOfTop}%"></div>
           </div>
-        `}
+        </div>
+      `;
+    }).join('');
+
+    bodyContentHtml = `
+      <div class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
+            <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>តារាង MANAGERS (៦ ក្រុម)</span>
+          </span>
+          <span class="text-[10px] text-amber-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម ❯</span>
+        </div>
+
+        <div class="space-y-2">
+          ${managersListHtml}
+        </div>
       </div>
-    </div>
+    `;
+  } else {
+    // DRILL-DOWN INTO SELECTED MANAGER (Hide other managers!)
+    const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
+    const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
+
+    let rankBadge = `<span class="w-6 h-6 rounded-full bg-white/5 border border-white/10 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">#${origRank}</span>`;
+    if (origRank === 1) rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">🥇</span>`;
+    if (origRank === 2) rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300/20 border border-slate-300/40 text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">🥈</span>`;
+    if (origRank === 3) rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700/20 border border-amber-700/40 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">🥉</span>`;
+
+    // Process leaders and members stats for this manager
+    const processedLeaders = (selectedM.teamLeaders || []).map(tl => {
+      let b = Number(tl.boxes) || 0;
+      let o = Number(tl.orders) || 0;
+      if (statsMap !== null) {
+        const s = getSellerAggregatedStats(tl, statsMap);
+        b = s.boxes;
+        o = s.orders;
+      }
+      return { ...tl, displayBoxes: b, displayOrders: o };
+    });
+
+    const processedMembers = (selectedM.teamMembers || []).map(mem => {
+      let b = Number(mem.boxes) || 0;
+      let o = Number(mem.orders) || 0;
+      if (statsMap !== null) {
+        const s = getSellerAggregatedStats(mem, statsMap);
+        b = s.boxes;
+        o = s.orders;
+      }
+      return { ...mem, displayBoxes: b, displayOrders: o };
+    });
+
+    bodyContentHtml = `
+      <div class="space-y-3.5">
+        <!-- Back Button Bar to return to all managers -->
+        <div class="flex items-center justify-between gap-2 p-1">
+          <button type="button" onclick="selectExecutiveManager(null)" 
+                  class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-semibold text-xs flex items-center gap-1.5 active:scale-95 transition shadow-sm">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>ថយក្រោយ (បង្ហាញ Managers ទាំងអស់)</span>
+          </button>
+          <span class="text-[11px] font-bold text-amber-300 font-mono">ក្រុម ${selectedM.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '')}</span>
+        </div>
+
+        <!-- Selected Manager Highlight Card -->
+        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/40 shadow-lg shadow-amber-500/10 space-y-2">
+          <div class="flex items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
+              ${rankBadge}
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-bold text-sm text-white">${selectedM.km}</span>
+                  ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                  <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                  <span>${selectedM.dept || 'ដឹកនាំក្រុមលក់'}</span>
+                  <span>•</span>
+                  <span class="text-amber-300 font-semibold">${processedMembers.length} សមាជិក</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-right shrink-0">
+              <div class="font-mono text-sm font-bold text-amber-300">${selectedM.displayBoxes} ប្រអប់</div>
+              <div class="text-[10px] font-mono text-slate-400">${selectedM.displayOrders} កុម្ម៉ង់</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaders Section -->
+        ${processedLeaders.length > 0 ? `
+          <div class="space-y-1.5">
+            <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
+              <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+              <span>Leader ក្នុងក្រុម (${processedLeaders.length} រូប)</span>
+            </span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              ${processedLeaders.map(tl => `
+                <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
+                  <div>
+                    <span class="font-bold text-slate-200 block">${tl.km}</span>
+                    <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
+                  </div>
+                  <div class="text-right font-mono">
+                    <span class="text-sky-300 font-bold text-xs">${tl.displayBoxes} ប្រអប់</span>
+                    <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Members Section -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider">
+              <i data-lucide="users" class="w-3.5 h-3.5"></i>
+              <span>សមាជិកលក់ក្នុងក្រុម (${processedMembers.length} នាក់)</span>
+            </span>
+          </div>
+
+          <div class="space-y-1.5">
+            ${processedMembers.length > 0 ? processedMembers.map(mem => `
+              <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                      <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-0.5">
+                      Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="text-right shrink-0 font-mono">
+                  <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
+                  <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                </div>
+              </div>
+            `).join('') : `
+              <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
+                មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    ${directorHtml}
+    ${bodyContentHtml}
   `;
 
   if (window.lucide) window.lucide.createIcons();
@@ -3388,9 +3951,22 @@ window.openExecutiveHierarchyFromDrawer = openExecutiveHierarchyFromDrawer;
 window.openExecutiveHierarchyModal = openExecutiveHierarchyModal;
 window.closeExecutiveHierarchyModal = closeExecutiveHierarchyModal;
 window.relockExecutiveHierarchyModal = relockExecutiveHierarchyModal;
-window.selectExecutiveDateFilter = selectExecutiveDateFilter;
-window.selectExecutiveManagerFilter = selectExecutiveManagerFilter;
-window.handleExecutiveMemberSearch = handleExecutiveMemberSearch;
+window.closeAllExecDropdowns = closeAllExecDropdowns;
+window.toggleExecDayDropdown = toggleExecDayDropdown;
+window.renderExecMiniCalendar = renderExecMiniCalendar;
+window.navigateExecCalendarMonth = navigateExecCalendarMonth;
+window.selectExecCalendarDay = selectExecCalendarDay;
+window.selectExecQuickDay = selectExecQuickDay;
+window.toggleExecMonthDropdown = toggleExecMonthDropdown;
+window.renderExecMonthDropdown = renderExecMonthDropdown;
+window.navigateExecMonthYear = navigateExecMonthYear;
+window.selectExecMonth = selectExecMonth;
+window.toggleExecYearDropdown = toggleExecYearDropdown;
+window.renderExecYearDropdown = renderExecYearDropdown;
+window.selectExecYear = selectExecYear;
+window.setExecPeriodFilter = setExecPeriodFilter;
+window.toggleExecDirectorExpanded = toggleExecDirectorExpanded;
+window.selectExecutiveManager = selectExecutiveManager;
 
 // ==========================================
 // 4. View: Dashboard
@@ -3862,7 +4438,7 @@ function getDashboardViewHTML() {
             </div>
             <div>
               <div class="flex items-center gap-1.5">
-                <h3 class="font-bold text-xs uppercase text-white tracking-wide">រចនាសម្ព័ន្ធលក់ & ថ្នាក់ដឹកនាំ</h3>
+                <h3 class="font-bold text-xs uppercase text-white tracking-wide">រចនាសម្ព័ន្ធលក់</h3>
                 <span class="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[9px] font-bold text-amber-300">VIP</span>
               </div>
               <p class="text-[10px] text-slate-400 font-mono mt-0.5">BOSTAR GROUP • Executive Only</p>
@@ -3906,33 +4482,21 @@ function getDashboardViewHTML() {
     ];
 
     const rawManagers = (hierarchy && Array.isArray(hierarchy.managers) && hierarchy.managers.length > 0) ? hierarchy.managers : fallbackManagers;
-    const sortedManagers = [...rawManagers].sort((a, b) => (Number(b.boxes) || 0) - (Number(a.boxes) || 0));
-    const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].boxes || 1) : 1;
-
-    const director = (hierarchy && hierarchy.directors && hierarchy.directors.length > 0) ? hierarchy.directors[0] : { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', orders: 29, boxes: 67 };
+    const directorRaw = (hierarchy && hierarchy.directors && hierarchy.directors.length > 0) ? hierarchy.directors[0] : { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', orders: 29, boxes: 67 };
     const allLeaders = (hierarchy && Array.isArray(hierarchy.leaders)) ? hierarchy.leaders : [];
     const allMembers = (hierarchy && Array.isArray(hierarchy.members)) ? hierarchy.members : [];
 
-    const managersHtml = sortedManagers.map((m, idx) => {
-      const rank = idx + 1;
-      let rankBadge = '';
-      let borderAccent = 'border-white/5 hover:border-white/15';
-      if (rank === 1) {
-        rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20">🥇</span>`;
-        borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
-      } else if (rank === 2) {
-        rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300/20 border border-slate-300/40 text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">🥈</span>`;
-        borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
-      } else if (rank === 3) {
-        rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700/20 border border-amber-700/40 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">🥉</span>`;
-        borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
-      } else {
-        rankBadge = `<span class="w-6 h-6 rounded-full bg-white/5 border border-white/10 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">#${rank}</span>`;
-      }
+    const statsMap = getExecFilteredStats(d);
 
-      const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
-      const percentOfTop = Math.min(100, Math.round(((Number(m.boxes) || 0) / topBoxes) * 100));
+    let directorBoxes = Number(directorRaw.boxes) || 67;
+    let directorOrders = Number(directorRaw.orders) || 29;
 
+    if (statsMap !== null) {
+      directorBoxes = Object.values(statsMap).reduce((acc, s) => acc + s.boxes, 0);
+      directorOrders = Object.values(statsMap).reduce((acc, s) => acc + s.orders, 0);
+    }
+
+    const enrichedManagers = rawManagers.map(m => {
       const m_clean = m.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
       const teamLeaders = allLeaders.filter(l => l.manager === m.km || (m_clean && l.manager.includes(m_clean)));
       const l_names = new Set(teamLeaders.map(l => l.km));
@@ -3940,96 +4504,258 @@ function getDashboardViewHTML() {
       const l_clean_names = Array.from(l_names).map(l => l.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim());
       const teamMembers = allMembers.filter(mem => l_names.has(mem.leader) || l_clean_names.some(c => c && mem.leader.includes(c)));
 
-      return `
-        <div class="rounded-2xl bg-black/40 border ${borderAccent} overflow-hidden transition">
-          <div class="p-3 cursor-pointer flex items-center justify-between gap-2.5 active:scale-[0.99] transition select-none"
-               onclick="toggleManagerRoster(${idx}, event)">
-            <div class="flex items-center gap-2.5 min-w-0">
-              ${rankBadge}
-              <div class="min-w-0">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-bold text-xs text-white leading-tight">${m.km}</span>
-                  ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                  <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
+      let displayBoxes = Number(m.boxes) || 0;
+      let displayOrders = Number(m.orders) || 0;
+
+      if (statsMap !== null) {
+        let bSum = 0;
+        let oSum = 0;
+        teamMembers.forEach(mem => {
+          const memStat = getSellerAggregatedStats(mem, statsMap);
+          bSum += memStat.boxes;
+          oSum += memStat.orders;
+        });
+        teamLeaders.forEach(tl => {
+          const tlStat = getSellerAggregatedStats(tl, statsMap);
+          bSum += tlStat.boxes;
+          oSum += tlStat.orders;
+        });
+        const mgrStat = getSellerAggregatedStats(m, statsMap);
+        bSum += mgrStat.boxes;
+        oSum += mgrStat.orders;
+        displayBoxes = bSum;
+        displayOrders = oSum;
+      }
+
+      return {
+        ...m,
+        displayBoxes,
+        displayOrders,
+        teamLeaders,
+        teamMembers
+      };
+    });
+
+    const sortedManagers = [...enrichedManagers].sort((a, b) => b.displayBoxes - a.displayBoxes);
+    const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].displayBoxes || 1) : 1;
+
+    const isDirectorExpanded = execHierarchyFilterState.isDirectorExpanded !== false;
+    const selectedMgrName = execHierarchyFilterState.selectedManager;
+    const selectedM = selectedMgrName ? sortedManagers.find(m => m.km === selectedMgrName) : null;
+
+    let homeHierarchyBodyHtml = '';
+
+    if (!isDirectorExpanded) {
+      homeHierarchyBodyHtml = `
+        <div onclick="toggleExecDirectorExpanded()" 
+             class="p-4 text-center text-xs text-amber-300/80 bg-black/30 rounded-2xl border border-white/5 cursor-pointer active:scale-95 transition flex items-center justify-center gap-2 hover:bg-white/[0.04]">
+          <span>👆 ចុចលើ Director ខាងលើដើម្បីបង្ហាញ Managers</span>
+          <i data-lucide="chevron-down" class="w-4 h-4"></i>
+        </div>
+      `;
+    } else if (!selectedM) {
+      const managersCardsHtml = sortedManagers.map((m, idx) => {
+        const rank = idx + 1;
+        let rankBadge = '';
+        let borderAccent = 'border-white/5 hover:border-amber-400/30';
+        if (rank === 1) {
+          rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20">🥇</span>`;
+          borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
+        } else if (rank === 2) {
+          rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300/20 border border-slate-300/40 text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">🥈</span>`;
+          borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
+        } else if (rank === 3) {
+          rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700/20 border border-amber-700/40 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">🥉</span>`;
+          borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
+        } else {
+          rankBadge = `<span class="w-6 h-6 rounded-full bg-white/5 border border-white/10 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">#${rank}</span>`;
+        }
+
+        const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
+        const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
+
+        return `
+          <div onclick="selectExecutiveManager('${m.km}')" 
+               class="p-3 rounded-2xl bg-black/40 border ${borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2 hover:bg-white/[0.03] group">
+            <div class="flex items-center justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                ${rankBadge}
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
+                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                    <span class="truncate max-w-[130px] sm:max-w-none">${m.dept || 'ដឹកនាំក្រុមលក់'}</span>
+                    <span>•</span>
+                    <span>${m.teamMembers.length || m.members} សមាជិក</span>
+                  </div>
                 </div>
-                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                  <span class="truncate max-w-[130px] sm:max-w-none">${m.dept || 'ដឹកនាំក្រុមលក់'}</span>
-                  <span>•</span>
-                  <span>${teamMembers.length || m.members} សមាជិក</span>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <div class="text-right">
+                  <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
+                    ${m.displayBoxes} ប្រអប់
+                  </div>
+                  <div class="text-[10px] font-mono text-slate-400">
+                    ${m.displayOrders} កុម្ម៉ង់
+                  </div>
                 </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all"></i>
               </div>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
-              <div class="text-right">
-                <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
-                  ${m.boxes} ប្រអប់
-                </div>
-                <div class="text-[10px] font-mono text-slate-400">
-                  ${m.orders} កុម្ម៉ង់
+            <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+              <div class="h-1 ${rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400'}" style="width: ${percentOfTop}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      homeHierarchyBodyHtml = `
+        <div class="space-y-2 relative z-10">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
+              <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>តារាង MANAGERS (៦ ក្រុម)</span>
+            </span>
+            <span class="text-[10px] text-amber-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម ❯</span>
+          </div>
+
+          <div class="space-y-2">
+            ${managersCardsHtml}
+          </div>
+        </div>
+      `;
+    } else {
+      // Home Screen Drill-down into Selected Manager
+      const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
+      const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
+      let rankBadge = `<span class="w-6 h-6 rounded-full bg-white/5 border border-white/10 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">#${origRank}</span>`;
+      if (origRank === 1) rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">🥇</span>`;
+      if (origRank === 2) rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300/20 border border-slate-300/40 text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">🥈</span>`;
+      if (origRank === 3) rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700/20 border border-amber-700/40 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">🥉</span>`;
+
+      const processedLeaders = (selectedM.teamLeaders || []).map(tl => {
+        let b = Number(tl.boxes) || 0;
+        let o = Number(tl.orders) || 0;
+        if (statsMap !== null) {
+          const s = getSellerAggregatedStats(tl, statsMap);
+          b = s.boxes;
+          o = s.orders;
+        }
+        return { ...tl, displayBoxes: b, displayOrders: o };
+      });
+
+      const processedMembers = (selectedM.teamMembers || []).map(mem => {
+        let b = Number(mem.boxes) || 0;
+        let o = Number(mem.orders) || 0;
+        if (statsMap !== null) {
+          const s = getSellerAggregatedStats(mem, statsMap);
+          b = s.boxes;
+          o = s.orders;
+        }
+        return { ...mem, displayBoxes: b, displayOrders: o };
+      });
+
+      homeHierarchyBodyHtml = `
+        <div class="space-y-3 relative z-10">
+          <div class="flex items-center justify-between gap-2 p-1">
+            <button type="button" onclick="selectExecutiveManager(null)" 
+                    class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-semibold text-xs flex items-center gap-1.5 active:scale-95 transition">
+              <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>ថយក្រោយ (បង្ហាញ Managers ទាំងអស់)</span>
+            </button>
+            <span class="text-[11px] font-bold text-amber-300 font-mono">ក្រុម ${selectedM.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '')}</span>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/40 space-y-2">
+            <div class="flex items-center justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                ${rankBadge}
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-sm text-white">${selectedM.km}</span>
+                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                    <span>${selectedM.dept || 'ដឹកនាំក្រុមលក់'}</span>
+                    <span>•</span>
+                    <span class="text-amber-300 font-semibold">${processedMembers.length} សមាជិក</span>
+                  </div>
                 </div>
               </div>
-              <i id="mgr-chev-${idx}" data-lucide="chevron-down" class="w-4 h-4 text-slate-500 transition-transform duration-200"></i>
+
+              <div class="text-right shrink-0">
+                <div class="font-mono text-sm font-bold text-amber-300">${selectedM.displayBoxes} ប្រអប់</div>
+                <div class="text-[10px] font-mono text-slate-400">${selectedM.displayOrders} កុម្ម៉ង់</div>
+              </div>
             </div>
           </div>
 
-          <div class="w-full bg-white/5 h-1">
-            <div class="h-1 ${rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400'}" style="width: ${percentOfTop}%"></div>
-          </div>
-
-          <div id="mgr-roster-${idx}" class="hidden p-3 bg-black/50 border-t border-white/5 space-y-2.5">
-            ${teamLeaders.length > 0 ? `
-              <div class="space-y-1">
-                <span class="text-[10px] font-bold text-sky-400 uppercase tracking-wide flex items-center gap-1">
-                  <i data-lucide="user-check" class="w-3 h-3"></i>
-                  <span>Leader ក្នុងក្រុម (${teamLeaders.length} រូប)៖</span>
-                </span>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  ${teamLeaders.map(tl => `
-                    <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-[11px]">
-                      <div>
-                        <span class="font-bold text-slate-200">${tl.km}</span>
-                        <span class="text-[9px] text-slate-400 block">${tl.role || 'Leader'}</span>
-                      </div>
-                      <div class="text-right font-mono text-[10px]">
-                        <span class="text-sky-300 font-bold">${tl.boxes} ប្រអប់</span>
-                        <span class="text-slate-400 block">${tl.orders} កុម្ម៉ង់</span>
-                      </div>
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            ` : ''}
-
-            <div class="space-y-1">
-              <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wide flex items-center gap-1">
-                <i data-lucide="users" class="w-3 h-3"></i>
-                <span>សមាជិកលក់ (${teamMembers.length} នាក់)៖</span>
+          ${processedLeaders.length > 0 ? `
+            <div class="space-y-1.5">
+              <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
+                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+                <span>Leader ក្នុងក្រុម (${processedLeaders.length} រូប)</span>
               </span>
-              ${teamMembers.length > 0 ? `
-                <div class="space-y-1 max-h-48 overflow-y-auto no-scrollbar pr-1">
-                  ${teamMembers.map(mem => `
-                    <div class="p-1.5 px-2.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 flex items-center justify-between text-[11px] transition">
-                      <div class="flex items-center gap-1.5 min-w-0">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
-                        <span class="font-semibold text-slate-200 truncate">${mem.km}</span>
-                        <span class="text-[9px] text-slate-500 font-mono shrink-0">(${mem.leader})</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                ${processedLeaders.map(tl => `
+                  <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
+                    <div>
+                      <span class="font-bold text-slate-200 block">${tl.km}</span>
+                      <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
+                    </div>
+                    <div class="text-right font-mono">
+                      <span class="text-sky-300 font-bold text-xs">${tl.displayBoxes} ប្រអប់</span>
+                      <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="space-y-2">
+            <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider px-1">
+              <i data-lucide="users" class="w-3.5 h-3.5"></i>
+              <span>សមាជិកលក់ក្នុងក្រុម (${processedMembers.length} នាក់)</span>
+            </span>
+
+            <div class="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar pr-1">
+              ${processedMembers.length > 0 ? processedMembers.map(mem => `
+                <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                        <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
                       </div>
-                      <div class="flex items-center gap-2 shrink-0 font-mono text-[10px]">
-                        <span class="text-slate-400">${mem.orders} កុម្ម៉ង់</span>
-                        <span class="text-emerald-400 font-bold">${mem.boxes} ប្រអប់</span>
+                      <div class="text-[10px] text-slate-400 mt-0.5">
+                        Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
                       </div>
                     </div>
-                  `).join('')}
+                  </div>
+
+                  <div class="text-right shrink-0 font-mono">
+                    <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
+                    <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                  </div>
                 </div>
-              ` : `
-                <p class="text-[10px] text-slate-500 italic p-1">មិនទាន់មានសមាជិករាយការណ៍</p>
+              `).join('') : `
+                <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
+                  មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
+                </div>
               `}
             </div>
           </div>
         </div>
       `;
-    }).join('');
+    }
 
     cardTeamSales = `
       <!-- CARD E: VIP EXECUTIVE COMMAND CENTER (UNLOCKED STATE) -->
@@ -4044,8 +4770,7 @@ function getDashboardViewHTML() {
             </div>
             <div>
               <div class="flex items-center gap-1.5">
-                <h3 class="font-bold text-xs uppercase text-white tracking-wide">រចនាសម្ព័ន្ធលក់ & ថ្នាក់ដឹកនាំ</h3>
-                <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[9px] font-bold text-emerald-300 font-mono">UNLOCKED</span>
+                <h3 class="font-bold text-xs uppercase text-white tracking-wide">រចនាសម្ព័ន្ធលក់</h3>
               </div>
               <p class="text-[10px] text-slate-400 font-mono mt-0.5">BOSTAR GROUP • Executive Overview</p>
             </div>
@@ -4058,50 +4783,46 @@ function getDashboardViewHTML() {
               <span class="hidden sm:inline">ពេញអេក្រង់</span>
             </button>
             <button type="button" onclick="relockExecutiveCard(event)" 
-                    class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5 text-slate-300 text-[10px] font-semibold active:scale-95 transition hover:text-amber-300" title="ចាក់សោរវិញ">
-              <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
-              <span>ចាក់សោរ</span>
+                    class="px-2.5 py-1 rounded-full bg-emerald-500/10 hover:bg-rose-500/15 border border-emerald-500/30 hover:border-rose-500/30 text-emerald-400 hover:text-rose-400 text-[10px] font-semibold flex items-center gap-1.5 transition active:scale-95 group" title="ចុចដើម្បីចាក់សោរវិញ">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 group-hover:bg-rose-400 transition-colors"></span>
+              <i data-lucide="unlock" class="w-3 h-3 group-hover:hidden"></i>
+              <i data-lucide="lock" class="w-3 h-3 hidden group-hover:inline"></i>
+              <span class="group-hover:hidden">Unlocked</span>
+              <span class="hidden group-hover:inline">ចាក់សោរ</span>
             </button>
           </div>
         </div>
 
-        <!-- 1. TOP TIER: DIRECTOR PROFILE & COMPANY HEALTH -->
-        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-black/40 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 relative z-10">
+        <!-- 1. TOP TIER: DIRECTOR PROFILE & EXPAND TOGGLE -->
+        <div onclick="toggleExecDirectorExpanded()" 
+             class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-black/40 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 relative z-10 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5">
           <div class="flex items-center gap-3 min-w-0">
             <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-black flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/30 shrink-0">
               <i data-lucide="award" class="w-6 h-6"></i>
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
-                <h4 class="font-bold text-sm text-white truncate">${director ? director.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
+                <h4 class="font-bold text-sm text-white truncate">${directorRaw ? directorRaw.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
                 <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30 shrink-0">Director</span>
               </div>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${director ? director.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${directorRaw ? directorRaw.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
+              <span class="text-[9px] text-amber-400/80 font-medium">ចុចលើនេះដើម្បី ${isDirectorExpanded ? 'បង្រួម (លាក់)' : 'ពង្រីក (បង្ហាញ)'} Managers</span>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 shrink-0">
+          <div class="flex items-center gap-2.5 shrink-0">
             <div class="text-right">
-              <div class="text-xs font-mono font-bold text-amber-300">${director ? director.boxes : 67} ប្រអប់</div>
-              <div class="text-[10px] font-mono text-slate-400">${director ? director.orders : 29} កុម្ម៉ង់</div>
+              <div class="text-xs font-mono font-bold text-amber-300">${directorBoxes} ប្រអប់</div>
+              <div class="text-[10px] font-mono text-slate-400">${directorOrders} កុម្ម៉ង់</div>
+            </div>
+            <div class="w-7 h-7 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 transition-transform duration-200 ${isDirectorExpanded ? 'rotate-180 text-amber-400' : ''}">
+              <i data-lucide="chevron-down" class="w-4 h-4"></i>
             </div>
           </div>
         </div>
 
-        <!-- 2. MIDDLE TIER: MANAGER LEADERBOARD (Ranked from Highest to Lowest) -->
-        <div class="space-y-2 relative z-10">
-          <div class="flex items-center justify-between px-1">
-            <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
-              <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
-              <span>តារាងចំណាត់ថ្នាក់ MANAGERS (៦ ក្រុម)</span>
-            </span>
-            <span class="text-[10px] text-slate-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម</span>
-          </div>
-
-          <div class="space-y-2">
-            ${managersHtml}
-          </div>
-        </div>
+        <!-- 2. MIDDLE TIER: MANAGER LEADERBOARD OR SELECTED MANAGER DRILL-DOWN -->
+        ${homeHierarchyBodyHtml}
       </div>
     `;
   }
@@ -16694,7 +17415,7 @@ function renderProfileDrawerContent() {
       </div>
     </div>
 
-    <!-- ZONE 2.5: របាររចនាសម្ព័ន្ធលក់ & ថ្នាក់ដឹកនាំ (Executive Leadership Bar - Locked with Passcode 1MBOSTAR) -->
+    <!-- ZONE 2.5: របាររចនាសម្ព័ន្ធលក់ (Executive Leadership Bar - Locked with Passcode 1MBOSTAR) -->
     <div onclick="openExecutiveHierarchyFromDrawer()" 
          class="ios-glass-card rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-[#0C1425]/90 to-[#0A0F1D]/90 p-3 flex items-center justify-between cursor-pointer select-none hover:border-amber-400/50 active:scale-[0.99] transition shadow-lg shadow-amber-500/5">
       <div class="flex items-center gap-2.5 min-w-0">
@@ -16703,7 +17424,7 @@ function renderProfileDrawerContent() {
         </div>
         <div class="min-w-0">
           <div class="flex items-center gap-1.5">
-            <h4 class="text-xs font-bold text-white truncate">រចនាសម្ព័ន្ធលក់ & ថ្នាក់ដឹកនាំ</h4>
+            <h4 class="text-xs font-bold text-white truncate">រចនាសម្ព័ន្ធលក់</h4>
             <span class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30">VIP</span>
           </div>
           <p class="text-[9.5px] text-slate-400 truncate font-mono">BOSTAR GROUP • Director, 6 Managers & Members</p>
