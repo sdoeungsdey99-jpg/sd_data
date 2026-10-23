@@ -3056,13 +3056,20 @@ function toggleManagerRoster(idx, event) {
   if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
 }
 
+const _initNow = new Date();
+const _initYear = _initNow.getFullYear();
+const _initMonth = _initNow.getMonth() + 1;
+const _initPaddedMonth = String(_initMonth).padStart(2, '0');
+const _initIsoMonth = `${_initYear}-${_initPaddedMonth}`;
+const _initIsoDay = `${_initIsoMonth}-${String(_initNow.getDate()).padStart(2, '0')}`;
+
 let execHierarchyFilterState = {
-  mode: 'all', // 'day' | 'month' | 'year' | 'all'
-  selectedDate: null,
-  selectedMonth: null,
-  selectedYear: null,
-  calYear: (new Date()).getFullYear(),
-  calMonth: (new Date()).getMonth() + 1,
+  mode: 'month', // ALWAYS default to 'month' ("ខែ")!
+  selectedDate: _initIsoDay,
+  selectedMonth: _initIsoMonth,
+  selectedYear: String(_initYear),
+  calYear: _initYear,
+  calMonth: _initMonth,
   isDirectorExpanded: true,
   selectedManager: null
 };
@@ -3440,8 +3447,40 @@ function setManagerTarget(mgrKm, targetVal) {
   } catch (_) {}
 }
 
-function canEditManagerTarget(managerOrKm) {
+function isDirectorOrAdminUser() {
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+  if (isMaster) return true;
+
+  const p = (typeof getProfileData === 'function') ? getProfileData() : null;
+  const candidates = [
+    p && p.name,
+    p && p.subtitle,
+    localStorage.getItem('sd_last_seller')
+  ].filter(Boolean);
+
+  for (const cand of candidates) {
+    const lower = cand.toLowerCase().trim();
+    const norm = (typeof normalizeSellerName === 'function') ? normalizeSellerName(cand) : lower;
+
+    // Director Bech Nora check
+    if (lower.includes('nora') || lower.includes('bech') || norm.includes('នោរ៉ា') || norm.includes('ប៊ិច')) {
+      return true;
+    }
+    // Creator / Admin Sdey Sdoeung check
+    if (lower.includes('sdey') || lower.includes('sdoeung') || cand.includes('ស្ដី') || cand.includes('ស្តី')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function canViewAndEditManagerTarget(managerOrKm) {
   if (!managerOrKm) return false;
+
+  // 1. Director or Creator/Admin can view and edit targets for ALL managers!
+  if (isDirectorOrAdminUser()) return true;
+
+  // 2. Otherwise, only the Manager whose Profile matches this card can view and edit!
   const p = (typeof getProfileData === 'function') ? getProfileData() : null;
   const currentName = (p && p.name) ? p.name.trim() : '';
   const currentSub = (p && p.subtitle) ? p.subtitle.trim() : '';
@@ -3482,20 +3521,14 @@ function canEditManagerTarget(managerOrKm) {
     }
   }
 
-  // Admin / Creator / Master Sheet override:
-  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
-  const isCreator = candidates.some(c => {
-    const lower = c.toLowerCase();
-    return lower.includes('sdey') || lower.includes('sdoeung') || c.includes('ស្ដី') || c.includes('ស្តី');
-  });
-  if (isMaster || isCreator) return true;
-
   return false;
 }
 
+const canEditManagerTarget = canViewAndEditManagerTarget;
+
 function editManagerTargetPrompt(mgrKm, event) {
   if (event) event.stopPropagation();
-  if (!canEditManagerTarget(mgrKm)) {
+  if (!canViewAndEditManagerTarget(mgrKm)) {
     if (typeof showToastNotification === 'function') {
       showToastNotification('🔒 អ្នកអាចកំណត់គោលដៅបានតែសម្រាប់ Profile របស់ខ្លួនឯងប៉ុណ្ណោះ!');
     }
@@ -3548,6 +3581,16 @@ function openExecutiveHierarchyModal() {
   const modal = document.getElementById('executive-hierarchy-modal');
   if (!modal) return;
   modal.classList.remove('hidden');
+
+  // ALWAYS default to current month ("ខែ") upon entering modal:
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  execHierarchyFilterState.mode = 'month';
+  execHierarchyFilterState.selectedMonth = `${y}-${m}`;
+  execHierarchyFilterState.selectedYear = String(y);
+  execHierarchyFilterState.calYear = y;
+  execHierarchyFilterState.calMonth = now.getMonth() + 1;
 
   renderExecutiveHierarchyDateFilterBar();
   renderExecutiveHierarchyModalContent();
@@ -3861,7 +3904,13 @@ function renderExecutiveHierarchyModalContent() {
       else if (rank === 6) borderAccent = 'border-sky-500/20 hover:border-sky-500/40';
 
       const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
-      const canEdit = canEditManagerTarget(m);
+      const canViewEdit = canViewAndEditManagerTarget(m);
+      const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].displayBoxes || 1) : 1;
+      const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
+      const barWidth = canViewEdit ? Math.min(100, m.targetPercent) : percentOfTop;
+      const barGradient = canViewEdit
+        ? (m.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300')
+        : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400');
 
       return `
         <div onclick="selectExecutiveManager('${m.km}')" 
@@ -3875,18 +3924,20 @@ function renderExecutiveHierarchyModalContent() {
                   ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                   <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                 </div>
-                <!-- Target Pill (Editable only if matching profile) -->
-                <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
-                  <span class="px-2 py-0.5 rounded-md bg-white/5 ${canEdit ? 'hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer' : 'text-slate-300 cursor-default'} border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="${canEdit ? 'ចុចដើម្បីកែប្រែគោលដៅ' : 'គោលដៅលក់'}">
-                    <span class="text-amber-400">🎯 គោលដៅ:</span>
-                    <span class="font-bold text-white">${m.targetBoxes}</span>
-                    <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                    ${canEdit ? '<i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>' : ''}
-                  </span>
-                  <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                    (${m.targetPercent}%)
-                  </span>
-                </div>
+                ${canViewEdit ? `
+                  <!-- Target Pill (Visible ONLY for Director or this Manager) -->
+                  <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
+                    <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                      <span class="text-amber-400">🎯 គោលដៅ:</span>
+                      <span class="font-bold text-white">${m.targetBoxes}</span>
+                      <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                      <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                    </span>
+                    <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                      (${m.targetPercent}%)
+                    </span>
+                  </div>
+                ` : ''}
               </div>
             </div>
 
@@ -3904,7 +3955,8 @@ function renderExecutiveHierarchyModalContent() {
           </div>
 
           <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-            <div class="h-1.5 ${m.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${Math.min(100, m.targetPercent)}%"></div>
+            <div class="h-1.5 ${barGradient}" style="width: ${barWidth}%"></div>
+          </div>
           </div>
         </div>
       `;
@@ -3930,7 +3982,8 @@ function renderExecutiveHierarchyModalContent() {
     const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
     const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
     const rankBadge = getManagerRankBadge(origRank);
-    const canEditSelected = canEditManagerTarget(selectedM);
+    const canViewEditSelected = canViewAndEditManagerTarget(selectedM);
+    const selBarWidth = canViewEditSelected ? Math.min(100, selectedM.targetPercent) : 100;
 
     const processedLeaders = (selectedM.teamLeaders || []).map(tl => {
       let b = Number(tl.boxes) || 0;
@@ -3969,18 +4022,20 @@ function renderExecutiveHierarchyModalContent() {
                   ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                   <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
                 </div>
-                <!-- Target Pill (Editable only if matching profile) -->
-                <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
-                  <span class="px-2 py-0.5 rounded-md bg-white/5 ${canEditSelected ? 'hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer' : 'text-slate-300 cursor-default'} border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="${canEditSelected ? 'ចុចដើម្បីកែប្រែគោលដៅ' : 'គោលដៅលក់'}">
-                    <span class="text-amber-400">🎯 គោលដៅ:</span>
-                    <span class="font-bold text-white">${selectedM.targetBoxes}</span>
-                    <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                    ${canEditSelected ? '<i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>' : ''}
-                  </span>
-                  <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                    (${selectedM.targetPercent}%)
-                  </span>
-                </div>
+                ${canViewEditSelected ? `
+                  <!-- Target Pill (Visible ONLY for Director or this Manager) -->
+                  <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
+                    <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                      <span class="text-amber-400">🎯 គោលដៅ:</span>
+                      <span class="font-bold text-white">${selectedM.targetBoxes}</span>
+                      <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                      <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                    </span>
+                    <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                      (${selectedM.targetPercent}%)
+                    </span>
+                  </div>
+                ` : ''}
               </div>
             </div>
 
@@ -3997,7 +4052,7 @@ function renderExecutiveHierarchyModalContent() {
           </div>
 
           <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-            <div class="h-1.5 ${selectedM.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${Math.min(100, selectedM.targetPercent)}%"></div>
+            <div class="h-1.5 ${canViewEditSelected && selectedM.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${selBarWidth}%"></div>
           </div>
         </div>
 
@@ -4102,7 +4157,8 @@ window.handleDirectorClick = handleDirectorClick;
 window.selectExecutiveManager = selectExecutiveManager;
 window.getManagerTarget = getManagerTarget;
 window.setManagerTarget = setManagerTarget;
-window.canEditManagerTarget = canEditManagerTarget;
+window.canViewAndEditManagerTarget = canViewAndEditManagerTarget;
+window.canEditManagerTarget = canViewAndEditManagerTarget;
 window.editManagerTargetPrompt = editManagerTargetPrompt;
 window.getManagerRankBadge = getManagerRankBadge;
 window.toggleManagerRoster = toggleManagerRoster;
@@ -4719,7 +4775,12 @@ function getDashboardViewHTML() {
         else if (rank === 6) borderAccent = 'border-sky-500/20 hover:border-sky-500/40';
 
         const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
-        const canEdit = canEditManagerTarget(m);
+        const canViewEdit = canViewAndEditManagerTarget(m);
+        const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
+        const barWidth = canViewEdit ? Math.min(100, m.targetPercent) : percentOfTop;
+        const barGradient = canViewEdit
+          ? (m.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300')
+          : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400');
 
         return `
           <div onclick="selectExecutiveManager('${m.km}')" 
@@ -4733,18 +4794,20 @@ function getDashboardViewHTML() {
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                   </div>
-                  <!-- Target Pill (Editable only if matching profile) -->
-                  <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
-                    <span class="px-2 py-0.5 rounded-md bg-white/5 ${canEdit ? 'hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer' : 'text-slate-300 cursor-default'} border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="${canEdit ? 'ចុចដើម្បីកែប្រែគោលដៅ' : 'គោលដៅលក់'}">
-                      <span class="text-amber-400">🎯 គោលដៅ:</span>
-                      <span class="font-bold text-white">${m.targetBoxes}</span>
-                      <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                      ${canEdit ? '<i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>' : ''}
-                    </span>
-                    <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                      (${m.targetPercent}%)
-                    </span>
-                  </div>
+                  ${canViewEdit ? `
+                    <!-- Target Pill (Visible ONLY for Director or this Manager) -->
+                    <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
+                      <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                        <span class="text-amber-400">🎯 គោលដៅ:</span>
+                        <span class="font-bold text-white">${m.targetBoxes}</span>
+                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                        <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                      </span>
+                      <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                        (${m.targetPercent}%)
+                      </span>
+                    </div>
+                  ` : ''}
                 </div>
               </div>
 
@@ -4762,7 +4825,8 @@ function getDashboardViewHTML() {
             </div>
 
             <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-              <div class="h-1 ${m.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${Math.min(100, m.targetPercent)}%"></div>
+              <div class="h-1 ${barGradient}" style="width: ${barWidth}%"></div>
+            </div>
             </div>
           </div>
         `;
@@ -4788,7 +4852,8 @@ function getDashboardViewHTML() {
       const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
       const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
       const rankBadge = getManagerRankBadge(origRank);
-      const canEditSelected = canEditManagerTarget(selectedM);
+      const canViewEditSelected = canViewAndEditManagerTarget(selectedM);
+      const selBarWidth = canViewEditSelected ? Math.min(100, selectedM.targetPercent) : 100;
 
       const processedLeaders = (selectedM.teamLeaders || []).map(tl => {
         let b = Number(tl.boxes) || 0;
@@ -4827,18 +4892,20 @@ function getDashboardViewHTML() {
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
                   </div>
-                  <!-- Target Pill (Editable only if matching profile) -->
-                  <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
-                    <span class="px-2 py-0.5 rounded-md bg-white/5 ${canEditSelected ? 'hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer' : 'text-slate-300 cursor-default'} border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="${canEditSelected ? 'ចុចដើម្បីកែប្រែគោលដៅ' : 'គោលដៅលក់'}">
-                      <span class="text-amber-400">🎯 គោលដៅ:</span>
-                      <span class="font-bold text-white">${selectedM.targetBoxes}</span>
-                      <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                      ${canEditSelected ? '<i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>' : ''}
-                    </span>
-                    <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                      (${selectedM.targetPercent}%)
-                    </span>
-                  </div>
+                  ${canViewEditSelected ? `
+                    <!-- Target Pill (Visible ONLY for Director or this Manager) -->
+                    <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
+                      <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                        <span class="text-amber-400">🎯 គោលដៅ:</span>
+                        <span class="font-bold text-white">${selectedM.targetBoxes}</span>
+                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                        <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                      </span>
+                      <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                        (${selectedM.targetPercent}%)
+                      </span>
+                    </div>
+                  ` : ''}
                 </div>
               </div>
 
@@ -4855,7 +4922,7 @@ function getDashboardViewHTML() {
             </div>
 
             <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-              <div class="h-1.5 ${selectedM.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${Math.min(100, selectedM.targetPercent)}%"></div>
+              <div class="h-1.5 ${canViewEditSelected && selectedM.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${selBarWidth}%"></div>
             </div>
           </div>
 
