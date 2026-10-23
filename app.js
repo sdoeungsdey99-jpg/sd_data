@@ -3440,8 +3440,68 @@ function setManagerTarget(mgrKm, targetVal) {
   } catch (_) {}
 }
 
+function canEditManagerTarget(managerOrKm) {
+  if (!managerOrKm) return false;
+  const p = (typeof getProfileData === 'function') ? getProfileData() : null;
+  const currentName = (p && p.name) ? p.name.trim() : '';
+  const currentSub = (p && p.subtitle) ? p.subtitle.trim() : '';
+  const lastSeller = (localStorage.getItem('sd_last_seller') || '').trim();
+
+  let mgrKm = '';
+  let mgrEn = '';
+
+  if (typeof managerOrKm === 'string') {
+    mgrKm = managerOrKm.trim();
+    const found = (typeof findBostarSeller === 'function') ? findBostarSeller(mgrKm) : null;
+    if (found) mgrEn = found.en || '';
+  } else if (typeof managerOrKm === 'object') {
+    mgrKm = (managerOrKm.km || '').trim();
+    mgrEn = (managerOrKm.en || '').trim();
+  }
+
+  const normKm = (typeof normalizeSellerName === 'function') ? normalizeSellerName(mgrKm) : mgrKm.toLowerCase().trim();
+  const normEn = mgrEn ? mgrEn.toLowerCase().trim() : '';
+
+  const candidates = [currentName, currentSub, lastSeller].filter(Boolean);
+
+  for (const cand of candidates) {
+    const normCand = (typeof normalizeSellerName === 'function') ? normalizeSellerName(cand) : cand.toLowerCase().trim();
+    const candLower = cand.toLowerCase().trim();
+
+    // 1. Match Khmer name (direct or normalized or contains)
+    if (normKm && (normKm === normCand || normKm.includes(normCand) || normCand.includes(normKm))) {
+      return true;
+    }
+    // 2. Match Latin name (case-insensitive)
+    if (normEn && (normEn === candLower || normEn.includes(candLower) || candLower.includes(normEn))) {
+      return true;
+    }
+    // 3. Substring match
+    if (mgrKm && (mgrKm.includes(cand) || cand.includes(mgrKm))) {
+      return true;
+    }
+  }
+
+  // Admin / Creator / Master Sheet override:
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+  const isCreator = candidates.some(c => {
+    const lower = c.toLowerCase();
+    return lower.includes('sdey') || lower.includes('sdoeung') || c.includes('ស្ដី') || c.includes('ស្តី');
+  });
+  if (isMaster || isCreator) return true;
+
+  return false;
+}
+
 function editManagerTargetPrompt(mgrKm, event) {
   if (event) event.stopPropagation();
+  if (!canEditManagerTarget(mgrKm)) {
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('🔒 អ្នកអាចកំណត់គោលដៅបានតែសម្រាប់ Profile របស់ខ្លួនឯងប៉ុណ្ណោះ!');
+    }
+    if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
+    return;
+  }
   const currentTarget = getManagerTarget(mgrKm);
   const cleanName = mgrKm.replace('លោក ', '').replace('អ្នកគ្រូ ', '');
   const newVal = prompt(`កំណត់គោលដៅលក់សម្រាប់ក្រុម ${cleanName} (ចំនួនប្រអប់)៖`, currentTarget);
@@ -3801,6 +3861,7 @@ function renderExecutiveHierarchyModalContent() {
       else if (rank === 6) borderAccent = 'border-sky-500/20 hover:border-sky-500/40';
 
       const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
+      const canEdit = canEditManagerTarget(m);
 
       return `
         <div onclick="selectExecutiveManager('${m.km}')" 
@@ -3814,13 +3875,13 @@ function renderExecutiveHierarchyModalContent() {
                   ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                   <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                 </div>
-                <!-- Editable Target Pill -->
+                <!-- Target Pill (Editable only if matching profile) -->
                 <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
-                  <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 border border-white/10 hover:border-amber-400/40 text-[9.5px] font-mono text-slate-300 hover:text-amber-300 flex items-center gap-1 transition cursor-pointer" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                  <span class="px-2 py-0.5 rounded-md bg-white/5 ${canEdit ? 'hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer' : 'text-slate-300 cursor-default'} border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="${canEdit ? 'ចុចដើម្បីកែប្រែគោលដៅ' : 'គោលដៅលក់'}">
                     <span class="text-amber-400">🎯 គោលដៅ:</span>
                     <span class="font-bold text-white">${m.targetBoxes}</span>
                     <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                    <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                    ${canEdit ? '<i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>' : ''}
                   </span>
                   <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
                     (${m.targetPercent}%)
@@ -3869,6 +3930,7 @@ function renderExecutiveHierarchyModalContent() {
     const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
     const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
     const rankBadge = getManagerRankBadge(origRank);
+    const canEditSelected = canEditManagerTarget(selectedM);
 
     const processedLeaders = (selectedM.teamLeaders || []).map(tl => {
       let b = Number(tl.boxes) || 0;
@@ -3907,13 +3969,13 @@ function renderExecutiveHierarchyModalContent() {
                   ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                   <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
                 </div>
-                <!-- Editable Target Pill -->
+                <!-- Target Pill (Editable only if matching profile) -->
                 <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
-                  <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 border border-white/10 hover:border-amber-400/40 text-[9.5px] font-mono text-slate-300 hover:text-amber-300 flex items-center gap-1 transition cursor-pointer" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                  <span class="px-2 py-0.5 rounded-md bg-white/5 ${canEditSelected ? 'hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer' : 'text-slate-300 cursor-default'} border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="${canEditSelected ? 'ចុចដើម្បីកែប្រែគោលដៅ' : 'គោលដៅលក់'}">
                     <span class="text-amber-400">🎯 គោលដៅ:</span>
                     <span class="font-bold text-white">${selectedM.targetBoxes}</span>
                     <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                    <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                    ${canEditSelected ? '<i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>' : ''}
                   </span>
                   <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
                     (${selectedM.targetPercent}%)
@@ -4040,6 +4102,7 @@ window.handleDirectorClick = handleDirectorClick;
 window.selectExecutiveManager = selectExecutiveManager;
 window.getManagerTarget = getManagerTarget;
 window.setManagerTarget = setManagerTarget;
+window.canEditManagerTarget = canEditManagerTarget;
 window.editManagerTargetPrompt = editManagerTargetPrompt;
 window.getManagerRankBadge = getManagerRankBadge;
 window.toggleManagerRoster = toggleManagerRoster;
@@ -4535,15 +4598,15 @@ function getDashboardViewHTML() {
             <div>
               <div class="flex items-center gap-1.5">
                 <h3 class="font-bold text-xs uppercase text-white tracking-wide">រចនាសម្ព័ន្ធលក់</h3>
-                <span class="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[9px] font-bold text-amber-300">VIP</span>
               </div>
-              <p class="text-[10px] text-slate-400 font-mono mt-0.5">BOSTAR GROUP • Executive Only</p>
+              <p class="text-[10px] text-slate-400 font-mono mt-0.5">BOSTAR GROUP</p>
             </div>
           </div>
 
-          <div class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 flex items-center gap-1.5 text-slate-300 text-[10px] font-semibold shrink-0">
-            <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
-            <span>ការពារកូដសម្ងាត់</span>
+          <div class="px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 text-rose-400 text-[10px] font-semibold shrink-0">
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+            <i data-lucide="lock" class="w-3 h-3 text-rose-400"></i>
+            <span>ចាក់សោរ</span>
           </div>
         </div>
 
@@ -4553,13 +4616,13 @@ function getDashboardViewHTML() {
             <i data-lucide="shield-check" class="w-6 h-6"></i>
           </div>
           <div>
-            <h4 class="text-xs font-bold text-white">ទិន្នន័យគ្រប់គ្រងផ្ទៃក្នុង (Internal Hierarchy)</h4>
+            <h4 class="text-xs font-bold text-white">ទិន្នន័យក្រុមទាំងមូល</h4>
             <p class="text-[10px] text-slate-400 mt-0.5">តារាងចំណាត់ថ្នាក់ ៦ Managers, Leaders & ៤៤ Members</p>
           </div>
           <button type="button" 
                   class="mt-1 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/25 active:scale-95 transition">
-            <i data-lucide="key" class="w-3.5 h-3.5"></i>
-            <span>ចុចទីនេះដើម្បីវាយកូដដោះសោរ</span>
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+            <span>ចុចទីនេះដើម្បីដោះសោរ</span>
           </button>
         </div>
       </div>
@@ -4656,6 +4719,7 @@ function getDashboardViewHTML() {
         else if (rank === 6) borderAccent = 'border-sky-500/20 hover:border-sky-500/40';
 
         const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
+        const canEdit = canEditManagerTarget(m);
 
         return `
           <div onclick="selectExecutiveManager('${m.km}')" 
@@ -4669,13 +4733,13 @@ function getDashboardViewHTML() {
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                   </div>
-                  <!-- Editable Target Pill -->
+                  <!-- Target Pill (Editable only if matching profile) -->
                   <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
-                    <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 border border-white/10 hover:border-amber-400/40 text-[9.5px] font-mono text-slate-300 hover:text-amber-300 flex items-center gap-1 transition cursor-pointer" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                    <span class="px-2 py-0.5 rounded-md bg-white/5 ${canEdit ? 'hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer' : 'text-slate-300 cursor-default'} border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="${canEdit ? 'ចុចដើម្បីកែប្រែគោលដៅ' : 'គោលដៅលក់'}">
                       <span class="text-amber-400">🎯 គោលដៅ:</span>
                       <span class="font-bold text-white">${m.targetBoxes}</span>
                       <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                      <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                      ${canEdit ? '<i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>' : ''}
                     </span>
                     <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
                       (${m.targetPercent}%)
@@ -4724,6 +4788,7 @@ function getDashboardViewHTML() {
       const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
       const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
       const rankBadge = getManagerRankBadge(origRank);
+      const canEditSelected = canEditManagerTarget(selectedM);
 
       const processedLeaders = (selectedM.teamLeaders || []).map(tl => {
         let b = Number(tl.boxes) || 0;
@@ -4762,13 +4827,13 @@ function getDashboardViewHTML() {
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
                   </div>
-                  <!-- Editable Target Pill -->
+                  <!-- Target Pill (Editable only if matching profile) -->
                   <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
-                    <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 border border-white/10 hover:border-amber-400/40 text-[9.5px] font-mono text-slate-300 hover:text-amber-300 flex items-center gap-1 transition cursor-pointer" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                    <span class="px-2 py-0.5 rounded-md bg-white/5 ${canEditSelected ? 'hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer' : 'text-slate-300 cursor-default'} border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="${canEditSelected ? 'ចុចដើម្បីកែប្រែគោលដៅ' : 'គោលដៅលក់'}">
                       <span class="text-amber-400">🎯 គោលដៅ:</span>
                       <span class="font-bold text-white">${selectedM.targetBoxes}</span>
                       <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                      <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                      ${canEditSelected ? '<i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>' : ''}
                     </span>
                     <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
                       (${selectedM.targetPercent}%)
@@ -4870,7 +4935,7 @@ function getDashboardViewHTML() {
               <div class="flex items-center gap-1.5">
                 <h3 class="font-bold text-xs uppercase text-white tracking-wide">រចនាសម្ព័ន្ធលក់</h3>
               </div>
-              <p class="text-[10px] text-slate-400 font-mono mt-0.5">BOSTAR GROUP • Executive Overview</p>
+              <p class="text-[10px] text-slate-400 font-mono mt-0.5">BOSTAR GROUP</p>
             </div>
           </div>
 
@@ -17517,7 +17582,6 @@ function renderProfileDrawerContent() {
         </div>
         <div class="flex items-center gap-1.5 min-w-0">
           <span class="text-xs font-bold text-white truncate">រចនាសម្ព័ន្ធលក់</span>
-          <span class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30">VIP</span>
         </div>
       </div>
 
