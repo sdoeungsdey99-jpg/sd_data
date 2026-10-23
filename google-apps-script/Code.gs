@@ -495,7 +495,12 @@ function syncBostarAttendance(ss, data) {
       checkOutNoteVal                                    // P: Check-out Note
     ];
 
-    sheet.getRange(targetRow, 1, 1, 16).setValues([checkInRow]);
+    var rowRange = sheet.getRange(targetRow, 1, 1, 16);
+    rowRange.setValues([checkInRow]);
+    try {
+      rowRange.setFontColor('#111827'); // Enforce clear dark text (ការពារកុំឱ្យជាប់ពណ៌សដូចផ្ទៃ)
+      rowRange.setVerticalAlignment('middle');
+    } catch (_) {}
 
     if (oldTrappedRow > 0 && oldTrappedRow !== targetRow) {
       try { sheet.getRange(oldTrappedRow, 1, 1, 16).clearContent(); } catch (_) {}
@@ -531,7 +536,12 @@ function syncBostarAttendance(ss, data) {
       data.checkOutNote || 'ចេញទាន់ពេល / បញ្ចប់ការងារដោយរលូន' // P: Check-out Note
     ];
 
-    sheet.getRange(targetRow, 1, 1, 16).setValues([checkOutRow]);
+    var rowRangeOut = sheet.getRange(targetRow, 1, 1, 16);
+    rowRangeOut.setValues([checkOutRow]);
+    try {
+      rowRangeOut.setFontColor('#111827'); // Enforce clear dark text (ការពារកុំឱ្យជាប់ពណ៌សដូចផ្ទៃ)
+      rowRangeOut.setVerticalAlignment('middle');
+    } catch (_) {}
 
     if (oldTrappedRow > 0 && oldTrappedRow !== targetRow) {
       try { sheet.getRange(oldTrappedRow, 1, 1, 16).clearContent(); } catch (_) {}
