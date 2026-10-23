@@ -2954,8 +2954,8 @@ function openExecutivePasscodeModal() {
 
       <form onsubmit="event.preventDefault(); submitExecutivePasscode();" class="space-y-3">
         <div class="relative">
-          <input type="password" id="exec-passcode-input" placeholder="វាយលេខកូដសម្ងាត់" 
-                 autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+          <input type="password" id="exec-passcode-input" placeholder="វាយលេខកូដសម្ងាត់ (leader)" 
+                 autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                  class="w-full bg-black/60 border border-white/15 focus:border-amber-400 rounded-2xl px-4 py-3 text-center text-sm font-mono tracking-widest text-white placeholder:text-slate-500 placeholder:text-xs placeholder:font-sans focus:outline-none transition">
           <button type="button" onclick="togglePasscodeVisibility()" 
                   class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white transition" title="បង្ហាញ/លាក់">
@@ -3007,7 +3007,8 @@ function togglePasscodeVisibility() {
 
 function submitExecutivePasscode(enteredVal) {
   const code = (enteredVal || document.getElementById('exec-passcode-input')?.value || '').trim();
-  if (code.toUpperCase() === '1MBOSTAR') {
+  const cleanCode = code.toLowerCase();
+  if (cleanCode === 'leader' || code.toUpperCase() === '1MBOSTAR') {
     sessionStorage.setItem('sd_exec_unlocked', 'true');
     closeExecutivePasscodeModal();
     if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
