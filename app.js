@@ -20689,7 +20689,8 @@ function openNewOrderModal(mode = 'dock') {
     if (btnHeaderPass) btnHeaderPass.classList.add('hidden');
     if (card3in1) card3in1.classList.add('hidden'); // Removed from New Order mode
     if (syncToggle) syncToggle.checked = true; // Auto-sync active for 3-in-1 in background
-    if (orderTypeCard) orderTypeCard.classList.remove('hidden'); // Show 3 order types in dock mode
+    if (orderTypeCard) orderTypeCard.classList.add('hidden'); // លាក់ដាច់ខាតលើ Order Dock (ការកុម្ម៉ង់ថ្មី)
+    setOrderType('standard'); // ស្តុកក្រុមហ៊ុនស្តង់ដារជានិច្ច
     // សម្រាប់ការកុម្ម៉ង់ថ្មី ថ្នាក់ដឹកនាំគឺ Bech_Nora តែមួយគត់
     const teamInput = document.getElementById('order-field-team');
     if (teamInput) teamInput.value = 'Bech_Nora';
@@ -21125,6 +21126,9 @@ function switchOrderMode(mode) {
 }
 
 function toggleOrderTypeCapsule() {
+  if (currentOrderEntryMode === 'dock') {
+    return; // សម្រាប់ផ្ទាំងការកុម្ម៉ង់ថ្មី (Order Dock) គឺរក្សាទុកជា «ស្តុក» ថេរ
+  }
   if (currentOrderType === 'standard') {
     setOrderType('reward');
     showToastNotification('🎁 ប្តូរទៅជា «លក់រង្វាន់»');
@@ -21166,7 +21170,9 @@ function updateAutoOrderNote() {
 }
 
 function setOrderType(type) {
-  if (!type || !['standard', 'reward', 'return'].includes(type)) {
+  if (currentOrderEntryMode === 'dock') {
+    type = 'standard'; // សម្រាប់ផ្ទាំងការកុម្ម៉ង់ថ្មី (Order Dock) គឺស្តង់ដារ «ស្តុកក្រុមហ៊ុន» ជានិច្ច គ្មានផ្ទាំងរើសនេះទេ
+  } else if (!type || !['standard', 'reward', 'return'].includes(type)) {
     type = 'standard';
   }
   currentOrderType = type;
