@@ -17416,172 +17416,9 @@ function openProfileSubModal(type) {
   let contentHTML = '';
 
   if (type === 'daily_report') {
-    title = 'របាយការណ៍លក់ប្រចាំថ្ងៃ';
-    sub = 'ទម្រង់ផ្ញើរបាយការណ៍ចូលគ្រុប ៩:០០ យប់';
-    icon = 'clipboard-check';
-
-    const p = getProfileData();
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const yyyy = today.getFullYear();
-    const defaultDate = `${dd}/${mm}/${yyyy}`;
-    const savedPage = localStorage.getItem('sd_report_page') || 'Bostar Store';
-    const staffName = p.name || 'ស្តី ស្តើង';
-
-    // Auto-detect today's sales from DataService
-    let autoTodayBoxes = 0;
-    let autoTodayOrders = 0;
-    try {
-      const todayIso = today.toISOString().slice(0, 10);
-      const sales = (DataService.data && DataService.data.personalSales) ? DataService.data.personalSales : [];
-      const todaySales = sales.filter(s => s.isoDate === todayIso);
-      autoTodayOrders = todaySales.length;
-      autoTodayBoxes = todaySales.reduce((sum, s) => sum + (Number(s.boxes) || 0), 0);
-    } catch (_) {}
-
-    contentHTML = `
-      <div class="space-y-3 text-xs select-none">
-        <!-- Card 1: Meta Information -->
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
-              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-              <span>កាលបរិច្ឆេទ & ព័ត៌មាន</span>
-            </span>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-[9px] font-bold">
-              ៩:០០ យប់
-            </span>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-0.5">កាលបរិច្ឆេទ៖</label>
-              <input type="text" id="rep-field-date" value="${defaultDate}" 
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
-            </div>
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-0.5">ឈ្មោះផេក៖</label>
-              <input type="text" id="rep-field-page" value="${savedPage}" placeholder="ឧ. Bostar Store" 
-                     oninput="try { localStorage.setItem('sd_report_page', this.value); } catch(_) {}"
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-            </div>
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-400 mb-0.5">បុគ្គលិកទទួលខុសត្រូវ / ក្រុម៖</label>
-            <input type="text" id="rep-field-staff" value="${staffName}" 
-                   class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-          </div>
-        </div>
-
-        <!-- Card 2: Section 1 - 📥 ទិន្នន័យអតិថិជនថ្មីទាក់ទងមក -->
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-          <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider flex items-center gap-1">
-            <i data-lucide="inbox" class="w-3.5 h-3.5"></i>
-            <span>១. ទិន្នន័យអតិថិជនថ្មីទាក់ទងមក</span>
-          </span>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-0.5">ឆាតថ្មីសរុប (នាក់)៖</label>
-              <input type="number" id="rep-field-chat-total" placeholder="0" oninput="calculateDailyReportMetrics()" 
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
-            </div>
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-0.5">ឆាតប៉ះដៃ (នាក់)៖</label>
-              <input type="number" id="rep-field-chat-mistake" placeholder="0" oninput="calculateDailyReportMetrics()" 
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
-            </div>
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-0.5">ឆាតគោលដៅ (នាក់)៖</label>
-              <input type="number" id="rep-field-chat-target" placeholder="0" oninput="calculateDailyReportMetrics()" 
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-sky-300 font-bold font-mono text-xs focus:outline-none focus:border-sky-500">
-            </div>
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-0.5">អតិថិជនខលផ្ទាល់ (នាក់)៖</label>
-              <input type="number" id="rep-field-call-direct" placeholder="0" 
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 3: Section 2 - 🔄 សកម្មភាពតាមដាន (Follow Up) -->
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-          <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider flex items-center gap-1">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-            <span>២. សកម្មភាពតាមដានអតិថិជន (Follow Up)</span>
-          </span>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-0.5">អតិថិជនចាស់សួរសុខទុក្ខ (នាក់)៖</label>
-              <input type="number" id="rep-field-follow-old" placeholder="0" 
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-purple-500">
-            </div>
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-0.5">អតិថិជនរង់ចាំចម្លើយ (នាក់)៖</label>
-              <input type="number" id="rep-field-follow-pending" placeholder="0" 
-                     class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono text-xs focus:outline-none focus:border-purple-500">
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 4: Section 3 - 📦 លទ្ធផលនៃការលក់ជាក់ស្តែង -->
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-          <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-            <i data-lucide="package" class="w-3.5 h-3.5"></i>
-            <span>៣. លទ្ធផលនៃការលក់ជាក់ស្តែង</span>
-          </span>
-          
-          <div class="space-y-1.5">
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] text-slate-300 w-28 shrink-0">អតិថិជនថ្មីទិញ:</span>
-              <input type="number" id="rep-buy-new-p" placeholder="នាក់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-1.5 text-white font-mono text-xs text-center focus:outline-none">
-              <input type="number" id="rep-buy-new-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-1.5 text-white font-mono text-xs text-center focus:outline-none">
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] text-slate-300 w-28 shrink-0">អតិថិជនចាស់ទិញបន្ថែម:</span>
-              <input type="number" id="rep-buy-old-p" placeholder="នាក់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-1.5 text-white font-mono text-xs text-center focus:outline-none">
-              <input type="number" id="rep-buy-old-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-1.5 text-white font-mono text-xs text-center focus:outline-none">
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] text-slate-300 w-28 shrink-0">អតិថិជនដែលតាមដានទិញ:</span>
-              <input type="number" id="rep-buy-follow-p" placeholder="នាក់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-1.5 text-white font-mono text-xs text-center focus:outline-none">
-              <input type="number" id="rep-buy-follow-b" placeholder="ប្រអប់" oninput="calculateDailyReportMetrics()" class="w-1/2 bg-black/50 border border-white/10 rounded-xl p-1.5 text-white font-mono text-xs text-center focus:outline-none">
-            </div>
-          </div>
-
-          <!-- Total Calculation Display -->
-          <div class="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs font-mono">
-            <span class="text-emerald-300 font-bold">👉 សរុបទំនិញលក់បានទាំងអស់៖</span>
-            <span id="rep-total-summary-disp" class="text-emerald-400 font-bold">
-              ${autoTodayBoxes || 0} ប្រអប់
-            </span>
-          </div>
-        </div>
-
-        <!-- Card 5: បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ -->
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-          <label class="block text-[10px] text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
-            <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
-            <span>បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖</span>
-          </label>
-          <textarea id="rep-field-challenges" rows="2" placeholder="ឧទាហរណ៍៖ អតិថិជនត្អូញត្អែរតម្លៃ, សេវាដឹកយឺត..." 
-                    class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white text-xs focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="grid grid-cols-2 gap-2 pt-1">
-          <button onclick="copyDailyReportText()" 
-                  class="py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-sm">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-            <span>ចម្លងរបាយការណ៍ 📋</span>
-          </button>
-          <button onclick="shareDailyReportToTelegram()" 
-                  class="py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg shadow-sky-500/25">
-            <i data-lucide="send" class="w-3.5 h-3.5"></i>
-            <span>ផ្ញើទៅ Telegram 🚀</span>
-          </button>
-        </div>
-      </div>
-    `;
+    closeProfileSubModal();
+    openDailyReportModal();
+    return;
   } else if (type === 'custom_sheet') {
     const isCustom = (typeof DataService !== 'undefined' && DataService.hasActiveSheet && !DataService.isMasterSheet());
     const isMaster = (typeof DataService !== 'undefined' && DataService.isMasterSheet && DataService.isMasterSheet());
@@ -19753,7 +19590,7 @@ async function syncDailyReportToGoogleSheet(options = {}) {
     lastReportSyncSignature = signature;
     lastReportSyncTimestamp = now;
 
-    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+    if (webhookUrl && webhookUrl.startsWith('http')) {
       await fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
@@ -19812,13 +19649,17 @@ async function copyDailyReportText() {
       document.execCommand('copy');
       document.body.removeChild(ta);
     }
-    showToastNotification('បានចម្លង & រក្សាទុកក្នុង Google Sheet ជោគជ័យ! 📋✅');
-  } catch (_) {
-    showToastNotification('បានចម្លងរបាយការណ៍ជោគជ័យ!');
-  }
+  } catch (_) {}
 
-  // Seamless background sync to Google Sheet
-  syncDailyReportToGoogleSheet({ source: 'copy' });
+  showToastNotification('កំពុងចម្លង & រក្សាទុកក្នុង Google Sheet... ⏳');
+
+  // Seamless sync to Google Sheet
+  const ok = await syncDailyReportToGoogleSheet({ source: 'copy' });
+  if (ok) {
+    showToastNotification('បានចម្លង & រក្សាទុកក្នុង Google Sheet ជោគជ័យ! 📋✅');
+  } else {
+    showToastNotification('បានចម្លងរបាយការណ៍ជោគជ័យ! 📋');
+  }
 }
 
 async function shareDailyReportToTelegram() {
@@ -19834,7 +19675,7 @@ async function shareDailyReportToTelegram() {
   // 2. Seamless background sync to Google Sheet (Deduplication prevents double entries)
   syncDailyReportToGoogleSheet({ source: 'telegram' });
 
-  showToastNotification('កំពុងផ្ញើរបាយការណ៍លក់ទៅ Telegram... ⏳');
+  showToastNotification('កំពុងផ្ញើទៅ Telegram & Google Sheet... ⏳');
   const botSuccess = await sendAttendanceViaTelegramBot(text);
   if (botSuccess) {
     showToastNotification('បានផ្ញើ & រក្សាទុកក្នុង Google Sheet ជោគជ័យ! 🚀✅');
