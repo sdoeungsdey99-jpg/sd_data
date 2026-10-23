@@ -399,7 +399,8 @@ function syncBostarAttendance(ss, data) {
   var matchRowIndex = -1;
 
   if (lastRow > 1) {
-    var dateStaffRange = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+    var checkCount = Math.min(lastRow - 1, 500);
+    var dateStaffRange = sheet.getRange(2, 1, checkCount, 2).getValues();
     for (var i = 0; i < dateStaffRange.length; i++) {
       var rDate = dateStaffRange[i][0];
       var rDateStr = '';
@@ -421,11 +422,39 @@ function syncBostarAttendance(ss, data) {
         if (p.length === 3) rDateStr = p[2] + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2);
       }
 
-      if (rStaffId.toLowerCase() === staffId.toLowerCase() && rDateStr === normTarget) {
+      if (rStaffId && rStaffId.toLowerCase() === staffId.toLowerCase() && rDateStr === normTarget) {
         matchRowIndex = i + 2; // 1-based sheet row
         break;
       }
     }
+  }
+
+  // ស្វែងរកជួរដេកទំនេរដំបូង (Sequential First Empty Row) ការពារកុំឱ្យ appendRow រំលងជួរទទេទៅ Row 101
+  var firstBlankRow = -1;
+  var scanLimit = Math.max(lastRow + 5, 20);
+  var checkCells = sheet.getRange(2, 1, Math.min(scanLimit, 200), 2).getValues();
+  for (var k = 0; k < checkCells.length; k++) {
+    var cellDate = checkCells[k][0];
+    var cellStaff = checkCells[k][1];
+    if ((cellDate === '' || cellDate === null || cellDate === undefined) &&
+        (cellStaff === '' || cellStaff === null || cellStaff === undefined)) {
+      firstBlankRow = k + 2;
+      break;
+    }
+  }
+  if (firstBlankRow === -1) {
+    firstBlankRow = lastRow + 1;
+  }
+
+  // ប្រសិនបើសិនជាមាន matchRowIndex នៅជួរឆ្ងាយ (ឧទាហរណ៍ Row 101 ដោយសារ appendRow ចាស់) តែ Row 2 ទំនេរ
+  // យើងប្តូរគោលដៅមក Row 2 (firstBlankRow) ភ្លាម ដើម្បីឱ្យ User ឃើញនៅផ្នែកខាងលើ
+  var targetRow = matchRowIndex;
+  var oldTrappedRow = -1;
+  if (matchRowIndex > 10 && firstBlankRow < matchRowIndex) {
+    oldTrappedRow = matchRowIndex;
+    targetRow = firstBlankRow;
+  } else if (matchRowIndex <= 0) {
+    targetRow = firstBlankRow;
   }
 
   var now = new Date();
@@ -434,94 +463,72 @@ function syncBostarAttendance(ss, data) {
 
   if (actionType === 'in') {
     // CHECK IN
-    if (matchRowIndex > 0) {
-      sheet.getRange(matchRowIndex, 3).setValue(staffName);
-      sheet.getRange(matchRowIndex, 4).setValue(role);
-      sheet.getRange(matchRowIndex, 5).setValue(data.checkInTime || timeStr);
-      sheet.getRange(matchRowIndex, 8).setValue(data.status || 'Present');
-      sheet.getRange(matchRowIndex, 9).setValue(data.lateMinutes || 0);
-      sheet.getRange(matchRowIndex, 10).setValue(data.location || 'ការិយាល័យកណ្តាល (At Office Verified)');
-      if (data.reason) sheet.getRange(matchRowIndex, 11).setValue(data.reason);
-      if (data.motivationalNote) sheet.getRange(matchRowIndex, 12).setValue(data.motivationalNote);
-      sheet.getRange(matchRowIndex, 13).setValue(timestampStr);
+    var checkInRow = [
+      targetDate,                                        // A: Date
+      staffId,                                           // B: Staff ID
+      staffName,                                         // C: Staff Name
+      role,                                              // D: Role
+      data.checkInTime || timeStr,                       // E: Check-in Time
+      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 6).getValue() : ''), // F: Check-out Time
+      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 7).getValue() : ''), // G: Work Duration
+      data.status || 'Present',                          // H: Status
+      data.lateMinutes || 0,                             // I: Late Mins
+      data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location
+      data.reason || '',                                 // K: Reason
+      data.motivationalNote || '',                       // L: Motivational Note
+      timestampStr,                                      // M: Timestamp
+      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 14).getValue() : ''), // N: Check-out Status
+      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 15).getValue() : ''), // O: Check-out Location
+      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 16).getValue() : '')  // P: Check-out Note
+    ];
 
-      return {
-        status: 'success',
-        action: 'check_in_updated',
-        rowIndex: matchRowIndex,
-        message: 'Check-in updated in existing row ' + matchRowIndex
-      };
-    } else {
-      var newRow = [
-        targetDate,                                        // A: Date
-        staffId,                                           // B: Staff ID
-        staffName,                                         // C: Staff Name
-        role,                                              // D: Role
-        data.checkInTime || timeStr,                       // E: Check-in Time
-        '',                                                // F: Check-out Time (pending)
-        '',                                                // G: Work Duration (pending)
-        data.status || 'Present',                          // H: Status
-        data.lateMinutes || 0,                             // I: Late Mins
-        data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location
-        data.reason || '',                                 // K: Reason
-        data.motivationalNote || '',                       // L: Motivational Note
-        timestampStr,                                      // M: Timestamp
-        '',                                                // N: Check-out Status
-        '',                                                // O: Check-out Location
-        ''                                                 // P: Check-out Note
-      ];
-      sheet.appendRow(newRow);
-      return {
-        status: 'success',
-        action: 'check_in_created',
-        rowIndex: sheet.getLastRow(),
-        message: 'New Check-in row created for ' + staffName
-      };
+    sheet.getRange(targetRow, 1, 1, 16).setValues([checkInRow]);
+
+    if (oldTrappedRow > 0 && oldTrappedRow !== targetRow) {
+      try { sheet.getRange(oldTrappedRow, 1, 1, 16).clearContent(); } catch (_) {}
     }
+
+    return {
+      status: 'success',
+      action: matchRowIndex > 0 ? 'check_in_updated' : 'check_in_created',
+      rowIndex: targetRow,
+      message: 'Check-in recorded in row ' + targetRow + ' for ' + staffName
+    };
   } else {
     // CHECK OUT
     var checkOutTime = data.checkOutTime || timeStr;
     var duration = data.duration || '';
 
-    if (matchRowIndex > 0) {
-      sheet.getRange(matchRowIndex, 6).setValue(checkOutTime); // F: Check-out Time
-      if (duration) sheet.getRange(matchRowIndex, 7).setValue(duration); // G: Work Duration
-      sheet.getRange(matchRowIndex, 14).setValue(data.checkOutStatus || 'Normal'); // N: Check-out Status
-      sheet.getRange(matchRowIndex, 15).setValue(data.checkOutLocation || data.location || 'ការិយាល័យកណ្តាល (At Office Verified)'); // O: Check-out Location
-      sheet.getRange(matchRowIndex, 16).setValue(data.checkOutNote || 'ចេញទាន់ពេល / បញ្ចប់ការងារដោយរលូន'); // P: Check-out Note
+    var checkOutRow = [
+      targetDate,                                        // A: Date
+      staffId,                                           // B: Staff ID
+      staffName,                                         // C: Staff Name
+      role,                                              // D: Role
+      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 5).getValue() : '—'), // E: Check-in Time
+      checkOutTime,                                      // F: Check-out Time
+      duration,                                          // G: Work Duration
+      data.status || 'Present',                          // H: Status
+      data.lateMinutes || 0,                             // I: Late Mins
+      data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location
+      data.reason || (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 11).getValue() : 'Check-out តែម្តង'), // K: Reason
+      data.motivationalNote || '',                       // L: Motivational Note
+      timestampStr,                                      // M: Timestamp
+      data.checkOutStatus || 'Normal',                   // N: Check-out Status
+      data.checkOutLocation || data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // O: Check-out Location
+      data.checkOutNote || 'ចេញទាន់ពេល / បញ្ចប់ការងារដោយរលូន' // P: Check-out Note
+    ];
 
-      return {
-        status: 'success',
-        action: 'check_out_updated',
-        rowIndex: matchRowIndex,
-        message: 'Check-out recorded into row ' + matchRowIndex
-      };
-    } else {
-      var newRow = [
-        targetDate,
-        staffId,
-        staffName,
-        role,
-        '—',
-        checkOutTime,
-        duration,
-        data.status || 'Present',
-        0,
-        data.location || 'ការិយាល័យកណ្តាល (At Office Verified)',
-        data.reason || 'Check-out តែម្តង',
-        data.motivationalNote || '',
-        timestampStr,
-        data.checkOutStatus || 'Normal',
-        data.checkOutLocation || data.location || 'ការិយាល័យកណ្តាល (At Office Verified)',
-        data.checkOutNote || 'ចេញទាន់ពេល / បញ្ចប់ការងារដោយរលូន'
-      ];
-      sheet.appendRow(newRow);
-      return {
-        status: 'success',
-        action: 'check_out_created',
-        rowIndex: sheet.getLastRow(),
-        message: 'New row created on Check-out for ' + staffName
-      };
+    sheet.getRange(targetRow, 1, 1, 16).setValues([checkOutRow]);
+
+    if (oldTrappedRow > 0 && oldTrappedRow !== targetRow) {
+      try { sheet.getRange(oldTrappedRow, 1, 1, 16).clearContent(); } catch (_) {}
     }
+
+    return {
+      status: 'success',
+      action: matchRowIndex > 0 ? 'check_out_updated' : 'check_out_created',
+      rowIndex: targetRow,
+      message: 'Check-out recorded into row ' + targetRow
+    };
   }
 }

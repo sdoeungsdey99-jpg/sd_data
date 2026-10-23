@@ -15015,6 +15015,7 @@ function resetTodayAttendanceConfirmed() {
 // Sheet ID: 1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4
 // ==========================================
 const BOSTAR_TRACK_ATTENDANCE_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+const BOSTAR_TRACK_ATTENDANCE_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzGLHc2-bPoKyfjo2jb2Rv2MymxXG7uqvDtgGiv2fQ6FD5Hqz4AbIAUTHrFwGLFqWT-/exec';
 
 async function syncAttendanceToBostarTrack(actionType = 'in') {
   try {
@@ -15032,12 +15033,12 @@ async function syncAttendanceToBostarTrack(actionType = 'in') {
         type: actionType, // 'in' | 'out'
         date: dateStr,
         staffId: cleanId || 'BG-162',
-        staffName: p.name || 'BostarGroup',
+        staffName: p.name || 'Sdoeung Sdey',
         role: p.work || 'សមាជិកក្រុម BostarGroup',
         checkInTime: data.checkInTime || timeStr,
         checkOutTime: actionType === 'out' ? (data.checkOutTime || timeStr) : '',
         duration: data.duration || (actionType === 'out' ? calculateAttendanceDuration(data.checkInTime, timeStr) : ''),
-        status: data.todayLate ? 'Late' : 'On-Time',
+        status: data.todayLate ? 'Late' : 'Present',
         lateMinutes: data.lateMinutes || 0,
         location: data.location || 'ការិយាល័យកណ្តាល (At Office Verified)',
         reason: data.note || (data.todayLate ? 'ស្ទះចរាចរណ៍តាមផ្លូវ' : ''),
@@ -15048,7 +15049,7 @@ async function syncAttendanceToBostarTrack(actionType = 'in') {
       }
     };
 
-    const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function' ? getAppsScriptWebhookUrl() : null) || 'https://script.google.com/macros/s/AKfycbzGLHc2-bPoKyfjo2jb2Rv2MymxXG7uqvDtgGiv2fQ6FD5Hqz4AbIAUTHrFwGLFqWT-/exec';
+    const webhookUrl = BOSTAR_TRACK_ATTENDANCE_WEBHOOK_URL;
     if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
       fetch(webhookUrl, {
         method: 'POST',
