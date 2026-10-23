@@ -9734,7 +9734,13 @@ function toggleExpenseCategoryAccordion(catName, catId) {
 
 function filterExpensesByCategory(encodedCatName) {
   const catName = decodeURIComponent(encodedCatName);
-  expensesFilterState.activeCategoryFilter = catName;
+  if (catName === 'all') {
+    expensesFilterState.activeCategoryFilter = 'all';
+  } else if (expensesFilterState.activeCategoryFilter && expensesFilterState.activeCategoryFilter.toLowerCase() === catName.toLowerCase()) {
+    expensesFilterState.activeCategoryFilter = 'all'; // toggle back to all
+  } else {
+    expensesFilterState.activeCategoryFilter = catName;
+  }
   const searchInput = document.getElementById('expenses-modal-search-input');
   if (searchInput && searchInput.value.trim()) {
     filterExpensesModalList();
@@ -9852,24 +9858,31 @@ function renderExpensesBreakdownView(items, totalAmount, listEl) {
       </div>
 
       <!-- Title & Subtitle -->
-      <div class="text-center mt-2 mb-3">
+      <div class="text-center mt-2 mb-2">
         <h4 class="text-sm font-bold text-white tracking-tight">ការបែងចែកចំណាយ (Expense Breakdown)</h4>
         <p class="text-[11px] text-slate-400 mt-0.5 font-mono">${periodLabel} • សរុប ${items.length} មុខ</p>
       </div>
+    </div>
 
-      <!-- Category Filter Pills (All | Cat 1 | Cat 2 ...) -->
-      <div class="w-full flex items-center gap-1.5 p-1 rounded-2xl bg-black/40 border border-white/5 overflow-x-auto no-scrollbar mb-3 text-xs font-semibold">
+    <!-- 2. Sticky Category Filter Pills Bar (ស្អិតជាប់ខាងលើ មិនរត់បាត់ពេល Scroll ឬពេលជ្រើសរើស) -->
+    <div id="expense-category-pills-sticky-bar" class="sticky top-0 z-30 bg-[#070D18]/95 backdrop-blur-xl -mx-3.5 px-3.5 py-2 border-b border-white/10 mb-3 shadow-lg">
+      <div id="expense-category-pills-container" class="w-full flex items-center gap-1.5 p-1 rounded-2xl bg-black/50 border border-white/10 overflow-x-auto no-scrollbar text-xs font-semibold">
         <button type="button" onclick="filterExpensesByCategory('all')"
-                class="py-1 px-3 rounded-xl transition whitespace-nowrap active:scale-95 ${activeCat === 'all' ? 'bg-white/20 text-white shadow-sm' : 'text-slate-400 hover:text-white'}">
+                ${activeCat === 'all' ? 'id="active-expense-cat-pill"' : ''}
+                class="py-1.5 px-3 rounded-xl transition whitespace-nowrap active:scale-95 shrink-0 ${activeCat === 'all' ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
           ទាំងអស់ (${items.length})
         </button>
-        ${allCategories.map(c => `
-          <button type="button" onclick="filterExpensesByCategory('${encodeURIComponent(c.name)}')"
-                  class="py-1 px-2.5 rounded-xl transition whitespace-nowrap active:scale-95 flex items-center gap-1.5 ${activeCat.toLowerCase() === c.name.toLowerCase() ? 'bg-white/20 text-white shadow-sm' : 'text-slate-400 hover:text-white'}">
-            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${c.style.color};"></span>
-            <span>${c.name}</span>
-          </button>
-        `).join('')}
+        ${allCategories.map(c => {
+          const isSelected = activeCat.toLowerCase() === c.name.toLowerCase();
+          return `
+            <button type="button" onclick="filterExpensesByCategory('${encodeURIComponent(c.name)}')"
+                    ${isSelected ? 'id="active-expense-cat-pill"' : ''}
+                    class="py-1.5 px-2.5 rounded-xl transition whitespace-nowrap active:scale-95 shrink-0 flex items-center gap-1.5 ${isSelected ? 'bg-white/25 text-white font-bold shadow-md ring-2 ring-orange-400/80 border border-white/30' : 'text-slate-400 hover:text-white border border-transparent'}">
+              <span class="w-2 h-2 rounded-full shrink-0 ${isSelected ? 'animate-pulse' : ''}" style="background-color: ${c.style.color};"></span>
+              <span>${c.name}</span>
+            </button>
+          `;
+        }).join('')}
       </div>
     </div>
 
@@ -9935,6 +9948,18 @@ function renderExpensesBreakdownView(items, totalAmount, listEl) {
   `;
 
   if (window.lucide) window.lucide.createIcons();
+
+  // Keep selected category pill visible in view horizontally (កុំឲរត់បាត់ ត្រូវបង្ហាញពេលជ្រើសរើស)
+  setTimeout(() => {
+    const activePill = document.getElementById('active-expense-cat-pill');
+    if (activePill) {
+      try {
+        activePill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      } catch (_) {
+        try { activePill.scrollIntoView(false); } catch (__) {}
+      }
+    }
+  }, 20);
 }
 
 function renderExpensesModalRows(items) {
