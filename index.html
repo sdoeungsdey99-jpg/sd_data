@@ -3129,6 +3129,53 @@
   </div>
 
   <!-- ======================================================== -->
+  <!-- FULL-SCREEN EXECUTIVE LEADERSHIP & HIERARCHY MODAL (100% SCREEN) -->
+  <!-- ======================================================== -->
+  <div id="executive-hierarchy-modal" class="fixed inset-0 z-[75] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy">
+    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden relative">
+      <!-- Top Sticky Bar -->
+      <div class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <!-- Minimalist Back Button -->
+          <button onclick="closeExecutiveHierarchyModal()" 
+                  class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
+                  title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-amber-400"></i>
+          </button>
+
+          <!-- Title Bar -->
+          <div class="flex items-center gap-2 min-w-0 flex-1 truncate">
+            <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="crown" class="w-3.5 h-3.5"></i>
+            </div>
+            <h3 class="font-bold text-xs sm:text-sm text-white truncate leading-tight">
+              រចនាសម្ព័ន្ធលក់ & ថ្នាក់ដឹកនាំ
+            </h3>
+            <span class="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-bold border border-emerald-500/30">UNLOCKED</span>
+          </div>
+
+          <!-- Re-Lock Button -->
+          <button type="button" onclick="relockExecutiveHierarchyModal()" 
+                  class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5 text-slate-300 text-[10px] font-semibold active:scale-95 transition hover:text-amber-300 shrink-0" title="ចាក់សោរវិញ">
+            <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
+            <span>ចាក់សោរវិញ</span>
+          </button>
+        </div>
+
+        <!-- Date Filter Bar (Auto-hides on drag up, reveals on scroll down) -->
+        <div id="exec-modal-date-filter-bar" class="relative z-40 transition-all duration-300 overflow-hidden">
+          <!-- Injected dynamically by renderExecutiveHierarchyDateFilterBar() -->
+        </div>
+      </div>
+
+      <!-- Scrollable Body with Director, Managers Leaderboard, and Member Roster -->
+      <div id="executive-hierarchy-scroll-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 pb-24">
+        <!-- Injected dynamically by renderExecutiveHierarchyModalContent() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
   <!-- FULL-SCREEN BOSTAR TEAM MEMBERS DIRECTORY MODAL (100% SCREEN) -->
   <!-- ======================================================== -->
   <div id="team-members-modal" class="fixed inset-0 z-[70] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy">
@@ -4953,6 +5000,6 @@
   </div>
 
   <script src="dataService.js?v=7.1"></script>
-  <script src="app.js?v=38.8"></script>
+  <script src="app.js?v=38.9"></script>
 </body>
 </html>

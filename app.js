@@ -3008,10 +3008,12 @@ function submitExecutivePasscode(enteredVal) {
   if (code.toUpperCase() === '1MBOSTAR') {
     sessionStorage.setItem('sd_exec_unlocked', 'true');
     closeExecutivePasscodeModal();
+    if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
     if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
     if (typeof showToastNotification === 'function') {
       showToastNotification('ដោះសោរកាតថ្នាក់ដឹកនាំជោគជ័យ! 👑✨');
     }
+    openExecutiveHierarchyModal();
     renderCurrentView();
   } else {
     const errEl = document.getElementById('exec-passcode-error');
@@ -3052,12 +3054,343 @@ function toggleManagerRoster(idx, event) {
   if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
 }
 
+let execHierarchyFilterState = {
+  mode: 'all',
+  selectedManager: 'all',
+  searchQuery: ''
+};
+let execHierarchyScrollInitialized = false;
+
+function openExecutiveHierarchyFromDrawer() {
+  const isUnlocked = (sessionStorage.getItem('sd_exec_unlocked') === 'true');
+  if (isUnlocked) {
+    if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
+    openExecutiveHierarchyModal();
+  } else {
+    openExecutivePasscodeModal('drawer');
+  }
+}
+
+function openExecutiveHierarchyModal() {
+  const modal = document.getElementById('executive-hierarchy-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveHierarchyModalContent();
+  setupExecutiveHierarchyScroll();
+
+  if (window.lucide) window.lucide.createIcons();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+}
+
+function closeExecutiveHierarchyModal() {
+  const modal = document.getElementById('executive-hierarchy-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function relockExecutiveHierarchyModal() {
+  sessionStorage.removeItem('sd_exec_unlocked');
+  closeExecutiveHierarchyModal();
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+  if (typeof showToastNotification === 'function') {
+    showToastNotification('បានចាក់សោរកាតថ្នាក់ដឹកនាំវិញជោគជ័យ! 🔒');
+  }
+}
+
+function setupExecutiveHierarchyScroll() {
+  const scrollEl = document.getElementById('executive-hierarchy-scroll-body');
+  const filterBar = document.getElementById('exec-modal-date-filter-bar');
+  if (!scrollEl || !filterBar || execHierarchyScrollInitialized) return;
+  execHierarchyScrollInitialized = true;
+
+  let lastScrollTop = scrollEl.scrollTop || 0;
+  scrollEl.addEventListener('scroll', () => {
+    const currentScrollTop = scrollEl.scrollTop;
+    const diff = currentScrollTop - lastScrollTop;
+
+    if (diff > 8 && currentScrollTop > 40) {
+      filterBar.style.maxHeight = '0px';
+      filterBar.style.opacity = '0';
+      filterBar.style.transform = 'translateY(-8px)';
+    } else if (diff < -8 || currentScrollTop <= 10) {
+      filterBar.style.maxHeight = '80px';
+      filterBar.style.opacity = '1';
+      filterBar.style.transform = 'translateY(0)';
+    }
+    lastScrollTop = currentScrollTop;
+  }, { passive: true });
+}
+
+function renderExecutiveHierarchyDateFilterBar() {
+  const container = document.getElementById('exec-modal-date-filter-bar');
+  if (!container) return;
+  const mode = execHierarchyFilterState.mode || 'all';
+
+  container.innerHTML = `
+    <div class="flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/5 w-full relative">
+      <button type="button" onclick="selectExecutiveDateFilter('today')" 
+              class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition active:scale-95 ${mode === 'today' ? 'bg-amber-500 text-black font-bold shadow-md' : 'text-slate-400 hover:text-white'}">
+        ☀️ ថ្ងៃនេះ
+      </button>
+      <button type="button" onclick="selectExecutiveDateFilter('yesterday')" 
+              class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition active:scale-95 ${mode === 'yesterday' ? 'bg-amber-500 text-black font-bold shadow-md' : 'text-slate-400 hover:text-white'}">
+        🌙 ម្សិលមិញ
+      </button>
+      <button type="button" onclick="selectExecutiveDateFilter('month')" 
+              class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition active:scale-95 ${mode === 'month' ? 'bg-amber-500 text-black font-bold shadow-md' : 'text-slate-400 hover:text-white'}">
+        📅 ខែនេះ
+      </button>
+      <button type="button" onclick="selectExecutiveDateFilter('all')" 
+              class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition active:scale-95 ${mode === 'all' ? 'bg-amber-500 text-black font-bold shadow-md' : 'text-slate-400 hover:text-white'}">
+        🌟 ទាំងអស់
+      </button>
+    </div>
+  `;
+}
+
+function selectExecutiveDateFilter(mode) {
+  execHierarchyFilterState.mode = mode;
+  renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveHierarchyModalContent();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function selectExecutiveManagerFilter(mgrName) {
+  execHierarchyFilterState.selectedManager = mgrName;
+  renderExecutiveHierarchyModalContent();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function handleExecutiveMemberSearch(query) {
+  execHierarchyFilterState.searchQuery = (query || '').trim().toLowerCase();
+  renderExecutiveHierarchyModalContent();
+}
+
+function renderExecutiveHierarchyModalContent() {
+  const container = document.getElementById('executive-hierarchy-scroll-body');
+  if (!container) return;
+
+  const d = DataService.data;
+  const hierarchy = (d && d.teamHierarchy) ? d.teamHierarchy : null;
+
+  const fallbackManagers = [
+    { km: 'លោក ស្រឿន លាងហាក់', en: 'Sroeun Leanghak', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 1, members: 7, orders: 6, boxes: 16 },
+    { km: 'លោក ហែម ចន្ធី', en: 'Hem Chanthy', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 3, members: 10, orders: 6, boxes: 13 },
+    { km: 'លោក ហ៊ួរ យ៉ារិទ្ធ', en: 'Hour Yaith', role: 'Manager', dept: 'អ្នកបង្វឹកផ្នែកបិទការលក់', leaders: 2, members: 8, orders: 6, boxes: 12 },
+    { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', dept: 'BOSTAR GROUP CO.,LTD', leaders: 3, members: 10, orders: 4, boxes: 10 },
+    { km: 'លោក ប៊ិច ឧត្តម', en: 'Bech Udom', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 2, members: 6, orders: 4, boxes: 10 },
+    { km: 'លោក ស្ដី ស្ដើង', en: 'Sdey Sdoeung', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 1, members: 3, orders: 3, boxes: 6 }
+  ];
+
+  const rawManagers = (hierarchy && Array.isArray(hierarchy.managers) && hierarchy.managers.length > 0) ? hierarchy.managers : fallbackManagers;
+  const sortedManagers = [...rawManagers].sort((a, b) => (Number(b.boxes) || 0) - (Number(a.boxes) || 0));
+  const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].boxes || 1) : 1;
+
+  const director = (hierarchy && hierarchy.directors && hierarchy.directors.length > 0) ? hierarchy.directors[0] : { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', orders: 29, boxes: 67 };
+  const allLeaders = (hierarchy && Array.isArray(hierarchy.leaders)) ? hierarchy.leaders : [];
+  const allMembers = (hierarchy && Array.isArray(hierarchy.members)) ? hierarchy.members : [];
+
+  const selectedMgr = execHierarchyFilterState.selectedManager || 'all';
+  const query = execHierarchyFilterState.searchQuery || '';
+
+  let filteredMembers = allMembers;
+  if (selectedMgr !== 'all') {
+    const m_clean = selectedMgr.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+    const targetLeaders = allLeaders.filter(l => l.manager === selectedMgr || (m_clean && l.manager.includes(m_clean)));
+    const l_names = new Set(targetLeaders.map(l => l.km));
+    l_names.add(selectedMgr);
+    const l_clean_names = Array.from(l_names).map(l => l.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim());
+    filteredMembers = allMembers.filter(mem => l_names.has(mem.leader) || l_clean_names.some(c => c && mem.leader.includes(c)));
+  }
+  if (query) {
+    filteredMembers = filteredMembers.filter(mem => 
+      mem.km.toLowerCase().includes(query) || 
+      (mem.en && mem.en.toLowerCase().includes(query)) ||
+      (mem.leader && mem.leader.toLowerCase().includes(query))
+    );
+  }
+
+  const managersCardsHtml = sortedManagers.map((m, idx) => {
+    const rank = idx + 1;
+    let rankBadge = '';
+    let borderAccent = 'border-white/5 hover:border-white/15';
+    if (rank === 1) {
+      rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20">🥇</span>`;
+      borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
+    } else if (rank === 2) {
+      rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300/20 border border-slate-300/40 text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">🥈</span>`;
+      borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
+    } else if (rank === 3) {
+      rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700/20 border border-amber-700/40 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">🥉</span>`;
+      borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
+    } else {
+      rankBadge = `<span class="w-6 h-6 rounded-full bg-white/5 border border-white/10 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">#${rank}</span>`;
+    }
+
+    const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
+    const percentOfTop = Math.min(100, Math.round(((Number(m.boxes) || 0) / topBoxes) * 100));
+    const isSelected = (selectedMgr === m.km);
+
+    return `
+      <div onclick="selectExecutiveManagerFilter('${m.km}')" 
+           class="p-3 rounded-2xl bg-black/40 border ${isSelected ? 'border-amber-400 shadow-lg shadow-amber-500/10' : borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2">
+        <div class="flex items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2.5 min-w-0">
+            ${rankBadge}
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-bold text-xs text-white leading-tight">${m.km}</span>
+                ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
+              </div>
+              <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                <span class="truncate max-w-[130px] sm:max-w-none">${m.dept || 'ដឹកនាំក្រុមលក់'}</span>
+                <span>•</span>
+                <span>${m.members} សមាជិក</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-right shrink-0">
+            <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
+              ${m.boxes} ប្រអប់
+            </div>
+            <div class="text-[10px] font-mono text-slate-400">
+              ${m.orders} កុម្ម៉ង់
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+          <div class="h-1 ${rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400'}" style="width: ${percentOfTop}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <!-- 1. TOP TIER: DIRECTOR SHOWCASE -->
+    <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-black/40 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-black flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/30 shrink-0">
+          <i data-lucide="award" class="w-6 h-6"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <h4 class="font-bold text-sm text-white truncate">${director ? director.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
+            <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30 shrink-0">Director</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-0.5 truncate">${director ? director.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
+        </div>
+      </div>
+
+      <div class="text-right shrink-0">
+        <div class="text-xs font-mono font-bold text-amber-300">${director ? director.boxes : 67} ប្រអប់</div>
+        <div class="text-[10px] font-mono text-slate-400">${director ? director.orders : 29} កុម្ម៉ង់សរុប</div>
+      </div>
+    </div>
+
+    <!-- 2. MIDDLE TIER: MANAGERS LEADERBOARD -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between px-1">
+        <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
+          <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>តារាងចំណាត់ថ្នាក់ MANAGERS (៦ ក្រុម)</span>
+        </span>
+        <span class="text-[10px] text-slate-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម</span>
+      </div>
+
+      <div class="space-y-2">
+        ${managersCardsHtml}
+      </div>
+    </div>
+
+    <!-- 3. BOTTOM TIER: MEMBERS & LEADERS ROSTER (របារសមាជិក) -->
+    <div class="space-y-2.5 pt-1">
+      <div class="flex items-center justify-between px-1">
+        <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>របារសមាជិក (${filteredMembers.length} នាក់)</span>
+        </span>
+        ${selectedMgr !== 'all' ? `
+          <button type="button" onclick="selectExecutiveManagerFilter('all')" 
+                  class="text-[10px] text-amber-300 hover:underline">
+            បង្ហាញទាំងអស់ ✕
+          </button>
+        ` : ''}
+      </div>
+
+      <!-- Manager Filter Pills Strip -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+        <button type="button" onclick="selectExecutiveManagerFilter('all')" 
+                class="px-2.5 py-1 rounded-xl text-[11px] font-semibold whitespace-nowrap transition active:scale-95 ${selectedMgr === 'all' ? 'bg-amber-500 text-black font-bold shadow-sm' : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10'}">
+          ទាំងអស់ (${allMembers.length})
+        </button>
+        ${sortedManagers.map(m => `
+          <button type="button" onclick="selectExecutiveManagerFilter('${m.km}')" 
+                  class="px-2.5 py-1 rounded-xl text-[11px] font-semibold whitespace-nowrap transition active:scale-95 ${selectedMgr === m.km ? 'bg-amber-500 text-black font-bold shadow-sm' : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10'}">
+            ${m.km.replace('លោក ', '')} (${m.boxes} ប)
+          </button>
+        `).join('')}
+      </div>
+
+      <!-- Member Search Input -->
+      <div class="relative">
+        <input type="text" value="${query}" oninput="handleExecutiveMemberSearch(this.value)"
+               placeholder="ស្វែងរកឈ្មោះសមាជិក (ខ្មែរ / English / Leader)..." 
+               class="w-full bg-black/50 border border-white/10 focus:border-amber-400 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none transition font-sans">
+        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+      </div>
+
+      <!-- Member List Cards -->
+      <div class="space-y-1.5">
+        ${filteredMembers.length > 0 ? filteredMembers.map(mem => `
+          <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
+                </div>
+                <div class="text-[10px] text-slate-400 mt-0.5">
+                  Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-right shrink-0 font-mono">
+              <div class="text-xs font-bold text-emerald-400">${mem.boxes} ប្រអប់</div>
+              <div class="text-[10px] text-slate-400">${mem.orders} កុម្ម៉ង់</div>
+            </div>
+          </div>
+        `).join('') : `
+          <div class="p-6 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
+            រកមិនឃើញសមាជិកដែលត្រូវនឹងការស្វែងរកឡើយ
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
 window.openExecutivePasscodeModal = openExecutivePasscodeModal;
 window.closeExecutivePasscodeModal = closeExecutivePasscodeModal;
 window.togglePasscodeVisibility = togglePasscodeVisibility;
 window.submitExecutivePasscode = submitExecutivePasscode;
 window.relockExecutiveCard = relockExecutiveCard;
 window.toggleManagerRoster = toggleManagerRoster;
+window.openExecutiveHierarchyFromDrawer = openExecutiveHierarchyFromDrawer;
+window.openExecutiveHierarchyModal = openExecutiveHierarchyModal;
+window.closeExecutiveHierarchyModal = closeExecutiveHierarchyModal;
+window.relockExecutiveHierarchyModal = relockExecutiveHierarchyModal;
+window.selectExecutiveDateFilter = selectExecutiveDateFilter;
+window.selectExecutiveManagerFilter = selectExecutiveManagerFilter;
+window.handleExecutiveMemberSearch = handleExecutiveMemberSearch;
 
 // ==========================================
 // 4. View: Dashboard
@@ -3703,7 +4036,7 @@ function getDashboardViewHTML() {
       <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/30 bg-[#0C1425]/95 shadow-2xl relative overflow-hidden space-y-4">
         <div class="absolute -right-12 -top-12 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <!-- Card Header with Re-Lock Button -->
+        <!-- Card Header with Re-Lock & Fullscreen Button -->
         <div class="flex items-center justify-between pb-3 border-b border-white/10 relative z-10">
           <div class="flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-inner shrink-0">
@@ -3718,11 +4051,18 @@ function getDashboardViewHTML() {
             </div>
           </div>
 
-          <button type="button" onclick="relockExecutiveCard(event)" 
-                  class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5 text-slate-300 text-[10px] font-semibold active:scale-95 transition hover:text-amber-300" title="ចាក់សោរវិញ">
-            <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
-            <span>ចាក់សោរវិញ</span>
-          </button>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="openExecutiveHierarchyModal()" 
+                    class="px-2.5 py-1 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 flex items-center gap-1 text-amber-300 text-[10px] font-semibold active:scale-95 transition" title="បើកផ្ទាំងពេញអេក្រង់">
+              <i data-lucide="maximize-2" class="w-3 h-3 text-amber-400"></i>
+              <span class="hidden sm:inline">ពេញអេក្រង់</span>
+            </button>
+            <button type="button" onclick="relockExecutiveCard(event)" 
+                    class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5 text-slate-300 text-[10px] font-semibold active:scale-95 transition hover:text-amber-300" title="ចាក់សោរវិញ">
+              <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
+              <span>ចាក់សោរ</span>
+            </button>
+          </div>
         </div>
 
         <!-- 1. TOP TIER: DIRECTOR PROFILE & COMPANY HEALTH -->
@@ -16351,6 +16691,31 @@ function renderProfileDrawerContent() {
             <span class="text-white font-semibold truncate text-[11px]">${item.val}</span>
           </div>
         `).join('') || `<p class="text-xs text-slate-400 text-center py-1">${isEn ? 'No personal info shown' : 'មិនទាន់បង្ហាញព័ត៌មានផ្ទាល់ខ្លួន'}</p>`}
+      </div>
+    </div>
+
+    <!-- ZONE 2.5: របាររចនាសម្ព័ន្ធលក់ & ថ្នាក់ដឹកនាំ (Executive Leadership Bar - Locked with Passcode 1MBOSTAR) -->
+    <div onclick="openExecutiveHierarchyFromDrawer()" 
+         class="ios-glass-card rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-[#0C1425]/90 to-[#0A0F1D]/90 p-3 flex items-center justify-between cursor-pointer select-none hover:border-amber-400/50 active:scale-[0.99] transition shadow-lg shadow-amber-500/5">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+          <i data-lucide="crown" class="w-4 h-4"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <h4 class="text-xs font-bold text-white truncate">រចនាសម្ព័ន្ធលក់ & ថ្នាក់ដឹកនាំ</h4>
+            <span class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30">VIP</span>
+          </div>
+          <p class="text-[9.5px] text-slate-400 truncate font-mono">BOSTAR GROUP • Director, 6 Managers & Members</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span class="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-semibold flex items-center gap-1">
+          <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
+          <span>1MBOSTAR</span>
+        </span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
       </div>
     </div>
 
