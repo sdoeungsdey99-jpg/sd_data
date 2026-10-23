@@ -18,15 +18,19 @@
  */
 function authorizeExternalSheets() {
   DriveApp.getRootFolder();
-  var testId = '1ewZpP5q63bvEEui2ARrKnFTE2tjTJKr2cU84rtLclis';
-  var ss = SpreadsheetApp.openById(testId);
-  Logger.log('ជោគជ័យក្នុងការតភ្ជាប់ទៅកាន់តារាង៖ ' + ss.getName());
+  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+  try {
+    var ss = SpreadsheetApp.openById(bostarTrackId);
+    Logger.log('ជោគជ័យក្នុងការតភ្ជាប់ទៅកាន់តារាង BostarTrack៖ ' + ss.getName());
+  } catch (e) {
+    Logger.log('Authorize error: ' + e);
+  }
 }
 
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'ok',
-    version: '2.1-multi-sheet',
+    version: '3.0-bostartrack-direct-val',
     message: 'SD Dashboard Webhook is live and ready! 🚀'
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -57,7 +61,21 @@ function doPost(e) {
     var ss = targetSheetId ? SpreadsheetApp.openById(targetSheetId) : SpreadsheetApp.getActiveSpreadsheet();
 
     if (action === 'add_order') {
+      // 1. បញ្ចូលទៅក្នុង Sheet ផ្ទាល់ខ្លួនរបស់សមាជិក (Personal Sales)
       var result = insertPersonalSalesOrder(ss, data);
+
+      // 2. Dual-Sync: បញ្ចូលទៅកាន់ Master Data នៃ BostarTrack (1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4) ស្វ័យប្រវត្តិ
+      var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+      var syncToBostarTrack = (payload.syncToBostarTrack !== false) && (data.syncToBostarTrack !== false);
+      if (syncToBostarTrack && targetSheetId !== bostarTrackId) {
+        try {
+          var bostarSs = SpreadsheetApp.openById(bostarTrackId);
+          insertPersonalSalesOrder(bostarSs, data);
+        } catch (btErr) {
+          Logger.log('BostarTrack Dual Sync Warn: ' + btErr);
+        }
+      }
+
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     } else if (action === 'add_expense') {
       var result = insertDailyExpense(ss, data);
@@ -110,12 +128,13 @@ function parseToDateObj(dateStr) {
 }
 
 /**
- * បញ្ចូលការកុម្ម៉ង់ចូលផ្ទាំង Personal Sales ដោយសុវត្ថិភាព ១០០%
+ * បញ្ចូលការកុម្ម៉ង់ចូលផ្ទាំង Personal Sales ឬ Master Data ដោយសុវត្ថិភាព ១០០%
+ * បំពេញតម្លៃលេខផ្ទាល់ (Direct Value) ជួរ N, R, T និងកត់ត្រា Reward QTY ជួរ V
  */
 function insertPersonalSalesOrder(ss, order) {
-  var sheet = ss.getSheetByName('Personal Sales');
+  var sheet = ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheets()[0];
   if (!sheet) {
-    return { status: 'error', message: 'Tab "Personal Sales" not found!' };
+    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };
   }
 
   // 1. ស្វែងរកជួរដេកទាំងអស់ដើម្បីពិនិត្យភាពស្ទួន Order ID (Col E)
@@ -164,39 +183,109 @@ function insertPersonalSalesOrder(ss, order) {
   var nextRecNum = maxRecNum + 1;
   var formattedRecId = 'REC-' + ('0000' + nextRecNum).slice(-4);
 
-  // រូបមន្តស្របតាមស្តង់ដារជាក់ស្តែងរបស់ Google Sheet
+  // ប្រភេទការលក់៖ 'standard' (ស្តុកក្រុមហ៊ុន), 'reward' (លក់រង្វាន់), 'return' (លក់អីវ៉ាន់ត្រឡប់)
+  var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();
+
+  // គណនាចំនួនប្រអប់សរុប
+  var totalBoxes = Number(order.totalBoxQty || 0);
+  if (!totalBoxes || totalBoxes === 0) {
+    totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
+                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
+                 Number(order.qtyEmmi || 0) + Number(order.qtySGP || 0) + 
+                 Number(order.freeQty || 0);
+  }
+
+  // គណនាតម្លៃដើម Col R (Stock Cost) តាមប្រភេទការលក់៖
+  // - ស្តុកក្រុមហ៊ុន (Standard) = Qty * $24.00
+  // - លក់រង្វាន់ (Reward) = Qty * $5.00
+  // - លក់អីវ៉ាន់ត្រឡប់ (Return) = $0.00
+  var stockCost = 0;
+  if (orderType === 'reward') {
+    stockCost = totalBoxes * 5.0;
+  } else if (orderType === 'return') {
+    stockCost = 0;
+  } else {
+    stockCost = totalBoxes * 24.0;
+  }
+
+  // តម្លៃលក់សរុប Col N (Total USD)
+  var totalAmountUSD = Number(order.totalAmount || 0);
+
+  // ថ្លៃដឹកជញ្ជូន Col O (Ship Fee)
+  var shipFee = Number(order.shipFee || 0);
+
+  // ប្រាក់ចំណេញសុទ្ធ Col T (Profit)
+  var profitVal = (order.profit !== undefined && order.profit !== null && order.profit !== '') 
+    ? Number(order.profit) 
+    : Math.max(0, Math.round((totalAmountUSD - stockCost - shipFee) * 100) / 100);
+
+  // រូបមន្ត No. បន្តបន្ទាប់
   var prevRow = targetRow - 1;
   var formulaNo = '=IF(OR(A' + targetRow + '="", A' + targetRow + '=A' + prevRow + '), B' + prevRow + '+1, 1)';
-  var formulaTotal = '=(M' + targetRow + '*0.97)/35.6';
-  var formulaStock = '=(H' + targetRow + '+I' + targetRow + '+J' + targetRow + '+K' + targetRow + '+L' + targetRow + ')*24';
-  var formulaProfit = '=N' + targetRow + '-(O' + targetRow + '+R' + targetRow + ')';
 
   // បំប្លែង Date Object ពិតប្រាកដ និងកំណត់ Format dd/MM/yyyy ការពារ Invalid Error
   var dateObj = parseToDateObj(order.date);
 
-  // បំពេញទិន្នន័យចូលក្រឡាជួរនីមួយៗ
-  sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date Object (លែងមាន Invalid)
+  // បំពេញទិន្នន័យចូលក្រឡាជួរនីមួយៗ (Direct Values ជួរ N, R, T)
+  sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date Object
   sheet.getRange(targetRow, 2).setFormula(formulaNo); // Col B: No. (Formula)
-  sheet.getRange(targetRow, 3).setValue(order.customer || ''); // Col C: FB Name (រំលង/ទុកទំនេរបាន)
+  sheet.getRange(targetRow, 3).setValue(order.customer || ''); // Col C: FB Name
   sheet.getRange(targetRow, 4).setValue(order.seller || 'សមាជិក Bostar'); // Col D: Seller
-  sheet.getRange(targetRow, 5).setValue(order.orderId || ''); // Col E: Order ID
+  
+  // Col E: Order ID (បើលក់រង្វាន់ ទុកទំនេរ; បើធម្មតា ឬត្រឡប់ ដាក់លេខ Order)
+  sheet.getRange(targetRow, 5).setValue(orderType === 'reward' ? '' : (order.orderId || ''));
+
   sheet.getRange(targetRow, 6).setValue(order.location || ''); // Col F: Location
-  sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone (លេខទូរស័ព្ទដូចគ្នាអាចបញ្ជូនបាន)
-  sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0)); // Col H: YL (Yong Liang)
-  sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0)); // Col I: YLP (Yong Liang Plus)
-  sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0)); // Col J: KN (Kidney Pro)
-  sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0)); // Col K: P D.O (Pro D.O)
-  sheet.getRange(targetRow, 12).setValue(Number(order.freeQty || 0)); // Col L: Free
+  sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone
+
+  // ផលិតផល H, I, J, K, L៖
+  // - ពេលលក់រង្វាន់ ឬលក់អីវ៉ាន់ត្រឡប់ ទុកនៅទំនេរ ("") ដើម្បីកុំឱ្យច្រឡំជាមួយស្តុកធម្មតា
+  // - ពេលស្តុកក្រុមហ៊ុន បំពេញតាមមុខទំនិញពិត
+  if (orderType === 'reward' || orderType === 'return') {
+    sheet.getRange(targetRow, 8).setValue('');  // Col H: YL
+    sheet.getRange(targetRow, 9).setValue('');  // Col I: YLP
+    sheet.getRange(targetRow, 10).setValue(''); // Col J: KN
+    sheet.getRange(targetRow, 11).setValue(''); // Col K: P D.O
+    sheet.getRange(targetRow, 12).setValue(''); // Col L: Free
+  } else {
+    sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0));
+    sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));
+    sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));
+    sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));
+    sheet.getRange(targetRow, 12).setValue(Number(order.freeQty || 0));
+  }
+
   sheet.getRange(targetRow, 13).setValue(Number(order.thaiBaht || order.price || 0)); // Col M: Price (Baht)
-  sheet.getRange(targetRow, 14).setFormula(formulaTotal); // Col N: Total $ (Formula auto)
-  sheet.getRange(targetRow, 15).setValue(Number(order.shipFee || 0)); // Col O: Ship Fee
+  
+  // Col N: Total $ (បំពេញតម្លៃលេខផ្ទាល់ Direct Value)
+  sheet.getRange(targetRow, 14).setValue(totalAmountUSD).setNumberFormat('$#,##0.00');
+
+  sheet.getRange(targetRow, 15).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col O: Ship Fee
   sheet.getRange(targetRow, 16).setValue(order.deliveryMethod || 'VET(COD)'); // Col P: Delivery
-  sheet.getRange(targetRow, 17).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col Q: COD Status (Default: បានដាក់ការកុម្មង់)
-  sheet.getRange(targetRow, 18).setFormula(formulaStock); // Col R: Stock Cost (Formula)
-  // Col S (19): Payment Date ទុកឱ្យនៅទំនេរ រង់ចាំលោកគ្រូបំពេញពេលលុយចូលជាក់ស្តែង
-  sheet.getRange(targetRow, 20).setFormula(formulaProfit); // Col T: Profit (Formula)
-  sheet.getRange(targetRow, 21).setValue(order.note || ''); // Col U: Note
-  sheet.getRange(targetRow, 24).setValue(formattedRecId); // Col X: Record_ID
+  sheet.getRange(targetRow, 17).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col Q: COD Status
+
+  // Col R: Stock Cost (បំពេញតម្លៃលេខផ្ទាល់ Direct Value: ធម្មតា $24, រង្វាន់ $5, ត្រឡប់ $0)
+  sheet.getRange(targetRow, 18).setValue(stockCost).setNumberFormat('$#,##0.00');
+
+  // Col S (19): Payment Date ទុកឱ្យនៅទំនេរ រង់ចាំបំពេញពេលលុយចូលជាក់ស្តែង
+  // Col T: Profit (បំពេញតម្លៃលេខផ្ទាល់ Direct Value)
+  sheet.getRange(targetRow, 20).setValue(profitVal).setNumberFormat('$#,##0.00');
+
+  // Col U: Note (សម្គាល់ស្វ័យប្រវត្តិ ឬតាមការវាយ)
+  sheet.getRange(targetRow, 21).setValue(order.note || '');
+
+  // Col V (22): Reward QTY (ពេលលក់រង្វាន់ កត់ត្រាចំនួនប្រអប់សរុប; ក្រៅពីនេះ ទុកទំនេរ)
+  if (orderType === 'reward') {
+    sheet.getRange(targetRow, 22).setValue(totalBoxes);
+  } else {
+    sheet.getRange(targetRow, 22).setValue('');
+  }
+
+  // Col W (23): ទំនេរ
+  sheet.getRange(targetRow, 23).setValue('');
+
+  // Col X (24): Record_ID
+  sheet.getRange(targetRow, 24).setValue(formattedRecId);
 
   return {
     status: 'success',

@@ -313,6 +313,10 @@ window.DataService = {
         const codStatus = String(getCell(16) || 'មិនទាន់ទូទាត់').trim();
         const profit = cleanNumber(getCell(19));
         const note = String(getCell(20) || '').trim();
+        const rewardQty = cleanNumber(getCell(21)); // Col V (Reward QTY)
+        const isReward = rewardQty > 0 || note.includes('លក់រង្វាន់');
+        const isReturn = note.includes('លក់អីវ៉ាន់ត្រឡប់') || (note.includes('ត្រឡប់') && cleanNumber(getCell(17)) === 0 && profit > 0);
+
         // Dynamic Record ID detection: checks Col 23, 22, 21 or fallback so deleting/keeping Col V never breaks
         let recordId = '';
         if (getCell(23) && String(getCell(23)).startsWith('REC-')) {
@@ -329,16 +333,28 @@ window.DataService = {
         const isSGPro = note.includes('[SG Pro]');
         const qtySG = isSGPro ? freeVal : 0;
         const freeQty = isSGPro ? 0 : freeVal;
-        const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty + qtySG;
+        let totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty + qtySG;
+        if (rewardQty > 0) {
+          totalBoxQty = rewardQty;
+        } else if (totalBoxQty === 0 && (isReward || isReturn)) {
+          const matchBox = note.match(/(\d+)\s*ប្រអប់/);
+          if (matchBox) totalBoxQty = parseInt(matchBox[1], 10);
+        }
 
         const prodParts = [];
-        if (qtySG > 0) prodParts.push(qtySG > 1 ? `SG Pro (${qtySG})` : `SG Pro`);
-        if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
-        if (qtyPDO > 0) prodParts.push(qtyPDO > 1 ? `PDO (${qtyPDO})` : `PDO`);
-        if (qtyYL > 0) prodParts.push(qtyYL > 1 ? `YL (${qtyYL})` : `YL`);
-        if (qtyYLP > 0) prodParts.push(qtyYLP > 1 ? `YLP (${qtyYLP})` : `YLP`);
-        if (freeQty > 0) prodParts.push(`Free (${freeQty})`);
-        const product = prodParts.join(', ') || 'ទំនិញ';
+        if (isReward) {
+          prodParts.push(totalBoxQty > 0 ? `លក់រង្វាន់ (${totalBoxQty})` : `លក់រង្វាន់`);
+        } else if (isReturn) {
+          prodParts.push(totalBoxQty > 0 ? `លក់អីវ៉ាន់ត្រឡប់ (${totalBoxQty})` : `លក់អីវ៉ាន់ត្រឡប់`);
+        } else {
+          if (qtySG > 0) prodParts.push(qtySG > 1 ? `SG Pro (${qtySG})` : `SG Pro`);
+          if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
+          if (qtyPDO > 0) prodParts.push(qtyPDO > 1 ? `PDO (${qtyPDO})` : `PDO`);
+          if (qtyYL > 0) prodParts.push(qtyYL > 1 ? `YL (${qtyYL})` : `YL`);
+          if (qtyYLP > 0) prodParts.push(qtyYLP > 1 ? `YLP (${qtyYLP})` : `YLP`);
+          if (freeQty > 0) prodParts.push(`Free (${freeQty})`);
+        }
+        const product = prodParts.join(', ') || (isReward ? 'លក់រង្វាន់' : (isReturn ? 'លក់អីវ៉ាន់ត្រឡប់' : 'ទំនិញ'));
 
         personalSales.push({
           date: ddmmyyyy,
@@ -349,6 +365,10 @@ window.DataService = {
           seller,
           location,
           phone,
+          orderType: isReward ? 'reward' : (isReturn ? 'return' : 'standard'),
+          rewardQty,
+          isReward,
+          isReturn,
           qtyYL,
           qtyYLP,
           qtyKN,

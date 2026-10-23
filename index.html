@@ -4256,22 +4256,27 @@
           </label>
         </div>
 
-        <!-- Order Type Switcher: Standard vs Reward -->
+        <!-- Order Type Switcher: ស្តុកក្រុមហ៊ុន vs លក់រង្វាន់ vs លក់អីវ៉ាន់ត្រឡប់ -->
         <div id="order-type-card" class="p-2.5 rounded-2xl bg-black/30 border border-white/10 space-y-2">
           <span id="order-label-type" class="text-[11px] font-bold text-slate-300 block">ប្រភេទការលក់:</span>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-3 gap-1.5">
             <button type="button" id="btn-type-standard" onclick="setOrderType('standard')" 
-                    class="p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-orange-500/20 border-orange-500 text-orange-400">
-              <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
-              <span id="btn-type-standard-text">ការលក់ធម្មតា</span>
+                    class="py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-orange-500/20 border-orange-500 text-orange-400 shadow-sm" title="ស្តុកក្រុមហ៊ុន">
+              <i data-lucide="package" class="w-3.5 h-3.5 shrink-0"></i>
+              <span id="btn-type-standard-text" class="truncate">ស្តុកក្រុមហ៊ុន</span>
             </button>
             <button type="button" id="btn-type-reward" onclick="setOrderType('reward')" 
-                    class="p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white">
-              <span class="text-xs">🎁</span>
-              <span id="btn-type-reward-text">លក់រង្វាន់ (ថ្លៃដើម $0)</span>
+                    class="py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-white/5 border-white/10 text-slate-400 hover:text-white shadow-sm" title="លក់រង្វាន់">
+              <span class="text-xs shrink-0">🎁</span>
+              <span id="btn-type-reward-text" class="truncate">លក់រង្វាន់</span>
+            </button>
+            <button type="button" id="btn-type-return" onclick="setOrderType('return')" 
+                    class="py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-white/5 border-white/10 text-slate-400 hover:text-white shadow-sm" title="លក់អីវ៉ាន់ត្រឡប់">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 shrink-0"></i>
+              <span id="btn-type-return-text" class="truncate">លក់អីវ៉ាន់ត្រឡប់</span>
             </button>
           </div>
-          <p id="order-type-desc" class="text-[10px] text-slate-400">គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។</p>
+          <p id="order-type-desc" class="text-[10px] text-slate-400 leading-relaxed">គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។</p>
         </div>
 
         <!-- Date & Mini Calendar (Outside Card, Left-aligned above ថ្នាក់ដឹកនាំ) -->

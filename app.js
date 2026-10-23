@@ -21129,64 +21129,100 @@ function switchOrderMode(mode) {
 }
 
 function toggleOrderTypeCapsule() {
-  if (currentOrderEntryMode === 'dock') {
-    // សម្រាប់ផ្ទាំងការកុម្ម៉ង់ថ្មី គឺរក្សាទុកជា «ស្តុក» ថេរ មិនផ្លាស់ប្តូរទៅរង្វាន់ទេ
-    return;
-  }
   if (currentOrderType === 'standard') {
     setOrderType('reward');
-    showToastNotification('🎁 ប្តូរទៅជា «លក់រង្វាន់» (ថ្លៃដើមស្តុក $0)');
+    showToastNotification('🎁 ប្តូរទៅជា «លក់រង្វាន់» (ថ្លៃដើម $5/ប្រអប់)');
+  } else if (currentOrderType === 'reward') {
+    setOrderType('return');
+    showToastNotification('🔄 ប្តូរទៅជា «លក់អីវ៉ាន់ត្រឡប់» (ថ្លៃដើម $0)');
   } else {
     setOrderType('standard');
-    showToastNotification('📦 ប្តូរទៅជា «ដាក់ចូលស្តុក» (គិតថ្លៃដើមស្តុក $24)');
+    showToastNotification('📦 ប្តូរទៅជា «ស្តុកក្រុមហ៊ុន» (គិតថ្លៃដើម $24)');
+  }
+}
+
+function updateAutoOrderNote() {
+  const noteInput = document.getElementById('order-field-note');
+  if (!noteInput) return;
+
+  const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                     (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
+                     (currentOrderProducts.free || 0);
+
+  let currentVal = noteInput.value.trim();
+
+  // Strip previous auto-generated prefixes
+  const cleanedVal = currentVal
+    .replace(/^លក់រង្វាន់\s*(\(\d+\s*ប្រអប់\))?\s*[-:\s]?\s*/i, '')
+    .replace(/^លក់អីវ៉ាន់ត្រឡប់\s*(\(\d+\s*ប្រអប់\))?\s*[-:\s]?\s*/i, '')
+    .trim();
+
+  if (currentOrderType === 'reward') {
+    const prefix = totalBoxes > 0 ? `លក់រង្វាន់ (${totalBoxes} ប្រអប់)` : 'លក់រង្វាន់';
+    noteInput.value = cleanedVal ? `${prefix} - ${cleanedVal}` : prefix;
+  } else if (currentOrderType === 'return') {
+    const prefix = totalBoxes > 0 ? `លក់អីវ៉ាន់ត្រឡប់ (${totalBoxes} ប្រអប់)` : 'លក់អីវ៉ាន់ត្រឡប់';
+    noteInput.value = cleanedVal ? `${prefix} - ${cleanedVal}` : prefix;
+  } else {
+    noteInput.value = cleanedVal;
   }
 }
 
 function setOrderType(type) {
-  if (currentOrderEntryMode === 'dock') {
-    type = 'standard'; // សម្រាប់ផ្ទាំងការកុម្ម៉ង់ថ្មី គឺស្តង់ដារ «ស្តុក» ជានិច្ច
+  if (!type || !['standard', 'reward', 'return'].includes(type)) {
+    type = 'standard';
   }
   currentOrderType = type;
   const capsuleBtn = document.getElementById('btn-order-stock-capsule');
   const btnStd = document.getElementById('btn-type-standard');
   const btnRwd = document.getElementById('btn-type-reward');
+  const btnRet = document.getElementById('btn-type-return');
   const desc = document.getElementById('order-type-desc');
   const orderIdGroup = document.getElementById('group-order-id');
-  const noteInput = document.getElementById('order-field-note');
   const sellerPhoneInput = document.getElementById('order-field-seller-phone');
 
+  // Reset inactive styles
+  const inactiveCls = 'py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-white/5 border-white/10 text-slate-400 hover:text-white shadow-sm';
+  if (btnStd) btnStd.className = inactiveCls;
+  if (btnRwd) btnRwd.className = inactiveCls;
+  if (btnRet) btnRet.className = inactiveCls;
+
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+
   if (type === 'reward') {
-    const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+    if (btnRwd) btnRwd.className = 'py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-amber-500/20 border-amber-500 text-amber-400 shadow-sm';
     if (capsuleBtn) {
-      const isTele = (currentOrderEntryMode === 'telegram');
-      capsuleBtn.className = 'px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/50 text-xs font-bold text-amber-400 active:scale-95 transition flex items-center justify-center shadow-sm' + (isTele ? ' hidden' : '');
-      capsuleBtn.style.display = isTele ? 'none' : '';
+      capsuleBtn.className = 'px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/50 text-xs font-bold text-amber-400 active:scale-95 transition flex items-center justify-center shadow-sm cursor-pointer';
       capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">រង្វាន់</span>`;
+      capsuleBtn.onclick = toggleOrderTypeCapsule;
     }
-    if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-400';
-    if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
-    if (desc) desc.innerText = isMaster ? 'លក់រង្វាន់: មិនគិតថ្លៃដើមស្តុក ($0) និងកំណត់លេខអ្នកលក់ជា 097 859 5526 ស្វ័យប្រវត្តិ។' : 'លក់រង្វាន់: មិនគិតថ្លៃដើមស្តុក ($0)។';
+    if (desc) desc.innerText = 'លក់រង្វាន់: គិតថ្លៃដើម $5/ប្រអប់, បូកសរុបចូលជួរ V (Reward QTY) និងដកថ្លៃដឹក។';
     if (orderIdGroup) orderIdGroup.classList.add('opacity-40', 'pointer-events-none');
-    if (noteInput && !noteInput.value) noteInput.value = 'លក់រង្វាន់';
     if (sellerPhoneInput && isMaster) sellerPhoneInput.value = '097 859 5526';
-  } else {
+  } else if (type === 'return') {
+    if (btnRet) btnRet.className = 'py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-sky-500/20 border-sky-500 text-sky-400 shadow-sm';
     if (capsuleBtn) {
-      const isTele = (currentOrderEntryMode === 'telegram');
-      const isDock = (currentOrderEntryMode === 'dock');
-      capsuleBtn.className = isDock 
-        ? 'px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/40 text-xs font-bold text-orange-400 flex items-center justify-center shadow-sm select-none cursor-default'
-        : ('px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/40 text-xs font-bold text-orange-400 active:scale-95 transition flex items-center justify-center shadow-sm' + (isTele ? ' hidden' : ''));
-      capsuleBtn.style.display = isTele ? 'none' : '';
-      if (isDock) capsuleBtn.onclick = null;
-      capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ស្តុក</span>`;
+      capsuleBtn.className = 'px-3 py-1 rounded-full bg-sky-500/20 border border-sky-500/50 text-xs font-bold text-sky-400 active:scale-95 transition flex items-center justify-center shadow-sm cursor-pointer';
+      capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ត្រឡប់</span>`;
+      capsuleBtn.onclick = toggleOrderTypeCapsule;
     }
-    if (btnStd) btnStd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-orange-500/20 border-orange-500 text-orange-400';
-    if (btnRwd) btnRwd.className = 'p-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 bg-white/5 border-white/10 text-slate-400 hover:text-white';
-    if (desc) desc.innerText = 'គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។';
+    if (desc) desc.innerText = 'លក់អីវ៉ាន់ត្រឡប់: គិតថ្លៃដើម $0.00 (បានទូទាត់ថ្លៃដើមរួចហើយ) និងដកថ្លៃដឹក។';
     if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
-    if (noteInput && noteInput.value === 'លក់រង្វាន់') noteInput.value = '';
+  } else {
+    // standard
+    if (btnStd) btnStd.className = 'py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-orange-500/20 border-orange-500 text-orange-400 shadow-sm';
+    if (capsuleBtn) {
+      capsuleBtn.className = 'px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/40 text-xs font-bold text-orange-400 active:scale-95 transition flex items-center justify-center shadow-sm cursor-pointer';
+      capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ស្តុក</span>`;
+      capsuleBtn.onclick = toggleOrderTypeCapsule;
+    }
+    if (desc) desc.innerText = 'ស្តុកក្រុមហ៊ុន: គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។';
+    if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
     if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
   }
+
+  updateAutoOrderNote();
   calculateOrderFinancials();
   checkOrderSubmitValidation();
   if (window.lucide) window.lucide.createIcons();
@@ -21196,6 +21232,7 @@ function adjustProductQty(prod, delta) {
   if (currentOrderProducts[prod] !== undefined) {
     currentOrderProducts[prod] = Math.max(0, (currentOrderProducts[prod] || 0) + delta);
     updateProductQtyDisplay();
+    updateAutoOrderNote();
     calculateOrderFinancials();
     checkOrderSubmitValidation();
     if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
@@ -21259,9 +21296,10 @@ function toggleExtraProducts() {
 }
 
 function calculateOrderFinancials() {
-  const paidBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
-                    (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
-                    (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0);
+  const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                     (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
+                     (currentOrderProducts.free || 0);
 
   const totalUsdInput = document.getElementById('order-field-total-usd');
   const shipInput = document.getElementById('order-field-ship');
@@ -21271,9 +21309,11 @@ function calculateOrderFinancials() {
 
   let stockCost = 0;
   if (currentOrderType === 'reward') {
-    stockCost = 0;
+    stockCost = totalBoxes * 5.00; // $5 / ឯកតា តាមលក្ខខណ្ឌលក់រង្វាន់
+  } else if (currentOrderType === 'return') {
+    stockCost = 0.00; // ថ្លៃដើម $0 ព្រោះបានទូទាត់រួច
   } else {
-    stockCost = paidBoxes * 24.00;
+    stockCost = totalBoxes * 24.00; // ស្តុកក្រុមហ៊ុនធម្មតា
   }
 
   const profit = Math.max(0, totalUsd - stockCost - shipFee);
@@ -21281,7 +21321,15 @@ function calculateOrderFinancials() {
   const stockDisp = document.getElementById('summary-stock-disp');
   const profitDisp = document.getElementById('summary-profit-disp');
 
-  if (stockDisp) stockDisp.innerText = currentOrderType === 'reward' ? '$0.00 (រង្វាន់)' : `$${stockCost.toFixed(2)}`;
+  if (stockDisp) {
+    if (currentOrderType === 'reward') {
+      stockDisp.innerText = `$${stockCost.toFixed(2)} ($5/កំប៉ុង)`;
+    } else if (currentOrderType === 'return') {
+      stockDisp.innerText = `$0.00 (ត្រឡប់)`;
+    } else {
+      stockDisp.innerText = `$${stockCost.toFixed(2)}`;
+    }
+  }
   if (profitDisp) profitDisp.innerText = `$${profit.toFixed(2)}`;
 }
 
@@ -21502,6 +21550,7 @@ async function submitNewOrder() {
   const getVal = (id) => (document.getElementById(id)?.value || '').trim();
 
   const isReward = (currentOrderType === 'reward');
+  const isReturn = (currentOrderType === 'return');
   const orderId = isReward ? '' : getVal('order-field-id');
   
   // Format date to DD/MM/YYYY for Google Sheet
@@ -21527,7 +21576,6 @@ async function submitNewOrder() {
   const totalUsd = cleanNumber(getVal('order-field-total-usd')) || 90.00;
   const shipFee = cleanNumber(getVal('order-field-ship')) || 3.00;
   const priceRaw = cleanNumber(getVal('order-field-price-raw')) || 360000;
-  const note = getVal('order-field-note') || (isReward ? 'លក់រង្វាន់' : '');
   const team = getVal('order-field-team') || 'Bech_Nora';
 
   // ចងចាំឈ្មោះអ្នកលក់ និងថ្នាក់ដឹកនាំក្នុង LocalStorage សម្រាប់លើកក្រោយ
@@ -21599,8 +21647,23 @@ async function submitNewOrder() {
     if (window.lucide) window.lucide.createIcons();
   }
 
-  const stockCost = isReward ? 0 : (totalBoxes * 24.00);
+  // គណនាថ្លៃដើមតាមប្រភេទការលក់៖
+  // - ស្តុកក្រុមហ៊ុន = totalBoxes * $24
+  // - លក់រង្វាន់ = totalBoxes * $5
+  // - លក់អីវ៉ាន់ត្រឡប់ = $0.00
+  let stockCost = 0;
+  if (isReward) {
+    stockCost = totalBoxes * 5.00;
+  } else if (isReturn) {
+    stockCost = 0.00;
+  } else {
+    stockCost = totalBoxes * 24.00;
+  }
   const profit = Math.max(0, totalUsd - stockCost - shipFee);
+
+  const rawNote = getVal('order-field-note');
+  const autoPrefix = isReward ? `លក់រង្វាន់ (${totalBoxes} ប្រអប់)` : (isReturn ? `លក់អីវ៉ាន់ត្រឡប់ (${totalBoxes} ប្រអប់)` : '');
+  const note = rawNote || autoPrefix;
 
   const prodParts = [];
   if (currentOrderProducts.yl > 0) prodParts.push(currentOrderProducts.yl > 1 ? `YL (${currentOrderProducts.yl})` : `YL`);
@@ -21624,23 +21687,29 @@ async function submitNewOrder() {
     team: team,
     location: location,
     phone: phone,
-    qtyYL: currentOrderProducts.yl || 0,
-    qtyYLP: currentOrderProducts.ylp || 0,
-    qtyKN: currentOrderProducts.kn || 0,
-    qtyPDO: currentOrderProducts.pdo || 0,
-    qtyEmmi: currentOrderProducts.emmi || 0,
-    qtySGP: currentOrderProducts.sgp || 0,
-    freeQty: currentOrderProducts.free || 0,
+    orderType: currentOrderType, // 'standard', 'reward', 'return'
+    rewardQty: isReward ? totalBoxes : 0,
+    isReward: isReward,
+    isReturn: isReturn,
+    qtyYL: (isReward || isReturn) ? 0 : (currentOrderProducts.yl || 0),
+    qtyYLP: (isReward || isReturn) ? 0 : (currentOrderProducts.ylp || 0),
+    qtyKN: (isReward || isReturn) ? 0 : (currentOrderProducts.kn || 0),
+    qtyPDO: (isReward || isReturn) ? 0 : (currentOrderProducts.pdo || 0),
+    qtyEmmi: (isReward || isReturn) ? 0 : (currentOrderProducts.emmi || 0),
+    qtySGP: (isReward || isReturn) ? 0 : (currentOrderProducts.sgp || 0),
+    freeQty: (isReward || isReturn) ? 0 : (currentOrderProducts.free || 0),
     totalBoxQty: totalBoxes,
-    product: productSummary,
+    product: isReward ? `លក់រង្វាន់ (${totalBoxes})` : (isReturn ? `លក់អីវ៉ាន់ត្រឡប់ (${totalBoxes})` : productSummary),
     price: priceRaw,
     thaiBaht: thaiBaht,
     totalAmount: totalUsd,
     shipFee: shipFee,
+    stockCost: stockCost,
     deliveryMethod: delivery,
     codStatus: 'បានដាក់ការកុម្ម៉ង់', // កំណត់ពាក្យ "បានដាក់ការកុម្ម៉ង់" ជា Default
     profit: profit,
     note: note,
+    syncToBostarTrack: true,
     createdAt: Date.now()
   };
 
@@ -21657,7 +21726,7 @@ async function submitNewOrder() {
     localStorage.setItem('sd_local_orders', JSON.stringify(existing));
   } catch (_) {}
 
-  // 3. យុទ្ធសាស្ត្រ 3 in 1: បញ្ជូនចូល Google Sheet ផ្ទាល់ខ្លួន & Google Form ក្រុមហ៊ុន (បើ Mode Telegram មិនបញ្ជូនទៅក្រុមហ៊ុនដាច់ខាត)
+  // 3. យុទ្ធសាស្ត្រ 3 in 1: បញ្ជូនចូល Google Sheet ផ្ទាល់ខ្លួន & BostarTrack Master Data & Google Form ក្រុមហ៊ុន
   const syncToCompany = (currentOrderEntryMode !== 'telegram') && (document.getElementById('order-field-sync-company-form')?.checked !== false);
   const webhookUrl = getAppsScriptWebhookUrl();
   let syncSuccess = false;
@@ -21665,7 +21734,7 @@ async function submitNewOrder() {
 
   const syncTasks = [];
 
-  // 3A. Personal Apps Script Webhook
+  // 3A. Personal Apps Script Webhook (Auto dual-syncs to BostarTrack Master Data)
   if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
     syncTasks.push(
       fetch(webhookUrl, {
@@ -21675,6 +21744,7 @@ async function submitNewOrder() {
         body: JSON.stringify({
           action: 'add_order',
           sheetId: (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '',
+          syncToBostarTrack: true,
           data: newRecord
         })
       }).then(() => {
@@ -21702,17 +21772,17 @@ async function submitNewOrder() {
 
   if (syncSuccess || companyFormSuccess) {
     const successMsg = (syncToCompany && companyFormSuccess) 
-      ? '✅ បានកត់ត្រាការលក់ និងបញ្ជូនចូល Google Form ក្រុមហ៊ុនជោគជ័យ! 🚀'
+      ? '✅ បានកត់ត្រាការលក់ និង Sync ចូល BostarTrack / Form ក្រុមហ៊ុនជោគជ័យ! 🚀'
       : '✅ បានកត់ត្រាការលក់ចូល Google Sheet ជោគជ័យ! 🚀';
 
     if (typeof addAppNotification === 'function') {
       addAppNotification({
         type: 'order',
         title: (syncToCompany ? 'កុម្ម៉ង់ 3-in-1: ' : 'កត់ត្រាការលក់: ') + `${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
-        content: `${productSummary} | ${totalBoxes} ប្រអប់ | $${formatUSD(totalUsd).replace('$', '')} | Team: ${team} | ដឹក: ${delivery}`,
-        tag: syncToCompany ? 'Google Form & Sheet ✓' : 'Google Sheet ✓',
-        color: 'orange',
-        icon: 'package'
+        content: `${newRecord.product} | ${totalBoxes} ប្រអប់ | $${formatUSD(totalUsd).replace('$', '')} | Team: ${team} | ដឹក: ${delivery}`,
+        tag: syncToCompany ? 'BostarTrack & Sheet ✓' : 'Google Sheet ✓',
+        color: isReward ? 'amber' : (isReturn ? 'sky' : 'orange'),
+        icon: isReward ? 'gift' : (isReturn ? 'rotate-ccw' : 'package')
       });
     }
     showToastNotification(successMsg);
