@@ -15232,49 +15232,122 @@ function closeProfileDrawer() {
 }
 
 const BOSTAR_TEAM_SELLERS = [
-  { km: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung' },
-  { km: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung' },
-  { km: 'ញែក សុគន្ធ', en: 'Nhek Sokun' },
-  { km: 'អយ ស្រីនី', en: 'Oy Sreyny' },
-  { km: 'ផាត់ ណាវី', en: 'Phat Navy' },
-  { km: 'ម៉ាន់ សុគន្ធលីហ្សា', en: 'Man Sokunlyza' },
-  { km: 'មុំចាន់នី', en: 'Mom Channy' },
-  { km: 'ជា ស្រីណាត់', en: 'Chea Sreynat' },
-  { km: 'ប៊ិច ស្រីមុំ', en: 'Bech Sreymom' },
-  { km: 'និន ណែត', en: 'Nin Net' },
-  { km: 'ប្រាក់ ស្រីភា', en: 'Prak Sreyphea' },
-  { km: 'សារិ ច័ន្ទរា', en: 'Sari Chanrea' },
-  { km: 'ជន់ ច័ន្ទវិច្ឆិកា', en: 'Chhon Chanvichhika' },
-  { km: 'សឹម សិត', en: 'Sim Set' },
-  { km: 'ជាន ស្រីនិច', en: 'Chean Sreynich' },
-  { km: 'វន ស្រីនិច', en: 'Vorn Sreynich' },
-  { km: 'វួច ផាន់នី', en: 'Vouch Phanny' },
-  { km: 'ឆេង សុធី', en: 'Chheng Sothy' },
-  { km: 'ស្រី ឡាត់', en: 'Srey Lat' },
-  { km: 'ងី សុខណា', en: 'Ngy Sokna' },
-  { km: 'ផាន សោភា', en: 'Phan Sophea' },
-  { km: 'ជា វឌ្ឍនា', en: 'Chea Vathana' },
-  { km: 'ប៊ុន ស្រីភាព', en: 'Bun Sreypheap' },
-  { km: 'សាប់ លក្ខិណា', en: 'Sab Leakhena' },
-  { km: 'សុស ស្រីពេជ្រ', en: 'Sos Sreypech' },
-  { km: 'ភឿន សុផា', en: 'Phoeun Sopha' },
-  { km: 'សូត្រ ម៉ាស់យ៉ា', en: 'Sotr Masya' },
-  { km: 'ទូច ស្រីណែត', en: 'Touch Sreynet' },
-  { km: 'ជុំ ចាន់ រិទ្ធ', en: 'Chum Chanrith' },
-  { km: 'ភឿន កញ្ញា', en: 'Phoeun Kanya' },
-  { km: 'អៀម សុភី', en: 'Eam Sophy' },
-  { km: 'សុង ស្រីឡែន', en: 'Song Sreylen' },
-  { km: 'ជុន ថាវី', en: 'Chun Thavy' },
-  { km: 'ងេន សុខា', en: 'Ngen Sokha' },
-  { km: 'សុមុន្នី ស្រីណុច', en: 'Somony Sreynoch' },
-  { km: 'ម៉ន សីហាក់', en: 'Morn Seyhak' }
+  { no: 1, km: 'សុង ស្រីឡែន', en: 'Song Sreylen', leader: 'ពុធ ធារ៉ា' },
+  { no: 2, km: 'សុមុន្នី ស្រីណុច', en: 'Somony Sreynoch', leader: 'លោក ហែម ចន្ធី' },
+  { no: 3, km: 'ជាន ស្រីនិច', en: 'Chean Sreynich', leader: 'ម៉ិច ច័ន្ទសុជាតា' },
+  { no: 4, km: 'ប្រាក់ ស្រីភា', en: 'Prak Sreyphea', leader: 'លោក ហែម ចន្ធី' },
+  { no: 5, km: 'ងេន សុខា', en: 'Ngen Sokha', leader: 'លោក ហ៊ួរ យ៉ារិទ្ធ' },
+  { no: 6, km: 'ជន់ ច័ន្ទវិច្ឆិកា', en: 'Chon Chanvichika', leader: 'លោក ហ៊ួរ យ៉ារិទ្ធ' },
+  { no: 7, km: 'អយ ស្រីនី', en: 'Ory Sreyni', leader: 'លោក ហ៊ួរ យ៉ារិទ្ធ' },
+  { no: 8, km: 'ងី សុខណា', en: 'Ngy Sokhna', leader: 'លោក ហែម ចន្ធី' },
+  { no: 9, km: 'ផាន សោភា', en: 'Phan Sophea', leader: 'លោក ហ៊ួរ យ៉ារិទ្ធ' },
+  { no: 10, km: 'សារិ ច័ន្ទរា', en: 'Sari Chanrea', leader: 'លោក ស្រឿន លាងហាក់' },
+  { no: 11, km: 'ជា ស្រីណាត់', en: 'Chea Sreynat', leader: 'លោក ស្រឿន លាងហាក់' },
+  { no: 12, km: 'ស្ដី ស្ដើង', en: 'Sdey Sdoeung', leader: 'លោក ស្ដី ស្ដើង' },
+  { no: 13, km: 'ស្រី ឡាត់', en: 'Srey Lat', leader: 'និន ណែត' },
+  { no: 14, km: 'វួច ផាន់នី', en: 'Vuoch Phanny', leader: 'សូត្រ ម៉ាស់យ៉ា' },
+  { no: 15, km: 'ម៉ន សីហាក់', en: 'Morn Seyhak', leader: 'សូត្រ ម៉ាស់យ៉ា' },
+  { no: 16, km: 'អៀម សុភី', en: 'Eam Sophy', leader: 'លោក ហែម ចន្ធី' },
+  { no: 17, km: 'ឆេង សុធី', en: 'Chheng Sothy', leader: 'លោក ស្ដី ស្ដើង' },
+  { no: 18, km: 'ប៊ុន ស្រីភាព', en: 'Bun Sreypheap', leader: 'លោក ស្រឿន លាងហាក់' },
+  { no: 19, km: 'មុំចាន់នី', en: 'Mom Channy', leader: 'និន ណែត' },
+  { no: 20, km: 'វន ស្រីនិច', en: 'Von Sreynich', leader: 'វន ស្រីនិច' },
+  { no: 21, km: 'ជុន ថាវី', en: 'Chun Thavy', leader: 'លោក ហ៊ួរ យ៉ារិទ្ធ' },
+  { no: 22, km: 'សូត្រ ម៉ាស់យ៉ា', en: 'Sotr Masya', leader: 'សូត្រ ម៉ាស់យ៉ា' },
+  { no: 23, km: 'ប៊ិច ស្រីមុំ', en: 'Bech Sreymom', leader: 'លោក ប៊ិច ឧត្តម' },
+  { no: 24, km: 'ញែក សុគន្ធ', en: 'Nhek Sokun', leader: 'ម៉ិច ច័ន្ទសុជាតា' },
+  { no: 25, km: 'និន ណែត', en: 'Nin Net', leader: 'និន ណែត' },
+  { no: 26, km: 'ម៉ាន់ សុគន្ធលីហ្សា', en: 'Mann Sokunlyza', leader: 'លោក ស្រឿន លាងហាក់' },
+  { no: 27, km: 'ផាត់ ណាវី', en: 'Phat Navy', leader: 'លោក ហ៊ួរ យ៉ារិទ្ធ' },
+  { no: 28, km: 'សុស ស្រីពេជ្រ', en: 'Sos Sreypech', leader: 'លោក ប៊ិច ឧត្តម' },
+  { no: 29, km: 'ទូច ស្រីណែត', en: 'Touch Sreynet', leader: 'លោក ស្រឿន លាងហាក់' },
+  { no: 30, km: 'សុីម វត្តី', en: 'Sim Vottey', leader: 'ពុធ ធារ៉ា' },
+  { no: 31, km: 'ភឿន កញ្ញា', en: 'Phoeun Kanya', leader: 'លោក ស្រឿន លាងហាក់' },
+  { no: 32, km: 'ជុំ ចាន់ រិទ្ធ', en: 'Chum Chanrith', leader: 'ពុធ ធារ៉ា' },
+  { no: 33, km: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung', leader: 'លោក ស្ដី ស្ដើង' },
+  { no: 34, km: 'យឹម សីហា', en: 'Yim Seyha', leader: 'យឹម សីហា' },
+  { no: 35, km: 'ជា វឌ្ឍនា', en: 'Chea Vathana', leader: 'យឹម សីហា' },
+  { no: 36, km: 'សាប់ លក្ខិណា', en: 'Sab Leakhena', leader: 'ម៉ិច ច័ន្ទសុជាតា' },
+  { no: 37, km: 'សឹម សិត', en: 'Sim Seth', leader: 'ពុធ ធារ៉ា' },
+  { no: 38, km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', leader: 'លោក ប៊ិច នោរ៉ា' },
+  { no: 39, km: 'លោក ហ៊ួរ យ៉ារិទ្ធ', en: 'Hour Yaith', leader: 'លោក ហ៊ួរ យ៉ារិទ្ធ' },
+  { no: 40, km: 'លោក ហែម ចន្ធី', en: 'Hem Chanthy', leader: 'លោក ហែម ចន្ធី' },
+  { no: 41, km: 'លោក ប៊ិច ឧត្តម', en: 'Bech Udom', leader: 'លោក ប៊ិច ឧត្តម' },
+  { no: 42, km: 'លោក ស្រឿន លាងហាក់', en: 'Sroeun Leanghak', leader: 'លោក ស្រឿន លាងហាក់' },
+  { no: 43, km: 'អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា', en: 'Sot Masya', leader: 'លោក ហែម ចន្ធី' },
+  { no: 44, km: 'អ្នកគ្រូ ម៉ិច ច័ន្ទសុជាតា', en: 'Mech Chansocheata', leader: 'លោក ប៊ិច នោរ៉ា' },
+  { no: 45, km: 'លោក ពុធ ធារ៉ា', en: 'Puth Theara', leader: 'លោក ប៊ិច នោរ៉ា' }
 ];
+
+function normalizeSellerName(name) {
+  if (!name) return '';
+  return name.toString().trim()
+    .replace(/^(លោក|អ្នកគ្រូ|កញ្ញា|បង)\s+/g, '')
+    .replace(/ស្តី/g, 'ស្ដី')
+    .replace(/ស្តើង/g, 'ស្ដើង')
+    .toLowerCase()
+    .trim();
+}
+
+function findBostarSeller(query) {
+  if (!query) return null;
+  const q = query.toString().trim();
+  const normQ = normalizeSellerName(q);
+  return BOSTAR_TEAM_SELLERS.find(s => 
+    s.km === q || 
+    s.en.toLowerCase() === q.toLowerCase() || 
+    normalizeSellerName(s.km) === normQ ||
+    normalizeSellerName(s.en) === normQ
+  ) || null;
+}
 
 function getSellerLatinName(kmName) {
   if (!kmName) return '';
-  const trimmed = kmName.trim();
-  const found = BOSTAR_TEAM_SELLERS.find(s => s.km === trimmed || s.en.toLowerCase() === trimmed.toLowerCase());
+  const trimmed = kmName.toString().trim();
+  const found = findBostarSeller(trimmed);
   return found ? found.en : trimmed;
+}
+
+function isCurrentUserSeller(seller) {
+  if (!seller) return false;
+  const p = (typeof getProfileData === 'function') ? getProfileData() : null;
+  const currentName = (p && p.name) ? p.name.trim() : '';
+  const lastSeller = (localStorage.getItem('sd_last_seller') || '').trim();
+  const sKm = (seller.km || '').trim();
+  const sEn = (seller.en || '').trim();
+
+  const normCurrent = normalizeSellerName(currentName);
+  const normLast = normalizeSellerName(lastSeller);
+  const normSeller = normalizeSellerName(sKm);
+
+  if (normSeller && (normSeller === normCurrent || normSeller === normLast)) return true;
+  if (sEn && (sEn.toLowerCase() === currentName.toLowerCase() || sEn.toLowerCase() === lastSeller.toLowerCase())) return true;
+  if (sKm && (sKm === currentName || sKm === lastSeller)) return true;
+  return false;
+}
+
+function getSellerAggregatedStats(seller, sellerStatsMap) {
+  if (!seller || !sellerStatsMap) return { boxes: 0, orders: 0, totalAmount: 0 };
+  const normKm = normalizeSellerName(seller.km);
+  const normEn = normalizeSellerName(seller.en);
+
+  let boxes = 0;
+  let orders = 0;
+  let totalAmount = 0;
+
+  for (const key in sellerStatsMap) {
+    const normKey = normalizeSellerName(key);
+    if (key === seller.km || 
+        key === seller.en || 
+        (normKm && (normKey === normKm || normKey.includes(normKm) || normKm.includes(normKey))) || 
+        (normEn && normKey === normEn)) {
+      boxes += Number(sellerStatsMap[key].boxes || 0);
+      orders += Number(sellerStatsMap[key].orders || 0);
+      totalAmount += Number(sellerStatsMap[key].totalAmount || 0);
+    }
+  }
+
+  return { boxes, orders, totalAmount };
 }
 
 function renderProfileDrawerContent() {
@@ -17295,9 +17368,7 @@ function openProfileSubModal(type) {
       <div class="space-y-2">
         <p class="text-[11px] text-slate-400 mb-2 px-1">ចុចលើឈ្មោះសមាជិកដើម្បីមើល «កាតទិន្នន័យសមាជិក» លម្អិត៖</p>
         ${BOSTAR_TEAM_SELLERS.map((seller, idx) => {
-          const stats = sellerStats[seller.km] || sellerStats[seller.en] || { boxes: 0, orders: 0, totalAmount: 0 };
-          const goal = 100;
-          const percent = goal > 0 ? Math.min(100, Math.round((stats.boxes / goal) * 100)) : 0;
+          const stats = getSellerAggregatedStats(seller, sellerStats);
           return `
             <div onclick="openMemberDetailCard('${seller.km}')" 
                  class="p-3 rounded-2xl bg-black/30 hover:bg-white/5 border border-white/10 hover:border-orange-500/30 flex items-center justify-between cursor-pointer active:scale-98 transition group">
@@ -17310,12 +17381,11 @@ function openProfileSubModal(type) {
                     <span class="text-xs font-bold text-white group-hover:text-orange-400 transition truncate">${seller.km}</span>
                     <span class="text-[10px] text-slate-400 font-mono">(${seller.en})</span>
                   </div>
-                  <span class="text-[10px] text-slate-400 font-mono">${stats.orders} កុម្ម៉ង់ | គោលដៅ: ${goal} ប្រអប់</span>
+                  <span class="text-[10px] text-slate-400 font-mono">${stats.orders} កុម្ម៉ង់</span>
                 </div>
               </div>
               <div class="text-right shrink-0 pl-2">
-                <span class="font-mono font-bold text-xs text-emerald-400 block">${stats.boxes} ប្រអប់</span>
-                <span class="text-[9.5px] text-slate-400 font-mono">${percent}%</span>
+                <span class="font-mono font-bold text-xs text-emerald-400 block">${stats.boxes} <span class="text-[9.5px] font-sans font-normal text-slate-400">ប្រអប់</span></span>
               </div>
             </div>
           `;
@@ -17538,7 +17608,7 @@ function renderTeamMembersList() {
   const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : ((window.DataService && window.DataService.data) ? window.DataService.data : null);
   const sales = (d && Array.isArray(d.personalSales)) ? d.personalSales : [];
 
-  // Group sales by seller name (supporting both km and en)
+  // Group sales by seller name (supporting both km and en and normalized)
   const sellerStats = {};
   let totalTeamBoxes = 0;
   let totalTeamOrders = 0;
@@ -17560,9 +17630,13 @@ function renderTeamMembersList() {
     totalTeamRev += amt;
   });
 
+  const normQuery = normalizeSellerName(query);
   const filtered = BOSTAR_TEAM_SELLERS.filter(seller => {
     if (!query) return true;
-    return seller.km.toLowerCase().includes(query) || seller.en.toLowerCase().includes(query);
+    return seller.km.toLowerCase().includes(query) || 
+           seller.en.toLowerCase().includes(query) ||
+           (normQuery && normalizeSellerName(seller.km).includes(normQuery)) ||
+           (normQuery && normalizeSellerName(seller.en).includes(normQuery));
   });
 
   if (countBadge) {
@@ -17600,16 +17674,14 @@ function renderTeamMembersList() {
   }
 
   listEl.innerHTML = filtered.map((seller, idx) => {
-    const stats = sellerStats[seller.km] || sellerStats[seller.en] || { boxes: 0, orders: 0, totalAmount: 0 };
-    const goal = 100;
-    const percent = goal > 0 ? Math.min(100, Math.round((stats.boxes / goal) * 100)) : 0;
+    const stats = getSellerAggregatedStats(seller, sellerStats);
 
     return `
       <div onclick="openTeamMemberDetail('${escapeHtml(seller.km)}')" 
            class="p-3.5 rounded-2xl ios-glass-card border border-white/10 hover:border-orange-500/40 flex items-center justify-between cursor-pointer active:scale-[0.99] transition group shadow-sm">
         <div class="flex items-center gap-3 min-w-0">
           <span class="w-8 h-8 rounded-xl bg-orange-500/15 border border-orange-500/25 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-            ${String(idx + 1).padStart(2, '0')}
+            ${String(seller.no || idx + 1).padStart(2, '0')}
           </span>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5 truncate">
@@ -17618,8 +17690,6 @@ function renderTeamMembersList() {
             </div>
             <div class="flex items-center gap-2 mt-0.5">
               <span class="text-[10px] text-slate-400 font-mono">${stats.orders} កុម្ម៉ង់</span>
-              <span class="text-[9px] text-slate-500">•</span>
-              <span class="text-[10px] text-amber-400/90 font-mono">គោលដៅ: ${goal} ប្រអប់</span>
             </div>
           </div>
         </div>
@@ -17627,12 +17697,6 @@ function renderTeamMembersList() {
         <div class="flex items-center gap-2.5 shrink-0 pl-2">
           <div class="text-right">
             <span class="font-mono font-bold text-xs sm:text-sm text-emerald-400 block">${stats.boxes} <span class="text-[9.5px] font-sans font-normal text-slate-400">ប្រអប់</span></span>
-            <div class="flex items-center justify-end gap-1 mt-0.5">
-              <div class="w-12 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-orange-500 to-emerald-400 rounded-full" style="width: ${percent}%"></div>
-              </div>
-              <span class="text-[9.5px] text-slate-400 font-mono">${percent}%</span>
-            </div>
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-orange-400 group-hover:translate-x-0.5 transition"></i>
         </div>
@@ -17644,15 +17708,24 @@ function renderTeamMembersList() {
 }
 
 function openTeamMemberDetail(sellerKmName) {
-  const seller = BOSTAR_TEAM_SELLERS.find(s => s.km === sellerKmName || s.en === sellerKmName) || { km: sellerKmName, en: getSellerLatinName(sellerKmName) };
+  const seller = findBostarSeller(sellerKmName) || { km: sellerKmName, en: getSellerLatinName(sellerKmName) };
   const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : ((window.DataService && window.DataService.data) ? window.DataService.data : null);
-  const sales = (d && Array.isArray(d.personalSales)) ? d.personalSales.filter(s => (s.seller || '').trim() === seller.km || (s.seller || '').trim() === seller.en) : [];
+  const allSales = (d && Array.isArray(d.personalSales)) ? d.personalSales : [];
+
+  const normKm = normalizeSellerName(seller.km);
+  const normEn = normalizeSellerName(seller.en);
+
+  const sales = allSales.filter(s => {
+    const sName = (s.seller || '').trim();
+    if (!sName) return false;
+    const normS = normalizeSellerName(sName);
+    return sName === seller.km || sName === seller.en || (normKm && normS === normKm) || (normEn && normS === normEn);
+  });
 
   const totalBoxes = sales.reduce((sum, s) => sum + Number(s.totalBoxQty || s.boxes || 0), 0);
   const totalRevenue = sales.reduce((sum, s) => sum + Number(s.totalAmount || s.price || 0), 0);
   const totalOrders = sales.length;
-  const goal = 100;
-  const percent = Math.min(100, Math.round((totalBoxes / goal) * 100));
+  const isSelf = isCurrentUserSeller(seller);
 
   const modal = document.getElementById('team-members-modal');
   if (modal && modal.classList.contains('hidden')) {
@@ -17668,91 +17741,151 @@ function openTeamMemberDetail(sellerKmName) {
   detailView.classList.remove('hidden');
   detailView.scrollTop = 0;
 
-  detailView.innerHTML = `
-    <!-- Top Action Bar for Detail View -->
-    <div class="flex items-center justify-between pb-1">
-      <button onclick="backToTeamMembersList()" 
-              class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
-        <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
-        <span>បញ្ជីសមាជិក</span>
-      </button>
-      <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
-    </div>
-
-    <!-- Member Identity Header Card -->
-    <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-3.5 shadow-lg">
-      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
-        ${seller.km.slice(0, 2)}
+  if (isSelf) {
+    // ==========================================
+    // VIEWING OWN PROFILE (មានសិទ្ធិកែ និងកំណត់ឯកជនភាព)
+    // ==========================================
+    detailView.innerHTML = `
+      <!-- Top Action Bar for Detail View -->
+      <div class="flex items-center justify-between pb-1">
+        <button onclick="backToTeamMembersList()" 
+                class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
+          <span>បញ្ជីសមាជិក</span>
+        </button>
+        <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
       </div>
-      <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-2">
-          <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
-          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">ACTIVE</span>
+
+      <!-- Member Identity Header Card (Own Account) -->
+      <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/25 via-amber-500/15 to-transparent border border-orange-500/35 flex items-center gap-3.5 shadow-lg">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
+          ${seller.km.slice(0, 2)}
         </div>
-        <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
-        <span class="inline-block mt-1 text-[10px] text-amber-300 font-medium">✨ អ្នកលក់ឆ្នើម BostarGroup</span>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
+            <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-mono text-[9px] font-bold">👤 គណនីរបស់អ្នក</span>
+          </div>
+          <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
+          <span class="inline-block mt-1 text-[10px] text-amber-300 font-medium">✨ សមាជិកក្រុម BostarGroup</span>
+        </div>
       </div>
-    </div>
 
-    <!-- Performance KPI Grid -->
-    <div class="grid grid-cols-3 gap-2">
-      <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-        <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់</span>
-        <span class="font-mono font-bold text-base text-emerald-400 block">${totalBoxes}</span>
-        <span class="text-[9px] text-slate-500 font-mono">ប្រអប់</span>
+      <!-- Action Buttons for Self (កែប្រែ & ឯកជនភាព) -->
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="closeTeamMembersModal(); openEditProfileModal();" 
+                class="py-2.5 px-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-md shadow-orange-500/20">
+          <i data-lucide="user-pen" class="w-4 h-4"></i>
+          <span>កែប្រែ Profile</span>
+        </button>
+        <button onclick="closeTeamMembersModal(); openProfileDrawer();" 
+                class="py-2.5 px-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i>
+          <span>ការកំណត់ឯកជនភាព</span>
+        </button>
       </div>
-      <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-        <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់</span>
-        <span class="font-mono font-bold text-base text-sky-400 block">${totalOrders}</span>
-        <span class="text-[9px] text-slate-500 font-mono">ជោគជ័យ</span>
-      </div>
-      <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-        <span class="text-[10px] text-slate-400 block font-semibold">💵 ទឹកប្រាក់សរុប</span>
-        <span class="font-mono font-bold text-base text-amber-400 block">$${totalRevenue.toFixed(0)}</span>
-        <span class="text-[9px] text-slate-500 font-mono">USD</span>
-      </div>
-    </div>
 
-    <!-- Goal Progress Bar -->
-    <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-      <div class="flex items-center justify-between text-[11px]">
-        <span class="text-slate-300 font-semibold flex items-center gap-1.5">
-          <i data-lucide="target" class="w-3.5 h-3.5 text-orange-400"></i>
-          <span>គោលដៅប្រចាំខែ (${percent}%)</span>
+      <!-- Performance KPI Grid (Full for Self) -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់</span>
+          <span class="font-mono font-bold text-base text-emerald-400 block">${totalBoxes}</span>
+          <span class="text-[9px] text-slate-500 font-mono">ប្រអប់</span>
+        </div>
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់</span>
+          <span class="font-mono font-bold text-base text-sky-400 block">${totalOrders}</span>
+          <span class="text-[9px] text-slate-500 font-mono">ជោគជ័យ</span>
+        </div>
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">💵 ទឹកប្រាក់សរុប</span>
+          <span class="font-mono font-bold text-base text-amber-400 block">$${totalRevenue.toFixed(0)}</span>
+          <span class="text-[9px] text-slate-500 font-mono">USD</span>
+        </div>
+      </div>
+
+      <!-- Recent Orders by this Member (Self View) -->
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+        <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 mb-1">
+          <i data-lucide="history" class="w-3.5 h-3.5 text-sky-400"></i>
+          <span>ប្រវត្តិការលក់របស់អ្នក (${sales.length} កុម្ម៉ង់)</span>
         </span>
-        <span class="font-mono font-bold text-orange-400">${totalBoxes} / ${goal} ប្រអប់</span>
+        ${sales.length === 0 ? `
+          <p class="text-[11px] text-slate-400 text-center py-5">មិនទាន់មានទិន្នន័យការលក់ជាក់ស្តែងក្នុង Google Sheet នៅឡើយទេ</p>
+        ` : `
+          <div class="space-y-1.5 max-h-64 overflow-y-auto no-scrollbar">
+            ${sales.slice(0, 15).map(o => `
+              <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
+                <div>
+                  <span class="font-semibold text-white block text-[11px]">${escapeHtml(o.customer || o.customerName || 'អតិថិជន')}</span>
+                  <span class="text-[9.5px] text-slate-400 font-mono">${o.date || o.orderDate || ''} • ${escapeHtml(o.delivery || 'ដឹកជញ្ជូន')}</span>
+                </div>
+                <div class="text-right">
+                  <span class="font-mono font-bold text-emerald-400 text-xs">${o.totalBoxQty || o.boxes || 0} ប្រអប់</span>
+                  <span class="text-[9.5px] text-amber-400 font-mono block">$${Number(o.totalAmount || o.price || 0).toFixed(2)}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `}
       </div>
-      <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden">
-        <div class="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+    `;
+  } else {
+    // ==========================================
+    // VIEWING ANOTHER MEMBER (លាក់ព័ត៌មានលម្អិត & ចំណូល រក្សាឯកជនភាព)
+    // ==========================================
+    detailView.innerHTML = `
+      <!-- Top Action Bar for Detail View -->
+      <div class="flex items-center justify-between pb-1">
+        <button onclick="backToTeamMembersList()" 
+                class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
+          <span>បញ្ជីសមាជិក</span>
+        </button>
+        <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
       </div>
-    </div>
 
-    <!-- Recent Orders by this Member -->
-    <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-      <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 mb-1">
-        <i data-lucide="history" class="w-3.5 h-3.5 text-sky-400"></i>
-        <span>ប្រវត្តិការលក់ចុងក្រោយ (${sales.length} កុម្ម៉ង់)</span>
-      </span>
-      ${sales.length === 0 ? `
-        <p class="text-[11px] text-slate-400 text-center py-5">មិនទាន់មានទិន្នន័យការលក់ជាក់ស្តែងក្នុង Google Sheet នៅឡើយទេ</p>
-      ` : `
-        <div class="space-y-1.5 max-h-64 overflow-y-auto no-scrollbar">
-          ${sales.slice(0, 15).map(o => `
-            <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
-              <div>
-                <span class="font-semibold text-white block text-[11px]">${escapeHtml(o.customer || o.customerName || 'អតិថិជន')}</span>
-                <span class="text-[9.5px] text-slate-400 font-mono">${o.date || o.orderDate || ''} • ${escapeHtml(o.delivery || 'ដឹកជញ្ជូន')}</span>
-              </div>
-              <div class="text-right">
-                <span class="font-mono font-bold text-emerald-400 text-xs">${o.totalBoxQty || o.boxes || 0} ប្រអប់</span>
-                <span class="text-[9.5px] text-amber-400 font-mono block">$${Number(o.totalAmount || o.price || 0).toFixed(2)}</span>
-              </div>
-            </div>
-          `).join('')}
+      <!-- Member Identity Header Card -->
+      <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-3.5 shadow-lg">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
+          ${seller.km.slice(0, 2)}
         </div>
-      `}
-    </div>
-  `;
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">ACTIVE</span>
+          </div>
+          <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
+          <span class="inline-block mt-1 text-[10px] text-amber-300 font-medium">✨ សមាជិកក្រុម BostarGroup</span>
+        </div>
+      </div>
+
+      <!-- Performance KPI Grid (បង្ហាញតែចំនួនសរុប និងចំនួនកុម្ម៉ង់ប៉ុណ្ណោះ) -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់សរុប</span>
+          <span class="font-mono font-bold text-lg text-emerald-400 block">${totalBoxes}</span>
+          <span class="text-[9.5px] text-slate-500 font-mono">ប្រអប់</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់សរុប</span>
+          <span class="font-mono font-bold text-lg text-sky-400 block">${totalOrders}</span>
+          <span class="text-[9.5px] text-slate-500 font-mono">ជោគជ័យ</span>
+        </div>
+      </div>
+
+      <!-- Privacy Protected Card (រក្សាឯកជនភាពអតិថិជន និងចំណូល) -->
+      <div class="p-4 rounded-2xl bg-black/35 border border-white/10 text-center space-y-2 select-none shadow-sm">
+        <div class="w-10 h-10 mx-auto rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <h5 class="text-xs font-bold text-slate-200">ទិន្នន័យឯកជនភាពត្រូវបានការពារ</h5>
+        <p class="text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto">
+          ប្រវត្តិកុម្ម៉ង់លម្អិត ព័ត៌មានអតិថិជន និងចំណូលលក់ ត្រូវបានរក្សាជាការសម្ងាត់ អាចមើលឃើញបានតែម្ចាស់គណនីផ្ទាល់ប៉ុណ្ណោះ។
+        </p>
+      </div>
+    `;
+  }
 
   if (window.lucide) window.lucide.createIcons();
 }
