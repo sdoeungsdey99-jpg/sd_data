@@ -14984,6 +14984,64 @@ function resetTodayAttendanceConfirmed() {
   showToastNotification('បានកំណត់វត្តមានថ្ងៃនេះឡើងវិញដោយជោគជ័យ! ✅');
 }
 
+// ==========================================
+// BOSTARTRACK ATTENDANCE SYNC (Tab "Check in")
+// Single Row per User per Day (Check-in & Check-out in 1 row)
+// Sheet ID: 1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4
+// ==========================================
+const BOSTAR_TRACK_ATTENDANCE_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+
+async function syncAttendanceToBostarTrack(actionType = 'in') {
+  try {
+    const data = getAttendanceData();
+    const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+    const cleanId = String(p.memberId || 'BG-162').replace(/^(ID:\s*)+/i, '').trim();
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+    const payload = {
+      action: 'sync_attendance',
+      sheetId: BOSTAR_TRACK_ATTENDANCE_SHEET_ID,
+      data: {
+        type: actionType, // 'in' | 'out'
+        date: dateStr,
+        staffId: cleanId || 'BG-162',
+        staffName: p.name || 'BostarGroup',
+        role: p.work || 'សមាជិកក្រុម BostarGroup',
+        checkInTime: data.checkInTime || timeStr,
+        checkOutTime: actionType === 'out' ? (data.checkOutTime || timeStr) : '',
+        duration: data.duration || (actionType === 'out' ? calculateAttendanceDuration(data.checkInTime, timeStr) : ''),
+        status: data.todayLate ? 'Late' : 'On-Time',
+        lateMinutes: data.lateMinutes || 0,
+        location: data.location || 'ការិយាល័យកណ្តាល (At Office Verified)',
+        reason: data.note || (data.todayLate ? 'ស្ទះចរាចរណ៍តាមផ្លូវ' : ''),
+        motivationalNote: getDailyMotivationQuote(actionType === 'out' ? 'checkout' : (data.todayLate ? 'late' : 'ontime')),
+        checkOutStatus: actionType === 'out' ? 'Normal' : '',
+        checkOutLocation: actionType === 'out' ? (data.location || 'ការិយាល័យកណ្តាល (At Office Verified)') : '',
+        checkOutNote: actionType === 'out' ? 'ចេញទាន់ពេល / បញ្ចប់ការងារដោយរលូន' : ''
+      }
+    };
+
+    const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function') ? getAppsScriptWebhookUrl() : '';
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      }).then(() => {
+        console.log(`[BostarTrack Sync] ${actionType.toUpperCase()} sent to Tab "Check in" (Sheet: ${BOSTAR_TRACK_ATTENDANCE_SHEET_ID})`);
+      }).catch(err => {
+        console.warn('[BostarTrack Sync] Warn:', err);
+      });
+    }
+  } catch (err) {
+    console.warn('[BostarTrack Sync] Exception:', err);
+  }
+}
+window.syncAttendanceToBostarTrack = syncAttendanceToBostarTrack;
+
 function finalizeCheckIn(data, reason = null) {
   if (reason) data.note = reason;
   const now = new Date();
@@ -15012,6 +15070,9 @@ function finalizeCheckIn(data, reason = null) {
     : 'បានចូលធ្វើការទាន់ពេល! ជូនពរលក់ដាច់ហេងៗថ្ងៃនេះ! 🌟';
   showToastNotification(msg);
   if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch(_) {}
+
+  // Sync to BostarTrack Tab "Check in"
+  syncAttendanceToBostarTrack('in');
 
   const isAutoShare = localStorage.getItem('sd_attendance_autoshare') !== 'false';
   if (isAutoShare) {
@@ -15114,6 +15175,8 @@ async function handleAttendanceAction(action) {
     }
     if (navigator.vibrate) try { navigator.vibrate([50, 80, 50]); } catch(_) {}
     showToastNotification(appState.language === 'km' ? 'បានកត់ត្រាចេញពីធ្វើការជោគជ័យ!' : 'Checked out successfully!');
+    // Sync to BostarTrack Tab "Check in"
+    syncAttendanceToBostarTrack('out');
   }
   saveAttendanceData(data);
   renderAttendanceContent();
@@ -15308,6 +15371,11 @@ function renderAttendanceContent() {
           <i data-lucide="map-pin" class="w-3 h-3"></i>
           <span>${data.location}</span>
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        </div>
+
+        <div class="mt-1 flex items-center justify-center gap-1.5 text-[9.5px] text-sky-400/90 font-medium font-mono">
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+          <span>BostarTrack Live Sync (Tab Check in)</span>
         </div>
 
         ${actionButtonHTML}

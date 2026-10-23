@@ -80,6 +80,9 @@ function doPost(e) {
     } else if (action === 'add_expense') {
       var result = insertDailyExpense(ss, data);
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'sync_attendance') {
+      var result = syncBostarAttendance(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     } else {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
@@ -354,4 +357,171 @@ function insertDailyExpense(ss, exp) {
     row: targetRow,
     amount: exp.amount
   };
+}
+
+/**
+ * ==============================================================================
+ * SYNC ATTENDANCE TO BOSTARTRACK (Tab "Check in")
+ * គោលបំណង៖ Check-in និង Check-out ក្នុងជួរតែមួយ (Single Row per User per Day)
+ * Sheet: 1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4
+ * ==============================================================================
+ */
+function syncBostarAttendance(ss, data) {
+  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+  var targetSs = null;
+  try {
+    targetSs = SpreadsheetApp.openById(bostarTrackId);
+  } catch (e) {
+    targetSs = ss || SpreadsheetApp.getActiveSpreadsheet();
+  }
+
+  var sheet = targetSs.getSheetByName('Check in');
+  if (!sheet) {
+    sheet = targetSs.getSheetByName('Check In') || targetSs.getSheetByName('Attendance');
+  }
+  if (!sheet) {
+    sheet = targetSs.insertSheet('Check in');
+    sheet.appendRow([
+      'Date', 'Staff ID', 'Staff Name', 'Role', 'Check-in Time', 'Check-out Time', 
+      'Work Duration', 'Status', 'Late Mins', 'Location', 'Reason', 'Motivational Note', 
+      'Timestamp', 'Check-out Status', 'Check-out Location', 'Check-out Note'
+    ]);
+  }
+
+  var actionType = data.type || (data.checkOutTime ? 'out' : 'in');
+  var targetDate = data.date || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+  var staffId = String(data.staffId || '').replace(/^(ID:\s*)+/i, '').trim() || 'BG-001';
+  var staffName = data.staffName || 'Bostar Member';
+  var role = data.role || 'សមាជិកក្រុម BostarGroup';
+
+  // Read existing rows to locate today's row for this staffId
+  var lastRow = sheet.getLastRow();
+  var matchRowIndex = -1;
+
+  if (lastRow > 1) {
+    var dateStaffRange = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+    for (var i = 0; i < dateStaffRange.length; i++) {
+      var rDate = dateStaffRange[i][0];
+      var rDateStr = '';
+      if (rDate instanceof Date) {
+        rDateStr = Utilities.formatDate(rDate, 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+      } else {
+        rDateStr = String(rDate).trim();
+      }
+      var rStaffId = String(dateStaffRange[i][1]).replace(/^(ID:\s*)+/i, '').trim();
+
+      // Normalize date format (YYYY-MM-DD)
+      var normTarget = targetDate;
+      if (normTarget.indexOf('/') > -1) {
+        var p = normTarget.split('/');
+        if (p.length === 3) normTarget = p[2] + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2);
+      }
+      if (rDateStr.indexOf('/') > -1) {
+        var p = rDateStr.split('/');
+        if (p.length === 3) rDateStr = p[2] + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2);
+      }
+
+      if (rStaffId.toLowerCase() === staffId.toLowerCase() && rDateStr === normTarget) {
+        matchRowIndex = i + 2; // 1-based sheet row
+        break;
+      }
+    }
+  }
+
+  var now = new Date();
+  var timeStr = data.time || Utilities.formatDate(now, 'Asia/Phnom_Penh', 'hh:mm:ss a');
+  var timestampStr = Utilities.formatDate(now, 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm:ss');
+
+  if (actionType === 'in') {
+    // CHECK IN
+    if (matchRowIndex > 0) {
+      sheet.getRange(matchRowIndex, 3).setValue(staffName);
+      sheet.getRange(matchRowIndex, 4).setValue(role);
+      sheet.getRange(matchRowIndex, 5).setValue(data.checkInTime || timeStr);
+      sheet.getRange(matchRowIndex, 8).setValue(data.status || 'Present');
+      sheet.getRange(matchRowIndex, 9).setValue(data.lateMinutes || 0);
+      sheet.getRange(matchRowIndex, 10).setValue(data.location || 'ការិយាល័យកណ្តាល (At Office Verified)');
+      if (data.reason) sheet.getRange(matchRowIndex, 11).setValue(data.reason);
+      if (data.motivationalNote) sheet.getRange(matchRowIndex, 12).setValue(data.motivationalNote);
+      sheet.getRange(matchRowIndex, 13).setValue(timestampStr);
+
+      return {
+        status: 'success',
+        action: 'check_in_updated',
+        rowIndex: matchRowIndex,
+        message: 'Check-in updated in existing row ' + matchRowIndex
+      };
+    } else {
+      var newRow = [
+        targetDate,                                        // A: Date
+        staffId,                                           // B: Staff ID
+        staffName,                                         // C: Staff Name
+        role,                                              // D: Role
+        data.checkInTime || timeStr,                       // E: Check-in Time
+        '',                                                // F: Check-out Time (pending)
+        '',                                                // G: Work Duration (pending)
+        data.status || 'Present',                          // H: Status
+        data.lateMinutes || 0,                             // I: Late Mins
+        data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location
+        data.reason || '',                                 // K: Reason
+        data.motivationalNote || '',                       // L: Motivational Note
+        timestampStr,                                      // M: Timestamp
+        '',                                                // N: Check-out Status
+        '',                                                // O: Check-out Location
+        ''                                                 // P: Check-out Note
+      ];
+      sheet.appendRow(newRow);
+      return {
+        status: 'success',
+        action: 'check_in_created',
+        rowIndex: sheet.getLastRow(),
+        message: 'New Check-in row created for ' + staffName
+      };
+    }
+  } else {
+    // CHECK OUT
+    var checkOutTime = data.checkOutTime || timeStr;
+    var duration = data.duration || '';
+
+    if (matchRowIndex > 0) {
+      sheet.getRange(matchRowIndex, 6).setValue(checkOutTime); // F: Check-out Time
+      if (duration) sheet.getRange(matchRowIndex, 7).setValue(duration); // G: Work Duration
+      sheet.getRange(matchRowIndex, 14).setValue(data.checkOutStatus || 'Normal'); // N: Check-out Status
+      sheet.getRange(matchRowIndex, 15).setValue(data.checkOutLocation || data.location || 'ការិយាល័យកណ្តាល (At Office Verified)'); // O: Check-out Location
+      sheet.getRange(matchRowIndex, 16).setValue(data.checkOutNote || 'ចេញទាន់ពេល / បញ្ចប់ការងារដោយរលូន'); // P: Check-out Note
+
+      return {
+        status: 'success',
+        action: 'check_out_updated',
+        rowIndex: matchRowIndex,
+        message: 'Check-out recorded into row ' + matchRowIndex
+      };
+    } else {
+      var newRow = [
+        targetDate,
+        staffId,
+        staffName,
+        role,
+        '—',
+        checkOutTime,
+        duration,
+        data.status || 'Present',
+        0,
+        data.location || 'ការិយាល័យកណ្តាល (At Office Verified)',
+        data.reason || 'Check-out តែម្តង',
+        data.motivationalNote || '',
+        timestampStr,
+        data.checkOutStatus || 'Normal',
+        data.checkOutLocation || data.location || 'ការិយាល័យកណ្តាល (At Office Verified)',
+        data.checkOutNote || 'ចេញទាន់ពេល / បញ្ចប់ការងារដោយរលូន'
+      ];
+      sheet.appendRow(newRow);
+      return {
+        status: 'success',
+        action: 'check_out_created',
+        rowIndex: sheet.getLastRow(),
+        message: 'New row created on Check-out for ' + staffName
+      };
+    }
+  }
 }
