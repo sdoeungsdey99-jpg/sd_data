@@ -94,25 +94,42 @@ function ddmmyyyyToIso(ddmmyyyy) {
   return ddmmyyyy;
 }
 
+function loadCachedData() {
+  try {
+    const raw = localStorage.getItem('sd_offline_master_data');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.personalSales)) return parsed;
+    }
+  } catch (_) {}
+  return null;
+}
+
 async function fetchGoogleSheetGViz(param, sheetNameFallback) {
   const sheetId = getActiveSheetId();
-  const isCustom = (sheetId !== DEFAULT_MASTER_SHEET_ID);
-  
-  const queryParam = (isCustom && sheetNameFallback)
-    ? `sheet=${encodeURIComponent(sheetNameFallback)}`
-    : (isNaN(param) ? `sheet=${encodeURIComponent(param)}` : `gid=${param}`);
-
+  const queryParam = isNaN(param) ? `sheet=${encodeURIComponent(param)}` : `gid=${param}`;
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&${queryParam}`;
-  let response = await fetch(url);
-  
-  // Auto-fallback to sheet name if GID fails
-  if (!response.ok && sheetNameFallback) {
-    const retryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}`;
-    response = await fetch(retryUrl);
+
+  let response;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+    response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+  } catch (e) {
+    if (sheetNameFallback) {
+      const retryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}`;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 7000);
+      try {
+        response = await fetch(retryUrl, { signal: controller.signal });
+      } catch (_) {}
+      clearTimeout(timer);
+    }
   }
 
-  if (!response.ok) {
-    throw new Error(`HTTP Error ${response.status} when fetching ${queryParam}`);
+  if (!response || !response.ok) {
+    throw new Error(`HTTP Error ${response ? response.status : 'Network'} when fetching ${queryParam}`);
   }
   const text = await response.text();
   const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);/);
@@ -122,28 +139,32 @@ async function fetchGoogleSheetGViz(param, sheetNameFallback) {
   return JSON.parse(match[1]);
 }
 
-// Fetch Google Sheet tab as raw CSV for 100% faithful cell extraction without GViz header stripping
+// Fetch Google Sheet tab as raw CSV with native CORS support (via GViz CSV)
 async function fetchGoogleSheetCSV(param, sheetNameFallback) {
   const sheetId = getActiveSheetId();
+  const queryParam = isNaN(param) ? `sheet=${encodeURIComponent(param)}` : `gid=${param}`;
+  const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&${queryParam}`;
 
-  // Try raw export?format=csv first for 100% faithful cell extraction without GViz header stripping
   let response;
-  if (!isNaN(param)) {
-    try {
-      const exportUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${param}`;
-      response = await fetch(exportUrl);
-    } catch (_) {}
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+    response = await fetch(gvizUrl, { signal: controller.signal });
+    clearTimeout(timer);
+  } catch (e) {
+    if (sheetNameFallback) {
+      const fallbackUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}`;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 7000);
+      try {
+        response = await fetch(fallbackUrl, { signal: controller.signal });
+      } catch (_) {}
+      clearTimeout(timer);
+    }
   }
 
-  // Fallback to GViz by sheet name if export by gid was unsuccessful
   if (!response || !response.ok) {
-    const target = sheetNameFallback || param;
-    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(target)}`;
-    response = await fetch(gvizUrl);
-  }
-
-  if (!response.ok) {
-    throw new Error(`HTTP Error ${response.status} when fetching CSV ${param}`);
+    throw new Error(`HTTP Error ${response ? response.status : 'Network'} when fetching CSV ${param}`);
   }
   const text = await response.text();
   return parseCSV(text);
@@ -179,15 +200,18 @@ function parseCSV(text) {
   return rows;
 }
 
-// Fetch Team Hierarchy tab (Always 100% directly from BostarGroup Official Sheet)
+// Fetch Team Hierarchy tab (Always 100% directly from BostarGroup Official Sheet with native CORS)
 async function fetchTeamHierarchyCSV() {
   const sId = TEAM_HIERARCHY_SHEET_ID;
   try {
-    const exportUrl = `https://docs.google.com/spreadsheets/d/${sId}/export?format=csv&gid=${TEAM_HIERARCHY_GID}`;
-    const resp = await fetch(exportUrl);
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${TEAM_HIERARCHY_GID}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+    const resp = await fetch(gvizUrl, { signal: controller.signal });
+    clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
-      if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Member')) {
+      if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
         const rows = parseCSV(text);
         if (rows && rows.length > 2) return rows;
       }
@@ -195,8 +219,8 @@ async function fetchTeamHierarchyCSV() {
   } catch (_) {}
 
   try {
-    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Team Hierarchy')}`;
-    const resp = await fetch(gvizUrl);
+    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Team Hierarchy')}`;
+    const resp = await fetch(gvizFallback);
     if (resp && resp.ok) {
       const text = await resp.text();
       if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
@@ -208,12 +232,15 @@ async function fetchTeamHierarchyCSV() {
   return [];
 }
 
-// Fetch BostarTrack Sales Orders tab (Always 100% directly from BostarGroup Official Sheet)
+// Fetch BostarTrack Sales Orders tab (Always 100% directly from BostarGroup Official Sheet with native CORS)
 async function fetchBostarTrackSalesCSV() {
   const sId = TEAM_HIERARCHY_SHEET_ID;
   try {
-    const exportUrl = `https://docs.google.com/spreadsheets/d/${sId}/export?format=csv&gid=${BOSTAR_TRACK_GID}`;
-    const resp = await fetch(exportUrl);
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${BOSTAR_TRACK_GID}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+    const resp = await fetch(gvizUrl, { signal: controller.signal });
+    clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
       if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
@@ -224,8 +251,8 @@ async function fetchBostarTrackSalesCSV() {
   } catch (_) {}
 
   try {
-    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('BostarTrack')}`;
-    const resp = await fetch(gvizUrl);
+    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('BostarTrack')}`;
+    const resp = await fetch(gvizFallback);
     if (resp && resp.ok) {
       const text = await resp.text();
       if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
@@ -238,7 +265,7 @@ async function fetchBostarTrackSalesCSV() {
 }
 
 window.DataService = {
-  data: null,
+  data: loadCachedData(),
   isLoading: false,
   error: null,
   lastFetched: null,
@@ -995,6 +1022,10 @@ window.DataService = {
           totalTeamMembersCount: teamMembers.length
         }
       };
+
+      try {
+        localStorage.setItem('sd_offline_master_data', JSON.stringify(this.data));
+      } catch (_) {}
 
       this.lastFetched = new Date();
       this.isLoading = false;
