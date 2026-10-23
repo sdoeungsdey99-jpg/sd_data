@@ -15048,7 +15048,7 @@ async function syncAttendanceToBostarTrack(actionType = 'in') {
       }
     };
 
-    const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function') ? getAppsScriptWebhookUrl() : '';
+    const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function' ? getAppsScriptWebhookUrl() : null) || 'https://script.google.com/macros/s/AKfycbzGLHc2-bPoKyfjo2jb2Rv2MymxXG7uqvDtgGiv2fQ6FD5Hqz4AbIAUTHrFwGLFqWT-/exec';
     if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
       fetch(webhookUrl, {
         method: 'POST',
@@ -15057,6 +15057,9 @@ async function syncAttendanceToBostarTrack(actionType = 'in') {
         body: JSON.stringify(payload)
       }).then(() => {
         console.log(`[BostarTrack Sync] ${actionType.toUpperCase()} sent to Tab "Check in" (Sheet: ${BOSTAR_TRACK_ATTENDANCE_SHEET_ID})`);
+        if (typeof showToastNotification === 'function') {
+          showToastNotification('📡 បាន Sync ទៅ BostarTrack (Tab Check in) ជោគជ័យ! ✅');
+        }
       }).catch(err => {
         console.warn('[BostarTrack Sync] Warn:', err);
       });
@@ -15398,9 +15401,12 @@ function renderAttendanceContent() {
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
         </div>
 
-        <div class="mt-1 flex items-center justify-center gap-1.5 text-[9.5px] text-sky-400/90 font-medium font-mono">
-          <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
-          <span>BostarTrack Live Sync (Tab Check in)</span>
+        <div class="mt-2 flex items-center justify-center">
+          <button type="button" onclick="syncAttendanceToBostarTrack(getAttendanceData().todayStatus === 'checked_out' ? 'out' : 'in'); showToastNotification('កំពុងបញ្ជូនទិន្នន័យទៅ BostarTrack... 🚀');" 
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-[10px] text-sky-300 font-bold transition active:scale-95 shadow-sm">
+            <i data-lucide="refresh-cw" class="w-3 h-3 text-sky-400"></i>
+            <span>BostarTrack Live Sync (Tab Check in) • ចុច Sync ភ្លាមៗ</span>
+          </button>
         </div>
 
         ${actionButtonHTML}
