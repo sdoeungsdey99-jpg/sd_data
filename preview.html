@@ -4309,7 +4309,7 @@
               <div class="relative flex items-center w-full">
                 <input type="text" id="order-field-team" value="Bech_Nora" placeholder="ជ្រើសរើស / វាយឈ្មោះ..." 
                        onfocus="openOrderTeamDropdown()" oninput="filterOrderTeamDropdown(this.value)"
-                       class="w-full bg-black/50 border border-white/10 rounded-xl py-2 pl-3 pr-8 text-white text-xs focus:outline-none focus:border-orange-500 font-mono transition">
+                       class="w-full bg-black/50 border border-white/10 rounded-xl py-2 pl-2.5 pr-7 text-white text-[11.5px] sm:text-xs focus:outline-none focus:border-orange-500 font-mono transition tracking-tight">
                 <button type="button" onclick="toggleOrderTeamDropdown(event)" id="btn-toggle-team-dropdown" 
                         class="absolute right-1 w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition" 
                         title="ជ្រើសរើសថ្នាក់ដឹកនាំ">
@@ -4317,9 +4317,9 @@
                 </button>
               </div>
               
-              <!-- Team Leaders Dropdown Menu (Glassmorphism, 22 items) -->
+              <!-- Team Leaders Dropdown Menu (Glassmorphism, 6 items with full width for Sroeun_Leanghak) -->
               <div id="order-team-dropdown-menu" 
-                   class="hidden absolute z-50 top-full mt-1.5 inset-x-0 bg-[#0F1B2E]/98 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1.5 max-h-56 overflow-y-auto no-scrollbar space-y-0.5 animate-fade-in font-mono text-xs">
+                   class="hidden absolute z-50 top-full mt-1.5 left-0 min-w-[215px] sm:min-w-[230px] w-auto max-w-[calc(100vw-2rem)] bg-[#0F1B2E]/98 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1.5 max-h-60 overflow-y-auto no-scrollbar space-y-1 animate-fade-in font-mono text-xs">
               </div>
             </div>
 

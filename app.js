@@ -20514,46 +20514,39 @@ function onPriceRawInput(isTyping = false) {
 }
 
 // ==========================================
-// Company Team Leaders (22 Official Leaders)
+// Bostar Team Leaders (Cleaned & Streamlined)
+// - ការកុម្ម៉ង់ថ្មី (Dock Mode): ទុកតែ Bech_Nora តែមួយគត់
+// - ការបញ្ចូលពី Telegram (Telegram Mode): ទុកតែ ៦ នាក់ស្នូល Bostar Group
 // ==========================================
-const COMPANY_TEAM_LEADERS = [
-  'Hou_Yarith',
-  'Hem_Chanthy',
-  'Sroeun_Leanghak',
-  'Bech_Udom',
-  'Sdey_Sdoeung',
+const BOSTAR_TELEGRAM_LEADERS = [
   'Bech_Nora',
-  'Vann_Sitha',
-  'Vann_Thida',
-  'V_Thida_Emmi',
-  'Chhorn_Dara',
-  'Meng_Samoeuk',
-  'Chhoun_Vireak',
-  'La_Thida',
-  'Nhem_Somrith',
-  'N_Somrith_Emmi',
-  'Yat_Virakyuth',
-  'Sarun_Chhayhor',
-  'S_Chhayhor_Emmi',
-  'Hong_Heng_Oeurn',
-  'Heng_Oeun_Emmi',
-  'Kru_Ta',
-  'Long_Vuthy',
-  'L_Vuthy_Emmi',
-  'Sorn_Sabda',
-  'Teng_Toeun',
-  'Vann_Theary',
-  'T_Toeun_Emmi'
+  'Hour_Yaith',
+  'Hem_Chanthy',
+  'Bech_Udom',
+  'Sroeun_Leanghak',
+  'Sdey_Sdoeung'
 ];
+
+const DOCK_ORDER_LEADERS = [
+  'Bech_Nora'
+];
+
+// Retain COMPANY_TEAM_LEADERS for backward compatibility
+const COMPANY_TEAM_LEADERS = BOSTAR_TELEGRAM_LEADERS;
+
+function getActiveTeamLeadersList() {
+  return (currentOrderEntryMode === 'telegram') ? BOSTAR_TELEGRAM_LEADERS : DOCK_ORDER_LEADERS;
+}
 
 function renderOrderTeamDropdown(filterText = '') {
   const menu = document.getElementById('order-team-dropdown-menu');
   if (!menu) return;
   const currentVal = (document.getElementById('order-field-team')?.value || '').trim();
   const search = (filterText || '').toLowerCase().trim();
+  const activeList = getActiveTeamLeadersList();
   const filtered = search 
-    ? COMPANY_TEAM_LEADERS.filter(item => item.toLowerCase().includes(search))
-    : COMPANY_TEAM_LEADERS;
+    ? activeList.filter(item => item.toLowerCase().includes(search))
+    : activeList;
 
   if (filtered.length === 0) {
     menu.innerHTML = `<div class="px-3 py-2 text-slate-400 text-[11px] text-center italic">រកមិនឃើញ "${filterText}"</div>`;
@@ -20564,16 +20557,16 @@ function renderOrderTeamDropdown(filterText = '') {
     const isSelected = (name.toLowerCase() === currentVal.toLowerCase());
     return `
       <button type="button" onclick="selectOrderTeam('${name}')" 
-              class="w-full text-left px-3 py-1.5 rounded-xl transition flex items-center justify-between text-xs ${
+              class="w-full text-left px-3 py-2 rounded-xl transition flex items-center justify-between text-xs active:scale-[0.98] ${
                 isSelected 
-                  ? 'bg-orange-500/20 text-orange-400 font-bold border border-orange-500/30' 
+                  ? 'bg-orange-500/20 text-orange-400 font-bold border border-orange-500/40 shadow-sm' 
                   : 'text-slate-200 hover:bg-white/10 hover:text-white'
               }">
-        <div class="flex items-center gap-2 truncate">
+        <div class="flex items-center gap-2.5 min-w-0 pr-1">
           <i data-lucide="user-check" class="w-3.5 h-3.5 ${isSelected ? 'text-orange-400' : 'text-slate-500'} shrink-0"></i>
-          <span class="truncate">${name}</span>
+          <span class="whitespace-nowrap font-medium text-[11.5px] sm:text-xs tracking-tight">${name}</span>
         </div>
-        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>' : ''}
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400 shrink-0 ml-1"></i>' : ''}
       </button>
     `;
   }).join('');
@@ -20696,7 +20689,10 @@ function openNewOrderModal(mode = 'dock') {
     if (btnHeaderPass) btnHeaderPass.classList.add('hidden');
     if (card3in1) card3in1.classList.add('hidden'); // Removed from New Order mode
     if (syncToggle) syncToggle.checked = true; // Auto-sync active for 3-in-1 in background
-    if (orderTypeCard) orderTypeCard.classList.add('hidden'); // Hidden in dock mode
+    if (orderTypeCard) orderTypeCard.classList.remove('hidden'); // Show 3 order types in dock mode
+    // សម្រាប់ការកុម្ម៉ង់ថ្មី ថ្នាក់ដឹកនាំគឺ Bech_Nora តែមួយគត់
+    const teamInput = document.getElementById('order-field-team');
+    if (teamInput) teamInput.value = 'Bech_Nora';
     if (stockCapsuleBtn) {
       stockCapsuleBtn.classList.remove('hidden');
       stockCapsuleBtn.style.display = '';
@@ -21432,9 +21428,24 @@ function parsePastedOrderText(silent = false) {
   }
 
   if (teamRaw) {
-    const cleanTeam = teamRaw.trim().replace(/^[@#]/, '');
-    const matched = COMPANY_TEAM_LEADERS.find(t => t.toLowerCase() === cleanTeam.toLowerCase()) ||
-                    COMPANY_TEAM_LEADERS.find(t => t.toLowerCase().includes(cleanTeam.toLowerCase()));
+    const cleanTeam = teamRaw.trim().replace(/^[@#]/, '').toLowerCase();
+    let matched = BOSTAR_TELEGRAM_LEADERS.find(t => t.toLowerCase() === cleanTeam) ||
+                  BOSTAR_TELEGRAM_LEADERS.find(t => cleanTeam.includes(t.toLowerCase()) || t.toLowerCase().includes(cleanTeam));
+    if (!matched) {
+      if (cleanTeam.includes('yaith') || cleanTeam.includes('yarith') || cleanTeam.includes('hour') || cleanTeam.includes('hou')) {
+        matched = 'Hour_Yaith';
+      } else if (cleanTeam.includes('sdoeung') || cleanTeam.includes('sdey') || cleanTeam.includes('ស្ដើង') || cleanTeam.includes('ស្ដី')) {
+        matched = 'Sdey_Sdoeung';
+      } else if (cleanTeam.includes('nora') || cleanTeam.includes('ណូរ៉ា') || cleanTeam.includes('bech_nora')) {
+        matched = 'Bech_Nora';
+      } else if (cleanTeam.includes('chanthy') || cleanTeam.includes('ចាន់ធី')) {
+        matched = 'Hem_Chanthy';
+      } else if (cleanTeam.includes('udom') || cleanTeam.includes('ឧត្តម') || cleanTeam.includes('bech_udom')) {
+        matched = 'Bech_Udom';
+      } else if (cleanTeam.includes('leanghak') || cleanTeam.includes('លាងហាក់') || cleanTeam.includes('sroeun')) {
+        matched = 'Sroeun_Leanghak';
+      }
+    }
     const teamField = document.getElementById('order-field-team');
     if (teamField && matched) {
       teamField.value = matched;
