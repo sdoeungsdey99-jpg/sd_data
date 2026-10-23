@@ -2654,6 +2654,22 @@
         </div>
       </div>
 
+      <!-- Segmented View Tabs (iOS Storage style: Breakdown vs Flat List) -->
+      <div id="expenses-modal-view-switcher" class="px-3.5 py-1.5 bg-[#060D1A]/90 border-b border-white/10 flex items-center justify-center shrink-0">
+        <div class="flex items-center p-0.5 rounded-2xl bg-white/5 border border-white/10 w-full max-w-xs text-xs font-semibold">
+          <button type="button" id="expenses-tab-breakdown-btn" onclick="setExpensesViewTab('breakdown')" 
+                  class="flex-1 py-1.5 px-2 rounded-xl text-center transition flex items-center justify-center gap-1.5 bg-orange-500 text-white font-bold shadow-sm">
+            <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
+            <span>វិភាគប្រភេទ</span>
+          </button>
+          <button type="button" id="expenses-tab-list-btn" onclick="setExpensesViewTab('list')" 
+                  class="flex-1 py-1.5 px-2 rounded-xl text-center transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white font-medium">
+            <i data-lucide="list" class="w-3.5 h-3.5"></i>
+            <span>បញ្ជីកត់ត្រា</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Total Summary Row at TOP -->
       <div id="expenses-modal-footer" class="px-4 py-2.5 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->

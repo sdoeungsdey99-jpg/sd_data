@@ -9074,7 +9074,11 @@ let expensesFilterState = {
   selectedYear: '', // 'YYYY'
   calYear: new Date().getFullYear(),
   calMonth: new Date().getMonth() + 1,
-  isSearchOpen: false
+  isSearchOpen: false,
+  viewTab: 'breakdown', // 'breakdown' (iOS style donut + categories) | 'list' (flat list)
+  expandedCategories: {},
+  activeCategoryFilter: 'all',
+  currentPeriodLabel: 'ទាំងអស់'
 };
 
 let currentLoadedExpenses = [];
@@ -9506,6 +9510,7 @@ function applyExpensesFilterAndRender() {
   });
   const totalAmount = sortedExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
+  expensesFilterState.currentPeriodLabel = periodLabel;
   if (subtitle) {
     subtitle.textContent = periodLabel === 'ទាំងអស់'
       ? `ចំណាយទាំងអស់ (${sortedExpenses.length} មុខ)`
@@ -9608,6 +9613,8 @@ function openExpensesModal(mode = false) {
     searchToggleBtn.classList.add('bg-white/5', 'text-orange-400', 'border-white/10');
   }
   expensesFilterState.isSearchOpen = false;
+  expensesFilterState.viewTab = 'breakdown';
+  expensesFilterState.activeCategoryFilter = 'all';
 
   closeAllExpensesDropdowns();
   applyExpensesFilterAndRender();
@@ -9631,49 +9638,376 @@ function expensesFilterDateParts(iso) {
   return { year: parseInt(parts[0], 10), month: parseInt(parts[1], 10) };
 }
 
+// iOS / Telegram Category Styling & Color Mapping
+function getExpenseCategoryStyle(name, index) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('ads') || n.includes('boost') || n.includes('fb') || n.includes('tiktok') || n.includes('facebook')) {
+    return { icon: 'megaphone', color: '#3B82F6', bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30' };
+  }
+  if (n.includes('ហូប') || n.includes('បាយ') || n.includes('ម្ហូប') || n.includes('អាហារ') || n.includes('ញ៉ាំ')) {
+    return { icon: 'utensils', color: '#10B981', bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/30' };
+  }
+  if (n.includes('កាហ្វេ')) {
+    return { icon: 'coffee', color: '#F59E0B', bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30' };
+  }
+  if (n.includes('កម្សាន្ត') || n.includes('ចំណង់') || n.includes('នំ') || n.includes('លេង')) {
+    return { icon: 'sparkles', color: '#F59E0B', bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30' };
+  }
+  if (n.includes('ថេរ') || n.includes('ផ្ទះ') || n.includes('បន្ទប់') || n.includes('ទឹកភ្លើង') || n.includes('ជួល')) {
+    return { icon: 'home', color: '#F43F5E', bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/30' };
+  }
+  if (n.includes('ទូរស័ព្ទ') || n.includes('net') || n.includes('wifi') || n.includes('internet') || n.includes('កាត')) {
+    return { icon: 'wifi', color: '#8B5CF6', bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30' };
+  }
+  if (n.includes('ដឹក') || n.includes('សាំង') || n.includes('កង់បី') || n.includes('passapp') || n.includes('ឡាន') || n.includes('ធ្វើដំណើរ')) {
+    return { icon: 'truck', color: '#FB923C', bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30' };
+  }
+  if (n.includes('សុខភាព') || n.includes('ថ្នាំ') || n.includes('ពេទ្យ')) {
+    return { icon: 'heart-pulse', color: '#EC4899', bg: 'bg-pink-500/20', text: 'text-pink-400', border: 'border-pink-500/30' };
+  }
+  if (n.includes('ទាន') || n.includes('បន្ទាន់') || n.includes('សង្គ្រោះ')) {
+    return { icon: 'hand-heart', color: '#14B8A6', bg: 'bg-teal-500/20', text: 'text-teal-400', border: 'border-teal-500/30' };
+  }
+  if (n.includes('វិនិយោគ') || n.includes('ទំនិញ') || n.includes('ស្តុក') || n.includes('អភិវឌ្ឍន៍')) {
+    return { icon: 'trending-up', color: '#06B6D4', bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30' };
+  }
+  const fallbackColors = [
+    { color: '#6366F1', bg: 'bg-indigo-500/20', text: 'text-indigo-400', border: 'border-indigo-500/30', icon: 'receipt' },
+    { color: '#84CC16', bg: 'bg-lime-500/20', text: 'text-lime-400', border: 'border-lime-500/30', icon: 'tag' },
+    { color: '#0EA5E9', bg: 'bg-sky-500/20', text: 'text-sky-400', border: 'border-sky-500/30', icon: 'layers' },
+    { color: '#D946EF', bg: 'bg-fuchsia-500/20', text: 'text-fuchsia-400', border: 'border-fuchsia-500/30', icon: 'bookmark' }
+  ];
+  return fallbackColors[index % fallbackColors.length];
+}
+
+function setExpensesViewTab(tab) {
+  expensesFilterState.viewTab = tab;
+  updateExpensesViewTabButtons();
+  const searchInput = document.getElementById('expenses-modal-search-input');
+  if (searchInput && searchInput.value.trim()) {
+    filterExpensesModalList();
+  } else {
+    renderExpensesModalRows(currentLoadedExpenses);
+  }
+}
+
+function updateExpensesViewTabButtons() {
+  const btnBreakdown = document.getElementById('expenses-tab-breakdown-btn');
+  const btnList = document.getElementById('expenses-tab-list-btn');
+  const footer = document.getElementById('expenses-modal-footer');
+
+  if (expensesFilterState.viewTab === 'breakdown') {
+    if (btnBreakdown) {
+      btnBreakdown.className = 'flex-1 py-1 px-2 rounded-xl text-center transition flex items-center justify-center gap-1.5 bg-orange-500 text-white font-bold shadow-sm';
+    }
+    if (btnList) {
+      btnList.className = 'flex-1 py-1 px-2 rounded-xl text-center transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white font-medium';
+    }
+    if (footer) footer.classList.add('hidden');
+  } else {
+    if (btnBreakdown) {
+      btnBreakdown.className = 'flex-1 py-1 px-2 rounded-xl text-center transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white font-medium';
+    }
+    if (btnList) {
+      btnList.className = 'flex-1 py-1 px-2 rounded-xl text-center transition flex items-center justify-center gap-1.5 bg-orange-500 text-white font-bold shadow-sm';
+    }
+    if (footer) footer.classList.remove('hidden');
+  }
+}
+
+function toggleExpenseCategoryAccordion(catName, catId) {
+  const isExp = !!expensesFilterState.expandedCategories[catName];
+  expensesFilterState.expandedCategories[catName] = !isExp;
+
+  const subEl = document.getElementById(`exp-subitems-${catId}`);
+  const chevEl = document.getElementById(`exp-chevron-${catId}`);
+  if (subEl) {
+    if (!isExp) subEl.classList.remove('hidden');
+    else subEl.classList.add('hidden');
+  }
+  if (chevEl) {
+    if (!isExp) chevEl.classList.add('rotate-180', 'text-orange-400');
+    else chevEl.classList.remove('rotate-180', 'text-orange-400');
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function filterExpensesByCategory(encodedCatName) {
+  const catName = decodeURIComponent(encodedCatName);
+  expensesFilterState.activeCategoryFilter = catName;
+  const searchInput = document.getElementById('expenses-modal-search-input');
+  if (searchInput && searchInput.value.trim()) {
+    filterExpensesModalList();
+  } else {
+    renderExpensesModalRows(currentLoadedExpenses);
+  }
+}
+
+function renderExpensesBreakdownView(items, totalAmount, listEl) {
+  // 1. Group items by category
+  const categoryMap = {};
+  items.forEach(e => {
+    const cat = (e.category || 'ផ្សេងៗ').trim() || 'ផ្សេងៗ';
+    const amt = Number(e.amount) || 0;
+    if (!categoryMap[cat]) {
+      categoryMap[cat] = {
+        name: cat,
+        total: 0,
+        items: []
+      };
+    }
+    categoryMap[cat].total += amt;
+    categoryMap[cat].items.push(e);
+  });
+
+  const allCategories = Object.values(categoryMap).sort((a, b) => b.total - a.total);
+  allCategories.forEach((cat, idx) => {
+    cat.style = getExpenseCategoryStyle(cat.name, idx);
+    cat.pct = totalAmount > 0 ? (cat.total / totalAmount) * 100 : 0;
+  });
+
+  const activeCat = expensesFilterState.activeCategoryFilter || 'all';
+  const displayedCategories = (activeCat && activeCat !== 'all')
+    ? allCategories.filter(c => c.name.toLowerCase() === activeCat.toLowerCase())
+    : allCategories;
+
+  // Donut Chart SVG calculations
+  const radius = 78;
+  const strokeWidth = 26;
+  const circumference = 2 * Math.PI * radius; // ~490.088
+  let accumulatedLen = 0;
+  let accumulatedPct = 0;
+  let slicesSvg = '';
+  let labelsSvg = '';
+
+  allCategories.forEach((cat) => {
+    const strokeLen = (cat.pct / 100) * circumference;
+    const offset = -accumulatedLen;
+
+    slicesSvg += `
+      <circle cx="120" cy="120" r="${radius}" fill="none"
+              stroke="${cat.style.color}"
+              stroke-width="${strokeWidth}"
+              stroke-dasharray="${strokeLen.toFixed(2)} ${(circumference - strokeLen).toFixed(2)}"
+              stroke-dashoffset="${offset.toFixed(2)}"
+              class="transition-all duration-500 cursor-pointer hover:opacity-85"
+              onclick="filterExpensesByCategory('${encodeURIComponent(cat.name)}')" />
+    `;
+
+    // Percentage labels directly on slices (if pct >= 6%)
+    if (cat.pct >= 6) {
+      const startAngle = (accumulatedPct / 100) * 360;
+      const endAngle = startAngle + (cat.pct / 100) * 360;
+      const midAngle = (startAngle + endAngle) / 2;
+      const angleRad = (midAngle - 90) * (Math.PI / 180);
+      const lx = 120 + radius * Math.cos(angleRad);
+      const ly = 120 + radius * Math.sin(angleRad);
+
+      labelsSvg += `
+        <text x="${lx.toFixed(1)}" y="${(ly + 3.5).toFixed(1)}"
+              text-anchor="middle"
+              fill="#FFFFFF"
+              font-size="${cat.pct >= 10 ? '11' : '9.5'}"
+              font-weight="bold"
+              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.95)); pointer-events: none;">
+          ${cat.pct.toFixed(1)}%
+        </text>
+      `;
+    }
+
+    accumulatedLen += strokeLen;
+    accumulatedPct += cat.pct;
+  });
+
+  const periodLabel = expensesFilterState.currentPeriodLabel || 'ទាំងអស់';
+
+  listEl.innerHTML = `
+    <!-- 1. Top Donut Chart Container (iOS Storage Style) -->
+    <div class="pt-2 pb-1 flex flex-col items-center">
+      <div class="relative w-56 h-56 mx-auto flex items-center justify-center">
+        <!-- Rotated SVG for Slices -->
+        <svg viewBox="0 0 240 240" class="w-full h-full transform -rotate-90 select-none">
+          <circle cx="120" cy="120" r="${radius}" fill="none"
+                  stroke="rgba(255,255,255,0.06)"
+                  stroke-width="${strokeWidth}" />
+          ${slicesSvg}
+        </svg>
+        <!-- Unrotated Overlay for Crisp Upright Percentages -->
+        <svg viewBox="0 0 240 240" class="absolute inset-0 w-full h-full pointer-events-none select-none">
+          ${labelsSvg}
+        </svg>
+        <!-- Center Total & Label -->
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
+          <span class="text-white font-mono font-bold text-2xl tracking-tight leading-none drop-shadow-lg">
+            ${formatUSD(totalAmount)}
+          </span>
+          <span class="text-[10px] sm:text-[11px] font-sans font-bold text-slate-300 uppercase tracking-wider mt-1.5">
+            ចំណាយសរុប
+          </span>
+          <span class="text-[10px] font-mono text-slate-400 mt-0.5">
+            ${items.length} មុខ
+          </span>
+        </div>
+      </div>
+
+      <!-- Title & Subtitle -->
+      <div class="text-center mt-2 mb-3">
+        <h4 class="text-sm font-bold text-white tracking-tight">ការបែងចែកចំណាយ (Expense Breakdown)</h4>
+        <p class="text-[11px] text-slate-400 mt-0.5 font-mono">${periodLabel} • សរុប ${items.length} មុខ</p>
+      </div>
+
+      <!-- Category Filter Pills (All | Cat 1 | Cat 2 ...) -->
+      <div class="w-full flex items-center gap-1.5 p-1 rounded-2xl bg-black/40 border border-white/5 overflow-x-auto no-scrollbar mb-3 text-xs font-semibold">
+        <button type="button" onclick="filterExpensesByCategory('all')"
+                class="py-1 px-3 rounded-xl transition whitespace-nowrap active:scale-95 ${activeCat === 'all' ? 'bg-white/20 text-white shadow-sm' : 'text-slate-400 hover:text-white'}">
+          ទាំងអស់ (${items.length})
+        </button>
+        ${allCategories.map(c => `
+          <button type="button" onclick="filterExpensesByCategory('${encodeURIComponent(c.name)}')"
+                  class="py-1 px-2.5 rounded-xl transition whitespace-nowrap active:scale-95 flex items-center gap-1.5 ${activeCat.toLowerCase() === c.name.toLowerCase() ? 'bg-white/20 text-white shadow-sm' : 'text-slate-400 hover:text-white'}">
+            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${c.style.color};"></span>
+            <span>${c.name}</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- 2. iOS Telegram-Style Category Accordion List -->
+    <div class="rounded-3xl bg-[#0D1525]/90 border border-white/10 divide-y divide-white/5 overflow-hidden shadow-2xl">
+      ${displayedCategories.map((c, idx) => {
+        const isExpanded = !!expensesFilterState.expandedCategories[c.name] || (activeCat.toLowerCase() === c.name.toLowerCase());
+        const catId = `cat-${idx}`;
+        return `
+          <div class="category-accordion-group">
+            <!-- Header Row -->
+            <div onclick="toggleExpenseCategoryAccordion('${c.name.replace(/'/g, "\\'")}', '${catId}')"
+                 class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.04] active:bg-white/[0.08] transition select-none">
+              <div class="flex items-center gap-3 min-w-0 pr-2">
+                <div class="w-10 h-10 rounded-2xl ${c.style.bg} ${c.style.text} border ${c.style.border} flex items-center justify-center shrink-0 shadow-md">
+                  <i data-lucide="${c.style.icon}" class="w-5 h-5"></i>
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-xs sm:text-sm text-white truncate">${c.name}</span>
+                    <span class="text-[11px] font-mono text-slate-400 font-semibold">${c.pct.toFixed(1)}%</span>
+                  </div>
+                  <p class="text-[10px] text-slate-500 font-mono mt-0.5">${c.items.length} ប្រតិបត្តិការ</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="font-mono text-rose-400 font-bold text-xs sm:text-sm whitespace-nowrap">${formatUSD(c.total)}</span>
+                <i data-lucide="chevron-down" id="exp-chevron-${catId}"
+                   class="w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-orange-400' : ''}"></i>
+              </div>
+            </div>
+
+            <!-- Accordion Sub-items List (Transactions) -->
+            <div id="exp-subitems-${catId}" class="${isExpanded ? '' : 'hidden'} bg-black/40 border-t border-white/5 divide-y divide-white/5 px-3 py-1 animate-fade-in">
+              ${c.items.map((sub, sIdx) => `
+                <div class="py-2.5 px-2 flex items-center justify-between text-xs hover:bg-white/[0.02] rounded-xl transition">
+                  <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                    <span class="w-5 h-5 rounded-lg bg-white/5 text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                      ${sIdx + 1}
+                    </span>
+                    <div class="min-w-0">
+                      <p class="text-white font-medium text-xs truncate leading-tight">${sub.description || sub.category}</p>
+                      <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
+                        <span>${sub.date}</span>
+                        ${sub.time ? `<span class="text-amber-300">⏰ ${sub.time}</span>` : ''}
+                      </div>
+                    </div>
+                  </div>
+                  <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(sub.amount)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    <!-- 3. Bottom Helper Hint (matching screenshot) -->
+    <p class="text-[11px] text-slate-500 text-center pt-3 pb-1 italic flex items-center justify-center gap-1.5">
+      <i data-lucide="info" class="w-3.5 h-3.5 opacity-70"></i>
+      <span>ចុចលើប្រភេទនីមួយៗដើម្បីមើលព័ត៌មានលម្អិត</span>
+    </p>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
 function renderExpensesModalRows(items) {
   const listEl = document.getElementById('expenses-modal-list');
   const footer = document.getElementById('expenses-modal-footer');
   if (!listEl) return;
   const totalAmount = items.reduce((sum, e) => sum + (e.amount || 0), 0);
+  updateExpensesViewTabButtons();
 
   if (footer) {
-    footer.innerHTML = `
-      <div class="text-slate-300 font-semibold text-xs">
-        ចំនួនសរុប: ${items.length} មុខ
-      </div>
-      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right">
-        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
-        <span>${formatUSD(totalAmount)}</span>
-      </div>
-    `;
+    if (expensesFilterState.viewTab === 'breakdown') {
+      footer.classList.add('hidden');
+    } else {
+      footer.classList.remove('hidden');
+      footer.innerHTML = `
+        <div class="text-slate-300 font-semibold text-xs">
+          ចំនួនសរុប: ${items.length} មុខ
+        </div>
+        <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right">
+          <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
+          <span>${formatUSD(totalAmount)}</span>
+        </div>
+      `;
+    }
   }
 
   if (items.length === 0) {
-    listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">មិនមានទិន្នន័យចំណាយត្រូវគ្នានឹងការស្វែងរកទេ</p>`;
+    listEl.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-16 text-center space-y-3">
+        <div class="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500">
+          <i data-lucide="receipt" class="w-8 h-8 opacity-60"></i>
+        </div>
+        <div>
+          <p class="text-sm font-bold text-slate-300">មិនមានទិន្នន័យចំណាយទេ</p>
+          <p class="text-xs text-slate-500 mt-0.5">មិនមានប្រតិបត្តិការចំណាយក្នុងចន្លោះពេលនេះឡើយ</p>
+        </div>
+        <button onclick="openNewExpenseModal()" class="px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold flex items-center gap-2 active:scale-95 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>កត់ត្រាចំណាយថ្មី</span>
+        </button>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 
-  listEl.innerHTML = items.map((item, idx) => `
-    <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 hover:border-rose-500/20 transition">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-            ${idx + 1}
-          </span>
-          <span class="font-bold text-xs text-white">${item.description || item.category}</span>
+  if (expensesFilterState.viewTab === 'list') {
+    listEl.innerHTML = items.map((item, idx) => `
+      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 hover:border-rose-500/20 transition">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 min-w-0 pr-2">
+            <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+              ${idx + 1}
+            </span>
+            <span class="font-bold text-xs text-white truncate">${item.description || item.category}</span>
+          </div>
+          <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(item.amount)}</span>
         </div>
-        <span class="font-mono text-rose-400 font-bold text-xs">${formatUSD(item.amount)}</span>
-      </div>
-      <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
-        <div class="flex items-center gap-2">
-          <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
-          ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
+        <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
+          <div class="flex items-center gap-2">
+            <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
+            ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
+          </div>
+          <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
         </div>
-        <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
       </div>
-    </div>
-  `).join('');
+    `).join('');
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  // Telegram / iOS Storage Style Breakdown View
+  renderExpensesBreakdownView(items, totalAmount, listEl);
 }
 
 function filterExpensesModalList() {
@@ -22688,6 +23022,10 @@ window.openExpensesModal = openExpensesModal;
 window.closeExpensesModal = closeExpensesModal;
 window.filterExpensesModalList = filterExpensesModalList;
 window.clearExpensesModalSearch = clearExpensesModalSearch;
+window.setExpensesViewTab = setExpensesViewTab;
+window.toggleExpenseCategoryAccordion = toggleExpenseCategoryAccordion;
+window.filterExpensesByCategory = filterExpensesByCategory;
+window.getExpenseCategoryStyle = getExpenseCategoryStyle;
 
 // Export Team Leader Selector Functions
 window.COMPANY_TEAM_LEADERS = COMPANY_TEAM_LEADERS;
