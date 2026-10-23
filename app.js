@@ -17511,19 +17511,19 @@ function renderProfileDrawerContent() {
     <!-- ZONE 2.5: របាររចនាសម្ព័ន្ធលក់ (Executive Leadership Bar - Locked) -->
     <div onclick="openExecutiveHierarchyFromDrawer()" 
          class="ios-glass-card rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-[#0C1425]/90 to-[#0A0F1D]/90 p-3 flex items-center justify-between cursor-pointer select-none hover:border-amber-400/50 active:scale-[0.99] transition shadow-lg shadow-amber-500/5">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
-          <i data-lucide="crown" class="w-4 h-4"></i>
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+          <i data-lucide="crown" class="w-3.5 h-3.5"></i>
         </div>
         <div class="flex items-center gap-1.5 min-w-0">
-          <h4 class="text-xs font-bold text-white truncate">រចនាសម្ព័ន្ធលក់</h4>
+          <span class="text-xs font-bold text-white truncate">រចនាសម្ព័ន្ធលក់</span>
           <span class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30">VIP</span>
         </div>
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
-        <span class="w-7 h-7 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center justify-center shadow-inner">
-          <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span class="w-6 h-6 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center justify-center shadow-inner">
+          <i data-lucide="lock" class="w-3 h-3 text-amber-400"></i>
         </span>
         <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
       </div>
