@@ -17497,6 +17497,350 @@ function openProfileSubModal(type) {
 // ==========================================
 // Full-Screen Bostar Team Members Directory Modal (Spacious like Customers/Expenses)
 // ==========================================
+const teamMembersFilterState = {
+  mode: 'day', // 'day' | 'month' | 'year' | 'all'
+  selectedDate: null,
+  selectedMonth: null,
+  selectedYear: null,
+  calYear: (new Date()).getFullYear(),
+  calMonth: (new Date()).getMonth() + 1
+};
+
+function closeAllTeamDropdowns(except = null) {
+  const backdrop = document.getElementById('team-dropdown-backdrop');
+  if (except !== 'day') {
+    const d = document.getElementById('team-day-dropdown-menu');
+    if (d) d.classList.add('hidden');
+  }
+  if (except !== 'month') {
+    const m = document.getElementById('team-month-dropdown-menu');
+    if (m) m.classList.add('hidden');
+  }
+  if (except !== 'year') {
+    const y = document.getElementById('team-year-dropdown-menu');
+    if (y) y.classList.add('hidden');
+  }
+  if (!except && backdrop) {
+    backdrop.classList.add('hidden');
+  }
+}
+
+function toggleTeamDayDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('team-day-dropdown-menu');
+  const backdrop = document.getElementById('team-dropdown-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  closeAllTeamDropdowns('day');
+  if (isHidden) {
+    renderTeamMiniCalendar();
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+function renderTeamMiniCalendar() {
+  const menu = document.getElementById('team-day-dropdown-menu');
+  if (!menu) return;
+
+  const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const monthTitle = `${khmerMonths[teamMembersFilterState.calMonth - 1]} ${teamMembersFilterState.calYear}`;
+
+  const now = new Date();
+  const realTodayIso = getLocalIsoDate(now);
+  const selectedIso = teamMembersFilterState.selectedDate || realTodayIso;
+
+  const firstDayOfWeek = new Date(teamMembersFilterState.calYear, teamMembersFilterState.calMonth - 1, 1).getDay();
+  const daysInMonth = new Date(teamMembersFilterState.calYear, teamMembersFilterState.calMonth, 0).getDate();
+
+  const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : null;
+  const salesDaysSet = new Set();
+  if (d && Array.isArray(d.personalSales)) {
+    const prefix = `${teamMembersFilterState.calYear}-${String(teamMembersFilterState.calMonth).padStart(2, '0')}`;
+    d.personalSales.forEach(s => {
+      if (s.isoDate && s.isoDate.startsWith(prefix)) {
+        salesDaysSet.add(s.isoDate);
+      }
+    });
+  }
+
+  let daysGridHtml = '';
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    daysGridHtml += `<div class="h-8"></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayStr = String(day).padStart(2, '0');
+    const monthStr = String(teamMembersFilterState.calMonth).padStart(2, '0');
+    const thisDateIso = `${teamMembersFilterState.calYear}-${monthStr}-${dayStr}`;
+
+    const isSelected = teamMembersFilterState.mode === 'day' && thisDateIso === selectedIso;
+    const isToday = thisDateIso === realTodayIso;
+    const hasSales = salesDaysSet.has(thisDateIso);
+
+    let cellClasses = 'relative h-8 rounded-full flex flex-col items-center justify-center text-xs font-semibold cursor-pointer active:scale-95 transition ';
+    if (isSelected) {
+      cellClasses += 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30';
+    } else if (isToday) {
+      cellClasses += 'border border-orange-500/60 text-orange-400 hover:bg-orange-500/20';
+    } else {
+      cellClasses += 'text-slate-200 hover:bg-white/10';
+    }
+
+    daysGridHtml += `
+      <button onclick="selectTeamCalendarDay('${thisDateIso}', event)" class="${cellClasses}">
+        <span>${day}</span>
+        ${hasSales ? `<span class="w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-emerald-400'} absolute bottom-0.5"></span>` : ''}
+      </button>
+    `;
+  }
+
+  menu.innerHTML = `
+    <!-- Header: Month Year + Prev/Next Arrow Buttons -->
+    <div class="flex items-center justify-between pb-2 border-b border-white/10">
+      <button onclick="navigateTeamCalendarMonth(-1, event)" 
+              class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-90">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
+
+      <span class="text-xs font-bold text-white tracking-wide font-sans">
+        ${monthTitle}
+      </span>
+
+      <button onclick="navigateTeamCalendarMonth(1, event)" 
+              class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition active:scale-90">
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Quick Pick Shortcuts (Today / Yesterday) -->
+    <div class="grid grid-cols-2 gap-1.5 pb-2 border-b border-white/10">
+      <button onclick="selectTeamQuickDay('today', event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${teamMembersFilterState.mode === 'day' && teamMembersFilterState.selectedDate === realTodayIso ? 'bg-orange-500 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        ☀️ ថ្ងៃនេះ
+      </button>
+      <button onclick="selectTeamQuickDay('yesterday', event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${teamMembersFilterState.mode === 'day' && teamMembersFilterState.selectedDate === getYesterdayIso() ? 'bg-orange-500 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        🌙 ម្សិលមិញ
+      </button>
+    </div>
+
+    <!-- Weekday Headers -->
+    <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+      <span>អា</span><span>ច</span><span>អ</span><span>ព</span><span>ព្រ</span><span>សុ</span><span>ស</span>
+    </div>
+
+    <!-- Calendar Days Grid (7 cols) -->
+    <div class="grid grid-cols-7 gap-1 text-center">
+      ${daysGridHtml}
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function navigateTeamCalendarMonth(delta, event) {
+  if (event) event.stopPropagation();
+  teamMembersFilterState.calMonth += delta;
+  if (teamMembersFilterState.calMonth < 1) {
+    teamMembersFilterState.calMonth = 12;
+    teamMembersFilterState.calYear--;
+  } else if (teamMembersFilterState.calMonth > 12) {
+    teamMembersFilterState.calMonth = 1;
+    teamMembersFilterState.calYear++;
+  }
+  renderTeamMiniCalendar();
+}
+
+function selectTeamCalendarDay(isoDate, event) {
+  if (event) event.stopPropagation();
+  closeAllTeamDropdowns();
+  teamMembersFilterState.mode = 'day';
+  teamMembersFilterState.selectedDate = isoDate;
+  const parts = isoDate.split('-');
+  teamMembersFilterState.calYear = parseInt(parts[0], 10);
+  teamMembersFilterState.calMonth = parseInt(parts[1], 10);
+  renderTeamMembersList();
+}
+
+function selectTeamQuickDay(type, event) {
+  if (event) event.stopPropagation();
+  closeAllTeamDropdowns();
+  teamMembersFilterState.mode = 'day';
+  if (type === 'today') {
+    teamMembersFilterState.selectedDate = getLocalIsoDate(new Date());
+  } else if (type === 'yesterday') {
+    teamMembersFilterState.selectedDate = getYesterdayIso();
+  }
+  const parts = teamMembersFilterState.selectedDate.split('-');
+  teamMembersFilterState.calYear = parseInt(parts[0], 10);
+  teamMembersFilterState.calMonth = parseInt(parts[1], 10);
+  renderTeamMembersList();
+}
+
+function toggleTeamMonthDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('team-month-dropdown-menu');
+  const backdrop = document.getElementById('team-dropdown-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  closeAllTeamDropdowns('month');
+  if (isHidden) {
+    renderTeamMonthDropdown();
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+function renderTeamMonthDropdown() {
+  const menu = document.getElementById('team-month-dropdown-menu');
+  if (!menu) return;
+
+  const monthsList = [
+    { num: 1, name: 'មករា', en: 'Jan' },
+    { num: 2, name: 'កុម្ភៈ', en: 'Feb' },
+    { num: 3, name: 'មីនា', en: 'Mar' },
+    { num: 4, name: 'មេសា', en: 'Apr' },
+    { num: 5, name: 'ឧសភា', en: 'May' },
+    { num: 6, name: 'មិថុនា', en: 'Jun' },
+    { num: 7, name: 'កក្កដា', en: 'Jul' },
+    { num: 8, name: 'សីហា', en: 'Aug' },
+    { num: 9, name: 'កញ្ញា', en: 'Sep' },
+    { num: 10, name: 'តុលា', en: 'Oct' },
+    { num: 11, name: 'វិច្ឆិកា', en: 'Nov' },
+    { num: 12, name: 'ធ្នូ', en: 'Dec' }
+  ];
+
+  const now = new Date();
+  const currentMonthNum = now.getMonth() + 1;
+  const activeMonthKey = teamMembersFilterState.selectedMonth || `${teamMembersFilterState.calYear}-${String(currentMonthNum).padStart(2, '0')}`;
+  const activeYearStr = activeMonthKey.split('-')[0];
+  const activeMonthNum = parseInt(activeMonthKey.split('-')[1], 10);
+
+  const yearHeader = `
+    <div class="flex items-center justify-between pb-2 mb-1.5 border-b border-white/10 px-1">
+      <button type="button" onclick="navigateTeamMonthYear(-1, event)" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition" title="ឆ្នាំមុន">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
+      <span class="text-xs font-bold font-mono text-white">ឆ្នាំ ${teamMembersFilterState.calYear}</span>
+      <button type="button" onclick="navigateTeamMonthYear(1, event)" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition" title="ឆ្នាំបន្ទាប់">
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+  `;
+
+  menu.innerHTML = yearHeader + monthsList.map(m => {
+    const isSelected = teamMembersFilterState.mode === 'month' && m.num === activeMonthNum && String(teamMembersFilterState.calYear) === activeYearStr;
+    return `
+      <button onclick="selectTeamMonth(${m.num}, event)" 
+              class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-white bg-orange-500/20 border border-orange-500/30' : 'text-slate-300 hover:bg-white/10'}">
+        <span>${String(m.num).padStart(2, '0')} ${m.name}</span>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function navigateTeamMonthYear(delta, event) {
+  if (event) event.stopPropagation();
+  teamMembersFilterState.calYear += delta;
+  renderTeamMonthDropdown();
+}
+
+function selectTeamMonth(mNum, event) {
+  if (event) event.stopPropagation();
+  closeAllTeamDropdowns();
+  const paddedMonth = String(mNum).padStart(2, '0');
+  teamMembersFilterState.mode = 'month';
+  teamMembersFilterState.selectedMonth = `${teamMembersFilterState.calYear}-${paddedMonth}`;
+  renderTeamMembersList();
+}
+
+function toggleTeamYearDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('team-year-dropdown-menu');
+  const backdrop = document.getElementById('team-dropdown-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  closeAllTeamDropdowns('year');
+  if (isHidden) {
+    renderTeamYearDropdown();
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+function renderTeamYearDropdown() {
+  const menu = document.getElementById('team-year-dropdown-menu');
+  if (!menu) return;
+
+  const currentYear = (new Date()).getFullYear();
+  const years = [2028, 2027, 2026, 2025];
+  const activeYear = teamMembersFilterState.selectedYear ? parseInt(teamMembersFilterState.selectedYear, 10) : currentYear;
+
+  menu.innerHTML = years.map(y => {
+    const isSelected = teamMembersFilterState.mode === 'year' && y === activeYear;
+    return `
+      <button onclick="selectTeamYear(${y}, event)" 
+              class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-white bg-orange-500/20 border border-orange-500/30' : 'text-slate-300 hover:bg-white/10'}">
+        <span>ឆ្នាំ ${y}</span>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-orange-400"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function selectTeamYear(y, event) {
+  if (event) event.stopPropagation();
+  closeAllTeamDropdowns();
+  teamMembersFilterState.mode = 'year';
+  teamMembersFilterState.selectedYear = String(y);
+  teamMembersFilterState.calYear = y;
+  renderTeamMembersList();
+}
+
+function setTeamPeriodFilter(mode, val, event) {
+  if (event) event.stopPropagation();
+  closeAllTeamDropdowns();
+  teamMembersFilterState.mode = mode;
+  renderTeamMembersList();
+}
+
+function getFilteredTeamSales(sales) {
+  if (!Array.isArray(sales)) return [];
+  const now = new Date();
+  const currentIsoDay = getLocalIsoDate(now);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  const currentIsoYear = currentIsoDay.slice(0, 4);
+
+  if (teamMembersFilterState.mode === 'day') {
+    const targetDay = teamMembersFilterState.selectedDate || currentIsoDay;
+    return sales.filter(s => s.isoDate === targetDay);
+  } else if (teamMembersFilterState.mode === 'month') {
+    const targetMonth = teamMembersFilterState.selectedMonth || currentIsoMonth;
+    return sales.filter(s => s.isoDate && s.isoDate.startsWith(targetMonth));
+  } else if (teamMembersFilterState.mode === 'year') {
+    const targetYear = teamMembersFilterState.selectedYear || currentIsoYear;
+    return sales.filter(s => s.isoDate && s.isoDate.startsWith(targetYear));
+  } else if (teamMembersFilterState.mode === 'all') {
+    return sales;
+  }
+  return sales;
+}
+
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
   return String(str)
@@ -17558,6 +17902,40 @@ function openTeamMembersModal(memberNameToOpen = null) {
   if (listView) listView.classList.remove('hidden');
   if (detailView) detailView.classList.add('hidden');
 
+  closeAllTeamDropdowns();
+
+  // 100% Sync Date Filter from Home Page (appState)
+  const now = new Date();
+  const currentIsoDay = getLocalIsoDate(now);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  const currentIsoYear = currentIsoDay.slice(0, 4);
+
+  if (appState.periodFilter === 'today') {
+    teamMembersFilterState.mode = 'day';
+    if (appState.daySubFilter === 'specific' && appState.specificDate) {
+      teamMembersFilterState.selectedDate = appState.specificDate;
+    } else if (appState.daySubFilter === 'yesterday') {
+      teamMembersFilterState.selectedDate = getYesterdayIso();
+    } else {
+      teamMembersFilterState.selectedDate = currentIsoDay;
+    }
+    const parts = teamMembersFilterState.selectedDate.split('-');
+    teamMembersFilterState.calYear = parseInt(parts[0], 10);
+    teamMembersFilterState.calMonth = parseInt(parts[1], 10);
+  } else if (appState.periodFilter === 'month') {
+    teamMembersFilterState.mode = 'month';
+    teamMembersFilterState.selectedMonth = appState.selectedMonthKey || currentIsoMonth;
+    const parts = teamMembersFilterState.selectedMonth.split('-');
+    teamMembersFilterState.calYear = parseInt(parts[0], 10);
+    teamMembersFilterState.calMonth = parseInt(parts[1], 10);
+  } else if (appState.periodFilter === 'year') {
+    teamMembersFilterState.mode = 'year';
+    teamMembersFilterState.selectedYear = String(appState.selectedYear || currentIsoYear);
+    teamMembersFilterState.calYear = parseInt(teamMembersFilterState.selectedYear, 10);
+  } else {
+    teamMembersFilterState.mode = 'all';
+  }
+
   modal.classList.remove('hidden');
   setDockVisible(true);
 
@@ -17585,6 +17963,7 @@ function openTeamMembersModal(memberNameToOpen = null) {
 }
 
 function closeTeamMembersModal() {
+  closeAllTeamDropdowns();
   const modal = document.getElementById('team-members-modal');
   if (modal) modal.classList.add('hidden');
   setDockVisible(true);
@@ -17606,9 +17985,70 @@ function renderTeamMembersList() {
   if (!listEl) return;
 
   const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : ((window.DataService && window.DataService.data) ? window.DataService.data : null);
-  const sales = (d && Array.isArray(d.personalSales)) ? d.personalSales : [];
+  const allSales = (d && Array.isArray(d.personalSales)) ? d.personalSales : [];
 
-  // Group sales by seller name (supporting both km and en and normalized)
+  // Filter sales based on active period filter (Day / Month / Year / All)
+  const sales = getFilteredTeamSales(allSales);
+
+  const now = new Date();
+  const currentIsoDay = getLocalIsoDate(now);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  const currentIsoYear = currentIsoDay.slice(0, 4);
+
+  // Update UI Pills State & Labels
+  const btnDay = document.getElementById('team-filter-btn-day');
+  const btnMonth = document.getElementById('team-filter-btn-month');
+  const btnYear = document.getElementById('team-filter-btn-year');
+  const btnAll = document.getElementById('team-filter-btn-all');
+
+  const lblDay = document.getElementById('team-day-pill-label');
+  const lblMonth = document.getElementById('team-month-pill-label');
+  const lblYear = document.getElementById('team-year-pill-label');
+
+  const activeBtnClasses = ['accent-solid-btn', 'shadow-md', 'text-white'];
+  const inactiveBtnClasses = ['text-slate-400', 'hover:text-white'];
+
+  function setPillActive(btn) {
+    [btnDay, btnMonth, btnYear, btnAll].forEach(b => {
+      if (!b) return;
+      if (b === btn) {
+        b.classList.add(...activeBtnClasses);
+        b.classList.remove(...inactiveBtnClasses);
+      } else {
+        b.classList.remove(...activeBtnClasses);
+        b.classList.add(...inactiveBtnClasses);
+      }
+    });
+  }
+
+  const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+
+  if (teamMembersFilterState.mode === 'day') {
+    setPillActive(btnDay);
+    const selectedDay = teamMembersFilterState.selectedDate || currentIsoDay;
+    if (selectedDay === currentIsoDay) {
+      if (lblDay) lblDay.textContent = 'ថ្ងៃនេះ';
+    } else if (selectedDay === getYesterdayIso()) {
+      if (lblDay) lblDay.textContent = 'ម្សិលមិញ';
+    } else {
+      const parts = selectedDay.split('-');
+      if (lblDay) lblDay.textContent = `ថ្ងៃទី ${parts[2]}`;
+    }
+  } else if (teamMembersFilterState.mode === 'month') {
+    setPillActive(btnMonth);
+    const mKey = teamMembersFilterState.selectedMonth || currentIsoMonth;
+    const parts = mKey.split('-');
+    const mIndex = parseInt(parts[1], 10) - 1;
+    if (lblMonth) lblMonth.textContent = `ខែ ${khmerMonths[mIndex] || parts[1]}`;
+  } else if (teamMembersFilterState.mode === 'year') {
+    setPillActive(btnYear);
+    const yStr = teamMembersFilterState.selectedYear || currentIsoYear;
+    if (lblYear) lblYear.textContent = `ឆ្នាំ ${yStr}`;
+  } else {
+    setPillActive(btnAll);
+  }
+
+  // Group sales by seller name for this filtered period
   const sellerStats = {};
   let totalTeamBoxes = 0;
   let totalTeamOrders = 0;
@@ -17712,10 +18152,13 @@ function openTeamMemberDetail(sellerKmName) {
   const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : ((window.DataService && window.DataService.data) ? window.DataService.data : null);
   const allSales = (d && Array.isArray(d.personalSales)) ? d.personalSales : [];
 
+  // Filter by active period
+  const periodSales = getFilteredTeamSales(allSales);
+
   const normKm = normalizeSellerName(seller.km);
   const normEn = normalizeSellerName(seller.en);
 
-  const sales = allSales.filter(s => {
+  const sales = periodSales.filter(s => {
     const sName = (s.seller || '').trim();
     if (!sName) return false;
     const normS = normalizeSellerName(sName);
@@ -17748,6 +18191,147 @@ function openTeamMemberDetail(sellerKmName) {
     detailView.innerHTML = `
       <!-- Top Action Bar for Detail View -->
       <div class="flex items-center justify-between pb-1">
+        <button onclick="backToTeamMembersList()" 
+                class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
+          <span>បញ្ជីសមាជិក</span>
+        </button>
+        <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
+      </div>
+
+      <!-- Member Identity Header Card (Own Account) -->
+      <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/25 via-amber-500/15 to-transparent border border-orange-500/35 flex items-center gap-3.5 shadow-lg">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
+          ${seller.km.slice(0, 2)}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
+            <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-mono text-[9px] font-bold">👤 គណនីរបស់អ្នក</span>
+          </div>
+          <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
+          <span class="inline-block mt-1 text-[10px] text-amber-300 font-medium">✨ សមាជិកក្រុម BostarGroup</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons for Self (កែប្រែ & ឯកជនភាព) -->
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="closeTeamMembersModal(); openEditProfileModal();" 
+                class="py-2.5 px-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-md shadow-orange-500/20">
+          <i data-lucide="user-pen" class="w-4 h-4"></i>
+          <span>កែប្រែ Profile</span>
+        </button>
+        <button onclick="closeTeamMembersModal(); openProfileDrawer();" 
+                class="py-2.5 px-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i>
+          <span>ការកំណត់ឯកជនភាព</span>
+        </button>
+      </div>
+
+      <!-- Performance KPI Grid (Full for Self) -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់</span>
+          <span class="font-mono font-bold text-base text-emerald-400 block">${totalBoxes}</span>
+          <span class="text-[9px] text-slate-500 font-mono">ប្រអប់</span>
+        </div>
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់</span>
+          <span class="font-mono font-bold text-base text-sky-400 block">${totalOrders}</span>
+          <span class="text-[9px] text-slate-500 font-mono">ជោគជ័យ</span>
+        </div>
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">💵 ទឹកប្រាក់សរុប</span>
+          <span class="font-mono font-bold text-base text-amber-400 block">$${totalRevenue.toFixed(0)}</span>
+          <span class="text-[9px] text-slate-500 font-mono">USD</span>
+        </div>
+      </div>
+
+      <!-- Recent Orders by this Member (Self View) -->
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+        <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 mb-1">
+          <i data-lucide="history" class="w-3.5 h-3.5 text-sky-400"></i>
+          <span>ប្រវត្តិការលក់របស់អ្នក (${sales.length} កុម្ម៉ង់)</span>
+        </span>
+        ${sales.length === 0 ? `
+          <p class="text-[11px] text-slate-400 text-center py-5">មិនមានទិន្នន័យការលក់ក្នុងកាលបរិច្ឆេទនេះទេ</p>
+        ` : `
+          <div class="space-y-1.5 max-h-64 overflow-y-auto no-scrollbar">
+            ${sales.slice(0, 15).map(o => `
+              <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
+                <div>
+                  <span class="font-semibold text-white block text-[11px]">${escapeHtml(o.customer || o.customerName || 'អតិថិជន')}</span>
+                  <span class="text-[9.5px] text-slate-400 font-mono">${o.date || o.orderDate || ''} • ${escapeHtml(o.delivery || 'ដឹកជញ្ជូន')}</span>
+                </div>
+                <div class="text-right">
+                  <span class="font-mono font-bold text-emerald-400 text-xs">${o.totalBoxQty || o.boxes || 0} ប្រអប់</span>
+                  <span class="text-[9.5px] text-amber-400 font-mono block">$${Number(o.totalAmount || o.price || 0).toFixed(2)}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  } else {
+    // ==========================================
+    // VIEWING ANOTHER MEMBER (លាក់ព័ត៌មានលម្អិត & ចំណូល រក្សាឯកជនភាព)
+    // ==========================================
+    detailView.innerHTML = `
+      <!-- Top Action Bar for Detail View -->
+      <div class="flex items-center justify-between pb-1">
+        <button onclick="backToTeamMembersList()" 
+                class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
+          <span>បញ្ជីសមាជិក</span>
+        </button>
+        <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
+      </div>
+
+      <!-- Member Identity Header Card -->
+      <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-3.5 shadow-lg">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
+          ${seller.km.slice(0, 2)}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">ACTIVE</span>
+          </div>
+          <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
+          <span class="inline-block mt-1 text-[10px] text-amber-300 font-medium">✨ សមាជិកក្រុម BostarGroup</span>
+        </div>
+      </div>
+
+      <!-- Performance KPI Grid (បង្ហាញតែចំនួនសរុប និងចំនួនកុម្ម៉ង់ប៉ុណ្ណោះ) -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់សរុប</span>
+          <span class="font-mono font-bold text-lg text-emerald-400 block">${totalBoxes}</span>
+          <span class="text-[9.5px] text-slate-500 font-mono">ប្រអប់</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+          <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់សរុប</span>
+          <span class="font-mono font-bold text-lg text-sky-400 block">${totalOrders}</span>
+          <span class="text-[9.5px] text-slate-500 font-mono">ជោគជ័យ</span>
+        </div>
+      </div>
+
+      <!-- Privacy Protected Card (រក្សាឯកជនភាពអតិថិជន និងចំណូល) -->
+      <div class="p-4 rounded-2xl bg-black/35 border border-white/10 text-center space-y-2 select-none shadow-sm">
+        <div class="w-10 h-10 mx-auto rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <h5 class="text-xs font-bold text-slate-200">ទិន្នន័យឯកជនភាពត្រូវបានការពារ</h5>
+        <p class="text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto">
+          ប្រវត្តិកុម្ម៉ង់លម្អិត ព័ត៌មានអតិថិជន និងចំណូលលក់ ត្រូវបានរក្សាជាការសម្ងាត់ អាចមើលឃើញបានតែម្ចាស់គណនីផ្ទាល់ប៉ុណ្ណោះ។
+        </p>
+      </div>
+    `;
+  }
+
+  if (window.lucide) window.lucide.createIcons();
+}
         <button onclick="backToTeamMembersList()" 
                 class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
@@ -22085,6 +22669,24 @@ window.renderTeamMembersList = renderTeamMembersList;
 window.openTeamMemberDetail = openTeamMemberDetail;
 window.backToTeamMembersList = backToTeamMembersList;
 window.performCleanLogout = performCleanLogout;
+
+// Export Team Members Filter Functions
+window.teamMembersFilterState = teamMembersFilterState;
+window.closeAllTeamDropdowns = closeAllTeamDropdowns;
+window.toggleTeamDayDropdown = toggleTeamDayDropdown;
+window.renderTeamMiniCalendar = renderTeamMiniCalendar;
+window.navigateTeamCalendarMonth = navigateTeamCalendarMonth;
+window.selectTeamCalendarDay = selectTeamCalendarDay;
+window.selectTeamQuickDay = selectTeamQuickDay;
+window.toggleTeamMonthDropdown = toggleTeamMonthDropdown;
+window.renderTeamMonthDropdown = renderTeamMonthDropdown;
+window.navigateTeamMonthYear = navigateTeamMonthYear;
+window.selectTeamMonth = selectTeamMonth;
+window.toggleTeamYearDropdown = toggleTeamYearDropdown;
+window.renderTeamYearDropdown = renderTeamYearDropdown;
+window.selectTeamYear = selectTeamYear;
+window.setTeamPeriodFilter = setTeamPeriodFilter;
+window.getFilteredTeamSales = getFilteredTeamSales;
 
 
 // Attendance & Telegram Export
