@@ -21131,13 +21131,13 @@ function switchOrderMode(mode) {
 function toggleOrderTypeCapsule() {
   if (currentOrderType === 'standard') {
     setOrderType('reward');
-    showToastNotification('🎁 ប្តូរទៅជា «លក់រង្វាន់» (ថ្លៃដើម $5/ប្រអប់)');
+    showToastNotification('🎁 ប្តូរទៅជា «លក់រង្វាន់»');
   } else if (currentOrderType === 'reward') {
     setOrderType('return');
-    showToastNotification('🔄 ប្តូរទៅជា «លក់អីវ៉ាន់ត្រឡប់» (ថ្លៃដើម $0)');
+    showToastNotification('🔄 ប្តូរទៅជា «លក់អីវ៉ាន់ត្រឡប់»');
   } else {
     setOrderType('standard');
-    showToastNotification('📦 ប្តូរទៅជា «ស្តុកក្រុមហ៊ុន» (គិតថ្លៃដើម $24)');
+    showToastNotification('📦 ប្តូរទៅជា «ស្តុកក្រុមហ៊ុន»');
   }
 }
 
@@ -22540,8 +22540,10 @@ function updateModalLanguage() {
   if (orderBtnClear) orderBtnClear.textContent = isKm ? 'សម្អាត' : 'Clear';
   if (orderPastePrompt) orderPastePrompt.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i><span>${isKm ? 'សារពី Telegram:' : 'Telegram Message:'}</span>`;
   if (orderLabelType) orderLabelType.textContent = isKm ? 'ប្រភេទការលក់:' : 'Order Type:';
-  if (btnTypeStdText) btnTypeStdText.textContent = isKm ? 'ការលក់ធម្មតា' : 'Standard Order';
-  if (btnTypeRwdText) btnTypeRwdText.textContent = isKm ? 'លក់រង្វាន់ (ថ្លៃដើម $0)' : 'Reward Order ($0 Cost)';
+  if (btnTypeStdText) btnTypeStdText.textContent = isKm ? 'ស្តុកក្រុមហ៊ុន' : 'Company Stock';
+  if (btnTypeRwdText) btnTypeRwdText.textContent = isKm ? 'លក់រង្វាន់' : 'Reward Sale';
+  const btnTypeRetText = document.getElementById('btn-type-return-text');
+  if (btnTypeRetText) btnTypeRetText.textContent = isKm ? 'លក់អីវ៉ាន់ត្រឡប់' : 'Returned Resale';
   if (orderTypeDesc) orderTypeDesc.textContent = isKm ? 'គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។' : 'Standard stock cost ($24/box) with official Order ID.';
   if (orderLabelTeam) orderLabelTeam.textContent = isKm ? 'ថ្នាក់ដឹកនាំ (Team):' : 'Team Leader:';
   if (orderLabelId) orderLabelId.textContent = isKm ? 'លេខកុម្ម៉ង់:' : 'Order ID:';
