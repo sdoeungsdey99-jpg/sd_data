@@ -4,7 +4,7 @@
  */
 
 const MASTER_SDOEUNG_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
-const DEFAULT_MASTER_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+const DEFAULT_MASTER_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
 const TEAM_HIERARCHY_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
 const TEAM_HIERARCHY_GID = '1865868146';
 const BOSTAR_TRACK_GID = '1127553691';
@@ -25,12 +25,18 @@ function getActiveSheetId() {
       const urlSheet = urlParams.get('sheet') || urlParams.get('sheet_id');
       if (urlSheet && urlSheet.trim().length > 15) {
         const cleanUrlSheet = extractSheetId(urlSheet.trim()) || urlSheet.trim();
-        localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
-        return cleanUrlSheet;
+        if (cleanUrlSheet !== TEAM_HIERARCHY_SHEET_ID) {
+          localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
+          return cleanUrlSheet;
+        }
       }
     }
     const custom = localStorage.getItem('sd_custom_sheet_id');
-    if (custom && custom.trim().length > 15) return custom.trim();
+    if (custom && custom.trim() === TEAM_HIERARCHY_SHEET_ID) {
+      localStorage.removeItem('sd_custom_sheet_id');
+    } else if (custom && custom.trim().length > 15) {
+      return custom.trim();
+    }
   } catch (_) {}
   return DEFAULT_MASTER_SHEET_ID;
 }
@@ -268,19 +274,19 @@ window.DataService = {
 
     try {
       const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows, bostarTrackCsvRows] = await Promise.all([
-        fetchGoogleSheetGViz('1802751802', 'Personal Sales'),
-        fetchGoogleSheetCSV('1413782774', 'Daily Expenses'),
-        fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance'),
-        fetchGoogleSheetGViz('30391871', 'Team Monthly View'),
-        fetchGoogleSheetCSV('608899183', 'Team Sales'),
-        fetchTeamHierarchyCSV(),
-        fetchBostarTrackSalesCSV()
+        fetchGoogleSheetGViz('1802751802', 'Personal Sales').catch(e => { console.warn('PS fetch warning:', e); return null; }),
+        fetchGoogleSheetCSV('1413782774', 'Daily Expenses').catch(e => { console.warn('Expenses fetch warning:', e); return []; }),
+        fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance').catch(e => { console.warn('Bank fetch warning:', e); return []; }),
+        fetchGoogleSheetGViz('30391871', 'Team Monthly View').catch(e => { console.warn('Team Monthly fetch warning:', e); return null; }),
+        fetchGoogleSheetCSV('608899183', 'Team Sales').catch(e => { console.warn('Team Sales fetch warning:', e); return []; }),
+        fetchTeamHierarchyCSV().catch(e => { console.warn('Team Hierarchy fetch warning:', e); return []; }),
+        fetchBostarTrackSalesCSV().catch(e => { console.warn('BostarTrack fetch warning:', e); return []; })
       ]);
 
       // ==========================================
       // 1. Process Personal Sales
       // ==========================================
-      const psRows = psGviz.table.rows;
+      const psRows = (psGviz && psGviz.table && Array.isArray(psGviz.table.rows)) ? psGviz.table.rows : [];
       const personalSales = [];
 
       for (let i = 1; i < psRows.length; i++) {
