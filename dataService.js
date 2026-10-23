@@ -7,6 +7,7 @@ const MASTER_SDOEUNG_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
 const DEFAULT_MASTER_SHEET_ID = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
 const TEAM_HIERARCHY_SHEET_ID = '129WGuA42r-cfNkMnT-djA6v8b6sez6BImjquAeNtlo4';
 const TEAM_HIERARCHY_GID = '1865868146';
+const BOSTAR_TRACK_GID = '1127553691';
 
 function extractSheetId(input) {
   if (!input) return '';
@@ -208,6 +209,43 @@ async function fetchTeamHierarchyCSV() {
   return [];
 }
 
+// Fetch BostarTrack Sales Orders tab (Live Orders for 45 Team Members)
+async function fetchBostarTrackSalesCSV() {
+  const activeSheetId = getActiveSheetId();
+  const sheetIdsToTry = [];
+  if (activeSheetId) sheetIdsToTry.push(activeSheetId);
+  if (!sheetIdsToTry.includes(TEAM_HIERARCHY_SHEET_ID)) {
+    sheetIdsToTry.push(TEAM_HIERARCHY_SHEET_ID);
+  }
+
+  for (const sId of sheetIdsToTry) {
+    try {
+      const exportUrl = `https://docs.google.com/spreadsheets/d/${sId}/export?format=csv&gid=${BOSTAR_TRACK_GID}`;
+      const resp = await fetch(exportUrl);
+      if (resp && resp.ok) {
+        const text = await resp.text();
+        if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
+          const rows = parseCSV(text);
+          if (rows && rows.length > 1) return rows;
+        }
+      }
+    } catch (_) {}
+
+    try {
+      const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('BostarTrack')}`;
+      const resp = await fetch(gvizUrl);
+      if (resp && resp.ok) {
+        const text = await resp.text();
+        if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
+          const rows = parseCSV(text);
+          if (rows && rows.length > 1) return rows;
+        }
+      }
+    } catch (_) {}
+  }
+  return [];
+}
+
 window.DataService = {
   data: null,
   isLoading: false,
@@ -244,13 +282,14 @@ window.DataService = {
     }
 
     try {
-      const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows] = await Promise.all([
+      const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows, bostarTrackCsvRows] = await Promise.all([
         fetchGoogleSheetGViz('1802751802', 'Personal Sales'),
         fetchGoogleSheetCSV('1413782774', 'Daily Expenses'),
         fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance'),
         fetchGoogleSheetGViz('30391871', 'Team Monthly View'),
         fetchGoogleSheetCSV('608899183', 'Team Sales'),
-        fetchTeamHierarchyCSV()
+        fetchTeamHierarchyCSV(),
+        fetchBostarTrackSalesCSV()
       ]);
 
       // ==========================================
@@ -807,8 +846,76 @@ window.DataService = {
         }
       }
 
+      // ==========================================
+      // 6. Process BostarTrack Team Sales Orders (From BostarTrack tab)
+      // ==========================================
+      const bostarTrackSales = [];
+      if (Array.isArray(bostarTrackCsvRows) && bostarTrackCsvRows.length > 1) {
+        for (let i = 1; i < bostarTrackCsvRows.length; i++) {
+          const r = bostarTrackCsvRows[i];
+          if (!r || r.length < 3) continue;
+
+          // Header: Order Date (0), Seller (1), Order ID (2), YL (3), YLP (4), KN (5), P D.O (6), Free (7), Stock (8), Note (9), Record_ID (10)
+          const dateRaw = String(r[0] || '').trim();
+          if (!dateRaw || dateRaw.toLowerCase() === 'order date') continue;
+
+          const ddmmyyyy = formatToDDMMYYYY(dateRaw);
+          const isoDate = ddmmyyyyToIso(ddmmyyyy);
+          if (!ddmmyyyy) continue;
+
+          const seller = String(r[1] || '').trim();
+          const orderId = String(r[2] || `#${i}`).trim();
+          const qtyYL = cleanNumber(r[3]);
+          const qtyYLP = cleanNumber(r[4]);
+          const qtyKN = cleanNumber(r[5]);
+          const qtyPDO = cleanNumber(r[6]);
+          const freeQty = cleanNumber(r[7]);
+          const stock = cleanNumber(r[8]);
+          const note = String(r[9] || '').trim();
+          const recordId = String(r[10] || orderId || `REC-BT-${i}`).trim();
+
+          const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
+
+          const prodParts = [];
+          if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
+          if (qtyPDO > 0) prodParts.push(qtyPDO > 1 ? `PDO (${qtyPDO})` : `PDO`);
+          if (qtyYL > 0) prodParts.push(qtyYL > 1 ? `YL (${qtyYL})` : `YL`);
+          if (qtyYLP > 0) prodParts.push(qtyYLP > 1 ? `YLP (${qtyYLP})` : `YLP`);
+          if (freeQty > 0) prodParts.push(`Free (${freeQty})`);
+          const product = prodParts.join(', ') || 'ទំនិញ';
+
+          bostarTrackSales.push({
+            date: ddmmyyyy,
+            isoDate: isoDate,
+            orderId,
+            recordId,
+            customer: 'អតិថិជនទូទៅ',
+            seller,
+            location: '',
+            phone: '',
+            qtyYL,
+            qtyYLP,
+            qtyKN,
+            qtyPDO,
+            qtySG: 0,
+            freeQty,
+            totalBoxQty,
+            product,
+            price: 0,
+            thaiBaht: 0,
+            totalAmount: 0,
+            shipFee: 0,
+            deliveryMethod: 'ដឹកជញ្ជូន',
+            codStatus: 'ទូទាត់រួច',
+            profit: 0,
+            note
+          });
+        }
+      }
+
       this.data = {
         personalSales,
+        bostarTrackSales,
         expenses,
         pendingCodReceivables, // Exact live Accounts Receivable table from Bank & Cash Balance
         bank: {

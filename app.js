@@ -18001,6 +18001,29 @@ function backToTeamMembersList() {
   if (window.lucide) window.lucide.createIcons();
 }
 
+function getTeamMembersAllSales(d) {
+  if (!d) return [];
+  const btSales = Array.isArray(d.bostarTrackSales) ? d.bostarTrackSales : [];
+  const pSales = Array.isArray(d.personalSales) ? d.personalSales : [];
+  if (btSales.length === 0) return pSales;
+  if (pSales.length === 0) return btSales;
+
+  const seen = new Set();
+  const merged = [];
+  btSales.forEach(s => {
+    const key = (s.orderId || s.recordId || '').trim();
+    if (key) seen.add(key);
+    merged.push(s);
+  });
+  pSales.forEach(s => {
+    const key = (s.orderId || s.recordId || '').trim();
+    if (!key || !seen.has(key)) {
+      merged.push(s);
+    }
+  });
+  return merged;
+}
+
 function renderTeamMembersList() {
   const query = (document.getElementById('team-members-search-input')?.value || '').trim().toLowerCase();
   const countBadge = document.getElementById('team-members-count-badge');
@@ -18009,7 +18032,7 @@ function renderTeamMembersList() {
   if (!listEl) return;
 
   const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : ((window.DataService && window.DataService.data) ? window.DataService.data : null);
-  const allSales = (d && Array.isArray(d.personalSales)) ? d.personalSales : [];
+  const allSales = getTeamMembersAllSales(d);
 
   // Filter sales based on active period filter (Day / Month / Year / All)
   const sales = getFilteredTeamSales(allSales);
@@ -18174,7 +18197,7 @@ function renderTeamMembersList() {
 function openTeamMemberDetail(sellerKmName) {
   const seller = findBostarSeller(sellerKmName) || { km: sellerKmName, en: getSellerLatinName(sellerKmName) };
   const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : ((window.DataService && window.DataService.data) ? window.DataService.data : null);
-  const allSales = (d && Array.isArray(d.personalSales)) ? d.personalSales : [];
+  const allSales = getTeamMembersAllSales(d);
 
   // Filter by active period
   const periodSales = getFilteredTeamSales(allSales);
