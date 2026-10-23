@@ -83,6 +83,9 @@ function doPost(e) {
     } else if (action === 'sync_attendance') {
       var result = syncBostarAttendance(ss, data);
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'add_or_update_report' || action === 'sync_daily_report') {
+      var result = insertOrUpdateDailyReport(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     } else {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
@@ -463,23 +466,33 @@ function syncBostarAttendance(ss, data) {
 
   if (actionType === 'in') {
     // CHECK IN
+    var checkOutVal = (data.checkOutTime !== undefined && data.checkOutTime !== null && data.checkOutTime !== '') 
+      ? data.checkOutTime 
+      : ((data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 6).getValue() : ''));
+    var durationVal = (data.duration !== undefined && data.duration !== null && data.duration !== '')
+      ? data.duration
+      : ((data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 7).getValue() : ''));
+    var checkOutStatusVal = (data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 14).getValue() : '');
+    var checkOutLocVal = (data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 15).getValue() : '');
+    var checkOutNoteVal = (data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 16).getValue() : '');
+
     var checkInRow = [
       targetDate,                                        // A: Date
       staffId,                                           // B: Staff ID
       staffName,                                         // C: Staff Name
       role,                                              // D: Role
       data.checkInTime || timeStr,                       // E: Check-in Time
-      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 6).getValue() : ''), // F: Check-out Time
-      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 7).getValue() : ''), // G: Work Duration
+      checkOutVal,                                       // F: Check-out Time
+      durationVal,                                       // G: Work Duration
       data.status || 'Present',                          // H: Status
       data.lateMinutes || 0,                             // I: Late Mins
       data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location
       data.reason || '',                                 // K: Reason
       data.motivationalNote || '',                       // L: Motivational Note
       timestampStr,                                      // M: Timestamp
-      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 14).getValue() : ''), // N: Check-out Status
-      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 15).getValue() : ''), // O: Check-out Location
-      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 16).getValue() : '')  // P: Check-out Note
+      checkOutStatusVal,                                 // N: Check-out Status
+      checkOutLocVal,                                    // O: Check-out Location
+      checkOutNoteVal                                    // P: Check-out Note
     ];
 
     sheet.getRange(targetRow, 1, 1, 16).setValues([checkInRow]);
@@ -532,3 +545,130 @@ function syncBostarAttendance(ss, data) {
     };
   }
 }
+
+/**
+ * ==============================================================================
+ * DAILY SALES REPORT SYNC (SMART UPSERT - 100% DEDUPLICATION)
+ * ==============================================================================
+ * បញ្ចូល ឬ កែសម្រួលរបាយការណ៍លក់ប្រចាំថ្ងៃចូល Tab 'Report' ក្នុង BostarTrack
+ * ក្បួនការពារការស្ទួន ១០០%៖ ផ្ទៀងផ្ទាត់តាម Composite Key (Date + Page Name + Reporter)
+ * បើមានជួរចាស់ ➔ Update លើជួរដដែល | បើមិនទាន់មាន ➔ បន្ថែមជួរថ្មី
+ */
+function insertOrUpdateDailyReport(ss, data) {
+  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+  var targetSs = null;
+  try {
+    targetSs = SpreadsheetApp.openById(bostarTrackId);
+  } catch (e) {
+    targetSs = ss || SpreadsheetApp.getActiveSpreadsheet();
+  }
+
+  var sheet = targetSs.getSheetByName('Report');
+  if (!sheet) {
+    sheet = targetSs.getSheetByName('របាយការណ៍') || targetSs.getSheetByName('Daily Report');
+  }
+  if (!sheet) {
+    return { status: 'error', message: "រកមិនឃើញ Tab 'Report' ក្នុង Google Sheet ឡើយ!" };
+  }
+
+  var dateObj = parseToDateObj(data.date);
+  var targetDateNorm = Utilities.formatDate(dateObj, 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+
+  var timeStr = data.time || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'h:mm a');
+  var pageName = String(data.page || data.pageName || 'Bostar Store').trim();
+  var teamName = String(data.team || 'BostarGroup').trim();
+  var reporterName = String(data.reporter || data.staff || 'សមាជិក Bostar').trim();
+  var statusStr = String(data.status || 'បញ្ចប់').trim();
+
+  var chatTotal = Number(data.chatTotal) || 0;
+  var chatMistake = Number(data.chatMistake) || 0;
+  var chatTarget = Number(data.chatTarget) || 0;
+  var callDirect = Number(data.callDirect) || 0;
+  var followLeads = Number(data.followLeads) || 0;
+  var totalOrders = Number(data.totalOrders) || 0;
+  var totalBoxes = Number(data.totalBoxes) || 0;
+
+  var buyNewP = Number(data.buyNewP) || 0;
+  var buyNewB = Number(data.buyNewB) || 0;
+  var buyOldP = Number(data.buyOldP) || 0;
+  var buyOldB = Number(data.buyOldB) || 0;
+  var buyFollowP = Number(data.buyFollowP) || 0;
+  var buyFollowB = Number(data.buyFollowB) || 0;
+
+  var challenges = String(data.challenges || 'គ្មាន (None)').trim();
+
+  // ជួរឈរទាំង ២០ ត្រូវគ្នានឹង Tab Report បេះបិទ
+  var rowData = [
+    dateObj,       // Col A (0): កាលបរិច្ឆេទ (Date)
+    timeStr,       // Col B (1): ម៉ោងរាយការណ៍ (Time)
+    pageName,      // Col C (2): ឈ្មោះផេក (Page Name)
+    teamName,      // Col D (3): ក្រុមការងារ (Team)
+    reporterName,  // Col E (4): អ្នករាយការណ៍ (Reporter)
+    statusStr,     // Col F (5): ស្ថានភាព (Status)
+    chatTotal,     // Col G (6): សរុបទំនាក់ទំនង (Total Inquiries)
+    chatMistake,   // Col H (7): ឆាតប៉ះដៃ (Direct Chat)
+    chatTarget,    // Col I (8): ឆាតគោលដៅ (Targeted Ads)
+    callDirect,    // Col J (9): ខលចូលថ្មី (Incoming Calls)
+    followLeads,   // Col K (10): តាមដានចាស់ (Follow-up Leads)
+    totalOrders,   // Col L (11): សរុបកុម្ម៉ង់ (Total Orders)
+    totalBoxes,    // Col M (12): សរុបប្រអប់ (Total Boxes)
+    buyNewP,       // Col N (13): ថ្មីទិញ (នាក់)
+    buyNewB,       // Col O (14): ថ្មីទិញ (ប្រអប់)
+    buyOldP,       // Col P (15): ចាស់ទិញ (នាក់)
+    buyOldB,       // Col Q (16): ចាស់ទិញ (ប្រអប់)
+    buyFollowP,    // Col R (17): តាមដានទិញ (នាក់)
+    buyFollowB,    // Col S (18): តាមដានទិញ (ប្រអប់)
+    challenges     // Col T (19): បញ្ហាប្រឈម / កំណត់សម្គាល់ (Challenges & Notes)
+  ];
+
+  // ស្វែងរកជួរដេកចាស់ដើម្បីការពារការស្ទួន (Deduplication Check)
+  var lastRow = sheet.getLastRow();
+  var matchRowIndex = -1;
+
+  if (lastRow > 1) {
+    var range = sheet.getRange(2, 1, lastRow - 1, 5).getValues(); // អាន Col A ដល់ E (Date, Time, Page, Team, Reporter)
+    for (var i = 0; i < range.length; i++) {
+      var rDate = range[i][0];
+      var rDateNorm = '';
+      if (rDate instanceof Date) {
+        rDateNorm = Utilities.formatDate(rDate, 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+      } else {
+        var parsed = parseToDateObj(rDate);
+        rDateNorm = Utilities.formatDate(parsed, 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+      }
+
+      var rPage = String(range[i][2] || '').trim().toLowerCase();
+      var rReporter = String(range[i][4] || '').trim().toLowerCase();
+
+      // ផ្ទៀងផ្ទាត់លក្ខខណ្ឌស្ទួន (Date + Page + Reporter)
+      if (rDateNorm === targetDateNorm &&
+          rPage === pageName.toLowerCase() &&
+          rReporter === reporterName.toLowerCase()) {
+        matchRowIndex = i + 2; // 1-based index (Header គឺជួរទី ១)
+        break;
+      }
+    }
+  }
+
+  if (matchRowIndex > 0) {
+    // ករណីរកឃើញជួរចាស់ ➔ Update លើជួរដដែល (មិនបង្កើតជួរស្ទួន)
+    sheet.getRange(matchRowIndex, 1, 1, rowData.length).setValues([rowData]);
+    return {
+      status: 'success',
+      isUpdate: true,
+      rowIndex: matchRowIndex,
+      message: 'បានកែសម្រួលរបាយការណ៍លើជួរទី ' + matchRowIndex + ' (Update ជោគជ័យ មិនមានស្ទួន) ✅'
+    };
+  } else {
+    // ករណីទិន្នន័យថ្មី ➔ បន្ថែមជួរថ្មី
+    sheet.appendRow(rowData);
+    var newRowIndex = sheet.getLastRow();
+    return {
+      status: 'success',
+      isUpdate: false,
+      rowIndex: newRowIndex,
+      message: 'បានកត់ត្រារបាយការណ៍ថ្មីលើជួរទី ' + newRowIndex + ' ជោគជ័យ! 🚀'
+    };
+  }
+}
+
