@@ -15291,6 +15291,12 @@ let BOSTAR_TEAM_SELLERS = [
   { no: 44, km: 'ពុធ ធារ៉ា', en: 'Puth Theara', leader: 'លោក ប៊ិច នោរ៉ា' }
 ];
 
+function populateBostarSellersDatalist() {
+  const dl = document.getElementById('bostar-sellers-list');
+  if (!dl || !Array.isArray(BOSTAR_TEAM_SELLERS)) return;
+  dl.innerHTML = BOSTAR_TEAM_SELLERS.map(s => `<option value="${escapeHtml(s.km)}">${escapeHtml(s.en)}</option>`).join('');
+}
+
 function updateBostarTeamSellers(liveList) {
   if (Array.isArray(liveList) && liveList.length > 0) {
     const valid = liveList.filter(m => m && m.km && m.km.trim().length > 0);
@@ -15301,6 +15307,7 @@ function updateBostarTeamSellers(liveList) {
       if (badge && (!searchInput || !searchInput.value.trim())) {
         badge.textContent = `(${valid.length} នាក់)`;
       }
+      populateBostarSellersDatalist();
     }
   }
 }

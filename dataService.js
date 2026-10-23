@@ -854,11 +854,14 @@ window.DataService = {
           const qtyKN = cleanNumber(r[5]);
           const qtyPDO = cleanNumber(r[6]);
           const freeQty = cleanNumber(r[7]);
-          const stock = cleanNumber(r[8]);
-          const note = String(r[9] || '').trim();
-          const recordId = String(r[10] || orderId || `REC-BT-${i}`).trim();
 
-          const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
+          // Dynamically detect if 'Total' column was inserted at index 8
+          const hasTotalCol = Array.isArray(bostarTrackCsvRows[0]) && bostarTrackCsvRows[0].some(h => String(h).trim().toLowerCase() === 'total');
+          const stock = cleanNumber(hasTotalCol ? r[9] : r[8]);
+          const note = String((hasTotalCol ? r[10] : r[9]) || '').trim();
+          const recordId = String((hasTotalCol ? r[11] : r[10]) || orderId || `REC-BT-${i}`).trim();
+          const reportedTotal = hasTotalCol ? cleanNumber(r[8]) : 0;
+          const totalBoxQty = reportedTotal > 0 ? reportedTotal : (qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty);
 
           const prodParts = [];
           if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
