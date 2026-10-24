@@ -3445,8 +3445,10 @@
   <!-- ======================================================== -->
   <div id="edit-order-modal" class="fixed inset-0 z-[80] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy">
     <div class="w-full max-w-md mx-auto flex flex-col h-full overflow-hidden">
-      <!-- Top Bar -->
-      <div class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 flex items-center justify-between gap-2">
+      <!-- Top Bar (Tap empty area to Scroll to Top) -->
+      <div onclick="handleHeaderScrollToTop(event, 'edit-order-modal-body')" 
+           class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 flex items-center justify-between gap-2 cursor-pointer select-none"
+           title="ប៉ះកន្លែងទំនេរដើម្បីឡើងលើបង្អស់ (Scroll to Top)">
         <button onclick="closeEditSalesOrderModal()" 
                 class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
                 title="ត្រឡប់">
@@ -3639,11 +3641,11 @@
         </div>
       </div>
 
-      <!-- Sticky Bottom Action Bar -->
-      <div class="p-3 border-t border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0">
-        <button id="btn-save-edit-order" onclick="submitEditSalesOrder()" 
-                class="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white font-bold text-xs shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 transition">
-          <i data-lucide="check" class="w-4 h-4"></i>
+      <!-- Floating iOS Dock-style Action Footer (Centered Pill Capsule, Always Visible / Static) -->
+      <div class="p-3.5 pb-5 border-t border-white/5 bg-gradient-to-t from-[#070D18] via-[#070D18]/90 to-transparent backdrop-blur-md flex items-center justify-center shrink-0">
+        <button type="button" id="btn-save-edit-order" onclick="submitEditSalesOrder()" 
+                class="w-full max-w-xs mx-auto py-3 px-6 rounded-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:from-orange-400 hover:to-amber-400 active:scale-95 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_8px_25px_rgba(249,115,22,0.35)] border border-orange-400/30 transition-all cursor-pointer">
+          <i data-lucide="check" class="w-4 h-4 stroke-[2.5]"></i>
           <span>រក្សាទុកការកែប្រែ ✏️</span>
         </button>
       </div>
@@ -5565,6 +5567,6 @@
   </div>
 
   <script src="dataService.js?v=7.5"></script>
-  <script src="app.js?v=43.0"></script>
+  <script src="app.js?v=43.1"></script>
 </body>
 </html>

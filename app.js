@@ -1362,6 +1362,11 @@ function handleBackNavigation() {
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
+  if (!document.getElementById('edit-order-modal')?.classList?.contains('hidden')) {
+    closeEditSalesOrderModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
 
   // 1d. Close Profile Drawer itself if open -> returns to Home!
   const profDrawer = document.getElementById('profile-drawer-modal');
@@ -1373,7 +1378,7 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'edit-order-modal', 'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'edit-bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
@@ -1424,7 +1429,7 @@ function handleBackNavigation() {
 
 function isAnyDrilldownModalOpen() {
   const modalIds = [
-    'team-members-modal', 'new-order-modal', 'new-expense-modal',
+    'edit-order-modal', 'team-members-modal', 'new-order-modal', 'new-expense-modal',
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
     'executive-hierarchy-modal', 'daily-report-modal', 'honors-modal', 'tutorial-modal',
@@ -15522,8 +15527,15 @@ function handleHeaderScrollToTop(e, targetId = null) {
       target = document.getElementById('profile-drawer-content');
     }
 
+    // 0b. Edit Order Modal prioritized if open (on top of customer or sales modals)
+    const editOrderModal = document.getElementById('edit-order-modal');
+    if (!target && editOrderModal && !editOrderModal.classList.contains('hidden')) {
+      target = document.getElementById('edit-order-modal-body');
+    }
+
     if (!target) {
       const modals = [
+        { modalId: 'edit-order-modal', listId: 'edit-order-modal-body' },
         { modalId: 'attendance-leave-modal', listId: 'attendance-leave-body' },
         { modalId: 'attendance-manager-modal', listId: 'attendance-manager-body' },
         { modalId: 'attendance-top10-modal', listId: 'attendance-top10-body' },
