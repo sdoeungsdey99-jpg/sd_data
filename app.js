@@ -19695,6 +19695,21 @@ function renderProfileDrawerContent() {
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
       </div>
 
+      <!-- 2. ឯកជនភាព (Privacy) -->
+      <div onclick="closeProfileDrawer(); openProfileSubModal('privacy');" 
+           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
+        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
+          <div class="settings-icon-box w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Privacy' : 'ឯកជនភាព'}</h4>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Toggle personal info visibility' : 'បិទ/បើកការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន'}</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+      </div>
+
       <!-- 1.5. ភ្ជាប់ Google Sheet ផ្ទាល់ខ្លួន (Custom Sheet Sync) -->
       <div onclick="closeProfileDrawer(); openProfileSubModal('custom_sheet');" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
@@ -19708,21 +19723,6 @@ function renderProfileDrawerContent() {
               ${(typeof DataService !== 'undefined' && DataService.isUsingCustomSheet && DataService.isUsingCustomSheet()) ? '<span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">ភ្ជាប់រួច</span>' : ''}
             </div>
             <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Sync team member private sheet' : 'ភ្ជាប់ទិន្នន័យពី Sheet របស់កូនក្រុម'}</p>
-          </div>
-        </div>
-        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
-      </div>
-
-      <!-- 2. ឯកជនភាព (Privacy) -->
-      <div onclick="closeProfileDrawer(); openProfileSubModal('privacy');" 
-           class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
-        <div class="settings-row-left flex items-center gap-2.5 min-w-0">
-          <div class="settings-icon-box w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
-          </div>
-          <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Privacy' : 'ឯកជនភាព'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Toggle personal info visibility' : 'បិទ/បើកការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
