@@ -20554,23 +20554,31 @@ function renderAllCustomersList() {
 
     return `
       <div class="ios-glass-card rounded-2xl p-3 border border-white/10 transition">
-        <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-3 cursor-pointer select-none">
-          <!-- Left Column: Ample room so Customer Name, Location, Phone, Date never truncate with ... -->
-          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+        <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-2.5 cursor-pointer select-none">
+          <!-- Left Column: No. + Fixed Block (Phone & Date) + Flexible Block (Name & Location) -->
+          <div class="flex items-center gap-2 min-w-0 flex-1">
             <span class="w-7 h-7 rounded-xl bg-orange-500/20 border border-orange-500/30 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
               ${idx + 1}
             </span>
+
+            <!-- Fixed Data Block: Phone (top) & Date (bottom) in neat aligned columns -->
+            <div class="shrink-0 flex flex-col justify-center text-left pr-2 border-r border-white/10 min-w-[86px] sm:min-w-[96px]">
+              <span class="font-mono font-bold text-[11px] text-slate-200 tracking-tight whitespace-nowrap leading-tight">
+                📞 ${c.phone || '—'}
+              </span>
+              <span class="font-mono text-[9.5px] text-slate-400 whitespace-nowrap leading-tight mt-0.5">
+                📅 ${c.lastDate || '—'}
+              </span>
+            </div>
+
+            <!-- Flexible Data Block: Customer Name & Location -->
             <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <h4 class="font-bold text-xs text-white truncate max-w-[140px] sm:max-w-none">${c.name}</h4>
+              <div class="flex items-center gap-1.5 min-w-0">
+                <h4 class="font-bold text-xs text-white truncate">${c.name}</h4>
                 <span class="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-mono text-slate-300 shrink-0">${c.totalOrders} ${isEn ? 'orders' : 'ដង'}</span>
               </div>
-              <div class="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5 flex-wrap">
-                <span class="truncate max-w-[90px] sm:max-w-none">📍 ${c.location}</span>
-                <span>•</span>
-                <span class="font-mono text-slate-300 font-semibold shrink-0 whitespace-nowrap">📞 ${c.phone}</span>
-                <span class="text-slate-500">•</span>
-                <span class="font-mono text-slate-400 shrink-0 whitespace-nowrap">${c.lastDate}</span>
+              <div class="text-[10px] text-slate-400 truncate mt-0.5 flex items-center gap-1">
+                <span class="truncate">📍 ${c.location}</span>
               </div>
             </div>
           </div>
