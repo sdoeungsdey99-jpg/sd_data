@@ -1824,6 +1824,22 @@ function hookScrollableForDock(el, isMain = false) {
           expFilterBar.classList.add('filter-hidden');
         }
       }
+      if (el.id === 'cod-thai-orders-list' || el.id === 'cod-modal-table-container') {
+        const searchInput = document.getElementById('cod-thai-search-input');
+        const isTyping = (document.activeElement === searchInput);
+        if (!isTyping) {
+          const tabsBar = document.getElementById('cod-modal-tabs-bar');
+          if (tabsBar && !tabsBar.classList.contains('filter-hidden')) {
+            tabsBar.classList.add('filter-hidden');
+          }
+          if (el.id === 'cod-thai-orders-list') {
+            const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
+            if (thaiFilterBar && !thaiFilterBar.classList.contains('filter-hidden')) {
+              thaiFilterBar.classList.add('filter-hidden');
+            }
+          }
+        }
+      }
     }
     // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock & Filter Bar
     else if (diff < -6 || currentScrollTop <= 15) {
@@ -1848,6 +1864,16 @@ function hookScrollableForDock(el, isMain = false) {
           const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
           if (expFilterBar && expFilterBar.classList.contains('filter-hidden')) {
             expFilterBar.classList.remove('filter-hidden');
+          }
+        }
+        if (el.id === 'cod-thai-orders-list' || el.id === 'cod-modal-table-container') {
+          const tabsBar = document.getElementById('cod-modal-tabs-bar');
+          const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
+          if (tabsBar && tabsBar.classList.contains('filter-hidden')) {
+            tabsBar.classList.remove('filter-hidden');
+          }
+          if (thaiFilterBar && thaiFilterBar.classList.contains('filter-hidden')) {
+            thaiFilterBar.classList.remove('filter-hidden');
           }
         }
       }
@@ -10705,6 +10731,11 @@ function openCodModal() {
   const modal = document.getElementById('cod-modal');
   if (!modal) return;
 
+  const tabsBar = document.getElementById('cod-modal-tabs-bar');
+  const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
+  if (tabsBar) tabsBar.classList.remove('filter-hidden');
+  if (thaiFilterBar) thaiFilterBar.classList.remove('filter-hidden');
+
   renderCodSummary();
   switchCodModalTab(activeCodModalTab || 'summary');
 
@@ -10720,6 +10751,10 @@ function openCodModal() {
 function closeCodModal() {
   const modal = document.getElementById('cod-modal');
   if (modal) modal.classList.add('hidden');
+  const tabsBar = document.getElementById('cod-modal-tabs-bar');
+  const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
+  if (tabsBar) tabsBar.classList.remove('filter-hidden');
+  if (thaiFilterBar) thaiFilterBar.classList.remove('filter-hidden');
   setDockVisible(true);
 }
 
@@ -10729,6 +10764,11 @@ function switchCodModalTab(tab) {
   const thaiBtn = document.getElementById('cod-tab-thai-btn');
   const summaryView = document.getElementById('cod-summary-view');
   const thaiView = document.getElementById('cod-thai-view');
+
+  const tabsBar = document.getElementById('cod-modal-tabs-bar');
+  const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
+  if (tabsBar) tabsBar.classList.remove('filter-hidden');
+  if (thaiFilterBar) thaiFilterBar.classList.remove('filter-hidden');
 
   if (tab === 'summary') {
     if (summaryBtn) {
@@ -10830,7 +10870,7 @@ function promptChangeThaiExchangeRate() {
     const n = parseFloat(String(val).trim());
     if (!isNaN(n) && n > 0) {
       localStorage.setItem('sd_thai_exchange_rate', n);
-      showToastNotification(isEn ? `Exchange rate set to 1$ = ${n} ฿!` : `បានកំណត់ហាងឆេង 1$ = ${n} ฿ ជោគជ័យ!`);
+      showToastNotification(isEn ? `Exchange rate set to 1$ = ${n} B!` : `បានកំណត់ 1$ = ${n} B ជោគជ័យ!`);
       renderThaiCodOrders();
     }
   }
@@ -10961,7 +11001,7 @@ function renderThaiCodOrders() {
   const totalBoxes = orders.reduce((sum, o) => sum + cleanNumber(o.totalBoxQty || 1), 0);
   const totalUSD = totalBaht > 0 ? (totalBaht / rate) : 0;
 
-  // Update Bottom Summary Metrics
+  // Update Summary Metrics
   const statParcelsEl = document.getElementById('thai-cod-stat-parcels');
   const statBoxesEl = document.getElementById('thai-cod-stat-boxes');
   const statBahtEl = document.getElementById('thai-cod-stat-baht');
@@ -10969,11 +11009,11 @@ function renderThaiCodOrders() {
   const statUsdEl = document.getElementById('thai-cod-stat-usd');
   const rateLabelEl = document.getElementById('thai-cod-rate-label');
 
-  if (rateLabelEl) rateLabelEl.textContent = isEn ? 'Currency:' : 'ហាងឆេង៖';
+  if (rateLabelEl) rateLabelEl.textContent = '';
   if (statParcelsEl) statParcelsEl.textContent = isEn ? `${orders.length} Parcels` : `${orders.length} កញ្ចប់`;
   if (statBoxesEl) statBoxesEl.textContent = isEn ? `${totalBoxes} Boxes` : `${totalBoxes} ប្រអប់`;
   if (statBahtEl) statBahtEl.textContent = `${formatInt(totalBaht)} THB`;
-  if (statRateEl) statRateEl.textContent = `1$ = ${rate.toFixed(2)} ฿ ✏️`;
+  if (statRateEl) statRateEl.textContent = `1$ = ${rate.toFixed(2)} B`;
   if (statUsdEl) statUsdEl.textContent = formatUSD(totalUSD);
 
   if (orders.length === 0) {
@@ -10992,52 +11032,39 @@ function renderThaiCodOrders() {
     const safeOrderId = o.id || '';
 
     return `
-      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 space-y-2 hover:border-orange-500/30 transition">
-        <!-- Top row: Date, Order ID, Carrier, Last 4 digits -->
-        <div class="flex items-center justify-between text-xs">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="font-mono text-slate-300 font-semibold text-[11px]">${o.date}</span>
-            <span class="px-1.5 py-0.5 rounded bg-white/10 font-mono text-[10px] text-orange-400 font-bold">${safeOrderId}</span>
-            <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9.5px] font-semibold">${o.deliveryMethod || 'Thai COD'}</span>
+      <div class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 transition flex flex-col gap-1.5">
+        <!-- Top Row: Date, Customer, Delivery, Last 4 digits, THB Amount -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-mono text-slate-400 text-[10.5px] whitespace-nowrap">${o.date}</span>
+            <span class="font-bold text-white text-xs truncate max-w-[130px] sm:max-w-[200px]">${o.customer || (isEn ? 'Customer' : 'អតិថិជន')}</span>
+            <span class="px-1 py-0.2 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-semibold whitespace-nowrap hidden sm:inline">${o.deliveryMethod || 'Thai COD'}</span>
           </div>
-          <!-- 4-Digit Parcel Tag (Highlighted) -->
-          <div class="flex items-center gap-1 shrink-0">
-            <span class="text-[9.5px] text-slate-400 font-sans">${isEn ? 'Digits:' : 'កន្ទុយ:'}</span>
-            <span class="px-2 py-0.5 rounded-lg bg-orange-500/20 border border-orange-500/30 font-mono font-bold text-orange-400 text-xs tracking-wider">
-              ${last4}
-            </span>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="px-1.5 py-0.5 rounded-md bg-orange-500/20 border border-orange-500/30 font-mono font-bold text-orange-400 text-[11px] tracking-wider" title="${isEn ? 'Last 4 digits' : 'លេខកន្ទុយ ៤ ខ្ទង់'}">${last4}</span>
+            <span class="font-mono font-bold text-orange-400 text-xs sm:text-sm whitespace-nowrap">${formatInt(baht)} THB</span>
           </div>
         </div>
 
-        <!-- Middle row: Customer FB name, Phone, Seller -->
-        <div class="flex items-center justify-between text-[11px] pt-1 border-t border-white/5">
-          <div class="min-w-0 flex-1 pr-2">
-            <div class="font-bold text-white truncate">${o.customer || (isEn ? 'Customer' : 'អតិថិជន')}</div>
-            <div class="text-[10px] text-slate-400 truncate mt-0.5">
-              <span>👤 ${o.seller || (isEn ? 'Seller' : 'អ្នកលក់')}</span>
-              ${o.phone ? `<span class="mx-1">•</span><span class="font-mono text-slate-300">📞 ${o.phone}</span>` : ''}
-            </div>
+        <!-- Bottom Row: Seller, Phone, Box qty / USD, and Status Dropdown -->
+        <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
+          <div class="flex items-center gap-1 text-slate-400 truncate min-w-0">
+            <span>👤 ${o.seller || (isEn ? 'Seller' : 'អ្នកលក់')}</span>
+            ${o.phone ? `<span class="font-mono text-slate-300">• 📞 ${o.phone}</span>` : ''}
+            <span>•</span>
+            <span class="font-mono text-slate-300 whitespace-nowrap">${boxQty} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>
+            <span class="text-slate-500 font-mono">(${formatUSD(usd)})</span>
           </div>
-          <!-- Right side: Thai Baht & Box count -->
-          <div class="text-right shrink-0">
-            <div class="font-mono font-bold text-orange-400 text-sm">${formatInt(baht)} THB</div>
-            <div class="text-[10px] text-slate-400 font-mono">${boxQty} ${isEn ? 'Boxes' : 'ប្រអប់'} | ${formatUSD(usd)}</div>
-          </div>
-        </div>
-
-        <!-- Bottom row: Interactive Status Select Dropdown -->
-        <div class="pt-1.5 border-t border-white/5 flex items-center justify-between gap-2">
-          <span class="text-[10.5px] text-slate-400 font-medium">${isEn ? 'COD Status:' : 'ស្ថានភាព COD:'}</span>
-          <div class="relative flex-1 max-w-[200px]">
+          <div class="relative shrink-0">
             <select onchange="handleCodStatusChange('${safeRecId}', '${safeOrderId}', this.value)" 
-                    class="w-full text-xs font-semibold py-1 px-2.5 pr-6 rounded-xl border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(currentStatus)}">
+                    class="text-[11px] font-semibold py-0.5 pl-2 pr-5 rounded-lg border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(currentStatus)}">
               ${COD_STATUS_OPTIONS.map(opt => `
-                <option value="${opt}" ${opt === currentStatus ? 'selected' : ''} class="bg-[#0B1528] text-white py-1">
+                <option value="${opt}" ${opt === currentStatus ? 'selected' : ''} class="bg-[#0B1528] text-white">
                   ${opt}
                 </option>
               `).join('')}
             </select>
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
+            <i data-lucide="chevron-down" class="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
           </div>
         </div>
       </div>
@@ -14558,7 +14585,7 @@ function handleHeaderScrollToTop(e, targetId = null) {
       { modalId: 'all-customers-modal', listId: 'all-customers-list' },
       { modalId: 'sales-modal', listId: 'sales-modal-list' },
       { modalId: 'expenses-modal', listId: 'expenses-modal-list' },
-      { modalId: 'cod-modal', listId: 'cod-modal-table-container' },
+      { modalId: 'cod-modal', listId: () => (activeCodModalTab === 'thai' ? 'cod-thai-orders-list' : 'cod-modal-table-container') },
       { modalId: 'bank-modal', listId: 'bank-modal-list' },
       { modalId: 'payables-modal', listId: 'payables-modal-list' },
       { modalId: 'notif-modal', listId: 'notif-feed-list' },
@@ -14569,7 +14596,8 @@ function handleHeaderScrollToTop(e, targetId = null) {
     for (const m of modals) {
       const modalEl = document.getElementById(m.modalId);
       if (modalEl && !modalEl.classList.contains('hidden')) {
-        target = document.getElementById(m.listId);
+        const id = (typeof m.listId === 'function') ? m.listId() : m.listId;
+        target = document.getElementById(id);
         break;
       }
     }
@@ -14588,6 +14616,12 @@ function handleHeaderScrollToTop(e, targetId = null) {
     if (target.id === 'expenses-modal-list') {
       const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
       if (expFilterBar) expFilterBar.classList.remove('filter-hidden');
+    }
+    if (target.id === 'cod-thai-orders-list' || target.id === 'cod-modal-table-container') {
+      const tabsBar = document.getElementById('cod-modal-tabs-bar');
+      const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
+      if (tabsBar) tabsBar.classList.remove('filter-hidden');
+      if (thaiFilterBar) thaiFilterBar.classList.remove('filter-hidden');
     }
   }
   if (navigator.vibrate) {

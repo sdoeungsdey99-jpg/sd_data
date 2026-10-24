@@ -1682,15 +1682,19 @@
     #sticky-filter-bar,
     #expenses-modal-date-filter-bar,
     #analytics-sticky-header,
-    #study-sticky-header {
-      max-height: 120px;
+    #study-sticky-header,
+    #cod-modal-tabs-bar,
+    #cod-thai-search-filter-bar {
+      max-height: 140px;
       transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, padding 0.3s ease, margin 0.3s ease;
       overflow: visible;
     }
     #sticky-filter-bar.filter-hidden,
     #expenses-modal-date-filter-bar.filter-hidden,
     #analytics-sticky-header.filter-hidden,
-    #study-sticky-header.filter-hidden {
+    #study-sticky-header.filter-hidden,
+    #cod-modal-tabs-bar.filter-hidden,
+    #cod-thai-search-filter-bar.filter-hidden {
       max-height: 0 !important;
       opacity: 0 !important;
       padding-top: 0 !important;
@@ -2722,7 +2726,7 @@
       </div>
 
       <!-- Segmented Control Tabs (Bank 5 Rows vs Thai COD) -->
-      <div class="px-3.5 pt-2.5 pb-2 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-md flex items-center gap-2 shrink-0">
+      <div id="cod-modal-tabs-bar" class="px-3.5 pt-2.5 pb-2 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-md flex items-center gap-2 shrink-0">
         <div class="grid grid-cols-2 p-1 bg-black/40 rounded-xl border border-white/10 flex-1">
           <button id="cod-tab-summary-btn" onclick="switchCodModalTab('summary')" class="py-1.5 px-2.5 rounded-lg text-xs font-semibold transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center gap-1.5">
             <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
@@ -2764,7 +2768,7 @@
       <!-- VIEW 2: Thai COD Detailed Settlement (1st, 2nd, 3rd Phases & 4-digit search) -->
       <div id="cod-thai-view" class="hidden flex flex-col flex-1 overflow-hidden">
         <!-- Search & Filter Controls Subheader -->
-        <div class="p-3 border-b border-white/10 bg-black/30 space-y-2.5 shrink-0">
+        <div id="cod-thai-search-filter-bar" class="p-3 border-b border-white/10 bg-black/30 space-y-2.5 shrink-0">
           <!-- Search input -->
           <div class="relative">
             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
@@ -2804,9 +2808,8 @@
             </div>
             <div class="flex items-center gap-2">
               <div class="text-right">
-                <div class="flex items-center justify-end gap-1 text-[10.5px] text-slate-400">
-                  <span id="thai-cod-rate-label">ហាងឆេង៖</span>
-                  <span id="thai-cod-stat-rate" onclick="promptChangeThaiExchangeRate()" class="font-mono font-semibold text-slate-200 cursor-pointer hover:underline" title="ចុចដើម្បីកែប្រែ">1$ = 36.70 ฿ ✏️</span>
+                <div class="flex items-center justify-end text-[11px]">
+                  <span id="thai-cod-stat-rate" onclick="promptChangeThaiExchangeRate()" class="font-mono font-semibold text-slate-300 hover:text-white cursor-pointer hover:underline transition" title="ចុចដើម្បីកែប្រែ">1$ = 36.70 B</span>
                 </div>
                 <div class="font-mono font-bold text-emerald-400 text-xs mt-0.5">
                   <span class="text-[10px] text-slate-400 font-sans font-normal">ស្មើនឹងលុយ $៖ </span>
@@ -2821,7 +2824,7 @@
         </div>
 
         <!-- Thai COD Orders List Cards (Scrollable with pb-28 matching other list modals) -->
-        <div class="overflow-y-auto flex-1 no-scrollbar p-3 space-y-2.5 pb-28" id="cod-thai-orders-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+        <div class="overflow-y-auto flex-1 no-scrollbar p-3 space-y-1.5 pb-28" id="cod-thai-orders-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
           <!-- Populated dynamically -->
         </div>
       </div>
