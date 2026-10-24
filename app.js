@@ -10889,15 +10889,25 @@ function renderPayablesList() {
         </div>
       </div>
 
-      <!-- Middle: Minimalist Cycle Selector Pills (Plain Auto without icon) -->
+      <!-- Middle: Minimalist Cycle Selector Pills (Plain Auto without icon, soft highlight on active cycle) -->
       <div class="pt-2 border-t border-white/5 flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 text-xs">
         <button onclick="event.stopPropagation(); setPayablesCycle('auto');" class="py-1 px-2.5 rounded-lg text-xs font-semibold shrink-0 transition active:scale-95 ${isAuto ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-slate-400 border border-white/5 hover:text-white'}">
           Auto
         </button>
         ${[1, 2, 3, 4, 5, 6].map(cNum => {
-          const isSelected = !isAuto && activePayablesCycle === cNum;
+          const isExplicitlySelected = !isAuto && activePayablesCycle === cNum;
+          const isAutoTargetCycle = isAuto && effectiveCycleNum === cNum;
+
+          let pillClass = 'bg-white/5 text-slate-400 border border-white/5 hover:text-white';
+          if (isExplicitlySelected) {
+            pillClass = 'bg-orange-500/20 text-orange-400 border border-orange-500/30 font-bold shadow-sm';
+          } else if (isAutoTargetCycle) {
+            // ពណ៌ស្រាលៗលើជុំនោះ (Subtle soft highlight on active cycle when in Auto mode)
+            pillClass = 'bg-orange-500/10 text-orange-300 border border-orange-500/25 font-semibold';
+          }
+
           return `
-            <button onclick="event.stopPropagation(); setPayablesCycle(${cNum});" class="py-1 px-2.5 rounded-lg text-xs font-semibold shrink-0 transition active:scale-95 ${isSelected ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-slate-400 border border-white/5 hover:text-white'}">
+            <button onclick="event.stopPropagation(); setPayablesCycle(${cNum});" class="py-1 px-2.5 rounded-lg text-xs transition active:scale-95 ${pillClass}">
               ជុំ ${cNum}
             </button>
           `;
@@ -10943,7 +10953,17 @@ function renderPayablesList() {
 }
 
 function setPayablesCycle(cycle) {
-  activePayablesCycle = cycle;
+  if (cycle === 'auto') {
+    // Reset to today's real-time current year & month regardless of where the user is
+    const today = new Date();
+    const iso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(today) : today.toISOString().slice(0, 10);
+    const parts = iso.split('-');
+    activePayablesYear = parseInt(parts[0], 10);
+    activePayablesMonthNum = parseInt(parts[1], 10);
+    activePayablesCycle = 'auto';
+  } else {
+    activePayablesCycle = cycle;
+  }
   renderPayablesList();
 }
 
