@@ -3000,18 +3000,17 @@
       <!-- iOS Drag Handle Bar -->
       <div onclick="closeEditBankModal()" class="w-10 h-1.5 rounded-full bg-white/20 hover:bg-white/30 mx-auto mb-4 cursor-pointer transition"></div>
 
-      <!-- Header with Dynamic Bank Brand Icon & Name -->
-      <div class="flex items-center gap-3 mb-5">
-        <div id="edit-bank-icon-box" class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0 shadow-md transition-all">
-          <i id="edit-bank-icon" data-lucide="building-2" class="w-6 h-6"></i>
+      <!-- Header with Dynamic Bank Branding inline right in front of the Title -->
+      <div class="mb-5">
+        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+          <span id="edit-bank-brand-pill" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-[#00577B]/30 text-cyan-300 border border-cyan-500/30 shrink-0 shadow-sm transition-all">
+            <i id="edit-bank-icon" data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+            <span id="edit-bank-brand-name">ABA</span>
+          </span>
+          <h3 id="edit-bank-title" class="font-bold text-sm sm:text-base text-white truncate flex-1">កែប្រែសមតុល្យ</h3>
+          <span id="edit-bank-curr-badge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">USD</span>
         </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2">
-            <h3 id="edit-bank-title" class="font-bold text-sm sm:text-base text-white truncate">កែប្រែសមតុល្យ</h3>
-            <span id="edit-bank-curr-badge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">USD</span>
-          </div>
-          <p id="edit-bank-sub" class="text-[11px] text-slate-400 mt-0.5 truncate">គណនីធនាគារ • សមកាលកម្មទៅ Google Sheet ផ្ទាល់</p>
-        </div>
+        <p id="edit-bank-sub" class="text-[11px] text-slate-400 truncate">គណនីធនាគារ • សមកាលកម្មទៅ Google Sheet ផ្ទាល់</p>
       </div>
 
       <input type="hidden" id="edit-bank-no" value="">
@@ -5242,6 +5241,6 @@
   </div>
 
   <script src="dataService.js?v=7.4"></script>
-  <script src="app.js?v=41.7"></script>
+  <script src="app.js?v=41.8"></script>
 </body>
 </html>

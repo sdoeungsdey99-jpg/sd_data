@@ -11092,6 +11092,45 @@ function toggleBankZeroAccounts() {
   openBankModal();
 }
 
+function getBankBrandInfo(name) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('aba')) {
+    return {
+      brand: 'ABA',
+      pillClass: 'bg-[#00577B]/30 text-cyan-300 border-cyan-500/40',
+      iconBoxClass: 'bg-[#00577B]/25 text-cyan-400 border-cyan-500/30',
+      icon: 'credit-card'
+    };
+  } else if (n.includes('acleda')) {
+    return {
+      brand: 'ACLEDA',
+      pillClass: 'bg-[#0E406A]/35 text-amber-300 border-amber-400/40',
+      iconBoxClass: 'bg-[#0E406A]/25 text-amber-300 border-amber-400/30',
+      icon: 'landmark'
+    };
+  } else if (n.includes('wing')) {
+    return {
+      brand: 'Wing',
+      pillClass: 'bg-lime-500/25 text-lime-300 border-lime-500/40',
+      iconBoxClass: 'bg-lime-500/20 text-lime-400 border-lime-500/30',
+      icon: 'wallet'
+    };
+  } else if (n.includes('canadia')) {
+    return {
+      brand: 'Canadia',
+      pillClass: 'bg-rose-500/25 text-rose-300 border-rose-500/40',
+      iconBoxClass: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
+      icon: 'building'
+    };
+  }
+  return {
+    brand: 'Bank',
+    pillClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    iconBoxClass: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
+    icon: 'building-2'
+  };
+}
+
 function openBankModal() {
   const d = DataService.data;
   if (!d) return;
@@ -11108,20 +11147,19 @@ function openBankModal() {
   listEl.innerHTML = accounts.map(acc => {
     const isZero = (acc.usd <= 0 && acc.khr <= 0);
     const safeName = typeof escapeHtml === 'function' ? escapeHtml(acc.name) : acc.name;
+    const brand = getBankBrandInfo(acc.name);
     return `
       <div onclick="openEditBankAccountModal(${acc.no || 0})"
            title="ចុចដើម្បីកែប្រែសមតុល្យគណនីនេះទៅ Google Sheet"
            class="flex items-center justify-between p-3 rounded-2xl bg-black/25 border border-white/5 hover:border-blue-500/30 active:scale-[0.99] transition text-xs cursor-pointer group select-none shadow-sm">
         <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 group-hover:bg-blue-500/20 transition">
-            <i data-lucide="building-2" class="w-4 h-4"></i>
+          <div class="w-8 h-8 rounded-xl ${brand.iconBoxClass} border flex items-center justify-center shrink-0 transition">
+            <i data-lucide="${brand.icon}" class="w-4 h-4"></i>
           </div>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold border shrink-0 ${brand.pillClass}">${brand.brand}</span>
               <span class="text-white font-semibold text-xs truncate">${safeName}</span>
-              <span class="p-1 rounded-md bg-white/5 text-slate-400 group-hover:text-blue-400 group-hover:bg-blue-500/10 transition" title="កែប្រែសមតុល្យ">
-                <i data-lucide="pencil" class="w-2.5 h-2.5"></i>
-              </span>
             </div>
             <span class="text-[10px] text-slate-400 font-mono">Bank Account #${acc.no || '—'}</span>
           </div>
@@ -11191,35 +11229,26 @@ function openEditBankAccountModal(no) {
   if (usdInput) usdInput.value = (acc.usd !== undefined && acc.usd !== null && acc.usd > 0) ? Number(acc.usd) : (acc.usd === 0 ? 0 : '');
   if (khrInput) khrInput.value = (acc.khr !== undefined && acc.khr !== null && acc.khr > 0) ? Number(acc.khr) : (acc.khr === 0 ? 0 : '');
 
-  // iOS Bottom Sheet Dynamic Customization
+  // iOS Bottom Sheet Dynamic Customization (Branding inline in front of Title)
   const isKhr = (acc.name || '').includes('(KHR)') || (acc.khr > 0 && (!acc.usd || acc.usd === 0));
   const usdGroup = document.getElementById('edit-bank-usd-group');
   const khrGroup = document.getElementById('edit-bank-khr-group');
   const currBadge = document.getElementById('edit-bank-curr-badge');
   const titleEl = document.getElementById('edit-bank-title');
   const subEl = document.getElementById('edit-bank-sub');
-  const iconBox = document.getElementById('edit-bank-icon-box');
+  const brandPill = document.getElementById('edit-bank-brand-pill');
+  const brandName = document.getElementById('edit-bank-brand-name');
   const iconEl = document.getElementById('edit-bank-icon');
 
+  const brand = getBankBrandInfo(acc.name);
   if (titleEl) titleEl.textContent = acc.name || 'កែប្រែសមតុល្យ';
   if (subEl) subEl.textContent = `គណនីធនាគារ #${acc.no || '—'} • សមកាលកម្មទៅ Google Sheet ផ្ទាល់`;
 
-  const nameLower = (acc.name || '').toLowerCase();
-  if (iconBox && iconEl) {
-    if (nameLower.includes('aba')) {
-      iconBox.className = 'w-12 h-12 rounded-2xl bg-[#00577B]/25 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shrink-0 shadow-md transition-all';
-      iconEl.setAttribute('data-lucide', 'credit-card');
-    } else if (nameLower.includes('acleda')) {
-      iconBox.className = 'w-12 h-12 rounded-2xl bg-[#0E406A]/30 text-amber-300 border border-amber-400/30 flex items-center justify-center shrink-0 shadow-md transition-all';
-      iconEl.setAttribute('data-lucide', 'landmark');
-    } else if (nameLower.includes('wing')) {
-      iconBox.className = 'w-12 h-12 rounded-2xl bg-lime-500/20 text-lime-400 border border-lime-500/30 flex items-center justify-center shrink-0 shadow-md transition-all';
-      iconEl.setAttribute('data-lucide', 'wallet');
-    } else {
-      iconBox.className = 'w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0 shadow-md transition-all';
-      iconEl.setAttribute('data-lucide', 'building-2');
-    }
+  if (brandPill) {
+    brandPill.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border shrink-0 shadow-sm transition-all ${brand.pillClass}`;
   }
+  if (brandName) brandName.textContent = brand.brand;
+  if (iconEl) iconEl.setAttribute('data-lucide', brand.icon);
 
   if (isKhr) {
     if (currBadge) {
