@@ -203,8 +203,8 @@ const appState = {
   customEndDate: '',
   language: localStorage.getItem('sd_lang') || 'km',
   theme: localStorage.getItem('sd_theme') || 'dark',
-  themeAccent: localStorage.getItem('sd_theme_accent') || 'orange', // 'blue' | 'coral' | 'orange' | 'amber' | 'emerald' | 'pink'
-  cardLayout: localStorage.getItem('sd_card_layout') || '1', // '1' (standard) | '2' (finance) | '3' (sales)
+  themeAccent: ['orange', 'blue', 'emerald'].includes(localStorage.getItem('sd_theme_accent')) ? localStorage.getItem('sd_theme_accent') : 'orange', // 'orange' | 'blue' | 'emerald'
+  cardLayout: '1', // Locked to '1' (standard)
   activeSettingsItem: null, // null | 'about' | 'accent' | 'fonts' | 'text_size' | 'wallpaper' | 'security'
   pinEnabled: localStorage.getItem('sd_pin_enabled') === 'true', // Default: false (PIN lock screen turned OFF)
   isLocked: localStorage.getItem('sd_pin_enabled') === 'true' && !sessionStorage.getItem('sd_unlocked'),
@@ -221,8 +221,8 @@ const appState = {
   activeQuoteIndex: 0,
   lessonCategory: 'all',
   expandedLessons: { 1: true, 5: true },
-  fontFamily: localStorage.getItem('sd_font') || 'font-kantumruy',
-  textSize: localStorage.getItem('sd_text_size') || 'md',
+  fontFamily: ['font-kantumruy', 'font-koh-santepheap', 'font-noto-sans-khmer', 'font-battambang', 'font-sn-simple', 'font-hanuman', 'font-bokor', 'font-jakarta', 'font-siemreap'].includes(localStorage.getItem('sd_font')) ? localStorage.getItem('sd_font') : 'font-kantumruy',
+  textSize: ['sm', 'md', 'lg'].includes(localStorage.getItem('sd_text_size')) ? localStorage.getItem('sd_text_size') : 'md',
   hideSubtitles: localStorage.getItem('sd_hide_subtitles') !== 'false', // Default: true (Hide Subtitles is ON)
   notificationsEnabled: localStorage.getItem('sd_notif_enabled') !== 'false',
   profitNetBoostMode: false,
@@ -9734,26 +9734,21 @@ function getSettingsViewHTML() {
   const isKm = appState.language === 'km';
   const active = appState.activeSettingsItem;
 
-  // Accent metadata with Khmer / English text names (No HEX code display)
+  // Accent metadata with Khmer / English text names (3 Standard enterprise colors)
   const accentMeta = {
-    blue: { name: isKm ? 'ខៀវចាស់' : 'Deep Blue', dot: '#2563EB', textColor: '#FFFFFF', darkText: false },
-    coral: { name: isKm ? 'ក្រហមផ្កាថ្ម' : 'Coral Red', dot: '#F43F5E', textColor: '#FFFFFF', darkText: false },
     orange: { name: isKm ? 'ទឹកក្រូច' : 'Sunset Orange', dot: '#F97316', textColor: '#FFFFFF', darkText: false },
-    amber: { name: isKm ? 'លឿងទុំ' : 'Golden Amber', dot: '#F59E0B', textColor: '#0F172A', darkText: true },
-    emerald: { name: isKm ? 'បៃតងរស្មី' : 'Emerald Green', dot: '#10B981', textColor: '#FFFFFF', darkText: false },
-    pink: { name: isKm ? 'ផ្កាឈូក' : 'Rose Pink', dot: '#EC4899', textColor: '#FFFFFF', darkText: false }
+    blue: { name: isKm ? 'ខៀវចាស់' : 'Deep Blue', dot: '#2563EB', textColor: '#FFFFFF', darkText: false },
+    emerald: { name: isKm ? 'បៃតងរស្មី' : 'Emerald Green', dot: '#10B981', textColor: '#FFFFFF', darkText: false }
   };
   const curAccent = accentMeta[appState.themeAccent] || accentMeta.orange;
 
-  // 5-Tier Font Size Metadata (14px - 15.5px - 17px - 18.5px - 20px)
+  // 3-Tier Font Size Metadata (15.5px - 17px - 18.5px)
   const textSizeTiers = [
-    { key: 'xs', px: '14px', label: '14px', tier: 'XS', val: 1 },
-    { key: 'sm', px: '15.5px', label: '15.5px', tier: 'SM', val: 2 },
-    { key: 'md', px: '17px', label: '17px', tier: 'MD', val: 3, isDefault: true },
-    { key: 'lg', px: '18.5px', label: '18.5px', tier: 'LG', val: 4 },
-    { key: 'xl', px: '20px', label: '20px', tier: 'XL', val: 5 }
+    { key: 'sm', px: '15.5px', label: '15.5px', tier: 'SM', val: 1 },
+    { key: 'md', px: '17px', label: '17px', tier: 'MD', val: 2, isDefault: true },
+    { key: 'lg', px: '18.5px', label: '18.5px', tier: 'LG', val: 3 }
   ];
-  const curTextSizeTier = textSizeTiers.find(t => t.key === appState.textSize) || textSizeTiers[2];
+  const curTextSizeTier = textSizeTiers.find(t => t.key === appState.textSize) || textSizeTiers[1];
 
   const prof = getProfileData();
 
@@ -9861,62 +9856,38 @@ function getSettingsViewHTML() {
             </div>
           </div>
 
-          <!-- EXPANDED ACCENT SELECTION (អក្សរឈ្មោះពណ៌ច្បាស់ៗ គ្មានកូដ HEX) -->
+          <!-- EXPANDED ACCENT SELECTION (៣ ពណ៌ស្តង់ដា) -->
           ${active === 'accent' ? `
             <div class="p-4 bg-black/40 border-t border-white/5 space-y-3 animate-fade-in">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-white">${isKm ? 'ជ្រើសរើសពណ៌ចម្បង (៦ ពណ៌)' : 'Choose Accent Color (6 Colors)'}</span>
+                <span class="text-xs font-bold text-white">${isKm ? 'ជ្រើសរើសពណ៌ចម្បង (៣ ពណ៌ស្តង់ដា)' : 'Choose Accent Color (3 Standard Colors)'}</span>
                 <span class="text-[10px] text-slate-400">${isKm ? 'ស្វ័យប្រវត្តិ Contrast' : 'Auto Contrast'}</span>
               </div>
 
-              <!-- 6 Modern Swatches with Pure Text Names -->
+              <!-- 3 Standard Swatches -->
               <div class="grid grid-cols-3 gap-2">
-                <!-- 1. Deep Blue -->
-                <button onclick="setThemeAccent('blue')" 
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'blue' ? 'border-blue-500 bg-blue-500/20 ring-2 ring-blue-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
-                  <div class="w-8 h-8 rounded-xl bg-[#2563EB] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
-                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentBlue')}</span>
-                  <span class="text-[9px] text-slate-400">${isKm ? '⚪ អក្សរស' : 'White Text'}</span>
-                </button>
-
-                <!-- 2. Coral Red -->
-                <button onclick="setThemeAccent('coral')" 
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'coral' ? 'border-rose-500 bg-rose-500/20 ring-2 ring-rose-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
-                  <div class="w-8 h-8 rounded-xl bg-[#F43F5E] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
-                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentCoral')}</span>
-                  <span class="text-[9px] text-slate-400">${isKm ? '⚪ អក្សរស' : 'White Text'}</span>
-                </button>
-
-                <!-- 3. Sunset Orange -->
+                <!-- 1. Sunset Orange -->
                 <button onclick="setThemeAccent('orange')" 
                         class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'orange' ? 'border-orange-500 bg-orange-500/20 ring-2 ring-orange-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
                   <div class="w-8 h-8 rounded-xl bg-[#F97316] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
                   <span class="text-[11px] font-bold text-white mt-0.5">${t('accentOrange')}</span>
-                  <span class="text-[9px] text-slate-400">${isKm ? '⚪ អក្សរស' : 'White Text'}</span>
+                  <span class="text-[9px] text-slate-400">${isKm ? 'ទឹកក្រូច Bostar' : 'Bostar Orange'}</span>
                 </button>
 
-                <!-- 4. Golden Amber (Dark Charcoal Text) -->
-                <button onclick="setThemeAccent('amber')" 
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'amber' ? 'border-amber-500 bg-amber-500/20 ring-2 ring-amber-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
-                  <div class="w-8 h-8 rounded-xl bg-[#F59E0B] text-[#0F172A] font-black text-xs flex items-center justify-center shadow-md">Aa</div>
-                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentAmber')}</span>
-                  <span class="text-[9px] text-amber-300 font-bold">${isKm ? '⚫ អក្សរខ្មៅ' : 'Dark Text'}</span>
+                <!-- 2. Deep Blue -->
+                <button onclick="setThemeAccent('blue')" 
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'blue' ? 'border-blue-500 bg-blue-500/20 ring-2 ring-blue-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
+                  <div class="w-8 h-8 rounded-xl bg-[#2563EB] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
+                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentBlue')}</span>
+                  <span class="text-[9px] text-slate-400">${isKm ? 'ខៀវចាស់' : 'Navy Blue'}</span>
                 </button>
 
-                <!-- 5. Emerald Green -->
+                <!-- 3. Emerald Green -->
                 <button onclick="setThemeAccent('emerald')" 
                         class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'emerald' ? 'border-emerald-500 bg-emerald-500/20 ring-2 ring-emerald-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
                   <div class="w-8 h-8 rounded-xl bg-[#10B981] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
                   <span class="text-[11px] font-bold text-white mt-0.5">${t('accentEmerald')}</span>
-                  <span class="text-[9px] text-slate-400">${isKm ? '⚪ អក្សរស' : 'White Text'}</span>
-                </button>
-
-                <!-- 6. Rose Pink -->
-                <button onclick="setThemeAccent('pink')" 
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1 transition active:scale-95 ${appState.themeAccent === 'pink' ? 'border-pink-500 bg-pink-500/20 ring-2 ring-pink-500/40' : 'bg-white/5 border-white/5 opacity-80 hover:opacity-100'}">
-                  <div class="w-8 h-8 rounded-xl bg-[#EC4899] text-white font-bold text-xs flex items-center justify-center shadow-md">Aa</div>
-                  <span class="text-[11px] font-bold text-white mt-0.5">${t('accentPink')}</span>
-                  <span class="text-[9px] text-slate-400">${isKm ? '⚪ អក្សរស' : 'White Text'}</span>
+                  <span class="text-[9px] text-slate-400">${isKm ? 'បៃតងរស្មី' : 'Emerald Green'}</span>
                 </button>
               </div>
 
@@ -9945,17 +9916,13 @@ function getSettingsViewHTML() {
             <div class="flex items-center gap-2 shrink-0">
               <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-purple-300 border border-white/5 font-mono">
                 ${appState.fontFamily === 'font-battambang' ? (isKm ? 'បាត់ដំបង' : 'Battambang') : 
-                  (appState.fontFamily === 'font-koulen' ? (isKm ? 'គូលេន' : 'Koulen') : 
                   (appState.fontFamily === 'font-noto-sans-khmer' ? 'Noto Sans' : 
                   (appState.fontFamily === 'font-hanuman' ? 'Hanuman' : 
                   (appState.fontFamily === 'font-siemreap' ? (isKm ? 'សៀមរាប' : 'Siemreap') : 
                   (appState.fontFamily === 'font-bokor' ? (isKm ? 'បូកគោ' : 'Bokor') : 
-                  (appState.fontFamily === 'font-khmeros-moul' ? (isKm ? 'អក្សរមូល' : 'Moul') : 
-                  (appState.fontFamily === 'font-freehand' ? 'Freehand' : 
                   (appState.fontFamily === 'font-sn-simple' ? 'SN Simple' : 
-                  (appState.fontFamily === 'font-sn-writhand' ? (isKm ? 'សរសេរដៃ' : 'Writhand') : 
                   (appState.fontFamily === 'font-koh-santepheap' ? (isKm ? 'សន្តិភាព' : 'Santepheap') : 
-                  (appState.fontFamily === 'font-jakarta' ? 'Jakarta' : (isKm ? 'កន្ទុំរុយ' : 'Kantumruy'))))))))))))}
+                  (appState.fontFamily === 'font-jakarta' ? 'Jakarta' : (isKm ? 'កន្ទុំរុយ' : 'Kantumruy'))))))))}
               </span>
               <i data-lucide="${active === 'fonts' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
             </div>
@@ -9964,11 +9931,11 @@ function getSettingsViewHTML() {
           ${active === 'fonts' ? `
             <div class="p-4 bg-black/40 border-t border-white/5 space-y-2.5 animate-fade-in">
               <div class="flex items-center justify-between text-[11px] text-slate-300">
-                <span class="font-bold text-white">${isKm ? 'ជ្រើសរើសពុម្ពអក្សរ (Google Fonts & Unicode)' : 'Choose Font Style (Google Fonts & Unicode)'}</span>
+                <span class="font-bold text-white">${isKm ? 'ជ្រើសរើសពុម្ពអក្សរ (៩ ជម្រើសស្តង់ដា)' : 'Choose Font Style (9 Standard Fonts)'}</span>
                 <span class="text-[10px] text-emerald-400 font-mono font-bold">☁️ Google CDN Ready</span>
               </div>
 
-              <!-- 12 Font Grid (4 Rows x 3 Columns) -->
+              <!-- 9 Standard Fonts Grid (3 Rows x 3 Columns) -->
               <div class="grid grid-cols-3 gap-1.5 text-center">
                 <!-- 1. Kantumruy Pro (Google Fonts CDN - Default UI) -->
                 <button onclick="setAppFont('font-kantumruy')" 
@@ -9979,25 +9946,16 @@ function getSettingsViewHTML() {
                   <span class="text-[8px] opacity-70">Google CDN</span>
                 </button>
 
-                <!-- 2. Battambang (Google Fonts CDN - Regular & Bold) -->
-                <button onclick="setAppFont('font-battambang')" 
-                        style="font-family: 'Battambang', sans-serif;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-battambang' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                <!-- 2. Koh Santepheap (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-koh-santepheap')" 
+                        style="font-family: 'Koh Santepheap', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
                   <span class="text-base font-bold">កខAa</span>
-                  <span class="text-[10px] font-semibold">${isKm ? 'បាត់ដំបង' : 'Battambang'}</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'សន្តិភាព' : 'Santepheap'}</span>
                   <span class="text-[8px] opacity-70">Google CDN</span>
                 </button>
 
-                <!-- 3. Koulen (Google Fonts CDN) -->
-                <button onclick="setAppFont('font-koulen')" 
-                        style="font-family: 'Koulen', cursive;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-koulen' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
-                  <span class="text-base font-bold">កខAa</span>
-                  <span class="text-[10px] font-semibold">${isKm ? 'គូលេន' : 'Koulen'}</span>
-                  <span class="text-[8px] opacity-70">Google CDN</span>
-                </button>
-
-                <!-- 4. Noto Sans Khmer (Google Fonts CDN) -->
+                <!-- 3. Noto Sans Khmer (Google Fonts CDN) -->
                 <button onclick="setAppFont('font-noto-sans-khmer')" 
                         style="font-family: 'Noto Sans Khmer', sans-serif;"
                         class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-noto-sans-khmer' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
@@ -10006,61 +9964,16 @@ function getSettingsViewHTML() {
                   <span class="text-[8px] opacity-70">Google CDN</span>
                 </button>
 
-                <!-- 5. Hanuman (Google Fonts CDN) -->
-                <button onclick="setAppFont('font-hanuman')" 
-                        style="font-family: 'Hanuman', 'Hanuman UI', sans-serif;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-hanuman' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                <!-- 4. Battambang (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-battambang')" 
+                        style="font-family: 'Battambang', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-battambang' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
                   <span class="text-base font-bold">កខAa</span>
-                  <span class="text-[10px] font-semibold">Hanuman</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'បាត់ដំបង' : 'Battambang'}</span>
                   <span class="text-[8px] opacity-70">Google CDN</span>
                 </button>
 
-                <!-- 6. Koh Santepheap (Google Fonts CDN) -->
-                <button onclick="setAppFont('font-koh-santepheap')" 
-                        style="font-family: 'Koh Santepheap', sans-serif;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
-                  <span class="text-base font-bold">កខAa</span>
-                  <span class="text-[10px] font-semibold">${isKm ? 'សន្តិភាព' : 'Santepheap'}</span>
-                  <span class="text-[8px] opacity-70">Google CDN</span>
-                </button>
-
-                <!-- 7. Siemreap (Google Fonts CDN) -->
-                <button onclick="setAppFont('font-siemreap')" 
-                        style="font-family: 'Siemreap', sans-serif;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-siemreap' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
-                  <span class="text-base font-bold">កខAa</span>
-                  <span class="text-[10px] font-semibold">${isKm ? 'សៀមរាប' : 'Siemreap'}</span>
-                  <span class="text-[8px] opacity-70">Google CDN</span>
-                </button>
-
-                <!-- 8. Bokor (Google Fonts CDN) -->
-                <button onclick="setAppFont('font-bokor')" 
-                        style="font-family: 'Bokor', cursive;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-bokor' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
-                  <span class="text-base font-bold">កខAa</span>
-                  <span class="text-[10px] font-semibold">${isKm ? 'បូកគោ' : 'Bokor'}</span>
-                  <span class="text-[8px] opacity-70">Google CDN</span>
-                </button>
-
-                <!-- 9. KhmerOS Moul -->
-                <button onclick="setAppFont('font-khmeros-moul')" 
-                        style="font-family: 'KhmerOS Moul', sans-serif;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-khmeros-moul' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
-                  <span class="text-base font-bold">កខ</span>
-                  <span class="text-[10px] font-semibold">${isKm ? 'អក្សរមូល' : 'Moul'}</span>
-                  <span class="text-[8px] opacity-70">ក្បាលធំ</span>
-                </button>
-
-                <!-- 10. Freehand (Google Fonts CDN) -->
-                <button onclick="setAppFont('font-freehand')" 
-                        style="font-family: 'KhmerOS Freehand', 'Freehand', cursive;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-freehand' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
-                  <span class="text-base font-bold">កខAa</span>
-                  <span class="text-[10px] font-semibold">Freehand</span>
-                  <span class="text-[8px] opacity-70">Google CDN</span>
-                </button>
-
-                <!-- 11. SN KH Simple -->
+                <!-- 5. SN KH Simple -->
                 <button onclick="setAppFont('font-sn-simple')" 
                         style="font-family: 'SN KH Simple', sans-serif;"
                         class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-sn-simple' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
@@ -10069,40 +9982,40 @@ function getSettingsViewHTML() {
                   <span class="text-[8px] opacity-70">Minimal Tech</span>
                 </button>
 
-                <!-- 12. SN Kh Writhand -->
-                <button onclick="setAppFont('font-sn-writhand')" 
-                        style="font-family: 'SN Kh Writhand', cursive;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-sn-writhand' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                <!-- 6. Hanuman (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-hanuman')" 
+                        style="font-family: 'Hanuman', 'Hanuman UI', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-hanuman' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
                   <span class="text-base font-bold">កខAa</span>
-                  <span class="text-[10px] font-semibold">${isKm ? 'សរសេរដៃ' : 'Writhand'}</span>
-                  <span class="text-[8px] opacity-70">ហត្ថលេខា</span>
+                  <span class="text-[10px] font-semibold">Hanuman</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
                 </button>
 
-                <!-- 10. SN KH Rangerforce -->
-                <button onclick="setAppFont('font-sn-ranger')" 
-                        style="font-family: 'SN KH Rangerforce', sans-serif;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-sn-ranger' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                <!-- 7. Bokor (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-bokor')" 
+                        style="font-family: 'Bokor', cursive;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-bokor' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
                   <span class="text-base font-bold">កខAa</span>
-                  <span class="text-[10px] font-semibold">Rangerforce</span>
-                  <span class="text-[8px] opacity-70">កែងរឹងមាំ</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'បូកគោ' : 'Bokor'}</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
                 </button>
 
-                <!-- 11. Koh Santepheap -->
-                <button onclick="setAppFont('font-koh-santepheap')" 
-                        style="font-family: 'Koh Santepheap', sans-serif;"
-                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-koh-santepheap' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
-                  <span class="text-base font-bold">កខAa</span>
-                  <span class="text-[10px] font-semibold">${isKm ? 'សន្តិភាព' : 'Santepheap'}</span>
-                  <span class="text-[8px] opacity-70">អក្សរពុម្ព</span>
-                </button>
-
-                <!-- 12. Plus Jakarta Sans -->
+                <!-- 8. Plus Jakarta Sans -->
                 <button onclick="setAppFont('font-jakarta')" 
                         style="font-family: 'Plus Jakarta Sans', sans-serif;"
                         class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-jakarta' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
                   <span class="text-base font-bold">Aa12</span>
                   <span class="text-[10px] font-semibold">Jakarta</span>
                   <span class="text-[8px] opacity-70">Latin Clean</span>
+                </button>
+
+                <!-- 9. Siemreap (Google Fonts CDN) -->
+                <button onclick="setAppFont('font-siemreap')" 
+                        style="font-family: 'Siemreap', sans-serif;"
+                        class="p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${appState.fontFamily === 'font-siemreap' ? 'accent-solid-btn shadow-md border-transparent' : 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300 hover:text-white'}">
+                  <span class="text-base font-bold">កខAa</span>
+                  <span class="text-[10px] font-semibold">${isKm ? 'សៀមរាប' : 'Siemreap'}</span>
+                  <span class="text-[8px] opacity-70">Google CDN</span>
                 </button>
               </div>
             </div>
@@ -10135,16 +10048,16 @@ function getSettingsViewHTML() {
               
               <!-- Title & Active Badge -->
               <div class="flex items-center justify-between text-xs">
-                <span class="font-bold text-white">${isKm ? 'រំកិលកំណត់ទំហំអក្សរ (៥ កម្រិត)' : 'Adjust Font Size (5 Levels)'}</span>
+                <span class="font-bold text-white">${isKm ? 'រំកិលកំណត់ទំហំអក្សរ (៣ កម្រិត)' : 'Adjust Font Size (3 Levels)'}</span>
                 <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg accent-solid-btn shadow-sm">
                   ${curTextSizeTier.tier} • ${curTextSizeTier.px}${curTextSizeTier.isDefault ? (isKm ? ' (ដើម)' : ' (Default)') : ''}
                 </span>
               </div>
 
-              <!-- iOS Style Range Slider Box with 5 Tick Marks & Active Fill -->
+              <!-- iOS Style Range Slider Box with 3 Tick Marks & Active Fill -->
               <div class="bg-black/50 border border-white/10 rounded-2xl p-3.5 space-y-3.5 shadow-inner">
                 
-                <!-- Slider Row: A [ Track + 5 Ticks + Thumb ] A -->
+                <!-- Slider Row: A [ Track + 3 Ticks + Thumb ] A -->
                 <div class="flex items-center gap-3">
                   <span class="text-xs font-black text-slate-400 select-none w-4 text-center">A</span>
                   
@@ -10153,10 +10066,10 @@ function getSettingsViewHTML() {
                     <div class="absolute left-2.5 right-2.5 h-2 bg-white/15 dark:bg-white/15 bg-slate-200 rounded-full pointer-events-none overflow-hidden">
                       <!-- Active Track Fill (from left to current thumb) -->
                       <div class="h-full rounded-full transition-all duration-150" 
-                           style="width: ${((curTextSizeTier.val - 1) / 4) * 100}%; background-color: var(--accent-solid);"></div>
+                           style="width: ${((curTextSizeTier.val - 1) / 2) * 100}%; background-color: var(--accent-solid);"></div>
                     </div>
                     
-                    <!-- 5 Tick Mark Stops on the Track -->
+                    <!-- 3 Tick Mark Stops on the Track -->
                     <div class="absolute left-2.5 right-2.5 flex justify-between items-center pointer-events-none">
                       ${textSizeTiers.map(tier => {
                         const isActive = tier.key === appState.textSize;
@@ -10172,9 +10085,9 @@ function getSettingsViewHTML() {
                     </div>
 
                     <!-- Range Input -->
-                    <input type="range" min="1" max="5" step="1" 
+                    <input type="range" min="1" max="3" step="1" 
                            value="${curTextSizeTier.val}" 
-                           oninput="const val = this.value; const sz = val == '1' ? 'xs' : (val == '2' ? 'sm' : (val == '3' ? 'md' : (val == '4' ? 'lg' : 'xl'))); setAppTextSize(sz);"
+                           oninput="const val = this.value; const sz = val == '1' ? 'sm' : (val == '2' ? 'md' : 'lg'); setAppTextSize(sz);"
                            class="font-slider absolute inset-0 w-full h-full cursor-pointer z-10"
                            aria-label="Font Size Slider">
                   </div>
@@ -10182,19 +10095,19 @@ function getSettingsViewHTML() {
                   <span class="text-lg font-black text-slate-100 select-none w-4 text-center">A</span>
                 </div>
 
-                <!-- 5 Exact Font Size Numbers & Tick Buttons (Direct Clickable Selection) -->
-                <div class="grid grid-cols-5 gap-1 pt-2 border-t border-white/10 select-none">
+                <!-- 3 Exact Font Size Numbers & Tick Buttons (Direct Clickable Selection) -->
+                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 select-none">
                   ${textSizeTiers.map(tier => {
                     const isActive = tier.key === appState.textSize;
                     return `
                       <button type="button" onclick="setAppTextSize('${tier.key}')" 
-                              class="flex flex-col items-center py-1.5 px-0.5 rounded-xl transition-all active:scale-95 ${isActive ? 'accent-solid-btn font-bold ring-1 ring-white/30' : 'text-slate-400 dark:text-slate-300 hover:text-white hover:bg-white/5'}">
-                        <!-- Exact Number (14px, 15.5px, 17px, 18.5px, 20px) -->
+                              class="flex flex-col items-center py-2 px-1 rounded-xl transition-all active:scale-95 ${isActive ? 'accent-solid-btn font-bold ring-1 ring-white/30' : 'text-slate-400 dark:text-slate-300 hover:text-white hover:bg-white/5'}">
+                        <!-- Exact Number (15.5px, 17px, 18.5px) -->
                         <span class="text-xs font-mono font-black ${isActive ? 'text-inherit' : 'text-slate-200'}">
                           ${tier.px}
                         </span>
-                        <!-- Tier Badge (XS, SM, MD, LG, XL) -->
-                        <span class="text-[9px] font-bold tracking-tight mt-0.5 ${isActive ? 'opacity-95 font-black' : (tier.isDefault ? 'text-amber-400 font-bold' : 'text-slate-400')}">
+                        <!-- Tier Badge (SM, MD, LG) -->
+                        <span class="text-[10px] font-bold tracking-tight mt-0.5 ${isActive ? 'opacity-95 font-black' : (tier.isDefault ? 'text-amber-400 font-bold' : 'text-slate-400')}">
                           ${tier.tier}${tier.isDefault ? (isKm ? ' ដើម' : '') : ''}
                         </span>
                         <!-- Tick Dot below -->
@@ -10255,107 +10168,7 @@ function getSettingsViewHTML() {
           ` : ''}
         </div>
 
-        <!-- 5. ផ្ទាំងរូបភាពចាក់សោរ (Lock Screen Wallpaper - បន្ថែម ៣ ពណ៌/ម៉ូដទៀត) -->
-        <div>
-          <div onclick="toggleSettingsItem('wallpaper')" 
-               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
-            <div class="settings-row-left flex items-center gap-3 min-w-0">
-              <div class="settings-icon-box w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-                <i data-lucide="image" class="w-4 h-4 text-indigo-400"></i>
-              </div>
-              <div class="min-w-0">
-                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('wallpaperTitle')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('wallpaperDesc')}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <button onclick="event.stopPropagation(); lockApp();" 
-                      class="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold border border-white/10 flex items-center gap-1 active:scale-95 transition">
-                <i data-lucide="eye" class="w-3 h-3 text-orange-400"></i>
-                <span>${t('lockScreenNow')}</span>
-              </button>
-              <i data-lucide="${active === 'wallpaper' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
-            </div>
-          </div>
-
-          ${active === 'wallpaper' ? `
-            <div class="p-3.5 bg-black/40 border-t border-white/5 space-y-2 animate-fade-in">
-              <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                <!-- Wallpaper 1: Deep Mesh -->
-                <button onclick="setLockWallpaper('wp-deep-mesh')" 
-                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-deep-mesh' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-indigo-900 via-blue-950 to-slate-900 border border-white/20 mb-1 relative overflow-hidden flex items-center justify-center">
-                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                  </div>
-                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'សំណាញ់ខៀវ' : 'Deep Mesh'}</p>
-                  <span class="text-[9px] text-slate-400">${isKm ? 'លំនាំដើម' : 'Default'}</span>
-                </button>
-
-                <!-- Wallpaper 2: Midnight Purple -->
-                <button onclick="setLockWallpaper('wp-midnight-purple')" 
-                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-midnight-purple' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-purple-950 via-slate-950 to-indigo-950 border border-white/20 mb-1 relative overflow-hidden flex items-center justify-center">
-                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                  </div>
-                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ស្វាយរាត្រី' : 'Midnight'}</p>
-                  <span class="text-[9px] text-slate-400">${isKm ? 'ស្វាយចាស់' : 'Purple'}</span>
-                </button>
-
-                <!-- Wallpaper 3: Pure OLED -->
-                <button onclick="setLockWallpaper('wp-pure-oled')" 
-                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-pure-oled' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                  <div class="w-full h-14 rounded-xl bg-black border border-white/30 mb-1 relative overflow-hidden flex items-center justify-center">
-                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                  </div>
-                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ខ្មៅសុទ្ធ' : 'Pure OLED'}</p>
-                  <span class="text-[9px] text-slate-400">${isKm ? 'សន្សំថ្ម' : 'True Black'}</span>
-                </button>
-
-                <!-- Wallpaper 4: Emerald Aurora -->
-                <button onclick="setLockWallpaper('wp-emerald-aurora')" 
-                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-emerald-aurora' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-emerald-950 via-teal-950 to-black border border-white/20 mb-1 relative overflow-hidden flex items-center justify-center">
-                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                  </div>
-                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'បៃតងរស្មី' : 'Aurora'}</p>
-                  <span class="text-[9px] text-slate-400">${isKm ? 'ធម្មជាតិ' : 'Emerald'}</span>
-                </button>
-
-                <!-- Wallpaper 5: NEW Velvet Crimson (ក្រហមប្រណីត) -->
-                <button onclick="setLockWallpaper('wp-velvet-crimson')" 
-                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-velvet-crimson' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-rose-950 via-red-950 to-black border border-rose-500/30 mb-1 relative overflow-hidden flex items-center justify-center">
-                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                  </div>
-                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ក្រហមប្រណីត' : 'Crimson'}</p>
-                  <span class="text-[9px] text-rose-400">${isKm ? 'ម៉ូដថ្មី' : 'New'}</span>
-                </button>
-
-                <!-- Wallpaper 6: NEW Royal Gold (មាសរាជវង្ស) -->
-                <button onclick="setLockWallpaper('wp-royal-gold')" 
-                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-royal-gold' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-amber-950 via-yellow-950 to-black border border-amber-500/30 mb-1 relative overflow-hidden flex items-center justify-center">
-                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                  </div>
-                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'មាសរាជវង្ស' : 'Royal Gold'}</p>
-                  <span class="text-[9px] text-amber-300 font-bold">${isKm ? 'ម៉ូដថ្មី' : 'New'}</span>
-                </button>
-
-                <!-- Wallpaper 7: NEW Cyber Cyan (ខៀវរាត្រី) -->
-                <button onclick="setLockWallpaper('wp-cyber-cyan')" 
-                        class="shrink-0 w-24 p-2 rounded-2xl border text-center transition active:scale-95 ${appState.lockWallpaper === 'wp-cyber-cyan' ? 'bg-orange-500/20 border-orange-500 ring-2 ring-orange-500/50' : 'bg-black/30 border-white/10 opacity-80 hover:opacity-100'}">
-                  <div class="w-full h-14 rounded-xl bg-gradient-to-br from-cyan-950 via-sky-950 to-black border border-cyan-500/30 mb-1 relative overflow-hidden flex items-center justify-center">
-                    <span class="text-[9px] font-mono text-white/90 font-bold">9:41</span>
-                  </div>
-                  <p class="text-[11px] font-bold text-white truncate">${isKm ? 'ខៀវរាត្រី' : 'Cyber Cyan'}</p>
-                  <span class="text-[9px] text-cyan-400">${isKm ? 'ម៉ូដថ្មី' : 'New'}</span>
-                </button>
-              </div>
-            </div>
-          ` : ''}
-        </div>
-
-        <!-- 6. ទម្រង់ពណ៌ (Color Mode - ស្វ័យប្រវត្តិ / ភ្លឺ / ងងឹត) -->
+        <!-- 5. ទម្រង់ពណ៌ (Color Mode - ស្វ័យប្រវត្តិ / ភ្លឺ / ងងឹត) -->
         <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
           <div class="settings-row-left flex items-center gap-3 min-w-0">
             <div class="settings-icon-box w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
@@ -10373,7 +10186,7 @@ function getSettingsViewHTML() {
           </div>
         </div>
 
-        <!-- 7. ការជូនដំណឹង (Notifications) -->
+        <!-- 6. ការជូនដំណឹង (Notifications) -->
         <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
           <div class="settings-row-left flex items-center gap-3 min-w-0">
             <div class="settings-icon-box w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
@@ -10391,7 +10204,7 @@ function getSettingsViewHTML() {
           </button>
         </div>
 
-        <!-- 8. ការចាក់សោរ (Security / Passcode Lock) -->
+        <!-- 7. ការចាក់សោរ (Security / Passcode Lock) -->
         <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
           <div class="settings-row-left flex items-center gap-3 min-w-0">
             <div class="settings-icon-box w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
@@ -10417,132 +10230,7 @@ function getSettingsViewHTML() {
           </div>
         </div>
 
-        <!-- 9. ការរៀបចំកាតទិន្នន័យ (Card Layout & Display - Accordion with >) -->
-        <div>
-          <div onclick="toggleSettingsItem('cardPreferences')" 
-               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
-            <div class="settings-row-left flex items-center gap-3 min-w-0">
-              <div class="settings-icon-box w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-                <i data-lucide="layers" class="w-4 h-4 text-teal-400"></i>
-              </div>
-              <div class="min-w-0">
-                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('layoutTitle')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('layoutDesc')}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/25 font-mono">
-                ${appState.cardLayout === '1' ? (isKm ? '១. ' : '1. ') + t('layout1') : (appState.cardLayout === '2' ? (isKm ? '២. ' : '2. ') + t('layout2') : (isKm ? '៣. ' : '3. ') + t('layout3'))}
-              </span>
-              <i data-lucide="${active === 'cardPreferences' ? 'chevron-down' : 'chevron-right'}" class="w-4 h-4 text-slate-400"></i>
-            </div>
-          </div>
-
-          ${active === 'cardPreferences' ? `
-            <div class="p-4 bg-black/40 border-t border-white/5 space-y-4 animate-fade-in">
-              <!-- Part A: Card Layout / Order -->
-              <div class="space-y-2.5">
-                <div class="flex items-center justify-between text-[11px] text-slate-300">
-                  <span class="font-bold text-white">${isKm ? 'លំដាប់កាតលើទំព័រដើម' : 'Dashboard Card Order'}</span>
-                  <span class="text-[10px] text-slate-400 font-mono">${isKm ? '៣ ជម្រើស' : '3 Options'}</span>
-                </div>
-                <!-- iOS Segmented Control: Option 1, 2, 3 -->
-                <div class="grid grid-cols-3 gap-1 bg-black/50 p-1 rounded-2xl border border-white/10 text-center text-xs">
-                  <button onclick="setCardLayout('1')" 
-                          class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '1' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                    <span>${isKm ? '១. ' : '1. '}${t('layout1')}</span>
-                  </button>
-                  <button onclick="setCardLayout('2')" 
-                          class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '2' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                    <span>${isKm ? '២. ' : '2. '}${t('layout2')}</span>
-                  </button>
-                  <button onclick="setCardLayout('3')" 
-                          class="py-2.5 rounded-xl text-[11px] font-semibold transition active:scale-95 ${appState.cardLayout === '3' ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'}">
-                    <span>${isKm ? '៣. ' : '3. '}${t('layout3')}</span>
-                  </button>
-                </div>
-                <!-- Layout Description Box -->
-                <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-[10px] text-slate-300 leading-relaxed">
-                  ${appState.cardLayout === '1' 
-                    ? (isKm ? '🔹 <strong>ស្តង់ដា៖</strong> ទឹកប្រាក់សុទ្ធ ➔ 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ ➔ ក្រុម' : '🔹 <strong>Standard:</strong> Pure Cash ➔ Date Filter ➔ Sales/Expenses ➔ Net Cash ➔ Today Expenses ➔ Team')
-                    : (appState.cardLayout === '2'
-                      ? (isKm ? '🔹 <strong>ហិរញ្ញវត្ថុ៖</strong> ទឹកប្រាក់សុទ្ធ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ ➔ 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ ក្រុម' : '🔹 <strong>Finance:</strong> Pure Cash ➔ Net Cash ➔ Today Expenses ➔ Date Filter ➔ Sales/Expenses ➔ Team')
-                      : (isKm ? '🔹 <strong>ផ្នែកលក់៖</strong> 📌 កាលបរិច្ឆេទ ➔ សង្ខេបលក់/ចំណាយ ➔ លក់ក្រុម ➔ ទឹកប្រាក់សុទ្ធ ➔ ស្ថាពរហិរញ្ញវត្ថុ ➔ ចំណាយថ្ងៃនេះ' : '🔹 <strong>Sales:</strong> Date Filter ➔ Sales/Expenses ➔ Team Sales ➔ Pure Cash ➔ Net Cash ➔ Today Expenses'))}
-                </div>
-              </div>
-
-              <!-- Part B: Card Display / Visibility -->
-              <div class="border-t border-white/10 pt-3 space-y-2.5">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="font-bold text-white">${isKm ? 'ការបង្ហាញកាតលើទំព័រដើម' : 'Dashboard Card Display'}</span>
-                  <span class="text-[10px] text-teal-400 font-mono font-bold">${isKm ? 'ធ្វើបច្ចុប្បន្នភាពភ្លាមៗ' : 'Live Synced'}</span>
-                </div>
-
-                <!-- Main Master Toggle: Auto-hide Empty Cards -->
-                <div onclick="toggleCardVisibility('autoHideEmpty')" 
-                     class="settings-row p-3 rounded-2xl bg-teal-500/10 hover:bg-teal-500/15 border border-teal-500/30 flex items-center justify-between cursor-pointer transition select-none">
-                  <div class="flex items-center gap-2.5 min-w-0 pr-2">
-                    <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center shrink-0">
-                      <i data-lucide="sparkles" class="w-4 h-4"></i>
-                    </div>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1.5">
-                        <h5 class="text-xs font-bold text-teal-300 truncate">
-                          ${isKm ? 'លាក់កាតគ្មានទិន្នន័យស្វ័យប្រវត្តិ' : 'Auto-Hide Empty Cards'}
-                        </h5>
-                      </div>
-                      <p class="text-[10px] text-slate-300 mt-0.5">
-                        ${isKm ? 'លាក់កាតណាដែលគ្មានទិន្នន័យក្នុងថ្ងៃ ឬខែនោះ' : 'Hide cards with 0 data in selected period'}
-                      </p>
-                    </div>
-                  </div>
-                  <button type="button" 
-                          onclick="event.stopPropagation(); toggleCardVisibility('autoHideEmpty');"
-                          class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${(appState.cardVisibility?.autoHideEmpty === true) ? 'bg-teal-500' : 'bg-slate-700'}"
-                          role="switch" aria-checked="${(appState.cardVisibility?.autoHideEmpty === true)}">
-                    <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${(appState.cardVisibility?.autoHideEmpty === true) ? 'translate-x-5' : 'translate-x-0'}"></div>
-                  </button>
-                </div>
-
-                <div class="pt-1.5 pb-1 text-[11px] font-bold text-slate-400">
-                  ${isKm ? 'កាតទិន្នន័យនីមួយៗ៖' : 'Individual Cards:'}
-                </div>
-
-                <!-- List of Cards -->
-                <div class="space-y-1.5">
-                  ${[
-                    { key: 'pureCash', label: isKm ? 'កាតទឹកប្រាក់ដែលមាន' : 'Available Funds Card', icon: 'wallet', color: 'text-orange-400' },
-                    { key: 'salesPerformance', label: isKm ? 'កាតសង្ខេបការលក់ និងចំណាយ' : 'Sales & Expenses Card', icon: 'bar-chart-2', color: 'text-blue-400' },
-                    { key: 'netCash', label: isKm ? 'កាតស្ថាពរហិរញ្ញវត្ថុ' : 'Net Cash Position Card', icon: 'landmark', color: 'text-emerald-400' },
-                    { key: 'expenses', label: isKm ? 'កាតការចំណាយ' : 'Expenses Card', icon: 'receipt', color: 'text-rose-400' },
-                    { key: 'teamSales', label: isKm ? 'កាតការលក់ក្រុម' : 'Team Sales Card', icon: 'users', color: 'text-amber-400' },
-                    { key: 'tools', label: isKm ? 'កាតឧបករណ៍រហ័ស' : 'Quick Tools Card', icon: 'sparkles', color: 'text-purple-400' }
-                  ].map(item => {
-                    const isVisible = (appState.cardVisibility && appState.cardVisibility[item.key] !== false);
-                    return `
-                      <div onclick="toggleCardVisibility('${item.key}')" 
-                           class="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-between cursor-pointer transition select-none">
-                        <div class="flex items-center gap-2.5 min-w-0 pr-2">
-                          <i data-lucide="${item.icon}" class="w-4 h-4 ${item.color} shrink-0"></i>
-                          <span class="text-xs font-semibold text-white truncate">${item.label}</span>
-                        </div>
-                        <button type="button" 
-                                onclick="event.stopPropagation(); toggleCardVisibility('${item.key}');"
-                                class="w-9 h-5 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${isVisible ? 'bg-emerald-500' : 'bg-slate-700'}"
-                                role="switch" aria-checked="${isVisible}">
-                          <div class="w-4 h-4 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${isVisible ? 'translate-x-4' : 'translate-x-0'}"></div>
-                        </button>
-                      </div>
-                    `;
-                  }).join('')}
-                </div>
-              </div>
-
-            </div>
-          ` : ''}
-        </div>
-
-        <!-- 10. អំពីខ្ញុំ (About Me) -->
+        <!-- 8. អំពីខ្ញុំ (About Me) -->
         <div onclick="openAboutModal()" 
              class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
           <div class="settings-row-left flex items-center gap-3 min-w-0">
@@ -10561,7 +10249,7 @@ function getSettingsViewHTML() {
 
       </div>
 
-      <!-- 11. កំណត់ឡើងវិញទៅទម្រង់ដើម (Reset to Default Button) -->
+      <!-- 9. កំណត់ឡើងវិញទៅទម្រង់ដើម (Reset to Default Button) -->
       <div class="pt-2">
         <button onclick="resetAppSettings()" 
                 class="w-full p-3.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 hover:text-rose-300 font-semibold text-xs flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
