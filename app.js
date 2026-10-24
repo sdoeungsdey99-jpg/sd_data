@@ -21842,7 +21842,7 @@ function openProfileSubModal(type) {
 // Full-Screen Bostar Team Members Directory Modal (Spacious like Customers/Expenses)
 // ==========================================
 const teamMembersFilterState = {
-  mode: 'day', // 'day' | 'month' | 'year' | 'all'
+  mode: 'month', // 'day' | 'month' | 'year' | 'all' (Default to 'month' per user request)
   selectedDate: null,
   selectedMonth: null,
   selectedYear: null,
@@ -22248,37 +22248,20 @@ function openTeamMembersModal(memberNameToOpen = null) {
 
   closeAllTeamDropdowns();
 
-  // 100% Sync Date Filter from Home Page (appState)
+  // Default to Month ("ចូលខែ") directly upon opening per user request
   const now = new Date();
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
 
-  if (appState.periodFilter === 'today') {
-    teamMembersFilterState.mode = 'day';
-    if (appState.daySubFilter === 'specific' && appState.specificDate) {
-      teamMembersFilterState.selectedDate = appState.specificDate;
-    } else if (appState.daySubFilter === 'yesterday') {
-      teamMembersFilterState.selectedDate = getYesterdayIso();
-    } else {
-      teamMembersFilterState.selectedDate = currentIsoDay;
-    }
-    const parts = teamMembersFilterState.selectedDate.split('-');
-    teamMembersFilterState.calYear = parseInt(parts[0], 10);
-    teamMembersFilterState.calMonth = parseInt(parts[1], 10);
-  } else if (appState.periodFilter === 'month') {
-    teamMembersFilterState.mode = 'month';
-    teamMembersFilterState.selectedMonth = appState.selectedMonthKey || currentIsoMonth;
-    const parts = teamMembersFilterState.selectedMonth.split('-');
-    teamMembersFilterState.calYear = parseInt(parts[0], 10);
-    teamMembersFilterState.calMonth = parseInt(parts[1], 10);
-  } else if (appState.periodFilter === 'year') {
-    teamMembersFilterState.mode = 'year';
-    teamMembersFilterState.selectedYear = String(appState.selectedYear || currentIsoYear);
-    teamMembersFilterState.calYear = parseInt(teamMembersFilterState.selectedYear, 10);
-  } else {
-    teamMembersFilterState.mode = 'all';
-  }
+  teamMembersFilterState.mode = 'month';
+  teamMembersFilterState.selectedMonth = (appState.periodFilter === 'month' && appState.selectedMonthKey) ? appState.selectedMonthKey : currentIsoMonth;
+  teamMembersFilterState.selectedDate = (appState.daySubFilter === 'specific' && appState.specificDate) ? appState.specificDate : currentIsoDay;
+  teamMembersFilterState.selectedYear = String(appState.selectedYear || currentIsoYear);
+
+  const parts = teamMembersFilterState.selectedMonth.split('-');
+  teamMembersFilterState.calYear = parseInt(parts[0], 10);
+  teamMembersFilterState.calMonth = parseInt(parts[1], 10);
 
   modal.classList.remove('hidden');
   setDockVisible(true);
