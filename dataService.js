@@ -412,6 +412,7 @@ window.DataService = {
         const product = prodParts.join(', ') || (isReward ? 'លក់រង្វាន់' : (isReturn ? 'លក់អីវ៉ាន់ត្រឡប់' : 'ទំនិញ'));
 
         personalSales.push({
+          rowIndex: i,
           date: ddmmyyyy,
           isoDate: isoDate,
           orderId,

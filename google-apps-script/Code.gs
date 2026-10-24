@@ -377,6 +377,29 @@ function updatePersonalSalesOrder(ss, order) {
     }
   }
 
+  // 4. បើនៅតែមិនឃើញ រកតាម Date + Phone ឬ Date + Customer
+  if (matchedRow === -1 && order.date) {
+    var orderDateStr = String(order.date).trim();
+    var targetPhone = String(order.phone || '').replace(/\D/g, '');
+    for (var r = 1; r < numRows; r++) {
+      var rDateVal = values[r][0];
+      var rDateStr = (rDateVal instanceof Date) ? Utilities.formatDate(rDateVal, 'Asia/Phnom_Penh', 'dd/MM/yyyy') : String(rDateVal || '').trim();
+      var rPhone = String(values[r][6] || '').replace(/\D/g, '');
+      var rCust = String(values[r][2] || '').trim();
+
+      if (rDateStr === orderDateStr) {
+        if (targetPhone && rPhone && rPhone === targetPhone) {
+          matchedRow = r + 1;
+          break;
+        }
+        if (order.customer && rCust && rCust.toLowerCase() === String(order.customer).toLowerCase().trim()) {
+          matchedRow = r + 1;
+          break;
+        }
+      }
+    }
+  }
+
   if (matchedRow <= 0) {
     return {
       status: 'not_found',

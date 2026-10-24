@@ -10201,7 +10201,7 @@ function openPersonalSalesModal() {
   subtitle.textContent = `តារាងកុម្ម៉ង់ទាំងអស់ (${sortedSales.length} នាក់) - ពីថ្ងៃចុងក្រោយមកមុន`;
 
   listEl.innerHTML = sortedSales.slice(0, 50).map(item => `
-    <div onclick="openEditSalesOrder('${item.recordId || ''}', '${item.orderId || ''}', ${item.rowIndex || -1})" class="p-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex flex-col gap-1.5 cursor-pointer transition group">
+    <div onclick="openEditSalesOrder('${item.recordId || ''}', '${item.orderId || ''}', ${item.rowIndex !== undefined ? item.rowIndex : -1}, '${item.date || ''}', '${item.phone || ''}')" class="p-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex flex-col gap-1.5 cursor-pointer transition group">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-1.5 flex-wrap">
           <span class="w-5 h-5 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 text-[10px] group-hover:scale-110 transition" title="កែប្រែ Order">
@@ -20608,7 +20608,7 @@ function renderAllCustomersList() {
             </div>
             <div class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
               ${sortedOrders.map(o => `
-                <div onclick="event.stopPropagation(); openEditSalesOrder('${o.recordId || ''}', '${o.orderId || ''}', ${o.rowIndex || -1})" 
+                <div onclick="event.stopPropagation(); openEditSalesOrder('${o.recordId || ''}', '${o.orderId || ''}', ${o.rowIndex !== undefined ? o.rowIndex : -1}, '${o.date || ''}', '${o.phone || ''}')" 
                      class="p-2 rounded-xl bg-black/30 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex items-center justify-between text-[11px] cursor-pointer transition group"
                      title="ចុចដើម្បីកែប្រែ Order នេះ">
                   <div class="flex items-center gap-1.5 min-w-0 pr-2">
@@ -20647,24 +20647,35 @@ function renderAllCustomersList() {
 // =========================================================
 // EDIT SALES ORDER (Personal Sales / Customer Orders Edit & Sync)
 // =========================================================
-function findSalesOrder(recordId, orderId, rowIndex) {
+function findSalesOrder(recordId, orderId, rowIndex, fallbackDate, fallbackPhone) {
   const sales = (DataService.data && Array.isArray(DataService.data.personalSales)) ? DataService.data.personalSales : [];
-  if (recordId) {
-    const m = sales.find(s => (s.recordId && String(s.recordId).toLowerCase() === String(recordId).toLowerCase()));
+  if (recordId && String(recordId).trim() !== '' && String(recordId).trim() !== '#REC') {
+    const cleanRec = String(recordId).trim().toLowerCase();
+    const m = sales.find(s => s.recordId && String(s.recordId).trim().toLowerCase() === cleanRec);
     if (m) return m;
   }
-  if (orderId) {
-    const m = sales.find(s => (s.orderId && String(s.orderId).toLowerCase() === String(orderId).toLowerCase()) || (s.id && String(s.id).toLowerCase() === String(orderId).toLowerCase()));
+  if (orderId && String(orderId).trim() !== '' && String(orderId).trim() !== '#') {
+    const cleanOrd = String(orderId).trim().toLowerCase();
+    const m = sales.find(s => (s.orderId && String(s.orderId).trim().toLowerCase() === cleanOrd) || (s.id && String(s.id).trim().toLowerCase() === cleanOrd));
     if (m) return m;
   }
-  if (rowIndex !== undefined && rowIndex !== null && rowIndex >= 0 && rowIndex < sales.length) {
-    return sales[rowIndex];
+  if (rowIndex !== undefined && rowIndex !== null && !isNaN(rowIndex)) {
+    const num = Number(rowIndex);
+    if (num >= 0 && num < sales.length) return sales[num];
+    const mRow = sales.find(s => s.rowIndex === num);
+    if (mRow) return mRow;
+  }
+  if (fallbackDate) {
+    const m = sales.find(s => s.date === fallbackDate && (
+      !fallbackPhone || (s.phone && String(s.phone).replace(/\D/g, '') === String(fallbackPhone).replace(/\D/g, ''))
+    ));
+    if (m) return m;
   }
   return null;
 }
 
-function openEditSalesOrder(recordId, orderId, rowIndex) {
-  const o = findSalesOrder(recordId, orderId, rowIndex);
+function openEditSalesOrder(recordId, orderId, rowIndex, fallbackDate, fallbackPhone) {
+  const o = findSalesOrder(recordId, orderId, rowIndex, fallbackDate, fallbackPhone);
   if (!o) {
     showToastNotification('រកមិនឃើញការកុម្ម៉ង់នេះឡើយ!');
     return;
