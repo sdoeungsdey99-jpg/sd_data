@@ -10643,60 +10643,41 @@ function closeSalesModal() {
 // Accounts Payable Modal & Dynamic Stock Cycle Logic (Option 1)
 // ==========================================
 let activePayablesCycle = 'auto'; // 'auto' | 1 | 2 | 3 | 4 | 5 | 6
-let activePayablesMonthKey = null; // null means auto-detect current month
+let activePayablesYear = null;
+let activePayablesMonthNum = null;
 let isPayablesStockExpanded = false;
 
+function initPayablesDate() {
+  if (!activePayablesYear || !activePayablesMonthNum) {
+    const today = new Date();
+    const iso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(today) : today.toISOString().slice(0, 10);
+    const parts = iso.split('-');
+    activePayablesYear = parseInt(parts[0], 10);
+    activePayablesMonthNum = parseInt(parts[1], 10);
+  }
+}
+
 function getPayablesActiveMonthKey() {
-  if (activePayablesMonthKey) {
-    return activePayablesMonthKey;
-  }
-  if (appState && appState.periodFilter === 'month' && appState.selectedMonthKey) {
-    return appState.selectedMonthKey;
-  }
-  if (typeof getLocalIsoDate === 'function') {
-    return getLocalIsoDate(new Date()).slice(0, 7);
-  }
-  return new Date().toISOString().slice(0, 7);
+  initPayablesDate();
+  const moStr = String(activePayablesMonthNum).padStart(2, '0');
+  return `${activePayablesYear}-${moStr}`;
 }
 
-function getAvailablePayablesMonths() {
-  const d = DataService.data;
-  const monthMap = new Map();
-  const kmMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
-
-  const currentKey = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()).slice(0, 7) : new Date().toISOString().slice(0, 7);
-
-  if (d && d.personalSales) {
-    d.personalSales.forEach(o => {
-      if (o.isoDate && o.isoDate.length >= 7) {
-        const key = o.isoDate.slice(0, 7);
-        if (!monthMap.has(key)) {
-          const parts = key.split('-');
-          const yr = parts[0];
-          const mo = parts[1];
-          const moIdx = parseInt(mo, 10) - 1;
-          monthMap.set(key, `ខែ${kmMonths[moIdx] || mo} ${yr}`);
-        }
-      }
-    });
-  }
-
-  if (!monthMap.has(currentKey)) {
-    const parts = currentKey.split('-');
-    const yr = parts[0];
-    const mo = parts[1];
-    const moIdx = parseInt(mo, 10) - 1;
-    monthMap.set(currentKey, `ខែ${kmMonths[moIdx] || mo} ${yr}`);
-  }
-
-  return Array.from(monthMap.entries()).sort((a, b) => b[0].localeCompare(a[0]));
-}
-
-function changePayablesMonth(newMonthKey) {
-  activePayablesMonthKey = newMonthKey;
+function changePayablesYear(delta) {
+  initPayablesDate();
+  activePayablesYear += delta;
+  if (activePayablesYear < 2024) activePayablesYear = 2024;
+  if (activePayablesYear > 2030) activePayablesYear = 2030;
   renderPayablesList();
 }
-window.changePayablesMonth = changePayablesMonth;
+window.changePayablesYear = changePayablesYear;
+
+function changePayablesMonthNum(m) {
+  initPayablesDate();
+  activePayablesMonthNum = parseInt(m, 10);
+  renderPayablesList();
+}
+window.changePayablesMonthNum = changePayablesMonthNum;
 
 function getActivePayablesCycleNum(mode, monthKey) {
   if (mode !== 'auto') {
@@ -10843,29 +10824,43 @@ function renderPayablesList() {
     subtitle.textContent = `ទិន្នន័យជាក់ស្តែងពី Bank & Cash Balance`;
   }
 
-  const availableMonths = getAvailablePayablesMonths();
+  const kmMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
 
   if (footer) {
     footer.innerHTML = `
-      <div class="text-slate-300 font-semibold text-xs shrink-0">
-        ចំនួន: <span class="font-mono text-white font-bold">${activeCount} មុខ</span>
+      <div class="text-slate-300 font-semibold text-xs shrink-0 flex flex-col justify-center">
+        <span class="text-[10px] text-slate-400">ចំនួនសរុប</span>
+        <span class="font-mono text-white font-bold text-xs">${activeCount} មុខ</span>
       </div>
 
-      <!-- Month Selector in the center of total summary bar -->
-      <div class="relative flex items-center justify-center">
-        <select onchange="changePayablesMonth(this.value)" class="appearance-none bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white text-[11px] font-semibold rounded-lg pl-2 pr-5 py-1 focus:outline-none focus:border-orange-500/50 cursor-pointer transition">
-          ${availableMonths.map(([mKey, label]) => `
-            <option value="${mKey}" ${mKey === monthKey ? 'selected' : ''} class="bg-[#0B1528] text-white">
-              ${label}
-            </option>
-          `).join('')}
-        </select>
-        <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 absolute right-1.5 pointer-events-none"></i>
+      <!-- Center: Year ABOVE Month -->
+      <div class="flex flex-col items-center justify-center gap-1">
+        <!-- Year ពីលើ -->
+        <div class="flex items-center gap-1 bg-white/5 hover:bg-white/10 px-1.5 py-0.5 rounded-lg border border-white/10">
+          <button onclick="changePayablesYear(-1)" class="w-4 h-4 flex items-center justify-center text-slate-400 hover:text-white active:scale-90 transition" title="ឆ្នាំមុន">
+            <i data-lucide="chevron-left" class="w-2.5 h-2.5 text-orange-400"></i>
+          </button>
+          <span class="font-mono font-bold text-[11px] text-white tracking-wider px-1">${activePayablesYear}</span>
+          <button onclick="changePayablesYear(1)" class="w-4 h-4 flex items-center justify-center text-slate-400 hover:text-white active:scale-90 transition" title="ឆ្នាំបន្ទាប់">
+            <i data-lucide="chevron-right" class="w-2.5 h-2.5 text-orange-400"></i>
+          </button>
+        </div>
+
+        <!-- Month ពីក្រោមឆ្នាំ -->
+        <div class="relative flex items-center">
+          <select onchange="changePayablesMonthNum(this.value)" class="appearance-none bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white text-[11px] font-semibold rounded-lg pl-2 pr-5 py-0.5 focus:outline-none focus:border-orange-500/50 cursor-pointer transition">
+            ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => {
+              const isSelected = m === activePayablesMonthNum;
+              return `<option value="${m}" ${isSelected ? 'selected' : ''} class="bg-[#0B1528] text-white">ខែ${kmMonths[m - 1]}</option>`;
+            }).join('')}
+          </select>
+          <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 absolute right-1.5 pointer-events-none"></i>
+        </div>
       </div>
 
-      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right shrink-0">
-        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុប:</span>
-        <span>${formatUSD(totalPayables)}</span>
+      <div class="text-right shrink-0 flex flex-col justify-center">
+        <span class="text-[10px] text-slate-400">សរុបទឹកប្រាក់</span>
+        <span class="font-mono font-bold text-sm text-rose-400">${formatUSD(totalPayables)}</span>
       </div>
     `;
   }
