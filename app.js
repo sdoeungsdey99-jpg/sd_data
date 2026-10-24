@@ -9813,26 +9813,130 @@ function getSettingsViewHTML() {
       </div>
 
       <!-- ======================================================== -->
-      <!-- UNIFIED INSET GROUPED LIST (ដកកាតចេញ រក្សា Icon បែប iPhone) -->
+      <!-- GROUP 1: 👤 គណនី និងសុវត្ថិភាព (Account & Security)       -->
       <!-- ======================================================== -->
-      <div class="settings-list-card bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
-        
-        <!-- 1. ភាសា (Language) -->
-        <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
-          <div class="settings-row-left flex items-center gap-3 min-w-0">
-            <div class="settings-icon-box w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-              <i data-lucide="globe" class="w-4 h-4 text-sky-400"></i>
+      <div class="space-y-2 pt-1">
+        <div class="px-1 flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="shield" class="w-3.5 h-3.5 text-blue-400"></i>
+            <span>${isKm ? 'គណនី និងសុវត្ថិភាព' : 'Account & Security'}</span>
+          </span>
+          <span class="text-[10px] text-slate-500 font-mono">${isKm ? 'សុវត្ថិភាពផ្ទាល់ខ្លួន' : 'Personal Vault'}</span>
+        </div>
+
+        <div class="settings-list-card bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
+          <!-- 1. អំពីខ្ញុំ (About Me - រំកិលមកលើគេបង្អស់) -->
+          <div onclick="openAboutModal()" 
+               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="user" class="w-4 h-4 text-orange-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${prof.name || 'ស្តី ស្តើង'} • ${prof.subtitle || (isKm ? 'ប្រធានគ្រប់គ្រង' : 'Manager')}</p>
+              </div>
             </div>
-            <div class="min-w-0">
-              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('language')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ភាសាខ្មែរ / អង់គ្លេស' : 'Khmer / English'}</p>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[10px] text-orange-400 font-medium px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20">${isKm ? 'ព័ត៌មាន' : 'Profile'}</span>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
-            <button onclick="setLanguage('km')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${isKm ? 'accent-solid-btn' : 'text-slate-400'}">ខ្មែរ</button>
-            <button onclick="setLanguage('en')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${!isKm ? 'accent-solid-btn' : 'text-slate-400'}">EN</button>
+
+          <!-- 2. ការចាក់សោរដោយលេខសម្ងាត់ (Passcode Lock) -->
+          <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('enablePinTitle')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('enablePinDesc')}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              ${appState.pinEnabled ? `
+                <button onclick="openChangePinModal()" 
+                        class="px-2.5 py-1 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-[10px] transition active:scale-95 shadow-md">
+                  ${t('changePinBtn')}
+                </button>
+              ` : ''}
+              <button onclick="togglePinEnabled()" 
+                      class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.pinEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
+                      role="switch" aria-checked="${appState.pinEnabled}">
+                <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+              </button>
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- GROUP 2: ⚙️ រចនាប័ទ្ម និងចំណូលចិត្ត (Preferences & Display)  -->
+      <!-- ======================================================== -->
+      <div class="space-y-2 pt-2">
+        <div class="px-1 flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="sliders" class="w-3.5 h-3.5 text-orange-400"></i>
+            <span>${isKm ? 'រចនាប័ទ្ម និងចំណូលចិត្ត' : 'Preferences & Display'}</span>
+          </span>
+          <span class="text-[10px] text-slate-500 font-mono">${isKm ? '៦ ជម្រើស' : '6 Options'}</span>
+        </div>
+
+        <div class="settings-list-card bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
+          
+          <!-- 1. ភាសា (Language) -->
+          <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="globe" class="w-4 h-4 text-sky-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('language')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ភាសាខ្មែរ / អង់គ្លេស' : 'Khmer / English'}</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
+              <button onclick="setLanguage('km')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${isKm ? 'accent-solid-btn' : 'text-slate-400'}">ខ្មែរ</button>
+              <button onclick="setLanguage('en')" class="py-1 px-2.5 rounded-lg text-[10px] font-bold transition ${!isKm ? 'accent-solid-btn' : 'text-slate-400'}">EN</button>
+            </div>
+          </div>
+
+          <!-- 2. ទម្រង់ពណ៌ (Color Mode - ស្វ័យប្រវត្តិ / ភ្លឺ / ងងឹត) -->
+          <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="${appState.theme === 'auto' ? 'sun-medium' : (isDark ? 'moon' : 'sun')}" class="w-4 h-4 text-amber-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('theme')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${appState.theme === 'auto' ? (isKm ? 'ស្វ័យប្រវត្តិតាមទូរស័ព្ទ' : 'Auto (System)') : (isDark ? (isKm ? 'របៀបងងឹត' : 'Dark Mode') : (isKm ? 'របៀបភ្លឺ' : 'Light Mode'))}</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
+              <button onclick="toggleTheme('auto')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'auto' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${isKm ? 'ស្វ័យប្រវត្តិ' : 'Auto'}</button>
+              <button onclick="toggleTheme('light')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'light' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${t('light')}</button>
+              <button onclick="toggleTheme('dark')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'dark' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${t('dark')}</button>
+            </div>
+          </div>
+
+          <!-- 3. ការជូនដំណឹង (Notifications) -->
+          <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="bell" class="w-4 h-4 text-rose-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('notificationsTitle')}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('notificationsDesc')}</p>
+              </div>
+            </div>
+            <button onclick="toggleNotificationsEnabled()" 
+                    class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.notificationsEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
+                    role="switch" aria-checked="${appState.notificationsEnabled}">
+              <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+            </button>
+          </div>
 
         <!-- 2. ពណ៌ចម្បង (Theme Accent - ដកកូដពណ៌ចេញ ជំនួសដោយអក្សរ) -->
         <div>
@@ -10044,40 +10148,40 @@ function getSettingsViewHTML() {
           </div>
 
           ${active === 'textSize' ? `
-            <div class="p-4 bg-black/40 border-t border-white/5 space-y-3 animate-fade-in text-size-slider-box">
+            <div class="p-3 bg-black/40 border-t border-white/5 space-y-2.5 animate-fade-in text-size-slider-box">
               
               <!-- Title & Active Badge -->
-              <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center justify-between text-xs px-0.5">
                 <span class="font-bold text-white">${isKm ? 'រំកិលកំណត់ទំហំអក្សរ (៣ កម្រិត)' : 'Adjust Font Size (3 Levels)'}</span>
-                <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg accent-solid-btn shadow-sm">
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md accent-solid-btn shadow-sm">
                   ${curTextSizeTier.tier} • ${curTextSizeTier.px}${curTextSizeTier.isDefault ? (isKm ? ' (ដើម)' : ' (Default)') : ''}
                 </span>
               </div>
 
-              <!-- iOS Style Range Slider Box with 3 Tick Marks & Active Fill -->
-              <div class="bg-black/50 border border-white/10 rounded-2xl p-3.5 space-y-3.5 shadow-inner">
+              <!-- iOS Compact Slider Box (សម្រួលឱ្យតូចល្មមស្តង់ដា iOS) -->
+              <div class="bg-black/50 border border-white/10 rounded-2xl p-2.5 space-y-2.5 shadow-inner">
                 
-                <!-- Slider Row: A [ Track + 3 Ticks + Thumb ] A -->
-                <div class="flex items-center gap-3">
-                  <span class="text-xs font-black text-slate-400 select-none w-4 text-center">A</span>
+                <!-- Compact Slider Row: A [ Track + 3 Ticks + Thumb ] A -->
+                <div class="flex items-center gap-3 px-1">
+                  <span class="text-xs font-bold text-slate-400 select-none w-3 text-center">A</span>
                   
-                  <div class="flex-1 relative flex items-center h-8">
+                  <div class="flex-1 relative flex items-center h-6">
                     <!-- Background Track Line -->
-                    <div class="absolute left-2.5 right-2.5 h-2 bg-white/15 dark:bg-white/15 bg-slate-200 rounded-full pointer-events-none overflow-hidden">
-                      <!-- Active Track Fill (from left to current thumb) -->
+                    <div class="absolute left-2 right-2 h-1.5 bg-white/15 dark:bg-white/15 bg-slate-200 rounded-full pointer-events-none overflow-hidden">
+                      <!-- Active Track Fill -->
                       <div class="h-full rounded-full transition-all duration-150" 
                            style="width: ${((curTextSizeTier.val - 1) / 2) * 100}%; background-color: var(--accent-solid);"></div>
                     </div>
                     
                     <!-- 3 Tick Mark Stops on the Track -->
-                    <div class="absolute left-2.5 right-2.5 flex justify-between items-center pointer-events-none">
+                    <div class="absolute left-2 right-2 flex justify-between items-center pointer-events-none">
                       ${textSizeTiers.map(tier => {
                         const isActive = tier.key === appState.textSize;
                         const isPassed = tier.val <= curTextSizeTier.val;
                         return `
-                          <div class="w-3.5 h-3.5 -ml-[7px] -mr-[7px] rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-white shadow-md scale-110' : (isPassed ? 'scale-90' : 'bg-white/40 dark:bg-white/30 scale-75')}"
-                               style="${isActive ? 'box-shadow: 0 0 0 3px var(--accent-solid);' : (isPassed ? 'background-color: var(--accent-solid);' : '')}">
-                            <span class="w-1.5 h-1.5 rounded-full ${isActive ? '' : 'bg-white'}"
+                          <div class="w-2.5 h-2.5 -ml-[5px] -mr-[5px] rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-white shadow-sm scale-110' : (isPassed ? 'scale-90' : 'bg-white/40 scale-75')}"
+                               style="${isActive ? 'box-shadow: 0 0 0 2px var(--accent-solid);' : (isPassed ? 'background-color: var(--accent-solid);' : '')}">
+                            <span class="w-1 h-1 rounded-full ${isActive ? '' : 'bg-white'}"
                                   style="${isActive ? 'background-color: var(--accent-solid);' : ''}"></span>
                           </div>
                         `;
@@ -10092,26 +10196,18 @@ function getSettingsViewHTML() {
                            aria-label="Font Size Slider">
                   </div>
                   
-                  <span class="text-lg font-black text-slate-100 select-none w-4 text-center">A</span>
+                  <span class="text-base font-black text-slate-100 select-none w-3 text-center">A</span>
                 </div>
 
-                <!-- 3 Exact Font Size Numbers & Tick Buttons (Direct Clickable Selection) -->
-                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 select-none">
+                <!-- 3 iOS Segmented Buttons (តូចល្មម ស្អាតបាត មិនធំស្អេកស្កះ) -->
+                <div class="grid grid-cols-3 gap-1 bg-black/40 p-1 rounded-xl border border-white/5 select-none">
                   ${textSizeTiers.map(tier => {
                     const isActive = tier.key === appState.textSize;
                     return `
                       <button type="button" onclick="setAppTextSize('${tier.key}')" 
-                              class="flex flex-col items-center py-2 px-1 rounded-xl transition-all active:scale-95 ${isActive ? 'accent-solid-btn font-bold ring-1 ring-white/30' : 'text-slate-400 dark:text-slate-300 hover:text-white hover:bg-white/5'}">
-                        <!-- Exact Number (15.5px, 17px, 18.5px) -->
-                        <span class="text-xs font-mono font-black ${isActive ? 'text-inherit' : 'text-slate-200'}">
-                          ${tier.px}
-                        </span>
-                        <!-- Tier Badge (SM, MD, LG) -->
-                        <span class="text-[10px] font-bold tracking-tight mt-0.5 ${isActive ? 'opacity-95 font-black' : (tier.isDefault ? 'text-amber-400 font-bold' : 'text-slate-400')}">
-                          ${tier.tier}${tier.isDefault ? (isKm ? ' ដើម' : '') : ''}
-                        </span>
-                        <!-- Tick Dot below -->
-                        <span class="mt-1 w-1.5 h-1.5 rounded-full ${isActive ? 'bg-white' : 'bg-white/25'}"></span>
+                              class="py-1 px-1 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 ${isActive ? 'accent-solid-btn font-bold shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}">
+                        <span class="text-[11px] font-mono font-bold ${isActive ? 'text-inherit' : 'text-slate-200'}">${tier.px}</span>
+                        <span class="text-[9px] font-medium opacity-80">${tier.tier}${tier.isDefault ? (isKm ? ' ដើម' : '') : ''}</span>
                       </button>
                     `;
                   }).join('')}
@@ -10121,45 +10217,42 @@ function getSettingsViewHTML() {
 
               <!-- Option: Hide Subtitles (លាក់ចំណងជើងរង មាន Button បិទ/បើក) -->
               <div onclick="toggleHideSubtitles()" 
-                   class="settings-row p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between cursor-pointer transition-all duration-150 select-none">
-                <div class="settings-row-left flex items-center gap-2.5 min-w-0 pr-2">
-                  <div class="settings-icon-box w-8 h-8 rounded-xl ${appState.hideSubtitles ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-blue-500/20 border-blue-500/30 text-blue-400'} border flex items-center justify-center shrink-0 transition-all duration-150">
-                    <i data-lucide="${appState.hideSubtitles ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>
+                   class="settings-row p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between cursor-pointer transition select-none">
+                <div class="settings-row-left flex items-center gap-2 min-w-0 pr-2">
+                  <div class="settings-icon-box w-7 h-7 rounded-lg ${appState.hideSubtitles ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-blue-500/20 border-blue-500/30 text-blue-400'} border flex items-center justify-center shrink-0">
+                    <i data-lucide="${appState.hideSubtitles ? 'eye-off' : 'eye'}" class="w-3.5 h-3.5"></i>
                   </div>
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5">
                       <h5 class="settings-row-title text-xs font-bold text-white truncate leading-tight">
                         ${isKm ? 'លាក់ចំណងជើងរង' : 'Hide Subtitles'}
                       </h5>
-                      <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-md ${appState.hideSubtitles ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/10 text-slate-400'}">
+                      <span class="text-[8px] font-bold px-1.5 py-0.2 rounded ${appState.hideSubtitles ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/10 text-slate-400'}">
                         ${appState.hideSubtitles ? (isKm ? 'បើក' : 'ON') : (isKm ? 'បិទ' : 'OFF')}
                       </span>
                     </div>
-                    <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">
+                    <p class="text-[9px] text-slate-400 truncate settings-subtitle">
                       ${isKm ? 'បង្ហាញតែចំណងជើងធំៗ ដើម្បីឱ្យស្រឡះ និងងាយស្រួលមើល' : 'Show main titles only for cleaner readability'}
                     </p>
                   </div>
                 </div>
                 <button type="button" 
                         onclick="event.stopPropagation(); toggleHideSubtitles();"
-                        class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.hideSubtitles ? 'bg-emerald-500' : 'bg-slate-700'}"
+                        class="w-10 h-5 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.hideSubtitles ? 'bg-emerald-500' : 'bg-slate-700'}"
                         role="switch" aria-checked="${appState.hideSubtitles}">
-                  <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.hideSubtitles ? 'translate-x-5' : 'translate-x-0'}"></div>
+                  <div class="w-4 h-4 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.hideSubtitles ? 'translate-x-5' : 'translate-x-0'}"></div>
                 </button>
               </div>
 
-              <!-- Live Sample Preview -->
-              <div class="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+              <!-- Live Sample Preview (Compact) -->
+              <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
                 <div class="min-w-0 pr-2">
-                  <p class="text-slate-400 text-[10px] uppercase tracking-wider font-bold">${isKm ? 'គំរូទំហំអក្សរជាក់ស្តែង' : 'Live Preview'}:</p>
-                  <p class="font-bold text-white truncate mt-0.5" style="font-size: ${curTextSizeTier.px};">
-                    ${isKm ? 'សួស្តី! នេះជាទំហំអក្សរគំរូជាក់ស្តែង' : 'Sample typography preview'}
-                  </p>
-                  <p class="text-[10px] text-slate-400 font-mono truncate mt-0.5 settings-subtitle">
-                    ${isKm ? 'ចំណងជើងរងគំរូ (កាលបរិច្ឆេទ • សាច់ប្រាក់)' : 'Subtitle Preview • Secondary Description'}
+                  <p class="text-slate-400 text-[9px] uppercase tracking-wider font-bold">${isKm ? 'គំរូជាក់ស្តែង' : 'Live Preview'}:</p>
+                  <p class="font-bold text-white truncate text-xs mt-0.5" style="font-size: ${curTextSizeTier.px};">
+                    ${isKm ? 'សួស្តី! នេះជាទំហំអក្សរគំរូ' : 'Sample typography preview'}
                   </p>
                 </div>
-                <span class="shrink-0 px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 font-mono text-[11px] font-bold border border-white/10">
+                <span class="shrink-0 px-2 py-0.5 rounded-md bg-white/10 text-slate-200 font-mono text-[10px] font-bold border border-white/10">
                   ${curTextSizeTier.px}
                 </span>
               </div>
@@ -10168,88 +10261,10 @@ function getSettingsViewHTML() {
           ` : ''}
         </div>
 
-        <!-- 5. ទម្រង់ពណ៌ (Color Mode - ស្វ័យប្រវត្តិ / ភ្លឺ / ងងឹត) -->
-        <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
-          <div class="settings-row-left flex items-center gap-3 min-w-0">
-            <div class="settings-icon-box w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-              <i data-lucide="${appState.theme === 'auto' ? 'sun-medium' : (isDark ? 'moon' : 'sun')}" class="w-4 h-4 text-amber-400"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('theme')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${appState.theme === 'auto' ? (isKm ? 'ស្វ័យប្រវត្តិតាមទូរស័ព្ទ' : 'Auto (System)') : (isDark ? (isKm ? 'របៀបងងឹត' : 'Dark Mode') : (isKm ? 'របៀបភ្លឺ' : 'Light Mode'))}</p>
-            </div>
-          </div>
-          <div class="grid grid-cols-3 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
-            <button onclick="toggleTheme('auto')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'auto' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${isKm ? 'ស្វ័យប្រវត្តិ' : 'Auto'}</button>
-            <button onclick="toggleTheme('light')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'light' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${t('light')}</button>
-            <button onclick="toggleTheme('dark')" class="py-1 px-2 rounded-lg text-[10px] font-bold transition ${appState.theme === 'dark' ? 'accent-solid-btn shadow-sm' : 'text-slate-400 hover:text-white'}">${t('dark')}</button>
-          </div>
-        </div>
-
-        <!-- 6. ការជូនដំណឹង (Notifications) -->
-        <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
-          <div class="settings-row-left flex items-center gap-3 min-w-0">
-            <div class="settings-icon-box w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-              <i data-lucide="bell" class="w-4 h-4 text-rose-400"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('notificationsTitle')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('notificationsDesc')}</p>
-            </div>
-          </div>
-          <button onclick="toggleNotificationsEnabled()" 
-                  class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.notificationsEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
-                  role="switch" aria-checked="${appState.notificationsEnabled}">
-            <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
-          </button>
-        </div>
-
-        <!-- 7. ការចាក់សោរ (Security / Passcode Lock) -->
-        <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
-          <div class="settings-row-left flex items-center gap-3 min-w-0">
-            <div class="settings-icon-box w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('enablePinTitle')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('enablePinDesc')}</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            ${appState.pinEnabled ? `
-              <button onclick="openChangePinModal()" 
-                      class="px-2.5 py-1 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-[10px] transition active:scale-95 shadow-md">
-                ${t('changePinBtn')}
-              </button>
-            ` : ''}
-            <button onclick="togglePinEnabled()" 
-                    class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.pinEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
-                    role="switch" aria-checked="${appState.pinEnabled}">
-              <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
-            </button>
-          </div>
-        </div>
-
-        <!-- 8. អំពីខ្ញុំ (About Me) -->
-        <div onclick="openAboutModal()" 
-             class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
-          <div class="settings-row-left flex items-center gap-3 min-w-0">
-            <div class="settings-icon-box w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-              <i data-lucide="user" class="w-4 h-4 text-orange-400"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ស្តី ស្តើង • ប្រធានគ្រប់គ្រង' : 'SDEY SDOEUNG • Manager'}</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-          </div>
-        </div>
-
       </div>
+    </div>
 
-      <!-- 9. កំណត់ឡើងវិញទៅទម្រង់ដើម (Reset to Default Button) -->
+      <!-- កំណត់ឡើងវិញទៅទម្រង់ដើម (Reset to Default Button) -->
       <div class="pt-2">
         <button onclick="resetAppSettings()" 
                 class="w-full p-3.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 hover:text-rose-300 font-semibold text-xs flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
