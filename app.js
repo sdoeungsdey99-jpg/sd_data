@@ -3945,9 +3945,17 @@ function getExecutiveHierarchyParsedData(d, statsMap) {
         bSum += mem.displayBoxes;
         oSum += mem.displayOrders;
       });
-      const lStat = getSellerAggregatedStats(l, statsMap);
-      bSum += lStat.boxes;
-      oSum += lStat.orders;
+      // Avoid double-counting: only add leader personal sales if not already in teamMembers
+      const leaderInTeam = teamMembers.some(mem => {
+        const n1 = normalizeSellerName(mem.km);
+        const n2 = normalizeSellerName(l.km);
+        return n1 === n2 || (n1 && n2 && (n1.includes(n2) || n2.includes(n1)));
+      });
+      if (!leaderInTeam) {
+        const lStat = getSellerAggregatedStats(l, statsMap);
+        bSum += lStat.boxes;
+        oSum += lStat.orders;
+      }
       displayBoxes = bSum;
       displayOrders = oSum;
     } else if (displayBoxes === 0 && teamMembers.length > 0) {
@@ -3967,11 +3975,17 @@ function getExecutiveHierarchyParsedData(d, statsMap) {
   // 3. Process 6 Managers
   const enrichedManagers = rawManagers.map(m => {
     const m_clean = m.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
-    const teamLeaders = sortedLeaders.filter(l => l.manager === m.km || (m_clean && l.manager.includes(m_clean)));
-    const l_names = new Set(teamLeaders.map(l => l.km));
-    l_names.add(m.km);
-    const l_clean_names = Array.from(l_names).map(l => l.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim());
-    const teamMembers = enrichedMembers.filter(mem => l_names.has(mem.leader) || l_clean_names.some(c => c && mem.leader.includes(c)));
+    const teamLeaders = sortedLeaders.filter(l => {
+      const mgrName = (l.manager || '').replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+      return l.manager === m.km || (m_clean && mgrName === m_clean) || (m_clean && l.manager.includes(m_clean));
+    });
+    const l_names = new Set(teamLeaders.map(l => l.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim()));
+    l_names.add(m_clean);
+    
+    const teamMembers = enrichedMembers.filter(mem => {
+      const memLeaderClean = (mem.leader || '').replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+      return l_names.has(memLeaderClean) || (memLeaderClean && Array.from(l_names).some(c => c && memLeaderClean.includes(c)));
+    });
 
     let displayBoxes = Number(m.boxes) || 0;
     let displayOrders = Number(m.orders) || 0;
@@ -3983,14 +3997,17 @@ function getExecutiveHierarchyParsedData(d, statsMap) {
         bSum += mem.displayBoxes;
         oSum += mem.displayOrders;
       });
-      teamLeaders.forEach(tl => {
-        const tlStat = getSellerAggregatedStats(tl, statsMap);
-        bSum += tlStat.boxes;
-        oSum += tlStat.orders;
+      // Avoid double-counting: only add manager personal sales if not already in teamMembers
+      const mgrInTeam = teamMembers.some(mem => {
+        const n1 = normalizeSellerName(mem.km);
+        const n2 = normalizeSellerName(m.km);
+        return n1 === n2 || (n1 && n2 && (n1.includes(n2) || n2.includes(n1)));
       });
-      const mgrStat = getSellerAggregatedStats(m, statsMap);
-      bSum += mgrStat.boxes;
-      oSum += mgrStat.orders;
+      if (!mgrInTeam) {
+        const mgrStat = getSellerAggregatedStats(m, statsMap);
+        bSum += mgrStat.boxes;
+        oSum += mgrStat.orders;
+      }
       displayBoxes = bSum;
       displayOrders = oSum;
     }
@@ -4009,6 +4026,12 @@ function getExecutiveHierarchyParsedData(d, statsMap) {
     };
   });
   const sortedManagers = [...enrichedManagers].sort((a, b) => b.displayBoxes - a.displayBoxes);
+
+  // Re-verify Director totals when filtered
+  if (statsMap !== null) {
+    directorBoxes = enrichedMembers.reduce((acc, s) => acc + s.displayBoxes, 0);
+    directorOrders = enrichedMembers.reduce((acc, s) => acc + s.displayOrders, 0);
+  }
 
   return {
     directorRaw,
@@ -19419,8 +19442,11 @@ function normalizeSellerName(name) {
   if (!name) return '';
   return name.toString().trim()
     .replace(/^(លោក|អ្នកគ្រូ|កញ្ញា|បង)\s+/g, '')
+    .replace(/សុី/g, 'ស៊ី')
     .replace(/ស្តី/g, 'ស្ដី')
     .replace(/ស្តើង/g, 'ស្ដើង')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/\s+/g, ' ')
     .toLowerCase()
     .trim();
 }
