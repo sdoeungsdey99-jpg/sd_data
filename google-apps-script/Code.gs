@@ -77,6 +77,19 @@ function doPost(e) {
       }
 
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'update_order' || action === 'update_personal_sales') {
+      var result = updatePersonalSalesOrder(ss, data);
+      var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+      var syncToBostarTrack = (payload.syncToBostarTrack !== false) && (data.syncToBostarTrack !== false);
+      if (syncToBostarTrack && targetSheetId !== bostarTrackId) {
+        try {
+          var bostarSs = SpreadsheetApp.openById(bostarTrackId);
+          updatePersonalSalesOrder(bostarSs, data);
+        } catch (btErr) {
+          Logger.log('BostarTrack Dual Sync Update Warn: ' + btErr);
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     } else if (action === 'add_expense') {
       var result = insertDailyExpense(ss, data);
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
@@ -311,6 +324,155 @@ function insertPersonalSalesOrder(ss, order) {
     row: targetRow,
     recordId: formattedRecId,
     orderId: order.orderId
+  };
+}
+
+/**
+ * កែសម្រួលការកុម្ម៉ង់ក្នុង Personal Sales (ឈ្មោះ, លេខទូរស័ព្ទ, ទីតាំង, ចំនួនប្រអប់, តម្លៃ, COD...)
+ * រក្សារូបមន្តចាស់ Col B (No.) មិនឱ្យខូច
+ */
+function updatePersonalSalesOrder(ss, order) {
+  var sheet = ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheets()[0];
+  if (!sheet) {
+    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };
+  }
+
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var numRows = values.length;
+
+  var targetRecordId = String(order.recordId || '').trim();
+  var targetOrderId = String(order.orderId || '').trim();
+  var targetRowIndex = (order.rowIndex !== undefined && order.rowIndex !== null) ? Number(order.rowIndex) : -1;
+
+  var matchedRow = -1;
+
+  // 1. ស្វែងរកតាម Record_ID (Col 24 / X ឬ Col 23 / W)
+  if (targetRecordId) {
+    for (var r = 1; r < numRows; r++) {
+      var existingRecId = String(values[r][23] || values[r][22] || '').trim();
+      if (existingRecId && targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {
+        matchedRow = r + 1;
+        break;
+      }
+    }
+  }
+
+  // 2. បើមិនឃើញ រកតាម Order ID (Col 5 / E)
+  if (matchedRow === -1 && targetOrderId) {
+    for (var r = 1; r < numRows; r++) {
+      var existingOrderId = String(values[r][4] || '').trim();
+      if (existingOrderId && targetOrderId.toLowerCase() === existingOrderId.toLowerCase()) {
+        matchedRow = r + 1;
+        break;
+      }
+    }
+  }
+
+  // 3. បើនៅតែមិនឃើញ ពិនិត្យតាម rowIndex ប្រសិនបើផ្ញើមក
+  if (matchedRow === -1 && targetRowIndex > 0 && targetRowIndex < numRows) {
+    var checkRow = targetRowIndex + 1;
+    if (checkRow <= numRows) {
+      matchedRow = checkRow;
+    }
+  }
+
+  if (matchedRow <= 0) {
+    return {
+      status: 'not_found',
+      message: 'រកមិនឃើញការកុម្ម៉ង់លេខ ' + (targetOrderId || targetRecordId) + ' ក្នុងតារាង Personal Sales ឡើយ!'
+    };
+  }
+
+  // កែប្រែទិន្នន័យ (Inputs តែប៉ុណ្ណោះ រក្សារូបមន្ត)
+  if (order.date) {
+    var dateObj = parseToDateObj(order.date);
+    sheet.getRange(matchedRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date
+  }
+  if (order.customer !== undefined) sheet.getRange(matchedRow, 3).setValue(order.customer); // Col C: FB Name
+  if (order.seller !== undefined && order.seller) sheet.getRange(matchedRow, 4).setValue(order.seller); // Col D: Seller
+  if (order.orderId !== undefined && order.orderId) sheet.getRange(matchedRow, 5).setValue(order.orderId); // Col E: Order ID
+  if (order.location !== undefined) sheet.getRange(matchedRow, 6).setValue(order.location); // Col F: Location
+  if (order.phone !== undefined) sheet.getRange(matchedRow, 7).setValue(order.phone); // Col G: Phone
+
+  // ផលិតផល H, I, J, K, L (Qty)
+  if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL > 0 ? Number(order.qtyYL) : '');
+  if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP > 0 ? Number(order.qtyYLP) : '');
+  if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN > 0 ? Number(order.qtyKN) : '');
+  if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO > 0 ? Number(order.qtyPDO) : '');
+  if (order.freeQty !== undefined) sheet.getRange(matchedRow, 12).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');
+
+  // គណនាប្រអប់សរុប
+  var totalBoxes = Number(order.totalBoxQty || 0);
+  if (!totalBoxes || totalBoxes === 0) {
+    totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
+                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
+                 Number(order.freeQty || 0);
+  }
+
+  // គណនាតម្លៃដើម & ចំណេញ
+  var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();
+  var stockCost = 0;
+  if (orderType === 'reward') {
+    stockCost = totalBoxes * 5.0;
+  } else if (orderType === 'return') {
+    stockCost = 0;
+  } else {
+    stockCost = totalBoxes * 24.0;
+  }
+
+  // Price (Col M)
+  if (order.price !== undefined && order.price !== null && order.price !== '') {
+    sheet.getRange(matchedRow, 13).setValue(order.price);
+  }
+
+  // Total USD (Col N)
+  if (order.totalAmount !== undefined && order.totalAmount !== null) {
+    sheet.getRange(matchedRow, 14).setValue(Number(order.totalAmount));
+  }
+
+  // Ship Fee (Col O)
+  if (order.shipFee !== undefined && order.shipFee !== null) {
+    sheet.getRange(matchedRow, 15).setValue(Number(order.shipFee));
+  }
+
+  // Delivery (Col P)
+  if (order.delivery !== undefined || order.deliveryMethod !== undefined) {
+    sheet.getRange(matchedRow, 16).setValue(order.delivery || order.deliveryMethod || '');
+  }
+
+  // COD Status (Col Q)
+  if (order.codStatus !== undefined && order.codStatus) {
+    sheet.getRange(matchedRow, 17).setValue(order.codStatus);
+  }
+
+  // Stock Cost (Col R)
+  sheet.getRange(matchedRow, 18).setValue(stockCost);
+
+  // Payment Date (Col S)
+  if (order.paymentDate !== undefined) {
+    sheet.getRange(matchedRow, 19).setValue(order.paymentDate);
+  }
+
+  // Profit (Col T)
+  var totalAmountUSD = Number(order.totalAmount || 0);
+  var shipFee = Number(order.shipFee || 0);
+  var profitVal = (order.profit !== undefined && order.profit !== null && order.profit !== '') 
+    ? Number(order.profit) 
+    : Math.max(0, Math.round((totalAmountUSD - stockCost - shipFee) * 100) / 100);
+  sheet.getRange(matchedRow, 20).setValue(profitVal);
+
+  // Note (Col U)
+  if (order.note !== undefined) {
+    sheet.getRange(matchedRow, 21).setValue(order.note);
+  }
+
+  return {
+    status: 'success',
+    message: 'បានកែសម្រួលការកុម្ម៉ង់ #' + (targetOrderId || targetRecordId) + ' លើជួរទី ' + matchedRow + ' ជោគជ័យ! ✅',
+    row: matchedRow,
+    recordId: targetRecordId,
+    orderId: targetOrderId
   };
 }
 

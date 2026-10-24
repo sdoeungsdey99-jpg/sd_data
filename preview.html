@@ -1185,6 +1185,38 @@
       color: #0F172A !important;
     }
 
+    .light-theme #edit-order-modal {
+      background-color: #F8FAFC !important;
+      color: #0F172A !important;
+    }
+    .light-theme #edit-order-modal .bg-\[\#0B1528\]\/95,
+    .light-theme #edit-order-modal [class*="bg-[#0B1528]"] {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #edit-order-modal .ios-glass-card {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+    .light-theme #edit-order-modal input,
+    .light-theme #edit-order-modal textarea,
+    .light-theme #edit-order-modal select {
+      background-color: #F8FAFC !important;
+      border-color: #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    .light-theme #edit-order-modal .border-white\/10,
+    .light-theme #edit-order-modal .border-white\/5 {
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #edit-order-modal .bg-black\/40,
+    .light-theme #edit-order-modal .bg-black\/50,
+    .light-theme #edit-order-modal .bg-black\/30 {
+      background-color: #F1F5F9 !important;
+      border-color: #E2E8F0 !important;
+    }
+
     /* High-Contrast Readable Numbers & Accents in Light Theme */
     .light-theme #hero-val-khr,
     .light-theme .text-amber-400 {
@@ -3405,6 +3437,212 @@
       <!-- Scrollable Full-Screen Customer Cards List -->
       <div id="all-customers-list" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-2.5 pb-28">
         <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- FULL-SCREEN EDIT SALES ORDER MODAL (100% SCREEN)         -->
+  <!-- ======================================================== -->
+  <div id="edit-order-modal" class="fixed inset-0 z-[80] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy">
+    <div class="w-full max-w-md mx-auto flex flex-col h-full overflow-hidden">
+      <!-- Top Bar -->
+      <div class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 flex items-center justify-between gap-2">
+        <button onclick="closeEditSalesOrderModal()" 
+                class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
+                title="ត្រឡប់">
+          <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+        </button>
+        <div class="min-w-0 flex-1 text-center">
+          <h3 id="edit-order-modal-title" class="font-bold text-xs sm:text-sm text-white truncate leading-tight">
+            កែសម្រួលការកុម្ម៉ង់ (Edit Order)
+          </h3>
+          <p id="edit-order-modal-subtitle" class="text-[10px] text-orange-400 font-mono font-medium truncate mt-0.5">
+            Sync ផ្ទាល់ខ្លួន & Google Sheets
+          </p>
+        </div>
+        <div class="w-8 shrink-0"></div>
+      </div>
+
+      <!-- Scrollable Form Body -->
+      <div id="edit-order-modal-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3 pb-32">
+        <input type="hidden" id="edit-order-record-id">
+        <input type="hidden" id="edit-order-id">
+        <input type="hidden" id="edit-order-row-index">
+
+        <!-- Card: Date & Customer Identity -->
+        <div class="ios-glass-card rounded-2xl p-3 border border-white/10 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-1.5">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 text-orange-400"></i>
+              កាលបរិច្ឆេទ & អតិថិជន
+            </span>
+            <span id="edit-order-ref-badge" class="font-mono text-[10px] px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-bold border border-orange-500/30">
+              #REC
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">📅 ថ្ងៃខែកុម្ម៉ង់ (DD/MM/YYYY)</label>
+              <input type="text" id="edit-order-date" placeholder="DD/MM/YYYY" 
+                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">👤 ឈ្មោះ / FB Name</label>
+              <input type="text" id="edit-order-customer" placeholder="ឈ្មោះអតិថិជន" 
+                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-orange-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">📞 លេខទូរស័ព្ទ</label>
+              <input type="tel" id="edit-order-phone" placeholder="0** *** ****" 
+                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">🏷️ Order ID</label>
+              <input type="text" id="edit-order-order-id-input" placeholder="#" 
+                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[10px] text-slate-400 block mb-1">📍 ទីតាំងដឹកជញ្ជូន</label>
+            <textarea id="edit-order-location" rows="2" placeholder="ខេត្ត/ក្រុង, ស្រុក, ឃុំ..." 
+                      class="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-orange-500 resize-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Card: Product Quantities -->
+        <div class="ios-glass-card rounded-2xl p-3 border border-white/10 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-1.5">
+              <i data-lucide="package" class="w-3.5 h-3.5 text-orange-400"></i>
+              បរិមាណទំនិញ (ប្រអប់)
+            </span>
+            <span class="text-[10px] text-slate-400">
+              សរុប: <strong id="edit-order-total-boxes-display" class="text-orange-400 font-mono font-bold">0</strong> ប្រអប់
+            </span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div class="p-2 rounded-xl bg-black/30 border border-white/5 text-center">
+              <span class="text-[10px] text-slate-400 block mb-1">YL (លឿង)</span>
+              <input type="number" min="0" id="edit-order-qty-yl" oninput="calculateEditOrderFinancials()" 
+                     class="w-full bg-black/50 border border-white/10 rounded-lg p-1 text-center text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+            </div>
+            <div class="p-2 rounded-xl bg-black/30 border border-white/5 text-center">
+              <span class="text-[10px] text-slate-400 block mb-1">YLP (បៃតង)</span>
+              <input type="number" min="0" id="edit-order-qty-ylp" oninput="calculateEditOrderFinancials()" 
+                     class="w-full bg-black/50 border border-white/10 rounded-lg p-1 text-center text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+            </div>
+            <div class="p-2 rounded-xl bg-black/30 border border-white/5 text-center">
+              <span class="text-[10px] text-slate-400 block mb-1">KN (ក្រហម)</span>
+              <input type="number" min="0" id="edit-order-qty-kn" oninput="calculateEditOrderFinancials()" 
+                     class="w-full bg-black/50 border border-white/10 rounded-lg p-1 text-center text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+            </div>
+            <div class="p-2 rounded-xl bg-black/30 border border-white/5 text-center">
+              <span class="text-[10px] text-slate-400 block mb-1">P D.O</span>
+              <input type="number" min="0" id="edit-order-qty-pdo" oninput="calculateEditOrderFinancials()" 
+                     class="w-full bg-black/50 border border-white/10 rounded-lg p-1 text-center text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+            </div>
+            <div class="p-2 rounded-xl bg-black/30 border border-white/5 text-center">
+              <span class="text-[10px] text-slate-400 block mb-1">Free (ថែម)</span>
+              <input type="number" min="0" id="edit-order-qty-free" oninput="calculateEditOrderFinancials()" 
+                     class="w-full bg-black/50 border border-white/10 rounded-lg p-1 text-center text-xs text-emerald-400 font-mono focus:outline-none focus:border-orange-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Pricing, Shipping & Financials -->
+        <div class="ios-glass-card rounded-2xl p-3 border border-white/10 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-1.5">
+              <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-emerald-400"></i>
+              តម្លៃ & ថ្លៃដឹកជញ្ជូន
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">💵 ទឹកប្រាក់សរុប ($)</label>
+              <input type="number" step="0.01" id="edit-order-total-amount" oninput="calculateEditOrderFinancials()" 
+                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-emerald-400 font-bold font-mono focus:outline-none focus:border-orange-500">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">🚚 ថ្លៃដឹក Ship Fee ($)</label>
+              <input type="number" step="0.25" id="edit-order-ship-fee" oninput="calculateEditOrderFinancials()" 
+                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-white/5 text-[10px]">
+            <div class="text-slate-400">
+              ថ្លៃដើមស្តុក: <strong id="edit-order-stock-cost-display" class="text-slate-200 font-mono">$0.00</strong>
+            </div>
+            <div class="text-right text-slate-400">
+              ចំណេញសុទ្ធ: <strong id="edit-order-profit-display" class="text-emerald-400 font-mono font-bold">$0.00</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Delivery & COD Status -->
+        <div class="ios-glass-card rounded-2xl p-3 border border-white/10 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-1.5">
+              <i data-lucide="truck" class="w-3.5 h-3.5 text-blue-400"></i>
+              សេវាដឹក & ស្ថានភាព COD
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">🚚 សេវាដឹក (Delivery)</label>
+              <select id="edit-order-delivery" class="w-full bg-[#0D1829] border border-white/10 rounded-xl px-2 py-1.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                <option value="VET Express">VET Express</option>
+                <option value="VET (COD)">VET (COD)</option>
+                <option value="J&T Cambodia">J&T Cambodia</option>
+                <option value="J&T (COD)">J&T (COD)</option>
+                <option value="Motor ក្រុមហ៊ុន">Motor ក្រុមហ៊ុន</option>
+                <option value="Thai ✅COD">Thai ✅COD</option>
+                <option value="Thai ❌COD">Thai ❌COD</option>
+                <option value="Grab / Moto">Grab / Moto</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">🟡 ស្ថានភាព COD Status</label>
+              <select id="edit-order-cod-status" class="w-full bg-[#0D1829] border border-white/10 rounded-xl px-2 py-1.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                <option value="បានដាក់ការកុម្មង់">បានដាក់ការកុម្មង់</option>
+                <option value="បានរៀបចំ">បានរៀបចំ</option>
+                <option value="ដល់អតិថិជន 1st">ដល់អតិថិជន 1st</option>
+                <option value="ដល់អតិថិជន 2nd">ដល់អតិថិជន 2nd</option>
+                <option value="ដល់អតិថិជន 3rd">ដល់អតិថិជន 3rd</option>
+                <option value="បានទូទាត់">បានទូទាត់</option>
+                <option value="បានទទួល">បានទទួល</option>
+                <option value="សុំ Canceled">សុំ Canceled</option>
+                <option value="ហ្វ្រី (Free)">ហ្វ្រី (Free)</option>
+                <option value="អតិថិជនដកអីវ៉ាន់">អតិថិជនដកអីវ៉ាន់</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[10px] text-slate-400 block mb-1">📝 សម្គាល់ (Note)</label>
+            <input type="text" id="edit-order-note" placeholder="សម្គាល់បន្ថែម..." 
+                   class="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-orange-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sticky Bottom Action Bar -->
+      <div class="p-3 border-t border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0">
+        <button id="btn-save-edit-order" onclick="submitEditSalesOrder()" 
+                class="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white font-bold text-xs shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 transition">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>រក្សាទុកការកែប្រែ ✏️</span>
+        </button>
       </div>
     </div>
   </div>

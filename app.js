@@ -10201,14 +10201,20 @@ function openPersonalSalesModal() {
   subtitle.textContent = `តារាងកុម្ម៉ង់ទាំងអស់ (${sortedSales.length} នាក់) - ពីថ្ងៃចុងក្រោយមកមុន`;
 
   listEl.innerHTML = sortedSales.slice(0, 50).map(item => `
-    <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5">
+    <div onclick="openEditSalesOrder('${item.recordId || ''}', '${item.orderId || ''}', ${item.rowIndex || -1})" class="p-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex flex-col gap-1.5 cursor-pointer transition group">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="w-5 h-5 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 text-[10px] group-hover:scale-110 transition" title="កែប្រែ Order">
+            <i data-lucide="edit-3" class="w-3 h-3 text-orange-400"></i>
+          </span>
           <span class="font-bold text-xs text-white">${item.customer}</span>
           <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 font-mono">${item.orderId}</span>
           ${item.note && item.note.includes('[SG Pro]') ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/25 text-purple-300 font-bold border border-purple-500/40">SG Pro</span>' : ''}
         </div>
-        <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.totalAmount)}</span>
+        <div class="flex items-center gap-1">
+          <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.totalAmount)}</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-orange-400 transition"></i>
+        </div>
       </div>
       <div class="text-[11px] text-slate-400 flex items-center justify-between">
         <span>📍 ${item.location || '—'}</span>
@@ -20602,8 +20608,13 @@ function renderAllCustomersList() {
             </div>
             <div class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
               ${sortedOrders.map(o => `
-                <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-[11px]">
+                <div onclick="event.stopPropagation(); openEditSalesOrder('${o.recordId || ''}', '${o.orderId || ''}', ${o.rowIndex || -1})" 
+                     class="p-2 rounded-xl bg-black/30 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex items-center justify-between text-[11px] cursor-pointer transition group"
+                     title="ចុចដើម្បីកែប្រែ Order នេះ">
                   <div class="flex items-center gap-1.5 min-w-0 pr-2">
+                    <span class="w-5 h-5 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 text-[10px] group-hover:scale-110 transition" title="កែប្រែ Order">
+                      <i data-lucide="edit-3" class="w-3 h-3 text-orange-400"></i>
+                    </span>
                     <span class="font-mono text-white font-bold shrink-0">${o.date}</span>
                     <span class="text-slate-300 font-medium truncate">(${getOrderProductSummary(o)})</span>
                     ${o.codStatus ? `
@@ -20612,14 +20623,15 @@ function renderAllCustomersList() {
                       </span>
                     ` : ''}
                   </div>
-                  <div class="font-mono text-right shrink-0">
+                  <div class="font-mono text-right shrink-0 flex items-center gap-1">
                     ${(o.thaiBaht > 0 || o.price > 0) ? `
                       <span class="text-slate-200 font-medium text-[10.5px]">${formatInt(o.thaiBaht || o.price)} ฿</span>
-                      <span class="text-slate-500 mx-1">•</span>
+                      <span class="text-slate-500 mx-0.5">•</span>
                     ` : ''}
                     <span class="text-orange-400 font-bold">${o.totalBoxQty} ប្រអប់</span>
-                    <span class="text-slate-500 mx-1">|</span>
+                    <span class="text-slate-500 mx-0.5">|</span>
                     <span class="text-emerald-400 font-bold">${formatUSD(o.totalAmount)}</span>
+                    <i data-lucide="chevron-right" class="w-3 h-3 text-slate-500 group-hover:text-orange-400 transition ml-0.5"></i>
                   </div>
                 </div>
               `).join('')}
@@ -20631,6 +20643,253 @@ function renderAllCustomersList() {
   }).join('') || `<p class="text-xs text-slate-400 text-center py-10">មិនមានទិន្នន័យអតិថិជនទេ</p>`;
   if (window.lucide) window.lucide.createIcons();
 }
+
+// =========================================================
+// EDIT SALES ORDER (Personal Sales / Customer Orders Edit & Sync)
+// =========================================================
+function findSalesOrder(recordId, orderId, rowIndex) {
+  const sales = (DataService.data && Array.isArray(DataService.data.personalSales)) ? DataService.data.personalSales : [];
+  if (recordId) {
+    const m = sales.find(s => (s.recordId && String(s.recordId).toLowerCase() === String(recordId).toLowerCase()));
+    if (m) return m;
+  }
+  if (orderId) {
+    const m = sales.find(s => (s.orderId && String(s.orderId).toLowerCase() === String(orderId).toLowerCase()) || (s.id && String(s.id).toLowerCase() === String(orderId).toLowerCase()));
+    if (m) return m;
+  }
+  if (rowIndex !== undefined && rowIndex !== null && rowIndex >= 0 && rowIndex < sales.length) {
+    return sales[rowIndex];
+  }
+  return null;
+}
+
+function openEditSalesOrder(recordId, orderId, rowIndex) {
+  const o = findSalesOrder(recordId, orderId, rowIndex);
+  if (!o) {
+    showToastNotification('រកមិនឃើញការកុម្ម៉ង់នេះឡើយ!');
+    return;
+  }
+
+  const modal = document.getElementById('edit-order-modal');
+  if (!modal) return;
+
+  const recIdInput = document.getElementById('edit-order-record-id');
+  const ordIdInput = document.getElementById('edit-order-id');
+  const rowIdxInput = document.getElementById('edit-order-row-index');
+  const refBadge = document.getElementById('edit-order-ref-badge');
+
+  if (recIdInput) recIdInput.value = o.recordId || '';
+  if (ordIdInput) ordIdInput.value = o.orderId || o.id || '';
+  if (rowIdxInput) rowIdxInput.value = (rowIndex !== undefined && rowIndex !== null) ? rowIndex : '';
+  if (refBadge) refBadge.textContent = o.recordId || o.orderId || '#REC';
+
+  const dateInput = document.getElementById('edit-order-date');
+  const custInput = document.getElementById('edit-order-customer');
+  const phoneInput = document.getElementById('edit-order-phone');
+  const ordIdVisibleInput = document.getElementById('edit-order-order-id-input');
+  const locInput = document.getElementById('edit-order-location');
+
+  if (dateInput) dateInput.value = o.date || '';
+  if (custInput) custInput.value = o.customer || '';
+  if (phoneInput) phoneInput.value = (o.phone && o.phone !== '—') ? o.phone : '';
+  if (ordIdVisibleInput) ordIdVisibleInput.value = o.orderId || o.id || '';
+  if (locInput) locInput.value = (o.location && o.location !== '—') ? o.location : '';
+
+  const ylInput = document.getElementById('edit-order-qty-yl');
+  const ylpInput = document.getElementById('edit-order-qty-ylp');
+  const knInput = document.getElementById('edit-order-qty-kn');
+  const pdoInput = document.getElementById('edit-order-qty-pdo');
+  const freeInput = document.getElementById('edit-order-qty-free');
+
+  if (ylInput) ylInput.value = o.qtyYL || '';
+  if (ylpInput) ylpInput.value = o.qtyYLP || '';
+  if (knInput) knInput.value = o.qtyKN || '';
+  if (pdoInput) pdoInput.value = o.qtyPDO || '';
+  if (freeInput) freeInput.value = o.freeQty || '';
+
+  const amtInput = document.getElementById('edit-order-total-amount');
+  const shipInput = document.getElementById('edit-order-ship-fee');
+  if (amtInput) amtInput.value = (o.totalAmount !== undefined && o.totalAmount !== null) ? Number(o.totalAmount).toFixed(2) : '';
+  if (shipInput) shipInput.value = (o.shipFee !== undefined && o.shipFee !== null) ? Number(o.shipFee).toFixed(2) : '2.50';
+
+  const delivSel = document.getElementById('edit-order-delivery');
+  if (delivSel) {
+    const val = o.delivery || o.deliveryMethod || 'VET (COD)';
+    delivSel.value = val;
+    if (!Array.from(delivSel.options).some(opt => opt.value === val)) {
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val;
+      delivSel.appendChild(opt);
+      delivSel.value = val;
+    }
+  }
+
+  const codSel = document.getElementById('edit-order-cod-status');
+  if (codSel) {
+    const stVal = o.codStatus || 'បានដាក់ការកុម្មង់';
+    codSel.value = stVal;
+    if (!Array.from(codSel.options).some(opt => opt.value === stVal)) {
+      const opt = document.createElement('option');
+      opt.value = stVal;
+      opt.textContent = stVal;
+      codSel.appendChild(opt);
+      codSel.value = stVal;
+    }
+  }
+
+  const noteInput = document.getElementById('edit-order-note');
+  if (noteInput) noteInput.value = o.note || '';
+
+  calculateEditOrderFinancials();
+
+  modal.classList.remove('hidden');
+  setDockVisible(false);
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function calculateEditOrderFinancials() {
+  const yl = Number(document.getElementById('edit-order-qty-yl')?.value || 0);
+  const ylp = Number(document.getElementById('edit-order-qty-ylp')?.value || 0);
+  const kn = Number(document.getElementById('edit-order-qty-kn')?.value || 0);
+  const pdo = Number(document.getElementById('edit-order-qty-pdo')?.value || 0);
+  const free = Number(document.getElementById('edit-order-qty-free')?.value || 0);
+
+  const totalBoxes = yl + ylp + kn + pdo + free;
+  const boxesDisplay = document.getElementById('edit-order-total-boxes-display');
+  if (boxesDisplay) boxesDisplay.textContent = totalBoxes;
+
+  const stockCost = totalBoxes * 24.0;
+  const totalAmount = Number(document.getElementById('edit-order-total-amount')?.value || 0);
+  const shipFee = Number(document.getElementById('edit-order-ship-fee')?.value || 0);
+  const profit = Math.max(0, totalAmount - stockCost - shipFee);
+
+  const stockCostEl = document.getElementById('edit-order-stock-cost-display');
+  const profitEl = document.getElementById('edit-order-profit-display');
+  if (stockCostEl) stockCostEl.textContent = formatUSD(stockCost);
+  if (profitEl) profitEl.textContent = formatUSD(profit);
+}
+
+function closeEditSalesOrderModal() {
+  const modal = document.getElementById('edit-order-modal');
+  if (modal) modal.classList.add('hidden');
+  if (!isDialogModalOpen()) {
+    setDockVisible(true);
+  }
+}
+
+async function submitEditSalesOrder() {
+  const recordId = document.getElementById('edit-order-record-id')?.value || '';
+  const orderId = document.getElementById('edit-order-order-id-input')?.value || document.getElementById('edit-order-id')?.value || '';
+  const rowIndex = parseInt(document.getElementById('edit-order-row-index')?.value || '-1', 10);
+
+  const o = findSalesOrder(recordId, orderId, rowIndex);
+  if (!o) {
+    showToastNotification('រកមិនឃើញការកុម្ម៉ង់ដើម្បីកែប្រែឡើយ!');
+    return;
+  }
+
+  const date = document.getElementById('edit-order-date')?.value?.trim() || o.date;
+  const customer = document.getElementById('edit-order-customer')?.value?.trim() || o.customer;
+  const phone = document.getElementById('edit-order-phone')?.value?.trim() || o.phone;
+  const location = document.getElementById('edit-order-location')?.value?.trim() || o.location;
+
+  const qtyYL = Number(document.getElementById('edit-order-qty-yl')?.value || 0);
+  const qtyYLP = Number(document.getElementById('edit-order-qty-ylp')?.value || 0);
+  const qtyKN = Number(document.getElementById('edit-order-qty-kn')?.value || 0);
+  const qtyPDO = Number(document.getElementById('edit-order-qty-pdo')?.value || 0);
+  const freeQty = Number(document.getElementById('edit-order-qty-free')?.value || 0);
+  const totalBoxes = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
+
+  const totalAmount = Number(document.getElementById('edit-order-total-amount')?.value || 0);
+  const shipFee = Number(document.getElementById('edit-order-ship-fee')?.value || 0);
+  const delivery = document.getElementById('edit-order-delivery')?.value || o.delivery;
+  const codStatus = document.getElementById('edit-order-cod-status')?.value || o.codStatus;
+  const note = document.getElementById('edit-order-note')?.value?.trim() || '';
+
+  const stockCost = totalBoxes * 24.0;
+  const profit = Math.max(0, totalAmount - stockCost - shipFee);
+
+  // 1. Optimistic Local Update
+  o.date = date;
+  o.customer = customer;
+  o.phone = phone;
+  o.orderId = orderId;
+  o.location = location;
+  o.qtyYL = qtyYL;
+  o.qtyYLP = qtyYLP;
+  o.qtyKN = qtyKN;
+  o.qtyPDO = qtyPDO;
+  o.freeQty = freeQty;
+  o.totalBoxQty = totalBoxes;
+  o.totalAmount = totalAmount;
+  o.shipFee = shipFee;
+  o.delivery = delivery;
+  o.deliveryMethod = delivery;
+  o.codStatus = codStatus;
+  o.note = note;
+  o.stockCost = stockCost;
+  o.profit = profit;
+
+  // Refresh UI
+  if (typeof renderAllCustomersList === 'function') renderAllCustomersList();
+  if (typeof openPersonalSalesModal === 'function') {
+    const sm = document.getElementById('sales-modal');
+    if (sm && !sm.classList.contains('hidden')) openPersonalSalesModal();
+  }
+  if (typeof renderCurrentView === 'function') renderCurrentView();
+
+  closeEditSalesOrderModal();
+  showToastNotification(`បានកែសម្រួល Order «${customer}» ជោគជ័យ! ✅`);
+
+  // 2. Sync to Google Apps Script Webhook
+  const payloadData = {
+    recordId: recordId,
+    orderId: orderId,
+    rowIndex: rowIndex,
+    date: date,
+    customer: customer,
+    phone: phone,
+    location: location,
+    qtyYL: qtyYL,
+    qtyYLP: qtyYLP,
+    qtyKN: qtyKN,
+    qtyPDO: qtyPDO,
+    freeQty: freeQty,
+    totalBoxQty: totalBoxes,
+    totalAmount: totalAmount,
+    shipFee: shipFee,
+    delivery: delivery,
+    codStatus: codStatus,
+    note: note,
+    stockCost: stockCost,
+    profit: profit
+  };
+
+  try {
+    const webhookUrl = getAppsScriptWebhookUrl();
+    if (webhookUrl) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'update_order',
+          sheetId: (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '',
+          syncToBostarTrack: true,
+          data: payloadData
+        })
+      }).catch(err => console.warn('Sync update_order warn:', err));
+    }
+  } catch (e) {
+    console.warn('Sync update_order error:', e);
+  }
+}
+
+window.openEditSalesOrder = openEditSalesOrder;
+window.closeEditSalesOrderModal = closeEditSalesOrderModal;
+window.calculateEditOrderFinancials = calculateEditOrderFinancials;
+window.submitEditSalesOrder = submitEditSalesOrder;
 
 // =========================================================
 // 4. PROFILE SUB-MODALS (Note, Book, Members, Telegram, Privacy, Feedback, Help, Logout Beta)
