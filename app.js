@@ -51,7 +51,7 @@ const translations = {
     accountSection: 'គណនី និងអំពីប្រព័ន្ធ',
     accountDesc: 'គ្រប់គ្រងសុវត្ថិភាព និងព័ត៌មានម្ចាស់គណនី',
     fontTitle: 'ពុម្ពអក្សរ',
-    fontDesc: 'ពុម្ពអក្សរខ្មែរ និងឡាតាំងស្តង់ដា',
+    fontDesc: '៩ ជម្រើសងាយស្រួលអាន',
     textSizeTitle: 'ទំហំអក្សរ',
     textSizeDesc: '៣ កម្រិត (តូច • មធ្យម • ធំ)',
     wallpaperTitle: 'ផ្ទាំងរូបភាពអេក្រង់ចាក់សោរ',
@@ -59,7 +59,7 @@ const translations = {
     protectApp: 'ការពារទិន្នន័យរបស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
     protectDesc: 'ប្រើលេខសម្ងាត់ ដើម្បីសុវត្ថិភាព និងទំនុកចិត្តខ្ពស់',
     enablePinTitle: 'ចាក់សោកម្មវិធី',
-    enablePinDesc: 'ទាមទារលេខសម្ងាត់ពេលបើកកម្មវិធី',
+    enablePinDesc: 'ទាមទារលេខកូដ ៤ ខ្ទង់ពេលបើក',
     changePinBtn: 'ផ្លាស់ប្តូរលេខកូដសម្ងាត់',
     theme: 'ទម្រង់ពណ៌',
     dark: 'ងងឹត',
@@ -70,7 +70,7 @@ const translations = {
     notificationsDesc: 'សាររំលឹកការលក់ និងចំណាយប្រចាំថ្ងៃ',
     lockScreenNow: 'ចាក់សោអេក្រង់ឥឡូវនេះ',
     aboutMe: 'អំពីខ្ញុំ',
-    aboutDesc: 'ព័ត៌មានផ្ទាល់ខ្លួន និងតួនាទីគ្រប់គ្រង',
+    aboutDesc: 'ព័ត៌មានផ្ទាល់ខ្លួន និងតួនាទី',
     managerTitle: 'ប្រធានគ្រប់គ្រង',
     salesRole: 'ផ្នែកលក់',
     leaderRole: 'ដឹកនាំក្រុម',
@@ -81,7 +81,7 @@ const translations = {
     contactTelegramBtn: 'ទាក់ទងតាមតេឡេក្រាម',
     noData: 'គ្មានទិន្នន័យ',
     themeAccentTitle: 'ពណ៌ចម្បង',
-    themeAccentDesc: 'ពណ៌ប៊ូតុង និងផ្លាកសញ្ញា',
+    themeAccentDesc: 'រំលេចប៊ូតុង និងផ្លាកសញ្ញា',
     accentBlue: 'ខៀវចាស់',
     accentCoral: 'ក្រហមផ្កាថ្ម',
     accentOrange: 'ទឹកក្រូច',
@@ -143,7 +143,7 @@ const translations = {
     accountSection: 'Account & System',
     accountDesc: 'Manage passcode security and profile information',
     fontTitle: 'Typography',
-    fontDesc: 'Standard Khmer & Latin fonts',
+    fontDesc: 'Standard Khmer & Latin',
     textSizeTitle: 'Text Size',
     textSizeDesc: '3 levels (Small • Medium • Large)',
     wallpaperTitle: 'Lock Screen Wallpaper',
@@ -151,7 +151,7 @@ const translations = {
     protectApp: 'Protect your data with a 4-digit passcode',
     protectDesc: 'Use passcode for higher security and peace of mind',
     enablePinTitle: 'App Lock',
-    enablePinDesc: 'Require passcode when opening app',
+    enablePinDesc: 'Require 4-digit passcode',
     changePinBtn: 'Change Passcode',
     theme: 'Color Mode',
     dark: 'Dark',
@@ -162,7 +162,7 @@ const translations = {
     notificationsDesc: 'Sales alerts and daily expense reminders',
     lockScreenNow: 'Lock Screen Now',
     aboutMe: 'About Me',
-    aboutDesc: 'Personal profile and management roles',
+    aboutDesc: 'Personal profile & role',
     managerTitle: 'Manager',
     salesRole: 'Sale',
     leaderRole: 'Leader',
@@ -173,7 +173,7 @@ const translations = {
     contactTelegramBtn: 'Contact via Telegram',
     noData: 'No Data Available',
     themeAccentTitle: 'Accent Theme',
-    themeAccentDesc: 'Button & badge accent color',
+    themeAccentDesc: 'Button & badge highlight',
     accentBlue: 'Deep Blue',
     accentCoral: 'Coral Red',
     accentOrange: 'Sunset Orange',
@@ -9834,7 +9834,7 @@ function getSettingsViewHTML() {
               </div>
               <div class="min-w-0">
                 <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('aboutMe')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${prof.name || 'ស្តី ស្តើង'} • ${prof.subtitle || (isKm ? 'ប្រធានគ្រប់គ្រង' : 'Manager')}</p>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('aboutDesc')}</p>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -9893,7 +9893,7 @@ function getSettingsViewHTML() {
               </div>
               <div class="min-w-0">
                 <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('language')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ភាសាខ្មែរ / អង់គ្លេស' : 'Khmer / English'}</p>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ខ្មែរ និង English' : 'Khmer / English'}</p>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-1 bg-black/40 p-0.5 rounded-xl border border-white/5 shrink-0">
@@ -16363,7 +16363,7 @@ function generateAttendanceTelegramText(actionType = null, extraNote = null) {
   if (isCheckout) {
     return `🔴 របាយការណ៍ចេញពីធ្វើការ (CHECK-OUT)
 ━━━━━━━━━━━━━━━━━━
-👤 បុគ្គលិក៖ ${staffName} (ID: ${staffId})
+👤 ក្រុមការងារ៖ ${staffName} (ID: ${staffId})
 💼 តួនាទី៖ ${role}
 📅 កាលបរិច្ឆេទ៖ ${fullDateKm}
 ⏰ ម៉ោងចេញ៖ ${outTime}
@@ -16381,7 +16381,7 @@ function generateAttendanceTelegramText(actionType = null, extraNote = null) {
     const lateDetail = data.lateMinutes ? ` (យឺត ${data.lateMinutes} នាទី)` : '';
     return `🟡 របាយការណ៍ចូលធ្វើការ (CHECK-IN LATE)
 ━━━━━━━━━━━━━━━━━━
-👤 បុគ្គលិក៖ ${staffName} (ID: ${staffId})
+👤 ក្រុមការងារ៖ ${staffName} (ID: ${staffId})
 💼 តួនាទី៖ ${role}
 📅 កាលបរិច្ឆេទ៖ ${fullDateKm}
 ⏰ ម៉ោងចូល៖ ${inTime}${lateDetail}
@@ -16397,7 +16397,7 @@ function generateAttendanceTelegramText(actionType = null, extraNote = null) {
   const earlyDetail = data.earlyMinutes ? ` (មកដល់មុនម៉ោង ${data.earlyMinutes} នាទី! 👏)` : '';
   return `🟢 របាយការណ៍ចូលធ្វើការ (CHECK-IN)
 ━━━━━━━━━━━━━━━━━━
-👤 បុគ្គលិក៖ ${staffName} (ID: ${staffId})
+👤 ក្រុមការងារ៖ ${staffName} (ID: ${staffId})
 💼 តួនាទី៖ ${role}
 📅 កាលបរិច្ឆេទ៖ ${fullDateKm}
 ⏰ ម៉ោងចូល៖ ${inTime}${earlyDetail}
@@ -16584,7 +16584,7 @@ function renderAttendanceEditForm() {
           <div class="w-8 h-4 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"></div>
         </label>
       </div>
-      <p class="text-[10px] text-slate-400">បុគ្គលិកត្រូវតែ <b>ភ្ជាប់ Wi-Fi ក្រុមហ៊ុន</b> ឬ <b>ស្ថិតនៅទីតាំងការិយាល័យ (GPS)</b> ទើបអាច Check-in បាន (បានមួយណាក៏បាន)។</p>
+      <p class="text-[10px] text-slate-400">ក្រុមការងារត្រូវតែ <b>ភ្ជាប់ Wi-Fi ក្រុមហ៊ុន</b> ឬ <b>ស្ថិតនៅទីតាំងការិយាល័យ (GPS)</b> ទើបអាច Check-in បាន (បានមួយណាក៏បាន)។</p>
 
       <div class="space-y-1">
         <label class="block text-[10.5px] text-slate-300 font-semibold flex items-center justify-between">
@@ -17067,17 +17067,29 @@ function openAttendanceLeaveModal() {
   if (!modal) return;
 
   const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const cleanId = String(p.memberId || 'BG-001').replace(/^(ID:\s*)+/i, '').trim();
+  const coreRole = (typeof getUserCoreRole === 'function') ? getUserCoreRole(p) : 'Member';
+
   const applicantNameEl = document.getElementById('att-leave-applicant-name');
   const applicantIdEl = document.getElementById('att-leave-applicant-id');
-  if (applicantNameEl) applicantNameEl.textContent = p.name || 'សមាជិក Bostar';
-  if (applicantIdEl) applicantIdEl.textContent = p.memberId || 'ID: BG-001';
+  if (applicantNameEl) applicantNameEl.textContent = p.name || 'ក្រុមការងារ';
+  if (applicantIdEl) applicantIdEl.textContent = cleanId ? `ID: ${cleanId}` : 'ID: BG-001';
 
-  // Populate leader select with 6 core Bostar Team Leaders
+  const roleBadgeEl = document.getElementById('att-leave-applicant-role-badge');
+  if (roleBadgeEl && typeof getUserCoreRoleBadge === 'function') {
+    roleBadgeEl.innerHTML = getUserCoreRoleBadge(coreRole);
+  }
+  const avatarImgEl = document.getElementById('att-leave-applicant-img');
+  if (avatarImgEl) {
+    avatarImgEl.src = p.avatar || 'bostar-logo.png';
+  }
+
+  // Populate leader select with 6 core Bostar Team Leaders / Managers
   const leaderSelect = document.getElementById('att-leave-leader-select');
   if (leaderSelect) {
     leaderSelect.innerHTML = BOSTAR_CORE_LEADERS.map((key, index) => {
       const displayName = getLeaderDisplayName(key);
-      const isSelected = key === 'Sdey_Sdoeung' ? 'selected' : '';
+      const isSelected = key === 'Bech_Nora' ? 'selected' : (key === 'Sdey_Sdoeung' ? '' : '');
       return `<option value="${key}" ${isSelected}>${index + 1}. ${displayName}</option>`;
     }).join('');
   }
@@ -17144,8 +17156,10 @@ function selectLeaveReasonChip(text) {
 
 async function submitAttendanceLeaveRequest() {
   const p = (typeof getProfileData === 'function') ? getProfileData() : {};
-  const applicantName = p.name || 'សមាជិក Bostar';
-  const applicantId = p.memberId || 'ID: BG-001';
+  const applicantName = p.name || 'ក្រុមការងារ';
+  const cleanId = String(p.memberId || 'BG-001').replace(/^(ID:\s*)+/i, '').trim();
+  const applicantId = cleanId ? `ID: ${cleanId}` : 'ID: BG-001';
+  const coreRole = (typeof getUserCoreRole === 'function') ? getUserCoreRole(p) : 'Member';
 
   const typeRadio = document.querySelector('input[name="att_leave_type"]:checked');
   const leaveType = typeRadio ? typeRadio.value : 'ច្បាប់ឈឺ (Sick Leave)';
@@ -17154,7 +17168,7 @@ async function submitAttendanceLeaveRequest() {
   const startDate = document.getElementById('att-leave-start-date')?.value || new Date().toISOString().split('T')[0];
   const endDate = durType === 'multi_days' ? (document.getElementById('att-leave-end-date')?.value || startDate) : startDate;
 
-  const leaderKey = document.getElementById('att-leave-leader-select')?.value || 'Sdey_Sdoeung';
+  const leaderKey = document.getElementById('att-leave-leader-select')?.value || 'Bech_Nora';
   const leaderName = getLeaderDisplayName(leaderKey);
 
   const reasonInput = document.getElementById('att-leave-reason-input');
@@ -17179,6 +17193,7 @@ async function submitAttendanceLeaveRequest() {
     id: 'LEAVE_' + Date.now(),
     staffName: applicantName,
     staffId: applicantId,
+    role: coreRole,
     leaveType: leaveType,
     duration: durationText,
     startDate: startDate,
@@ -17194,15 +17209,16 @@ async function submitAttendanceLeaveRequest() {
   list.unshift(newReq);
   saveLeaveRequests(list);
 
-  // Send Telegram Notification via olddata_bot
+  // Send Telegram Notification via bot
   const tgText = [
     `📩 <b>ពាក្យសុំច្បាប់ឈប់សម្រាក (Leave Request)</b>`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `👤 <b>បុគ្គលិក៖</b> ${applicantName} (${applicantId})`,
+    `👤 <b>ក្រុមការងារ៖</b> ${applicantName} (${applicantId})`,
+    `👑 <b>តួនាទី៖</b> ${coreRole}`,
     `📋 <b>ប្រភេទច្បាប់៖</b> ${leaveType}`,
     `⏱ <b>ថិរវេលា៖</b> ${durationText}`,
     `📅 <b>កាលបរិច្ឆេទ៖</b> ${dateRangeText}`,
-    `👔 <b>ដាក់ជូន Leader៖</b> ${leaderName}`,
+    `👔 <b>ដាក់ជូន Manager/Leader៖</b> ${leaderName}`,
     `📝 <b>មូលហេតុ៖</b> ${reason}`,
     `⏳ <b>ស្ថានភាព៖</b> រង់ចាំការអនុម័ត (Pending Approval)`,
     `━━━━━━━━━━━━━━━━━━━━`,
@@ -17217,7 +17233,7 @@ async function submitAttendanceLeaveRequest() {
 
   closeAttendanceLeaveModal();
   renderAttendanceContent();
-  showToastNotification('ពាក្យសុំច្បាប់ត្រូវបានបញ្ជូនទៅ Leader តាម Telegram រួចរាល់! 📩');
+  showToastNotification('ពាក្យសុំច្បាប់ត្រូវបានបញ្ជូនទៅ Manager/Leader តាម Telegram រួចរាល់! 📩');
   if (navigator.vibrate) try { navigator.vibrate([20, 60, 20]); } catch(_) {}
 }
 
@@ -17393,7 +17409,7 @@ function renderManagerModalContent() {
         </div>
 
         <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 text-xs text-slate-300">
-          <p class="text-[10px] text-slate-400">មូលហេតុដែលបុគ្គលិកបានបញ្ជាក់៖</p>
+          <p class="text-[10px] text-slate-400">មូលហេតុដែលក្រុមការងារបានបញ្ជាក់៖</p>
           <p class="italic text-[11px] text-amber-200 mt-0.5">"${log.reason || 'ស្ទះចរាចរណ៍តាមផ្លូវ'}"</p>
         </div>
       </div>
@@ -17407,7 +17423,7 @@ function renderManagerModalContent() {
           <span>កំណត់ត្រាសម្ងាត់ផ្ទៃក្នុង (Strictly Confidential)</span>
         </div>
         <p class="text-[11px] text-slate-300 leading-relaxed">
-          «Praise in Public, Correct in Private» — ព័ត៌មានអ្នកមកយឺតត្រូវបានលាក់ជាសម្ងាត់ពីសាធារណៈជន និងបុគ្គលិកដទៃ សម្រាប់តែ Manager/Leader ពិនិត្យ និងណែនាំផ្ទាល់ (1-on-1 Coaching) ប៉ុណ្ណោះ។
+          «Praise in Public, Correct in Private» — ព័ត៌មានអ្នកមកយឺតត្រូវបានលាក់ជាសម្ងាត់ពីសាធារណៈជន និងក្រុមការងារដទៃ សម្រាប់តែ Manager/Leader ពិនិត្យ និងណែនាំផ្ទាល់ (1-on-1 Coaching) ប៉ុណ្ណោះ។
         </p>
       </div>
 
@@ -17575,7 +17591,7 @@ async function handleApproveLeave(reqId) {
   const tgText = [
     `✅ <b>បានអនុម័តច្បាប់ឈប់សម្រាក (Leave Approved)</b>`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `👤 <b>បុគ្គលិក៖</b> ${req.staffName} (${req.staffId || 'BG-001'})`,
+    `👤 <b>ក្រុមការងារ៖</b> ${req.staffName} (${req.staffId || 'BG-001'})`,
     `📋 <b>ប្រភេទច្បាប់៖</b> ${req.leaveType}`,
     `📅 <b>កាលបរិច្ឆេទ៖</b> ${req.startDate === req.endDate ? req.startDate : (req.startDate + ' ដល់ ' + req.endDate)}`,
     `⏱ <b>ថិរវេលា៖</b> ${req.duration}`,
@@ -17612,7 +17628,7 @@ async function handleRejectLeave(reqId) {
   const tgText = [
     `❌ <b>មិនបានអនុម័តច្បាប់ឈប់សម្រាក (Leave Rejected)</b>`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `👤 <b>បុគ្គលិក៖</b> ${req.staffName} (${req.staffId || 'BG-001'})`,
+    `👤 <b>ក្រុមការងារ៖</b> ${req.staffName} (${req.staffId || 'BG-001'})`,
     `📋 <b>ប្រភេទច្បាប់៖</b> ${req.leaveType}`,
     `👔 <b>ដោយ៖</b> ${approverName} (Manager/Leader)`,
     `📌 <b>ស្ថានភាព៖</b> មិនត្រូវបានយល់ព្រម ❌`,
@@ -17882,7 +17898,7 @@ function renderAttendanceTop10Content() {
     <div class="flex items-center justify-between pt-1 px-1">
       <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
         <i data-lucide="list-ordered" class="w-4 h-4 text-amber-400"></i>
-        <span>តារាងចំណាត់ថ្នាក់បុគ្គលិកឆ្នើម Top 10</span>
+        <span>តារាងចំណាត់ថ្នាក់ក្រុមការងារឆ្នើម Top 10</span>
       </h4>
       <span class="text-[10px] text-slate-400 font-mono">10 រូបសរុប</span>
     </div>
@@ -18060,7 +18076,7 @@ function renderAttendanceCertificateView(rank) {
         </div>
       </div>
       <p class="text-[10px] text-slate-300 leading-relaxed pl-1">
-        វិញ្ញាបនបត្រទាំង ៣ សន្លឹកនេះត្រូវបានរចនាឡើងជាគំរូស្តង់ដារកិត្តិយសផ្លូវការ។ ចាប់ពី <b>ខែវិច្ឆិកា ២០២៦</b> តទៅ បុគ្គលិកដែលរក្សាវត្តមាន ១០០% ទៀងទាត់តាមប្រព័ន្ធ CheckinMe នឹងត្រូវទទួលបានវិញ្ញាបនបត្រផ្លូវការផ្ទាល់ខ្លួន និងការផ្តល់កិត្តិយសជាផ្លូវការនៅលើ Dashboard។
+        វិញ្ញាបនបត្រទាំង ៣ សន្លឹកនេះត្រូវបានរចនាឡើងជាគំរូស្តង់ដារកិត្តិយសផ្លូវការ។ ចាប់ពី <b>ខែវិច្ឆិកា ២០២៦</b> តទៅ សមាជិកក្រុមការងារដែលរក្សាវត្តមាន ១០០% ទៀងទាត់តាមប្រព័ន្ធ CheckinMe នឹងត្រូវទទួលបានវិញ្ញាបនបត្រផ្លូវការផ្ទាល់ខ្លួន និងការផ្តល់កិត្តិយសជាផ្លូវការនៅលើ Dashboard។
       </p>
     </div>
 
@@ -18183,7 +18199,7 @@ function renderHRDocumentContent() {
   const p = (typeof getProfileData === 'function') ? getProfileData() : {};
   const memberName = p.name || 'សមាជិក Bostar';
   const memberId = p.memberId || 'BG-001';
-  const position = p.work || 'បុគ្គលិកផ្នែកលក់ និងប្រតិបត្តិការ (Sales & Operations)';
+  const position = p.work || 'ក្រុមការងារផ្នែកលក់ និងប្រតិបត្តិការ (Sales & Operations)';
   const now = new Date();
   const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
@@ -18223,14 +18239,14 @@ function renderHRDocumentContent() {
             នាយកដ្ឋានធនធានមនុស្សនៃក្រុមហ៊ុន <b>Bostar Group</b> សូមបញ្ជាក់ថា៖
           </p>
           <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-            <p><b>ឈ្មោះបុគ្គលិក៖</b> <span class="text-blue-700 font-bold">${memberName}</span></p>
+            <p><b>ឈ្មោះក្រុមការងារ៖</b> <span class="text-blue-700 font-bold">${memberName}</span></p>
             <p><b>អត្តលេខសម្គាល់៖</b> <span class="font-mono font-bold">${memberId}</span></p>
             <p><b>តួនាទី / មុខតំណែង៖</b> ${position}</p>
-            <p><b>ស្ថានភាពការងារ៖</b> បុគ្គលិកពេញសិទ្ធិ (Active Full-Time Member)</p>
+            <p><b>ស្ថានភាពការងារ៖</b> ក្រុមការងារពេញសិទ្ធិ (Active Full-Time Member)</p>
             <p><b>កាលបរិច្ឆេទចាប់ផ្តើម៖</b> ០១ ខែមករា ឆ្នាំ២០២៥ ដល់ បច្ចុប្បន្ន</p>
           </div>
           <p>
-            បុគ្គលិកខាងលើពិតជាបាននិងកំពុងបំពេញការងារយ៉ាងសកម្ម មានវិន័យ ភាពស្មោះត្រង់ និងការទទួលខុសត្រូវខ្ពស់ស្របតាមបទបញ្ជាផ្ទៃក្នុងរបស់ក្រុមហ៊ុន។ វិញ្ញាបនបត្រនេះត្រូវបានចេញជូនតាមការស្នើសុំរបស់សាមីខ្លួន ដើម្បីប្រើប្រាស់តាមផ្លូវច្បាប់។
+            សមាជិកក្រុមការងារខាងលើពិតជាបាននិងកំពុងបំពេញការងារយ៉ាងសកម្ម មានវិន័យ ភាពស្មោះត្រង់ និងការទទួលខុសត្រូវខ្ពស់ស្របតាមបទបញ្ជាផ្ទៃក្នុងរបស់ក្រុមហ៊ុន។ វិញ្ញាបនបត្រនេះត្រូវបានចេញជូនតាមការស្នើសុំរបស់សាមីខ្លួន ដើម្បីប្រើប្រាស់តាមផ្លូវច្បាប់។
           </p>
         </div>
 
@@ -18261,7 +18277,7 @@ function renderHRDocumentContent() {
         </div>
 
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1 text-[11.5px]">
-          <p><b>បុគ្គលិក៖</b> <span class="text-blue-700 font-bold">${memberName}</span> (${memberId})</p>
+          <p><b>ក្រុមការងារ៖</b> <span class="text-blue-700 font-bold">${memberName}</span> (${memberId})</p>
           <p><b>វាយតម្លៃលើកាលបរិច្ឆេទ៖</b> ${dateStr}</p>
           <p><b>លទ្ធផលរួម៖</b> <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10.5px]">និទ្ទេស A+ (ឆ្នើម)</span></p>
         </div>
@@ -18282,7 +18298,7 @@ function renderHRDocumentContent() {
         </div>
 
         <p class="text-[11px] text-slate-700 italic">
-          "បុគ្គលិកមានភាពសកម្ម គោរពពេលវេលា មិនដែលមានបញ្ហាវិន័យ និងជាគំរូដ៏ល្អសម្រាប់ក្រុមការងារ។"
+          "សមាជិកក្រុមការងារមានភាពសកម្ម គោរពពេលវេលា មិនដែលមានបញ្ហាវិន័យ និងជាគំរូដ៏ល្អសម្រាប់ក្រុមការងារ។"
         </p>
 
         <div class="text-right pt-4 border-t border-slate-200">
@@ -18304,11 +18320,11 @@ function renderHRDocumentContent() {
         </div>
 
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1 text-[11.5px]">
-          <p><b>ឈ្មោះបុគ្គលិក៖</b> <span class="text-blue-700 font-bold">${memberName}</span></p>
+          <p><b>ឈ្មោះក្រុមការងារ៖</b> <span class="text-blue-700 font-bold">${memberName}</span></p>
           <p><b>អត្តលេខសម្គាល់៖</b> <span class="font-mono font-bold">${memberId}</span></p>
           <p><b>មុខតំណែង៖</b> ${position}</p>
           <p><b>ប្រាក់បៀវត្ស និងកម្រៃជើងសារជាមធ្យម៖</b> <span class="font-bold font-mono text-emerald-700">$650.00 - $1,200.00 / ខែ</span></p>
-          <p><b>ស្ថានភាព៖</b> បុគ្គលិកសកម្មប្រចាំការ</p>
+          <p><b>ស្ថានភាព៖</b> ក្រុមការងារសកម្មប្រចាំការ</p>
         </div>
 
         <p class="text-[11px] text-slate-700 leading-relaxed">
@@ -18379,7 +18395,7 @@ async function syncAttendanceToBostarTrack(actionType = 'in') {
         date: dateStr,
         staffId: cleanId || 'BG-162',
         staffName: p.name || 'Sdoeung Sdey',
-        role: p.work || 'សមាជិកក្រុម BostarGroup',
+        role: `${(typeof getUserCoreRole === 'function' ? getUserCoreRole(p) : 'Member')} • ${p.work || 'ក្រុមការងារ BostarGroup'}`,
         checkInTime: data.checkInTime || timeStr,
         checkOutTime: actionType === 'out' ? (data.checkOutTime || timeStr) : '',
         duration: data.duration || (actionType === 'out' ? calculateAttendanceDuration(data.checkInTime, timeStr) : ''),
@@ -18582,6 +18598,52 @@ function resetTodayAttendance(e) {
   showToastNotification(appState.language === 'km' ? 'បានកំណត់វត្តមានថ្ងៃនេះឡើងវិញ' : 'Reset today attendance');
 }
 
+// ==========================================
+// CORE ROLE HIERARCHY (Manager, Leader, Member)
+// ==========================================
+function getUserCoreRole(p) {
+  p = p || (typeof getProfileData === 'function' ? getProfileData() : {});
+  const saved = localStorage.getItem('sd_user_core_role');
+  if (saved && ['Manager', 'Leader', 'Member'].includes(saved)) {
+    return saved;
+  }
+  if (p.coreRole && ['Manager', 'Leader', 'Member'].includes(p.coreRole)) {
+    return p.coreRole;
+  }
+  const text = `${p.role || ''} ${p.work || ''} ${p.subtitle || ''} ${p.name || ''} ${p.memberId || ''}`.toLowerCase();
+  if (text.includes('manager') || text.includes('នាយក') || text.includes('ចាត់ការ')) {
+    return 'Manager';
+  }
+  if (text.includes('leader') || text.includes('ប្រធាន') || text.includes('nora') || text.includes('sdey') || text.includes('bg-162')) {
+    return 'Leader';
+  }
+  return 'Member';
+}
+window.getUserCoreRole = getUserCoreRole;
+
+function getUserCoreRoleBadge(role) {
+  if (role === 'Manager') {
+    return '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold font-mono shadow-sm"><i data-lucide="crown" class="w-3 h-3 text-amber-400"></i> Manager</span>';
+  } else if (role === 'Leader') {
+    return '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 text-[10px] font-bold font-mono shadow-sm"><i data-lucide="shield" class="w-3 h-3 text-sky-400"></i> Leader</span>';
+  } else {
+    return '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold font-mono shadow-sm"><i data-lucide="user" class="w-3 h-3 text-emerald-400"></i> Member</span>';
+  }
+}
+window.getUserCoreRoleBadge = getUserCoreRoleBadge;
+
+function cycleUserCoreRole() {
+  const current = getUserCoreRole();
+  const next = current === 'Member' ? 'Leader' : (current === 'Leader' ? 'Manager' : 'Member');
+  localStorage.setItem('sd_user_core_role', next);
+  if (typeof showToastNotification === 'function') {
+    showToastNotification(`បានប្តូរតួនាទីទៅជា ${next} ✅`);
+  }
+  renderAttendanceContent();
+  if (window.lucide) window.lucide.createIcons();
+}
+window.cycleUserCoreRole = cycleUserCoreRole;
+
 function renderAttendanceContent() {
   const container = document.getElementById('attendance-modal-body');
   if (!container) return;
@@ -18589,6 +18651,9 @@ function renderAttendanceContent() {
   const data = getAttendanceData();
   const isEn = appState.language === 'en';
   const now = new Date();
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const cleanId = String(p.memberId || 'BG-162').replace(/^(ID:\s*)+/i, '').trim();
+  const coreRole = getUserCoreRole(p);
 
   const kmDays = ['អាទិត្យ', 'ចន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
   const kmMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
@@ -18740,6 +18805,19 @@ function renderAttendanceContent() {
           ${timeStr}
         </div>
         <p class="text-[11px] text-slate-300 font-medium mt-1">${dateStr}</p>
+
+        <!-- Clean Team Member Pill: Only Icon + Name (ID) + Core Role (Manager / Leader / Member) -->
+        <div class="mt-2 flex items-center justify-center">
+          <div onclick="cycleUserCoreRole()" title="ចុចដើម្បីប្តូរតួនាទី (Manager / Leader / Member)" 
+               class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] hover:bg-white/[0.1] active:scale-95 border border-white/10 text-left transition cursor-pointer select-none shadow-sm">
+            <div class="w-5 h-5 rounded-full overflow-hidden bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+              <img src="${p.avatar || 'bostar-logo.png'}" onerror="this.onerror=null; this.src='bostar-logo.png';" class="w-full h-full object-cover">
+            </div>
+            <span class="text-xs font-bold text-white font-kantumruy">${p.name || 'ក្រុមការងារ'}</span>
+            <span class="text-[10px] font-mono text-slate-300">(${cleanId})</span>
+            ${getUserCoreRoleBadge(coreRole)}
+          </div>
+        </div>
         
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10.5px] font-medium mt-2">
           <i data-lucide="map-pin" class="w-3 h-3"></i>
@@ -19232,7 +19310,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Customer Directory' : 'បញ្ជីអតិថិជន'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Customer contacts & phone' : 'បញ្ជីឈ្មោះ និងលេខទូរស័ព្ទ'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Contacts & phone numbers' : 'ឈ្មោះ និងលេខទូរស័ព្ទ'}</p>
           </div>
         </div>
 
@@ -19268,7 +19346,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Documents & Plans' : 'ឯកសារ និងផែនការ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'CEO Wisdom & Commitments' : 'មេរៀន និងផែនការសកម្មភាព'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Wisdom & Commitments' : 'មេរៀន និងទស្សនវិស័យ CEO'}</p>
           </div>
         </div>
 
@@ -19285,7 +19363,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Daily Report' : 'របាយការណ៍ប្រចាំថ្ងៃ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Daily sales summary (9 PM)' : 'សង្ខេបការលក់ ម៉ោង ៩:០០ យប់'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Nightly sales summary (9 PM)' : 'សង្ខេបការលក់ ម៉ោង ៩:០០ យប់'}</p>
           </div>
         </div>
 
@@ -19302,7 +19380,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Members' : 'សមាជិកក្រុម'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Team structure & roles' : 'រចនាសម្ព័ន្ធ និងតួនាទីក្រុម'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Structure & active roles' : 'រចនាសម្ព័ន្ធ និងតួនាទីសរុប'}</p>
           </div>
         </div>
 

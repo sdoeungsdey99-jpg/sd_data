@@ -3790,18 +3790,20 @@
 
       <!-- Form Body -->
       <div id="attendance-leave-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-4 pb-36" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
-        <!-- Applicant Info Banner -->
-        <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
+        <!-- Applicant Info Banner (Clean Icon + Name + Role) -->
+        <div class="p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
           <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow-md">
-              <i data-lucide="user" class="w-4 h-4"></i>
+            <div id="att-leave-applicant-avatar" class="w-9 h-9 rounded-xl overflow-hidden bg-white/10 text-white flex items-center justify-center font-bold text-xs shadow-md border border-white/20">
+              <img id="att-leave-applicant-img" src="bostar-logo.png" onerror="this.onerror=null; this.src='bostar-logo.png';" class="w-full h-full object-cover">
             </div>
             <div>
-              <h4 id="att-leave-applicant-name" class="text-xs font-bold text-white leading-tight">សមាជិក Bostar</h4>
+              <h4 id="att-leave-applicant-name" class="text-xs font-bold text-white leading-tight">ក្រុមការងារ</h4>
               <p id="att-leave-applicant-id" class="text-[10px] text-slate-400 font-mono mt-0.5">ID: BG-001</p>
             </div>
           </div>
-          <span class="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-500/30">បុគ្គលិក</span>
+          <span id="att-leave-applicant-role-badge">
+            <span class="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-500/30">ក្រុមការងារ</span>
+          </span>
         </div>
 
         <!-- Leave Type Selector -->
@@ -3861,9 +3863,9 @@
           </div>
         </div>
 
-        <!-- Respective Leader Dropdown (Pure Khmer Only) -->
+        <!-- Respective Manager/Leader Dropdown (Pure Khmer Only) -->
         <div class="space-y-1.5">
-          <label class="block text-xs font-bold text-slate-300">ជ្រើសរើស Leader ទទួលបន្ទុកអនុម័ត (ក្រុម Bostar ទាំង ៦) ៖</label>
+          <label class="block text-xs font-bold text-slate-300">ជ្រើសរើស Manager / Leader ទទួលបន្ទុកអនុម័ត (ក្រុម Bostar) ៖</label>
           <div class="relative">
             <select id="att-leave-leader-select" 
                     class="w-full text-xs bg-black/40 border border-blue-500/40 rounded-xl p-3 pr-8 text-white focus:outline-none focus:border-blue-400 appearance-none font-kantumruy">
@@ -5261,6 +5263,6 @@
   </div>
 
   <script src="dataService.js?v=7.4"></script>
-  <script src="app.js?v=40.9"></script>
+  <script src="app.js?v=41.0"></script>
 </body>
 </html>
