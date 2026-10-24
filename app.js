@@ -10617,26 +10617,28 @@ let thaiCodPhaseFilter = 'all';    // 'all' | '1st' | '2nd' | '3rd' | 'prepared'
 let thaiCodSearchQuery = '';
 
 const COD_STATUS_OPTIONS = [
+  'បានដាក់ការកុម្ម៉ង់',
+  'បានរៀបចំ',
   'ដល់អតិថិជន 1st',
   'ដល់អតិថិជន 2nd',
   'ដល់អតិថិជន 3rd',
-  'បានរៀបចំ',
-  'បានដាក់ការកុម្មង់',
   'បានទូទាត់',
-  'បានទទួល',
+  'មិនទាន់ទូទាត់',
   'សុំ Canceled',
-  'ហ្វ្រី (Free)',
-  'អតិថិជនដកអីវ៉ាន់'
+  'ហ្វ្រី (Free)'
 ];
 
 function getCodStatusBadgeClass(status) {
   const s = String(status || '').trim();
-  if (s.includes('1st')) return 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
-  if (s.includes('2nd')) return 'bg-orange-500/20 text-orange-300 border border-orange-500/30';
-  if (s.includes('3rd')) return 'bg-blue-500/20 text-blue-300 border border-blue-500/30';
-  if (s.includes('បានទូទាត់') || s.includes('បានទទួល')) return 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
-  if (s.includes('បានរៀបចំ') || s.includes('បានដាក់ការកុម្មង់')) return 'bg-sky-500/20 text-sky-300 border border-sky-500/30';
-  if (s.includes('Canceled') || s.includes('ដកអីវ៉ាន់')) return 'bg-rose-500/20 text-rose-300 border border-rose-500/30';
+  if (s.includes('1st')) return 'bg-blue-600/30 text-blue-200 border border-blue-500/50';
+  if (s.includes('2nd')) return 'bg-emerald-700/35 text-emerald-200 border border-emerald-600/50';
+  if (s.includes('3rd')) return 'bg-amber-300/25 text-amber-200 border border-amber-300/40';
+  if (s.includes('បានទូទាត់')) return 'bg-slate-400/25 text-slate-200 border border-slate-400/40';
+  if (s.includes('មិនទាន់ទូទាត់')) return 'bg-orange-400/25 text-orange-200 border border-orange-400/40';
+  if (s.includes('បានរៀបចំ')) return 'bg-red-700/40 text-red-200 border border-red-600/50';
+  if (s.includes('បានដាក់ការកុម្ម')) return 'bg-slate-700/50 text-slate-200 border border-slate-600/50';
+  if (s.includes('Canceled')) return 'bg-rose-500/35 text-rose-200 border border-rose-500/50';
+  if (s.includes('ហ្វ្រី') || s.includes('Free')) return 'bg-slate-500/25 text-slate-300 border border-slate-500/40';
   return 'bg-white/10 text-slate-300 border border-white/10';
 }
 
@@ -10798,11 +10800,13 @@ function getFilteredThaiCodOrders() {
 
   // Valid active pending COD statuses
   const validPendingStatuses = [
+    'បានដាក់ការកុម្ម៉ង់',
+    'បានដាក់ការកុម្មង់',
+    'បានរៀបចំ',
     'ដល់អតិថិជន 1st',
     'ដល់អតិថិជន 2nd',
     'ដល់អតិថិជន 3rd',
-    'បានរៀបចំ',
-    'បានដាក់ការកុម្មង់'
+    'មិនទាន់ទូទាត់'
   ];
 
   // Current active month (e.g. '2026-10') to prevent hundreds of old Jan-Aug orders from polluting
@@ -20730,14 +20734,19 @@ function openEditSalesOrder(recordId, orderId, rowIndex, fallbackDate, fallbackP
 
   const codSel = document.getElementById('edit-order-cod-status');
   if (codSel) {
-    const stVal = o.codStatus || 'បានដាក់ការកុម្មង់';
+    const stVal = o.codStatus || 'បានដាក់ការកុម្ម៉ង់';
     codSel.value = stVal;
     if (!Array.from(codSel.options).some(opt => opt.value === stVal)) {
-      const opt = document.createElement('option');
-      opt.value = stVal;
-      opt.textContent = stVal;
-      codSel.appendChild(opt);
-      codSel.value = stVal;
+      const matchOpt = Array.from(codSel.options).find(opt => opt.value.replace(/៉/g, '') === stVal.replace(/៉/g, ''));
+      if (matchOpt) {
+        codSel.value = matchOpt.value;
+      } else {
+        const opt = document.createElement('option');
+        opt.value = stVal;
+        opt.textContent = stVal;
+        codSel.appendChild(opt);
+        codSel.value = stVal;
+      }
     }
   }
 
