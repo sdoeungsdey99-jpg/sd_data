@@ -10763,7 +10763,11 @@ function renderCodSummary() {
   const footer = document.getElementById('cod-modal-footer');
   if (!tbody) return;
 
-  const items = d.pendingCodReceivables || [];
+  // Sort descending from 31 down to 01
+  const items = [...(d.pendingCodReceivables || [])].sort((a, b) => {
+    return (b.date || '').localeCompare(a.date || '');
+  });
+
   if (countBadge) countBadge.textContent = items.length;
 
   tbody.innerHTML = items.map(item => `
@@ -10820,12 +10824,13 @@ function getThaiExchangeRate() {
 
 function promptChangeThaiExchangeRate() {
   const current = getThaiExchangeRate();
-  const val = prompt('កំណត់អត្រាប្តូរប្រាក់ (THB per USD):', current);
+  const isEn = appState.language === 'en';
+  const val = prompt(isEn ? 'Set exchange rate (THB per USD):' : 'កំណត់ហាងឆេង (THB ក្នុង ១ ដុល្លារ):', current);
   if (val !== null) {
     const n = parseFloat(String(val).trim());
     if (!isNaN(n) && n > 0) {
       localStorage.setItem('sd_thai_exchange_rate', n);
-      showToastNotification(`បានកំណត់ហាងឆេង 1$ = ${n} ฿ ជោគជ័យ!`);
+      showToastNotification(isEn ? `Exchange rate set to 1$ = ${n} ฿!` : `បានកំណត់ហាងឆេង 1$ = ${n} ฿ ជោគជ័យ!`);
       renderThaiCodOrders();
     }
   }
@@ -10835,7 +10840,21 @@ function getFilteredThaiCodOrders() {
   const d = DataService.data;
   if (!d || !Array.isArray(d.personalSales)) return [];
 
-  // Filter Thai COD orders (EXCLUDE already paid / settled and cancelled / free as instructed)
+  // Valid active pending COD statuses
+  const validPendingStatuses = [
+    'ដល់អតិថិជន 1st',
+    'ដល់អតិថិជន 2nd',
+    'ដល់អតិថិជន 3rd',
+    'បានរៀបចំ',
+    'បានដាក់ការកុម្មង់'
+  ];
+
+  // Current active month (e.g. '2026-10') to prevent hundreds of old Jan-Aug orders from polluting
+  const currentMonthKey = (appState.periodFilter === 'month' && appState.selectedMonthKey) ? 
+                          appState.selectedMonthKey : 
+                          getLocalIsoDate(new Date()).slice(0, 7);
+
+  // Filter Thai COD orders
   let orders = d.personalSales.filter(o => {
     const deliv = String(o.deliveryMethod || '').toLowerCase();
     const loc = String(o.location || '');
@@ -10844,10 +10863,20 @@ function getFilteredThaiCodOrders() {
     if (!isThai) return false;
 
     const st = String(o.codStatus || '').trim();
-    // Exclude settled orders as instructed by user
-    if (st.includes('បានទូទាត់') || st.includes('Canceled') || st.includes('ហ្វ្រី')) {
+    // Exclude if empty, settled, cancelled, or free
+    if (!st || st.includes('បានទូទាត់') || st.includes('Canceled') || st.includes('ហ្វ្រី')) {
       return false;
     }
+
+    // Only include genuinely pending statuses
+    const isPending = validPendingStatuses.some(v => st.includes(v));
+    if (!isPending) return false;
+
+    // Filter by active month (excludes historical months Jan-Aug with blank/untracked statuses)
+    if (o.isoDate && !o.isoDate.startsWith(currentMonthKey)) {
+      return false;
+    }
+
     return true;
   });
 
@@ -10881,6 +10910,9 @@ function getFilteredThaiCodOrders() {
       );
     });
   }
+
+  // Sort descending by date: from 31 down to 01
+  orders.sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
 
   return orders;
 }
@@ -10923,6 +10955,7 @@ function renderThaiCodOrders() {
 
   const orders = getFilteredThaiCodOrders();
   const rate = getThaiExchangeRate();
+  const isEn = appState.language === 'en';
 
   const totalBaht = orders.reduce((sum, o) => sum + cleanNumber(o.thaiBaht || o.price), 0);
   const totalBoxes = orders.reduce((sum, o) => sum + cleanNumber(o.totalBoxQty || 1), 0);
@@ -10934,15 +10967,17 @@ function renderThaiCodOrders() {
   const statBahtEl = document.getElementById('thai-cod-stat-baht');
   const statRateEl = document.getElementById('thai-cod-stat-rate');
   const statUsdEl = document.getElementById('thai-cod-stat-usd');
+  const rateLabelEl = document.getElementById('thai-cod-rate-label');
 
-  if (statParcelsEl) statParcelsEl.textContent = `${orders.length} កញ្ចប់`;
-  if (statBoxesEl) statBoxesEl.textContent = `${totalBoxes} ប្រអប់`;
+  if (rateLabelEl) rateLabelEl.textContent = isEn ? 'Currency:' : 'ហាងឆេង៖';
+  if (statParcelsEl) statParcelsEl.textContent = isEn ? `${orders.length} Parcels` : `${orders.length} កញ្ចប់`;
+  if (statBoxesEl) statBoxesEl.textContent = isEn ? `${totalBoxes} Boxes` : `${totalBoxes} ប្រអប់`;
   if (statBahtEl) statBahtEl.textContent = `${formatInt(totalBaht)} THB`;
   if (statRateEl) statRateEl.textContent = `1$ = ${rate.toFixed(2)} ฿ ✏️`;
   if (statUsdEl) statUsdEl.textContent = formatUSD(totalUSD);
 
   if (orders.length === 0) {
-    listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">មិនមានទិន្នន័យ Thai COD រង់ចាំគិតលុយទេ (រាល់ Order បានទូទាត់រួចរាល់)</p>`;
+    listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">${isEn ? 'No pending Thai COD orders for this period' : 'មិនមានទិន្នន័យ Thai COD រង់ចាំគិតលុយក្នុងខែនេះទេ'}</p>`;
     return;
   }
 
@@ -10967,7 +11002,7 @@ function renderThaiCodOrders() {
           </div>
           <!-- 4-Digit Parcel Tag (Highlighted) -->
           <div class="flex items-center gap-1 shrink-0">
-            <span class="text-[9.5px] text-slate-400 font-sans">កន្ទុយ:</span>
+            <span class="text-[9.5px] text-slate-400 font-sans">${isEn ? 'Digits:' : 'កន្ទុយ:'}</span>
             <span class="px-2 py-0.5 rounded-lg bg-orange-500/20 border border-orange-500/30 font-mono font-bold text-orange-400 text-xs tracking-wider">
               ${last4}
             </span>
@@ -10977,22 +11012,22 @@ function renderThaiCodOrders() {
         <!-- Middle row: Customer FB name, Phone, Seller -->
         <div class="flex items-center justify-between text-[11px] pt-1 border-t border-white/5">
           <div class="min-w-0 flex-1 pr-2">
-            <div class="font-bold text-white truncate">${o.customer || 'អតិថិជន'}</div>
+            <div class="font-bold text-white truncate">${o.customer || (isEn ? 'Customer' : 'អតិថិជន')}</div>
             <div class="text-[10px] text-slate-400 truncate mt-0.5">
-              <span>👤 ${o.seller || 'អ្នកលក់'}</span>
+              <span>👤 ${o.seller || (isEn ? 'Seller' : 'អ្នកលក់')}</span>
               ${o.phone ? `<span class="mx-1">•</span><span class="font-mono text-slate-300">📞 ${o.phone}</span>` : ''}
             </div>
           </div>
           <!-- Right side: Thai Baht & Box count -->
           <div class="text-right shrink-0">
             <div class="font-mono font-bold text-orange-400 text-sm">${formatInt(baht)} THB</div>
-            <div class="text-[10px] text-slate-400 font-mono">${boxQty} ប្រអប់ | ${formatUSD(usd)}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${boxQty} ${isEn ? 'Boxes' : 'ប្រអប់'} | ${formatUSD(usd)}</div>
           </div>
         </div>
 
         <!-- Bottom row: Interactive Status Select Dropdown -->
         <div class="pt-1.5 border-t border-white/5 flex items-center justify-between gap-2">
-          <span class="text-[10.5px] text-slate-400 font-medium">ស្ថានភាព COD:</span>
+          <span class="text-[10.5px] text-slate-400 font-medium">${isEn ? 'COD Status:' : 'ស្ថានភាព COD:'}</span>
           <div class="relative flex-1 max-w-[200px]">
             <select onchange="handleCodStatusChange('${safeRecId}', '${safeOrderId}', this.value)" 
                     class="w-full text-xs font-semibold py-1 px-2.5 pr-6 rounded-xl border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(currentStatus)}">
@@ -11062,8 +11097,8 @@ function copyThaiCodTelegramStatement() {
   let lines = ['💵 របាយការណ៍គិតលុយ Thai COD\n'];
   let totalBaht = 0;
 
-  // Sort by date ascending (or natural order)
-  const sorted = [...orders].sort((a, b) => (a.isoDate || '').localeCompare(b.isoDate || ''));
+  // Already sorted descending from 31 down to 01
+  const sorted = [...orders];
 
   sorted.forEach(o => {
     const dStr = o.date ? o.date.slice(0, 5).replace('/', '-') : '—'; // DD-MM
@@ -11080,7 +11115,7 @@ function copyThaiCodTelegramStatement() {
 
   const statementText = lines.join('\n');
   fallbackCopyText(statementText);
-  showToastNotification(`បានចម្លង Statement ${orders.length} កញ្ចប់ សម្រាប់ Telegram រួចរាល់! 📋`);
+  showToastNotification(`បានចម្លង Statement ${orders.length} កញ្ចប់ (Copy) រួចរាល់! 📋`);
 }
 
 // ==========================================
