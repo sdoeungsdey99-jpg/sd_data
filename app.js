@@ -438,7 +438,14 @@ let drawerMottoTimer = null;
 let currentMottoIdx = 0;
 
 function nextDrawerMotto(e) {
-  if (e && e.stopPropagation) e.stopPropagation();
+  if (e) {
+    const scrollEl = document.getElementById('profile-drawer-content');
+    if (scrollEl && scrollEl.scrollTop > 30) {
+      handleHeaderScrollToTop(e, 'profile-drawer-content');
+      return;
+    }
+    if (e.stopPropagation) e.stopPropagation();
+  }
   const textEl = document.getElementById('drawer-motto-text');
   if (!textEl) return;
   
@@ -15503,38 +15510,47 @@ function handleHeaderScrollToTop(e, targetId = null) {
     target = document.getElementById(targetId);
   } else {
     // Dynamic detection based on what is currently active/visible on screen
-    const modals = [
-      { modalId: 'attendance-leave-modal', listId: 'attendance-leave-body' },
-      { modalId: 'attendance-manager-modal', listId: 'attendance-manager-body' },
-      { modalId: 'attendance-top10-modal', listId: 'attendance-top10-body' },
-      { modalId: 'attendance-certificate-modal', listId: 'attendance-cert-body' },
-      { modalId: 'attendance-documents-modal', listId: 'attendance-documents-body' },
-      { modalId: 'attendance-modal', listId: 'attendance-modal-body' },
-      { modalId: 'all-customers-modal', listId: 'all-customers-list' },
-      { modalId: 'sales-modal', listId: 'sales-modal-list' },
-      { modalId: 'expenses-modal', listId: 'expenses-modal-list' },
-      { modalId: 'cod-modal', listId: () => (activeCodModalTab === 'thai' ? 'cod-thai-orders-list' : 'cod-modal-table-container') },
-      { modalId: 'bank-modal', listId: 'bank-modal-list' },
-      { modalId: 'payables-modal', listId: 'payables-modal-list' },
-      { modalId: 'notif-modal', listId: 'notif-feed-list' },
-      { modalId: 'profile-drawer-modal', listId: 'profile-drawer-content' },
-      { modalId: 'daily-report-modal', listId: 'daily-report-body-content' },
-      { modalId: 'executive-hierarchy-modal', listId: 'executive-hierarchy-scroll-body' },
-      { modalId: 'team-members-modal', listId: 'team-members-list' },
-      { modalId: 'tutorial-modal', listId: 'tutorial-modal-body' },
-      { modalId: 'honors-modal', listId: 'honors-modal-body' },
-      { modalId: 'edit-profile-modal', listId: 'edit-profile-body' },
-      { modalId: 'new-order-modal', listId: 'new-order-modal-body' },
-      { modalId: 'new-expense-modal', listId: 'new-expense-modal-body' },
-      { modalId: 'global-search-modal', listId: 'search-results-container' },
-      { modalId: 'profile-settings-search-modal', listId: 'profile-settings-search-results' }
-    ];
-    for (const m of modals) {
-      const modalEl = document.getElementById(m.modalId);
-      if (modalEl && !modalEl.classList.contains('hidden')) {
-        const id = (typeof m.listId === 'function') ? m.listId() : m.listId;
-        target = document.getElementById(id);
-        break;
+    // 0. Profile Drawer prioritized if open
+    const drawerModal = document.getElementById('profile-drawer-modal');
+    const drawerPanel = document.getElementById('profile-drawer-panel');
+    if (drawerModal && !drawerModal.classList.contains('hidden') && drawerPanel && drawerPanel.classList.contains('translate-x-0')) {
+      target = document.getElementById('profile-drawer-content');
+    }
+
+    if (!target) {
+      const modals = [
+        { modalId: 'attendance-leave-modal', listId: 'attendance-leave-body' },
+        { modalId: 'attendance-manager-modal', listId: 'attendance-manager-body' },
+        { modalId: 'attendance-top10-modal', listId: 'attendance-top10-body' },
+        { modalId: 'attendance-certificate-modal', listId: 'attendance-cert-body' },
+        { modalId: 'attendance-documents-modal', listId: 'attendance-documents-body' },
+        { modalId: 'attendance-modal', listId: 'attendance-modal-body' },
+        { modalId: 'all-customers-modal', listId: 'all-customers-list' },
+        { modalId: 'sales-modal', listId: 'sales-modal-list' },
+        { modalId: 'expenses-modal', listId: 'expenses-modal-list' },
+        { modalId: 'cod-modal', listId: () => (activeCodModalTab === 'thai' ? 'cod-thai-orders-list' : 'cod-modal-table-container') },
+        { modalId: 'bank-modal', listId: 'bank-modal-list' },
+        { modalId: 'payables-modal', listId: 'payables-modal-list' },
+        { modalId: 'notif-modal', listId: 'notif-feed-list' },
+        { modalId: 'profile-drawer-modal', listId: 'profile-drawer-content' },
+        { modalId: 'daily-report-modal', listId: 'daily-report-body-content' },
+        { modalId: 'executive-hierarchy-modal', listId: 'executive-hierarchy-scroll-body' },
+        { modalId: 'team-members-modal', listId: 'team-members-list' },
+        { modalId: 'tutorial-modal', listId: 'tutorial-modal-body' },
+        { modalId: 'honors-modal', listId: 'honors-modal-body' },
+        { modalId: 'edit-profile-modal', listId: 'edit-profile-body' },
+        { modalId: 'new-order-modal', listId: 'new-order-modal-body' },
+        { modalId: 'new-expense-modal', listId: 'new-expense-modal-body' },
+        { modalId: 'global-search-modal', listId: 'search-results-container' },
+        { modalId: 'profile-settings-search-modal', listId: 'profile-settings-search-results' }
+      ];
+      for (const m of modals) {
+        const modalEl = document.getElementById(m.modalId);
+        if (modalEl && !modalEl.classList.contains('hidden')) {
+          const id = (typeof m.listId === 'function') ? m.listId() : m.listId;
+          target = document.getElementById(id);
+          break;
+        }
       }
     }
     if (!target) {
@@ -16000,7 +16016,14 @@ function getProfileNotes() {
 // DYNAMIC GREETING (Text Morphing & Subtitle Swap - Option 1 ⭐)
 // ==========================================
 function triggerDrawerGreetingAnimation(e) {
-  if (e && e.stopPropagation) e.stopPropagation();
+  if (e) {
+    const scrollEl = document.getElementById('profile-drawer-content');
+    if (scrollEl && scrollEl.scrollTop > 30) {
+      handleHeaderScrollToTop(e, 'profile-drawer-content');
+      return;
+    }
+    if (e.stopPropagation) e.stopPropagation();
+  }
   const idEl = document.getElementById('drawer-prof-id');
   const greetingEl = document.getElementById('drawer-prof-greeting');
   const iconEl = document.getElementById('drawer-prof-greeting-icon');

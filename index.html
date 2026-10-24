@@ -3234,7 +3234,14 @@
          class="absolute inset-y-0 left-0 w-[84%] max-w-[390px] bg-[#070D18] border-r border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.85)] flex flex-col z-10 transition-transform duration-300 -translate-x-full">
       
       <!-- Top Header inside Drawer: Profile in natural position (Not centered, keeps original high location) + Search Button -->
-      <div onclick="handleHeaderScrollToTop(event, 'profile-drawer-content')" class="px-4 py-3.5 border-b border-white/10 bg-[#0B1528]/90 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'profile-drawer-content')" 
+           class="px-4 pt-2 pb-3.5 border-b border-white/10 bg-[#0B1528]/90 backdrop-blur-xl shrink-0 cursor-pointer"
+           title="ប៉ះកន្លែងទំនេរដើម្បីឡើងលើបង្អស់ (Scroll to Top)">
+        <!-- Native iOS Top Grip / Status Indicator (Tap to Scroll to Top) -->
+        <div class="flex justify-center items-center pb-2 select-none">
+          <div class="w-10 h-1 rounded-full bg-white/20 hover:bg-white/40 active:scale-95 transition"></div>
+        </div>
+
         <div class="flex items-center justify-between gap-3">
           <!-- Left: Profile avatar + Name + ID/Greeting (Clickable to trigger greeting morph) -->
           <div onclick="triggerDrawerGreetingAnimation(event)" class="flex items-center gap-3 min-w-0 flex-1 overflow-visible cursor-pointer select-none" title="ចុចដើម្បីមើលសារស្វាគមន៍">
@@ -5308,6 +5315,6 @@
   </div>
 
   <script src="dataService.js?v=7.4"></script>
-  <script src="app.js?v=42.2"></script>
+  <script src="app.js?v=42.3"></script>
 </body>
 </html>
