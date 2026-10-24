@@ -10669,33 +10669,122 @@ function closePayablesModal() {
 // ==========================================
 // COD Receivables Full Drill-down Modal (Note 2)
 // ==========================================
+let activeCodModalTab = 'summary'; // 'summary' | 'thai'
+let thaiCodPhaseFilter = 'all';    // 'all' | '1st' | '2nd' | '3rd' | 'prepared'
+let thaiCodSearchQuery = '';
+
+const COD_STATUS_OPTIONS = [
+  'ដល់អតិថិជន 1st',
+  'ដល់អតិថិជន 2nd',
+  'ដល់អតិថិជន 3rd',
+  'បានរៀបចំ',
+  'បានដាក់ការកុម្មង់',
+  'បានទូទាត់',
+  'បានទទួល',
+  'សុំ Canceled',
+  'ហ្វ្រី (Free)',
+  'អតិថិជនដកអីវ៉ាន់'
+];
+
+function getCodStatusBadgeClass(status) {
+  const s = String(status || '').trim();
+  if (s.includes('1st')) return 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
+  if (s.includes('2nd')) return 'bg-orange-500/20 text-orange-300 border border-orange-500/30';
+  if (s.includes('3rd')) return 'bg-blue-500/20 text-blue-300 border border-blue-500/30';
+  if (s.includes('បានទូទាត់') || s.includes('បានទទួល')) return 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+  if (s.includes('បានរៀបចំ') || s.includes('បានដាក់ការកុម្មង់')) return 'bg-sky-500/20 text-sky-300 border border-sky-500/30';
+  if (s.includes('Canceled') || s.includes('ដកអីវ៉ាន់')) return 'bg-rose-500/20 text-rose-300 border border-rose-500/30';
+  return 'bg-white/10 text-slate-300 border border-white/10';
+}
+
 function openCodModal() {
   const d = DataService.data;
   if (!d) return;
 
   const modal = document.getElementById('cod-modal');
+  if (!modal) return;
+
+  renderCodSummary();
+  switchCodModalTab(activeCodModalTab || 'summary');
+
+  modal.classList.remove('hidden');
+  setDockVisible(true);
+  const tableContainer = document.getElementById('cod-modal-table-container');
+  if (tableContainer && typeof hookScrollableForDock === 'function') hookScrollableForDock(tableContainer, false);
+  const thaiList = document.getElementById('cod-thai-orders-list');
+  if (thaiList && typeof hookScrollableForDock === 'function') hookScrollableForDock(thaiList, false);
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeCodModal() {
+  const modal = document.getElementById('cod-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function switchCodModalTab(tab) {
+  activeCodModalTab = tab;
+  const summaryBtn = document.getElementById('cod-tab-summary-btn');
+  const thaiBtn = document.getElementById('cod-tab-thai-btn');
+  const summaryView = document.getElementById('cod-summary-view');
+  const thaiView = document.getElementById('cod-thai-view');
+
+  if (tab === 'summary') {
+    if (summaryBtn) {
+      summaryBtn.className = 'py-1.5 px-2.5 rounded-lg text-xs font-semibold transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center gap-1.5';
+    }
+    if (thaiBtn) {
+      thaiBtn.className = 'py-1.5 px-2.5 rounded-lg text-xs font-semibold transition active:scale-95 text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+    }
+    if (summaryView) summaryView.classList.remove('hidden');
+    if (thaiView) thaiView.classList.add('hidden');
+    renderCodSummary();
+  } else {
+    if (thaiBtn) {
+      thaiBtn.className = 'py-1.5 px-2.5 rounded-lg text-xs font-semibold transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center gap-1.5';
+    }
+    if (summaryBtn) {
+      summaryBtn.className = 'py-1.5 px-2.5 rounded-lg text-xs font-semibold transition active:scale-95 text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+    }
+    if (summaryView) summaryView.classList.add('hidden');
+    if (thaiView) thaiView.classList.remove('hidden');
+    renderThaiCodOrders();
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function renderCodSummary() {
+  const d = DataService.data;
+  if (!d) return;
+
   const tbody = document.getElementById('cod-modal-tbody');
   const countBadge = document.getElementById('cod-modal-count-badge');
   const footer = document.getElementById('cod-modal-footer');
-  if (!modal || !tbody) return;
+  if (!tbody) return;
 
   const items = d.pendingCodReceivables || [];
-  if (countBadge) {
-    countBadge.textContent = items.length;
-  }
+  if (countBadge) countBadge.textContent = items.length;
 
   tbody.innerHTML = items.map(item => `
     <tr class="hover:bg-white/5 transition">
-      <td class="py-2 px-2.5 font-mono text-orange-400 font-bold text-[11px]">${item.no}</td>
-      <td class="py-2 px-2.5 text-slate-300 font-mono text-[11px]">${item.date}</td>
-      <td class="py-2 px-2.5 text-white font-medium text-[11px]">${item.qtyBoxes}</td>
-      <td class="py-2 px-2.5 text-blue-300 font-medium text-[11px]">${item.status}</td>
-      <td class="py-2 px-2.5 text-right font-mono font-bold text-amber-400 text-[12px]">${formatUSD(item.amount)}</td>
+      <td class="py-2.5 px-2.5 font-mono text-orange-400 font-bold text-[11px]">${item.no}</td>
+      <td class="py-2.5 px-2.5 text-slate-300 font-mono text-[11px]">${item.date}</td>
+      <td class="py-2.5 px-2.5 text-white font-medium text-[11px]">${item.qtyBoxes}</td>
+      <td class="py-2.5 px-2.5">
+        <span class="px-2 py-0.5 rounded-full text-[10.5px] font-semibold whitespace-nowrap ${getCodStatusBadgeClass(item.status)}">
+          ${item.status}
+        </span>
+      </td>
+      <td class="py-2.5 px-2.5 text-right font-mono font-bold text-amber-400 text-[12px]">${formatUSD(item.amount)}</td>
     </tr>
   `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-500">${t('noData')}</td></tr>`;
 
   // Calculate totals
   const totalAmount = items.reduce((sum, it) => sum + (it.amount || 0), 0);
+  const pendingAmount = items.reduce((sum, it) => {
+    const isReturned = it.status.includes('ដកអីវ៉ាន់') || it.status.includes('Canceled');
+    const isPaid = it.status.includes('បានទូទាត់');
+    return (!isReturned && !isPaid) ? (sum + (it.amount || 0)) : sum;
+  }, 0);
   const totalBoxes = items.reduce((sum, it) => {
     const q = parseInt(it.qtyBoxes, 10);
     return sum + (isNaN(q) ? 0 : q);
@@ -10704,27 +10793,260 @@ function openCodModal() {
   if (footer) {
     footer.innerHTML = `
       <div class="flex items-center gap-2 text-slate-300 text-xs">
-        <span class="font-semibold">ចំនួនសរុប: ${items.length} មុខ</span>
+        <span class="font-semibold">សរុប: ${items.length} មុខ</span>
         <span class="text-slate-500">|</span>
         <span class="text-orange-400 font-mono font-bold">${totalBoxes} ប្រអប់</span>
       </div>
-      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-amber-400 text-right">
-        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
-        <span>${formatUSD(totalAmount)}</span>
+      <div class="flex flex-col items-end">
+        <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-amber-400 text-right">
+          <span class="text-[10px] text-slate-400 font-sans font-normal">រង់ចាំទូទាត់:</span>
+          <span>${formatUSD(pendingAmount || totalAmount)}</span>
+        </div>
+        ${pendingAmount && pendingAmount !== totalAmount ? `
+          <span class="text-[9.5px] font-mono text-slate-400">សរុបទាំងអស់: ${formatUSD(totalAmount)}</span>
+        ` : ''}
       </div>
     `;
   }
+}
 
-  modal.classList.remove('hidden');
-  setDockVisible(true);
-  const tableContainer = document.getElementById('cod-modal-table-container');
-  if (tableContainer && typeof hookScrollableForDock === 'function') hookScrollableForDock(tableContainer, false);
+function getFilteredThaiCodOrders() {
+  const d = DataService.data;
+  if (!d || !Array.isArray(d.personalSales)) return [];
+
+  // Filter Thai COD orders
+  let orders = d.personalSales.filter(o => {
+    const deliv = String(o.deliveryMethod || '').toLowerCase();
+    const loc = String(o.location || '');
+    const baht = cleanNumber(o.thaiBaht);
+    return deliv.includes('thai') || loc.includes('ថៃ') || baht > 0;
+  });
+
+  // Filter by Phase pill
+  if (thaiCodPhaseFilter && thaiCodPhaseFilter !== 'all') {
+    orders = orders.filter(o => {
+      const st = String(o.codStatus || '');
+      if (thaiCodPhaseFilter === '1st') return st.includes('1st');
+      if (thaiCodPhaseFilter === '2nd') return st.includes('2nd');
+      if (thaiCodPhaseFilter === '3rd') return st.includes('3rd');
+      if (thaiCodPhaseFilter === 'prepared') return st.includes('រៀបចំ');
+      return true;
+    });
+  }
+
+  // Filter by search query (4-digit phone ending, orderId, name, seller)
+  if (thaiCodSearchQuery) {
+    const q = thaiCodSearchQuery.trim().toLowerCase();
+    orders = orders.filter(o => {
+      const phoneDigits = String(o.phone || '').replace(/\D/g, '');
+      const last4 = phoneDigits.length >= 4 ? phoneDigits.slice(-4) : phoneDigits;
+      const orderIdClean = String(o.id || '').replace('#', '').toLowerCase();
+      const customer = String(o.customer || '').toLowerCase();
+      const seller = String(o.seller || '').toLowerCase();
+      return (
+        last4.includes(q) ||
+        phoneDigits.includes(q) ||
+        orderIdClean.includes(q) ||
+        customer.includes(q) ||
+        seller.includes(q)
+      );
+    });
+  }
+
+  return orders;
+}
+
+function handleThaiCodFilterChange() {
+  const input = document.getElementById('cod-thai-search-input');
+  const clearBtn = document.getElementById('cod-thai-search-clear');
+  thaiCodSearchQuery = input ? input.value : '';
+  if (clearBtn) {
+    if (thaiCodSearchQuery) clearBtn.classList.remove('hidden');
+    else clearBtn.classList.add('hidden');
+  }
+  renderThaiCodOrders();
+}
+
+function clearThaiCodSearch() {
+  const input = document.getElementById('cod-thai-search-input');
+  if (input) input.value = '';
+  thaiCodSearchQuery = '';
+  const clearBtn = document.getElementById('cod-thai-search-clear');
+  if (clearBtn) clearBtn.classList.add('hidden');
+  renderThaiCodOrders();
+}
+
+function setThaiCodPhaseFilter(phase) {
+  thaiCodPhaseFilter = phase;
+  document.querySelectorAll('.thai-cod-pill').forEach(btn => {
+    if (btn.getAttribute('data-phase') === phase) {
+      btn.className = 'thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40';
+    } else {
+      btn.className = 'thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10';
+    }
+  });
+  renderThaiCodOrders();
+}
+
+function renderThaiCodOrders() {
+  const listEl = document.getElementById('cod-thai-orders-list');
+  const statsEl = document.getElementById('cod-thai-stats-summary');
+  if (!listEl) return;
+
+  const orders = getFilteredThaiCodOrders();
+
+  const totalBaht = orders.reduce((sum, o) => sum + cleanNumber(o.thaiBaht || o.price), 0);
+  const totalUSD = orders.reduce((sum, o) => sum + cleanNumber(o.totalAmount), 0);
+  const totalBoxes = orders.reduce((sum, o) => sum + cleanNumber(o.totalBoxQty), 0);
+
+  if (statsEl) {
+    statsEl.innerHTML = `
+      <span class="font-bold text-white">${orders.length} កញ្ចប់</span>
+      <span class="text-slate-500 mx-1">•</span>
+      <span class="text-orange-400 font-bold">${formatInt(totalBaht)} ฿</span>
+      <span class="text-slate-400 text-[10px]">(${formatUSD(totalUSD)})</span>
+    `;
+  }
+
+  if (orders.length === 0) {
+    listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">មិនមានទិន្នន័យ Thai COD ត្រូវនឹងការស្វែងរកទេ</p>`;
+    return;
+  }
+
+  listEl.innerHTML = orders.map((o) => {
+    const phoneDigits = String(o.phone || '').replace(/\D/g, '');
+    const last4 = phoneDigits.length >= 4 ? phoneDigits.slice(-4) : (phoneDigits || '—');
+    const currentStatus = String(o.codStatus || 'បានដាក់ការកុម្មង់').trim();
+    const baht = cleanNumber(o.thaiBaht || o.price);
+    const usd = cleanNumber(o.totalAmount);
+    const boxQty = o.totalBoxQty || 1;
+    const safeRecId = o.recordId || '';
+    const safeOrderId = o.id || '';
+
+    return `
+      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 space-y-2 hover:border-orange-500/30 transition">
+        <!-- Top row: Date, Order ID, Carrier, Last 4 digits -->
+        <div class="flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="font-mono text-slate-300 font-semibold text-[11px]">${o.date}</span>
+            <span class="px-1.5 py-0.5 rounded bg-white/10 font-mono text-[10px] text-orange-400 font-bold">${safeOrderId}</span>
+            <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9.5px] font-semibold">${o.deliveryMethod || 'Thai COD'}</span>
+          </div>
+          <!-- 4-Digit Parcel Tag (Highlighted) -->
+          <div class="flex items-center gap-1 shrink-0">
+            <span class="text-[9.5px] text-slate-400 font-sans">កន្ទុយ:</span>
+            <span class="px-2 py-0.5 rounded-lg bg-orange-500/20 border border-orange-500/30 font-mono font-bold text-orange-400 text-xs tracking-wider">
+              ${last4}
+            </span>
+          </div>
+        </div>
+
+        <!-- Middle row: Customer FB name, Phone, Seller -->
+        <div class="flex items-center justify-between text-[11px] pt-1 border-t border-white/5">
+          <div class="min-w-0 flex-1 pr-2">
+            <div class="font-bold text-white truncate">${o.customer || 'អតិថិជន'}</div>
+            <div class="text-[10px] text-slate-400 truncate mt-0.5">
+              <span>👤 ${o.seller || 'អ្នកលក់'}</span>
+              ${o.phone ? `<span class="mx-1">•</span><span class="font-mono text-slate-300">📞 ${o.phone}</span>` : ''}
+            </div>
+          </div>
+          <!-- Right side: Thai Baht & Box count -->
+          <div class="text-right shrink-0">
+            <div class="font-mono font-bold text-orange-400 text-sm">${formatInt(baht)} ฿</div>
+            <div class="text-[10px] text-slate-400 font-mono">${boxQty} ប្រអប់ | ${formatUSD(usd)}</div>
+          </div>
+        </div>
+
+        <!-- Bottom row: Interactive Status Select Dropdown -->
+        <div class="pt-1.5 border-t border-white/5 flex items-center justify-between gap-2">
+          <span class="text-[10.5px] text-slate-400 font-medium">ស្ថានភាព COD:</span>
+          <div class="relative flex-1 max-w-[200px]">
+            <select onchange="handleCodStatusChange('${safeRecId}', '${safeOrderId}', this.value)" 
+                    class="w-full text-xs font-semibold py-1 px-2.5 pr-6 rounded-xl border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(currentStatus)}">
+              ${COD_STATUS_OPTIONS.map(opt => `
+                <option value="${opt}" ${opt === currentStatus ? 'selected' : ''} class="bg-[#0B1528] text-white py-1">
+                  ${opt}
+                </option>
+              `).join('')}
+            </select>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
   if (window.lucide) window.lucide.createIcons();
 }
 
-function closeCodModal() {
-  const modal = document.getElementById('cod-modal');
-  if (modal) modal.classList.add('hidden');
+function handleCodStatusChange(recordId, orderId, newStatus) {
+  const d = DataService.data;
+  if (!d || !Array.isArray(d.personalSales)) return;
+
+  // 1. Optimistic local update in personalSales
+  const match = d.personalSales.find(o => {
+    return (recordId && o.recordId === recordId) || (orderId && o.id === orderId);
+  });
+
+  if (match) {
+    match.codStatus = newStatus;
+  }
+
+  showToastNotification(`បានប្តូរស្ថានភាពជា «${newStatus}» ជោគជ័យ!`);
+  renderThaiCodOrders();
+
+  // 2. Sync to Google Sheet via Google Apps Script Web App
+  try {
+    const appsScriptUrl = (typeof DEFAULT_APPS_SCRIPT_URL !== 'undefined') ? DEFAULT_APPS_SCRIPT_URL : '';
+    if (appsScriptUrl) {
+      fetch(appsScriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_cod_status',
+          sheetId: DataService.getActiveSheetId(),
+          data: {
+            recordId: recordId,
+            orderId: orderId,
+            codStatus: newStatus
+          }
+        })
+      }).catch(err => console.warn('Sync status warn:', err));
+    }
+  } catch (e) {
+    console.warn('Sync status error:', e);
+  }
+}
+
+function copyThaiCodTelegramStatement() {
+  const orders = getFilteredThaiCodOrders();
+  if (orders.length === 0) {
+    showToastNotification('មិនមានទិន្នន័យសម្រាប់ចម្លងទេ!');
+    return;
+  }
+
+  let lines = ['📦 របាយការណ៍គិតលុយ Thai COD\n'];
+  let totalBaht = 0;
+
+  // Sort by date ascending (or natural order)
+  const sorted = [...orders].sort((a, b) => (a.isoDate || '').localeCompare(b.isoDate || ''));
+
+  sorted.forEach(o => {
+    const dStr = o.date ? o.date.slice(0, 5).replace('/', '-') : '—'; // DD-MM
+    const phoneDigits = String(o.phone || '').replace(/\D/g, '');
+    const last4 = phoneDigits.length >= 4 ? phoneDigits.slice(-4) : (o.id ? o.id.replace('#', '') : '—');
+    const baht = Math.round(cleanNumber(o.thaiBaht || o.price));
+    totalBaht += baht;
+    lines.push(`ថ្ងៃទី ${dStr} លេខ ${last4}-${baht}`);
+  });
+
+  lines.push('\n--------------------------');
+  lines.push(`សរុប៖ ${totalBaht.toLocaleString()}`);
+
+  const statementText = lines.join('\n');
+  fallbackCopyText(statementText);
+  showToastNotification(`បានចម្លង Statement ${orders.length} កញ្ចប់ សម្រាប់ Telegram រួចរាល់! 📋`);
 }
 
 // ==========================================
@@ -19274,6 +19596,11 @@ function renderAllCustomersList() {
                   <div class="flex items-center gap-1.5 min-w-0 pr-2">
                     <span class="font-mono text-white font-bold shrink-0">${o.date}</span>
                     <span class="text-slate-300 font-medium truncate">(${getOrderProductSummary(o)})</span>
+                    ${o.codStatus ? `
+                      <span class="px-1.5 py-0.2 rounded text-[9px] font-semibold shrink-0 ${getCodStatusBadgeClass(o.codStatus)}">
+                        ${o.codStatus}
+                      </span>
+                    ` : ''}
                   </div>
                   <div class="font-mono text-right shrink-0">
                     ${(o.thaiBaht > 0 || o.price > 0) ? `

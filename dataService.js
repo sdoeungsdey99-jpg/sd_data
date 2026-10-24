@@ -564,13 +564,14 @@ window.DataService = {
             const amt = cleanNumber(r[5]);
             const status = String(r[6] || '').trim();
 
-            if (customer && (amt > 0 || status)) {
+            // Accept COD row even if customer name is omitted in Bank & Cash Balance
+            if (amt > 0 || status || customer || qtyBoxes) {
               pendingCodReceivables.push({
                 no: no,
                 date: formatToDDMMYYYY(dateRaw),
-                carrier,
-                customer,
-                qtyBoxes: qtyBoxes ? `${qtyBoxes} ប្រអប់` : '—',
+                carrier: carrier || 'Thai COD',
+                customer: customer || 'អតិថិជន COD',
+                qtyBoxes: qtyBoxes ? (qtyBoxes.includes('ប្រអប់') ? qtyBoxes : `${qtyBoxes} ប្រអប់`) : '—',
                 amount: amt,
                 status: status || 'រង់ចាំទូទាត់'
               });

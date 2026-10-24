@@ -83,6 +83,9 @@ function doPost(e) {
     } else if (action === 'sync_attendance') {
       var result = syncBostarAttendance(ss, data);
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'update_cod_status') {
+      var result = updateCodStatus(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     } else if (action === 'add_or_update_report' || action === 'sync_daily_report') {
       var result = insertOrUpdateDailyReport(ss, data);
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
@@ -300,6 +303,55 @@ function insertPersonalSalesOrder(ss, order) {
     recordId: formattedRecId,
     orderId: order.orderId
   };
+}
+
+/**
+ * ធ្វើបច្ចុប្បន្នភាព COD Status ក្នុងផ្ទាំង Personal Sales ផ្ទាល់ (1st, 2nd, 3rd, បានទូទាត់...)
+ */
+function updateCodStatus(ss, data) {
+  var sheet = ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheets()[0];
+  if (!sheet) {
+    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };
+  }
+
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var numRows = values.length;
+
+  var targetRecordId = String(data.recordId || '').trim();
+  var targetOrderId = String(data.orderId || '').trim();
+  var newStatus = String(data.codStatus || '').trim();
+
+  if (!newStatus) {
+    return { status: 'error', message: 'No new codStatus provided!' };
+  }
+
+  var matchedRow = -1;
+  for (var r = 1; r < numRows; r++) {
+    var existingOrderId = String(values[r][4] || '').trim(); // Col E
+    var existingRecId = String(values[r][23] || values[r][22] || '').trim(); // Col W/X
+
+    if (targetRecordId && existingRecId && targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {
+      matchedRow = r + 1;
+      break;
+    }
+    if (targetOrderId && existingOrderId && targetOrderId.toLowerCase() === targetOrderId.toLowerCase()) {
+      matchedRow = r + 1;
+      break;
+    }
+  }
+
+  if (matchedRow > 0) {
+    sheet.getRange(matchedRow, 17).setValue(newStatus); // Col 17 (Q) is COD Status
+    return {
+      status: 'success',
+      message: 'Updated COD status to ' + newStatus + ' at row ' + matchedRow,
+      row: matchedRow,
+      codStatus: newStatus
+    };
+  }
+
+  return { status: 'not_found', message: 'Order ' + (targetOrderId || targetRecordId) + ' not found for status update' };
 }
 
 /**
