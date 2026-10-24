@@ -2995,25 +2995,29 @@
     </div>
   </div>
 
-  <!-- Edit Bank Account Balance Modal (iOS Bottom Sheet with Drag Handle) -->
+  <!-- Edit Bank Account Balance Modal (iOS Bottom Sheet) -->
   <div id="edit-bank-modal" onclick="closeEditBankModal(event)" 
        class="fixed inset-0 z-[80] bg-black/75 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
     <div onclick="event.stopPropagation()" 
          class="w-full max-w-md bg-[#0D1526] border-t sm:border border-white/15 rounded-t-[32px] sm:rounded-3xl p-5 sm:p-6 shadow-[0_-12px_45px_rgba(0,0,0,0.85)] relative animate-slide-up text-left select-none font-kantumruy">
       
-      <!-- iOS Drag Handle Bar -->
-      <div onclick="closeEditBankModal()" class="w-10 h-1.5 rounded-full bg-white/20 hover:bg-white/30 mx-auto mb-4 cursor-pointer transition"></div>
-
       <!-- Header with Dynamic Bank Branding inline right in front of the Title -->
-      <div class="mb-5">
-        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-          <span id="edit-bank-brand-pill" class="px-2.5 py-1 rounded-xl text-xs font-bold bg-[#00577B]/30 text-cyan-300 border border-cyan-500/30 shrink-0 shadow-sm transition-all">
-            <span id="edit-bank-brand-name">ABA</span>
-          </span>
-          <h3 id="edit-bank-title" class="font-bold text-sm sm:text-base text-white truncate flex-1">កែប្រែសមតុល្យ</h3>
-          <span id="edit-bank-curr-badge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">USD</span>
+      <div class="flex items-start justify-between gap-2 mb-5">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span id="edit-bank-brand-pill" class="px-2.5 py-1 rounded-xl text-xs font-bold bg-[#00577B]/30 text-cyan-300 border border-cyan-500/30 shrink-0 shadow-sm transition-all">
+              <span id="edit-bank-brand-name">ABA</span>
+            </span>
+            <h3 id="edit-bank-title" class="font-bold text-sm sm:text-base text-white truncate flex-1">កែប្រែសមតុល្យ</h3>
+            <span id="edit-bank-curr-badge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">USD</span>
+          </div>
+          <p id="edit-bank-sub" class="text-[11px] text-slate-400 truncate">គណនីធនាគារ • សមកាលកម្មទៅ Google Sheet ផ្ទាល់</p>
         </div>
-        <p id="edit-bank-sub" class="text-[11px] text-slate-400 truncate">គណនីធនាគារ • សមកាលកម្មទៅ Google Sheet ផ្ទាល់</p>
+        <button type="button" onclick="closeEditBankModal()" 
+                class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 border border-white/10 active:scale-95 transition" 
+                title="បិទ (Close)">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
       </div>
 
       <input type="hidden" id="edit-bank-no" value="">
@@ -3239,13 +3243,8 @@
       
       <!-- Top Header inside Drawer: Profile in natural position (Not centered, keeps original high location) + Search Button -->
       <div onclick="handleHeaderScrollToTop(event, 'profile-drawer-content')" 
-           class="px-4 pt-2 pb-3.5 border-b border-white/10 bg-[#0B1528]/90 backdrop-blur-xl shrink-0 cursor-pointer"
+           class="px-4 py-3.5 border-b border-white/10 bg-[#0B1528]/90 backdrop-blur-xl shrink-0 cursor-pointer"
            title="ប៉ះកន្លែងទំនេរដើម្បីឡើងលើបង្អស់ (Scroll to Top)">
-        <!-- Native iOS Top Grip / Status Indicator (Tap to Scroll to Top) -->
-        <div class="flex justify-center items-center pb-2 select-none">
-          <div class="w-10 h-1 rounded-full bg-white/20 hover:bg-white/40 active:scale-95 transition"></div>
-        </div>
-
         <div class="flex items-center justify-between gap-3">
           <!-- Left: Profile avatar + Name + ID/Greeting (Clickable to trigger greeting morph) -->
           <div onclick="triggerDrawerGreetingAnimation(event)" class="flex items-center gap-3 min-w-0 flex-1 overflow-visible cursor-pointer select-none" title="ចុចដើម្បីមើលសារស្វាគមន៍">
@@ -5260,9 +5259,7 @@
        class="fixed inset-0 z-[85] bg-black/75 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
     <div onclick="event.stopPropagation()"
          class="w-full max-w-sm bg-[#0D1526] border-t sm:border border-white/15 rounded-t-[32px] sm:rounded-3xl p-5 shadow-[0_-12px_45px_rgba(0,0,0,0.85)] relative animate-slide-up text-left select-none font-kantumruy">
-      <!-- iOS Drag Handle Bar -->
-      <div onclick="closeExpenseActionSheet()" class="w-10 h-1.5 rounded-full bg-white/20 hover:bg-white/30 mx-auto mb-4 cursor-pointer transition"></div>
-
+      
       <!-- Item Preview Header -->
       <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 mb-4 flex items-center justify-between">
         <div class="min-w-0 pr-2">
@@ -5272,7 +5269,14 @@
             <span id="expense-action-cat" class="text-slate-300">• ប្រភេទ</span>
           </div>
         </div>
-        <div id="expense-action-amt" class="font-mono text-base font-bold text-rose-400 shrink-0">$0.00</div>
+        <div class="flex items-center gap-2.5 shrink-0">
+          <div id="expense-action-amt" class="font-mono text-base font-bold text-rose-400">$0.00</div>
+          <button type="button" onclick="closeExpenseActionSheet()" 
+                  class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 border border-white/10 active:scale-95 transition"
+                  title="បិទ (Close)">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Action Buttons: Edit, Delete, Cancel -->
@@ -5319,6 +5323,6 @@
   </div>
 
   <script src="dataService.js?v=7.4"></script>
-  <script src="app.js?v=42.5"></script>
+  <script src="app.js?v=42.6"></script>
 </body>
 </html>
