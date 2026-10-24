@@ -3150,7 +3150,7 @@
   </div>
 
   <!-- Passcode Change Modal -->
-  <div id="change-pin-modal" class="fixed inset-0 z-[70] bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div id="change-pin-modal" onclick="if(event.target === this) closeChangePinModal()" class="fixed inset-0 z-[70] bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
     <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-6 max-w-xs w-full text-center relative shadow-2xl">
       <button onclick="closeChangePinModal()" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5">
         <i data-lucide="x" class="w-4 h-4"></i>
@@ -3171,7 +3171,7 @@
   </div>
 
   <!-- App Shortcut Customizer Modal -->
-  <div id="shortcut-modal" class="fixed inset-0 z-[70] bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div id="shortcut-modal" onclick="if(event.target === this) closeShortcutModal()" class="fixed inset-0 z-[70] bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
     <div class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 max-w-xs w-full relative shadow-2xl">
       <button onclick="closeShortcutModal()" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5">
         <i data-lucide="x" class="w-4 h-4"></i>
@@ -3388,7 +3388,8 @@
 
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden relative">
       <!-- Top Sticky Bar -->
-      <div class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2">
+      <div onclick="handleHeaderScrollToTop(event, 'hierarchy-modal-body')" 
+           class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2 cursor-pointer select-none">
         <div class="flex items-center justify-between gap-2">
           <!-- Minimalist Back Button -->
           <button onclick="closeExecutiveHierarchyModal()" 
@@ -3440,7 +3441,8 @@
 
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden relative">
       <!-- Top Bar -->
-      <div class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2">
+      <div onclick="handleHeaderScrollToTop(event, 'team-members-list')" 
+           class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2 cursor-pointer select-none">
         <!-- Morphing Header: Default Bar vs Search Expanded Bar -->
         <div id="team-members-header-bar" class="flex items-center justify-between gap-2">
           <!-- Minimalist Back Button (32x32) -->
@@ -4436,7 +4438,8 @@
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl relative">
       
       <!-- Top Modal Header -->
-      <div class="p-3 sm:p-3.5 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0">
+      <div onclick="handleHeaderScrollToTop(event, 'daily-report-body-content')" 
+           class="p-3 sm:p-3.5 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5 min-w-0">
           <button type="button" onclick="closeDailyReportModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-emerald-400"></i>
@@ -5218,6 +5221,6 @@
   </div>
 
   <script src="dataService.js?v=7.4"></script>
-  <script src="app.js?v=41.5"></script>
+  <script src="app.js?v=41.6"></script>
 </body>
 </html>

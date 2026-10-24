@@ -1345,6 +1345,16 @@ function handleBackNavigation() {
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
+  if (!document.getElementById('daily-report-modal')?.classList?.contains('hidden')) {
+    closeDailyReportModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
+  if (!document.getElementById('executive-hierarchy-modal')?.classList?.contains('hidden')) {
+    closeExecutiveHierarchyModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
 
   // 1d. Close Profile Drawer itself if open -> returns to Home!
   const profDrawer = document.getElementById('profile-drawer-modal');
@@ -1410,8 +1420,10 @@ function isAnyDrilldownModalOpen() {
     'team-members-modal', 'new-order-modal', 'new-expense-modal',
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
+    'executive-hierarchy-modal', 'daily-report-modal', 'honors-modal', 'tutorial-modal',
+    'attendance-leave-modal', 'attendance-manager-modal', 'attendance-top10-modal', 'attendance-certificate-modal', 'attendance-documents-modal',
     'profile-sub-modal', 'edit-profile-modal',
-    'about-modal', 'change-pin-modal', 'shortcut-modal', 'edit-bank-modal'
+    'about-modal', 'change-pin-modal', 'shortcut-modal', 'edit-bank-modal', 'profile-settings-search-modal'
   ];
   for (const id of modalIds) {
     const el = document.getElementById(id);
@@ -1476,8 +1488,8 @@ function setupSwipeToBack() {
       // 1. Touching anywhere when a profile submodal is open (Books & Notes, Customers, Attendance, QR...)
       isPotentialSwipe = true;
       swipeOrigin = 'profile-submodal';
-    } else if (touchStartX <= 60) {
-      // 2. Started from screen left edge (<= 60px)
+    } else if (touchStartX <= 80) {
+      // 2. Started from screen left edge (<= 80px)
       isPotentialSwipe = true;
       swipeOrigin = 'edge-left';
     } else if (touchStartX >= screenWidth - 60) {
@@ -1549,10 +1561,16 @@ function setupSwipeToBack() {
           // If a drilldown modal is open, swipe from left edge closes/steps back
           handleBackNavigation();
         } else if (!isDrawerOpen) {
-          // If standing on any of the 5 Dock views and drawer is closed, swipe from left edge opens Profile Dashboard
-          if (typeof openProfileDrawer === 'function') {
-            openProfileDrawer();
-            if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+          if (appState.currentView === 'dashboard') {
+            // Only standing on Dashboard, swipe from left edge opens Profile Dashboard
+            if (typeof openProfileDrawer === 'function') {
+              openProfileDrawer();
+              if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+            }
+          } else {
+            // If standing on Analytics, Learning, or Settings, swipe from left edge returns to Dashboard
+            switchView('dashboard');
+            if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
           }
         }
       }
@@ -15188,6 +15206,13 @@ function handleHeaderScrollToTop(e, targetId = null) {
       { modalId: 'payables-modal', listId: 'payables-modal-list' },
       { modalId: 'notif-modal', listId: 'notif-feed-list' },
       { modalId: 'profile-drawer-modal', listId: 'profile-drawer-content' },
+      { modalId: 'daily-report-modal', listId: 'daily-report-body-content' },
+      { modalId: 'executive-hierarchy-modal', listId: 'hierarchy-modal-body' },
+      { modalId: 'team-members-modal', listId: 'team-members-list' },
+      { modalId: 'tutorial-modal', listId: 'tutorial-modal-body' },
+      { modalId: 'honors-modal', listId: 'honors-modal-body' },
+      { modalId: 'new-order-modal', listId: 'new-order-modal-body' },
+      { modalId: 'new-expense-modal', listId: 'new-expense-modal-body' },
       { modalId: 'global-search-modal', listId: 'search-results-container' },
       { modalId: 'profile-settings-search-modal', listId: 'profile-settings-search-results' }
     ];
