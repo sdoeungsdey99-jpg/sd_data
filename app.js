@@ -19369,6 +19369,7 @@ function renderProfileDrawerContent() {
         </div>
         <div class="flex items-center gap-1.5 min-w-0">
           <span class="text-xs font-bold text-white truncate">រចនាសម្ព័ន្ធលក់</span>
+          <span class="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">ថ្នាក់ដឹកនាំ</span>
         </div>
       </div>
 
@@ -19431,7 +19432,7 @@ function renderProfileDrawerContent() {
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
       </div>
 
-      <!-- 3. មតិកែលម្អ & ជំនួយបច្ចេកទេស (Feedback & Support) -->
+      <!-- 3. ជំនួយ & មតិកែលម្អ (Help & Feedback) -->
       <div onclick="closeProfileDrawer(); openProfileSubModal('feedback_support');" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
@@ -19439,14 +19440,14 @@ function renderProfileDrawerContent() {
             <i data-lucide="message-square-heart" class="w-3.5 h-3.5 text-sky-400"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Feedback & Support' : 'មតិកែលម្អ & ជំនួយបច្ចេកទេស'}</h4>
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Help & Feedback' : 'ជំនួយ & មតិកែលម្អ'}</h4>
             <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Send feedback or contact Telegram' : 'ផ្ញើមតិកែលម្អ និងទំនាក់ទំនង Telegram ផ្ទាល់'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
       </div>
 
-      <!-- 4. អំពីគម្រោង & កាតកិត្តិយស (Honors & Dedication) -->
+      <!-- 4. អំពីគម្រោង & កិត្តិយស និងការដឹងគុណ (Honors & Dedication) -->
       <div onclick="closeProfileDrawer(); openHonorsModal();" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
@@ -19454,7 +19455,7 @@ function renderProfileDrawerContent() {
             <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Honors & Dedication' : '🌟 កាតកិត្តិយស & ការដឹងគុណ'}</h4>
+            <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Honors & Dedication' : 'កិត្តិយស និងការដឹងគុណ'}</h4>
             <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'BostarGroup Visionaries & Leadership' : 'ស្ថាបនិក • គណៈគ្រប់គ្រង • អ្នករៀបចំប្រព័ន្ធ'}</p>
           </div>
         </div>
@@ -19716,7 +19717,7 @@ function getProfileViewHTML() {
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
         </div>
 
-        <!-- 2. មតិកែលម្អ & ជំនួយបច្ចេកទេស (Feedback & Support) -->
+        <!-- 2. ជំនួយ & មតិកែលម្អ (Help & Feedback) -->
         <div onclick="openProfileSubModal('feedback_support')" 
              class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
           <div class="settings-row-left flex items-center gap-3 min-w-0">
@@ -19724,7 +19725,7 @@ function getProfileViewHTML() {
               <i data-lucide="message-square-heart" class="w-4 h-4 text-sky-400"></i>
             </div>
             <div class="min-w-0">
-              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">មតិកែលម្អ & ជំនួយបច្ចេកទេស</h4>
+              <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ជំនួយ & មតិកែលម្អ</h4>
               <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ផ្ញើមតិកែលម្អប្រព័ន្ធ ឬទាក់ទង Telegram ផ្ទាល់</p>
             </div>
           </div>
@@ -21188,7 +21189,7 @@ function openProfileSubModal(type) {
     const isAdmin = (typeof isDirectorOrAdminUser === 'function' && isDirectorOrAdminUser()) || Boolean(window._supportAdminUnlocked) || Boolean(window._attendanceAdminUnlocked) || (sessionStorage.getItem('master_admin_unlocked') === 'true');
     const isEditing = Boolean(window._supportAdminEditing);
 
-    title = 'មតិកែលម្អ & ជំនួយបច្ចេកទេស';
+    title = 'ជំនួយ & មតិកែលម្អ';
     sub = `ផ្ញើមតិកែលម្អប្រព័ន្ធ ឬទាក់ទង Telegram ${supportCfg.name} ផ្ទាល់`;
     icon = 'message-square-heart';
     contentHTML = `
