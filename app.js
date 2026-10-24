@@ -19504,7 +19504,7 @@ function renderProfileDrawerContent() {
               <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Custom Google Sheet' : 'Google Sheet ផ្ទាល់ខ្លួន'}</h4>
               ${(typeof DataService !== 'undefined' && DataService.isUsingCustomSheet && DataService.isUsingCustomSheet()) ? '<span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">ភ្ជាប់រួច</span>' : ''}
             </div>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Sync personal Google Sheet' : 'ភ្ជាប់ទិន្នន័យ Google Sheet ផ្ទាល់ខ្លួន'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Sync private sales records' : 'ភ្ជាប់ទិន្នន័យពីគណនីផ្ទាល់'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -19519,7 +19519,7 @@ function renderProfileDrawerContent() {
           </div>
           <div class="min-w-0">
             <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Help & Feedback' : 'ជំនួយ & មតិកែលម្អ'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Send feedback & Telegram support' : 'ផ្ញើមតិកែលម្អ ឬទាក់ទង Telegram ផ្ទាល់'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Inquiries & Telegram support' : 'ផ្ញើសារ ឬទាក់ទង Telegram ផ្ទាល់'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -19549,7 +19549,7 @@ function renderProfileDrawerContent() {
           </div>
           <div class="min-w-0">
             <h4 class="settings-row-title text-xs font-bold text-rose-400 truncate leading-tight">${isEn ? 'Log Out' : 'ចាកចេញ'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Sign out or switch account' : 'ចាកចេញដើម្បីប្រើប្រាស់គណនីផ្សេង'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Sign out or switch account' : 'ផ្លាស់ប្តូរទៅប្រើគណនីផ្សេង'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-rose-400/60 shrink-0"></i>
@@ -19736,7 +19736,7 @@ function getProfileViewHTML() {
             </div>
             <div>
               <h3 class="font-bold text-xs text-white leading-tight">របាយការណ៍ប្រចាំថ្ងៃ</h3>
-              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">របាយការណ៍លក់ ៩:០០ យប់</p>
+              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">សង្ខេបការលក់ ម៉ោង ៩:០០ យប់</p>
             </div>
           </div>
 
@@ -19804,7 +19804,7 @@ function getProfileViewHTML() {
             </div>
             <div class="min-w-0">
               <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ជំនួយ & មតិកែលម្អ</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ផ្ញើមតិកែលម្អ ឬទាក់ទង Telegram ផ្ទាល់</p>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ផ្ញើសារ ឬទាក់ទង Telegram ផ្ទាល់</p>
             </div>
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
