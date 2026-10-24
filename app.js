@@ -11294,6 +11294,32 @@ function setThaiCodPhaseFilter(phase) {
   renderThaiCodOrders();
 }
 
+function renderThaiCodPhoneHtml(rawPhone, fallbackDigits = '') {
+  const digits = String(rawPhone || '').replace(/\D/g, '');
+  if (!digits || digits.length < 4) {
+    if (rawPhone) {
+      return `<span class="font-mono text-slate-300">${rawPhone}</span>`;
+    }
+    if (fallbackDigits && fallbackDigits !== '—') {
+      return `<span class="font-mono font-bold text-orange-400 bg-orange-500/20 border border-orange-500/30 px-1 py-0.5 rounded tracking-wide">${fallbackDigits}</span>`;
+    }
+    return '';
+  }
+
+  const last4 = digits.slice(-4);
+  const prefixDigits = digits.slice(0, -4);
+  let formattedPrefix = prefixDigits;
+  if (prefixDigits.length === 6) {
+    formattedPrefix = `${prefixDigits.slice(0, 3)} ${prefixDigits.slice(3)} `;
+  } else if (prefixDigits.length === 5) {
+    formattedPrefix = `${prefixDigits.slice(0, 2)} ${prefixDigits.slice(2)} `;
+  } else if (prefixDigits.length > 0) {
+    formattedPrefix = `${prefixDigits} `;
+  }
+
+  return `<span class="font-mono text-slate-400">${formattedPrefix}</span><span class="font-mono font-bold text-orange-400 bg-orange-500/20 border border-orange-500/30 px-1 py-0.5 rounded tracking-wide" title="លេខកន្ទុយ ៤ ខ្ទង់">${last4}</span>`;
+}
+
 function renderThaiCodOrders() {
   const listEl = document.getElementById('cod-thai-orders-list');
   if (!listEl) return;
@@ -11329,6 +11355,7 @@ function renderThaiCodOrders() {
   listEl.innerHTML = orders.map((o) => {
     const phoneDigits = String(o.phone || '').replace(/\D/g, '');
     const last4 = phoneDigits.length >= 4 ? phoneDigits.slice(-4) : (phoneDigits || '—');
+    const phoneHtml = renderThaiCodPhoneHtml(o.phone, last4);
     const currentStatus = String(o.codStatus || 'បានដាក់ការកុម្មង់').trim();
     const baht = cleanNumber(o.thaiBaht || o.price);
     const usd = cleanNumber(o.totalAmount);
@@ -11338,27 +11365,27 @@ function renderThaiCodOrders() {
 
     return `
       <div class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 transition flex flex-col gap-1.5">
-        <!-- Top Row: Date, Customer, Delivery, Last 4 digits, THB Amount -->
+        <!-- Top Row: Date & Customer on Left | THB & USD on Right -->
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1.5 min-w-0">
             <span class="font-mono text-slate-400 text-[10.5px] whitespace-nowrap">${o.date}</span>
-            <span class="font-bold text-white text-xs truncate max-w-[130px] sm:max-w-[200px]">${o.customer || (isEn ? 'Customer' : 'អតិថិជន')}</span>
+            <span class="font-bold text-white text-xs truncate max-w-[140px] sm:max-w-[220px]" title="${o.customer || ''}">${o.customer || (isEn ? 'Customer' : 'អតិថិជន')}</span>
             <span class="px-1 py-0.2 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-semibold whitespace-nowrap hidden sm:inline">${o.deliveryMethod || 'Thai COD'}</span>
           </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <span class="px-1.5 py-0.5 rounded-md bg-orange-500/20 border border-orange-500/30 font-mono font-bold text-orange-400 text-[11px] tracking-wider" title="${isEn ? 'Last 4 digits' : 'លេខកន្ទុយ ៤ ខ្ទង់'}">${last4}</span>
+          <!-- Right: THB and USD amounts neatly stacked - NEVER cut off! -->
+          <div class="flex flex-col items-end shrink-0 text-right leading-tight">
             <span class="font-mono font-bold text-orange-400 text-xs sm:text-sm whitespace-nowrap">${formatInt(baht)} THB</span>
+            <span class="font-mono text-[10px] text-emerald-400 font-semibold whitespace-nowrap">${formatUSD(usd)}</span>
           </div>
         </div>
 
-        <!-- Bottom Row: Seller, Phone, Box qty / USD, and Status Dropdown -->
+        <!-- Bottom Row: Seller, Phone (with highlighted tail), Box qty on Left | Status Dropdown on Right -->
         <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
           <div class="flex items-center gap-1 text-slate-400 truncate min-w-0">
-            <span>👤 ${o.seller || (isEn ? 'Seller' : 'អ្នកលក់')}</span>
-            ${o.phone ? `<span class="font-mono text-slate-300">• 📞 ${o.phone}</span>` : ''}
+            <span class="truncate max-w-[70px] sm:max-w-[110px]">👤 ${o.seller || (isEn ? 'Seller' : 'អ្នកលក់')}</span>
+            ${phoneHtml ? `<span>•</span><span>📞 ${phoneHtml}</span>` : ''}
             <span>•</span>
-            <span class="font-mono text-slate-300 whitespace-nowrap">${boxQty} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>
-            <span class="text-slate-500 font-mono">(${formatUSD(usd)})</span>
+            <span class="font-mono text-slate-300 whitespace-nowrap shrink-0">${boxQty} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>
           </div>
           <div class="relative shrink-0">
             <select onchange="handleCodStatusChange('${safeRecId}', '${safeOrderId}', this.value)" 
