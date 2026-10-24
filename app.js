@@ -21055,7 +21055,118 @@ window.closeMasterPinModal = closeMasterPinModal;
 window.submitMasterPin = submitMasterPin;
 window.disconnectCustomSheet = disconnectCustomSheet;
 
+// SUPPORT & ASSISTANT TELEGRAM CONFIGURATION
+const DEFAULT_SUPPORT_TELEGRAM = {
+  name: 'បងស្តើង',
+  handle: '@sdoeung_sd',
+  link: 'https://t.me/sdoeung_sd'
+};
+
+function getSupportTelegramConfig() {
+  try {
+    const raw = localStorage.getItem('sd_support_telegram_config');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && (parsed.link || parsed.handle)) {
+        return {
+          name: parsed.name || DEFAULT_SUPPORT_TELEGRAM.name,
+          handle: parsed.handle || DEFAULT_SUPPORT_TELEGRAM.handle,
+          link: parsed.link || DEFAULT_SUPPORT_TELEGRAM.link
+        };
+      }
+    }
+  } catch (e) {
+    console.warn('Error reading sd_support_telegram_config:', e);
+  }
+  return { ...DEFAULT_SUPPORT_TELEGRAM };
+}
+
+function saveSupportTelegramConfig(name, rawInput) {
+  let cleanName = (name || '').trim() || DEFAULT_SUPPORT_TELEGRAM.name;
+  let raw = (rawInput || '').trim();
+  if (!raw) raw = 'sdoeung_sd';
+
+  let handle = '';
+  let link = '';
+
+  if (raw.startsWith('http://') || raw.startsWith('https://')) {
+    link = raw;
+    const parts = raw.split('t.me/');
+    handle = parts[1] ? ('@' + parts[1].replace('/', '')) : '@support';
+  } else if (raw.startsWith('@')) {
+    handle = raw;
+    link = 'https://t.me/' + raw.substring(1);
+  } else {
+    handle = '@' + raw;
+    link = 'https://t.me/' + raw;
+  }
+
+  const config = {
+    name: cleanName,
+    handle: handle,
+    link: link
+  };
+
+  try {
+    localStorage.setItem('sd_support_telegram_config', JSON.stringify(config));
+  } catch (e) {}
+  return config;
+}
+
+function toggleSupportTelegramAdminEdit(forceState) {
+  if (typeof forceState === 'boolean') {
+    window._supportAdminEditing = forceState;
+  } else {
+    window._supportAdminEditing = !window._supportAdminEditing;
+  }
+  openProfileSubModal('feedback_support');
+}
+
+function verifySupportAdminPin() {
+  const pinInput = document.getElementById('support-admin-pin');
+  const errEl = document.getElementById('support-pin-err');
+  const pin = (pinInput?.value || '').trim();
+  if (pin === '2026' || pin === 'sd2026' || pin === '1234' || pin === '5136') {
+    window._supportAdminUnlocked = true;
+    openProfileSubModal('feedback_support');
+  } else {
+    if (errEl) errEl.classList.remove('hidden');
+  }
+}
+
+function handleSaveSupportTelegram() {
+  const nameInput = document.getElementById('support-name-input');
+  const linkInput = document.getElementById('support-link-input');
+  const name = nameInput ? nameInput.value : '';
+  const link = linkInput ? linkInput.value : '';
+  saveSupportTelegramConfig(name, link);
+  window._supportAdminEditing = false;
+  openProfileSubModal('feedback_support');
+  if (typeof showToastNotification === 'function') {
+    showToastNotification('✓ បានរក្សាទុក Telegram ជំនួយការជោគជ័យ!');
+  }
+}
+
+function handleResetSupportTelegram() {
+  try {
+    localStorage.removeItem('sd_support_telegram_config');
+  } catch (e) {}
+  window._supportAdminEditing = false;
+  openProfileSubModal('feedback_support');
+  if (typeof showToastNotification === 'function') {
+    showToastNotification('បានកំណត់ Telegram ជំនួយការមកដើមវិញ!');
+  }
+}
+
+window.getSupportTelegramConfig = getSupportTelegramConfig;
+window.saveSupportTelegramConfig = saveSupportTelegramConfig;
+window.toggleSupportTelegramAdminEdit = toggleSupportTelegramAdminEdit;
+window.verifySupportAdminPin = verifySupportAdminPin;
+window.handleSaveSupportTelegram = handleSaveSupportTelegram;
+window.handleResetSupportTelegram = handleResetSupportTelegram;
+
 function closeProfileSubModal() {
+  window._supportAdminEditing = false;
   document.getElementById('profile-sub-modal')?.classList?.add('hidden');
   openProfileDrawer();
 }
@@ -21370,12 +21481,16 @@ function openProfileSubModal(type) {
       </div>
     `;
   } else if (type === 'feedback_support' || type === 'feedback' || type === 'support' || type === 'help') {
+    const supportCfg = getSupportTelegramConfig();
+    const isAdmin = (typeof isDirectorOrAdminUser === 'function' && isDirectorOrAdminUser()) || Boolean(window._supportAdminUnlocked) || Boolean(window._attendanceAdminUnlocked) || (sessionStorage.getItem('master_admin_unlocked') === 'true');
+    const isEditing = Boolean(window._supportAdminEditing);
+
     title = 'មតិកែលម្អ & ជំនួយបច្ចេកទេស';
-    sub = 'ផ្ញើមតិកែលម្អប្រព័ន្ធ ឬទាក់ទង Telegram បងស្តើងផ្ទាល់';
+    sub = `ផ្ញើមតិកែលម្អប្រព័ន្ធ ឬទាក់ទង Telegram ${supportCfg.name} ផ្ទាល់`;
     icon = 'message-square-heart';
     contentHTML = `
       <div class="space-y-3 select-none text-xs">
-        <!-- Telegram Contact Card (Highlight Telegram បងស្តើង) -->
+        <!-- Telegram Contact Card (Highlight Telegram ជំនួយការ/បងស្តើង) -->
         <div class="p-3.5 rounded-2xl bg-gradient-to-r from-sky-500/15 via-blue-500/10 to-indigo-500/15 border border-sky-500/30 space-y-2.5">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -21384,21 +21499,87 @@ function openProfileSubModal(type) {
               </div>
               <div>
                 <h4 class="font-bold text-xs text-white">ទំនាក់ទំនង Telegram ផ្ទាល់</h4>
-                <p class="text-[10px] text-sky-300 font-mono mt-0.5">@sdoeung_sd</p>
+                <p class="text-[10px] text-sky-300 font-mono mt-0.5">${supportCfg.handle}</p>
               </div>
             </div>
-            <span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[9px] font-bold font-mono">
-              ONLINE
-            </span>
+            <div class="flex items-center gap-1.5">
+              <button onclick="toggleSupportTelegramAdminEdit()" 
+                      title="Admin កែសម្រួល Telegram ជំនួយការ"
+                      class="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white border border-white/10 text-[9.5px] font-bold flex items-center gap-1 transition active:scale-95 shadow-sm">
+                <i data-lucide="settings" class="w-3 h-3 text-sky-400"></i>
+                <span>${isEditing ? 'បិទ' : 'កែប្រែ'}</span>
+              </button>
+              <span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[9px] font-bold font-mono">
+                ONLINE
+              </span>
+            </div>
           </div>
+
           <p class="text-[11px] text-slate-300 leading-relaxed">
-            លោកគ្រូ / អ្នកគ្រូ ឬសមាជិកក្រុមការងារ មានសំណូមពរ បញ្ហាបច្ចេកទេស ឬចង់កែលម្អប្រព័ន្ធ អាចឆាតទាក់ទងមកកាន់ <strong>បងស្តើង</strong> ដោយផ្ទាល់បានគ្រប់ពេលវេលា។
+            លោកគ្រូ / អ្នកគ្រូ ឬសមាជិកក្រុមការងារ មានសំណូមពរ បញ្ហាបច្ចេកទេស ឬចង់កែលម្អប្រព័ន្ធ អាចឆាតទាក់ទងមកកាន់ <strong>${supportCfg.name}</strong> ដោយផ្ទាល់បានគ្រប់ពេលវេលា។
           </p>
-          <a href="https://t.me/sdoeung_sd" target="_blank" 
+
+          <a href="${supportCfg.link}" target="_blank" 
              class="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 active:scale-95 transition">
             <i data-lucide="send" class="w-4 h-4"></i>
-            <span>បើកឆាត Telegram បងស្តើង 🚀</span>
+            <span>បើកឆាត Telegram ${supportCfg.name} 🚀</span>
           </a>
+
+          ${isEditing ? `
+            <!-- Admin Edit Box -->
+            <div class="pt-3 border-t border-sky-500/25 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-sky-300 flex items-center gap-1.5">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5 text-sky-400"></i>
+                  <span>កំណត់ Telegram ជំនួយការ (Admin)</span>
+                </span>
+                <button type="button" onclick="handleResetSupportTelegram()" class="text-[10px] text-slate-400 hover:text-rose-400 underline">
+                  កំណត់ដើមវិញ
+                </button>
+              </div>
+
+              ${!isAdmin ? `
+                <div class="p-2.5 rounded-xl bg-black/40 border border-amber-500/30 space-y-2">
+                  <label class="block text-[10.5px] text-amber-300 font-semibold">សូមបញ្ចូលលេខកូដសម្ងាត់ Admin (PIN) ដើម្បីកែប្រែ៖</label>
+                  <div class="flex gap-1.5">
+                    <input type="password" id="support-admin-pin" placeholder="PIN..." maxlength="6"
+                           class="flex-1 bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-amber-400">
+                    <button type="button" onclick="verifySupportAdminPin()"
+                            class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs active:scale-95 transition">
+                      យល់ព្រម
+                    </button>
+                  </div>
+                  <p id="support-pin-err" class="text-[10px] text-rose-400 hidden">លេខកូដ PIN មិនត្រឹមត្រូវ</p>
+                </div>
+              ` : `
+                <div class="space-y-2">
+                  <div>
+                    <label class="block text-[10.5px] text-slate-300 mb-1 font-medium">ឈ្មោះអ្នកទទួលបន្ទុក / ជំនួយការ៖</label>
+                    <input type="text" id="support-name-input" value="${supportCfg.name}" 
+                           placeholder="ឧ. ជំនួយការបងស្តើង ឬ បងស្តើង"
+                           class="w-full text-xs bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+                  </div>
+                  <div>
+                    <label class="block text-[10.5px] text-slate-300 mb-1 font-medium">Telegram Username ឬ Link៖</label>
+                    <input type="text" id="support-link-input" value="${supportCfg.handle}" 
+                           placeholder="ឧ. @username ឬ https://t.me/username"
+                           class="w-full text-xs font-mono bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-sky-500">
+                  </div>
+                  <div class="flex items-center gap-2 pt-1">
+                    <button type="button" onclick="handleSaveSupportTelegram()" 
+                            class="flex-1 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-black font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5 shadow-md">
+                      <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                      <span>រក្សាទុក</span>
+                    </button>
+                    <button type="button" onclick="toggleSupportTelegramAdminEdit(false)" 
+                            class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 text-xs font-semibold active:scale-95 transition">
+                      បោះបង់
+                    </button>
+                  </div>
+                </div>
+              `}
+            </div>
+          ` : ''}
         </div>
 
         <!-- Feedback Form Box -->
@@ -24124,15 +24305,11 @@ window.toggleTeamSetsFilterOnlySales = toggleTeamSetsFilterOnlySales;
 window.openTeamSetsModal = openTeamSetsModal;
 window.closeTeamSetsModal = closeTeamSetsModal;
 
-const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGLHc2-bPoKyfjo2jb2Rv2MymxXG7uqvDtgGiv2fQ6FD5Hqz4AbIAUTHrFwGLFqWT-/exec';
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyk9xwOPmje8H_qAI5abZ3dg5CWjxJ4aZ1YvwhDk8IUAXC1k8L6-_8B7_G6AIUGYQ/exec';
 
 function getAppsScriptWebhookUrl() {
-  const saved = localStorage.getItem('sd_apps_script_url');
-  if (!saved || !saved.includes('AKfycbzGLHc2-bPoKyfjo2jb2Rv2MymxXG7uqvDtgGiv2fQ6FD5Hqz4AbIAUTHrFwGLFqWT-')) {
-    localStorage.setItem('sd_apps_script_url', DEFAULT_APPS_SCRIPT_URL);
-    return DEFAULT_APPS_SCRIPT_URL;
-  }
-  return saved;
+  localStorage.setItem('sd_apps_script_url', DEFAULT_APPS_SCRIPT_URL);
+  return DEFAULT_APPS_SCRIPT_URL;
 }
 try {
   localStorage.setItem('sd_apps_script_url', DEFAULT_APPS_SCRIPT_URL);
