@@ -19333,20 +19333,20 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 3. ឯកសារ និង ផែនការ (Documents & Notes - Upgraded with CEO Sales Reset) ⭐ -->
-        <div onclick="closeProfileDrawer(); openProfileSubModal('book_notes');" 
+        <!-- 3. ឯកសារ និងមេរៀន (Documents & Study - Unified Gateway to Learning View) ⭐ -->
+        <div onclick="closeProfileDrawer(); switchView('learning');" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-amber-500/40">
           <div class="flex items-center justify-between mb-1.5">
             <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
-              <i data-lucide="crown" class="w-4 h-4"></i>
+              <i data-lucide="book-open" class="w-4 h-4"></i>
             </div>
             <span class="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold text-[9px] border border-amber-500/30">
               SALES RESET
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Documents & Plans' : 'ឯកសារ និងផែនការ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Wisdom & Commitments' : 'មេរៀន និងទស្សនវិស័យ CEO'}</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Documents & Study' : 'ឯកសារ និងមេរៀន'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'CEO Wisdom, Quotes & English' : 'មេរៀន CEO ស្លោក និងអង់គ្លេស'}</p>
           </div>
         </div>
 
@@ -19384,7 +19384,7 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 6. តារាងចំណាយ (Expenses Master Table) -->
+        <!-- 6. តារាងចំណាយមេ (Master Expenses Shortcut) -->
         <div onclick="closeProfileDrawer(); openExpensesModal('all');" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-rose-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -19396,8 +19396,8 @@ function renderProfileDrawerContent() {
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Expenses Table' : 'តារាងចំណាយ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Search & filter by date' : 'ស្វែងរក និងត្រងតាមកាលបរិច្ឆេទ'}</p>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Master Expenses' : 'តារាងចំណាយមេ'}</h3>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Search & filter all records' : 'ស្វែងរក និងត្រងគ្រប់កាលបរិច្ឆេទ'}</p>
           </div>
         </div>
 
