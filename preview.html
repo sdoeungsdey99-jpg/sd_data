@@ -3565,16 +3565,21 @@
             </span>
           </div>
 
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="text-[10px] text-slate-400 block mb-1">💵 ទឹកប្រាក់សរុប ($)</label>
+              <label class="text-[10px] text-slate-400 block mb-1">💵 សរុប ($)</label>
               <input type="number" step="0.01" id="edit-order-total-amount" oninput="calculateEditOrderFinancials()" 
-                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-emerald-400 font-bold font-mono focus:outline-none focus:border-orange-500">
+                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-1.5 text-xs text-emerald-400 font-bold font-mono focus:outline-none focus:border-orange-500">
             </div>
             <div>
-              <label class="text-[10px] text-slate-400 block mb-1">🚚 ថ្លៃដឹក Ship Fee ($)</label>
+              <label class="text-[10px] text-slate-400 block mb-1">🪙 បាត (THB ฿)</label>
+              <input type="number" step="1" id="edit-order-thai-baht" oninput="onEditOrderBahtInput()" 
+                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-1.5 text-xs text-orange-400 font-bold font-mono focus:outline-none focus:border-orange-500">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">🚚 ថ្លៃដឹក ($)</label>
               <input type="number" step="0.25" id="edit-order-ship-fee" oninput="calculateEditOrderFinancials()" 
-                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+                     class="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-orange-500">
             </div>
           </div>
 
@@ -5562,6 +5567,6 @@
   </div>
 
   <script src="dataService.js?v=7.5"></script>
-  <script src="app.js?v=42.8"></script>
+  <script src="app.js?v=42.9"></script>
 </body>
 </html>

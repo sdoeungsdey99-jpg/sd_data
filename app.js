@@ -10975,7 +10975,8 @@ function renderThaiCodOrders() {
     const safeOrderId = o.id || '';
 
     return `
-      <div class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 transition flex flex-col gap-1.5">
+      <div onclick="openEditSalesOrder('${safeRecId}', '${safeOrderId}', ${o.rowIndex !== undefined ? o.rowIndex : -1}, '${o.date || ''}', '${o.phone || ''}')" 
+           class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 active:scale-[0.99] transition flex flex-col gap-1.5 cursor-pointer">
         <!-- Top Row: Date & Customer on Left | THB & USD on Right -->
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1.5 min-w-0">
@@ -10998,7 +10999,7 @@ function renderThaiCodOrders() {
             <span>•</span>
             <span class="font-mono text-slate-300 whitespace-nowrap shrink-0">${boxQty} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>
           </div>
-          <div class="relative shrink-0">
+          <div class="relative shrink-0" onclick="event.stopPropagation()">
             <select onchange="handleCodStatusChange('${safeRecId}', '${safeOrderId}', this.value)" 
                     class="text-[11px] font-semibold py-0.5 pl-2 pr-5 rounded-lg border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(currentStatus)}">
               ${COD_STATUS_OPTIONS.map(opt => `
@@ -20708,8 +20709,10 @@ function openEditSalesOrder(recordId, orderId, rowIndex, fallbackDate, fallbackP
   if (freeInput) freeInput.value = o.freeQty || '';
 
   const amtInput = document.getElementById('edit-order-total-amount');
+  const bahtInput = document.getElementById('edit-order-thai-baht');
   const shipInput = document.getElementById('edit-order-ship-fee');
   if (amtInput) amtInput.value = (o.totalAmount !== undefined && o.totalAmount !== null) ? Number(o.totalAmount).toFixed(2) : '';
+  if (bahtInput) bahtInput.value = (o.thaiBaht > 0 || o.price > 0) ? Number(o.thaiBaht || o.price) : '';
   if (shipInput) shipInput.value = (o.shipFee !== undefined && o.shipFee !== null) ? Number(o.shipFee).toFixed(2) : '2.50';
 
   const delivSel = document.getElementById('edit-order-delivery');
@@ -20746,6 +20749,17 @@ function openEditSalesOrder(recordId, orderId, rowIndex, fallbackDate, fallbackP
   modal.classList.remove('hidden');
   setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
+}
+
+function onEditOrderBahtInput() {
+  const bahtVal = Number(document.getElementById('edit-order-thai-baht')?.value || 0);
+  if (bahtVal > 0) {
+    const rate = (typeof getThaiExchangeRate === 'function') ? getThaiExchangeRate() : 33.5;
+    const usdVal = (bahtVal / rate).toFixed(2);
+    const amtInput = document.getElementById('edit-order-total-amount');
+    if (amtInput) amtInput.value = usdVal;
+  }
+  calculateEditOrderFinancials();
 }
 
 function calculateEditOrderFinancials() {
@@ -20802,6 +20816,7 @@ async function submitEditSalesOrder() {
   const totalBoxes = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
 
   const totalAmount = Number(document.getElementById('edit-order-total-amount')?.value || 0);
+  const thaiBaht = Number(document.getElementById('edit-order-thai-baht')?.value || 0);
   const shipFee = Number(document.getElementById('edit-order-ship-fee')?.value || 0);
   const delivery = document.getElementById('edit-order-delivery')?.value || o.delivery;
   const codStatus = document.getElementById('edit-order-cod-status')?.value || o.codStatus;
@@ -20823,6 +20838,8 @@ async function submitEditSalesOrder() {
   o.freeQty = freeQty;
   o.totalBoxQty = totalBoxes;
   o.totalAmount = totalAmount;
+  o.thaiBaht = thaiBaht;
+  o.price = (thaiBaht > 0) ? thaiBaht : totalAmount;
   o.shipFee = shipFee;
   o.delivery = delivery;
   o.deliveryMethod = delivery;
@@ -20836,6 +20853,10 @@ async function submitEditSalesOrder() {
   if (typeof openPersonalSalesModal === 'function') {
     const sm = document.getElementById('sales-modal');
     if (sm && !sm.classList.contains('hidden')) openPersonalSalesModal();
+  }
+  if (typeof renderThaiCodOrders === 'function') {
+    const cm = document.getElementById('cod-modal');
+    if (cm && !cm.classList.contains('hidden')) renderThaiCodOrders();
   }
   if (typeof renderCurrentView === 'function') renderCurrentView();
 
@@ -20858,6 +20879,8 @@ async function submitEditSalesOrder() {
     freeQty: freeQty,
     totalBoxQty: totalBoxes,
     totalAmount: totalAmount,
+    thaiBaht: thaiBaht,
+    price: (thaiBaht > 0) ? thaiBaht : totalAmount,
     shipFee: shipFee,
     delivery: delivery,
     codStatus: codStatus,
@@ -20890,6 +20913,7 @@ window.openEditSalesOrder = openEditSalesOrder;
 window.closeEditSalesOrderModal = closeEditSalesOrderModal;
 window.calculateEditOrderFinancials = calculateEditOrderFinancials;
 window.submitEditSalesOrder = submitEditSalesOrder;
+window.onEditOrderBahtInput = onEditOrderBahtInput;
 
 // =========================================================
 // 4. PROFILE SUB-MODALS (Note, Book, Members, Telegram, Privacy, Feedback, Help, Logout Beta)
