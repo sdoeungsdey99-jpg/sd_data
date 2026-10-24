@@ -10643,9 +10643,13 @@ function closeSalesModal() {
 // Accounts Payable Modal & Dynamic Stock Cycle Logic (Option 1)
 // ==========================================
 let activePayablesCycle = 'auto'; // 'auto' | 1 | 2 | 3 | 4 | 5 | 6
+let activePayablesMonthKey = null; // null means auto-detect current month
 let isPayablesStockExpanded = false;
 
 function getPayablesActiveMonthKey() {
+  if (activePayablesMonthKey) {
+    return activePayablesMonthKey;
+  }
   if (appState && appState.periodFilter === 'month' && appState.selectedMonthKey) {
     return appState.selectedMonthKey;
   }
@@ -10654,6 +10658,45 @@ function getPayablesActiveMonthKey() {
   }
   return new Date().toISOString().slice(0, 7);
 }
+
+function getAvailablePayablesMonths() {
+  const d = DataService.data;
+  const monthMap = new Map();
+  const kmMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+
+  const currentKey = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()).slice(0, 7) : new Date().toISOString().slice(0, 7);
+
+  if (d && d.personalSales) {
+    d.personalSales.forEach(o => {
+      if (o.isoDate && o.isoDate.length >= 7) {
+        const key = o.isoDate.slice(0, 7);
+        if (!monthMap.has(key)) {
+          const parts = key.split('-');
+          const yr = parts[0];
+          const mo = parts[1];
+          const moIdx = parseInt(mo, 10) - 1;
+          monthMap.set(key, `ខែ${kmMonths[moIdx] || mo} ${yr}`);
+        }
+      }
+    });
+  }
+
+  if (!monthMap.has(currentKey)) {
+    const parts = currentKey.split('-');
+    const yr = parts[0];
+    const mo = parts[1];
+    const moIdx = parseInt(mo, 10) - 1;
+    monthMap.set(currentKey, `ខែ${kmMonths[moIdx] || mo} ${yr}`);
+  }
+
+  return Array.from(monthMap.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+}
+
+function changePayablesMonth(newMonthKey) {
+  activePayablesMonthKey = newMonthKey;
+  renderPayablesList();
+}
+window.changePayablesMonth = changePayablesMonth;
 
 function getActivePayablesCycleNum(mode, monthKey) {
   if (mode !== 'auto') {
@@ -10718,9 +10761,9 @@ function getPayablesCycleStockData(cycleNum, monthKey) {
   }
 
   // Filter ONLY standard sales [លក់ធម្មតា] ➔ $24/កំប៉ុង
-  // Explicitly exclude reward sales (isReward, note contains 'រង្វាន់')
-  // Explicitly exclude return sales (isReturn, note contains 'ត្រឡប់')
-  // Explicitly exclude canceled/returned orders
+  // Exclude reward sales (isReward, note contains 'រង្វាន់')
+  // Exclude return sales (isReturn, note contains 'ត្រឡប់')
+  // DO NOT exclude canceled orders: stock is committed to supplier ($24/box)
   const orders = d.personalSales.filter(o => {
     if (!o.isoDate) return false;
     if (o.isoDate < range.startIso || o.isoDate > range.endIso) return false;
@@ -10728,9 +10771,6 @@ function getPayablesCycleStockData(cycleNum, monthKey) {
     const isRwd = o.isReward || (o.note && o.note.includes('រង្វាន់'));
     const isRet = o.isReturn || (o.note && o.note.includes('ត្រឡប់'));
     if (isRwd || isRet) return false;
-
-    const st = String(o.codStatus || '').toLowerCase();
-    if (st.includes('canceled') || st.includes('cancel') || st.includes('ដកអីវ៉ាន់')) return false;
 
     return true;
   });
@@ -10803,12 +10843,27 @@ function renderPayablesList() {
     subtitle.textContent = `ទិន្នន័យជាក់ស្តែងពី Bank & Cash Balance`;
   }
 
+  const availableMonths = getAvailablePayablesMonths();
+
   if (footer) {
     footer.innerHTML = `
-      <div class="text-slate-300 font-semibold text-xs">
-        ចំនួនសរុប: <span class="font-mono text-white font-bold">${activeCount} មុខ</span>
+      <div class="text-slate-300 font-semibold text-xs shrink-0">
+        ចំនួន: <span class="font-mono text-white font-bold">${activeCount} មុខ</span>
       </div>
-      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right">
+
+      <!-- Month Selector in the center of total summary bar -->
+      <div class="relative flex items-center justify-center">
+        <select onchange="changePayablesMonth(this.value)" class="appearance-none bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white text-[11px] font-semibold rounded-lg pl-2 pr-5 py-1 focus:outline-none focus:border-orange-500/50 cursor-pointer transition">
+          ${availableMonths.map(([mKey, label]) => `
+            <option value="${mKey}" ${mKey === monthKey ? 'selected' : ''} class="bg-[#0B1528] text-white">
+              ${label}
+            </option>
+          `).join('')}
+        </select>
+        <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 absolute right-1.5 pointer-events-none"></i>
+      </div>
+
+      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right shrink-0">
         <span class="text-[11px] text-slate-400 font-sans font-normal">សរុប:</span>
         <span>${formatUSD(totalPayables)}</span>
       </div>
@@ -10818,12 +10873,12 @@ function renderPayablesList() {
   // Render cards
   let html = '';
 
-  // 1. STOCK CARD WITH EMBEDDED CYCLE SELECTOR (Compact & Clean)
+  // 1. STOCK CARD WITH EMBEDDED CYCLE SELECTOR (Tap empty area to expand/collapse)
   const isAuto = activePayablesCycle === 'auto';
   html += `
     <div class="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-2.5">
-      <!-- Top Row: Title, $24 badge & Amount -->
-      <div class="flex items-center justify-between">
+      <!-- Clickable Bar (Tap on empty area or title/price to toggle) -->
+      <div onclick="togglePayablesStockBreakdown()" class="flex items-center justify-between cursor-pointer select-none active:scale-[0.99] transition" title="ចុចដើម្បីមើលបញ្ជី Orders">
         <div class="flex items-center gap-2.5 min-w-0">
           <span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
             <i data-lucide="package" class="w-4 h-4"></i>
@@ -10836,30 +10891,25 @@ function renderPayablesList() {
             <span class="text-[10px] text-slate-400 block">${stockData.totalBoxes} កំប៉ុង • ជុំទី ${effectiveCycleNum}</span>
           </div>
         </div>
-        <div class="text-right shrink-0">
-          <span class="font-mono text-rose-400 font-bold text-sm block">${formatUSD(stockData.stockCost)}</span>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span class="font-mono text-rose-400 font-bold text-sm">${formatUSD(stockData.stockCost)}</span>
+          <i data-lucide="${isPayablesStockExpanded ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5 text-slate-400"></i>
         </div>
       </div>
 
       <!-- Middle: Minimalist Cycle Selector Pills -->
-      <div class="pt-2 border-t border-white/5 flex items-center justify-between gap-1">
-        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 text-xs">
-          <button onclick="setPayablesCycle('auto')" class="py-1 px-2 rounded-lg text-xs font-semibold shrink-0 transition active:scale-95 ${isAuto ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-slate-400 border border-white/5 hover:text-white'}">
-            ⚡ Auto
-          </button>
-          ${[1, 2, 3, 4, 5, 6].map(cNum => {
-            const isSelected = !isAuto && activePayablesCycle === cNum;
-            return `
-              <button onclick="setPayablesCycle(${cNum})" class="py-1 px-2 rounded-lg text-xs font-semibold shrink-0 transition active:scale-95 ${isSelected ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-slate-400 border border-white/5 hover:text-white'}">
-                ជុំ ${cNum}
-              </button>
-            `;
-          }).join('')}
-        </div>
-        <button onclick="togglePayablesStockBreakdown()" class="shrink-0 text-[11px] text-slate-400 hover:text-orange-400 flex items-center gap-0.5 font-medium px-1.5 py-1 transition active:scale-95">
-          <span>${isPayablesStockExpanded ? 'បិទ' : 'លម្អិត'}</span>
-          <i data-lucide="${isPayablesStockExpanded ? 'chevron-up' : 'chevron-down'}" class="w-3 h-3"></i>
+      <div class="pt-2 border-t border-white/5 flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 text-xs">
+        <button onclick="event.stopPropagation(); setPayablesCycle('auto');" class="py-1 px-2.5 rounded-lg text-xs font-semibold shrink-0 transition active:scale-95 ${isAuto ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-slate-400 border border-white/5 hover:text-white'}">
+          ⚡ Auto
         </button>
+        ${[1, 2, 3, 4, 5, 6].map(cNum => {
+          const isSelected = !isAuto && activePayablesCycle === cNum;
+          return `
+            <button onclick="event.stopPropagation(); setPayablesCycle(${cNum});" class="py-1 px-2.5 rounded-lg text-xs font-semibold shrink-0 transition active:scale-95 ${isSelected ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-slate-400 border border-white/5 hover:text-white'}">
+              ជុំ ${cNum}
+            </button>
+          `;
+        }).join('')}
       </div>
 
       <!-- Collapsible Order Breakdown List -->
