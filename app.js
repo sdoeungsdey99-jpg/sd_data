@@ -11745,7 +11745,55 @@ function openBoostModal(year = null) {
 function closeBoostModal() {
   const modal = document.getElementById('boost-modal');
   if (modal) modal.classList.add('hidden');
+  closeBoostYearDropdown();
   inlineEditingMonth = null;
+}
+
+function toggleBoostYearDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('boost-year-dropdown-menu');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  if (isHidden) {
+    renderBoostYearDropdown();
+    menu.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+  }
+}
+
+function renderBoostYearDropdown() {
+  const menu = document.getElementById('boost-year-dropdown-menu');
+  if (!menu) return;
+
+  const curYear = (new Date()).getFullYear();
+  const years = [curYear + 1, curYear, curYear - 1, curYear - 2];
+
+  menu.innerHTML = years.map(y => {
+    const isSelected = (y === activeBoostYear);
+    return `
+      <button onclick="selectBoostYear(${y}, event)" 
+              class="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-rose-400 bg-rose-500/15 font-bold' : 'text-slate-200 hover:bg-white/10 active:scale-95'}">
+        <span class="font-mono">ឆ្នាំ ${y}</span>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-rose-400"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function selectBoostYear(y, event) {
+  if (event) event.stopPropagation();
+  activeBoostYear = y;
+  closeBoostYearDropdown();
+  inlineEditingMonth = null;
+  renderBoostModal();
+}
+
+function closeBoostYearDropdown() {
+  const menu = document.getElementById('boost-year-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
 }
 
 function changeBoostModalYear(delta) {
@@ -26698,6 +26746,10 @@ window.resetQuickBoostToSheet = resetQuickBoostToSheet;
 window.openBoostModal = openBoostModal;
 window.closeBoostModal = closeBoostModal;
 window.changeBoostModalYear = changeBoostModalYear;
+window.toggleBoostYearDropdown = toggleBoostYearDropdown;
+window.renderBoostYearDropdown = renderBoostYearDropdown;
+window.selectBoostYear = selectBoostYear;
+window.closeBoostYearDropdown = closeBoostYearDropdown;
 window.renderBoostModal = renderBoostModal;
 window.renderBoostModalList = renderBoostModalList;
 window.toggleInlineMonthBoost = toggleInlineMonthBoost;

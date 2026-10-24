@@ -1219,6 +1219,7 @@
     .light-theme #team-sets-modal > div,
     .light-theme #boost-modal > div,
     .light-theme #quick-boost-modal > div,
+    .light-theme #boost-year-dropdown-menu,
     .light-theme #notif-modal-card {
       background-color: #FFFFFF !important;
       border-color: #E2E8F0 !important;
@@ -2558,15 +2559,20 @@
           </div>
         </div>
 
-        <!-- Year Switcher in Header -->
-        <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation();">
-          <button onclick="changeBoostModalYear(-1)" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 flex items-center justify-center active:scale-95 transition" title="ឆ្នាំមុន">
-            <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+        <!-- Year Dropdown Selector in Header (Clean & Spacious) -->
+        <div class="relative shrink-0" onclick="event.stopPropagation();">
+          <button onclick="toggleBoostYearDropdown(event)" 
+                  class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-mono font-bold text-xs flex items-center gap-1.5 transition shadow-sm" 
+                  title="ជ្រើសរើសឆ្នាំ">
+            <span id="boost-modal-year-display">2026</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-rose-400"></i>
           </button>
-          <span id="boost-modal-year-display" class="font-mono font-bold text-xs text-white px-2 py-1 rounded-lg bg-white/5 border border-white/10">2026</span>
-          <button onclick="changeBoostModalYear(1)" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 flex items-center justify-center active:scale-95 transition" title="ឆ្នាំបន្ទាប់">
-            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-          </button>
+          
+          <!-- Dropdown Menu -->
+          <div id="boost-year-dropdown-menu" 
+               class="hidden absolute right-0 top-full mt-1.5 w-32 bg-[#0B1528]/95 backdrop-blur-2xl border border-white/15 shadow-2xl rounded-2xl p-1.5 z-50 divide-y divide-white/5 animate-fade-in font-sans">
+            <!-- Rendered dynamically -->
+          </div>
         </div>
       </div>
 
