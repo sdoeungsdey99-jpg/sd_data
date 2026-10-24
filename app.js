@@ -2965,12 +2965,6 @@ function openExecutivePasscodeModal() {
 
         <p id="exec-passcode-error" class="hidden text-rose-400 text-[11px] text-center font-medium"></p>
 
-        <div class="pt-1 pb-0.5 border-t border-white/5 text-center">
-          <p class="text-[10px] text-slate-400 font-sans leading-relaxed">
-            កូដតាមតួនាទី៖ <span class="text-amber-300 font-mono font-bold">manager</span> • <span class="text-sky-300 font-mono font-bold">leader</span> • <span class="text-emerald-300 font-mono font-bold">1234</span>
-          </p>
-        </div>
-
         <div class="grid grid-cols-2 gap-2 pt-1">
           <button type="button" onclick="closeExecutivePasscodeModal()" 
                   class="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold text-xs active:scale-95 transition">
@@ -3057,7 +3051,7 @@ function submitExecutivePasscode(enteredVal) {
   } else {
     const errEl = document.getElementById('exec-passcode-error');
     if (errEl) {
-      errEl.textContent = 'លេខកូដមិនត្រឹមត្រូវទេ! (សាកល្បង manager, leader ឬ 1234)';
+      errEl.textContent = 'លេខកូដមិនត្រឹមត្រូវទេ!';
       errEl.classList.remove('hidden');
     }
     const input = document.getElementById('exec-passcode-input');
