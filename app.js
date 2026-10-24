@@ -51,9 +51,9 @@ const translations = {
     accountSection: 'គណនី និងអំពីប្រព័ន្ធ',
     accountDesc: 'គ្រប់គ្រងសុវត្ថិភាព និងព័ត៌មានម្ចាស់គណនី',
     fontTitle: 'ពុម្ពអក្សរ',
-    fontDesc: 'ជ្រើសរើសទម្រង់អក្សរងាយស្រួលអាន',
+    fontDesc: 'ពុម្ពអក្សរខ្មែរ និងឡាតាំងស្តង់ដា',
     textSizeTitle: 'ទំហំអក្សរ',
-    textSizeDesc: 'តូចបំផុត ➔ ធំបំផុត',
+    textSizeDesc: '៣ កម្រិត (តូច • មធ្យម • ធំ)',
     wallpaperTitle: 'ផ្ទាំងរូបភាពអេក្រង់ចាក់សោរ',
     wallpaperDesc: 'រូបភាព និងពណ៌ពន្លឺផ្ទៃខាងក្រោយ',
     protectApp: 'ការពារទិន្នន័យរបស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
@@ -81,7 +81,7 @@ const translations = {
     contactTelegramBtn: 'ទាក់ទងតាមតេឡេក្រាម',
     noData: 'គ្មានទិន្នន័យ',
     themeAccentTitle: 'ពណ៌ចម្បង',
-    themeAccentDesc: 'ជ្រើសរើសពណ៌សម្រាប់ប៊ូតុង និងផ្លាកសញ្ញា',
+    themeAccentDesc: 'ពណ៌ប៊ូតុង និងផ្លាកសញ្ញា',
     accentBlue: 'ខៀវចាស់',
     accentCoral: 'ក្រហមផ្កាថ្ម',
     accentOrange: 'ទឹកក្រូច',
@@ -143,9 +143,9 @@ const translations = {
     accountSection: 'Account & System',
     accountDesc: 'Manage passcode security and profile information',
     fontTitle: 'Typography',
-    fontDesc: 'Choose preferred readable font family',
+    fontDesc: 'Standard Khmer & Latin fonts',
     textSizeTitle: 'Text Size',
-    textSizeDesc: 'Extra Small ➔ Extra Large',
+    textSizeDesc: '3 levels (Small • Medium • Large)',
     wallpaperTitle: 'Lock Screen Wallpaper',
     wallpaperDesc: 'Background visuals and ambient glows',
     protectApp: 'Protect your data with a 4-digit passcode',
@@ -173,7 +173,7 @@ const translations = {
     contactTelegramBtn: 'Contact via Telegram',
     noData: 'No Data Available',
     themeAccentTitle: 'Accent Theme',
-    themeAccentDesc: 'Choose primary color for buttons and badges',
+    themeAccentDesc: 'Button & badge accent color',
     accentBlue: 'Deep Blue',
     accentCoral: 'Coral Red',
     accentOrange: 'Sunset Orange',
@@ -19232,7 +19232,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Customer Directory' : 'បញ្ជីអតិថិជន'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Full Directory View' : 'បង្ហាញពេញអេក្រង់'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Customer contacts & phone' : 'បញ្ជីឈ្មោះ និងលេខទូរស័ព្ទ'}</p>
           </div>
         </div>
 
@@ -19268,7 +19268,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Documents & Plans' : 'ឯកសារ និងផែនការ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'CEO Wisdom & Commitments' : 'មេរៀនអគ្គនាយក & ផែនការ'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'CEO Wisdom & Commitments' : 'មេរៀន និងផែនការសកម្មភាព'}</p>
           </div>
         </div>
 
@@ -19285,7 +19285,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Daily Report' : 'របាយការណ៍ប្រចាំថ្ងៃ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? '9:00 PM Sales Report' : 'របាយការណ៍លក់ ម៉ោង ៩:០០ យប់'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Daily sales summary (9 PM)' : 'សង្ខេបការលក់ ម៉ោង ៩:០០ យប់'}</p>
           </div>
         </div>
 
@@ -19302,7 +19302,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Team Members' : 'សមាជិកក្រុម'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Team roster & roles' : 'បញ្ជីសមាជិកក្រុម'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Team structure & roles' : 'រចនាសម្ព័ន្ធ និងតួនាទីក្រុម'}</p>
           </div>
         </div>
 
@@ -19319,7 +19319,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Expenses Table' : 'តារាងចំណាយ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Filter by day, month, year' : 'ត្រងតាមថ្ងៃ ខែ ឆ្នាំ & Search'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Search & filter by date' : 'ស្វែងរក និងត្រងតាមកាលបរិច្ឆេទ'}</p>
           </div>
         </div>
 
@@ -19393,7 +19393,7 @@ function renderProfileDrawerContent() {
           </div>
           <div class="min-w-0">
             <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Settings' : 'ការកំណត់'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Languages, themes, colors, fonts, sizes' : 'ភាសា, ពន្លឺ, ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Language, theme, fonts & display' : 'ភាសា ពន្លឺ ពណ៌ និងពុម្ពអក្សរ'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -19408,7 +19408,7 @@ function renderProfileDrawerContent() {
           </div>
           <div class="min-w-0">
             <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Privacy' : 'ឯកជនភាព'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Toggle personal info visibility' : 'បិទ/បើកការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Manage personal info visibility' : 'កំណត់ការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -19426,7 +19426,7 @@ function renderProfileDrawerContent() {
               <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Custom Google Sheet' : 'Google Sheet ផ្ទាល់ខ្លួន'}</h4>
               ${(typeof DataService !== 'undefined' && DataService.isUsingCustomSheet && DataService.isUsingCustomSheet()) ? '<span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">ភ្ជាប់រួច</span>' : ''}
             </div>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Sync team member private sheet' : 'ភ្ជាប់ទិន្នន័យពី Sheet របស់កូនក្រុម'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Sync personal Google Sheet' : 'ភ្ជាប់ទិន្នន័យ Google Sheet ផ្ទាល់ខ្លួន'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -19441,7 +19441,7 @@ function renderProfileDrawerContent() {
           </div>
           <div class="min-w-0">
             <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Help & Feedback' : 'ជំនួយ & មតិកែលម្អ'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Send feedback or contact Telegram' : 'ផ្ញើមតិកែលម្អ និងទំនាក់ទំនង Telegram ផ្ទាល់'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Send feedback & Telegram support' : 'ផ្ញើមតិកែលម្អ ឬទាក់ទង Telegram ផ្ទាល់'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -19471,7 +19471,7 @@ function renderProfileDrawerContent() {
           </div>
           <div class="min-w-0">
             <h4 class="settings-row-title text-xs font-bold text-rose-400 truncate leading-tight">${isEn ? 'Log Out' : 'ចាកចេញ'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Switch Google account' : 'ចាកចេញដើម្បីប្រើប្រាស់គណនីផ្សេង'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Sign out or switch account' : 'ចាកចេញដើម្បីប្រើប្រាស់គណនីផ្សេង'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-rose-400/60 shrink-0"></i>
@@ -19696,7 +19696,7 @@ function getProfileViewHTML() {
             </div>
             <div class="min-w-0">
               <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ការកំណត់ (Settings)</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ពុម្ពអក្សរ, ទំហំអក្សរ, ពណ៌ចម្បង, ផ្ទាំងរូបភាព និងសុវត្ថិភាព</p>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ភាសា ពន្លឺ ពណ៌ និងពុម្ពអក្សរ</p>
             </div>
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
@@ -19711,7 +19711,7 @@ function getProfileViewHTML() {
             </div>
             <div class="min-w-0">
               <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ឯកជនភាព (Privacy)</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">សិទ្ធិរក្សា និងបិទ/បើកការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន</p>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">កំណត់ការបង្ហាញព័ត៌មានផ្ទាល់ខ្លួន</p>
             </div>
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
@@ -19726,7 +19726,7 @@ function getProfileViewHTML() {
             </div>
             <div class="min-w-0">
               <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">ជំនួយ & មតិកែលម្អ</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ផ្ញើមតិកែលម្អប្រព័ន្ធ ឬទាក់ទង Telegram ផ្ទាល់</p>
+              <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">ផ្ញើមតិកែលម្អ ឬទាក់ទង Telegram ផ្ទាល់</p>
             </div>
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
