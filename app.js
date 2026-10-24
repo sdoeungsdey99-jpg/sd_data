@@ -10663,11 +10663,9 @@ function getPayablesActiveMonthKey() {
   return `${activePayablesYear}-${moStr}`;
 }
 
-function changePayablesYear(delta) {
+function changePayablesYear(val) {
   initPayablesDate();
-  activePayablesYear += delta;
-  if (activePayablesYear < 2024) activePayablesYear = 2024;
-  if (activePayablesYear > 2030) activePayablesYear = 2030;
+  activePayablesYear = parseInt(val, 10);
   renderPayablesList();
 }
 window.changePayablesYear = changePayablesYear;
@@ -10828,39 +10826,38 @@ function renderPayablesList() {
 
   if (footer) {
     footer.innerHTML = `
-      <div class="text-slate-300 font-semibold text-xs shrink-0 flex flex-col justify-center">
-        <span class="text-[10px] text-slate-400">ចំនួនសរុប</span>
-        <span class="font-mono text-white font-bold text-xs">${activeCount} មុខ</span>
+      <div class="text-slate-300 font-semibold text-xs shrink-0">
+        <span class="text-slate-400 font-normal">ចំនួន:</span> <span class="font-mono text-white font-bold">${activeCount} មុខ</span>
       </div>
 
-      <!-- Center: Year ABOVE Month -->
-      <div class="flex flex-col items-center justify-center gap-1">
-        <!-- Year ពីលើ -->
-        <div class="flex items-center gap-1 bg-white/5 hover:bg-white/10 px-1.5 py-0.5 rounded-lg border border-white/10">
-          <button onclick="changePayablesYear(-1)" class="w-4 h-4 flex items-center justify-center text-slate-400 hover:text-white active:scale-90 transition" title="ឆ្នាំមុន">
-            <i data-lucide="chevron-left" class="w-2.5 h-2.5 text-orange-400"></i>
-          </button>
-          <span class="font-mono font-bold text-[11px] text-white tracking-wider px-1">${activePayablesYear}</span>
-          <button onclick="changePayablesYear(1)" class="w-4 h-4 flex items-center justify-center text-slate-400 hover:text-white active:scale-90 transition" title="ឆ្នាំបន្ទាប់">
-            <i data-lucide="chevron-right" class="w-2.5 h-2.5 text-orange-400"></i>
-          </button>
-        </div>
-
-        <!-- Month ពីក្រោមឆ្នាំ -->
-        <div class="relative flex items-center">
-          <select onchange="changePayablesMonthNum(this.value)" class="appearance-none bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white text-[11px] font-semibold rounded-lg pl-2 pr-5 py-0.5 focus:outline-none focus:border-orange-500/50 cursor-pointer transition">
+      <!-- Center: Month and Year side-by-side like on the outside -->
+      <div class="flex items-center gap-1.5">
+        <!-- Month Selector Pill -->
+        <div class="relative">
+          <select onchange="changePayablesMonthNum(this.value)" class="appearance-none bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white text-[11px] font-semibold rounded-lg pl-2 pr-5 py-1 focus:outline-none focus:border-orange-500/50 cursor-pointer transition">
             ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => {
               const isSelected = m === activePayablesMonthNum;
               return `<option value="${m}" ${isSelected ? 'selected' : ''} class="bg-[#0B1528] text-white">ខែ${kmMonths[m - 1]}</option>`;
             }).join('')}
           </select>
-          <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 absolute right-1.5 pointer-events-none"></i>
+          <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        </div>
+
+        <!-- Year Selector Pill -->
+        <div class="relative">
+          <select onchange="changePayablesYear(this.value)" class="appearance-none bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white text-[11px] font-semibold rounded-lg pl-2 pr-5 py-1 focus:outline-none focus:border-orange-500/50 cursor-pointer transition">
+            ${[2025, 2026, 2027].map(y => {
+              const isSelected = y === activePayablesYear;
+              return `<option value="${y}" ${isSelected ? 'selected' : ''} class="bg-[#0B1528] text-white">ឆ្នាំ ${y}</option>`;
+            }).join('')}
+          </select>
+          <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
         </div>
       </div>
 
-      <div class="text-right shrink-0 flex flex-col justify-center">
-        <span class="text-[10px] text-slate-400">សរុបទឹកប្រាក់</span>
-        <span class="font-mono font-bold text-sm text-rose-400">${formatUSD(totalPayables)}</span>
+      <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right shrink-0">
+        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុប:</span>
+        <span>${formatUSD(totalPayables)}</span>
       </div>
     `;
   }
@@ -10883,7 +10880,7 @@ function renderPayablesList() {
               <span class="font-bold text-xs text-white">ថ្លៃទំនិញចូលស្តុក</span>
               <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono font-semibold">$24</span>
             </div>
-            <span class="text-[10px] text-slate-400 block">${stockData.totalBoxes} កំប៉ុង • ជុំទី ${effectiveCycleNum}</span>
+            <span class="text-[10px] text-slate-400 block">${stockData.totalBoxes} កំប៉ុង • ជុំទី ${effectiveCycleNum} (ពីថ្ងៃ ${stockData.range.startDay} ដល់ថ្ងៃ ${stockData.range.endDay})</span>
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
@@ -10892,10 +10889,10 @@ function renderPayablesList() {
         </div>
       </div>
 
-      <!-- Middle: Minimalist Cycle Selector Pills -->
+      <!-- Middle: Minimalist Cycle Selector Pills (Plain Auto without icon) -->
       <div class="pt-2 border-t border-white/5 flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 text-xs">
         <button onclick="event.stopPropagation(); setPayablesCycle('auto');" class="py-1 px-2.5 rounded-lg text-xs font-semibold shrink-0 transition active:scale-95 ${isAuto ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-slate-400 border border-white/5 hover:text-white'}">
-          ⚡ Auto
+          Auto
         </button>
         ${[1, 2, 3, 4, 5, 6].map(cNum => {
           const isSelected = !isAuto && activePayablesCycle === cNum;
