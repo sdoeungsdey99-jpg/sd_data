@@ -10646,13 +10646,11 @@ let activePayablesCycle = 'auto'; // 'auto' | 1 | 2 | 3 | 4 | 5 | 6
 let isPayablesStockExpanded = false;
 
 function getPayablesActiveMonthKey() {
-  const d = DataService.data;
   if (appState && appState.periodFilter === 'month' && appState.selectedMonthKey) {
     return appState.selectedMonthKey;
   }
-  if (d && d.personalSales && d.personalSales.length > 0) {
-    const firstWithDate = d.personalSales.find(p => p.isoDate);
-    if (firstWithDate) return firstWithDate.isoDate.slice(0, 7);
+  if (typeof getLocalIsoDate === 'function') {
+    return getLocalIsoDate(new Date()).slice(0, 7);
   }
   return new Date().toISOString().slice(0, 7);
 }
@@ -10790,31 +10788,28 @@ function renderPayablesList() {
 
   // Separate stock item vs non-stock items
   let stockItem = rawPayables.find(p => p.isStock || (p.title && (p.title.includes('ស្តុក') || p.title.toLowerCase().includes('stock'))));
-  // Filter out any payable item with amount <= 0 (e.g. Moto delivery $0, Boost Ads $0, Operation $0)
+  // Filter out any payable item with amount <= 0 (Moto $0, Boost Ads $0, etc.)
   const nonStockItems = rawPayables.filter(p => p !== stockItem && (cleanNumber(p.amount) > 0));
 
-  // If no stock item was found in sheet, synthesize one
   if (!stockItem) {
     stockItem = { title: 'ថ្លៃទំនិញចូលស្តុក (Stock)', noteTag: '⚡ Auto', amount: stockData.stockCost, isStock: true };
   }
 
   // Calculate live total accounts payable
   const totalPayables = nonStockItems.reduce((sum, p) => sum + (cleanNumber(p.amount) || 0), 0) + stockData.stockCost;
-  const activeCount = nonStockItems.length + 1; // non-stock (>0) + stock card
+  const activeCount = nonStockItems.length + 1;
 
   if (subtitle) {
-    const cycleModeStr = activePayablesCycle === 'auto' ? `Auto (${stockData.range.labelKm})` : stockData.range.labelKm;
-    subtitle.textContent = `ទិន្នន័យជាក់ស្តែងពី Bank & Cash Balance (${stockData.range.monthNameKm} • ${cycleModeStr})`;
+    subtitle.textContent = `ទិន្នន័យជាក់ស្តែងពី Bank & Cash Balance`;
   }
 
   if (footer) {
     footer.innerHTML = `
-      <div class="text-slate-300 font-semibold text-xs flex items-center gap-1.5">
-        <span>ចំនួនសរុប:</span>
-        <span class="px-2 py-0.5 rounded-md bg-white/10 text-white font-mono font-bold">${activeCount} មុខ</span>
+      <div class="text-slate-300 font-semibold text-xs">
+        ចំនួនសរុប: <span class="font-mono text-white font-bold">${activeCount} មុខ</span>
       </div>
       <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right">
-        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
+        <span class="text-[11px] text-slate-400 font-sans font-normal">សរុប:</span>
         <span>${formatUSD(totalPayables)}</span>
       </div>
     `;
@@ -10823,113 +10818,80 @@ function renderPayablesList() {
   // Render cards
   let html = '';
 
-  // 1. STOCK CARD WITH EMBEDDED CYCLE SELECTOR (Option 1)
+  // 1. STOCK CARD WITH EMBEDDED CYCLE SELECTOR (Compact & Clean)
   const isAuto = activePayablesCycle === 'auto';
   html += `
-    <div class="p-3.5 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.03] border border-white/10 shadow-lg space-y-3">
-      <!-- Top Row: Stock Details & Amount -->
-      <div class="flex items-start justify-between gap-2">
+    <div class="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-2.5">
+      <!-- Top Row: Title, $24 badge & Amount -->
+      <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5 min-w-0">
-          <span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+          <span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
             <i data-lucide="package" class="w-4 h-4"></i>
           </span>
           <div class="min-w-0">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="font-bold text-xs text-white">ថ្លៃទំនិញចូលស្តុក (Stock)</span>
-              <span class="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-mono font-semibold">$24/កំប៉ុង</span>
-              ${isAuto ? '<span class="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold flex items-center gap-0.5"><i data-lucide="zap" class="w-2.5 h-2.5"></i>Auto</span>' : ''}
-              <span class="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-semibold">${stockData.range.labelKm}</span>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-xs text-white">ថ្លៃទំនិញចូលស្តុក</span>
+              <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono font-semibold">$24</span>
             </div>
-            <span class="text-[10px] text-slate-400 block mt-0.5 truncate">
-              ${stockData.range.dateRangeLabel} • ${stockData.totalBoxes} កំប៉ុង (${stockData.orders.length} វិក្កយបត្រ)
-            </span>
+            <span class="text-[10px] text-slate-400 block">${stockData.totalBoxes} កំប៉ុង • ជុំទី ${effectiveCycleNum}</span>
           </div>
         </div>
         <div class="text-right shrink-0">
           <span class="font-mono text-rose-400 font-bold text-sm block">${formatUSD(stockData.stockCost)}</span>
-          <span class="text-[9px] text-slate-400 font-mono block">Stock Payable</span>
         </div>
       </div>
 
-      <!-- Middle: Cycle Selector Pills -->
-      <div class="pt-2 border-t border-white/5 space-y-1.5">
-        <div class="flex items-center justify-between text-[11px]">
-          <span class="text-slate-400 font-medium flex items-center gap-1">
-            <i data-lucide="calendar" class="w-3 h-3 text-orange-400"></i>
-            <span>ជ្រើសរើសជុំទូទាត់ (Payment Cycle):</span>
-          </span>
-          <button onclick="togglePayablesStockBreakdown()" class="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1 font-semibold transition active:scale-95">
-            <span>${isPayablesStockExpanded ? 'បិទបញ្ជី' : `មើលបញ្ជី Orders (${stockData.orders.length})`}</span>
-            <i data-lucide="${isPayablesStockExpanded ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5"></i>
+      <!-- Middle: Minimalist Cycle Selector Pills -->
+      <div class="pt-2 border-t border-white/5 flex items-center justify-between gap-1">
+        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 text-xs">
+          <button onclick="setPayablesCycle('auto')" class="py-1 px-2 rounded-lg text-xs font-semibold shrink-0 transition active:scale-95 ${isAuto ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-slate-400 border border-white/5 hover:text-white'}">
+            ⚡ Auto
           </button>
-        </div>
-        
-        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs">
-          <!-- Auto Pill -->
-          <button onclick="setPayablesCycle('auto')" class="py-1 px-2.5 rounded-lg shrink-0 font-medium transition active:scale-95 flex items-center gap-1 ${isAuto ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 font-bold shadow-sm' : 'bg-white/5 hover:bg-white/10 text-slate-400 border border-white/5'}">
-            <i data-lucide="zap" class="w-3 h-3"></i>
-            <span>Auto</span>
-          </button>
-          
-          <!-- Cycle 1 to 6 Pills -->
           ${[1, 2, 3, 4, 5, 6].map(cNum => {
             const isSelected = !isAuto && activePayablesCycle === cNum;
-            const r = getPayablesCycleRange(cNum, monthKey);
             return `
-              <button onclick="setPayablesCycle(${cNum})" class="py-1 px-2.5 rounded-lg shrink-0 font-medium transition active:scale-95 ${isSelected ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 font-bold shadow-sm' : 'bg-white/5 hover:bg-white/10 text-slate-400 border border-white/5'}">
-                ${r.shortLabel}
+              <button onclick="setPayablesCycle(${cNum})" class="py-1 px-2 rounded-lg text-xs font-semibold shrink-0 transition active:scale-95 ${isSelected ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-white/5 text-slate-400 border border-white/5 hover:text-white'}">
+                ជុំ ${cNum}
               </button>
             `;
           }).join('')}
         </div>
+        <button onclick="togglePayablesStockBreakdown()" class="shrink-0 text-[11px] text-slate-400 hover:text-orange-400 flex items-center gap-0.5 font-medium px-1.5 py-1 transition active:scale-95">
+          <span>${isPayablesStockExpanded ? 'បិទ' : 'លម្អិត'}</span>
+          <i data-lucide="${isPayablesStockExpanded ? 'chevron-up' : 'chevron-down'}" class="w-3 h-3"></i>
+        </button>
       </div>
 
       <!-- Collapsible Order Breakdown List -->
       ${isPayablesStockExpanded ? `
-        <div class="pt-2 border-t border-white/5 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
+        <div class="pt-2 border-t border-white/5 space-y-1 max-h-48 overflow-y-auto no-scrollbar">
           ${stockData.orders.length > 0 ? stockData.orders.map((o, idx) => `
-            <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-xs">
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="w-5 h-5 rounded-full bg-white/5 text-slate-400 font-mono text-[10px] flex items-center justify-center shrink-0">${idx + 1}</span>
-                <div class="min-w-0">
-                  <div class="flex items-center gap-1.5">
-                    <span class="font-bold text-white text-[11px]">${o.orderId || '#'}</span>
-                    <span class="text-[10px] text-slate-400 truncate max-w-[100px]">${o.customer || 'អតិថិជន'}</span>
-                  </div>
-                  <span class="text-[9px] text-slate-500 font-mono block">${o.date} • ${o._standardBoxes} កំប៉ុង</span>
-                </div>
+            <div class="py-1.5 px-2 rounded-lg bg-black/30 border border-white/5 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="font-bold text-white text-[11px]">${o.orderId || '#'}</span>
+                <span class="text-slate-400 text-[10px] truncate max-w-[120px]">${o.customer || 'អតិថិជន'}</span>
+                <span class="text-slate-500 text-[10px]">(${o._standardBoxes} កំប៉ុង)</span>
               </div>
-              <div class="text-right shrink-0">
-                <span class="font-mono text-rose-300 font-bold text-xs block">${formatUSD(o._orderStockCost)}</span>
-                <span class="text-[9px] text-slate-500 font-mono">$24 × ${o._standardBoxes}</span>
-              </div>
+              <span class="font-mono text-rose-300 font-bold text-xs shrink-0">${formatUSD(o._orderStockCost)}</span>
             </div>
-          `).join('') : '<p class="text-[11px] text-slate-400 text-center py-3 bg-black/20 rounded-xl">គ្មានការកុម្ម៉ង់លក់ធម្មតាក្នុងជុំនេះទេ</p>'}
+          `).join('') : '<p class="text-[10px] text-slate-500 text-center py-2">គ្មានការកុម្ម៉ង់ក្នុងជុំនេះទេ</p>'}
         </div>
       ` : ''}
     </div>
   `;
 
-  // 2. NON-STOCK PAYABLE ITEMS (Filtered > 0 amount, exactly as instructed)
+  // 2. NON-STOCK PAYABLE ITEMS (Filtered > 0 amount, clean minimal layout)
   nonStockItems.forEach((item, idx) => {
     const iconMeta = getPayableItemIcon(item.title);
     html += `
-      <div class="p-3.5 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition flex items-center justify-between">
-        <div class="flex items-center gap-3 min-w-0">
+      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition flex items-center justify-between">
+        <div class="flex items-center gap-2.5 min-w-0">
           <span class="w-8 h-8 rounded-xl ${iconMeta.bg} ${iconMeta.color} flex items-center justify-center shrink-0">
             <i data-lucide="${iconMeta.icon}" class="w-4 h-4"></i>
           </span>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="font-bold text-xs text-white truncate">${item.title}</span>
-              ${item.noteTag ? `<span class="px-1.5 py-0.2 rounded text-[10px] font-mono bg-white/10 text-slate-300">${item.noteTag}</span>` : ''}
-            </div>
-            <span class="text-[10px] text-slate-400 font-mono">Accounts Payable</span>
-          </div>
+          <span class="font-bold text-xs text-white truncate">${item.title}</span>
         </div>
-        <div class="text-right shrink-0">
-          <span class="font-mono text-rose-400 font-bold text-sm block">${formatUSD(item.amount)}</span>
-        </div>
+        <span class="font-mono text-rose-400 font-bold text-sm shrink-0">${formatUSD(item.amount)}</span>
       </div>
     `;
   });
