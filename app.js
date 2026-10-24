@@ -58,7 +58,7 @@ const translations = {
     wallpaperDesc: 'រូបភាព និងពណ៌ពន្លឺផ្ទៃខាងក្រោយ',
     protectApp: 'ការពារទិន្នន័យរបស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
     protectDesc: 'ប្រើលេខសម្ងាត់ ដើម្បីសុវត្ថិភាព និងទំនុកចិត្តខ្ពស់',
-    enablePinTitle: 'ការចាក់សោរដោយលេខសម្ងាត់',
+    enablePinTitle: 'ចាក់សោកម្មវិធី',
     enablePinDesc: 'ទាមទារលេខសម្ងាត់ពេលបើកកម្មវិធី',
     changePinBtn: 'ផ្លាស់ប្តូរលេខកូដសម្ងាត់',
     theme: 'ទម្រង់ពណ៌',
@@ -150,7 +150,7 @@ const translations = {
     wallpaperDesc: 'Background visuals and ambient glows',
     protectApp: 'Protect your data with a 4-digit passcode',
     protectDesc: 'Use passcode for higher security and peace of mind',
-    enablePinTitle: 'Passcode Lock',
+    enablePinTitle: 'App Lock',
     enablePinDesc: 'Require passcode when opening app',
     changePinBtn: 'Change Passcode',
     theme: 'Color Mode',
@@ -9843,7 +9843,7 @@ function getSettingsViewHTML() {
             </div>
           </div>
 
-          <!-- 2. ការចាក់សោរដោយលេខសម្ងាត់ (Passcode Lock) -->
+          <!-- 2. ចាក់សោកម្មវិធី (App Lock) -->
           <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
             <div class="settings-row-left flex items-center gap-3 min-w-0">
               <div class="settings-icon-box w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
