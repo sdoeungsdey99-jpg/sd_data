@@ -11152,17 +11152,12 @@ function openBankModal() {
       <div onclick="openEditBankAccountModal(${acc.no || 0})"
            title="ចុចដើម្បីកែប្រែសមតុល្យគណនីនេះទៅ Google Sheet"
            class="flex items-center justify-between p-3 rounded-2xl bg-black/25 border border-white/5 hover:border-blue-500/30 active:scale-[0.99] transition text-xs cursor-pointer group select-none shadow-sm">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-xl ${brand.iconBoxClass} border flex items-center justify-center shrink-0 transition">
-            <i data-lucide="${brand.icon}" class="w-4 h-4"></i>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold border shrink-0 ${brand.pillClass}">${brand.brand}</span>
+            <span class="text-white font-bold text-xs sm:text-sm truncate">${safeName}</span>
           </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold border shrink-0 ${brand.pillClass}">${brand.brand}</span>
-              <span class="text-white font-semibold text-xs truncate">${safeName}</span>
-            </div>
-            <span class="text-[10px] text-slate-400 font-mono">Bank Account #${acc.no || '—'}</span>
-          </div>
+          <span class="text-[10px] text-slate-400 font-mono">Bank Account #${acc.no || '—'}</span>
         </div>
         <div class="text-right font-mono shrink-0 ml-2">
           ${acc.usd > 0 ? `<div class="text-white font-bold text-xs">${formatUSD(acc.usd)}</div>` : ''}
@@ -11245,7 +11240,7 @@ function openEditBankAccountModal(no) {
   if (subEl) subEl.textContent = `គណនីធនាគារ #${acc.no || '—'} • សមកាលកម្មទៅ Google Sheet ផ្ទាល់`;
 
   if (brandPill) {
-    brandPill.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border shrink-0 shadow-sm transition-all ${brand.pillClass}`;
+    brandPill.className = `inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-bold border shrink-0 shadow-sm transition-all ${brand.pillClass}`;
   }
   if (brandName) brandName.textContent = brand.brand;
   if (iconEl) iconEl.setAttribute('data-lucide', brand.icon);
@@ -13215,39 +13210,24 @@ function renderExpensesBreakdownView(items, totalAmount, listEl) {
               ${c.items.map((sub, sIdx) => {
                 const globalIdx = currentLoadedExpenses ? currentLoadedExpenses.indexOf(sub) : -1;
                 return `
-                  <div class="relative overflow-hidden rounded-xl group select-none">
-                    <!-- Background Action Buttons on Swipe Left -->
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-1.5 gap-1 z-0 bg-[#070D18]">
-                      <button type="button" onclick="event.stopPropagation(); openEditExpenseModal(${globalIdx})" class="w-11 h-9 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex flex-col items-center justify-center text-[9px] font-bold active:scale-90 transition shadow-sm">
-                        <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-                        <span>កែ</span>
-                      </button>
-                      <button type="button" onclick="event.stopPropagation(); openExpenseDeleteModal(${globalIdx})" class="w-11 h-9 rounded-lg bg-rose-600 hover:bg-rose-500 text-white flex flex-col items-center justify-center text-[9px] font-bold active:scale-90 transition shadow-sm">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                        <span>លុប</span>
-                      </button>
-                    </div>
-
-                    <!-- Foreground Card with Touch Swipe & Long-Press -->
-                    <div class="swipe-expense-item relative z-10 py-2 px-2 flex items-center justify-between text-xs bg-white/[0.03] hover:bg-white/[0.06] rounded-xl transition-transform duration-200 cursor-pointer active:scale-[0.99]"
-                         data-expense-idx="${globalIdx}"
-                         ontouchstart="handleExpenseTouchStart(event, this)"
-                         ontouchmove="handleExpenseTouchMove(event, this)"
-                         ontouchend="handleExpenseTouchEnd(event, this)"
-                         onclick="if (activeSwipedExpenseEl === this) { resetAllSwipedExpenses(); } else { openExpenseActionSheet(${globalIdx}); }">
-                      <div class="flex items-center gap-2.5 min-w-0 pr-2">
-                        <span class="w-5 h-5 rounded-lg bg-white/5 text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
-                          ${sIdx + 1}
-                        </span>
-                        <div class="min-w-0">
-                          <p class="text-white font-medium text-xs truncate leading-tight">${sub.description || sub.category}</p>
-                          <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
-                            <span>${sub.date}</span>
-                            ${sub.time ? `<span class="text-amber-300">⏰ ${sub.time}</span>` : ''}
-                          </div>
+                  <div onclick="openExpenseActionSheet(${globalIdx})"
+                       title="ចុចដើម្បីកែប្រែ ឬលុបចំណាយ"
+                       class="py-2.5 px-2.5 flex items-center justify-between text-xs hover:bg-white/[0.05] active:bg-white/[0.08] active:scale-[0.99] rounded-xl transition cursor-pointer select-none">
+                    <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                      <span class="w-5 h-5 rounded-lg bg-white/5 text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                        ${sIdx + 1}
+                      </span>
+                      <div class="min-w-0">
+                        <p class="text-white font-medium text-xs truncate leading-tight">${sub.description || sub.category}</p>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
+                          <span>${sub.date}</span>
+                          ${sub.time ? `<span class="text-amber-300">⏰ ${sub.time}</span>` : ''}
                         </div>
                       </div>
-                      <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(sub.amount)}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <span class="font-mono text-rose-400 font-bold text-xs whitespace-nowrap">${formatUSD(sub.amount)}</span>
+                      <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
                     </div>
                   </div>
                 `;
@@ -13261,7 +13241,7 @@ function renderExpensesBreakdownView(items, totalAmount, listEl) {
     <!-- 3. Bottom Helper Hint (matching screenshot) -->
     <p class="text-[11px] text-slate-500 text-center pt-3 pb-1 italic flex items-center justify-center gap-1.5">
       <i data-lucide="info" class="w-3.5 h-3.5 opacity-70"></i>
-      <span>ចុចលើចំណាយ ឬអូសទៅឆ្វេងដើម្បី កែប្រែ / លុប</span>
+      <span>ចុចលើចំណាយណាមួយដើម្បី កែប្រែ ឬលុប</span>
     </p>
   `;
 
@@ -13560,45 +13540,27 @@ function renderExpensesModalRows(items) {
 
   if (expensesFilterState.viewTab === 'list') {
     listEl.innerHTML = items.map((item, idx) => `
-      <div class="relative overflow-hidden rounded-2xl group select-none">
-        <!-- Background Action Buttons on Swipe Left -->
-        <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-1.5 z-0 bg-[#070D18]">
-          <button type="button" onclick="event.stopPropagation(); openEditExpenseModal(${idx})" class="w-12 h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex flex-col items-center justify-center text-[10px] font-bold active:scale-90 transition shadow-md">
-            <i data-lucide="pencil" class="w-4 h-4"></i>
-            <span>កែ</span>
-          </button>
-          <button type="button" onclick="event.stopPropagation(); openExpenseDeleteModal(${idx})" class="w-12 h-10 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex flex-col items-center justify-center text-[10px] font-bold active:scale-90 transition shadow-md">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-            <span>លុប</span>
-          </button>
+      <div onclick="openExpenseActionSheet(${idx})"
+           title="ចុចដើម្បីកែប្រែ ឬលុបចំណាយ"
+           class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 hover:border-rose-500/25 hover:bg-white/[0.07] active:scale-[0.99] active:bg-white/10 transition cursor-pointer select-none shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 min-w-0 pr-2">
+            <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+              ${idx + 1}
+            </span>
+            <span class="font-bold text-xs text-white truncate">${item.description || item.category}</span>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="font-mono text-rose-400 font-bold text-xs whitespace-nowrap">${formatUSD(item.amount)}</span>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+          </div>
         </div>
-
-        <!-- Foreground Card with Touch Swipe & Long-Press -->
-        <div class="swipe-expense-item relative z-10 p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 hover:border-rose-500/20 active:bg-white/10 transition-transform duration-200 cursor-pointer"
-             data-expense-idx="${idx}"
-             ontouchstart="handleExpenseTouchStart(event, this)"
-             ontouchmove="handleExpenseTouchMove(event, this)"
-             ontouchend="handleExpenseTouchEnd(event, this)"
-             onclick="if (activeSwipedExpenseEl === this) { resetAllSwipedExpenses(); } else { openExpenseActionSheet(${idx}); }">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 min-w-0 pr-2">
-              <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-                ${idx + 1}
-              </span>
-              <span class="font-bold text-xs text-white truncate">${item.description || item.category}</span>
-            </div>
-            <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(item.amount)}</span>
+        <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
+          <div class="flex items-center gap-2">
+            <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
+            ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
           </div>
-          <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
-            <div class="flex items-center gap-2">
-              <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
-              ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
-              <span class="text-[9px] text-slate-500 font-mono">• អូសកែ/លុប</span>
-            </div>
-          </div>
+          <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
         </div>
       </div>
     `).join('');
