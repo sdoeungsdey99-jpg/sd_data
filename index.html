@@ -2784,25 +2784,20 @@
           </div>
         </div>
 
-        <!-- Thai COD Orders List Cards -->
-        <div class="overflow-y-auto flex-1 no-scrollbar p-3 space-y-2.5 pb-2" id="cod-thai-orders-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
-          <!-- Populated dynamically -->
-        </div>
-
-        <!-- Bottom Summary Card (Always Visible on Screen) -->
-        <div class="p-3 border-t border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2 pb-24 sm:pb-6">
+        <!-- Total Summary Card at TOP (លើកមកលើកុំឲបាំង Dock ដូចផ្ទាំងដទៃ) -->
+        <div class="p-3 border-b border-white/10 bg-black/40 shrink-0 space-y-2">
           <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="p-2 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between">
+            <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
               <span class="text-slate-400 text-[11px]">ចំនួនកញ្ចប់សរុប៖</span>
               <span id="thai-cod-stat-parcels" class="font-mono font-bold text-white text-xs">0 កញ្ចប់</span>
             </div>
-            <div class="p-2 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between">
+            <div class="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
               <span class="text-slate-400 text-[11px]">ចំនួនប្រអប់សរុប៖</span>
               <span id="thai-cod-stat-boxes" class="font-mono font-bold text-orange-400 text-xs">0 ប្រអប់</span>
             </div>
           </div>
 
-          <div class="p-2.5 rounded-xl bg-black/50 border border-white/10 space-y-1.5 text-xs">
+          <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 space-y-1.5 text-xs">
             <div class="flex items-center justify-between">
               <span class="text-slate-300 font-medium text-[11px]">ចំនួនលុយសរុប៖</span>
               <span id="thai-cod-stat-baht" class="font-mono font-bold text-orange-400 text-sm">0 THB</span>
@@ -2823,6 +2818,11 @@
             <i data-lucide="copy" class="w-4 h-4"></i>
             <span>ចម្លងសម្រាប់ Telegram</span>
           </button>
+        </div>
+
+        <!-- Thai COD Orders List Cards (Scrollable with pb-28 matching other list modals) -->
+        <div class="overflow-y-auto flex-1 no-scrollbar p-3 space-y-2.5 pb-28" id="cod-thai-orders-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+          <!-- Populated dynamically -->
         </div>
       </div>
     </div>

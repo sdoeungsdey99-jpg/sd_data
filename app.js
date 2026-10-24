@@ -1884,6 +1884,7 @@ function setupSmartDockScroll() {
     'sales-modal-list',
     'expenses-modal-list',
     'cod-modal-table-container',
+    'cod-thai-orders-list',
     'bank-modal-list',
     'payables-modal-list',
     'all-customers-list',
@@ -10719,6 +10720,7 @@ function openCodModal() {
 function closeCodModal() {
   const modal = document.getElementById('cod-modal');
   if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
 }
 
 function switchCodModalTab(tab) {
