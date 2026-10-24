@@ -4732,6 +4732,8 @@ function getDashboardViewHTML() {
   const displayedProfit = isNetProfit ? (totalGrossProfit - activeBoostAmt) : totalGrossProfit;
   const profitTitle = isNetProfit ? (isEn ? 'Net Profit:' : 'ចំណេញសុទ្ធ:') : (isEn ? 'Gross Profit:' : 'ចំណេញដុល:');
 
+  const netCash = (d.bank && d.bank.netCashPosition) || {};
+
   const cardPerformance = `
     <!-- UNIFIED SALES & EXPENSES PERFORMANCE CARD -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10 relative overflow-hidden">
@@ -4800,6 +4802,69 @@ function getDashboardViewHTML() {
           <span class="font-mono text-rose-400 font-bold text-base tracking-tight">${formatUSD(activeBoostAmt)}</span>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+  `;
+
+  const cardNetCash = `
+    <!-- CARD B: NET CASH POSITION (iOS Standard Header: Emerald Icon Box + Pure White Title) -->
+    <!-- ======================================================== -->
+    <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
+      
+      <!-- Top Title (2 lines) and Right-Aligned Cash Health Badge -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
+            <i data-lucide="landmark" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs uppercase text-white leading-tight">
+              ${t('netCashTitle')}
+            </h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Net Cash Position</p>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-xs shadow-sm shrink-0">
+          ${netCash.healthStatus || 'Normal'}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <!-- Box 1: Actual Cash (Touch to view Bank Accounts Modal) -->
+        <div onclick="openBankModal()" 
+             title="ចុចដើម្បីមើលកុងធនាគារទាំងអស់"
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-emerald-500/30 transition ios-touch-item flex flex-col justify-between select-none">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('actualCash')}:</span>
+          <span class="font-mono text-white font-bold text-base tracking-tight mt-0.5">${formatUSD(netCash.totalActualCash || 0)}</span>
+        </div>
+
+        <!-- Box 2: Pending COD (Touch to view Pending COD Modal) -->
+        <div onclick="openCodModal()" 
+             title="ចុចដើម្បីមើលតារាង COD ទាំងអស់"
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-amber-500/30 transition ios-touch-item flex flex-col justify-between select-none">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('pendingCod')}:</span>
+          <span class="font-mono text-amber-400 font-bold text-base tracking-tight mt-0.5">${formatUSD(netCash.pendingCodReceivables || 0)}</span>
+        </div>
+
+        <!-- Box 3: Liquid Assets -->
+        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between select-none">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('liquidAssets')}:</span>
+          <span class="font-mono text-blue-400 font-bold text-base tracking-tight mt-auto">${formatUSD(netCash.totalLiquidAssets || 0)}</span>
+        </div>
+
+        <!-- Box 4: Accounts Payable (Touch to view Accounts Payable Modal) -->
+        <div onclick="openPayablesModal()" 
+             title="ចុចដើម្បីមើលបញ្ជីបំណុលទាំងអស់"
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-rose-500/30 transition ios-touch-item flex flex-col justify-between select-none">
+          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('payablesTotal')}:</span>
+          <span class="font-mono text-rose-400 font-bold text-base tracking-tight mt-0.5">${formatUSD(netCash.totalAccountsPayable || 0)}</span>
+        </div>
+      </div>
+      <div class="mt-2 p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/40 to-blue-950/40 border border-emerald-500/20 flex items-center justify-between">
+        <span class="text-xs text-white font-semibold">${t('finalNetCash')}</span>
+        <span class="text-base font-bold font-mono text-emerald-400">${formatUSD(netCash.netCashPositionFinal || netCash.totalNetCash || 0)}</span>
       </div>
     </div>
 
@@ -5566,6 +5631,7 @@ function getDashboardViewHTML() {
   const cardsInOrder = [
     { key: 'banner', show: true, html: periodBanner },
     { key: 'performance', show: showPerformance, html: cardPerformance },
+    { key: 'netCash', show: true, html: cardNetCash },
     { key: 'expenses', show: showExpenses, html: cardExpenses },
     { key: 'teamSales', show: showTeamSales, html: cardTeamSales },
     { key: 'tools', show: showTools, html: cardTools }
