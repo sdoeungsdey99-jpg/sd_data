@@ -10639,42 +10639,179 @@ function closeSalesModal() {
   document.getElementById('sales-modal').classList.add('hidden');
 }
 
-function openPayablesModal() {
+// ==========================================
+// Accounts Payable Modal & Dynamic Stock Cycle Logic (Option 1)
+// ==========================================
+let activePayablesCycle = 'auto'; // 'auto' | 1 | 2 | 3 | 4 | 5 | 6
+let isPayablesStockExpanded = false;
+
+function getPayablesActiveMonthKey() {
+  const d = DataService.data;
+  if (appState && appState.periodFilter === 'month' && appState.selectedMonthKey) {
+    return appState.selectedMonthKey;
+  }
+  if (d && d.personalSales && d.personalSales.length > 0) {
+    const firstWithDate = d.personalSales.find(p => p.isoDate);
+    if (firstWithDate) return firstWithDate.isoDate.slice(0, 7);
+  }
+  return new Date().toISOString().slice(0, 7);
+}
+
+function getActivePayablesCycleNum(mode, monthKey) {
+  if (mode !== 'auto') {
+    return parseInt(mode, 10) || 1;
+  }
+  const today = new Date();
+  const currentMonth = today.toISOString().slice(0, 7);
+  let day = today.getDate();
+  if (monthKey !== currentMonth) {
+    day = 25; // Default to cycle 5 for completed/historical month
+  }
+  if (day <= 5) return 1;
+  if (day <= 10) return 2;
+  if (day <= 15) return 3;
+  if (day <= 20) return 4;
+  if (day <= 25) return 5;
+  return 6;
+}
+
+function getPayablesCycleRange(cycleNum, monthKey) {
+  const parts = monthKey.split('-');
+  const yr = parseInt(parts[0], 10);
+  const mo = parseInt(parts[1], 10);
+  const moStr = String(mo).padStart(2, '0');
+  const lastDay = new Date(yr, mo, 0).getDate();
+
+  let startDay = 1, endDay = 5;
+  if (cycleNum === 1) { startDay = 1; endDay = 5; }
+  else if (cycleNum === 2) { startDay = 6; endDay = 10; }
+  else if (cycleNum === 3) { startDay = 11; endDay = 15; }
+  else if (cycleNum === 4) { startDay = 16; endDay = 20; }
+  else if (cycleNum === 5) { startDay = 21; endDay = 25; }
+  else if (cycleNum === 6) { startDay = 26; endDay = lastDay; }
+
+  const startIso = `${yr}-${moStr}-${String(startDay).padStart(2, '0')}`;
+  const endIso = `${yr}-${moStr}-${String(endDay).padStart(2, '0')}`;
+
+  const kmMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const monthNameKm = kmMonths[mo - 1] || `ខែ ${mo}`;
+
+  const kmNums = { 1: '១', 2: '២', 3: '៣', 4: '៤', 5: '៥', 6: '៦' };
+  const cNumKm = kmNums[cycleNum] || cycleNum;
+
+  return {
+    cycleNum,
+    startDay,
+    endDay,
+    startIso,
+    endIso,
+    monthNameKm,
+    labelKm: cycleNum === 6 ? 'ជុំទី ៦ (២៦-ដាច់ខែ)' : `ជុំទី ${cNumKm} (${startDay}-${endDay})`,
+    shortLabel: cycleNum === 6 ? 'ជុំ ៦ (26-End)' : `ជុំ ${cNumKm} (${startDay}-${endDay})`,
+    dateRangeLabel: `${String(startDay).padStart(2, '0')}/${moStr} ➔ ${String(endDay).padStart(2, '0')}/${moStr}`
+  };
+}
+
+function getPayablesCycleStockData(cycleNum, monthKey) {
+  const d = DataService.data;
+  const range = getPayablesCycleRange(cycleNum, monthKey);
+  if (!d || !d.personalSales) {
+    return { orders: [], totalBoxes: 0, stockCost: 0, range };
+  }
+
+  // Filter ONLY standard sales [លក់ធម្មតា] ➔ $24/កំប៉ុង
+  // Explicitly exclude reward sales (isReward, note contains 'រង្វាន់')
+  // Explicitly exclude return sales (isReturn, note contains 'ត្រឡប់')
+  // Explicitly exclude canceled/returned orders
+  const orders = d.personalSales.filter(o => {
+    if (!o.isoDate) return false;
+    if (o.isoDate < range.startIso || o.isoDate > range.endIso) return false;
+
+    const isRwd = o.isReward || (o.note && o.note.includes('រង្វាន់'));
+    const isRet = o.isReturn || (o.note && o.note.includes('ត្រឡប់'));
+    if (isRwd || isRet) return false;
+
+    const st = String(o.codStatus || '').toLowerCase();
+    if (st.includes('canceled') || st.includes('cancel') || st.includes('ដកអីវ៉ាន់')) return false;
+
+    return true;
+  });
+
+  // Sort descending by date
+  orders.sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
+
+  let totalBoxes = 0;
+  orders.forEach(o => {
+    const boxes = (cleanNumber(o.qtyYL) || 0) + 
+                  (cleanNumber(o.qtyYLP) || 0) + 
+                  (cleanNumber(o.qtyKN) || 0) + 
+                  (cleanNumber(o.qtyPDO) || 0) + 
+                  (cleanNumber(o.qtySG) || 0) + 
+                  (cleanNumber(o.freeQty) || 0);
+    const orderBox = boxes > 0 ? boxes : (cleanNumber(o.totalBoxQty) || 0);
+    o._standardBoxes = orderBox;
+    o._orderStockCost = orderBox * 24.00;
+    totalBoxes += orderBox;
+  });
+
+  const stockCost = totalBoxes * 24.00;
+  return {
+    orders,
+    totalBoxes,
+    stockCost,
+    range
+  };
+}
+
+function getPayableItemIcon(title) {
+  const t = String(title || '').toLowerCase();
+  if (t.includes('ស្តុក') || t.includes('stock')) return { icon: 'package', color: 'text-amber-400', bg: 'bg-amber-500/20 border-amber-500/30' };
+  if (t.includes('ថៃ') || t.includes('thai')) return { icon: 'truck', color: 'text-orange-400', bg: 'bg-orange-500/20 border-orange-500/30' };
+  if (t.includes('vet') || t.includes('ដឹក')) return { icon: 'send', color: 'text-blue-400', bg: 'bg-blue-500/20 border-blue-500/30' };
+  if (t.includes('ads') || t.includes('boost')) return { icon: 'megaphone', color: 'text-sky-400', bg: 'bg-sky-500/20 border-sky-500/30' };
+  return { icon: 'credit-card', color: 'text-rose-400', bg: 'bg-rose-500/20 border-rose-500/30' };
+}
+
+function renderPayablesList() {
   const d = DataService.data;
   if (!d) return;
 
-  const modal = document.getElementById('payables-modal');
   const listEl = document.getElementById('payables-modal-list');
   const subtitle = document.getElementById('payables-modal-subtitle');
+  const footer = document.getElementById('payables-modal-footer');
+  if (!listEl) return;
+
+  const monthKey = getPayablesActiveMonthKey();
+  const effectiveCycleNum = getActivePayablesCycleNum(activePayablesCycle, monthKey);
+  const stockData = getPayablesCycleStockData(effectiveCycleNum, monthKey);
+
+  // Raw payables from Bank & Cash Balance
+  const rawPayables = (d.bank && d.bank.payables) ? [...d.bank.payables] : [];
+
+  // Separate stock item vs non-stock items
+  let stockItem = rawPayables.find(p => p.isStock || (p.title && (p.title.includes('ស្តុក') || p.title.toLowerCase().includes('stock'))));
+  // Filter out any payable item with amount <= 0 (e.g. Moto delivery $0, Boost Ads $0, Operation $0)
+  const nonStockItems = rawPayables.filter(p => p !== stockItem && (cleanNumber(p.amount) > 0));
+
+  // If no stock item was found in sheet, synthesize one
+  if (!stockItem) {
+    stockItem = { title: 'ថ្លៃទំនិញចូលស្តុក (Stock)', noteTag: '⚡ Auto', amount: stockData.stockCost, isStock: true };
+  }
+
+  // Calculate live total accounts payable
+  const totalPayables = nonStockItems.reduce((sum, p) => sum + (cleanNumber(p.amount) || 0), 0) + stockData.stockCost;
+  const activeCount = nonStockItems.length + 1; // non-stock (>0) + stock card
 
   if (subtitle) {
-    subtitle.textContent = `ទិន្នន័យជាក់ស្តែងពី Bank & Cash Balance (${d.bank.payables.length} មុខ) - សរុប ${formatUSD(d.bank.netCashPosition.totalAccountsPayable)}`;
+    const cycleModeStr = activePayablesCycle === 'auto' ? `Auto (${stockData.range.labelKm})` : stockData.range.labelKm;
+    subtitle.textContent = `ទិន្នន័យជាក់ស្តែងពី Bank & Cash Balance (${stockData.range.monthNameKm} • ${cycleModeStr})`;
   }
 
-  if (listEl) {
-    listEl.innerHTML = d.bank.payables.map((item, idx) => `
-      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-            ${idx + 1}
-          </span>
-          <div>
-            <span class="font-bold text-xs text-white block">${item.title}</span>
-            <span class="text-[10px] text-slate-400 font-mono">Accounts Payable</span>
-          </div>
-        </div>
-        <span class="font-mono text-rose-400 font-bold text-xs shrink-0">${formatUSD(item.amount)}</span>
-      </div>
-    `).join('') || `<p class="text-xs text-slate-400 text-center py-6">គ្មានបញ្ជីបំណុលត្រូវទូទាត់ទេ</p>`;
-  }
-
-  const footer = document.getElementById('payables-modal-footer');
   if (footer) {
-    const totalPayables = (d.bank && d.bank.netCashPosition && d.bank.netCashPosition.totalAccountsPayable) || 
-      d.bank.payables.reduce((sum, p) => sum + (p.amount || 0), 0);
     footer.innerHTML = `
-      <div class="text-slate-300 font-semibold text-xs">
-        ចំនួនសរុប: ${d.bank.payables.length} មុខ
+      <div class="text-slate-300 font-semibold text-xs flex items-center gap-1.5">
+        <span>ចំនួនសរុប:</span>
+        <span class="px-2 py-0.5 rounded-md bg-white/10 text-white font-mono font-bold">${activeCount} មុខ</span>
       </div>
       <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-rose-400 text-right">
         <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបទឹកប្រាក់:</span>
@@ -10683,14 +10820,157 @@ function openPayablesModal() {
     `;
   }
 
+  // Render cards
+  let html = '';
+
+  // 1. STOCK CARD WITH EMBEDDED CYCLE SELECTOR (Option 1)
+  const isAuto = activePayablesCycle === 'auto';
+  html += `
+    <div class="p-3.5 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.03] border border-white/10 shadow-lg space-y-3">
+      <!-- Top Row: Stock Details & Amount -->
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+            <i data-lucide="package" class="w-4 h-4"></i>
+          </span>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-bold text-xs text-white">ថ្លៃទំនិញចូលស្តុក (Stock)</span>
+              <span class="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-mono font-semibold">$24/កំប៉ុង</span>
+              ${isAuto ? '<span class="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold flex items-center gap-0.5"><i data-lucide="zap" class="w-2.5 h-2.5"></i>Auto</span>' : ''}
+              <span class="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-semibold">${stockData.range.labelKm}</span>
+            </div>
+            <span class="text-[10px] text-slate-400 block mt-0.5 truncate">
+              ${stockData.range.dateRangeLabel} • ${stockData.totalBoxes} កំប៉ុង (${stockData.orders.length} វិក្កយបត្រ)
+            </span>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <span class="font-mono text-rose-400 font-bold text-sm block">${formatUSD(stockData.stockCost)}</span>
+          <span class="text-[9px] text-slate-400 font-mono block">Stock Payable</span>
+        </div>
+      </div>
+
+      <!-- Middle: Cycle Selector Pills -->
+      <div class="pt-2 border-t border-white/5 space-y-1.5">
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-400 font-medium flex items-center gap-1">
+            <i data-lucide="calendar" class="w-3 h-3 text-orange-400"></i>
+            <span>ជ្រើសរើសជុំទូទាត់ (Payment Cycle):</span>
+          </span>
+          <button onclick="togglePayablesStockBreakdown()" class="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1 font-semibold transition active:scale-95">
+            <span>${isPayablesStockExpanded ? 'បិទបញ្ជី' : `មើលបញ្ជី Orders (${stockData.orders.length})`}</span>
+            <i data-lucide="${isPayablesStockExpanded ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+        
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs">
+          <!-- Auto Pill -->
+          <button onclick="setPayablesCycle('auto')" class="py-1 px-2.5 rounded-lg shrink-0 font-medium transition active:scale-95 flex items-center gap-1 ${isAuto ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 font-bold shadow-sm' : 'bg-white/5 hover:bg-white/10 text-slate-400 border border-white/5'}">
+            <i data-lucide="zap" class="w-3 h-3"></i>
+            <span>Auto</span>
+          </button>
+          
+          <!-- Cycle 1 to 6 Pills -->
+          ${[1, 2, 3, 4, 5, 6].map(cNum => {
+            const isSelected = !isAuto && activePayablesCycle === cNum;
+            const r = getPayablesCycleRange(cNum, monthKey);
+            return `
+              <button onclick="setPayablesCycle(${cNum})" class="py-1 px-2.5 rounded-lg shrink-0 font-medium transition active:scale-95 ${isSelected ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 font-bold shadow-sm' : 'bg-white/5 hover:bg-white/10 text-slate-400 border border-white/5'}">
+                ${r.shortLabel}
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- Collapsible Order Breakdown List -->
+      ${isPayablesStockExpanded ? `
+        <div class="pt-2 border-t border-white/5 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
+          ${stockData.orders.length > 0 ? stockData.orders.map((o, idx) => `
+            <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-5 h-5 rounded-full bg-white/5 text-slate-400 font-mono text-[10px] flex items-center justify-center shrink-0">${idx + 1}</span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-bold text-white text-[11px]">${o.orderId || '#'}</span>
+                    <span class="text-[10px] text-slate-400 truncate max-w-[100px]">${o.customer || 'អតិថិជន'}</span>
+                  </div>
+                  <span class="text-[9px] text-slate-500 font-mono block">${o.date} • ${o._standardBoxes} កំប៉ុង</span>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-mono text-rose-300 font-bold text-xs block">${formatUSD(o._orderStockCost)}</span>
+                <span class="text-[9px] text-slate-500 font-mono">$24 × ${o._standardBoxes}</span>
+              </div>
+            </div>
+          `).join('') : '<p class="text-[11px] text-slate-400 text-center py-3 bg-black/20 rounded-xl">គ្មានការកុម្ម៉ង់លក់ធម្មតាក្នុងជុំនេះទេ</p>'}
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  // 2. NON-STOCK PAYABLE ITEMS (Filtered > 0 amount, exactly as instructed)
+  nonStockItems.forEach((item, idx) => {
+    const iconMeta = getPayableItemIcon(item.title);
+    html += `
+      <div class="p-3.5 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition flex items-center justify-between">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-8 h-8 rounded-xl ${iconMeta.bg} ${iconMeta.color} flex items-center justify-center shrink-0">
+            <i data-lucide="${iconMeta.icon}" class="w-4 h-4"></i>
+          </span>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-bold text-xs text-white truncate">${item.title}</span>
+              ${item.noteTag ? `<span class="px-1.5 py-0.2 rounded text-[10px] font-mono bg-white/10 text-slate-300">${item.noteTag}</span>` : ''}
+            </div>
+            <span class="text-[10px] text-slate-400 font-mono">Accounts Payable</span>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <span class="font-mono text-rose-400 font-bold text-sm block">${formatUSD(item.amount)}</span>
+        </div>
+      </div>
+    `;
+  });
+
+  listEl.innerHTML = html;
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function setPayablesCycle(cycle) {
+  activePayablesCycle = cycle;
+  renderPayablesList();
+}
+
+function togglePayablesStockBreakdown() {
+  isPayablesStockExpanded = !isPayablesStockExpanded;
+  renderPayablesList();
+}
+
+window.setPayablesCycle = setPayablesCycle;
+window.togglePayablesStockBreakdown = togglePayablesStockBreakdown;
+
+function openPayablesModal() {
+  const d = DataService.data;
+  if (!d) return;
+
+  const modal = document.getElementById('payables-modal');
+  if (!modal) return;
+
+  renderPayablesList();
+
   modal.classList.remove('hidden');
   setDockVisible(true);
+  const listEl = document.getElementById('payables-modal-list');
   if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
   if (window.lucide) window.lucide.createIcons();
 }
 
 function closePayablesModal() {
-  document.getElementById('payables-modal').classList.add('hidden');
+  const modal = document.getElementById('payables-modal');
+  if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
 }
 
 // ==========================================
@@ -14728,16 +15008,26 @@ function getModalShareText(modalType) {
     if (list.length > 15) txt += `... និង ${list.length - 15} មុខទៀត\n`;
     return txt;
   } else if (modalType === 'payables') {
-    const payables = (d.bank && d.bank.payables) || [];
-    const total = (d.bank && d.bank.netCashPosition && d.bank.netCashPosition.totalAccountsPayable) ||
-      payables.reduce((s, p) => s + (p.amount || 0), 0);
+    const monthKey = getPayablesActiveMonthKey();
+    const effectiveCycleNum = getActivePayablesCycleNum(activePayablesCycle, monthKey);
+    const stockData = getPayablesCycleStockData(effectiveCycleNum, monthKey);
+
+    const rawPayables = (d.bank && d.bank.payables) ? [...d.bank.payables] : [];
+    const stockItem = rawPayables.find(p => p.isStock || (p.title && (p.title.includes('ស្តុក') || p.title.toLowerCase().includes('stock'))));
+    const nonStockItems = rawPayables.filter(p => p !== stockItem && (cleanNumber(p.amount) > 0));
+
+    const totalPayables = nonStockItems.reduce((sum, p) => sum + (cleanNumber(p.amount) || 0), 0) + stockData.stockCost;
+    const activeCount = nonStockItems.length + 1;
+
     let txt = `💳 ${isKm ? 'បញ្ជីបំណុលត្រូវទូទាត់' : 'Accounts Payable'} (${dateStr})\n`;
+    txt += `📅 ${isKm ? 'វដ្តទូទាត់' : 'Cycle'}: ${stockData.range.monthNameKm} ${stockData.range.labelKm}\n`;
     txt += `------------------------------------\n`;
-    txt += `${isKm ? 'ចំនួនមុខ' : 'Total Items'}: ${payables.length}\n`;
-    txt += `${isKm ? 'ទឹកប្រាក់សរុប' : 'Total Amount'}: ${formatUSD(total)}\n`;
+    txt += `${isKm ? 'ចំនួនមុខ' : 'Total Items'}: ${activeCount}\n`;
+    txt += `${isKm ? 'ទឹកប្រាក់សរុប' : 'Total Amount'}: ${formatUSD(totalPayables)}\n`;
     txt += `------------------------------------\n`;
-    payables.forEach((p, i) => {
-      txt += `${i + 1}. ${p.title} - ${formatUSD(p.amount)}\n`;
+    txt += `1. ថ្លៃទំនិញចូលស្តុក (${stockData.range.labelKm}): ${formatUSD(stockData.stockCost)} (${stockData.totalBoxes} កំប៉ុង @ $24)\n`;
+    nonStockItems.forEach((p, i) => {
+      txt += `${i + 2}. ${p.title} - ${formatUSD(p.amount)}\n`;
     });
     return txt;
   } else if (modalType === 'expenses') {

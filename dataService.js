@@ -438,6 +438,7 @@ window.DataService = {
           shipFee,
           deliveryMethod,
           codStatus,
+          stock: cleanNumber(getCell(17)),
           profit,
           note
         });
@@ -582,10 +583,19 @@ window.DataService = {
           if (r.length > 8) {
             const pNo = String(r[7] || '').trim();
             const title = String(r[8] || '').trim();
+            const noteTag = String(r[9] || '').trim();
             const amount = cleanNumber(r[10]);
+            const isStock = title.includes('ស្តុក') || title.toLowerCase().includes('stock');
 
-            if (pNo && !isNaN(parseInt(pNo, 10)) && title && amount > 0) {
-              payables.push({ title, amount });
+            // Filter out items with 0 amount, but preserve stock payable item for dynamic cycle calculation
+            if (pNo && !isNaN(parseInt(pNo, 10)) && title && (amount > 0 || isStock)) {
+              payables.push({ 
+                pNo: parseInt(pNo, 10),
+                title, 
+                noteTag,
+                amount,
+                isStock
+              });
             }
           }
         }
