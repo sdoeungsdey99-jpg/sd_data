@@ -11191,11 +11191,56 @@ function openEditBankAccountModal(no) {
   if (usdInput) usdInput.value = (acc.usd !== undefined && acc.usd !== null && acc.usd > 0) ? Number(acc.usd) : (acc.usd === 0 ? 0 : '');
   if (khrInput) khrInput.value = (acc.khr !== undefined && acc.khr !== null && acc.khr > 0) ? Number(acc.khr) : (acc.khr === 0 ? 0 : '');
 
+  // iOS Bottom Sheet Dynamic Customization
+  const isKhr = (acc.name || '').includes('(KHR)') || (acc.khr > 0 && (!acc.usd || acc.usd === 0));
+  const usdGroup = document.getElementById('edit-bank-usd-group');
+  const khrGroup = document.getElementById('edit-bank-khr-group');
+  const currBadge = document.getElementById('edit-bank-curr-badge');
+  const titleEl = document.getElementById('edit-bank-title');
+  const subEl = document.getElementById('edit-bank-sub');
+  const iconBox = document.getElementById('edit-bank-icon-box');
+  const iconEl = document.getElementById('edit-bank-icon');
+
+  if (titleEl) titleEl.textContent = acc.name || 'កែប្រែសមតុល្យ';
+  if (subEl) subEl.textContent = `គណនីធនាគារ #${acc.no || '—'} • សមកាលកម្មទៅ Google Sheet ផ្ទាល់`;
+
+  const nameLower = (acc.name || '').toLowerCase();
+  if (iconBox && iconEl) {
+    if (nameLower.includes('aba')) {
+      iconBox.className = 'w-12 h-12 rounded-2xl bg-[#00577B]/25 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shrink-0 shadow-md transition-all';
+      iconEl.setAttribute('data-lucide', 'credit-card');
+    } else if (nameLower.includes('acleda')) {
+      iconBox.className = 'w-12 h-12 rounded-2xl bg-[#0E406A]/30 text-amber-300 border border-amber-400/30 flex items-center justify-center shrink-0 shadow-md transition-all';
+      iconEl.setAttribute('data-lucide', 'landmark');
+    } else if (nameLower.includes('wing')) {
+      iconBox.className = 'w-12 h-12 rounded-2xl bg-lime-500/20 text-lime-400 border border-lime-500/30 flex items-center justify-center shrink-0 shadow-md transition-all';
+      iconEl.setAttribute('data-lucide', 'wallet');
+    } else {
+      iconBox.className = 'w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0 shadow-md transition-all';
+      iconEl.setAttribute('data-lucide', 'building-2');
+    }
+  }
+
+  if (isKhr) {
+    if (currBadge) {
+      currBadge.textContent = '៛ KHR';
+      currBadge.className = 'px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0';
+    }
+    if (khrGroup) khrGroup.classList.remove('hidden');
+    if (usdGroup) usdGroup.classList.add('hidden');
+    setTimeout(() => { if (khrInput) khrInput.focus(); }, 120);
+  } else {
+    if (currBadge) {
+      currBadge.textContent = '$ USD';
+      currBadge.className = 'px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0';
+    }
+    if (usdGroup) usdGroup.classList.remove('hidden');
+    if (khrGroup) khrGroup.classList.add('hidden');
+    setTimeout(() => { if (usdInput) usdInput.focus(); }, 120);
+  }
+
   modal.classList.remove('hidden');
   if (window.lucide) window.lucide.createIcons();
-  setTimeout(() => {
-    if (usdInput) usdInput.focus();
-  }, 100);
 }
 
 function closeEditBankModal(e) {
