@@ -76,7 +76,7 @@ const translations = {
     leaderRole: 'ដឹកនាំក្រុម',
     developerRole: 'អ្នកអភិវឌ្ឍន៍',
     versionLabel: 'ជំនាន់ប្រព័ន្ធ',
-    phoneLabel: 'លេខទូរសព្ទ',
+    phoneLabel: 'លេខទូរស័ព្ទ',
     telegramLabel: 'តេឡេក្រាម',
     contactTelegramBtn: 'ទាក់ទងតាមតេឡេក្រាម',
     noData: 'គ្មានទិន្នន័យ',
@@ -19203,7 +19203,7 @@ function renderProfileDrawerContent() {
     { key: 'showFrom', icon: 'map-pin', color: 'text-rose-400', label: 'មកពី', val: p.from },
     { key: 'showStatus', icon: 'heart', color: 'text-pink-400', label: 'ស្ថានភាព', val: p.status },
     { key: 'showBirth', icon: 'cake', color: 'text-purple-400', label: 'ថ្ងៃកំណើត', val: p.birthday },
-    { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរសព្ទ', val: p.phone }
+    { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរស័ព្ទ', val: p.phone }
   ].filter(item => p.privacy[item.key] !== false && item.val && item.val.trim() !== '');
 
   const container = document.getElementById('profile-drawer-content');
@@ -19267,7 +19267,7 @@ function renderProfileDrawerContent() {
             </span>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Documents & Plans' : 'ឯកសារ និង ផែនការ'}</h3>
+            <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Documents & Plans' : 'ឯកសារ និងផែនការ'}</h3>
             <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'CEO Wisdom & Commitments' : 'មេរៀនអគ្គនាយក & ផែនការ'}</p>
           </div>
         </div>
@@ -19285,7 +19285,7 @@ function renderProfileDrawerContent() {
           </div>
           <div>
             <h3 class="font-bold text-xs text-white leading-tight">${isEn ? 'Daily Report' : 'របាយការណ៍ប្រចាំថ្ងៃ'}</h3>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? '9:00 PM Sales Report' : 'របាយការណ៍លក់ ៩:០០ យប់'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? '9:00 PM Sales Report' : 'របាយការណ៍លក់ ម៉ោង ៩:០០ យប់'}</p>
           </div>
         </div>
 
@@ -19392,7 +19392,7 @@ function renderProfileDrawerContent() {
           </div>
           <div class="min-w-0">
             <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isEn ? 'Settings' : 'ការកំណត់'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Colors, fonts, text sizes, wallpapers' : 'ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ, ផ្ទាំងរូបភាព'}</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5 truncate settings-subtitle">${isEn ? 'Languages, themes, colors, fonts, sizes' : 'ភាសា, ពន្លឺ, ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ'}</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -19496,7 +19496,7 @@ function getProfileViewHTML() {
     { key: 'showFrom', icon: 'map-pin', color: 'text-rose-400', label: 'មកពី', val: p.from },
     { key: 'showStatus', icon: 'heart', color: 'text-pink-400', label: 'ស្ថានភាព', val: p.status },
     { key: 'showBirth', icon: 'cake', color: 'text-purple-400', label: 'ថ្ងៃកំណើត', val: p.birthday },
-    { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរសព្ទ', val: p.phone }
+    { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរស័ព្ទ', val: p.phone }
   ].filter(item => p.privacy[item.key] !== false && item.val && item.val.trim() !== '');
 
   return `
@@ -20945,7 +20945,7 @@ function openProfileSubModal(type) {
             <button onclick="testCustomGoogleSheetConnection()" 
                     class="py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5 shadow-sm">
               <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-              <span>តេស្តការតភ្ជាប់</span>
+              <span>សាកល្បងការតភ្ជាប់</span>
             </button>
             <button onclick="saveCustomGoogleSheetId()" 
                     class="py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/30">
@@ -20996,7 +20996,7 @@ function openProfileSubModal(type) {
       { key: 'showFrom', label: '📍 បង្ហាញស្រុកកំណើត (From)' },
       { key: 'showStatus', label: '❤️ បង្ហាញស្ថានភាព (Status)' },
       { key: 'showBirth', label: '🎂 បង្ហាញថ្ងៃខែឆ្នាំកំណើត (Birthday)' },
-      { key: 'showPhone', label: '📞 បង្ហាញលេខទូរសព្ទ (Phone)' }
+      { key: 'showPhone', label: '📞 បង្ហាញលេខទូរស័ព្ទ (Phone)' }
     ];
     contentHTML = `
       <p class="text-[11px] text-slate-400 leading-relaxed mb-2">
@@ -21045,7 +21045,7 @@ function openProfileSubModal(type) {
     const activeTab = (type === 'note') ? 'notes' : (type === 'book' ? 'books' : (window._activeBookNotesTab || 'books'));
     window._activeBookNotesTab = activeTab;
 
-    title = (appState.language === 'en') ? 'Documents & Plans' : 'ឯកសារ និង ផែនការ';
+    title = (appState.language === 'en') ? 'Documents & Plans' : 'ឯកសារ និងផែនការ';
     sub = 'មេរៀនអគ្គនាយក វណ្ណ ស៊ីថា និងការប្តេជ្ញាចិត្តប្រចាំថ្ងៃ';
     icon = 'crown';
 
