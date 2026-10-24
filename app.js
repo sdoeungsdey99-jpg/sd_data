@@ -11152,12 +11152,14 @@ function openBankModal() {
       <div onclick="openEditBankAccountModal(${acc.no || 0})"
            title="ចុចដើម្បីកែប្រែសមតុល្យគណនីនេះទៅ Google Sheet"
            class="flex items-center justify-between p-3 rounded-2xl bg-black/25 border border-white/5 hover:border-blue-500/30 active:scale-[0.99] transition text-xs cursor-pointer group select-none shadow-sm">
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold border shrink-0 ${brand.pillClass}">${brand.brand}</span>
-            <span class="text-white font-bold text-xs sm:text-sm truncate">${safeName}</span>
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-xl ${brand.iconBoxClass} border flex items-center justify-center shrink-0 transition shadow-sm">
+            <i data-lucide="${brand.icon}" class="w-4 h-4"></i>
           </div>
-          <span class="text-[10px] text-slate-400 font-mono">Bank Account #${acc.no || '—'}</span>
+          <div class="min-w-0">
+            <div class="text-white font-bold text-xs sm:text-sm truncate">${safeName}</div>
+            <span class="text-[10px] text-slate-400 font-mono">Bank Account #${acc.no || '—'}</span>
+          </div>
         </div>
         <div class="text-right font-mono shrink-0 ml-2">
           ${acc.usd > 0 ? `<div class="text-white font-bold text-xs">${formatUSD(acc.usd)}</div>` : ''}
@@ -13225,10 +13227,7 @@ function renderExpensesBreakdownView(items, totalAmount, listEl) {
                         </div>
                       </div>
                     </div>
-                    <div class="flex items-center gap-1.5 shrink-0">
-                      <span class="font-mono text-rose-400 font-bold text-xs whitespace-nowrap">${formatUSD(sub.amount)}</span>
-                      <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
-                    </div>
+                    <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(sub.amount)}</span>
                   </div>
                 `;
               }).join('')}
@@ -13550,10 +13549,7 @@ function renderExpensesModalRows(items) {
             </span>
             <span class="font-bold text-xs text-white truncate">${item.description || item.category}</span>
           </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <span class="font-mono text-rose-400 font-bold text-xs whitespace-nowrap">${formatUSD(item.amount)}</span>
-            <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
-          </div>
+          <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(item.amount)}</span>
         </div>
         <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
           <div class="flex items-center gap-2">
