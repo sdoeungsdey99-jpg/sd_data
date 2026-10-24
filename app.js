@@ -2948,13 +2948,13 @@ function openExecutivePasscodeModal() {
         </div>
         <div>
           <h3 class="text-sm font-bold text-white uppercase tracking-wide">កូដសម្ងាត់រចនាសម្ព័ន្ធលក់</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Manager & Director Passcode Access</p>
+          <p class="text-[11px] text-slate-400 mt-0.5 font-sans">Role-based Multi-tier Passcode Access</p>
         </div>
       </div>
 
       <form onsubmit="event.preventDefault(); submitExecutivePasscode();" class="space-y-3">
         <div class="relative">
-          <input type="password" id="exec-passcode-input" placeholder="វាយលេខកូដសម្ងាត់ (leader)" 
+          <input type="password" id="exec-passcode-input" placeholder="វាយលេខកូដសម្ងាត់ (Passcode)" 
                  autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                  class="w-full bg-black/60 border border-white/15 focus:border-amber-400 rounded-2xl px-4 py-3 text-center text-sm font-mono tracking-widest text-white placeholder:text-slate-500 placeholder:text-xs placeholder:font-sans focus:outline-none transition">
           <button type="button" onclick="togglePasscodeVisibility()" 
@@ -2964,6 +2964,12 @@ function openExecutivePasscodeModal() {
         </div>
 
         <p id="exec-passcode-error" class="hidden text-rose-400 text-[11px] text-center font-medium"></p>
+
+        <div class="pt-1 pb-0.5 border-t border-white/5 text-center">
+          <p class="text-[10px] text-slate-400 font-sans leading-relaxed">
+            កូដតាមតួនាទី៖ <span class="text-amber-300 font-mono font-bold">manager</span> • <span class="text-sky-300 font-mono font-bold">leader</span> • <span class="text-emerald-300 font-mono font-bold">1234</span>
+          </p>
+        </div>
 
         <div class="grid grid-cols-2 gap-2 pt-1">
           <button type="button" onclick="closeExecutivePasscodeModal()" 
@@ -3008,20 +3014,50 @@ function togglePasscodeVisibility() {
 function submitExecutivePasscode(enteredVal) {
   const code = (enteredVal || document.getElementById('exec-passcode-input')?.value || '').trim();
   const cleanCode = code.toLowerCase();
-  if (cleanCode === 'leader' || code.toUpperCase() === '1MBOSTAR') {
+  
+  if (cleanCode === 'manager' || cleanCode === 'director' || code.toUpperCase() === '1MBOSTAR') {
     sessionStorage.setItem('sd_exec_unlocked', 'true');
+    sessionStorage.setItem('sd_exec_role', 'manager');
+    execHierarchyFilterState.selectedManager = null;
+    execHierarchyFilterState.selectedLeader = null;
     closeExecutivePasscodeModal();
     if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
     if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
     if (typeof showToastNotification === 'function') {
-      showToastNotification('ដោះសោរកាតថ្នាក់ដឹកនាំជោគជ័យ! 👑✨');
+      showToastNotification('ដោះសោរផ្ទាំង MANAGERS ជោគជ័យ! 👑✨');
+    }
+    openExecutiveHierarchyModal();
+    renderCurrentView();
+  } else if (cleanCode === 'leader') {
+    sessionStorage.setItem('sd_exec_unlocked', 'true');
+    sessionStorage.setItem('sd_exec_role', 'leader');
+    execHierarchyFilterState.selectedManager = null;
+    execHierarchyFilterState.selectedLeader = null;
+    closeExecutivePasscodeModal();
+    if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
+    if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('ដោះសោរផ្ទាំង LEADERS (១២ រូប) ជោគជ័យ! 🌟✨');
+    }
+    openExecutiveHierarchyModal();
+    renderCurrentView();
+  } else if (cleanCode === '1234') {
+    sessionStorage.setItem('sd_exec_unlocked', 'true');
+    sessionStorage.setItem('sd_exec_role', 'member');
+    execHierarchyFilterState.selectedManager = null;
+    execHierarchyFilterState.selectedLeader = null;
+    closeExecutivePasscodeModal();
+    if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
+    if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('ដោះសោរផ្ទាំងសមាជិកក្រុម ៤៤ នាក់ ជោគជ័យ! 🤝✨');
     }
     openExecutiveHierarchyModal();
     renderCurrentView();
   } else {
     const errEl = document.getElementById('exec-passcode-error');
     if (errEl) {
-      errEl.textContent = 'លេខកូដមិនត្រឹមត្រូវទេ!';
+      errEl.textContent = 'លេខកូដមិនត្រឹមត្រូវទេ! (សាកល្បង manager, leader ឬ 1234)';
       errEl.classList.remove('hidden');
     }
     const input = document.getElementById('exec-passcode-input');
@@ -3037,10 +3073,13 @@ function submitExecutivePasscode(enteredVal) {
 function relockExecutiveCard(event) {
   if (event) event.stopPropagation();
   sessionStorage.removeItem('sd_exec_unlocked');
+  sessionStorage.removeItem('sd_exec_role');
+  execHierarchyFilterState.selectedManager = null;
+  execHierarchyFilterState.selectedLeader = null;
   renderCurrentView();
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
   if (typeof showToastNotification === 'function') {
-    showToastNotification('បានចាក់សោរកាតថ្នាក់ដឹកនាំវិញជោគជ័យ! 🔒');
+    showToastNotification('បានចាក់សោរកាតរចនាសម្ព័ន្ធលក់វិញជោគជ័យ! 🔒');
   }
 }
 
@@ -3072,7 +3111,8 @@ let execHierarchyFilterState = {
   calYear: _initYear,
   calMonth: _initMonth,
   isDirectorExpanded: true,
-  selectedManager: null
+  selectedManager: null,
+  selectedLeader: null
 };
 let execHierarchyScrollInitialized = false;
 
@@ -3409,6 +3449,7 @@ function toggleExecDirectorExpanded() {
 function handleDirectorClick(event) {
   if (event) event.stopPropagation();
   execHierarchyFilterState.selectedManager = null;
+  execHierarchyFilterState.selectedLeader = null;
   execHierarchyFilterState.isDirectorExpanded = true;
   renderExecutiveHierarchyModalContent();
   renderCurrentView();
@@ -3426,20 +3467,32 @@ function selectExecutiveManager(mgrKm) {
   if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
 }
 
+function selectExecutiveLeader(ldrKm) {
+  if (execHierarchyFilterState.selectedLeader === ldrKm) {
+    execHierarchyFilterState.selectedLeader = null;
+  } else {
+    execHierarchyFilterState.selectedLeader = ldrKm;
+  }
+  renderExecutiveHierarchyModalContent();
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
 function getManagerTarget(mgrKm) {
-  const defaultTargets = {
-    'លោក ស្រឿន លាងហាក់': 20,
-    'លោក ហែម ចន្ធី': 20,
-    'លោក ហ៊ួរ យ៉ារិទ្ធ': 20,
-    'លោក ប៊ិច នោរ៉ា': 15,
-    'លោក ប៊ិច ឧត្តម': 15,
-    'លោក ស្ដី ស្ដើង': 10
-  };
+  const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : null;
+  if (d && d.monthlyTargets) {
+    const cleanName = mgrKm.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+    if (d.monthlyTargets[mgrKm]) return Number(d.monthlyTargets[mgrKm]);
+    if (d.monthlyTargets[cleanName]) return Number(d.monthlyTargets[cleanName]);
+    for (const [k, v] of Object.entries(d.monthlyTargets)) {
+      if (k.includes(cleanName) || cleanName.includes(k)) return Number(v);
+    }
+  }
   try {
     const saved = localStorage.getItem(`sd_mgr_target_${mgrKm}`);
     if (saved && !isNaN(saved)) return Number(saved);
   } catch (_) {}
-  return defaultTargets[mgrKm] || 20;
+  return 100;
 }
 
 function setManagerTarget(mgrKm, targetVal) {
@@ -3611,6 +3664,9 @@ function closeExecutiveHierarchyModal() {
 
 function relockExecutiveHierarchyModal() {
   sessionStorage.removeItem('sd_exec_unlocked');
+  sessionStorage.removeItem('sd_exec_role');
+  execHierarchyFilterState.selectedManager = null;
+  execHierarchyFilterState.selectedLeader = null;
   closeExecutiveHierarchyModal();
   renderCurrentView();
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
@@ -3782,11 +3838,7 @@ function getExecFilteredStats(d) {
   return statsMap;
 }
 
-function renderExecutiveHierarchyModalContent() {
-  const container = document.getElementById('executive-hierarchy-scroll-body');
-  if (!container) return;
-
-  const d = DataService.data;
+function getExecutiveHierarchyParsedData(d, statsMap) {
   const hierarchy = (d && d.teamHierarchy) ? d.teamHierarchy : null;
 
   const fallbackManagers = [
@@ -3798,12 +3850,25 @@ function renderExecutiveHierarchyModalContent() {
     { km: 'លោក ស្ដី ស្ដើង', en: 'Sdey Sdoeung', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 1, members: 3, orders: 3, boxes: 6 }
   ];
 
-  const rawManagers = (hierarchy && Array.isArray(hierarchy.managers) && hierarchy.managers.length > 0) ? hierarchy.managers : fallbackManagers;
-  const directorRaw = (hierarchy && hierarchy.directors && hierarchy.directors.length > 0) ? hierarchy.directors[0] : { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', orders: 29, boxes: 67 };
-  const allLeaders = (hierarchy && Array.isArray(hierarchy.leaders)) ? hierarchy.leaders : [];
-  const allMembers = (hierarchy && Array.isArray(hierarchy.members)) ? hierarchy.members : [];
+  const fallbackLeaders = [
+    { km: 'លោក ស្រឿន លាងហាក់', en: 'Sroeun Leanghak', role: 'Leader', manager: 'លោក ស្រឿន លាងហាក់', orders: 6, boxes: 16 },
+    { km: 'លោក ហ៊ួរ យ៉ារិទ្ធ', en: 'Hour Yaith', role: 'Leader', manager: 'លោក ហ៊ួរ យ៉ារិទ្ធ', orders: 6, boxes: 12 },
+    { km: 'លោក ហែម ចន្ធី', en: 'Hem Chanthy', role: 'Leader', manager: 'លោក ហែម ចន្ធី', orders: 4, boxes: 9 },
+    { km: 'អ្នកគ្រូ ម៉ិច ច័ន្ទសុជាតា', en: 'Mech Chansocheata', role: 'Leader', manager: 'លោក ប៊ិច នោរ៉ា', orders: 2, boxes: 7 },
+    { km: 'លោក ស្ដី ស្ដើង', en: 'Sdey Sdoeung', role: 'Leader', manager: 'លោក ស្ដី ស្ដើង', orders: 3, boxes: 6 },
+    { km: 'លោក និន ណែត', en: 'Nin Net', role: 'Leader', manager: 'លោក ប៊ិច ឧត្តម', orders: 2, boxes: 6 },
+    { km: 'លោក ប៊ិច ឧត្តម', en: 'Bech Udom', role: 'Leader', manager: 'លោក ប៊ិច ឧត្តម', orders: 2, boxes: 4 },
+    { km: 'អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា', en: 'Sot Masya', role: 'Leader', manager: 'លោក ហែម ចន្ធី', orders: 2, boxes: 4 },
+    { km: 'លោក ពុធ ធារ៉ា', en: 'Puth Theara', role: 'Leader', manager: 'លោក ប៊ិច នោរ៉ា', orders: 2, boxes: 3 },
+    { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'Director', manager: 'លោក ប៊ិច នោរ៉ា', orders: 0, boxes: 0 },
+    { km: 'អ្នកគ្រូ វន ស្រីនិច', en: 'Von Sreynich', role: 'Leader', manager: 'លោក ហ៊ួរ យ៉ារិទ្ធ', orders: 0, boxes: 0 },
+    { km: 'លោក យឹម សីហា', en: 'Yim Seyha', role: 'Leader', manager: 'លោក ហែម ចន្ធី', orders: 0, boxes: 0 }
+  ];
 
-  const statsMap = getExecFilteredStats(d);
+  const rawManagers = (hierarchy && Array.isArray(hierarchy.managers) && hierarchy.managers.length > 0) ? hierarchy.managers : fallbackManagers;
+  const rawLeaders = (hierarchy && Array.isArray(hierarchy.leaders) && hierarchy.leaders.length > 0) ? hierarchy.leaders : fallbackLeaders;
+  const rawMembers = (hierarchy && Array.isArray(hierarchy.members) && hierarchy.members.length > 0) ? hierarchy.members : BOSTAR_TEAM_SELLERS;
+  const directorRaw = (hierarchy && hierarchy.directors && hierarchy.directors.length > 0) ? hierarchy.directors[0] : { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', orders: 29, boxes: 67 };
 
   let directorBoxes = Number(directorRaw.boxes) || 67;
   let directorOrders = Number(directorRaw.orders) || 29;
@@ -3813,13 +3878,71 @@ function renderExecutiveHierarchyModalContent() {
     directorOrders = Object.values(statsMap).reduce((acc, s) => acc + s.orders, 0);
   }
 
+  // 1. Process 44 Members
+  const enrichedMembers = rawMembers.map(mem => {
+    let displayBoxes = Number(mem.boxes) || 0;
+    let displayOrders = Number(mem.orders) || 0;
+
+    if (statsMap !== null) {
+      const memStat = getSellerAggregatedStats(mem, statsMap);
+      displayBoxes = memStat.boxes;
+      displayOrders = memStat.orders;
+    }
+
+    return {
+      ...mem,
+      displayBoxes,
+      displayOrders
+    };
+  });
+  const sortedMembers = [...enrichedMembers].sort((a, b) => b.displayBoxes - a.displayBoxes);
+
+  // 2. Process 12 Leaders
+  const enrichedLeaders = rawLeaders.map(l => {
+    const l_clean = l.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+    const teamMembers = enrichedMembers.filter(mem => {
+      const memLeader = (mem.leader || '').trim();
+      const memLeaderClean = memLeader.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+      return memLeader === l.km || (l_clean && memLeaderClean === l_clean) || (l_clean && memLeader.includes(l_clean));
+    });
+
+    let displayBoxes = Number(l.boxes) || 0;
+    let displayOrders = Number(l.orders) || 0;
+
+    if (statsMap !== null) {
+      let bSum = 0;
+      let oSum = 0;
+      teamMembers.forEach(mem => {
+        bSum += mem.displayBoxes;
+        oSum += mem.displayOrders;
+      });
+      const lStat = getSellerAggregatedStats(l, statsMap);
+      bSum += lStat.boxes;
+      oSum += lStat.orders;
+      displayBoxes = bSum;
+      displayOrders = oSum;
+    } else if (displayBoxes === 0 && teamMembers.length > 0) {
+      displayBoxes = teamMembers.reduce((acc, m) => acc + (Number(m.boxes) || 0), 0);
+      displayOrders = teamMembers.reduce((acc, m) => acc + (Number(m.orders) || 0), 0);
+    }
+
+    return {
+      ...l,
+      displayBoxes,
+      displayOrders,
+      teamMembers
+    };
+  });
+  const sortedLeaders = [...enrichedLeaders].sort((a, b) => b.displayBoxes - a.displayBoxes);
+
+  // 3. Process 6 Managers
   const enrichedManagers = rawManagers.map(m => {
     const m_clean = m.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
-    const teamLeaders = allLeaders.filter(l => l.manager === m.km || (m_clean && l.manager.includes(m_clean)));
+    const teamLeaders = sortedLeaders.filter(l => l.manager === m.km || (m_clean && l.manager.includes(m_clean)));
     const l_names = new Set(teamLeaders.map(l => l.km));
     l_names.add(m.km);
     const l_clean_names = Array.from(l_names).map(l => l.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim());
-    const teamMembers = allMembers.filter(mem => l_names.has(mem.leader) || l_clean_names.some(c => c && mem.leader.includes(c)));
+    const teamMembers = enrichedMembers.filter(mem => l_names.has(mem.leader) || l_clean_names.some(c => c && mem.leader.includes(c)));
 
     let displayBoxes = Number(m.boxes) || 0;
     let displayOrders = Number(m.orders) || 0;
@@ -3828,9 +3951,8 @@ function renderExecutiveHierarchyModalContent() {
       let bSum = 0;
       let oSum = 0;
       teamMembers.forEach(mem => {
-        const memStat = getSellerAggregatedStats(mem, statsMap);
-        bSum += memStat.boxes;
-        oSum += memStat.orders;
+        bSum += mem.displayBoxes;
+        oSum += mem.displayOrders;
       });
       teamLeaders.forEach(tl => {
         const tlStat = getSellerAggregatedStats(tl, statsMap);
@@ -3857,17 +3979,40 @@ function renderExecutiveHierarchyModalContent() {
       teamMembers
     };
   });
-
   const sortedManagers = [...enrichedManagers].sort((a, b) => b.displayBoxes - a.displayBoxes);
 
-  const selectedMgrName = execHierarchyFilterState.selectedManager;
-  const selectedM = selectedMgrName ? sortedManagers.find(m => m.km === selectedMgrName) : null;
+  return {
+    directorRaw,
+    directorBoxes,
+    directorOrders,
+    sortedManagers,
+    sortedLeaders,
+    sortedMembers
+  };
+}
 
-  // 1. DIRECTOR SHOWCASE CARD (Tapping always resets/shows all Managers!)
+function renderExecutiveHierarchyModalContent() {
+  const container = document.getElementById('executive-hierarchy-scroll-body');
+  if (!container) return;
+
+  const d = DataService.data;
+  const statsMap = getExecFilteredStats(d);
+  const execRole = sessionStorage.getItem('sd_exec_role') || 'manager';
+
+  const {
+    directorRaw,
+    directorBoxes,
+    directorOrders,
+    sortedManagers,
+    sortedLeaders,
+    sortedMembers
+  } = getExecutiveHierarchyParsedData(d, statsMap);
+
+  // 1. DIRECTOR SHOWCASE CARD (Tapping always resets/shows all Leaders or Managers!)
   const directorHtml = `
     <div onclick="handleDirectorClick(event)" 
          class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0C1425]/90 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5"
-         title="ចុចដើម្បីបង្ហាញ Managers ទាំងអស់">
+         title="ចុចដើម្បីបង្ហាញបញ្ជីទាំងអស់ឡើងវិញ">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-black flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/30 shrink-0">
           <i data-lucide="award" class="w-6 h-6"></i>
@@ -3889,78 +4034,222 @@ function renderExecutiveHierarchyModalContent() {
     </div>
   `;
 
-  // 2. MANAGERS & DRILL-DOWN LOGIC
   let bodyContentHtml = '';
 
-  if (!selectedM) {
-    // Show all 6 Managers
-    const managersListHtml = sortedManagers.map((m, idx) => {
+  // ==========================================
+  // VIEW A: LEADER ROLE (12 Leaders + Direct Members drill-down)
+  // ==========================================
+  if (execRole === 'leader') {
+    const selectedLdrName = execHierarchyFilterState.selectedLeader;
+    const selectedL = selectedLdrName ? sortedLeaders.find(l => l.km === selectedLdrName) : null;
+
+    if (!selectedL) {
+      const topLeaderBoxes = sortedLeaders.length > 0 ? (sortedLeaders[0].displayBoxes || 1) : 1;
+      const leadersListHtml = sortedLeaders.map((l, idx) => {
+        const rank = idx + 1;
+        const rankBadge = getManagerRankBadge(rank);
+        let borderAccent = 'border-white/5 hover:border-sky-400/30';
+        if (rank === 1) borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
+        else if (rank === 2) borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
+        else if (rank === 3) borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
+
+        const isSdoeung = (l.km && (l.km.includes('ស្ដី ស្ដើង') || l.km.includes('ស្តី ស្តើង')));
+        const isBechNora = (l.km && (l.km.includes('ប៊ិច នោរ៉ា') || (l.en && l.en.toLowerCase().includes('bech nora'))));
+        const percentOfTop = Math.min(100, Math.round(((Number(l.displayBoxes) || 0) / (topLeaderBoxes || 1)) * 100));
+        const barGradient = rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-sky-500 to-teal-400';
+
+        return `
+          <div onclick="selectExecutiveLeader('${l.km}')" 
+               class="p-3.5 rounded-2xl bg-black/40 border ${borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2.5 hover:bg-white/[0.03] group shadow-sm">
+            <div class="flex items-center justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                ${rankBadge}
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-xs text-white group-hover:text-sky-300 transition leading-tight">${l.km}</span>
+                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    <span class="text-[10px] text-slate-400 font-mono">(${l.en})</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 mt-1">
+                    <span class="px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 text-[9.5px] font-mono flex items-center gap-1">
+                      <i data-lucide="users" class="w-2.5 h-2.5 text-sky-400"></i>
+                      <span>${l.teamMembers.length} សមាជិក</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <div class="text-right">
+                  <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-sky-300'}">
+                    ${l.displayBoxes} ប្រអប់
+                  </div>
+                  <div class="text-[10px] font-mono text-slate-400">
+                    ${l.displayOrders} កុម្ម៉ង់
+                  </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all"></i>
+              </div>
+            </div>
+
+            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+              <div class="h-1.5 ${barGradient}" style="width: ${percentOfTop}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      bodyContentHtml = `
+        <div class="space-y-2">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
+              <i data-lucide="shield" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>តារាង LEADERS (១២ រូប)</span>
+            </span>
+            <span class="text-[10px] text-sky-400">ចុចលើ Leader ដើម្បីមើលកូនក្រុម ❯</span>
+          </div>
+
+          <div class="space-y-2">
+            ${leadersListHtml}
+          </div>
+        </div>
+      `;
+    } else {
+      // Drill-down into selected Leader
+      const isSdoeung = (selectedL.km && (selectedL.km.includes('ស្ដី ស្ដើង') || selectedL.km.includes('ស្តី ស្តើង')));
+      const isBechNora = (selectedL.km && (selectedL.km.includes('ប៊ិច នោរ៉ា') || (selectedL.en && selectedL.en.toLowerCase().includes('bech nora'))));
+      const origRank = sortedLeaders.findIndex(l => l.km === selectedL.km) + 1;
+      const rankBadge = getManagerRankBadge(origRank);
+
+      bodyContentHtml = `
+        <div class="space-y-3.5">
+          <!-- Selected Leader Highlight Card (Tap again to collapse and show all leaders) -->
+          <div onclick="selectExecutiveLeader('${selectedL.km}')" 
+               class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/40 shadow-lg shadow-sky-500/10 space-y-2.5 cursor-pointer active:scale-[0.99] transition group"
+               title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Leaders ទាំងអស់វិញ">
+            <div class="flex items-center justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                ${rankBadge}
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-sm text-white">${selectedL.km}</span>
+                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    <span class="text-[11px] text-slate-400 font-mono">(${selectedL.en})</span>
+                  </div>
+                  <div class="text-[10px] text-sky-300 mt-0.5">
+                    Leader • ${selectedL.teamMembers.length} សមាជិក
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <div class="text-right">
+                  <div class="font-mono text-sm font-bold text-sky-300">${selectedL.displayBoxes} ប្រអប់</div>
+                  <div class="text-[10px] font-mono text-slate-400">${selectedL.displayOrders} កុម្ម៉ង់</div>
+                </div>
+                <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-sky-300 font-semibold flex items-center gap-1 shadow-sm">
+                  <i data-lucide="x" class="w-3 h-3"></i>
+                  <span>បិទ</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+              <div class="h-1.5 bg-gradient-to-r from-sky-500 to-teal-300" style="width: 100%"></div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                <span>សមាជិកលក់ក្នុងក្រុម (${selectedL.teamMembers.length} នាក់)</span>
+              </span>
+            </div>
+
+            <div class="space-y-1.5">
+              ${selectedL.teamMembers.length > 0 ? selectedL.teamMembers.map(mem => {
+                const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
+                const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+                return `
+                <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                        ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                        ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                        <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
+                      </div>
+                      <div class="text-[10px] text-slate-400 mt-0.5">
+                        Leader: <span class="text-sky-300 font-medium">${mem.leader || selectedL.km}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-right shrink-0 font-mono">
+                    <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
+                    <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                  </div>
+                </div>
+              `;}).join('') : `
+                <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
+                  មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  } 
+  // ==========================================
+  // VIEW B: MEMBER ROLE (44 Members View)
+  // ==========================================
+  else if (execRole === 'member') {
+    const topMemberBoxes = sortedMembers.length > 0 ? (sortedMembers[0].displayBoxes || 1) : 1;
+
+    const membersListHtml = sortedMembers.map((mem, idx) => {
       const rank = idx + 1;
       const rankBadge = getManagerRankBadge(rank);
-      let borderAccent = 'border-white/5 hover:border-amber-400/30';
+      let borderAccent = 'border-white/5 hover:border-emerald-400/30';
       if (rank === 1) borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
       else if (rank === 2) borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
       else if (rank === 3) borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
-      else if (rank === 4) borderAccent = 'border-amber-500/20 hover:border-amber-500/40';
-      else if (rank === 5) borderAccent = 'border-emerald-500/20 hover:border-emerald-500/40';
-      else if (rank === 6) borderAccent = 'border-sky-500/20 hover:border-sky-500/40';
 
-      const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
-      const isBechNora = (m.km && (m.km.includes('ប៊ិច នោរ៉ា') || (m.en && m.en.toLowerCase().includes('bech nora'))));
-      const canViewEdit = canViewAndEditManagerTarget(m);
-      const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].displayBoxes || 1) : 1;
-      const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
-      const barWidth = canViewEdit ? Math.min(100, m.targetPercent) : percentOfTop;
-      const barGradient = canViewEdit
-        ? (m.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300')
-        : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400');
+      const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
+      const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+      const percentOfTop = Math.min(100, Math.round(((Number(mem.displayBoxes) || 0) / (topMemberBoxes || 1)) * 100));
 
       return `
-        <div onclick="selectExecutiveManager('${m.km}')" 
-             class="p-3.5 rounded-2xl bg-black/40 border ${borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2.5 hover:bg-white/[0.03] group shadow-sm">
+        <div class="p-3 rounded-2xl bg-black/40 border ${borderAccent} space-y-2 hover:bg-white/[0.03] transition shadow-sm">
           <div class="flex items-center justify-between gap-2.5">
             <div class="flex items-center gap-2.5 min-w-0">
               ${rankBadge}
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
-                  ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                  ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                  <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
+                  <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                  ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                  ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                  <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
                 </div>
-                ${canViewEdit ? `
-                  <!-- Target Pill (Visible ONLY for Director or this Manager) -->
-                  <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
-                    <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
-                      <span class="text-amber-400">🎯 គោលដៅ:</span>
-                      <span class="font-bold text-white">${m.targetBoxes}</span>
-                      <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                      <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
-                    </span>
-                    <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                      (${m.targetPercent}%)
-                    </span>
-                  </div>
-                ` : ''}
+                <div class="text-[10px] text-slate-400 mt-0.5">
+                  Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
+                </div>
               </div>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
-              <div class="text-right">
-                <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
-                  ${m.displayBoxes} ប្រអប់
-                </div>
-                <div class="text-[10px] font-mono text-slate-400">
-                  ${m.displayOrders} កុម្ម៉ង់
-                </div>
-              </div>
-              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all"></i>
+            <div class="text-right shrink-0 font-mono">
+              <div class="text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">${mem.displayBoxes} ប្រអប់</div>
+              <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
             </div>
           </div>
 
-          <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-            <div class="h-1.5 ${barGradient}" style="width: ${barWidth}%"></div>
-          </div>
+          <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+            <div class="h-1 bg-gradient-to-r from-emerald-500 to-teal-400" style="width: ${percentOfTop}%"></div>
           </div>
         </div>
       `;
@@ -3969,174 +4258,249 @@ function renderExecutiveHierarchyModalContent() {
     bodyContentHtml = `
       <div class="space-y-2">
         <div class="flex items-center justify-between px-1">
-          <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
-            <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
-            <span>តារាង MANAGERS (៦ ក្រុម)</span>
+          <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider">
+            <i data-lucide="users" class="w-3.5 h-3.5"></i>
+            <span>តារាងសមាជិកក្រុម (${sortedMembers.length} នាក់)</span>
           </span>
-          <span class="text-[10px] text-amber-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម ❯</span>
+          <span class="text-[10px] text-slate-400 font-sans">តម្លាភាព និងរួមគ្នាលូតលាស់</span>
         </div>
 
-        <div class="space-y-2">
-          ${managersListHtml}
+        <div class="space-y-1.5">
+          ${membersListHtml}
         </div>
       </div>
     `;
-  } else {
-    // DRILL-DOWN INTO SELECTED MANAGER (Tapping him again collapses him and reveals all managers!)
-    const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
-    const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
-    const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
-    const rankBadge = getManagerRankBadge(origRank);
-    const canViewEditSelected = canViewAndEditManagerTarget(selectedM);
-    const selBarWidth = canViewEditSelected ? Math.min(100, selectedM.targetPercent) : 100;
+  }
+  // ==========================================
+  // VIEW C: MANAGER ROLE (Default: 6 Managers View)
+  // ==========================================
+  else {
+    const selectedMgrName = execHierarchyFilterState.selectedManager;
+    const selectedM = selectedMgrName ? sortedManagers.find(m => m.km === selectedMgrName) : null;
 
-    const processedLeaders = (selectedM.teamLeaders || []).map(tl => {
-      let b = Number(tl.boxes) || 0;
-      let o = Number(tl.orders) || 0;
-      if (statsMap !== null) {
-        const s = getSellerAggregatedStats(tl, statsMap);
-        b = s.boxes;
-        o = s.orders;
-      }
-      return { ...tl, displayBoxes: b, displayOrders: o };
-    });
+    if (!selectedM) {
+      // Show all 6 Managers
+      const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].displayBoxes || 1) : 1;
+      const managersListHtml = sortedManagers.map((m, idx) => {
+        const rank = idx + 1;
+        const rankBadge = getManagerRankBadge(rank);
+        let borderAccent = 'border-white/5 hover:border-amber-400/30';
+        if (rank === 1) borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
+        else if (rank === 2) borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
+        else if (rank === 3) borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
+        else if (rank === 4) borderAccent = 'border-amber-500/20 hover:border-amber-500/40';
+        else if (rank === 5) borderAccent = 'border-emerald-500/20 hover:border-emerald-500/40';
+        else if (rank === 6) borderAccent = 'border-sky-500/20 hover:border-sky-500/40';
 
-    const processedMembers = (selectedM.teamMembers || []).map(mem => {
-      let b = Number(mem.boxes) || 0;
-      let o = Number(mem.orders) || 0;
-      if (statsMap !== null) {
-        const s = getSellerAggregatedStats(mem, statsMap);
-        b = s.boxes;
-        o = s.orders;
-      }
-      return { ...mem, displayBoxes: b, displayOrders: o };
-    });
+        const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
+        const isBechNora = (m.km && (m.km.includes('ប៊ិច នោរ៉ា') || (m.en && m.en.toLowerCase().includes('bech nora'))));
+        const canViewEdit = canViewAndEditManagerTarget(m);
+        const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
+        const barWidth = canViewEdit ? Math.min(100, m.targetPercent) : percentOfTop;
+        const barGradient = canViewEdit
+          ? (m.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300')
+          : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400');
 
-    bodyContentHtml = `
-      <div class="space-y-3.5">
-        <!-- Selected Manager Highlight Card (Tap again to collapse and show all managers) -->
-        <div onclick="selectExecutiveManager('${selectedM.km}')" 
-             class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/40 shadow-lg shadow-amber-500/10 space-y-2.5 cursor-pointer active:scale-[0.99] transition group"
-             title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Managers ទាំងអស់វិញ">
-          <div class="flex items-center justify-between gap-2.5">
-            <div class="flex items-center gap-2.5 min-w-0">
-              ${rankBadge}
-              <div class="min-w-0">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-bold text-sm text-white">${selectedM.km}</span>
-                  ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                  ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                  <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
-                </div>
-                ${canViewEditSelected ? `
-                  <!-- Target Pill (Visible ONLY for Director or this Manager) -->
-                  <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
-                    <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
-                      <span class="text-amber-400">🎯 គោលដៅ:</span>
-                      <span class="font-bold text-white">${selectedM.targetBoxes}</span>
-                      <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                      <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
-                    </span>
-                    <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                      (${selectedM.targetPercent}%)
-                    </span>
+        return `
+          <div onclick="selectExecutiveManager('${m.km}')" 
+               class="p-3.5 rounded-2xl bg-black/40 border ${borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2.5 hover:bg-white/[0.03] group shadow-sm">
+            <div class="flex items-center justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                ${rankBadge}
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
+                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                   </div>
-                ` : ''}
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2 shrink-0">
-              <div class="text-right">
-                <div class="font-mono text-sm font-bold text-amber-300">${selectedM.displayBoxes} ប្រអប់</div>
-                <div class="text-[10px] font-mono text-slate-400">${selectedM.displayOrders} កុម្ម៉ង់</div>
-              </div>
-              <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-amber-300 font-semibold flex items-center gap-1 shadow-sm">
-                <i data-lucide="x" class="w-3 h-3"></i>
-                <span>បិទ</span>
-              </span>
-            </div>
-          </div>
-
-          <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-            <div class="h-1.5 ${canViewEditSelected && selectedM.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${selBarWidth}%"></div>
-          </div>
-        </div>
-
-        <!-- Leaders Section -->
-        ${processedLeaders.length > 0 ? `
-          <div class="space-y-1.5">
-            <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
-              <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-              <span>Leader ក្នុងក្រុម (${processedLeaders.length} រូប)</span>
-            </span>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              ${processedLeaders.map(tl => {
-                const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
-                const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
-                return `
-                <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
-                  <div>
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                      <span class="font-bold text-slate-200">${tl.km}</span>
-                      ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                      ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
+                  ${canViewEdit ? `
+                    <!-- Target Pill (Visible ONLY for Director or this Manager) -->
+                    <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
+                      <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                        <span class="text-amber-400">🎯 គោលដៅ:</span>
+                        <span class="font-bold text-white">${m.targetBoxes}</span>
+                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                        <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                      </span>
+                      <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                        (${m.targetPercent}%)
+                      </span>
                     </div>
-                    <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
+                  ` : ''}
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <div class="text-right">
+                  <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
+                    ${m.displayBoxes} ប្រអប់
                   </div>
-                  <div class="text-right font-mono">
-                    <span class="text-sky-300 font-bold text-xs">${tl.displayBoxes} ប្រអប់</span>
-                    <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
+                  <div class="text-[10px] font-mono text-slate-400">
+                    ${m.displayOrders} កុម្ម៉ង់
                   </div>
                 </div>
-              `;}).join('')}
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all"></i>
+              </div>
+            </div>
+
+            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+              <div class="h-1.5 ${barGradient}" style="width: ${barWidth}%"></div>
             </div>
           </div>
-        ` : ''}
+        `;
+      }).join('');
 
-        <!-- Members Section -->
+      bodyContentHtml = `
         <div class="space-y-2">
           <div class="flex items-center justify-between px-1">
-            <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider">
-              <i data-lucide="users" class="w-3.5 h-3.5"></i>
-              <span>សមាជិកលក់ក្នុងក្រុម (${processedMembers.length} នាក់)</span>
+            <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
+              <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>តារាង MANAGERS (៦ ក្រុម)</span>
             </span>
+            <span class="text-[10px] text-amber-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម ❯</span>
           </div>
 
-          <div class="space-y-1.5">
-            ${processedMembers.length > 0 ? processedMembers.map(mem => {
-              const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
-              const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
-              return `
-              <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                      <span class="font-bold text-xs text-white truncate">${mem.km}</span>
-                      ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                      ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
-                      <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
-                    </div>
-                    <div class="text-[10px] text-slate-400 mt-0.5">
-                      Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="text-right shrink-0 font-mono">
-                  <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
-                  <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
-                </div>
-              </div>
-            `;}).join('') : `
-              <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
-                មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
-              </div>
-            `}
+          <div class="space-y-2">
+            ${managersListHtml}
           </div>
         </div>
-      </div>
-    `;
+      `;
+    } else {
+      // DRILL-DOWN INTO SELECTED MANAGER (Tapping him again collapses him and reveals all managers!)
+      const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
+      const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
+      const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
+      const rankBadge = getManagerRankBadge(origRank);
+      const canViewEditSelected = canViewAndEditManagerTarget(selectedM);
+      const selBarWidth = canViewEditSelected ? Math.min(100, selectedM.targetPercent) : 100;
+
+      bodyContentHtml = `
+        <div class="space-y-3.5">
+          <!-- Selected Manager Highlight Card (Tap again to collapse and show all managers) -->
+          <div onclick="selectExecutiveManager('${selectedM.km}')" 
+               class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/40 shadow-lg shadow-amber-500/10 space-y-2.5 cursor-pointer active:scale-[0.99] transition group"
+               title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Managers ទាំងអស់វិញ">
+            <div class="flex items-center justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                ${rankBadge}
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-sm text-white">${selectedM.km}</span>
+                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
+                  </div>
+                  ${canViewEditSelected ? `
+                    <!-- Target Pill (Visible ONLY for Director or this Manager) -->
+                    <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
+                      <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                        <span class="text-amber-400">🎯 គោលដៅ:</span>
+                        <span class="font-bold text-white">${selectedM.targetBoxes}</span>
+                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                        <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                      </span>
+                      <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                        (${selectedM.targetPercent}%)
+                      </span>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <div class="text-right">
+                  <div class="font-mono text-sm font-bold text-amber-300">${selectedM.displayBoxes} ប្រអប់</div>
+                  <div class="text-[10px] font-mono text-slate-400">${selectedM.displayOrders} កុម្ម៉ង់</div>
+                </div>
+                <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-amber-300 font-semibold flex items-center gap-1 shadow-sm">
+                  <i data-lucide="x" class="w-3 h-3"></i>
+                  <span>បិទ</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+              <div class="h-1.5 ${canViewEditSelected && selectedM.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${selBarWidth}%"></div>
+            </div>
+          </div>
+
+          ${selectedM.teamLeaders.length > 0 ? `
+            <!-- Leaders Section -->
+            <div class="space-y-1.5">
+              <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
+                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+                <span>Leader ក្នុងក្រុម (${selectedM.teamLeaders.length} រូប)</span>
+              </span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                ${selectedM.teamLeaders.map(tl => {
+                  const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
+                  const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
+                  return `
+                  <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
+                    <div>
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-slate-200">${tl.km}</span>
+                        ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                        ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      </div>
+                      <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
+                    </div>
+                    <div class="text-right font-mono">
+                      <span class="text-sky-300 font-bold text-xs">${tl.displayBoxes} ប្រអប់</span>
+                      <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
+                    </div>
+                  </div>
+                `;}).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Members Section -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                <span>សមាជិកលក់ក្នុងក្រុម (${selectedM.teamMembers.length} នាក់)</span>
+              </span>
+            </div>
+
+            <div class="space-y-1.5">
+              ${selectedM.teamMembers.length > 0 ? selectedM.teamMembers.map(mem => {
+                const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
+                const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+                return `
+                <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                        ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                        ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                        <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
+                      </div>
+                      <div class="text-[10px] text-slate-400 mt-0.5">
+                        Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-right shrink-0 font-mono">
+                    <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
+                    <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                  </div>
+                </div>
+              `;}).join('') : `
+                <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
+                  មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
   }
 
   container.innerHTML = `
@@ -4146,6 +4510,7 @@ function renderExecutiveHierarchyModalContent() {
 
   if (window.lucide) window.lucide.createIcons();
 }
+
 
 window.openExecutivePasscodeModal = openExecutivePasscodeModal;
 window.closeExecutivePasscodeModal = closeExecutivePasscodeModal;
@@ -4173,6 +4538,8 @@ window.selectExecYear = selectExecYear;
 window.setExecPeriodFilter = setExecPeriodFilter;
 window.handleDirectorClick = handleDirectorClick;
 window.selectExecutiveManager = selectExecutiveManager;
+window.selectExecutiveLeader = selectExecutiveLeader;
+window.getExecutiveHierarchyParsedData = getExecutiveHierarchyParsedData;
 window.getManagerTarget = getManagerTarget;
 window.setManagerTarget = setManagerTarget;
 window.canViewAndEditManagerTarget = canViewAndEditManagerTarget;
@@ -4705,149 +5072,230 @@ function getDashboardViewHTML() {
     // ------------------------------------------
     // 2. UNLOCKED STATE: Full Executive Command Center
     // ------------------------------------------
-    const fallbackManagers = [
-      { km: 'លោក ស្រឿន លាងហាក់', en: 'Sroeun Leanghak', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 1, members: 7, orders: 6, boxes: 16 },
-      { km: 'លោក ហែម ចន្ធី', en: 'Hem Chanthy', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 3, members: 10, orders: 6, boxes: 13 },
-      { km: 'លោក ហ៊ួរ យ៉ារិទ្ធ', en: 'Hour Yaith', role: 'Manager', dept: 'អ្នកបង្វឹកផ្នែកបិទការលក់', leaders: 2, members: 8, orders: 6, boxes: 12 },
-      { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', dept: 'BOSTAR GROUP CO.,LTD', leaders: 3, members: 10, orders: 4, boxes: 10 },
-      { km: 'លោក ប៊ិច ឧត្តម', en: 'Bech Udom', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 2, members: 6, orders: 4, boxes: 10 },
-      { km: 'លោក ស្ដី ស្ដើង', en: 'Sdey Sdoeung', role: 'Manager', dept: 'ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់', leaders: 1, members: 3, orders: 3, boxes: 6 }
-    ];
-
-    const rawManagers = (hierarchy && Array.isArray(hierarchy.managers) && hierarchy.managers.length > 0) ? hierarchy.managers : fallbackManagers;
-    const directorRaw = (hierarchy && hierarchy.directors && hierarchy.directors.length > 0) ? hierarchy.directors[0] : { km: 'លោក ប៊ិច នោរ៉ា', en: 'BECH NORA', role: 'ស្ថាបនិក', orders: 29, boxes: 67 };
-    const allLeaders = (hierarchy && Array.isArray(hierarchy.leaders)) ? hierarchy.leaders : [];
-    const allMembers = (hierarchy && Array.isArray(hierarchy.members)) ? hierarchy.members : [];
-
     const statsMap = getExecFilteredStats(d);
+    const execRole = sessionStorage.getItem('sd_exec_role') || 'manager';
 
-    let directorBoxes = Number(directorRaw.boxes) || 67;
-    let directorOrders = Number(directorRaw.orders) || 29;
-
-    if (statsMap !== null) {
-      directorBoxes = Object.values(statsMap).reduce((acc, s) => acc + s.boxes, 0);
-      directorOrders = Object.values(statsMap).reduce((acc, s) => acc + s.orders, 0);
-    }
-
-    const enrichedManagers = rawManagers.map(m => {
-      const m_clean = m.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
-      const teamLeaders = allLeaders.filter(l => l.manager === m.km || (m_clean && l.manager.includes(m_clean)));
-      const l_names = new Set(teamLeaders.map(l => l.km));
-      l_names.add(m.km);
-      const l_clean_names = Array.from(l_names).map(l => l.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim());
-      const teamMembers = allMembers.filter(mem => l_names.has(mem.leader) || l_clean_names.some(c => c && mem.leader.includes(c)));
-
-      let displayBoxes = Number(m.boxes) || 0;
-      let displayOrders = Number(m.orders) || 0;
-
-      if (statsMap !== null) {
-        let bSum = 0;
-        let oSum = 0;
-        teamMembers.forEach(mem => {
-          const memStat = getSellerAggregatedStats(mem, statsMap);
-          bSum += memStat.boxes;
-          oSum += memStat.orders;
-        });
-        teamLeaders.forEach(tl => {
-          const tlStat = getSellerAggregatedStats(tl, statsMap);
-          bSum += tlStat.boxes;
-          oSum += tlStat.orders;
-        });
-        const mgrStat = getSellerAggregatedStats(m, statsMap);
-        bSum += mgrStat.boxes;
-        oSum += mgrStat.orders;
-        displayBoxes = bSum;
-        displayOrders = oSum;
-      }
-
-      const targetBoxes = getManagerTarget(m.km);
-      const targetPercent = targetBoxes > 0 ? Math.round((displayBoxes / targetBoxes) * 100) : 0;
-
-      return {
-        ...m,
-        displayBoxes,
-        displayOrders,
-        targetBoxes,
-        targetPercent,
-        teamLeaders,
-        teamMembers
-      };
-    });
-
-    const sortedManagers = [...enrichedManagers].sort((a, b) => b.displayBoxes - a.displayBoxes);
-    const selectedMgrName = execHierarchyFilterState.selectedManager;
-    const selectedM = selectedMgrName ? sortedManagers.find(m => m.km === selectedMgrName) : null;
+    const {
+      directorRaw,
+      directorBoxes,
+      directorOrders,
+      sortedManagers,
+      sortedLeaders,
+      sortedMembers
+    } = getExecutiveHierarchyParsedData(d, statsMap);
 
     let homeHierarchyBodyHtml = '';
 
-    if (!selectedM) {
-      const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].displayBoxes || 1) : 1;
-      const managersCardsHtml = sortedManagers.map((m, idx) => {
+    // ==========================================
+    // VIEW A: LEADER ROLE (12 Leaders + Direct Members drill-down)
+    // ==========================================
+    if (execRole === 'leader') {
+      const selectedLdrName = execHierarchyFilterState.selectedLeader;
+      const selectedL = selectedLdrName ? sortedLeaders.find(l => l.km === selectedLdrName) : null;
+
+      if (!selectedL) {
+        const topLeaderBoxes = sortedLeaders.length > 0 ? (sortedLeaders[0].displayBoxes || 1) : 1;
+        const leadersCardsHtml = sortedLeaders.map((l, idx) => {
+          const rank = idx + 1;
+          const rankBadge = getManagerRankBadge(rank);
+          let borderAccent = 'border-white/5 hover:border-sky-400/30';
+          if (rank === 1) borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
+          else if (rank === 2) borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
+          else if (rank === 3) borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
+
+          const isSdoeung = (l.km && (l.km.includes('ស្ដី ស្ដើង') || l.km.includes('ស្តី ស្តើង')));
+          const isBechNora = (l.km && (l.km.includes('ប៊ិច នោរ៉ា') || (l.en && l.en.toLowerCase().includes('bech nora'))));
+          const percentOfTop = Math.min(100, Math.round(((Number(l.displayBoxes) || 0) / (topLeaderBoxes || 1)) * 100));
+          const barGradient = rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-sky-500 to-teal-400';
+
+          return `
+            <div onclick="selectExecutiveLeader('${l.km}')" 
+                 class="p-3 rounded-2xl bg-black/40 border ${borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2 hover:bg-white/[0.03] group shadow-sm">
+              <div class="flex items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  ${rankBadge}
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-bold text-xs text-white group-hover:text-sky-300 transition leading-tight">${l.km}</span>
+                      ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                      ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      <span class="text-[10px] text-slate-400 font-mono">(${l.en})</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 mt-1">
+                      <span class="px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 text-[9.5px] font-mono flex items-center gap-1">
+                        <i data-lucide="users" class="w-2.5 h-2.5 text-sky-400"></i>
+                        <span>${l.teamMembers.length} សមាជិក</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <div class="text-right">
+                    <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-sky-300'}">
+                      ${l.displayBoxes} ប្រអប់
+                    </div>
+                    <div class="text-[10px] font-mono text-slate-400">
+                      ${l.displayOrders} កុម្ម៉ង់
+                    </div>
+                  </div>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all"></i>
+                </div>
+              </div>
+
+              <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                <div class="h-1 ${barGradient}" style="width: ${percentOfTop}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        homeHierarchyBodyHtml = `
+          <div class="space-y-2 relative z-10">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
+                <i data-lucide="shield" class="w-3.5 h-3.5 text-sky-400"></i>
+                <span>តារាង LEADERS (១២ រូប)</span>
+              </span>
+              <span class="text-[10px] text-sky-400">ចុចលើ Leader ដើម្បីមើលកូនក្រុម ❯</span>
+            </div>
+
+            <div class="space-y-2">
+              ${leadersCardsHtml}
+            </div>
+          </div>
+        `;
+      } else {
+        // Drill-down into selected Leader in Card E
+        const isSdoeung = (selectedL.km && (selectedL.km.includes('ស្ដី ស្ដើង') || selectedL.km.includes('ស្តី ស្តើង')));
+        const isBechNora = (selectedL.km && (selectedL.km.includes('ប៊ិច នោរ៉ា') || (selectedL.en && selectedL.en.toLowerCase().includes('bech nora'))));
+        const origRank = sortedLeaders.findIndex(l => l.km === selectedL.km) + 1;
+        const rankBadge = getManagerRankBadge(origRank);
+
+        homeHierarchyBodyHtml = `
+          <div class="space-y-3 relative z-10">
+            <!-- Selected Leader Highlight Card -->
+            <div onclick="selectExecutiveLeader('${selectedL.km}')" 
+                 class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/40 shadow-lg shadow-sky-500/10 space-y-2 cursor-pointer active:scale-[0.99] transition group"
+                 title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Leaders ទាំងអស់វិញ">
+              <div class="flex items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  ${rankBadge}
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-bold text-sm text-white">${selectedL.km}</span>
+                      ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                      ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      <span class="text-[11px] text-slate-400 font-mono">(${selectedL.en})</span>
+                    </div>
+                    <div class="text-[10px] text-sky-300 mt-0.5">Leader • ${selectedL.teamMembers.length} សមាជិក</div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <div class="text-right">
+                    <div class="font-mono text-sm font-bold text-sky-300">${selectedL.displayBoxes} ប្រអប់</div>
+                    <div class="text-[10px] font-mono text-slate-400">${selectedL.displayOrders} កុម្ម៉ង់</div>
+                  </div>
+                  <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-sky-300 font-semibold flex items-center gap-1 shadow-sm">
+                    <i data-lucide="x" class="w-3 h-3"></i>
+                    <span>បិទ</span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                <div class="h-1.5 bg-gradient-to-r from-sky-500 to-teal-300" style="width: 100%"></div>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider px-1">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                <span>សមាជិកលក់ក្នុងក្រុម (${selectedL.teamMembers.length} នាក់)</span>
+              </span>
+
+              <div class="space-y-1.5 max-h-64 overflow-y-auto no-scrollbar pr-1">
+                ${selectedL.teamMembers.length > 0 ? selectedL.teamMembers.map(mem => {
+                  const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
+                  const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+                  return `
+                  <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                          ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                          ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
+                          <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">
+                          Leader: <span class="text-sky-300 font-medium">${mem.leader || selectedL.km}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="text-right shrink-0 font-mono">
+                      <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
+                      <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                    </div>
+                  </div>
+                `;}).join('') : `
+                  <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
+                    មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+    // ==========================================
+    // VIEW B: MEMBER ROLE (44 Members View)
+    // ==========================================
+    else if (execRole === 'member') {
+      const topMemberBoxes = sortedMembers.length > 0 ? (sortedMembers[0].displayBoxes || 1) : 1;
+
+      const membersCardsHtml = sortedMembers.map((mem, idx) => {
         const rank = idx + 1;
         const rankBadge = getManagerRankBadge(rank);
-        let borderAccent = 'border-white/5 hover:border-amber-400/30';
+        let borderAccent = 'border-white/5 hover:border-emerald-400/30';
         if (rank === 1) borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
         else if (rank === 2) borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
         else if (rank === 3) borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
-        else if (rank === 4) borderAccent = 'border-amber-500/20 hover:border-amber-500/40';
-        else if (rank === 5) borderAccent = 'border-emerald-500/20 hover:border-emerald-500/40';
-        else if (rank === 6) borderAccent = 'border-sky-500/20 hover:border-sky-500/40';
 
-        const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
-        const isBechNora = (m.km && (m.km.includes('ប៊ិច នោរ៉ា') || (m.en && m.en.toLowerCase().includes('bech nora'))));
-        const canViewEdit = canViewAndEditManagerTarget(m);
-        const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
-        const barWidth = canViewEdit ? Math.min(100, m.targetPercent) : percentOfTop;
-        const barGradient = canViewEdit
-          ? (m.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300')
-          : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400');
+        const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
+        const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+        const percentOfTop = Math.min(100, Math.round(((Number(mem.displayBoxes) || 0) / (topMemberBoxes || 1)) * 100));
 
         return `
-          <div onclick="selectExecutiveManager('${m.km}')" 
-               class="p-3 rounded-2xl bg-black/40 border ${borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2 hover:bg-white/[0.03] group shadow-sm">
+          <div class="p-2.5 rounded-2xl bg-black/40 border ${borderAccent} space-y-1.5 hover:bg-white/[0.03] transition shadow-sm">
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-2.5 min-w-0">
                 ${rankBadge}
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
-                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                    <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
+                    <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                    ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                    ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
                   </div>
-                  ${canViewEdit ? `
-                    <!-- Target Pill (Visible ONLY for Director or this Manager) -->
-                    <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
-                      <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
-                        <span class="text-amber-400">🎯 គោលដៅ:</span>
-                        <span class="font-bold text-white">${m.targetBoxes}</span>
-                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                        <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
-                      </span>
-                      <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                        (${m.targetPercent}%)
-                      </span>
-                    </div>
-                  ` : ''}
+                  <div class="text-[10px] text-slate-400 mt-0.5">
+                    Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
+                  </div>
                 </div>
               </div>
 
-              <div class="flex items-center gap-2 shrink-0">
-                <div class="text-right">
-                  <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
-                    ${m.displayBoxes} ប្រអប់
-                  </div>
-                  <div class="text-[10px] font-mono text-slate-400">
-                    ${m.displayOrders} កុម្ម៉ង់
-                  </div>
-                </div>
-                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all"></i>
+              <div class="text-right shrink-0 font-mono">
+                <div class="text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">${mem.displayBoxes} ប្រអប់</div>
+                <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
               </div>
             </div>
 
             <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-              <div class="h-1 ${barGradient}" style="width: ${barWidth}%"></div>
-            </div>
+              <div class="h-1 bg-gradient-to-r from-emerald-500 to-teal-400" style="width: ${percentOfTop}%"></div>
             </div>
           </div>
         `;
@@ -4856,171 +5304,247 @@ function getDashboardViewHTML() {
       homeHierarchyBodyHtml = `
         <div class="space-y-2 relative z-10">
           <div class="flex items-center justify-between px-1">
-            <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
-              <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
-              <span>តារាង MANAGERS (៦ ក្រុម)</span>
-            </span>
-            <span class="text-[10px] text-amber-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម ❯</span>
-          </div>
-
-          <div class="space-y-2">
-            ${managersCardsHtml}
-          </div>
-        </div>
-      `;
-    } else {
-      // Home Screen Drill-down into Selected Manager
-      const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
-      const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
-      const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
-      const rankBadge = getManagerRankBadge(origRank);
-      const canViewEditSelected = canViewAndEditManagerTarget(selectedM);
-      const selBarWidth = canViewEditSelected ? Math.min(100, selectedM.targetPercent) : 100;
-
-      const processedLeaders = (selectedM.teamLeaders || []).map(tl => {
-        let b = Number(tl.boxes) || 0;
-        let o = Number(tl.orders) || 0;
-        if (statsMap !== null) {
-          const s = getSellerAggregatedStats(tl, statsMap);
-          b = s.boxes;
-          o = s.orders;
-        }
-        return { ...tl, displayBoxes: b, displayOrders: o };
-      });
-
-      const processedMembers = (selectedM.teamMembers || []).map(mem => {
-        let b = Number(mem.boxes) || 0;
-        let o = Number(mem.orders) || 0;
-        if (statsMap !== null) {
-          const s = getSellerAggregatedStats(mem, statsMap);
-          b = s.boxes;
-          o = s.orders;
-        }
-        return { ...mem, displayBoxes: b, displayOrders: o };
-      });
-
-      homeHierarchyBodyHtml = `
-        <div class="space-y-3 relative z-10">
-          <!-- Selected Manager Highlight Card (Tap again to collapse and show all managers) -->
-          <div onclick="selectExecutiveManager('${selectedM.km}')" 
-               class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/40 shadow-lg shadow-amber-500/10 space-y-2 cursor-pointer active:scale-[0.99] transition group"
-               title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Managers ទាំងអស់វិញ">
-            <div class="flex items-center justify-between gap-2.5">
-              <div class="flex items-center gap-2.5 min-w-0">
-                ${rankBadge}
-                <div class="min-w-0">
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="font-bold text-sm text-white">${selectedM.km}</span>
-                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                    <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
-                  </div>
-                  ${canViewEditSelected ? `
-                    <!-- Target Pill (Visible ONLY for Director or this Manager) -->
-                    <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
-                      <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
-                        <span class="text-amber-400">🎯 គោលដៅ:</span>
-                        <span class="font-bold text-white">${selectedM.targetBoxes}</span>
-                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                        <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
-                      </span>
-                      <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                        (${selectedM.targetPercent}%)
-                      </span>
-                    </div>
-                  ` : ''}
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2 shrink-0">
-                <div class="text-right">
-                  <div class="font-mono text-sm font-bold text-amber-300">${selectedM.displayBoxes} ប្រអប់</div>
-                  <div class="text-[10px] font-mono text-slate-400">${selectedM.displayOrders} កុម្ម៉ង់</div>
-                </div>
-                <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-amber-300 font-semibold flex items-center gap-1 shadow-sm">
-                  <i data-lucide="x" class="w-3 h-3"></i>
-                  <span>បិទ</span>
-                </span>
-              </div>
-            </div>
-
-            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-              <div class="h-1.5 ${canViewEditSelected && selectedM.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${selBarWidth}%"></div>
-            </div>
-          </div>
-
-          ${processedLeaders.length > 0 ? `
-            <div class="space-y-1.5">
-              <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
-                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-                <span>Leader ក្នុងក្រុម (${processedLeaders.length} រូប)</span>
-              </span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                ${processedLeaders.map(tl => {
-                  const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
-                  const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
-                  return `
-                  <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
-                    <div>
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-slate-200">${tl.km}</span>
-                        ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                        ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
-                      </div>
-                      <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
-                    </div>
-                    <div class="text-right font-mono">
-                      <span class="text-sky-300 font-bold text-xs">${tl.displayBoxes} ប្រអប់</span>
-                      <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
-                    </div>
-                  </div>
-                `;}).join('')}
-              </div>
-            </div>
-          ` : ''}
-
-          <div class="space-y-2">
-            <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider px-1">
+            <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider">
               <i data-lucide="users" class="w-3.5 h-3.5"></i>
-              <span>សមាជិកលក់ក្នុងក្រុម (${processedMembers.length} នាក់)</span>
+              <span>តារាងសមាជិកក្រុម (${sortedMembers.length} នាក់)</span>
             </span>
+            <span class="text-[10px] text-slate-400 font-sans">តម្លាភាព និងរួមគ្នាលូតលាស់</span>
+          </div>
 
-            <div class="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar pr-1">
-              ${processedMembers.length > 0 ? processedMembers.map(mem => {
-                const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
-                const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
-                return `
-                <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
-                  <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-xs text-white truncate">${mem.km}</span>
-                        ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                        ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
-                        <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 mt-0.5">
-                        Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="text-right shrink-0 font-mono">
-                    <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
-                    <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
-                  </div>
-                </div>
-              `;}).join('') : `
-                <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
-                  មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
-                </div>
-              `}
-            </div>
+          <div class="space-y-1.5 max-h-80 overflow-y-auto no-scrollbar pr-1">
+            ${membersCardsHtml}
           </div>
         </div>
       `;
     }
+    // ==========================================
+    // VIEW C: MANAGER ROLE (Default: 6 Managers View)
+    // ==========================================
+    else {
+      const selectedMgrName = execHierarchyFilterState.selectedManager;
+      const selectedM = selectedMgrName ? sortedManagers.find(m => m.km === selectedMgrName) : null;
+
+      if (!selectedM) {
+        const topBoxes = sortedManagers.length > 0 ? (sortedManagers[0].displayBoxes || 1) : 1;
+        const managersCardsHtml = sortedManagers.map((m, idx) => {
+          const rank = idx + 1;
+          const rankBadge = getManagerRankBadge(rank);
+          let borderAccent = 'border-white/5 hover:border-amber-400/30';
+          if (rank === 1) borderAccent = 'border-amber-500/30 bg-amber-500/[0.03] hover:border-amber-500/50';
+          else if (rank === 2) borderAccent = 'border-slate-400/20 hover:border-slate-400/40';
+          else if (rank === 3) borderAccent = 'border-amber-700/20 hover:border-amber-700/40';
+          else if (rank === 4) borderAccent = 'border-amber-500/20 hover:border-amber-500/40';
+          else if (rank === 5) borderAccent = 'border-emerald-500/20 hover:border-emerald-500/40';
+          else if (rank === 6) borderAccent = 'border-sky-500/20 hover:border-sky-500/40';
+
+          const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
+          const isBechNora = (m.km && (m.km.includes('ប៊ិច នោរ៉ា') || (m.en && m.en.toLowerCase().includes('bech nora'))));
+          const canViewEdit = canViewAndEditManagerTarget(m);
+          const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
+          const barWidth = canViewEdit ? Math.min(100, m.targetPercent) : percentOfTop;
+          const barGradient = canViewEdit
+            ? (m.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300')
+            : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400');
+
+          return `
+            <div onclick="selectExecutiveManager('${m.km}')" 
+                 class="p-3 rounded-2xl bg-black/40 border ${borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2 hover:bg-white/[0.03] group shadow-sm">
+              <div class="flex items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  ${rankBadge}
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
+                      ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                      ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
+                    </div>
+                    ${canViewEdit ? `
+                      <!-- Target Pill (Visible ONLY for Director or this Manager) -->
+                      <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
+                        <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                          <span class="text-amber-400">🎯 គោលដៅ:</span>
+                          <span class="font-bold text-white">${m.targetBoxes}</span>
+                          <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                          <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                        </span>
+                        <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                          (${m.targetPercent}%)
+                        </span>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <div class="text-right">
+                    <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
+                      ${m.displayBoxes} ប្រអប់
+                    </div>
+                    <div class="text-[10px] font-mono text-slate-400">
+                      ${m.displayOrders} កុម្ម៉ង់
+                    </div>
+                  </div>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all"></i>
+                </div>
+              </div>
+
+              <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                <div class="h-1 ${barGradient}" style="width: ${barWidth}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        homeHierarchyBodyHtml = `
+          <div class="space-y-2 relative z-10">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
+                <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span>តារាង MANAGERS (៦ ក្រុម)</span>
+              </span>
+              <span class="text-[10px] text-amber-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម ❯</span>
+            </div>
+
+            <div class="space-y-2">
+              ${managersCardsHtml}
+            </div>
+          </div>
+        `;
+      } else {
+        // Home Screen Drill-down into Selected Manager
+        const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
+        const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
+        const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
+        const rankBadge = getManagerRankBadge(origRank);
+        const canViewEditSelected = canViewAndEditManagerTarget(selectedM);
+        const selBarWidth = canViewEditSelected ? Math.min(100, selectedM.targetPercent) : 100;
+
+        homeHierarchyBodyHtml = `
+          <div class="space-y-3 relative z-10">
+            <!-- Selected Manager Highlight Card (Tap again to collapse and show all managers) -->
+            <div onclick="selectExecutiveManager('${selectedM.km}')" 
+                 class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/40 shadow-lg shadow-amber-500/10 space-y-2 cursor-pointer active:scale-[0.99] transition group"
+                 title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Managers ទាំងអស់វិញ">
+              <div class="flex items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  ${rankBadge}
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-bold text-sm text-white">${selectedM.km}</span>
+                      ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                      ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
+                    </div>
+                    ${canViewEditSelected ? `
+                      <!-- Target Pill (Visible ONLY for Director or this Manager) -->
+                      <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
+                        <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
+                          <span class="text-amber-400">🎯 គោលដៅ:</span>
+                          <span class="font-bold text-white">${selectedM.targetBoxes}</span>
+                          <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                          <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
+                        </span>
+                        <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                          (${selectedM.targetPercent}%)
+                        </span>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <div class="text-right">
+                    <div class="font-mono text-sm font-bold text-amber-300">${selectedM.displayBoxes} ប្រអប់</div>
+                    <div class="text-[10px] font-mono text-slate-400">${selectedM.displayOrders} កុម្ម៉ង់</div>
+                  </div>
+                  <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-amber-300 font-semibold flex items-center gap-1 shadow-sm">
+                    <i data-lucide="x" class="w-3 h-3"></i>
+                    <span>បិទ</span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                <div class="h-1.5 ${canViewEditSelected && selectedM.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${selBarWidth}%"></div>
+              </div>
+            </div>
+
+            ${selectedM.teamLeaders.length > 0 ? `
+              <div class="space-y-1.5">
+                <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
+                  <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+                  <span>Leader ក្នុងក្រុម (${selectedM.teamLeaders.length} រូប)</span>
+                </span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  ${selectedM.teamLeaders.map(tl => {
+                    const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
+                    const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
+                    return `
+                    <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
+                      <div>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <span class="font-bold text-slate-200">${tl.km}</span>
+                          ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                          ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
+                        </div>
+                        <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
+                      </div>
+                      <div class="text-right font-mono">
+                        <span class="text-sky-300 font-bold text-xs">${tl.displayBoxes} ប្រអប់</span>
+                        <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
+                      </div>
+                    </div>
+                  `;}).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            <div class="space-y-2">
+              <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider px-1">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                <span>សមាជិកលក់ក្នុងក្រុម (${selectedM.teamMembers.length} នាក់)</span>
+              </span>
+
+              <div class="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar pr-1">
+                ${selectedM.teamMembers.length > 0 ? selectedM.teamMembers.map(mem => {
+                  const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
+                  const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+                  return `
+                  <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                          ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                          ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
+                          <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">
+                          Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="text-right shrink-0 font-mono">
+                      <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
+                      <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                    </div>
+                  </div>
+                `;}).join('') : `
+                  <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
+                    មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    const cardSubtitleText = execRole === 'leader' ? 'BOSTAR GROUP • LEADERS' : (execRole === 'member' ? 'BOSTAR GROUP • សមាជិកទាំងអស់' : 'BOSTAR GROUP • MANAGERS');
 
     cardTeamSales = `
       <!-- CARD E: VIP EXECUTIVE COMMAND CENTER (UNLOCKED STATE) -->
@@ -5037,7 +5561,7 @@ function getDashboardViewHTML() {
               <div class="flex items-center gap-1.5">
                 <h3 class="font-bold text-xs uppercase text-white tracking-wide">រចនាសម្ព័ន្ធលក់</h3>
               </div>
-              <p class="text-[10px] text-slate-400 font-mono mt-0.5">BOSTAR GROUP</p>
+              <p class="text-[10px] text-slate-400 font-mono mt-0.5">${cardSubtitleText}</p>
             </div>
           </div>
 
@@ -5061,7 +5585,7 @@ function getDashboardViewHTML() {
         <!-- 1. TOP TIER: DIRECTOR PROFILE -->
         <div onclick="handleDirectorClick(event)" 
              class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0C1425]/90 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 relative z-10 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5"
-             title="ចុចដើម្បីបង្ហាញ Managers ទាំងអស់">
+             title="ចុចដើម្បីបង្ហាញបញ្ជីទាំងអស់ឡើងវិញ">
           <div class="flex items-center gap-3 min-w-0">
             <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-black flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/30 shrink-0">
               <i data-lucide="award" class="w-6 h-6"></i>
@@ -5082,11 +5606,12 @@ function getDashboardViewHTML() {
           </div>
         </div>
 
-        <!-- 2. MIDDLE TIER: MANAGER LEADERBOARD OR SELECTED MANAGER DRILL-DOWN -->
+        <!-- 2. MIDDLE TIER: ROLE LEADERBOARD OR DRILL-DOWN -->
         ${homeHierarchyBodyHtml}
       </div>
     `;
   }
+
 
   const cardTools = `
     <!-- AI & TOOLS SECTION (Clean iPhone Home Screen Style - iOS Standard Header) -->

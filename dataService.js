@@ -264,6 +264,26 @@ async function fetchBostarTrackSalesCSV() {
   return [];
 }
 
+// Fetch Monthly Targets tab (From BostarGroup Official Sheet with native CORS)
+async function fetchMonthlyTargetsCSV() {
+  const sId = TEAM_HIERARCHY_SHEET_ID;
+  try {
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Monthly Targets')}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+    const resp = await fetch(gvizUrl, { signal: controller.signal });
+    clearTimeout(timer);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 2) return rows;
+      }
+    }
+  } catch (_) {}
+  return [];
+}
+
 window.DataService = {
   data: loadCachedData(),
   isLoading: false,
@@ -300,14 +320,15 @@ window.DataService = {
     }
 
     try {
-      const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows, bostarTrackCsvRows] = await Promise.all([
+      const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows, bostarTrackCsvRows, monthlyTargetsCsvRows] = await Promise.all([
         fetchGoogleSheetGViz('1802751802', 'Personal Sales').catch(e => { console.warn('PS fetch warning:', e); return null; }),
         fetchGoogleSheetCSV('1413782774', 'Daily Expenses').catch(e => { console.warn('Expenses fetch warning:', e); return []; }),
         fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance').catch(e => { console.warn('Bank fetch warning:', e); return []; }),
         fetchGoogleSheetGViz('30391871', 'Team Monthly View').catch(e => { console.warn('Team Monthly fetch warning:', e); return null; }),
         fetchGoogleSheetCSV('608899183', 'Team Sales').catch(e => { console.warn('Team Sales fetch warning:', e); return []; }),
         fetchTeamHierarchyCSV().catch(e => { console.warn('Team Hierarchy fetch warning:', e); return []; }),
-        fetchBostarTrackSalesCSV().catch(e => { console.warn('BostarTrack fetch warning:', e); return []; })
+        fetchBostarTrackSalesCSV().catch(e => { console.warn('BostarTrack fetch warning:', e); return []; }),
+        fetchMonthlyTargetsCSV().catch(e => { console.warn('Monthly Targets fetch warning:', e); return []; })
       ]);
 
       // ==========================================
@@ -991,10 +1012,29 @@ window.DataService = {
         }
       }
 
+      // 5. Parse Dynamic Monthly Targets from 'Monthly Targets' Sheet tab
+      const monthlyTargets = {};
+      if (Array.isArray(monthlyTargetsCsvRows) && monthlyTargetsCsvRows.length > 3) {
+        for (let i = 3; i < monthlyTargetsCsvRows.length; i++) {
+          const r = monthlyTargetsCsvRows[i];
+          if (!r || r.length < 7) continue;
+          const km = String(r[2] || '').trim();
+          const en = String(r[3] || '').trim();
+          const target = cleanNumber(r[6]);
+          if (km && target > 0) {
+            monthlyTargets[km] = target;
+            const cleanKm = km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+            monthlyTargets[cleanKm] = target;
+            if (en) monthlyTargets[en] = target;
+          }
+        }
+      }
+
       this.data = {
         personalSales,
         bostarTrackSales,
         expenses,
+        monthlyTargets,
         pendingCodReceivables, // Exact live Accounts Receivable table from Bank & Cash Balance
         bank: {
           pureUsdTotal,
