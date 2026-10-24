@@ -47,15 +47,13 @@ const translations = {
     settingsTitle: '⚙️ ការកំណត់',
     settingsSubtitle: 'កំណត់ការរចនា ភាសា និងសុវត្ថិភាព',
     appearanceSection: 'រចនាប័ទ្ម និងចំណូលចិត្ត',
-    appearanceDesc: 'កំណត់ពុម្ពអក្សរ ទំហំអក្សរ ផ្ទាំងរូបភាព និងភាសា',
+    appearanceDesc: 'កំណត់ពុម្ពអក្សរ ទំហំអក្សរ និងភាសា',
     accountSection: 'គណនី និងអំពីប្រព័ន្ធ',
     accountDesc: 'គ្រប់គ្រងសុវត្ថិភាព និងព័ត៌មានម្ចាស់គណនី',
     fontTitle: 'ពុម្ពអក្សរ',
     fontDesc: '៩ ជម្រើសងាយស្រួលអាន',
     textSizeTitle: 'ទំហំអក្សរ',
     textSizeDesc: '៣ កម្រិត (តូច • មធ្យម • ធំ)',
-    wallpaperTitle: 'ផ្ទាំងរូបភាពអេក្រង់ចាក់សោរ',
-    wallpaperDesc: 'រូបភាព និងពណ៌ពន្លឺផ្ទៃខាងក្រោយ',
     protectApp: 'ការពារទិន្នន័យរបស់អ្នក ជាមួយលេខសម្ងាត់ ៤ ខ្ទង់',
     protectDesc: 'ប្រើលេខសម្ងាត់ ដើម្បីសុវត្ថិភាព និងទំនុកចិត្តខ្ពស់',
     enablePinTitle: 'ចាក់សោកម្មវិធី',
@@ -91,15 +89,10 @@ const translations = {
     contrastHint: 'ពណ៌អក្សរផ្លាស់ប្តូរស្វ័យប្រវត្តិតាមពណ៌ផ្ទៃ ដើម្បីច្បាស់ភ្នែក (លឿងទុំ = អក្សរខ្មៅធ្យូង)',
     diagramTitle: 'ដ្យាក្រាមការលក់ និងប្រាក់ចំណេញ',
     diagramSubtitle: 'តួលេខលក់ពិតប្រាកដនៅលើសរសរក្រាបនីមួយៗ',
-    layoutTitle: 'ការរៀបចំកាតទិន្នន័យ',
-    layoutDesc: 'លំដាប់តម្រៀបកាត និងការកំណត់បង្ហាញកាត',
-    layout1: 'ស្តង់ដា',
-    layout2: 'ហិរញ្ញវត្ថុ',
-    layout3: 'ផ្នែកលក់',
     resetSettingsTitle: 'កំណត់ឡើងវិញទៅទម្រង់ដើម',
-    resetSettingsDesc: 'កំណត់ពណ៌ ពុម្ពអក្សរ ទំហំអក្សរ និងការរៀបចំកាតទៅទម្រង់ដើមវិញ',
+    resetSettingsDesc: 'កំណត់ពណ៌ ពុម្ពអក្សរ និងទំហំអក្សរទៅទម្រង់ដើមវិញ',
     resetConfirmTitle: 'កំណត់ទៅទម្រង់ដើម?',
-    resetConfirmMsg: 'តើអ្នកពិតជាចង់កំណត់ការកំណត់ទាំងអស់ (ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ, ការរៀបចំកាត) ទៅជាទម្រង់ដើមវិញមែនទេ?'
+    resetConfirmMsg: 'តើអ្នកពិតជាចង់កំណត់ការកំណត់ទាំងអស់ (ពណ៌, ពុម្ពអក្សរ, ទំហំអក្សរ) ទៅជាទម្រង់ដើមវិញមែនទេ?'
   },
   en: {
     appTitle: 'SD Data',
@@ -139,15 +132,13 @@ const translations = {
     settingsTitle: '⚙️ Settings',
     settingsSubtitle: 'Manage appearance, language, and system preferences',
     appearanceSection: 'Appearance & Preferences',
-    appearanceDesc: 'Customize typography, text size, wallpapers, and language',
+    appearanceDesc: 'Customize typography, text size, and language',
     accountSection: 'Account & System',
     accountDesc: 'Manage passcode security and profile information',
     fontTitle: 'Typography',
     fontDesc: 'Standard Khmer & Latin',
     textSizeTitle: 'Text Size',
     textSizeDesc: '3 levels (Small • Medium • Large)',
-    wallpaperTitle: 'Lock Screen Wallpaper',
-    wallpaperDesc: 'Background visuals and ambient glows',
     protectApp: 'Protect your data with a 4-digit passcode',
     protectDesc: 'Use passcode for higher security and peace of mind',
     enablePinTitle: 'App Lock',
@@ -183,15 +174,10 @@ const translations = {
     contrastHint: 'Text color auto-adapts for optimal readability (Amber = Dark Charcoal)',
     diagramTitle: 'Sales & Profit Diagram',
     diagramSubtitle: 'Live values labeled on top of each bar',
-    layoutTitle: 'Card Layout & Display',
-    layoutDesc: 'Card order and display settings',
-    layout1: 'Standard',
-    layout2: 'Finance',
-    layout3: 'Sales',
     resetSettingsTitle: 'Reset to Default',
-    resetSettingsDesc: 'Reset color, font, text size, and card layout to defaults',
+    resetSettingsDesc: 'Reset color, font, and text size to defaults',
     resetConfirmTitle: 'Reset to Default?',
-    resetConfirmMsg: 'Are you sure you want to reset all customizations (accent, font, text size, layout) to default settings?'
+    resetConfirmMsg: 'Are you sure you want to reset all customizations (accent, font, text size) to default settings?'
   }
 };
 
@@ -4733,68 +4719,6 @@ function getDashboardViewHTML() {
   const totalGrossProfit = filteredSales.reduce((acc, cur) => acc + (cur.profit || 0), 0);
   const totalExpenseAmt = sortedFilteredExpenses.reduce((acc, cur) => acc + (cur.amount || 0), 0);
 
-  const pureUsd = d.bank.pureUsdTotal;
-  const pureKhr = d.bank.pureKhrTotal;
-  const netCash = d.bank.netCashPosition;
-
-  const cardPureCash = `
-    <!-- HERO BALANCE CARD (ទឹកប្រាក់ដែលមាន - ប៉ះលើកាតត្រង់ណាក៏បានដើម្បីបិទ, ប៉ះលើភ្នែកដើម្បីបើក) -->
-    <div id="hero-balance-card" 
-         onclick="handleHeroCardTap(event)"
-         class="ios-glass-card rounded-3xl p-4 relative liquid-orange-glow select-none cursor-pointer transition-all duration-200 overflow-hidden"
-         style="-webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;">
-      <div class="absolute -top-12 -right-12 w-44 h-44 bg-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
-
-      <div class="flex items-center justify-between mb-3 select-none" style="-webkit-user-select: none; user-select: none;">
-        <div class="flex items-center gap-2.5 select-none" style="-webkit-user-select: none; user-select: none;">
-          <div class="w-8 h-8 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400 border border-orange-500/30 shrink-0">
-            <i data-lucide="wallet" class="w-4 h-4 pointer-events-none"></i>
-          </div>
-          <div class="select-none" style="-webkit-user-select: none; user-select: none;">
-            <h3 class="font-bold text-xs uppercase text-white leading-tight select-none">
-              ${t('pureCashTitle')}
-            </h3>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 select-none card-subtitle">${t('pureCashSubtitle')}</p>
-          </div>
-        </div>
-        <!-- Eye Button matching Action UI (No tap clipping or black highlight) -->
-        <button id="btn-hero-eye" 
-                type="button"
-                tabindex="-1"
-                onclick="event.stopPropagation(); toggleHideBalance();" 
-                class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition shadow-sm select-none overflow-hidden shrink-0 outline-none"
-                style="-webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; -webkit-user-select: none !important; user-select: none !important; outline: none !important;"
-                title="បិទ/បង្ហាញទឹកប្រាក់">
-          <i data-lucide="${appState.hideBalance ? 'eye-off' : 'eye'}" class="w-4 h-4 pointer-events-none"></i>
-        </button>
-      </div>
-
-      <!-- Currency Balances (2 Grid boxes exactly aligned with standard cards: p-2.5 rounded-xl bg-black/25 gap-2) -->
-      <div class="grid grid-cols-2 gap-2 text-xs select-none">
-        <!-- USD Balance: ពណ៌បៃតងរស្មី Emerald Cash (#10B981) -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-emerald-500/20 shadow-inner flex flex-col justify-between select-none">
-          <div class="flex items-center justify-between mb-1 select-none">
-            <span class="text-[10px] text-slate-300 font-semibold leading-tight select-none">${t('usdOnly')}</span>
-            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400 font-mono font-bold">USD</span>
-          </div>
-          <p id="hero-val-usd" class="text-lg font-bold font-mono text-emerald-400 tracking-tight drop-shadow-[0_0_12px_rgba(16,185,129,0.35)] mt-0.5 select-none">
-            ${appState.hideBalance ? '***,*** $' : formatUSD(pureUsd)}
-          </p>
-        </div>
-        <!-- KHR Balance: ពណ៌លឿងទុំ/មាសរាជវង្ស Golden Amber (#F59E0B) -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-amber-500/20 shadow-inner flex flex-col justify-between select-none">
-          <div class="flex items-center justify-between mb-1 select-none">
-            <span class="text-[10px] text-slate-300 font-semibold leading-tight select-none">${t('khrOnly')}</span>
-            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-300 font-mono font-bold">KHR</span>
-          </div>
-          <p id="hero-val-khr" class="text-lg font-bold font-mono text-amber-400 tracking-tight drop-shadow-[0_0_12px_rgba(245,158,11,0.35)] mt-0.5 select-none">
-            ${appState.hideBalance ? '***,*** ៛' : formatKHR(pureKhr)}
-          </p>
-        </div>
-      </div>
-    </div>
-  `;
-
   const periodBanner = `
     <!-- Active Period Display (Home only) -->
     <div class="flex items-center justify-between px-1">
@@ -4886,69 +4810,6 @@ function getDashboardViewHTML() {
           <span class="font-mono text-rose-400 font-bold text-base tracking-tight">${formatUSD(activeBoostAmt)}</span>
         </div>
 
-      </div>
-    </div>
-
-    <!-- ======================================================== -->
-  `;
-
-  const cardNetCash = `
-    <!-- CARD B: NET CASH POSITION (iOS Standard Header: Emerald Icon Box + Pure White Title) -->
-    <!-- ======================================================== -->
-    <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
-      
-      <!-- Top Title (2 lines) and Right-Aligned Cash Health Badge -->
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
-            <i data-lucide="landmark" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-xs uppercase text-white leading-tight">
-              សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ
-            </h3>
-            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Net Cash Position</p>
-          </div>
-        </div>
-        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-xs shadow-sm shrink-0">
-          ${netCash.healthStatus}
-        </span>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2 text-xs">
-        <!-- Box 1: Actual Cash (Touch to view Bank Accounts Modal) -->
-        <div onclick="openBankModal()" 
-             title="ចុចដើម្បីមើលកុងធនាគារទាំងអស់"
-             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-emerald-500/30 transition ios-touch-item flex flex-col justify-between select-none">
-          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('actualCash')}:</span>
-          <span class="font-mono text-white font-bold text-base tracking-tight mt-0.5">${formatUSD(netCash.totalActualCash)}</span>
-        </div>
-
-        <!-- Box 2: Pending COD (Touch to view Pending COD Modal) -->
-        <div onclick="openCodModal()" 
-             title="ចុចដើម្បីមើលតារាង COD ទាំងអស់"
-             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-amber-500/30 transition ios-touch-item flex flex-col justify-between select-none">
-          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('pendingCod')}:</span>
-          <span class="font-mono text-amber-400 font-bold text-base tracking-tight mt-0.5">${formatUSD(netCash.pendingCodReceivables)}</span>
-        </div>
-
-        <!-- Box 3: Liquid Assets -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between select-none">
-          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('liquidAssets')}:</span>
-          <span class="font-mono text-blue-400 font-bold text-base tracking-tight mt-auto">${formatUSD(netCash.totalLiquidAssets)}</span>
-        </div>
-
-        <!-- Box 4: Accounts Payable (Touch to view Accounts Payable Modal) -->
-        <div onclick="openPayablesModal()" 
-             title="ចុចដើម្បីមើលបញ្ជីបំណុលទាំងអស់"
-             class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-rose-500/30 transition ios-touch-item flex flex-col justify-between select-none">
-          <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('payablesTotal')}:</span>
-          <span class="font-mono text-rose-400 font-bold text-base tracking-tight mt-0.5">${formatUSD(netCash.totalAccountsPayable)}</span>
-        </div>
-      </div>
-      <div class="mt-2 p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/40 to-blue-950/40 border border-emerald-500/20 flex items-center justify-between">
-        <span class="text-xs text-white font-semibold">${t('finalNetCash')}</span>
-        <span class="text-base font-bold font-mono text-emerald-400">${formatUSD(netCash.netCashPositionFinal || netCash.totalNetCash)}</span>
       </div>
     </div>
 
@@ -5698,63 +5559,27 @@ function getDashboardViewHTML() {
 
   const cv = appState.cardVisibility || {
     autoHideEmpty: false,
-    pureCash: false,
     salesPerformance: true,
-    netCash: false,
     expenses: true,
-    teamSales: false,
+    teamSales: true,
     tools: true
   };
 
   const isPerformanceEmpty = (totalBoxQty === 0 && totalRevenue === 0 && totalExpenseAmt === 0 && totalGrossProfit === 0);
   const isExpensesEmpty = (sortedFilteredExpenses.length === 0);
-  const isPureCashEmpty = (pureUsd === 0 && pureKhr === 0);
-  const isNetCashEmpty = (netCash.totalActualCash === 0 && netCash.pendingCodReceivables === 0 && netCash.totalAccountsPayable === 0);
-  const isTeamSalesEmpty = false;
 
-  const showPureCash = cv.pureCash !== false && !(cv.autoHideEmpty && isPureCashEmpty);
   const showPerformance = cv.salesPerformance !== false && !(cv.autoHideEmpty && isPerformanceEmpty);
-  const showNetCash = cv.netCash !== false && !(cv.autoHideEmpty && isNetCashEmpty);
   const showExpenses = cv.expenses !== false && !(cv.autoHideEmpty && isExpensesEmpty);
   const showTeamSales = cv.teamSales !== false;
   const showTools = cv.tools !== false;
 
-  const layout = appState.cardLayout || '1';
-  let cardsInOrder = [];
-  if (layout === '2') {
-    // Option 2: Finance / Cash Focus (Pure Cash -> Net Cash -> Expenses -> Period -> Performance -> Team Sales -> Tools)
-    cardsInOrder = [
-      { key: 'pureCash', show: showPureCash, html: cardPureCash },
-      { key: 'netCash', show: showNetCash, html: cardNetCash },
-      { key: 'expenses', show: showExpenses, html: cardExpenses },
-      { key: 'banner', show: true, html: periodBanner },
-      { key: 'performance', show: showPerformance, html: cardPerformance },
-      { key: 'teamSales', show: showTeamSales, html: cardTeamSales },
-      { key: 'tools', show: showTools, html: cardTools }
-    ];
-  } else if (layout === '3') {
-    // Option 3: Sales Focus (Period -> Performance -> Team Sales -> Pure Cash -> Net Cash -> Expenses -> Tools)
-    cardsInOrder = [
-      { key: 'banner', show: true, html: periodBanner },
-      { key: 'performance', show: showPerformance, html: cardPerformance },
-      { key: 'teamSales', show: showTeamSales, html: cardTeamSales },
-      { key: 'pureCash', show: showPureCash, html: cardPureCash },
-      { key: 'netCash', show: showNetCash, html: cardNetCash },
-      { key: 'expenses', show: showExpenses, html: cardExpenses },
-      { key: 'tools', show: showTools, html: cardTools }
-    ];
-  } else {
-    // Option 1: Standard (Default) (Pure Cash -> Period -> Performance -> Net Cash -> Expenses -> Team Sales -> Tools)
-    cardsInOrder = [
-      { key: 'pureCash', show: showPureCash, html: cardPureCash },
-      { key: 'banner', show: true, html: periodBanner },
-      { key: 'performance', show: showPerformance, html: cardPerformance },
-      { key: 'netCash', show: showNetCash, html: cardNetCash },
-      { key: 'expenses', show: showExpenses, html: cardExpenses },
-      { key: 'teamSales', show: showTeamSales, html: cardTeamSales },
-      { key: 'tools', show: showTools, html: cardTools }
-    ];
-  }
+  const cardsInOrder = [
+    { key: 'banner', show: true, html: periodBanner },
+    { key: 'performance', show: showPerformance, html: cardPerformance },
+    { key: 'expenses', show: showExpenses, html: cardExpenses },
+    { key: 'teamSales', show: showTeamSales, html: cardTeamSales },
+    { key: 'tools', show: showTools, html: cardTools }
+  ];
 
   const renderedCards = cardsInOrder.filter(c => c.show).map(c => c.html).join('');
   if (!renderedCards.trim()) {
