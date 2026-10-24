@@ -2992,6 +2992,68 @@
     </div>
   </div>
 
+  <!-- Edit Bank Account Balance Modal (Centered Popup with Blur) -->
+  <div id="edit-bank-modal" onclick="closeEditBankModal(event)" class="fixed inset-0 z-[75] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-[#0F1B2E] border border-white/10 rounded-3xl p-5 max-w-sm w-full relative shadow-2xl animate-fade-in text-left">
+      <!-- Close button -->
+      <button type="button" onclick="closeEditBankModal()" class="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="បិទ">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0">
+          <i data-lucide="building-2" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-sm text-white">កែប្រែសមតុល្យគណនី</h3>
+          <p class="text-[10px] text-slate-400 font-mono">Sync to Sheet Tab: Bank & Cash Balance</p>
+        </div>
+      </div>
+
+      <input type="hidden" id="edit-bank-no" value="">
+      <input type="hidden" id="edit-bank-orig-name" value="">
+
+      <div class="space-y-3.5 text-xs">
+        <!-- Account Name -->
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1 text-[11px]">ឈ្មោះគណនី (Account Name)</label>
+          <input type="text" id="edit-bank-name" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none focus:border-blue-500 transition">
+        </div>
+
+        <!-- USD Balance -->
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1 text-[11px]">សមតុល្យដុល្លារ ($ USD)</label>
+          <div class="relative">
+            <span class="absolute left-3 top-2.5 text-slate-400 font-bold">$</span>
+            <input type="number" step="any" id="edit-bank-usd" placeholder="0.00" class="w-full bg-black/40 border border-white/10 rounded-xl pl-7 pr-3 py-2 text-white text-xs font-mono font-bold focus:outline-none focus:border-blue-500 transition">
+          </div>
+        </div>
+
+        <!-- KHR Balance -->
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1 text-[11px]">សមតុល្យរៀល (៛ KHR)</label>
+          <div class="relative">
+            <span class="absolute right-3 top-2.5 text-slate-400 font-bold text-[11px]">៛</span>
+            <input type="number" step="100" id="edit-bank-khr" placeholder="0" class="w-full bg-black/40 border border-white/10 rounded-xl pl-3 pr-8 py-2 text-white text-xs font-mono font-bold focus:outline-none focus:border-emerald-500 transition">
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">* គណនី KHR នឹងបំប្លែងស្វ័យប្រវត្តិតាមអត្រា 4,100 ៛/$</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 mt-5">
+        <button type="button" onclick="closeEditBankModal()" class="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold text-xs active:scale-95 transition text-center">
+          បោះបង់
+        </button>
+        <button type="button" id="btn-save-bank-account" onclick="submitEditBankAccount()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg shadow-blue-500/20">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          <span>រក្សាទុកទៅ Sheet</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Team Sales Member Daily Sets Drilldown Modal -->
   <div id="team-sets-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in relative">

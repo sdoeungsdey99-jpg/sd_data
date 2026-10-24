@@ -1379,7 +1379,7 @@ function handleBackNavigation() {
   // 1e. Close any other open modal if visible
   const openModals = [
     'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
-    'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
+    'cod-modal', 'bank-modal', 'edit-bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
     const el = document.getElementById(id);
@@ -1433,7 +1433,7 @@ function isAnyDrilldownModalOpen() {
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
     'profile-sub-modal', 'qr-photos-modal', 'edit-profile-modal',
-    'about-modal', 'change-pin-modal', 'shortcut-modal'
+    'about-modal', 'change-pin-modal', 'shortcut-modal', 'edit-bank-modal'
   ];
   for (const id of modalIds) {
     const el = document.getElementById(id);
@@ -1699,6 +1699,7 @@ function isDialogModalOpen() {
     'profile-sub-modal',
     'qr-photos-modal',
     'change-pin-modal',
+    'edit-bank-modal',
     'shortcut-modal',
     'about-modal',
     'global-search-modal',
@@ -2290,6 +2291,7 @@ function closeAllModals() {
     'profile-sub-modal',
     'about-modal',
     'change-pin-modal',
+    'edit-bank-modal',
     'shortcut-modal',
     'global-search-modal',
     'profile-settings-search-modal',
@@ -11479,7 +11481,15 @@ function copyThaiCodTelegramStatement() {
 
 // ==========================================
 // Bank Accounts & Actual Cash Modal (Note 4)
+// Two-Way Sync to Sheet & Zero-Balance Filter
 // ==========================================
+window.bankModalHideZero = (window.bankModalHideZero !== undefined) ? window.bankModalHideZero : true;
+
+function toggleBankZeroAccounts() {
+  window.bankModalHideZero = !window.bankModalHideZero;
+  openBankModal();
+}
+
 function openBankModal() {
   const d = DataService.data;
   if (!d) return;
@@ -11489,31 +11499,55 @@ function openBankModal() {
   const footer = document.getElementById('bank-modal-footer');
   if (!modal || !listEl) return;
 
-  const accounts = (d.bank && d.bank.accounts) || [];
-  listEl.innerHTML = accounts.map(acc => `
-    <div class="flex items-center justify-between p-2.5 rounded-xl bg-black/25 border border-white/5 text-xs">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-          <i data-lucide="building-2" class="w-4 h-4"></i>
+  const allAccounts = (d.bank && d.bank.accounts) || [];
+  const zeroAccounts = allAccounts.filter(acc => (acc.usd <= 0 && acc.khr <= 0));
+  const accounts = window.bankModalHideZero ? allAccounts.filter(acc => (acc.usd > 0 || acc.khr > 0)) : allAccounts;
+
+  listEl.innerHTML = accounts.map(acc => {
+    const isZero = (acc.usd <= 0 && acc.khr <= 0);
+    const safeName = typeof escapeHtml === 'function' ? escapeHtml(acc.name) : acc.name;
+    return `
+      <div onclick="openEditBankAccountModal(${acc.no || 0})"
+           title="ចុចដើម្បីកែប្រែសមតុល្យគណនីនេះទៅ Google Sheet"
+           class="flex items-center justify-between p-3 rounded-2xl bg-black/25 border border-white/5 hover:border-blue-500/30 active:scale-[0.99] transition text-xs cursor-pointer group select-none shadow-sm">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 group-hover:bg-blue-500/20 transition">
+            <i data-lucide="building-2" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-white font-semibold text-xs truncate">${safeName}</span>
+              <span class="p-1 rounded-md bg-white/5 text-slate-400 group-hover:text-blue-400 group-hover:bg-blue-500/10 transition" title="កែប្រែសមតុល្យ">
+                <i data-lucide="pencil" class="w-2.5 h-2.5"></i>
+              </span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-mono">Bank Account #${acc.no || '—'}</span>
+          </div>
         </div>
-        <div>
-          <span class="text-white font-semibold text-xs block">${acc.name}</span>
-          <span class="text-[10px] text-slate-400 font-mono">Bank Account</span>
+        <div class="text-right font-mono shrink-0 ml-2">
+          ${acc.usd > 0 ? `<div class="text-white font-bold text-xs">${formatUSD(acc.usd)}</div>` : ''}
+          ${acc.khr > 0 ? `<div class="text-emerald-400 font-bold text-xs">${formatKHR(acc.khr)}</div>` : ''}
+          ${isZero ? `<span class="text-slate-500 text-xs">$0.00</span>` : ''}
         </div>
       </div>
-      <div class="text-right font-mono">
-        ${acc.usd > 0 ? `<div class="text-white font-bold text-xs">${formatUSD(acc.usd)}</div>` : ''}
-        ${acc.khr > 0 ? `<div class="text-emerald-400 font-bold text-xs">${formatKHR(acc.khr)}</div>` : ''}
-        ${acc.usd === 0 && acc.khr === 0 ? `<span class="text-slate-500 text-xs">$0.00</span>` : ''}
-      </div>
+    `;
+  }).join('') || `
+    <div class="p-6 text-center text-xs text-slate-400">
+      <p class="mb-2">គណនីទាំងអស់មានសមតុល្យ ០</p>
+      <button onclick="toggleBankZeroAccounts()" class="px-3 py-1.5 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-300 font-semibold text-xs">
+        បង្ហាញគណនីទាំង ${allAccounts.length} ឡើងវិញ
+      </button>
     </div>
-  `).join('') || `<p class="text-xs text-slate-500 py-4 text-center">${t('noData')}</p>`;
+  `;
 
   const netCash = (d.bank && d.bank.netCashPosition) || {};
   if (footer) {
     footer.innerHTML = `
-      <div class="text-slate-300 font-semibold text-xs">
-        ចំនួនសរុប: ${accounts.length} គណនី
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="toggleBankZeroAccounts()" class="px-2.5 py-1 rounded-xl border text-[11px] font-semibold flex items-center gap-1.5 transition active:scale-95 ${window.bankModalHideZero ? 'bg-blue-500/15 border-blue-500/30 text-blue-300' : 'bg-white/5 border-white/10 text-slate-300 hover:text-white'}">
+          <i data-lucide="${window.bankModalHideZero ? 'eye-off' : 'eye'}" class="w-3.5 h-3.5"></i>
+          <span>${window.bankModalHideZero ? `លាក់សមតុល្យ ០ (${zeroAccounts.length})` : `បង្ហាញទាំងអស់ (${allAccounts.length})`}</span>
+        </button>
       </div>
       <div class="flex items-center gap-1.5 font-mono font-bold text-sm text-emerald-400 text-right">
         <span class="text-[11px] text-slate-400 font-sans font-normal">សរុបជាក់ស្តែង:</span>
@@ -11532,6 +11566,139 @@ function closeBankModal() {
   const modal = document.getElementById('bank-modal');
   if (modal) modal.classList.add('hidden');
 }
+
+function openEditBankAccountModal(no) {
+  const d = DataService.data;
+  if (!d || !d.bank || !Array.isArray(d.bank.accounts)) return;
+
+  const acc = d.bank.accounts.find(a => a.no === no);
+  if (!acc) return;
+
+  const modal = document.getElementById('edit-bank-modal');
+  if (!modal) return;
+
+  const noInput = document.getElementById('edit-bank-no');
+  const origNameInput = document.getElementById('edit-bank-orig-name');
+  const nameInput = document.getElementById('edit-bank-name');
+  const usdInput = document.getElementById('edit-bank-usd');
+  const khrInput = document.getElementById('edit-bank-khr');
+
+  if (noInput) noInput.value = acc.no;
+  if (origNameInput) origNameInput.value = acc.name || '';
+  if (nameInput) nameInput.value = acc.name || '';
+  if (usdInput) usdInput.value = (acc.usd !== undefined && acc.usd !== null && acc.usd > 0) ? Number(acc.usd) : (acc.usd === 0 ? 0 : '');
+  if (khrInput) khrInput.value = (acc.khr !== undefined && acc.khr !== null && acc.khr > 0) ? Number(acc.khr) : (acc.khr === 0 ? 0 : '');
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+  setTimeout(() => {
+    if (usdInput) usdInput.focus();
+  }, 100);
+}
+
+function closeEditBankModal(e) {
+  if (e && e.target && e.target.id !== 'edit-bank-modal' && !e.target.closest('button')) {
+    return;
+  }
+  const modal = document.getElementById('edit-bank-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function submitEditBankAccount() {
+  const noInput = document.getElementById('edit-bank-no');
+  const origNameInput = document.getElementById('edit-bank-orig-name');
+  const nameInput = document.getElementById('edit-bank-name');
+  const usdInput = document.getElementById('edit-bank-usd');
+  const khrInput = document.getElementById('edit-bank-khr');
+  const btn = document.getElementById('btn-save-bank-account');
+
+  const no = parseInt(noInput?.value || '0', 10);
+  const origName = (origNameInput?.value || '').trim();
+  const newName = (nameInput?.value || '').trim() || origName;
+  const usdRaw = usdInput?.value !== '' ? parseFloat(usdInput?.value || '0') : 0;
+  const khrRaw = khrInput?.value !== '' ? parseFloat(khrInput?.value || '0') : 0;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>កំពុង Sync ទៅ Sheet...</span>`;
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // 1. Update in-memory DataService immediately for instantaneous UI feedback
+  if (DataService.data && DataService.data.bank && Array.isArray(DataService.data.bank.accounts)) {
+    const acc = DataService.data.bank.accounts.find(a => (no > 0 && a.no === no) || a.name === origName);
+    if (acc) {
+      acc.name = newName;
+      acc.usd = usdRaw;
+      acc.khr = khrRaw;
+    }
+    // Recalculate pure totals
+    let pureUsd = 0;
+    let pureKhr = 0;
+    DataService.data.bank.accounts.forEach(a => {
+      if (!a.name.includes('(KHR)')) {
+        pureUsd += a.usd || 0;
+      } else {
+        pureKhr += a.khr || 0;
+      }
+    });
+    DataService.data.bank.pureUsdTotal = pureUsd;
+    DataService.data.bank.pureKhrTotal = pureKhr;
+    if (DataService.data.bank.netCashPosition) {
+      DataService.data.bank.netCashPosition.totalActualCash = pureUsd + Math.round((pureKhr / 4100) * 100) / 100;
+    }
+    openBankModal();
+  }
+
+  // 2. Dispatch to Google Apps Script Webhook
+  const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function' ? getAppsScriptWebhookUrl() : null) || (typeof DEFAULT_APPS_SCRIPT_URL !== 'undefined' ? DEFAULT_APPS_SCRIPT_URL : '');
+  const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
+
+  try {
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'update_bank_balance',
+          sheetId: activeSheetId,
+          data: {
+            accountNo: no,
+            accountName: origName,
+            newAccountName: newName,
+            amountUsd: usdRaw,
+            amountKhr: khrRaw
+          }
+        })
+      });
+    }
+    showToastNotification(`បានកែប្រែសមតុល្យ ${newName} ទៅកាន់ Google Sheet ជោគជ័យ! ✅`);
+  } catch (err) {
+    console.warn('Bank account sync warning:', err);
+    showToastNotification(`បានរក្សាទុកក្នុង App (រង់ចាំ Sync ទៅ Sheet) ⚠️`);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>រក្សាទុកទៅ Sheet</span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+    closeEditBankModal();
+    // Background refresh live data from Google Sheet after 2.5s
+    setTimeout(() => {
+      if (DataService && typeof DataService.fetchData === 'function') {
+        DataService.fetchData(true);
+      }
+    }, 2500);
+  }
+}
+
+window.openBankModal = openBankModal;
+window.closeBankModal = closeBankModal;
+window.toggleBankZeroAccounts = toggleBankZeroAccounts;
+window.openEditBankAccountModal = openEditBankAccountModal;
+window.closeEditBankModal = closeEditBankModal;
+window.submitEditBankAccount = submitEditBankAccount;
 
 // ==========================================
 // Boost Management & Modal Logic (Google Sheet Priority + Touch-to-Edit & Planning)
@@ -15276,7 +15443,7 @@ function handleHomeClick(e) {
   const tutorialModal = document.getElementById('tutorial-modal');
   const isTutorialOpen = tutorialModal && !tutorialModal.classList.contains('hidden');
 
-  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #executive-hierarchy-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #change-pin-modal:not(.hidden), #qr-photos-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden)');
+  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #edit-bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #executive-hierarchy-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #change-pin-modal:not(.hidden), #qr-photos-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden)');
 
   // Case 1: If Profile Drawer or any Modal is open ➔ Single tap smoothly dismisses it to reveal dashboard instantly (ZERO network reload)
   if (isDrawerOpen || openModal || isHonorsOpen || isTutorialOpen) {
@@ -21217,7 +21384,7 @@ function openProfileSubModal(type) {
               </div>
               <div>
                 <h4 class="font-bold text-xs text-white">ទំនាក់ទំនង Telegram ផ្ទាល់</h4>
-                <p class="text-[10px] text-sky-300 font-mono mt-0.5">@sdey_sdoeung</p>
+                <p class="text-[10px] text-sky-300 font-mono mt-0.5">@sdoeung_sd</p>
               </div>
             </div>
             <span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[9px] font-bold font-mono">
@@ -21227,7 +21394,7 @@ function openProfileSubModal(type) {
           <p class="text-[11px] text-slate-300 leading-relaxed">
             លោកគ្រូ / អ្នកគ្រូ ឬសមាជិកក្រុមការងារ មានសំណូមពរ បញ្ហាបច្ចេកទេស ឬចង់កែលម្អប្រព័ន្ធ អាចឆាតទាក់ទងមកកាន់ <strong>បងស្តើង</strong> ដោយផ្ទាល់បានគ្រប់ពេលវេលា។
           </p>
-          <a href="https://t.me/sdey_sdoeung" target="_blank" 
+          <a href="https://t.me/sdoeung_sd" target="_blank" 
              class="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 active:scale-95 transition">
             <i data-lucide="send" class="w-4 h-4"></i>
             <span>បើកឆាត Telegram បងស្តើង 🚀</span>

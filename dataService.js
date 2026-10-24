@@ -546,7 +546,7 @@ window.DataService = {
           if (!isNaN(noInt) && noInt >= 1 && noInt <= 10 && name && !name.startsWith('សរុប')) {
             const usdVal = cleanNumber(r[2]);
             const khrVal = cleanNumber(r[3]);
-            accounts.push({ name, usd: usdVal, khr: khrVal });
+            accounts.push({ no: noInt, name, usd: usdVal, khr: khrVal, rawRowIndex: i + 1 });
 
             if (!name.includes('(KHR)')) {
               pureUsdTotal += usdVal;

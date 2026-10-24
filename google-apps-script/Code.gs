@@ -89,6 +89,9 @@ function doPost(e) {
     } else if (action === 'add_or_update_report' || action === 'sync_daily_report') {
       var result = insertOrUpdateDailyReport(ss, data);
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'update_bank_balance' || action === 'update_bank_account') {
+      var result = updateBankAccountBalance(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     } else {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
@@ -732,5 +735,91 @@ function insertOrUpdateDailyReport(ss, data) {
       message: 'បានកត់ត្រារបាយការណ៍ថ្មីលើជួរទី ' + newRowIndex + ' ជោគជ័យ! 🚀'
     };
   }
+}
+
+/**
+ * កែប្រែឈ្មោះគណនី និងសមតុល្យសាច់ប្រាក់ (USD / KHR) ក្នុងផ្ទាំង «Bank & Cash Balance»
+ */
+function updateBankAccountBalance(ss, data) {
+  var sheet = ss.getSheetByName('Bank & Cash Balance') || ss.getSheetByName('Bank & Cash') || ss.getSheetByName('App_Bank_Balance');
+  if (!sheet) {
+    return { status: 'error', message: 'មិនអាចស្វែងរក Tab "Bank & Cash Balance" ឃើញក្នុង Spreadsheet នេះឡើយ!' };
+  }
+
+  var targetNo = data.accountNo ? parseInt(data.accountNo, 10) : null;
+  var targetName = String(data.accountName || '').trim();
+  var newAccountName = data.newAccountName ? String(data.newAccountName).trim() : null;
+  var amountUsd = (data.amountUsd !== undefined && data.amountUsd !== null && data.amountUsd !== '') ? Number(data.amountUsd) : null;
+  var amountKhr = (data.amountKhr !== undefined && data.amountKhr !== null && data.amountKhr !== '') ? Number(data.amountKhr) : null;
+
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var matchedRow = -1;
+
+  for (var r = 1; r < Math.min(values.length, 30); r++) {
+    var rowNo = parseInt(values[r][0], 10); // Col A: លេខរៀង (1..10)
+    var rowName = String(values[r][1] || '').trim(); // Col B: ឈ្មោះគណនី
+
+    // បើដល់ផ្នែក COD ឬ សរុប គឺឈប់ស្វែងរក
+    if (rowName.indexOf('សរុប') === 0 || rowName.indexOf('Accounts Receivable') !== -1 || rowName.indexOf('Pending COD') !== -1) {
+      if (matchedRow > 0) break;
+    }
+
+    if (targetNo && !isNaN(rowNo) && rowNo === targetNo) {
+      matchedRow = r + 1; // 1-based row index in Google Sheets
+      break;
+    }
+    if (targetName && rowName.toLowerCase() === targetName.toLowerCase()) {
+      matchedRow = r + 1;
+      break;
+    }
+  }
+
+  if (matchedRow <= 0) {
+    return {
+      status: 'not_found',
+      message: 'រកមិនឃើញគណនីធនាគារលេខ #' + (targetNo || '') + ' (' + (targetName || '') + ') ក្នុង Tab Bank & Cash Balance ឡើយ!'
+    };
+  }
+
+  var currentAccountName = String(values[matchedRow - 1][1] || '').trim();
+  var finalAccountName = newAccountName || currentAccountName;
+
+  // 1. Update ឈ្មោះគណនី (Col B / Col 2) ប្រសិនបើមានការកែប្រែ
+  if (newAccountName && newAccountName !== currentAccountName) {
+    sheet.getRange(matchedRow, 2).setValue(newAccountName);
+  }
+
+  var isKhrAccount = finalAccountName.indexOf('(KHR)') !== -1 || (amountKhr !== null && amountKhr > 0 && (amountUsd === null || amountUsd === 0));
+
+  // 2. Update សមតុល្យរៀល (Col D / Col 4)
+  if (amountKhr !== null && !isNaN(amountKhr)) {
+    sheet.getRange(matchedRow, 4).setValue(amountKhr);
+  }
+
+  // 3. Update សមតុល្យដុល្លារ (Col C / Col 3)
+  if (amountUsd !== null && !isNaN(amountUsd)) {
+    var cRange = sheet.getRange(matchedRow, 3);
+    var cFormula = cRange.getFormula();
+
+    // បើជាគណនី KHR ហើយមានរូបមន្ត =D.../4100 ស្រាប់ គឺរក្សារូបមន្តទុកដើម្បីឲ្យ Sheet គណនាស្វ័យប្រវត្តិតាម KHR
+    if (isKhrAccount && cFormula && cFormula.indexOf('=') === 0) {
+      // រក្សារូបមន្តទុក
+    } else if (isKhrAccount && (!cFormula || cFormula === '')) {
+      cRange.setFormula('=IFERROR(ROUND(D' + matchedRow + '/4100, 2), 0)');
+    } else {
+      cRange.setValue(amountUsd);
+    }
+  }
+
+  return {
+    status: 'success',
+    message: 'បានកែសម្រួលគណនី ' + finalAccountName + ' ជោគជ័យ! ✅',
+    accountNo: targetNo,
+    accountName: finalAccountName,
+    amountUsd: amountUsd,
+    amountKhr: amountKhr,
+    row: matchedRow
+  };
 }
 
