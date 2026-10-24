@@ -3408,7 +3408,7 @@
 
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden relative">
       <!-- Top Sticky Bar -->
-      <div onclick="handleHeaderScrollToTop(event, 'hierarchy-modal-body')" 
+      <div onclick="handleHeaderScrollToTop(event, 'executive-hierarchy-scroll-body')" 
            class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2 cursor-pointer select-none">
         <div class="flex items-center justify-between gap-2">
           <!-- Minimalist Back Button -->
@@ -4180,7 +4180,7 @@
   <!-- ======================================================== -->
   <div id="edit-profile-modal" class="fixed inset-0 z-[70] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy select-none">
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl relative">
-      <div class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0">
+      <div onclick="handleHeaderScrollToTop(event, 'edit-profile-body')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
             <i data-lucide="user-pen" class="w-4 h-4"></i>
@@ -4349,7 +4349,7 @@
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in relative">
       
       <!-- Top Modal Header -->
-      <div class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0">
+      <div onclick="handleHeaderScrollToTop(event, 'honors-modal-body')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5 min-w-0">
           <!-- Minimalist Back Button (32x32) exactly like All Customers (បញ្ជីអតិថិជន) -->
           <button type="button" onclick="closeHonorsModal()" 
@@ -4419,7 +4419,7 @@
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in relative">
       
       <!-- Top Modal Header -->
-      <div class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0">
+      <div onclick="handleHeaderScrollToTop(event, 'tutorial-modal-body')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5 min-w-0">
           <button type="button" onclick="closeTutorialModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-indigo-400"></i>
@@ -4499,7 +4499,7 @@
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
       
       <!-- Top Modal Header -->
-      <div class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0">
+      <div onclick="handleHeaderScrollToTop(event, 'new-order-modal-body')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5 min-w-0">
           <button type="button" onclick="closeNewOrderModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5063,7 +5063,7 @@
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
       
       <!-- Top Modal Header -->
-      <div class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0">
+      <div onclick="handleHeaderScrollToTop(event, 'new-expense-modal-body')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5 min-w-0">
           <button type="button" onclick="closeNewExpenseModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-rose-400"></i>
@@ -5309,6 +5309,6 @@
   </div>
 
   <script src="dataService.js?v=7.4"></script>
-  <script src="app.js?v=42.1"></script>
+  <script src="app.js?v=42.2"></script>
 </body>
 </html>
