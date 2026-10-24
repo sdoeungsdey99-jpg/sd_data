@@ -10810,16 +10810,43 @@ function renderCodSummary() {
   }
 }
 
+function getThaiExchangeRate() {
+  const saved = localStorage.getItem('sd_thai_exchange_rate');
+  const rate = parseFloat(saved);
+  return (!isNaN(rate) && rate > 0) ? rate : 36.70;
+}
+
+function promptChangeThaiExchangeRate() {
+  const current = getThaiExchangeRate();
+  const val = prompt('កំណត់អត្រាប្តូរប្រាក់ (THB per USD):', current);
+  if (val !== null) {
+    const n = parseFloat(String(val).trim());
+    if (!isNaN(n) && n > 0) {
+      localStorage.setItem('sd_thai_exchange_rate', n);
+      showToastNotification(`បានកំណត់ហាងឆេង 1$ = ${n} ฿ ជោគជ័យ!`);
+      renderThaiCodOrders();
+    }
+  }
+}
+
 function getFilteredThaiCodOrders() {
   const d = DataService.data;
   if (!d || !Array.isArray(d.personalSales)) return [];
 
-  // Filter Thai COD orders
+  // Filter Thai COD orders (EXCLUDE already paid / settled and cancelled / free as instructed)
   let orders = d.personalSales.filter(o => {
     const deliv = String(o.deliveryMethod || '').toLowerCase();
     const loc = String(o.location || '');
     const baht = cleanNumber(o.thaiBaht);
-    return deliv.includes('thai') || loc.includes('ថៃ') || baht > 0;
+    const isThai = deliv.includes('thai') || loc.includes('ថៃ') || baht > 0;
+    if (!isThai) return false;
+
+    const st = String(o.codStatus || '').trim();
+    // Exclude settled orders as instructed by user
+    if (st.includes('បានទូទាត់') || st.includes('Canceled') || st.includes('ហ្វ្រី')) {
+      return false;
+    }
+    return true;
   });
 
   // Filter by Phase pill
@@ -10890,26 +10917,30 @@ function setThaiCodPhaseFilter(phase) {
 
 function renderThaiCodOrders() {
   const listEl = document.getElementById('cod-thai-orders-list');
-  const statsEl = document.getElementById('cod-thai-stats-summary');
   if (!listEl) return;
 
   const orders = getFilteredThaiCodOrders();
+  const rate = getThaiExchangeRate();
 
   const totalBaht = orders.reduce((sum, o) => sum + cleanNumber(o.thaiBaht || o.price), 0);
-  const totalUSD = orders.reduce((sum, o) => sum + cleanNumber(o.totalAmount), 0);
-  const totalBoxes = orders.reduce((sum, o) => sum + cleanNumber(o.totalBoxQty), 0);
+  const totalBoxes = orders.reduce((sum, o) => sum + cleanNumber(o.totalBoxQty || 1), 0);
+  const totalUSD = totalBaht > 0 ? (totalBaht / rate) : 0;
 
-  if (statsEl) {
-    statsEl.innerHTML = `
-      <span class="font-bold text-white">${orders.length} កញ្ចប់</span>
-      <span class="text-slate-500 mx-1">•</span>
-      <span class="text-orange-400 font-bold">${formatInt(totalBaht)} ฿</span>
-      <span class="text-slate-400 text-[10px]">(${formatUSD(totalUSD)})</span>
-    `;
-  }
+  // Update Bottom Summary Metrics
+  const statParcelsEl = document.getElementById('thai-cod-stat-parcels');
+  const statBoxesEl = document.getElementById('thai-cod-stat-boxes');
+  const statBahtEl = document.getElementById('thai-cod-stat-baht');
+  const statRateEl = document.getElementById('thai-cod-stat-rate');
+  const statUsdEl = document.getElementById('thai-cod-stat-usd');
+
+  if (statParcelsEl) statParcelsEl.textContent = `${orders.length} កញ្ចប់`;
+  if (statBoxesEl) statBoxesEl.textContent = `${totalBoxes} ប្រអប់`;
+  if (statBahtEl) statBahtEl.textContent = `${formatInt(totalBaht)} THB`;
+  if (statRateEl) statRateEl.textContent = `1$ = ${rate.toFixed(2)} ฿ ✏️`;
+  if (statUsdEl) statUsdEl.textContent = formatUSD(totalUSD);
 
   if (orders.length === 0) {
-    listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">មិនមានទិន្នន័យ Thai COD ត្រូវនឹងការស្វែងរកទេ</p>`;
+    listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">មិនមានទិន្នន័យ Thai COD រង់ចាំគិតលុយទេ (រាល់ Order បានទូទាត់រួចរាល់)</p>`;
     return;
   }
 
@@ -10952,7 +10983,7 @@ function renderThaiCodOrders() {
           </div>
           <!-- Right side: Thai Baht & Box count -->
           <div class="text-right shrink-0">
-            <div class="font-mono font-bold text-orange-400 text-sm">${formatInt(baht)} ฿</div>
+            <div class="font-mono font-bold text-orange-400 text-sm">${formatInt(baht)} THB</div>
             <div class="text-[10px] text-slate-400 font-mono">${boxQty} ប្រអប់ | ${formatUSD(usd)}</div>
           </div>
         </div>
@@ -11026,7 +11057,7 @@ function copyThaiCodTelegramStatement() {
     return;
   }
 
-  let lines = ['📦 របាយការណ៍គិតលុយ Thai COD\n'];
+  let lines = ['💵 របាយការណ៍គិតលុយ Thai COD\n'];
   let totalBaht = 0;
 
   // Sort by date ascending (or natural order)
@@ -11038,11 +11069,12 @@ function copyThaiCodTelegramStatement() {
     const last4 = phoneDigits.length >= 4 ? phoneDigits.slice(-4) : (o.id ? o.id.replace('#', '') : '—');
     const baht = Math.round(cleanNumber(o.thaiBaht || o.price));
     totalBaht += baht;
-    lines.push(`ថ្ងៃទី ${dStr} លេខ ${last4}-${baht}`);
+    lines.push(`ថ្ងៃទី ${dStr} លេខ ${last4}-${baht} THB`);
   });
 
   lines.push('\n--------------------------');
-  lines.push(`សរុប៖ ${totalBaht.toLocaleString()}`);
+  lines.push(`ចំនួនកញ្ចប់៖ ${orders.length} កញ្ចប់`);
+  lines.push(`សរុប៖ ${totalBaht.toLocaleString()} THB`);
 
   const statementText = lines.join('\n');
   fallbackCopyText(statementText);

@@ -2726,11 +2726,11 @@
         <div class="grid grid-cols-2 p-1 bg-black/40 rounded-xl border border-white/10 flex-1">
           <button id="cod-tab-summary-btn" onclick="switchCodModalTab('summary')" class="py-1.5 px-2.5 rounded-lg text-xs font-semibold transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center gap-1.5">
             <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
-            <span>សង្ខេប Bank (៥ ជួរ)</span>
+            <span>📊 លុយនៅអតិថិជន</span>
           </button>
           <button id="cod-tab-thai-btn" onclick="switchCodModalTab('thai')" class="py-1.5 px-2.5 rounded-lg text-xs font-semibold transition active:scale-95 text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
             <i data-lucide="truck" class="w-3.5 h-3.5"></i>
-            <span>គិតលុយ Thai COD</span>
+            <span>🇹🇭 ទូទាត់ Thai COD</span>
           </button>
         </div>
       </div>
@@ -2782,22 +2782,47 @@
             <button onclick="setThaiCodPhaseFilter('3rd')" data-phase="3rd" class="thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10">🔵 ដល់អតិថិជន 3rd</button>
             <button onclick="setThaiCodPhaseFilter('prepared')" data-phase="prepared" class="thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10">📦 បានរៀបចំ</button>
           </div>
-
-          <!-- Total Summary Bar + Copy Telegram Statement Button -->
-          <div class="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
-            <div id="cod-thai-stats-summary" class="text-[11px] text-slate-300 font-mono">
-              <!-- Dynamically populated: 5 កញ្ចប់ | 23,100 ฿ ($572.19) -->
-            </div>
-            <button onclick="copyThaiCodTelegramStatement()" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 active:scale-95 border border-emerald-500/30 text-emerald-400 font-semibold text-[11px] flex items-center gap-1.5 transition shrink-0" title="ចម្លងបញ្ជីគិតលុយ">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-              <span>ចម្លងសម្រាប់ Telegram</span>
-            </button>
-          </div>
         </div>
 
         <!-- Thai COD Orders List Cards -->
-        <div class="overflow-y-auto flex-1 no-scrollbar p-3 pb-28 space-y-2.5" id="cod-thai-orders-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+        <div class="overflow-y-auto flex-1 no-scrollbar p-3 space-y-2.5 pb-2" id="cod-thai-orders-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
           <!-- Populated dynamically -->
+        </div>
+
+        <!-- Bottom Summary Card (Always Visible on Screen) -->
+        <div class="p-3 border-t border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2 pb-24 sm:pb-6">
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="p-2 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between">
+              <span class="text-slate-400 text-[11px]">ចំនួនកញ្ចប់សរុប៖</span>
+              <span id="thai-cod-stat-parcels" class="font-mono font-bold text-white text-xs">0 កញ្ចប់</span>
+            </div>
+            <div class="p-2 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between">
+              <span class="text-slate-400 text-[11px]">ចំនួនប្រអប់សរុប៖</span>
+              <span id="thai-cod-stat-boxes" class="font-mono font-bold text-orange-400 text-xs">0 ប្រអប់</span>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-black/50 border border-white/10 space-y-1.5 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-300 font-medium text-[11px]">ចំនួនលុយសរុប៖</span>
+              <span id="thai-cod-stat-baht" class="font-mono font-bold text-orange-400 text-sm">0 THB</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-white/5">
+              <div class="flex items-center gap-1.5 text-slate-400">
+                <span>Currency / ហាងឆេង៖</span>
+                <span id="thai-cod-stat-rate" onclick="promptChangeThaiExchangeRate()" class="font-mono font-semibold text-slate-200 bg-white/5 hover:bg-white/10 px-1.5 py-0.5 rounded cursor-pointer transition" title="ចុចដើម្បីកែប្រែហាងឆេង">1$ = 36.70 ฿ ✏️</span>
+              </div>
+              <div class="flex items-center gap-1.5 font-mono font-bold text-emerald-400 text-xs">
+                <span class="text-[10px] text-slate-400 font-sans font-normal">ស្មើនឹងលុយ $៖</span>
+                <span id="thai-cod-stat-usd">$0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="copyThaiCodTelegramStatement()" class="w-full py-2 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 active:scale-95 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-center gap-2 transition" title="ចម្លងបញ្ជីគិតលុយ">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+            <span>ចម្លងសម្រាប់ Telegram</span>
+          </button>
         </div>
       </div>
     </div>
