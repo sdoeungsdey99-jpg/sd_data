@@ -1021,9 +1021,6 @@ document.addEventListener('DOMContentLoaded', () => {
       loadMoreStudyWords();
     }, 250);
   }
-  if (urlParams.get('qr') === '1') {
-    setTimeout(openQrPhotosModal, 150);
-  }
   if (urlParams.get('notif') === '1') {
     setTimeout(toggleNotificationsModal, 150);
   }
@@ -1328,11 +1325,6 @@ function handleBackNavigation() {
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
-  if (!document.getElementById('qr-photos-modal')?.classList?.contains('hidden')) {
-    closeQrPhotosModal();
-    if (navigator.vibrate) navigator.vibrate(15);
-    return true;
-  }
   if (!document.getElementById('attendance-modal')?.classList?.contains('hidden')) {
     closeAttendanceModal();
     if (navigator.vibrate) navigator.vibrate(15);
@@ -1418,7 +1410,7 @@ function isAnyDrilldownModalOpen() {
     'team-members-modal', 'new-order-modal', 'new-expense-modal',
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
-    'profile-sub-modal', 'qr-photos-modal', 'edit-profile-modal',
+    'profile-sub-modal', 'edit-profile-modal',
     'about-modal', 'change-pin-modal', 'shortcut-modal', 'edit-bank-modal'
   ];
   for (const id of modalIds) {
@@ -1434,7 +1426,7 @@ function isProfileDrawerOpen() {
 }
 
 function isProfileSubModalOpen() {
-  const ids = ['all-customers-modal', 'profile-sub-modal', 'qr-photos-modal', 'attendance-modal', 'edit-profile-modal'];
+  const ids = ['all-customers-modal', 'profile-sub-modal', 'attendance-modal', 'edit-profile-modal'];
   for (const id of ids) {
     const el = document.getElementById(id);
     if (el && !el.classList.contains('hidden')) return true;
@@ -1683,7 +1675,6 @@ function isDialogModalOpen() {
   const ids = [
     'daily-report-modal',
     'profile-sub-modal',
-    'qr-photos-modal',
     'change-pin-modal',
     'edit-bank-modal',
     'shortcut-modal',
@@ -2273,7 +2264,6 @@ function closeAllModals() {
     'executive-hierarchy-modal',
     'profile-drawer-modal',
     'edit-profile-modal',
-    'qr-photos-modal',
     'profile-sub-modal',
     'about-modal',
     'change-pin-modal',
@@ -14971,7 +14961,7 @@ function handleHomeClick(e) {
   const tutorialModal = document.getElementById('tutorial-modal');
   const isTutorialOpen = tutorialModal && !tutorialModal.classList.contains('hidden');
 
-  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #edit-bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #executive-hierarchy-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #change-pin-modal:not(.hidden), #qr-photos-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden)');
+  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #edit-bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #executive-hierarchy-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #change-pin-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden)');
 
   // Case 1: If Profile Drawer or any Modal is open ➔ Single tap smoothly dismisses it to reveal dashboard instantly (ZERO network reload)
   if (isDrawerOpen || openModal || isHonorsOpen || isTutorialOpen) {
@@ -15600,19 +15590,6 @@ function getProfileNotes() {
   } catch (e) {}
   localStorage.setItem('sd_profile_notes', JSON.stringify(defaultNotes));
   return defaultNotes;
-}
-
-function getQrPhotosList() {
-  try {
-    const raw = localStorage.getItem('sd_qr_photos');
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
-  return [
-    { id: 'aba_usd', label: 'ABA (USD $)', image: '' },
-    { id: 'aba_khr', label: 'ABA (KHR ៛)', image: '' },
-    { id: 'acleda', label: 'ACLEDA QR', image: '' },
-    { id: 'telegram', label: 'Telegram QR', image: '' }
-  ];
 }
 
 // ==========================================
@@ -19069,8 +19046,6 @@ function renderProfileDrawerContent() {
   const p = getProfileData();
   const customers = getAllUniqueCustomers();
   const notes = getProfileNotes();
-  const qrList = getQrPhotosList();
-  const uploadedQrCount = qrList.filter(q => q.image).length;
   const d = DataService.data;
   const membersCount = BOSTAR_TEAM_SELLERS.length;
 
@@ -19388,8 +19363,6 @@ function getProfileViewHTML() {
   const p = getProfileData();
   const customers = getAllUniqueCustomers();
   const notes = getProfileNotes();
-  const qrList = getQrPhotosList();
-  const uploadedQrCount = qrList.filter(q => q.image).length;
   const d = DataService.data;
   const membersCount = BOSTAR_TEAM_SELLERS.length;
 
@@ -19565,20 +19538,20 @@ function getProfileViewHTML() {
             </div>
           </div>
 
-          <!-- 6. QR Code (Member Only) -->
-          <div onclick="openQrPhotosModal()" 
-               class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-purple-500/40">
+          <!-- 6. តារាងចំណាយមេ (Master Expenses Shortcut) -->
+          <div onclick="openExpensesModal('all')" 
+               class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-rose-500/40">
             <div class="flex items-center justify-between mb-2">
-              <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
-                <i data-lucide="qr-code" class="w-4.5 h-4.5"></i>
+              <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
+                <i data-lucide="receipt" class="w-4.5 h-4.5"></i>
               </div>
-              <span class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 font-mono font-bold text-[10px]">
-                ${uploadedQrCount}/4 រូប
+              <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-[10px]">
+                ${(d.expenses || []).length} មុខ
               </span>
             </div>
             <div>
-              <h3 class="font-bold text-xs text-white leading-tight">QR Code (Member Only)</h3>
-              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">រូបភាព QR សម្រាប់ស្កេន</p>
+              <h3 class="font-bold text-xs text-white leading-tight">តារាងចំណាយមេ</h3>
+              <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">ស្វែងរក និងត្រងគ្រប់កាលបរិច្ឆេទ</p>
             </div>
           </div>
 
@@ -19893,128 +19866,6 @@ function saveProfileData() {
   } catch (e) {
     alert('មិនអាចរក្សាទុកបានទេ (ទំហំរូបធំពេក)');
   }
-}
-
-// =========================================================
-// 2. QR CODE (PHOTOS) MODAL HANDLERS
-// =========================================================
-let activeQrSlotIdx = 0;
-
-function openQrPhotosModal() {
-  renderQrPhotosModalBody();
-  document.getElementById('qr-photos-modal')?.classList?.remove('hidden');
-  setDockVisible(false);
-  if (window.lucide) window.lucide.createIcons();
-}
-
-function closeQrPhotosModal() {
-  document.getElementById('qr-photos-modal')?.classList?.add('hidden');
-  openProfileDrawer();
-}
-
-function selectQrPhotoSlot(idx) {
-  activeQrSlotIdx = idx;
-  renderQrPhotosModalBody();
-}
-
-function renderQrPhotosModalBody() {
-  const body = document.getElementById('qr-photos-modal-body');
-  if (!body) return;
-
-  const list = getQrPhotosList();
-  if (activeQrSlotIdx >= list.length) activeQrSlotIdx = 0;
-  const current = list[activeQrSlotIdx];
-
-  body.innerHTML = `
-    <!-- 4 QR Slot Tabs -->
-    <div class="grid grid-cols-4 gap-1.5 bg-black/35 p-1 rounded-xl border border-white/5">
-      ${list.map((q, i) => `
-        <button onclick="selectQrPhotoSlot(${i})" 
-                class="py-1.5 px-1 rounded-lg text-[10px] font-bold truncate transition ${i === activeQrSlotIdx ? 'accent-solid-btn' : 'text-slate-400 hover:text-white'}">
-          ${q.label}
-        </button>
-      `).join('')}
-    </div>
-
-    <!-- Label Customizer -->
-    <div class="flex items-center gap-2">
-      <input type="text" id="qr-slot-label-input" value="${current.label}" 
-             placeholder="ឈ្មោះ QR (ឧ. ABA USD)"
-             class="flex-1 text-xs bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
-      <button onclick="saveQrPhotoLabel()" 
-              class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white border border-white/10 active:scale-95 transition">
-        ប្តូរឈ្មោះ
-      </button>
-    </div>
-
-    <!-- QR Image Display Frame -->
-    <div class="rounded-2xl bg-black/40 border border-white/10 p-3 flex flex-col items-center justify-center min-h-[260px]">
-      ${current.image ? `
-        <img src="${current.image}" alt="${current.label}" 
-             class="max-h-64 w-auto rounded-xl object-contain shadow-xl border border-white/10">
-      ` : `
-        <div class="text-center py-10 px-4">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto mb-2.5">
-            <i data-lucide="qr-code" class="w-6 h-6"></i>
-          </div>
-          <p class="text-xs font-bold text-white">មិនទាន់មានរូប ${current.label}</p>
-          <p class="text-[10px] text-slate-400 mt-1">ចុចប៊ូតុងខាងក្រោមដើម្បីជ្រើសរើសរូប QR ពីទូរសព្ទ</p>
-        </div>
-      `}
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="flex items-center gap-2">
-      <button onclick="document.getElementById('qr-photo-input').click()" 
-              class="flex-1 py-2.5 rounded-xl accent-solid-btn text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition">
-        <i data-lucide="upload" class="w-4 h-4"></i>
-        <span>${current.image ? 'ប្តូររូប QR' : '+ បញ្ចូលរូប QR'}</span>
-      </button>
-      ${current.image ? `
-        <button onclick="deleteQrPhotoSlot()" 
-                class="py-2.5 px-3.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-400 text-xs font-bold active:scale-95 transition">
-          លុប
-        </button>
-      ` : ''}
-    </div>
-  `;
-  if (window.lucide) window.lucide.createIcons();
-}
-
-function saveQrPhotoLabel() {
-  const input = document.getElementById('qr-slot-label-input');
-  if (!input) return;
-  const list = getQrPhotosList();
-  list[activeQrSlotIdx].label = input.value.trim() || `QR ${activeQrSlotIdx + 1}`;
-  localStorage.setItem('sd_qr_photos', JSON.stringify(list));
-  renderQrPhotosModalBody();
-  if (appState.currentView === 'profile') renderCurrentView();
-  showToastNotification('រក្សាទុកឈ្មោះ QR រួចរាល់!');
-}
-
-async function handleQrPhotoUpload(event) {
-  const file = event.target?.files?.[0];
-  if (!file) return;
-  try {
-    const dataUrl = await compressImageFile(file, 720, 0.85);
-    const list = getQrPhotosList();
-    list[activeQrSlotIdx].image = dataUrl;
-    localStorage.setItem('sd_qr_photos', JSON.stringify(list));
-    event.target.value = '';
-    renderQrPhotosModalBody();
-    if (appState.currentView === 'profile') renderCurrentView();
-    showToastNotification('បញ្ចូលរូប QR ជោគជ័យ!');
-  } catch (e) {
-    alert('មិនអាចរក្សាទុករូប QR បានទេ');
-  }
-}
-
-function deleteQrPhotoSlot() {
-  const list = getQrPhotosList();
-  list[activeQrSlotIdx].image = '';
-  localStorage.setItem('sd_qr_photos', JSON.stringify(list));
-  renderQrPhotosModalBody();
-  if (appState.currentView === 'profile') renderCurrentView();
 }
 
 // =========================================================
@@ -21237,19 +21088,18 @@ function openProfileSubModal(type) {
   }
 
   header.innerHTML = `
-    <div class="flex items-center gap-2.5">
+    <div class="flex items-center gap-2.5 min-w-0">
       <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
         <i data-lucide="${icon}" class="w-4 h-4"></i>
       </div>
-      <div>
-        <h3 class="font-bold text-sm text-white leading-tight">${title}</h3>
-        <p class="text-[10px] text-slate-400 mt-0.5">${sub}</p>
+      <div class="min-w-0">
+        <h3 class="font-bold text-sm text-white leading-tight truncate">${title}</h3>
+        <p class="text-[10px] text-slate-400 mt-0.5 truncate">${sub}</p>
       </div>
     </div>
     <button onclick="closeProfileSubModal()" 
-            class="py-1 px-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-white/5 border border-white/10 flex items-center gap-1 active:scale-95 transition shadow-sm">
-      <i data-lucide="chevron-left" class="w-3.5 h-3.5 text-orange-400"></i>
-      <span>ត្រឡប់</span>
+            class="w-7 h-7 rounded-full text-slate-400 hover:text-white bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition shadow-sm shrink-0" title="បិទ">
+      <i data-lucide="x" class="w-3.5 h-3.5"></i>
     </button>
   `;
   body.innerHTML = contentHTML;
