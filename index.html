@@ -1210,13 +1210,15 @@
       color: #EA580C !important; /* Orange 600 */
     }
 
-    /* All Bottom Sheets (Personal Sales, Expenses, COD, Bank, Payables, Team Sets, Notif) in Light Theme */
+    /* All Bottom Sheets (Personal Sales, Expenses, COD, Bank, Payables, Team Sets, Boost, Notif) in Light Theme */
     .light-theme #sales-modal > div,
     .light-theme #expenses-modal > div,
     .light-theme #cod-modal > div,
     .light-theme #bank-modal > div,
     .light-theme #payables-modal > div,
     .light-theme #team-sets-modal > div,
+    .light-theme #boost-modal > div,
+    .light-theme #quick-boost-modal > div,
     .light-theme #notif-modal-card {
       background-color: #FFFFFF !important;
       border-color: #E2E8F0 !important;
@@ -1228,7 +1230,8 @@
     .light-theme #cod-modal .border-b,
     .light-theme #bank-modal .border-b,
     .light-theme #payables-modal .border-b,
-    .light-theme #team-sets-modal .border-b {
+    .light-theme #team-sets-modal .border-b,
+    .light-theme #boost-modal .border-b {
       background-color: #F8FAFC !important;
       border-color: #E2E8F0 !important;
     }
@@ -1237,6 +1240,7 @@
     .light-theme #cod-modal-footer,
     .light-theme #bank-modal-footer,
     .light-theme #payables-modal-footer,
+    .light-theme #boost-modal-summary,
     .light-theme #team-sets-modal-summary > div {
       background-color: #F8FAFC !important;
       border-color: #E2E8F0 !important;
@@ -1245,7 +1249,8 @@
     .light-theme #expenses-modal .bg-white\/5,
     .light-theme #payables-modal .bg-white\/5,
     .light-theme #bank-modal .bg-white\/5,
-    .light-theme #team-sets-modal .bg-white\/5 {
+    .light-theme #team-sets-modal .bg-white\/5,
+    .light-theme #boost-modal .bg-white\/5 {
       background-color: #F8FAFC !important;
       border-color: #E2E8F0 !important;
     }
@@ -1254,8 +1259,16 @@
     .light-theme #cod-modal .bg-black\/20,
     .light-theme #bank-modal .bg-black\/20,
     .light-theme #payables-modal .bg-black\/20,
-    .light-theme #team-sets-modal .bg-black\/20 {
+    .light-theme #team-sets-modal .bg-black\/20,
+    .light-theme #boost-modal .bg-black\/30,
+    .light-theme #quick-boost-modal .bg-black\/30 {
       background-color: #F8FAFC !important;
+    }
+    .light-theme #quick-boost-input,
+    .light-theme [id^="inline-boost-input-"] {
+      background-color: #FFFFFF !important;
+      color: #0F172A !important;
+      border-color: #CBD5E1 !important;
     }
     .light-theme #cod-modal table thead tr,
     .light-theme #team-sets-modal table thead tr {
@@ -2520,6 +2533,97 @@
       </div>
       <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2" id="payables-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Boost Amount & Expense Plan Modal -->
+  <div id="boost-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
+    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in relative">
+      <!-- Backdrop Blur Overlay for Context Menu -->
+      <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
+
+      <!-- Header -->
+      <div onclick="handleHeaderScrollToTop(event, 'boost-modal-list')" class="relative z-50 p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="closeBoostModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-rose-400"></i>
+          </button>
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
+            <i data-lucide="flame" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0 truncate">
+            <h3 class="font-bold text-sm text-white leading-tight truncate">ចំនួនលុយ Boost & ផែនការ</h3>
+            <p id="boost-modal-subtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">ចុចលើជួរខែដើម្បីកែប្រែ ឬដាក់ផែនការ</p>
+          </div>
+        </div>
+
+        <!-- Year Switcher in Header -->
+        <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation();">
+          <button onclick="changeBoostModalYear(-1)" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 flex items-center justify-center active:scale-95 transition" title="ឆ្នាំមុន">
+            <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+          </button>
+          <span id="boost-modal-year-display" class="font-mono font-bold text-xs text-white px-2 py-1 rounded-lg bg-white/5 border border-white/10">2026</span>
+          <button onclick="changeBoostModalYear(1)" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 flex items-center justify-center active:scale-95 transition" title="ឆ្នាំបន្ទាប់">
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Top Summary Row: Actual, Planned, Total Year -->
+      <div id="boost-modal-summary" class="px-3.5 py-2.5 border-b border-white/10 bg-black/40 grid grid-cols-3 gap-2 text-xs shrink-0">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Scrollable Month List -->
+      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2.5" id="boost-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Boost Edit Modal (For Double-Tap on Box 4) -->
+  <div id="quick-boost-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-200">
+    <div class="w-full max-w-sm rounded-3xl bg-[#0B1528] border border-white/15 p-5 shadow-2xl animate-fade-in relative font-sans">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
+          <i data-lucide="flame" class="w-5 h-5"></i>
+        </div>
+        <div class="min-w-0">
+          <h3 class="font-bold text-sm text-white leading-tight">កែប្រែចំនួនលុយ Boost</h3>
+          <p id="quick-boost-subtitle" class="text-[11px] text-slate-400 mt-0.5 font-mono">ខែបច្ចុប្បន្ន</p>
+        </div>
+      </div>
+
+      <div id="quick-boost-source-info" class="mb-3 px-3 py-2 rounded-xl bg-white/5 border border-white/5 text-[11px] text-slate-300 flex items-center justify-between">
+        <!-- Injected dynamically -->
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-[11px] text-slate-400 mb-1.5 font-medium">ចំនួនទឹកប្រាក់ ($ USD):</label>
+        <div class="relative">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-rose-400 font-mono font-bold text-base">$</span>
+          <input type="number" id="quick-boost-input" step="any" min="0" placeholder="0.00"
+                 onkeydown="if(event.key === 'Enter') saveQuickBoostModal();"
+                 class="w-full pl-8 pr-3 py-2.5 rounded-xl bg-black/40 border border-white/15 text-white font-mono text-base font-bold focus:outline-none focus:border-rose-500 transition">
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="closeQuickBoostModal()" 
+                class="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-semibold active:scale-95 transition">
+          បោះបង់
+        </button>
+        <button onclick="saveQuickBoostModal()" 
+                class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-rose-500/25 active:scale-95 transition">
+          រក្សាទុក
+        </button>
+      </div>
+
+      <div id="quick-boost-reset-container" class="mt-3 text-center hidden">
+        <button onclick="resetQuickBoostToSheet()" class="text-[11px] text-slate-400 hover:text-rose-400 underline transition">
+          ត្រឡប់ទៅប្រើទិន្នន័យ Google Sheet ដើមវិញ
+        </button>
       </div>
     </div>
   </div>

@@ -4689,7 +4689,8 @@ function getDashboardViewHTML() {
   const currentTeamLeaders = (d.teamLeadersByMonth && d.teamLeadersByMonth[selectedMonthInt]) || d.teamLeaders;
   const monthlyExpensesList = d.expenses.filter(e => e.isoDate.startsWith(targetMonthKey));
   const monthlyTotalExpenseAmt = monthlyExpensesList.reduce((sum, e) => sum + (e.amount || 0), 0);
-  const monthlyBoostAmt = (d.boostByMonth && d.boostByMonth[selectedMonthInt]) || 0;
+  const targetYearStr = targetMonthKey.split('-')[0] || String((new Date()).getFullYear());
+  const monthlyBoostAmt = typeof getBoostForMonth === 'function' ? getBoostForMonth(targetYearStr, selectedMonthInt) : ((d.boostByMonth && d.boostByMonth[selectedMonthInt]) || 0);
   const monthlyBudgetGoal = parseFloat(localStorage.getItem('sd_monthly_budget')) || 450.0;
   const remainingBudget = monthlyBudgetGoal - monthlyTotalExpenseAmt;
 
@@ -4805,7 +4806,7 @@ function getDashboardViewHTML() {
 
   let activeBoostAmt = 0;
   if (appState.periodFilter === 'year') {
-    activeBoostAmt = Object.values(d.boostByMonth || {}).reduce((sum, v) => sum + (v || 0), 0);
+    activeBoostAmt = typeof getYearlyTotalBoost === 'function' ? getYearlyTotalBoost(targetYear) : Object.values(d.boostByMonth || {}).reduce((sum, v) => sum + (v || 0), 0);
   } else {
     activeBoostAmt = monthlyBoostAmt;
   }
@@ -4873,8 +4874,10 @@ function getDashboardViewHTML() {
           <span class="font-mono text-blue-400 font-bold text-base tracking-tight">${formatUSD(displayedProfit)}</span>
         </div>
 
-        <!-- Box 4: Boost Expense (ចំនួនលុយ Boost) -->
-        <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between">
+        <!-- Box 4: Boost Expense (ចំនួនលុយ Boost - Single Tap to View Modal, Double Tap to Edit) -->
+        <div onclick="handleBoostBoxClick(event)" ondblclick="handleBoostBoxDblClick(event)"
+             class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col justify-between cursor-pointer hover:border-rose-500/30 active:scale-95 transition ios-touch-item group"
+             title="ចុច ១ ដងដើម្បីមើលតារាង Boost & ផែនការ | ចុច ២ ដងដើម្បីកែប្រែខែនេះ">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">
             ${isEn ? 'Boost Amount:' : 'ចំនួនលុយ Boost:'}
           </span>
@@ -5958,13 +5961,11 @@ function getAnalyticsViewHTML() {
   const currentActiveYear = appState.analyticsYear || (allYears.includes('2026') ? '2026' : (allYears[0] || '2026'));
   appState.analyticsYear = currentActiveYear;
 
-  // Add boost for months in 2026
+  // Add boost for months
   months.forEach(m => {
     const parts = m.split('-');
-    if (parts[0] === '2026' && d.boostByMonth) {
-      const mInt = parseInt(parts[1], 10);
-      monthlyStats[m].boost = d.boostByMonth[mInt] || 0;
-    }
+    const mInt = parseInt(parts[1], 10);
+    monthlyStats[m].boost = typeof getBoostForMonth === 'function' ? getBoostForMonth(parts[0], mInt) : ((parts[0] === '2026' && d.boostByMonth) ? (d.boostByMonth[mInt] || 0) : 0);
   });
 
   const displayMonths = allYears.length > 1 ? months.filter(m => m.startsWith(currentActiveYear)) : months;
@@ -6073,7 +6074,7 @@ function getAnalyticsViewHTML() {
     const monthExpenses = (d.expenses || []).filter(e => e.isoDate && e.isoDate.startsWith(activeMonth));
     const parts = activeMonth.split('-');
     const mNum = parseInt(parts[1], 10);
-    const monthBoost = (parts[0] === '2026' && d.boostByMonth) ? (d.boostByMonth[mNum] || 0) : 0;
+    const monthBoost = typeof getBoostForMonth === 'function' ? getBoostForMonth(parts[0], mNum) : ((parts[0] === '2026' && d.boostByMonth) ? (d.boostByMonth[mNum] || 0) : 0);
     const monthTitle = `${parts[1]}/${parts[0]}`;
 
     // Group by day
@@ -6220,7 +6221,7 @@ function getAnalyticsViewHTML() {
 
           <!-- Widget 2: Boost & Expenses -->
           <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
-            <div>
+            <div onclick="openBoostModal(${parts[0]})" class="cursor-pointer hover:opacity-85 active:scale-95 transition" title="ចុចដើម្បីមើលតារាង Boost & ផែនការ">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">${isEn ? 'Boost Amount' : 'ចំនួនលុយ Boost'}</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
@@ -6280,7 +6281,7 @@ function getAnalyticsViewHTML() {
 
           <!-- Widget 2: Boost & Business Net -->
           <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
-            <div>
+            <div onclick="openBoostModal(${parts[0]})" class="cursor-pointer hover:opacity-85 active:scale-95 transition" title="ចុចដើម្បីមើលតារាង Boost & ផែនការ">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">${isEn ? 'Boost Amount' : 'ចំនួនលុយ Boost'}</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
@@ -6722,7 +6723,7 @@ function getAnalyticsViewHTML() {
   // ==========================================
   const yearSales = d.personalSales.filter(s => s.isoDate.startsWith(currentActiveYear));
   const yearExpenses = (d.expenses || []).filter(e => e.isoDate && e.isoDate.startsWith(currentActiveYear));
-  const yearBoost = (currentActiveYear === '2026' && d.boostByMonth) ? Object.values(d.boostByMonth).reduce((sum, v) => sum + (v || 0), 0) : 0;
+  const yearBoost = typeof getYearlyTotalBoost === 'function' ? getYearlyTotalBoost(currentActiveYear) : ((currentActiveYear === '2026' && d.boostByMonth) ? Object.values(d.boostByMonth).reduce((sum, v) => sum + (v || 0), 0) : 0);
 
   const yearRevenue = displayMonths.reduce((sum, m) => sum + monthlyStats[m].revenue, 0);
   const yearProfit = displayMonths.reduce((sum, m) => sum + monthlyStats[m].profit, 0);
@@ -6845,7 +6846,7 @@ function getAnalyticsViewHTML() {
 
         <!-- Widget 2: Boost & Expenses -->
         <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
-          <div>
+          <div onclick="openBoostModal(${currentActiveYear})" class="cursor-pointer hover:opacity-85 active:scale-95 transition" title="ចុចដើម្បីមើលតារាង Boost & ផែនការ">
             <div class="flex items-center justify-between mb-1">
               <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">${isEn ? 'Boost Amount' : 'ចំនួនលុយ Boost'}</span>
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
@@ -6905,7 +6906,7 @@ function getAnalyticsViewHTML() {
 
         <!-- Widget 2: Boost & Business Net -->
         <div class="rounded-2xl sm:rounded-3xl bg-black/35 border border-white/10 p-3 sm:p-3.5 shadow-lg flex flex-col justify-between">
-          <div>
+          <div onclick="openBoostModal(${currentActiveYear})" class="cursor-pointer hover:opacity-85 active:scale-95 transition" title="ចុចដើម្បីមើលតារាង Boost & ផែនការ">
             <div class="flex items-center justify-between mb-1">
               <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">${isEn ? 'Boost Amount' : 'ចំនួនលុយ Boost'}</span>
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
@@ -11503,6 +11504,473 @@ function openBankModal() {
 function closeBankModal() {
   const modal = document.getElementById('bank-modal');
   if (modal) modal.classList.add('hidden');
+}
+
+// ==========================================
+// Boost Management & Modal Logic (Google Sheet Priority + Touch-to-Edit & Planning)
+// ==========================================
+let activeBoostYear = 2026;
+let inlineEditingMonth = null;
+let boostClickTimeout = null;
+let lastBoostClickTime = 0;
+let quickBoostActiveYear = 2026;
+let quickBoostActiveMonth = 10;
+
+const BOOST_KHMER_MONTHS = ['', 'មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+
+function getCustomBoosts() {
+  try {
+    const raw = localStorage.getItem('sd_custom_boosts');
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveCustomBoosts(map) {
+  try {
+    localStorage.setItem('sd_custom_boosts', JSON.stringify(map));
+  } catch (e) {}
+}
+
+function getBoostForMonth(year, monthNum) {
+  const d = DataService.data;
+  const yStr = String(year);
+  const mNum = parseInt(monthNum, 10);
+  const key = `${yStr}-${String(mNum).padStart(2, '0')}`;
+  const custom = getCustomBoosts();
+
+  // 1. Check if user explicitly customized this month
+  if (custom[key] !== undefined && custom[key] !== null && custom[key] !== '') {
+    return Math.max(0, parseFloat(custom[key]) || 0);
+  }
+
+  // 2. Google Sheet Priority (Default if not customized)
+  if (yStr === '2026' && d && d.boostByMonth && d.boostByMonth[mNum] !== undefined) {
+    return Math.max(0, parseFloat(d.boostByMonth[mNum]) || 0);
+  }
+
+  return 0;
+}
+
+function getSheetBoostForMonth(year, monthNum) {
+  const d = DataService.data;
+  const yStr = String(year);
+  const mNum = parseInt(monthNum, 10);
+  if (yStr === '2026' && d && d.boostByMonth && d.boostByMonth[mNum] !== undefined) {
+    return Math.max(0, parseFloat(d.boostByMonth[mNum]) || 0);
+  }
+  return 0;
+}
+
+function isBoostOverridden(year, monthNum) {
+  const yStr = String(year);
+  const mNum = parseInt(monthNum, 10);
+  const key = `${yStr}-${String(mNum).padStart(2, '0')}`;
+  const custom = getCustomBoosts();
+  return (custom[key] !== undefined && custom[key] !== null && custom[key] !== '');
+}
+
+function setMonthBoostAmount(year, monthNum, amount) {
+  const yStr = String(year);
+  const mNum = parseInt(monthNum, 10);
+  const key = `${yStr}-${String(mNum).padStart(2, '0')}`;
+  const custom = getCustomBoosts();
+  
+  if (amount === null || amount === undefined || amount === 'reset') {
+    delete custom[key];
+  } else {
+    custom[key] = Math.max(0, parseFloat(amount) || 0);
+  }
+  saveCustomBoosts(custom);
+}
+
+function getYearlyTotalBoost(year) {
+  let total = 0;
+  for (let m = 1; m <= 12; m++) {
+    total += getBoostForMonth(year, m);
+  }
+  return total;
+}
+
+// Single Tap vs Double Tap Handler for Box 4 on Dashboard Card
+function handleBoostBoxClick(e) {
+  if (e) {
+    e.stopPropagation();
+  }
+  const now = Date.now();
+  if (now - lastBoostClickTime < 350) {
+    // Double click / tap detected!
+    clearTimeout(boostClickTimeout);
+    boostClickTimeout = null;
+    lastBoostClickTime = 0;
+    openQuickBoostEditModal();
+  } else {
+    lastBoostClickTime = now;
+    clearTimeout(boostClickTimeout);
+    boostClickTimeout = setTimeout(() => {
+      boostClickTimeout = null;
+      lastBoostClickTime = 0;
+      openBoostModal();
+    }, 280);
+  }
+}
+
+function handleBoostBoxDblClick(e) {
+  if (e) e.stopPropagation();
+  clearTimeout(boostClickTimeout);
+  boostClickTimeout = null;
+  lastBoostClickTime = 0;
+  openQuickBoostEditModal();
+}
+
+// Quick Edit Modal (Triggered by Double Tap for Current/Selected Month)
+function openQuickBoostEditModal(targetYear = null, targetMonth = null) {
+  const now = new Date();
+  const currentIsoDay = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(now) : now.toISOString().slice(0, 10);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  const parts = currentIsoMonth.split('-');
+  
+  const y = targetYear || (appState.periodFilter === 'month' && appState.selectedMonthKey ? parseInt(appState.selectedMonthKey.split('-')[0], 10) : (appState.selectedYear ? parseInt(appState.selectedYear, 10) : parseInt(parts[0], 10)));
+  const m = targetMonth || (appState.periodFilter === 'month' && appState.selectedMonthKey ? parseInt(appState.selectedMonthKey.split('-')[1], 10) : parseInt(parts[1], 10));
+
+  const modal = document.getElementById('quick-boost-modal');
+  const subtitle = document.getElementById('quick-boost-subtitle');
+  const sourceInfo = document.getElementById('quick-boost-source-info');
+  const input = document.getElementById('quick-boost-input');
+  const resetContainer = document.getElementById('quick-boost-reset-container');
+  if (!modal) return;
+
+  quickBoostActiveYear = y;
+  quickBoostActiveMonth = m;
+
+  const mName = BOOST_KHMER_MONTHS[m] || `ខែទី ${m}`;
+  if (subtitle) subtitle.textContent = `ខែ${mName} ឆ្នាំ${y}`;
+
+  const currentVal = getBoostForMonth(y, m);
+  const sheetVal = getSheetBoostForMonth(y, m);
+  const isOverridden = isBoostOverridden(y, m);
+
+  if (input) {
+    input.value = currentVal > 0 ? currentVal : '';
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 150);
+  }
+
+  if (sourceInfo) {
+    if (sheetVal > 0) {
+      sourceInfo.innerHTML = `<span>ទិន្នន័យ Google Sheet:</span> <strong class="text-rose-400 font-mono font-bold">$${sheetVal.toFixed(2)}</strong>`;
+      sourceInfo.classList.remove('hidden');
+    } else {
+      sourceInfo.innerHTML = `<span>ប្រភព:</span> <span class="text-slate-400">កត់ត្រាផ្ទាល់ក្នុង App (Sheet គ្មានទិន្នន័យ)</span>`;
+      sourceInfo.classList.remove('hidden');
+    }
+  }
+
+  if (resetContainer) {
+    if (isOverridden && sheetVal > 0) {
+      resetContainer.classList.remove('hidden');
+    } else {
+      resetContainer.classList.add('hidden');
+    }
+  }
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeQuickBoostModal() {
+  const modal = document.getElementById('quick-boost-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function saveQuickBoostModal() {
+  const input = document.getElementById('quick-boost-input');
+  if (!input) return;
+  const raw = input.value.trim();
+  const val = raw === '' ? 0 : parseFloat(raw);
+  if (isNaN(val) || val < 0) {
+    if (typeof showToastNotification === 'function') showToastNotification('⚠️ សូមបញ្ចូលចំនួនទឹកប្រាក់ត្រឹមត្រូវ');
+    return;
+  }
+
+  setMonthBoostAmount(quickBoostActiveYear, quickBoostActiveMonth, val);
+  closeQuickBoostModal();
+
+  if (typeof showToastNotification === 'function') {
+    showToastNotification(`🎯 បានរក្សាទុក Boost $${val.toFixed(2)} (ខែ ${quickBoostActiveMonth}/${quickBoostActiveYear})`);
+  }
+  
+  if (typeof renderCurrentView === 'function') renderCurrentView();
+  const boostModal = document.getElementById('boost-modal');
+  if (boostModal && !boostModal.classList.contains('hidden')) {
+    renderBoostModal();
+  }
+}
+
+function resetQuickBoostToSheet() {
+  setMonthBoostAmount(quickBoostActiveYear, quickBoostActiveMonth, null);
+  closeQuickBoostModal();
+  const sheetVal = getSheetBoostForMonth(quickBoostActiveYear, quickBoostActiveMonth);
+  if (typeof showToastNotification === 'function') {
+    showToastNotification(`🔄 បានត្រឡប់ទៅប្រើទិន្នន័យ Google Sheet ($${sheetVal.toFixed(2)}) វិញ`);
+  }
+  if (typeof renderCurrentView === 'function') renderCurrentView();
+  const boostModal = document.getElementById('boost-modal');
+  if (boostModal && !boostModal.classList.contains('hidden')) {
+    renderBoostModal();
+  }
+}
+
+// Full Boost Modal Logic
+function openBoostModal(year = null) {
+  const modal = document.getElementById('boost-modal');
+  if (!modal) return;
+
+  const now = new Date();
+  activeBoostYear = year || (appState.selectedYear ? parseInt(appState.selectedYear, 10) : now.getFullYear());
+  inlineEditingMonth = null;
+
+  renderBoostModal();
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+  setDockVisible(true);
+  const listEl = document.getElementById('boost-modal-list');
+  if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
+}
+
+function closeBoostModal() {
+  const modal = document.getElementById('boost-modal');
+  if (modal) modal.classList.add('hidden');
+  inlineEditingMonth = null;
+}
+
+function changeBoostModalYear(delta) {
+  activeBoostYear += delta;
+  inlineEditingMonth = null;
+  renderBoostModal();
+}
+
+function renderBoostModal() {
+  const now = new Date();
+  const curY = now.getFullYear();
+  const curM = now.getMonth() + 1;
+
+  // 1. Year Display
+  const yearDisplay = document.getElementById('boost-modal-year-display');
+  if (yearDisplay) yearDisplay.textContent = activeBoostYear;
+
+  // 2. Compute Summary
+  let actualSpent = 0;
+  let plannedBudget = 0;
+  let totalYear = 0;
+
+  for (let m = 1; m <= 12; m++) {
+    const val = getBoostForMonth(activeBoostYear, m);
+    totalYear += val;
+    if (activeBoostYear < curY || (activeBoostYear === curY && m <= curM)) {
+      actualSpent += val;
+    } else {
+      plannedBudget += val;
+    }
+  }
+
+  // 3. Render Summary Header
+  const summaryEl = document.getElementById('boost-modal-summary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="p-2.5 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-between">
+        <span class="text-slate-400 text-[10px] leading-tight mb-1">ចំណាយជាក់ស្តែង</span>
+        <span class="font-mono text-rose-400 font-bold text-sm tracking-tight">${formatUSD(actualSpent)}</span>
+      </div>
+      <div class="p-2.5 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-between">
+        <span class="text-slate-400 text-[10px] leading-tight mb-1">ផែនការទៅមុខ</span>
+        <span class="font-mono text-blue-400 font-bold text-sm tracking-tight">${formatUSD(plannedBudget)}</span>
+      </div>
+      <div class="p-2.5 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-between">
+        <span class="text-slate-400 text-[10px] leading-tight mb-1">សរុបពេញ ${activeBoostYear}</span>
+        <span class="font-mono text-emerald-400 font-bold text-sm tracking-tight">${formatUSD(totalYear)}</span>
+      </div>
+    `;
+  }
+
+  // 4. Render 12 Months List
+  renderBoostModalList();
+}
+
+function renderBoostModalList() {
+  const listEl = document.getElementById('boost-modal-list');
+  if (!listEl) return;
+
+  const now = new Date();
+  const curY = now.getFullYear();
+  const curM = now.getMonth() + 1;
+
+  let html = '';
+
+  for (let m = 1; m <= 12; m++) {
+    const isCur = (activeBoostYear === curY && m === curM);
+    const isPast = (activeBoostYear < curY || (activeBoostYear === curY && m < curM));
+    const isFuture = (activeBoostYear > curY || (activeBoostYear === curY && m > curM));
+    
+    const val = getBoostForMonth(activeBoostYear, m);
+    const sheetVal = getSheetBoostForMonth(activeBoostYear, m);
+    const isOverridden = isBoostOverridden(activeBoostYear, m);
+    const isEditing = (inlineEditingMonth === m);
+
+    let statusBadge = '';
+    if (isCur) {
+      statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-medium text-[10px] border border-emerald-500/30">ខែបច្ចុប្បន្ន</span>';
+    } else if (isPast) {
+      statusBadge = '<span class="px-2 py-0.5 rounded-full bg-slate-500/15 text-slate-400 font-normal text-[10px]">បានកន្លងផុត</span>';
+    } else {
+      statusBadge = '<span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium text-[10px] border border-blue-500/30">ផែនការ</span>';
+    }
+
+    let sourceBadge = '';
+    if (isOverridden) {
+      sourceBadge = '<span class="text-[9.5px] text-amber-400/80 font-mono">កែប្រែដោយដៃ</span>';
+    } else if (sheetVal > 0) {
+      sourceBadge = '<span class="text-[9.5px] text-slate-500 font-mono">Google Sheet</span>';
+    }
+
+    const monthName = BOOST_KHMER_MONTHS[m];
+
+    html += `
+      <div class="rounded-2xl bg-white/5 border ${isCur ? 'border-orange-500/40 bg-orange-500/5' : (isEditing ? 'border-rose-500/40' : 'border-white/5')} transition overflow-hidden">
+        
+        <!-- Touch Item Row: Click to Toggle Inline Edit (Discreet, No Edit Icon) -->
+        <div onclick="toggleInlineMonthBoost(${m})" 
+             class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 active:scale-[0.99] transition ios-touch-item">
+          
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-8 h-8 rounded-xl ${isCur ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : (isFuture ? 'bg-blue-500/15 text-blue-400 border border-blue-500/25' : 'bg-white/5 text-slate-300')} flex items-center justify-center font-bold text-xs shrink-0 font-mono">
+              ${m < 10 ? '0' + m : m}
+            </div>
+            
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-bold text-xs text-white">ខែ${monthName}</span>
+                ${statusBadge}
+              </div>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-[10px] text-slate-400 font-mono">Month ${m}</span>
+                ${sourceBadge ? `<span class="text-slate-600">•</span>` + sourceBadge : ''}
+              </div>
+            </div>
+          </div>
+
+          <div class="text-right shrink-0">
+            <span class="font-mono font-bold text-sm ${val > 0 ? 'text-rose-400' : 'text-slate-400'}">${formatUSD(val)}</span>
+            <span class="text-[9.5px] text-slate-500 block">ចុចកែប្រែ</span>
+          </div>
+
+        </div>
+
+        <!-- Inline Edit Panel (Revealed smoothly on touch) -->
+        ${isEditing ? `
+          <div class="p-3.5 pt-0 border-t border-white/10 bg-black/30 animate-fade-in font-sans">
+            <div class="pt-3">
+              <div class="flex items-center justify-between mb-1.5 text-[11px] text-slate-400">
+                <span>កំណត់ចំនួនលុយ Boost ខែ${monthName} (${activeBoostYear}):</span>
+                ${sheetVal > 0 ? `<span class="font-mono">Sheet: $${sheetVal.toFixed(2)}</span>` : ''}
+              </div>
+
+              <div class="flex items-center gap-2 mb-2.5">
+                <div class="relative flex-1">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-rose-400 font-mono font-bold text-sm">$</span>
+                  <input type="number" id="inline-boost-input-${m}" step="any" min="0" 
+                         value="${val > 0 ? val : ''}" placeholder="0.00"
+                         onkeydown="if(event.key === 'Enter') saveInlineMonthBoost(${m});"
+                         class="w-full pl-7 pr-3 py-2 rounded-xl bg-black/40 border border-white/15 text-white font-mono text-sm font-bold focus:outline-none focus:border-rose-500 transition">
+                </div>
+                
+                <button onclick="saveInlineMonthBoost(${m})" 
+                        class="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs active:scale-95 transition shadow-sm">
+                  រក្សាទុក
+                </button>
+                <button onclick="cancelInlineMonthBoost()" 
+                        class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 font-semibold text-xs active:scale-95 transition">
+                  បោះបង់
+                </button>
+              </div>
+
+              ${(isOverridden && sheetVal > 0) ? `
+                <div class="pt-1 text-right">
+                  <button onclick="resetInlineMonthBoost(${m})" class="text-[10px] text-slate-400 hover:text-rose-400 underline transition">
+                    ត្រឡប់ទៅប្រើទិន្នន័យ Google Sheet ($${sheetVal.toFixed(2)}) វិញ
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
+
+      </div>
+    `;
+  }
+
+  listEl.innerHTML = html;
+  if (window.lucide) window.lucide.createIcons();
+
+  if (inlineEditingMonth !== null) {
+    const inputEl = document.getElementById(`inline-boost-input-${inlineEditingMonth}`);
+    if (inputEl) {
+      setTimeout(() => {
+        inputEl.focus();
+        inputEl.select();
+      }, 50);
+    }
+  }
+}
+
+function toggleInlineMonthBoost(monthNum) {
+  if (inlineEditingMonth === monthNum) {
+    inlineEditingMonth = null;
+  } else {
+    inlineEditingMonth = monthNum;
+  }
+  renderBoostModalList();
+}
+
+function cancelInlineMonthBoost() {
+  inlineEditingMonth = null;
+  renderBoostModalList();
+}
+
+function saveInlineMonthBoost(monthNum) {
+  const input = document.getElementById(`inline-boost-input-${monthNum}`);
+  if (!input) return;
+  const raw = input.value.trim();
+  const val = raw === '' ? 0 : parseFloat(raw);
+  if (isNaN(val) || val < 0) {
+    if (typeof showToastNotification === 'function') showToastNotification('⚠️ សូមបញ្ចូលចំនួនទឹកប្រាក់ត្រឹមត្រូវ');
+    return;
+  }
+
+  setMonthBoostAmount(activeBoostYear, monthNum, val);
+  inlineEditingMonth = null;
+  renderBoostModal();
+
+  if (typeof showToastNotification === 'function') {
+    showToastNotification(`🎯 បានរក្សាទុក Boost $${val.toFixed(2)} (ខែ ${monthNum}/${activeBoostYear})`);
+  }
+  if (typeof renderCurrentView === 'function') renderCurrentView();
+}
+
+function resetInlineMonthBoost(monthNum) {
+  setMonthBoostAmount(activeBoostYear, monthNum, null);
+  inlineEditingMonth = null;
+  renderBoostModal();
+
+  const sheetVal = getSheetBoostForMonth(activeBoostYear, monthNum);
+  if (typeof showToastNotification === 'function') {
+    showToastNotification(`🔄 បានត្រឡប់ទៅប្រើទិន្នន័យ Google Sheet ($${sheetVal.toFixed(2)})`);
+  }
+  if (typeof renderCurrentView === 'function') renderCurrentView();
 }
 
 // ==========================================
@@ -26214,4 +26682,26 @@ window.sendTelegramBirthdayWish = sendTelegramBirthdayWish;
 window.checkAndShowBirthdayGreeting = checkAndShowBirthdayGreeting;
 window.closeBirthdayCelebrationModal = closeBirthdayCelebrationModal;
 window.launchBirthdayConfetti = launchBirthdayConfetti;
+
+// Boost Management & Modal Exports
+window.getBoostForMonth = getBoostForMonth;
+window.getSheetBoostForMonth = getSheetBoostForMonth;
+window.isBoostOverridden = isBoostOverridden;
+window.setMonthBoostAmount = setMonthBoostAmount;
+window.getYearlyTotalBoost = getYearlyTotalBoost;
+window.handleBoostBoxClick = handleBoostBoxClick;
+window.handleBoostBoxDblClick = handleBoostBoxDblClick;
+window.openQuickBoostEditModal = openQuickBoostEditModal;
+window.closeQuickBoostModal = closeQuickBoostModal;
+window.saveQuickBoostModal = saveQuickBoostModal;
+window.resetQuickBoostToSheet = resetQuickBoostToSheet;
+window.openBoostModal = openBoostModal;
+window.closeBoostModal = closeBoostModal;
+window.changeBoostModalYear = changeBoostModalYear;
+window.renderBoostModal = renderBoostModal;
+window.renderBoostModalList = renderBoostModalList;
+window.toggleInlineMonthBoost = toggleInlineMonthBoost;
+window.cancelInlineMonthBoost = cancelInlineMonthBoost;
+window.saveInlineMonthBoost = saveInlineMonthBoost;
+window.resetInlineMonthBoost = resetInlineMonthBoost;
 
