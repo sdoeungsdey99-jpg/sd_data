@@ -10201,20 +10201,14 @@ function openPersonalSalesModal() {
   subtitle.textContent = `តារាងកុម្ម៉ង់ទាំងអស់ (${sortedSales.length} នាក់) - ពីថ្ងៃចុងក្រោយមកមុន`;
 
   listEl.innerHTML = sortedSales.slice(0, 50).map(item => `
-    <div onclick="openEditSalesOrder('${item.recordId || ''}', '${item.orderId || ''}', ${item.rowIndex !== undefined ? item.rowIndex : -1}, '${item.date || ''}', '${item.phone || ''}')" class="p-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex flex-col gap-1.5 cursor-pointer transition group">
+    <div onclick="openEditSalesOrder('${item.recordId || ''}', '${item.orderId || ''}', ${item.rowIndex !== undefined ? item.rowIndex : -1}, '${item.date || ''}', '${item.phone || ''}')" class="p-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex flex-col gap-1.5 cursor-pointer transition">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-1.5 flex-wrap">
-          <span class="w-5 h-5 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 text-[10px] group-hover:scale-110 transition" title="កែប្រែ Order">
-            <i data-lucide="edit-3" class="w-3 h-3 text-orange-400"></i>
-          </span>
           <span class="font-bold text-xs text-white">${item.customer}</span>
           <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 font-mono">${item.orderId}</span>
           ${item.note && item.note.includes('[SG Pro]') ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/25 text-purple-300 font-bold border border-purple-500/40">SG Pro</span>' : ''}
         </div>
-        <div class="flex items-center gap-1">
-          <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.totalAmount)}</span>
-          <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-orange-400 transition"></i>
-        </div>
+        <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.totalAmount)}</span>
       </div>
       <div class="text-[11px] text-slate-400 flex items-center justify-between">
         <span>📍 ${item.location || '—'}</span>
@@ -20609,12 +20603,8 @@ function renderAllCustomersList() {
             <div class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
               ${sortedOrders.map(o => `
                 <div onclick="event.stopPropagation(); openEditSalesOrder('${o.recordId || ''}', '${o.orderId || ''}', ${o.rowIndex !== undefined ? o.rowIndex : -1}, '${o.date || ''}', '${o.phone || ''}')" 
-                     class="p-2 rounded-xl bg-black/30 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex items-center justify-between text-[11px] cursor-pointer transition group"
-                     title="ចុចដើម្បីកែប្រែ Order នេះ">
+                     class="p-2 rounded-xl bg-black/30 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex items-center justify-between text-[11px] cursor-pointer transition">
                   <div class="flex items-center gap-1.5 min-w-0 pr-2">
-                    <span class="w-5 h-5 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 text-[10px] group-hover:scale-110 transition" title="កែប្រែ Order">
-                      <i data-lucide="edit-3" class="w-3 h-3 text-orange-400"></i>
-                    </span>
                     <span class="font-mono text-white font-bold shrink-0">${o.date}</span>
                     <span class="text-slate-300 font-medium truncate">(${getOrderProductSummary(o)})</span>
                     ${o.codStatus ? `
@@ -20623,15 +20613,14 @@ function renderAllCustomersList() {
                       </span>
                     ` : ''}
                   </div>
-                  <div class="font-mono text-right shrink-0 flex items-center gap-1">
+                  <div class="font-mono text-right shrink-0">
                     ${(o.thaiBaht > 0 || o.price > 0) ? `
                       <span class="text-slate-200 font-medium text-[10.5px]">${formatInt(o.thaiBaht || o.price)} ฿</span>
-                      <span class="text-slate-500 mx-0.5">•</span>
+                      <span class="text-slate-500 mx-1">•</span>
                     ` : ''}
                     <span class="text-orange-400 font-bold">${o.totalBoxQty} ប្រអប់</span>
-                    <span class="text-slate-500 mx-0.5">|</span>
+                    <span class="text-slate-500 mx-1">|</span>
                     <span class="text-emerald-400 font-bold">${formatUSD(o.totalAmount)}</span>
-                    <i data-lucide="chevron-right" class="w-3 h-3 text-slate-500 group-hover:text-orange-400 transition ml-0.5"></i>
                   </div>
                 </div>
               `).join('')}
