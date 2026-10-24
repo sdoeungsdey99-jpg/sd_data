@@ -5082,6 +5082,11 @@
       <!-- Scrollable Modal Body -->
       <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-3" id="new-expense-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         
+        <input type="hidden" id="expense-edit-mode" value="false">
+        <input type="hidden" id="expense-edit-row-index" value="">
+        <input type="hidden" id="expense-edit-orig-desc" value="">
+        <input type="hidden" id="expense-edit-orig-amt" value="">
+
         <!-- Quick Presets Carousel/Chips -->
         <div class="p-2.5 rounded-2xl bg-black/30 border border-white/10 space-y-2">
           <div class="flex items-center justify-between">
@@ -5241,7 +5246,70 @@
     </div>
   </div>
 
+  <!-- iOS Expense Action Sheet (Long-Press / Swipe Quick Action) -->
+  <div id="expense-action-sheet" onclick="closeExpenseActionSheet(event)"
+       class="fixed inset-0 z-[85] bg-black/75 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()"
+         class="w-full max-w-sm bg-[#0D1526] border-t sm:border border-white/15 rounded-t-[32px] sm:rounded-3xl p-5 shadow-[0_-12px_45px_rgba(0,0,0,0.85)] relative animate-slide-up text-left select-none font-kantumruy">
+      <!-- iOS Drag Handle Bar -->
+      <div onclick="closeExpenseActionSheet()" class="w-10 h-1.5 rounded-full bg-white/20 hover:bg-white/30 mx-auto mb-4 cursor-pointer transition"></div>
+
+      <!-- Item Preview Header -->
+      <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 mb-4 flex items-center justify-between">
+        <div class="min-w-0 pr-2">
+          <p id="expense-action-desc" class="font-bold text-sm text-white truncate">មុខចំណាយ</p>
+          <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+            <span id="expense-action-date">កាលបរិច្ឆេទ</span>
+            <span id="expense-action-cat" class="text-slate-300">• ប្រភេទ</span>
+          </div>
+        </div>
+        <div id="expense-action-amt" class="font-mono text-base font-bold text-rose-400 shrink-0">$0.00</div>
+      </div>
+
+      <!-- Action Buttons: Edit, Delete, Cancel -->
+      <div class="space-y-2">
+        <button type="button" onclick="triggerEditFromActionSheet()" class="w-full py-3 px-4 rounded-2xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 font-bold text-xs flex items-center justify-center gap-2.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="pencil" class="w-4 h-4 text-blue-400"></i>
+          <span>កែប្រែចំណាយនេះ (Edit Expense)</span>
+        </button>
+
+        <button type="button" onclick="triggerDeleteFromActionSheet()" class="w-full py-3 px-4 rounded-2xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/30 text-rose-300 font-bold text-xs flex items-center justify-center gap-2.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="trash-2" class="w-4 h-4 text-rose-400"></i>
+          <span>លុបចំណាយនេះចេញ (Delete Expense)</span>
+        </button>
+
+        <button type="button" onclick="closeExpenseActionSheet()" class="w-full py-2.5 px-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 font-bold text-xs text-center active:scale-95 transition mt-2">
+          បោះបង់
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- iOS Expense Delete Confirmation Dialog -->
+  <div id="expense-delete-modal" onclick="closeExpenseDeleteModal(event)"
+       class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-300">
+    <div onclick="event.stopPropagation()"
+         class="w-full max-w-xs bg-[#0D1526] border border-white/15 rounded-3xl p-5 shadow-2xl relative animate-scale-up text-center select-none font-kantumruy">
+      <div class="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto mb-3 shadow-md">
+        <i data-lucide="trash-2" class="w-6 h-6"></i>
+      </div>
+      <h3 class="font-bold text-base text-white mb-1">លុបប្រតិបត្តិការចំណាយ?</h3>
+      <p id="expense-delete-msg" class="text-xs text-slate-400 mb-5 leading-relaxed">
+        តើបងពិតជាចង់លុបចំណាយនេះចេញពី Google Sheet មែនទេ?
+      </p>
+      <div class="flex items-center gap-2.5">
+        <button type="button" onclick="closeExpenseDeleteModal()" class="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold text-xs active:scale-95 transition">
+          បោះបង់
+        </button>
+        <button type="button" id="btn-confirm-delete-expense" onclick="executeDeleteExpense()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg shadow-rose-500/25">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          <span>លុបចេញ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="dataService.js?v=7.4"></script>
-  <script src="app.js?v=41.8"></script>
+  <script src="app.js?v=41.9"></script>
 </body>
 </html>

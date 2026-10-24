@@ -13210,25 +13210,48 @@ function renderExpensesBreakdownView(items, totalAmount, listEl) {
               </div>
             </div>
 
-            <!-- Accordion Sub-items List (Transactions) -->
-            <div id="exp-subitems-${catId}" class="${isExpanded ? '' : 'hidden'} bg-black/40 border-t border-white/5 divide-y divide-white/5 px-3 py-1 animate-fade-in">
-              ${c.items.map((sub, sIdx) => `
-                <div class="py-2.5 px-2 flex items-center justify-between text-xs hover:bg-white/[0.02] rounded-xl transition">
-                  <div class="flex items-center gap-2.5 min-w-0 pr-2">
-                    <span class="w-5 h-5 rounded-lg bg-white/5 text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
-                      ${sIdx + 1}
-                    </span>
-                    <div class="min-w-0">
-                      <p class="text-white font-medium text-xs truncate leading-tight">${sub.description || sub.category}</p>
-                      <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
-                        <span>${sub.date}</span>
-                        ${sub.time ? `<span class="text-amber-300">⏰ ${sub.time}</span>` : ''}
+            <!-- Accordion Sub-items List (Transactions with Swipe to Edit/Delete) -->
+            <div id="exp-subitems-${catId}" class="${isExpanded ? '' : 'hidden'} bg-black/40 border-t border-white/5 divide-y divide-white/5 px-2 py-1.5 animate-fade-in space-y-1">
+              ${c.items.map((sub, sIdx) => {
+                const globalIdx = currentLoadedExpenses ? currentLoadedExpenses.indexOf(sub) : -1;
+                return `
+                  <div class="relative overflow-hidden rounded-xl group select-none">
+                    <!-- Background Action Buttons on Swipe Left -->
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-1.5 gap-1 z-0 bg-[#070D18]">
+                      <button type="button" onclick="event.stopPropagation(); openEditExpenseModal(${globalIdx})" class="w-11 h-9 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex flex-col items-center justify-center text-[9px] font-bold active:scale-90 transition shadow-sm">
+                        <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                        <span>កែ</span>
+                      </button>
+                      <button type="button" onclick="event.stopPropagation(); openExpenseDeleteModal(${globalIdx})" class="w-11 h-9 rounded-lg bg-rose-600 hover:bg-rose-500 text-white flex flex-col items-center justify-center text-[9px] font-bold active:scale-90 transition shadow-sm">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        <span>លុប</span>
+                      </button>
+                    </div>
+
+                    <!-- Foreground Card with Touch Swipe & Long-Press -->
+                    <div class="swipe-expense-item relative z-10 py-2 px-2 flex items-center justify-between text-xs bg-white/[0.03] hover:bg-white/[0.06] rounded-xl transition-transform duration-200 cursor-pointer active:scale-[0.99]"
+                         data-expense-idx="${globalIdx}"
+                         ontouchstart="handleExpenseTouchStart(event, this)"
+                         ontouchmove="handleExpenseTouchMove(event, this)"
+                         ontouchend="handleExpenseTouchEnd(event, this)"
+                         onclick="if (activeSwipedExpenseEl === this) { resetAllSwipedExpenses(); } else { openExpenseActionSheet(${globalIdx}); }">
+                      <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                        <span class="w-5 h-5 rounded-lg bg-white/5 text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                          ${sIdx + 1}
+                        </span>
+                        <div class="min-w-0">
+                          <p class="text-white font-medium text-xs truncate leading-tight">${sub.description || sub.category}</p>
+                          <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
+                            <span>${sub.date}</span>
+                            ${sub.time ? `<span class="text-amber-300">⏰ ${sub.time}</span>` : ''}
+                          </div>
+                        </div>
                       </div>
+                      <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(sub.amount)}</span>
                     </div>
                   </div>
-                  <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(sub.amount)}</span>
-                </div>
-              `).join('')}
+                `;
+              }).join('')}
             </div>
           </div>
         `;
@@ -13238,13 +13261,13 @@ function renderExpensesBreakdownView(items, totalAmount, listEl) {
     <!-- 3. Bottom Helper Hint (matching screenshot) -->
     <p class="text-[11px] text-slate-500 text-center pt-3 pb-1 italic flex items-center justify-center gap-1.5">
       <i data-lucide="info" class="w-3.5 h-3.5 opacity-70"></i>
-      <span>ចុចលើប្រភេទនីមួយៗដើម្បីមើលព័ត៌មានលម្អិត</span>
+      <span>ចុចលើចំណាយ ឬអូសទៅឆ្វេងដើម្បី កែប្រែ / លុប</span>
     </p>
   `;
 
   if (window.lucide) window.lucide.createIcons();
 
-  // Keep selected category pill visible in view horizontally (កុំឲរត់បាត់ ត្រូវបង្ហាញពេលជ្រើសរើស)
+  // Keep selected category pill visible in view horizontally
   setTimeout(() => {
     const activePill = document.getElementById('active-expense-cat-pill');
     if (activePill) {
@@ -13255,6 +13278,240 @@ function renderExpensesBreakdownView(items, totalAmount, listEl) {
       }
     }
   }, 20);
+}
+
+// Global Swipe & Long-Press Controller for Expenses
+let currentExpenseActionTarget = null;
+let activeSwipedExpenseEl = null;
+let expenseTouchStartX = 0;
+let expenseTouchStartY = 0;
+let expenseCurrentTranslateX = 0;
+let expenseLongPressTimer = null;
+let isExpenseSwiping = false;
+
+function resetAllSwipedExpenses() {
+  document.querySelectorAll('.swipe-expense-item').forEach(el => {
+    el.style.transform = 'translateX(0px)';
+  });
+  activeSwipedExpenseEl = null;
+}
+
+function handleExpenseTouchStart(e, el) {
+  if (activeSwipedExpenseEl && activeSwipedExpenseEl !== el) {
+    resetAllSwipedExpenses();
+  }
+
+  const touch = e.touches ? e.touches[0] : e;
+  expenseTouchStartX = touch.clientX;
+  expenseTouchStartY = touch.clientY;
+  expenseCurrentTranslateX = 0;
+  isExpenseSwiping = false;
+
+  clearTimeout(expenseLongPressTimer);
+  const idx = parseInt(el.getAttribute('data-expense-idx') || '-1', 10);
+  expenseLongPressTimer = setTimeout(() => {
+    clearTimeout(expenseLongPressTimer);
+    expenseLongPressTimer = null;
+    isExpenseSwiping = false;
+    el.style.transform = 'scale(0.97)';
+    setTimeout(() => {
+      el.style.transform = 'translateX(0px)';
+      if (idx >= 0) openExpenseActionSheet(idx);
+    }, 140);
+  }, 480);
+}
+
+function handleExpenseTouchMove(e, el) {
+  const touch = e.touches ? e.touches[0] : e;
+  const dx = touch.clientX - expenseTouchStartX;
+  const dy = touch.clientY - expenseTouchStartY;
+
+  if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+    clearTimeout(expenseLongPressTimer);
+    expenseLongPressTimer = null;
+  }
+
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 12) {
+    isExpenseSwiping = true;
+    if (dx < 0) {
+      const clampedX = Math.max(dx, -135);
+      el.style.transition = 'none';
+      el.style.transform = `translateX(${clampedX}px)`;
+      expenseCurrentTranslateX = clampedX;
+    } else {
+      el.style.transition = 'none';
+      el.style.transform = `translateX(0px)`;
+      expenseCurrentTranslateX = 0;
+    }
+  }
+}
+
+function handleExpenseTouchEnd(e, el) {
+  clearTimeout(expenseLongPressTimer);
+  expenseLongPressTimer = null;
+  el.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+
+  if (isExpenseSwiping) {
+    if (expenseCurrentTranslateX < -45) {
+      el.style.transform = 'translateX(-120px)';
+      activeSwipedExpenseEl = el;
+    } else {
+      el.style.transform = 'translateX(0px)';
+      if (activeSwipedExpenseEl === el) activeSwipedExpenseEl = null;
+    }
+  }
+  isExpenseSwiping = false;
+}
+
+function getExpenseFromTarget(expOrIdx) {
+  if (typeof expOrIdx === 'object' && expOrIdx !== null) return expOrIdx;
+  if (typeof expOrIdx === 'number' && expOrIdx >= 0) {
+    if (currentLoadedExpenses && currentLoadedExpenses[expOrIdx]) return currentLoadedExpenses[expOrIdx];
+    if (DataService.data && Array.isArray(DataService.data.expenses) && DataService.data.expenses[expOrIdx]) {
+      return DataService.data.expenses[expOrIdx];
+    }
+  }
+  return null;
+}
+
+function openExpenseActionSheet(expOrIdx) {
+  const exp = getExpenseFromTarget(expOrIdx);
+  if (!exp) return;
+
+  currentExpenseActionTarget = exp;
+  const sheet = document.getElementById('expense-action-sheet');
+  if (!sheet) return;
+
+  const descEl = document.getElementById('expense-action-desc');
+  const dateEl = document.getElementById('expense-action-date');
+  const catEl = document.getElementById('expense-action-cat');
+  const amtEl = document.getElementById('expense-action-amt');
+
+  if (descEl) descEl.textContent = exp.description || exp.category || 'មុខចំណាយ';
+  if (dateEl) dateEl.textContent = exp.date || '';
+  if (catEl) catEl.textContent = `• ${exp.category || 'ទូទៅ'}`;
+  if (amtEl) amtEl.textContent = formatUSD(exp.amount || 0);
+
+  if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+
+  sheet.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeExpenseActionSheet(e) {
+  if (e && e.target && e.target.id !== 'expense-action-sheet' && !e.target.closest('button')) return;
+  const sheet = document.getElementById('expense-action-sheet');
+  if (sheet) sheet.classList.add('hidden');
+}
+
+function triggerEditFromActionSheet() {
+  const exp = currentExpenseActionTarget;
+  closeExpenseActionSheet();
+  if (exp) openEditExpenseModal(exp);
+}
+
+function triggerDeleteFromActionSheet() {
+  const exp = currentExpenseActionTarget;
+  closeExpenseActionSheet();
+  if (exp) openExpenseDeleteModal(exp);
+}
+
+function openExpenseDeleteModal(expOrIdx) {
+  const exp = getExpenseFromTarget(expOrIdx);
+  if (!exp) return;
+
+  currentExpenseActionTarget = exp;
+  const modal = document.getElementById('expense-delete-modal');
+  const msgEl = document.getElementById('expense-delete-msg');
+  if (msgEl) {
+    const safeDesc = typeof escapeHtml === 'function' ? escapeHtml(exp.description || exp.category) : (exp.description || exp.category);
+    msgEl.innerHTML = `តើបងពិតជាចង់លុបចំណាយ <strong>«${safeDesc}»</strong> ចំនួន <strong class="text-rose-400 font-mono">${formatUSD(exp.amount || 0)}</strong> នេះចេញពី Google Sheet មែនទេ?`;
+  }
+  if (modal) modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeExpenseDeleteModal(e) {
+  if (e && e.target && e.target.id !== 'expense-delete-modal' && !e.target.closest('button')) return;
+  const modal = document.getElementById('expense-delete-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function executeDeleteExpense() {
+  const exp = currentExpenseActionTarget;
+  if (!exp) return;
+
+  const btn = document.getElementById('btn-confirm-delete-expense');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>កំពុងលុប...</span>`;
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // 1. Remove from in-memory DataService immediately
+  if (DataService.data && Array.isArray(DataService.data.expenses)) {
+    const idx = DataService.data.expenses.findIndex(e => 
+      (exp.rowIndex && e.rowIndex === exp.rowIndex) || 
+      (e.description === exp.description && Math.abs((e.amount || 0) - (exp.amount || 0)) < 0.01 && e.date === exp.date)
+    );
+    if (idx !== -1) {
+      DataService.data.expenses.splice(idx, 1);
+      if (DataService.data.meta && DataService.data.meta.totalExpensesCount > 0) {
+        DataService.data.meta.totalExpensesCount--;
+      }
+    }
+  }
+
+  // 2. Remove from local storage cache if exists
+  try {
+    const local = JSON.parse(localStorage.getItem('sd_local_expenses') || '[]');
+    const filtered = local.filter(e => !(e.description === exp.description && Math.abs((e.amount || 0) - (exp.amount || 0)) < 0.01));
+    localStorage.setItem('sd_local_expenses', JSON.stringify(filtered));
+  } catch (_) {}
+
+  // 3. Dispatch to Webhook
+  const webhookUrl = getAppsScriptWebhookUrl();
+  const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
+
+  try {
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'delete_expense',
+          sheetId: activeSheetId,
+          data: {
+            rowIndex: exp.rowIndex,
+            description: exp.description,
+            amount: exp.amount,
+            date: exp.date
+          }
+        })
+      });
+    }
+    showToastNotification(`បានលុបចំណាយ "${exp.description || 'ទូទៅ'}" ជោគជ័យ! 🗑️`);
+  } catch (err) {
+    console.warn('Delete expense sync warning:', err);
+    showToastNotification(`បានលុបចេញពីកម្មវិធី ⚠️`);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="trash-2" class="w-3.5 h-3.5"></i><span>លុបចេញ</span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+    closeExpenseDeleteModal();
+    if (typeof filterExpensesModalList === 'function') {
+      const searchInput = document.getElementById('expenses-modal-search-input');
+      if (searchInput && searchInput.value.trim()) {
+        filterExpensesModalList();
+      } else {
+        renderExpensesModalRows(currentLoadedExpenses);
+      }
+    }
+    renderCurrentView();
+  }
 }
 
 function renderExpensesModalRows(items) {
@@ -13303,22 +13560,45 @@ function renderExpensesModalRows(items) {
 
   if (expensesFilterState.viewTab === 'list') {
     listEl.innerHTML = items.map((item, idx) => `
-      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 hover:border-rose-500/20 transition">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 min-w-0 pr-2">
-            <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-              ${idx + 1}
-            </span>
-            <span class="font-bold text-xs text-white truncate">${item.description || item.category}</span>
-          </div>
-          <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(item.amount)}</span>
+      <div class="relative overflow-hidden rounded-2xl group select-none">
+        <!-- Background Action Buttons on Swipe Left -->
+        <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-1.5 z-0 bg-[#070D18]">
+          <button type="button" onclick="event.stopPropagation(); openEditExpenseModal(${idx})" class="w-12 h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex flex-col items-center justify-center text-[10px] font-bold active:scale-90 transition shadow-md">
+            <i data-lucide="pencil" class="w-4 h-4"></i>
+            <span>កែ</span>
+          </button>
+          <button type="button" onclick="event.stopPropagation(); openExpenseDeleteModal(${idx})" class="w-12 h-10 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex flex-col items-center justify-center text-[10px] font-bold active:scale-90 transition shadow-md">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>លុប</span>
+          </button>
         </div>
-        <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
-          <div class="flex items-center gap-2">
-            <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
-            ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
+
+        <!-- Foreground Card with Touch Swipe & Long-Press -->
+        <div class="swipe-expense-item relative z-10 p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 hover:border-rose-500/20 active:bg-white/10 transition-transform duration-200 cursor-pointer"
+             data-expense-idx="${idx}"
+             ontouchstart="handleExpenseTouchStart(event, this)"
+             ontouchmove="handleExpenseTouchMove(event, this)"
+             ontouchend="handleExpenseTouchEnd(event, this)"
+             onclick="if (activeSwipedExpenseEl === this) { resetAllSwipedExpenses(); } else { openExpenseActionSheet(${idx}); }">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 min-w-0 pr-2">
+              <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                ${idx + 1}
+              </span>
+              <span class="font-bold text-xs text-white truncate">${item.description || item.category}</span>
+            </div>
+            <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(item.amount)}</span>
           </div>
-          <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
+          <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
+            <div class="flex items-center gap-2">
+              <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
+              ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
+              <span class="text-[9px] text-slate-500 font-mono">• អូសកែ/លុប</span>
+            </div>
+          </div>
         </div>
       </div>
     `).join('');
@@ -26028,6 +26308,22 @@ function openNewExpenseModal() {
   const modal = document.getElementById('new-expense-modal');
   if (!modal) return;
 
+  const titleEl = document.getElementById('expense-modal-title');
+  const subEl = document.getElementById('expense-modal-subtitle');
+  const submitBtnText = document.querySelector('#btn-submit-expense span');
+  const editModeInput = document.getElementById('expense-edit-mode');
+  const rowIndexInput = document.getElementById('expense-edit-row-index');
+  const origDescInput = document.getElementById('expense-edit-orig-desc');
+  const origAmtInput = document.getElementById('expense-edit-orig-amt');
+
+  if (titleEl) titleEl.textContent = 'កត់ត្រាចំណាយថ្មី';
+  if (subEl) subEl.textContent = 'បញ្ចូលចំណាយប្រចាំថ្ងៃដោយផ្ទាល់';
+  if (submitBtnText) submitBtnText.textContent = 'រក្សាទុកចំណាយ 💸';
+  if (editModeInput) editModeInput.value = 'false';
+  if (rowIndexInput) rowIndexInput.value = '';
+  if (origDescInput) origDescInput.value = '';
+  if (origAmtInput) origAmtInput.value = '';
+
   const now = new Date();
   const dy = String(now.getDate()).padStart(2, '0');
   const mo = String(now.getMonth() + 1).padStart(2, '0');
@@ -26066,6 +26362,54 @@ function openNewExpenseModal() {
   modal.classList.remove('hidden');
   setDockVisible(false);
 
+  if (window.lucide) window.lucide.createIcons();
+  if (descInput) setTimeout(() => descInput.focus(), 150);
+}
+
+function openEditExpenseModal(expOrIdx) {
+  const exp = getExpenseFromTarget(expOrIdx);
+  if (!exp) return;
+
+  const modal = document.getElementById('new-expense-modal');
+  if (!modal) return;
+
+  const titleEl = document.getElementById('expense-modal-title');
+  const subEl = document.getElementById('expense-modal-subtitle');
+  const submitBtnText = document.querySelector('#btn-submit-expense span');
+  const editModeInput = document.getElementById('expense-edit-mode');
+  const rowIndexInput = document.getElementById('expense-edit-row-index');
+  const origDescInput = document.getElementById('expense-edit-orig-desc');
+  const origAmtInput = document.getElementById('expense-edit-orig-amt');
+
+  if (titleEl) titleEl.textContent = 'កែប្រែចំណាយ';
+  if (subEl) subEl.textContent = `កែប្រែទិន្នន័យចំណាយ #${exp.rowIndex || ''} • Sync ទៅ Sheet`;
+  if (submitBtnText) submitBtnText.textContent = 'កែប្រែ & រក្សាទុក ✏️';
+
+  if (editModeInput) editModeInput.value = 'true';
+  if (rowIndexInput) rowIndexInput.value = exp.rowIndex || '';
+  if (origDescInput) origDescInput.value = exp.description || '';
+  if (origAmtInput) origAmtInput.value = exp.amount || '';
+
+  const dateTextInput = document.getElementById('expense-field-date-text');
+  const hiddenDateInput = document.getElementById('expense-field-date');
+  const timeInput = document.getElementById('expense-field-time');
+  const descInput = document.getElementById('expense-field-desc');
+  const catInput = document.getElementById('expense-field-category');
+  const amtInput = document.getElementById('expense-field-amount');
+  const noteInput = document.getElementById('expense-field-note');
+
+  if (dateTextInput) dateTextInput.value = exp.date || '';
+  if (hiddenDateInput) hiddenDateInput.value = exp.isoDate || '';
+  if (timeInput) timeInput.value = exp.time || '';
+  if (descInput) descInput.value = exp.description || '';
+  if (catInput) catInput.value = exp.category || 'ហូបចុក & ប្រចាំថ្ងៃ';
+  if (amtInput) amtInput.value = Number(exp.amount || 0).toFixed(2);
+  if (noteInput) noteInput.value = exp.note || '';
+
+  setExpenseCurrency('USD');
+
+  modal.classList.remove('hidden');
+  setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
   if (descInput) setTimeout(() => descInput.focus(), 150);
 }
@@ -26150,6 +26494,90 @@ async function submitNewExpense() {
     const now = new Date();
     isoDate = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(now) : now.toISOString().slice(0, 10);
     ddmmyyyy = typeof formatToDDMMYYYY === 'function' ? formatToDDMMYYYY(isoDate) : dateStr;
+  }
+
+  const isEditMode = document.getElementById('expense-edit-mode')?.value === 'true';
+  const editRowIndex = parseInt(document.getElementById('expense-edit-row-index')?.value || '0', 10);
+  const origDesc = (document.getElementById('expense-edit-orig-desc')?.value || '').trim();
+  const origAmt = parseFloat(document.getElementById('expense-edit-orig-amt')?.value || '0');
+
+  if (isEditMode) {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>កំពុងកែប្រែ...</span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    // 1. Immediately update in-memory DataService
+    if (DataService.data && Array.isArray(DataService.data.expenses)) {
+      const targetExp = DataService.data.expenses.find(e => 
+        (editRowIndex > 0 && e.rowIndex === editRowIndex) ||
+        (origDesc && e.description === origDesc && Math.abs((e.amount || 0) - origAmt) < 0.05)
+      );
+      if (targetExp) {
+        targetExp.date = ddmmyyyy;
+        targetExp.isoDate = isoDate;
+        targetExp.time = timeStr;
+        targetExp.description = desc;
+        targetExp.category = cat;
+        targetExp.amount = finalUsd;
+        targetExp.note = finalNote;
+      }
+    }
+
+    // 2. Dispatch to Webhook
+    const webhookUrl = getAppsScriptWebhookUrl();
+    const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
+
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'update_expense',
+            sheetId: activeSheetId,
+            data: {
+              rowIndex: editRowIndex,
+              origDesc: origDesc,
+              origAmount: origAmt,
+              date: ddmmyyyy,
+              isoDate: isoDate,
+              time: timeStr,
+              description: desc,
+              category: cat,
+              amount: finalUsd,
+              note: finalNote
+            }
+          })
+        });
+      } catch (e) {
+        console.warn('Update expense error:', e);
+      }
+    }
+
+    showToastNotification(`បានកែប្រែចំណាយ "${desc}" ($${finalUsd.toFixed(2)}) ជោគជ័យ! ✏️`);
+    closeNewExpenseModal();
+    renderCurrentView();
+
+    const expModal = document.getElementById('expenses-modal');
+    if (expModal && !expModal.classList.contains('hidden')) {
+      if (typeof filterExpensesModalList === 'function') {
+        const searchInput = document.getElementById('expenses-modal-search-input');
+        if (searchInput && searchInput.value.trim()) {
+          filterExpensesModalList();
+        } else {
+          renderExpensesModalRows(currentLoadedExpenses);
+        }
+      }
+    }
+
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>រក្សាទុកចំណាយ 💸</span>`;
+    }
+    return;
   }
 
   if (btn) {
@@ -26253,6 +26681,18 @@ async function submitNewExpense() {
 }
 
 window.openNewExpenseModal = openNewExpenseModal;
+window.openEditExpenseModal = openEditExpenseModal;
+window.openExpenseActionSheet = openExpenseActionSheet;
+window.closeExpenseActionSheet = closeExpenseActionSheet;
+window.triggerEditFromActionSheet = triggerEditFromActionSheet;
+window.triggerDeleteFromActionSheet = triggerDeleteFromActionSheet;
+window.openExpenseDeleteModal = openExpenseDeleteModal;
+window.closeExpenseDeleteModal = closeExpenseDeleteModal;
+window.executeDeleteExpense = executeDeleteExpense;
+window.handleExpenseTouchStart = handleExpenseTouchStart;
+window.handleExpenseTouchMove = handleExpenseTouchMove;
+window.handleExpenseTouchEnd = handleExpenseTouchEnd;
+window.resetAllSwipedExpenses = resetAllSwipedExpenses;
 window.closeNewExpenseModal = closeNewExpenseModal;
 window.applyExpensePreset = applyExpensePreset;
 window.setExpenseAmount = setExpenseAmount;

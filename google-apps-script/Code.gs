@@ -80,6 +80,12 @@ function doPost(e) {
     } else if (action === 'add_expense') {
       var result = insertDailyExpense(ss, data);
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'update_expense') {
+      var result = updateDailyExpense(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'delete_expense') {
+      var result = deleteDailyExpense(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     } else if (action === 'sync_attendance') {
       var result = syncBostarAttendance(ss, data);
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
@@ -415,6 +421,99 @@ function insertDailyExpense(ss, exp) {
     row: targetRow,
     amount: exp.amount
   };
+}
+
+/**
+ * Update an existing Daily Expense row
+ */
+function updateDailyExpense(ss, exp) {
+  var sheet = ss.getSheetByName('Daily Expenses');
+  if (!sheet) {
+    return { status: 'error', message: 'Tab "Daily Expenses" not found!' };
+  }
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var targetRow = -1;
+
+  if (exp.rowIndex && exp.rowIndex > 0 && exp.rowIndex < values.length) {
+    var checkRow = exp.rowIndex + 1;
+    if (checkRow <= values.length) {
+      targetRow = checkRow;
+    }
+  }
+
+  if (targetRow === -1 || (exp.origDesc && String(values[targetRow - 1][1] || '').trim() !== String(exp.origDesc).trim())) {
+    for (var r = 1; r < values.length; r++) {
+      var rDesc = String(values[r][1] || '').trim();
+      var rAmt = Number(values[r][3] || 0);
+      if (exp.origDesc && rDesc.toLowerCase() === String(exp.origDesc).toLowerCase().trim()) {
+        if (!exp.origAmount || Math.abs(rAmt - Number(exp.origAmount)) < 0.05) {
+          targetRow = r + 1;
+          break;
+        }
+      }
+    }
+  }
+
+  if (targetRow === -1) {
+    return { status: 'not_found', message: 'រកមិនឃើញចំណាយត្រូវកែប្រែឡើយ!' };
+  }
+
+  if (exp.date) {
+    var dateObj = parseToDateObj(exp.date);
+    sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy');
+  }
+  if (exp.description) sheet.getRange(targetRow, 2).setValue(exp.description);
+  if (exp.category) sheet.getRange(targetRow, 3).setValue(exp.category);
+  if (exp.amount !== undefined && exp.amount !== null) sheet.getRange(targetRow, 4).setValue(Number(exp.amount));
+
+  var noteText = exp.note || '';
+  if (exp.time && noteText.indexOf(exp.time) === -1) {
+    noteText = exp.time + ' - ' + noteText;
+  }
+  if (noteText) sheet.getRange(targetRow, 5).setValue(noteText);
+
+  return { status: 'success', action: 'update_expense', row: targetRow };
+}
+
+/**
+ * Delete an existing Daily Expense row
+ */
+function deleteDailyExpense(ss, exp) {
+  var sheet = ss.getSheetByName('Daily Expenses');
+  if (!sheet) {
+    return { status: 'error', message: 'Tab "Daily Expenses" not found!' };
+  }
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var targetRow = -1;
+
+  if (exp.rowIndex && exp.rowIndex > 0 && exp.rowIndex < values.length) {
+    var checkRow = exp.rowIndex + 1;
+    if (checkRow <= values.length) {
+      targetRow = checkRow;
+    }
+  }
+
+  if (targetRow === -1 || (exp.description && String(values[targetRow - 1][1] || '').trim() !== String(exp.description).trim())) {
+    for (var r = 1; r < values.length; r++) {
+      var rDesc = String(values[r][1] || '').trim();
+      var rAmt = Number(values[r][3] || 0);
+      if (exp.description && rDesc.toLowerCase() === String(exp.description).toLowerCase().trim()) {
+        if (!exp.amount || Math.abs(rAmt - Number(exp.amount)) < 0.05) {
+          targetRow = r + 1;
+          break;
+        }
+      }
+    }
+  }
+
+  if (targetRow === -1) {
+    return { status: 'not_found', message: 'រកមិនឃើញចំណាយត្រូវលុបឡើយ!' };
+  }
+
+  sheet.deleteRow(targetRow);
+  return { status: 'success', action: 'delete_expense', row: targetRow };
 }
 
 /**
