@@ -2314,7 +2314,9 @@ function closeAllModals() {
     'attendance-manager-modal',
     'attendance-top10-modal',
     'attendance-certificate-modal',
-    'attendance-documents-modal'
+    'attendance-documents-modal',
+    'member-daily-breakdown-modal',
+    'member-daily-action-sheet-modal'
   ];
   modals.forEach(id => {
     const el = document.getElementById(id);
@@ -4235,9 +4237,17 @@ function toggleExecDirectorExpanded() {
 
 function handleDirectorClick(event) {
   if (event) event.stopPropagation();
-  sessionStorage.setItem('sd_exec_role', 'manager');
-  execHierarchyFilterState.selectedManager = null;
-  execHierarchyFilterState.selectedLeader = null;
+  const currentRole = sessionStorage.getItem('sd_exec_role') || 'manager';
+  if (currentRole === 'leader') {
+    // In Tab Leader: stay in Leader view and reset selected leader to show all 12 leaders!
+    execHierarchyFilterState.selectedLeader = null;
+  } else if (currentRole === 'manager') {
+    // In Tab Manager: reset selected manager to show all 6 managers!
+    execHierarchyFilterState.selectedManager = null;
+  } else {
+    execHierarchyFilterState.selectedManager = null;
+    execHierarchyFilterState.selectedLeader = null;
+  }
   execHierarchyFilterState.isDirectorExpanded = true;
   renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
@@ -4961,34 +4971,18 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
 
   const isSdeySdoeungLeader = (selectedL.km && (selectedL.km.includes('ស្ដី ស្ដើង') || selectedL.km.includes('ស្តី ស្តើង') || selectedL.km.includes('ស្តី ស្នឹង')));
 
-  // Ensure Sdey Sdoeung team always has the exact 3 members from Image 1:
+  // Ensure Sdey Sdoeung team always has EXACTLY the 3 members from Image 1:
+  let teamRoster = [];
   if (isSdeySdoeungLeader) {
-    const hasSdoeung = teamMembers.some(m => normalizeSellerName(m.km).includes('sdoeung') || normalizeSellerName(m.km).includes('ស្ដី') || normalizeSellerName(m.km).includes('ស្តី') || normalizeSellerName(m.km).includes('ស្នឹង'));
-    const hasSothy = teamMembers.some(m => normalizeSellerName(m.km).includes('sothy') || normalizeSellerName(m.km).includes('សុធី'));
-    const hasRasung = teamMembers.some(m => normalizeSellerName(m.km).includes('rasung') || normalizeSellerName(m.km).includes('ស៊ុង'));
-
-    if (!hasSdoeung) teamMembers.unshift({ km: 'ស្តី ស្នឹង', en: 'Sdey Sdoeung', leader: selectedL.km });
-    if (!hasSothy) teamMembers.push({ km: 'ឆេង សុធី', en: 'Chheng Sothy', leader: selectedL.km });
-    if (!hasRasung) teamMembers.push({ km: 'ឆេង វ៉ាន់ស៊ុង', en: 'Chheng Rasung', leader: selectedL.km });
-
-    // Standardize display names for Sdey Sdoeung team exactly like Image 1:
-    teamMembers = teamMembers.map(m => {
-      const n = normalizeSellerName(m.km);
-      if (n.includes('sdoeung') || n.includes('ស្ដី') || n.includes('ស្តី') || n.includes('ស្នឹង')) {
-        return { ...m, km: 'ស្តី ស្នឹង' };
-      }
-      if (n.includes('rasung') || n.includes('ស៊ុង')) {
-        return { ...m, km: 'ឆេង វ៉ាន់ស៊ុង' };
-      }
-      if (n.includes('sothy') || n.includes('សុធី')) {
-        return { ...m, km: 'ឆេង សុធី' };
-      }
-      return m;
-    });
+    teamRoster = [
+      { km: 'ស្តី ស្នឹង', en: 'Sdey Sdoeung', leader: selectedL.km },
+      { km: 'ឆេង សុធី', en: 'Chheng Sothy', leader: selectedL.km },
+      { km: 'ឆេង វ៉ាន់ស៊ុង', en: 'Chheng Rasung', leader: selectedL.km }
+    ];
+  } else {
+    const leaderInList = teamMembers.some(m => normalizeSellerName(m.km) === normalizeSellerName(selectedL.km));
+    teamRoster = leaderInList ? teamMembers : [{ ...selectedL, role: 'Leader' }, ...teamMembers];
   }
-
-  const leaderInList = teamMembers.some(m => normalizeSellerName(m.km) === normalizeSellerName(selectedL.km));
-  const teamRoster = leaderInList ? teamMembers : [{ ...selectedL, role: 'Leader' }, ...teamMembers];
 
   let groupTotalTarget = 0;
   const rosterData = teamRoster.map(mem => {
@@ -5095,9 +5089,10 @@ function openMemberDailyBreakdownModal(memberName) {
     : data.dailyRows;
 
   container.innerHTML = `
-    <!-- Top Sticky Bar (Image 2) -->
-    <div class="px-3.5 pt-3 pb-3 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 flex items-center justify-between gap-2 select-none">
-      <div class="flex items-center gap-2 min-w-0">
+    <!-- Top Sticky Bar (Image 2) with iOS standard tap-to-scroll-to-top -->
+    <div onclick="handleHeaderScrollToTop(event, 'member-daily-breakdown-scroll-body')" 
+         class="px-3.5 pt-3 pb-3 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 flex items-center justify-between gap-2 select-none cursor-pointer">
+      <div class="flex items-center gap-2 min-w-0" data-prevent-scroll-top="true">
         <button type="button" onclick="closeMemberDailyBreakdownModal()" 
                 class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
                 title="ត្រឡប់">
@@ -5117,15 +5112,16 @@ function openMemberDailyBreakdownModal(memberName) {
         </div>
       </div>
 
-      <button type="button" onclick="editMemberPersonalBoost('${safeName}')" 
-              class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 transition"
-              title="កែប្រែ Boost">
+      <!-- 3 dots button for Action Sheet (Share / Copy / Save PDF) -->
+      <button type="button" onclick="event.stopPropagation(); openMemberDailyActionSheet('${safeName}');" 
+              class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center shrink-0 transition"
+              title="ជម្រើស (ចែករំលែក, ចម្លង, PDF)">
         <i data-lucide="more-horizontal" class="w-4 h-4"></i>
       </button>
     </div>
 
-    <!-- Scrollable Body (Image 2) -->
-    <div class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 pb-24">
+    <!-- Scrollable Body (Image 2) with ID for tap-to-scroll-to-top -->
+    <div id="member-daily-breakdown-scroll-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 pb-32">
       <!-- 3 Summary KPI Cards (Image 2) -->
       <div class="grid grid-cols-3 gap-2">
         <!-- 1. គោលដៅ -->
@@ -5163,18 +5159,18 @@ function openMemberDailyBreakdownModal(memberName) {
         </div>
       </div>
 
-      <!-- Detailed Daily Breakdown Table (7 Columns: ថ្ងៃទី ▾ | ឈុត ១ | ឈុត ២ | ឈុត ៣ | ឈុត ៥ | ឈុត ៦ | សរុប) -->
+      <!-- Detailed Daily Breakdown Table (7 Columns: ថ្ងៃ ▾ | ឈុត ១ | ឈុត ២ | ឈុត ៣ | ឈុត ៥ | ឈុត ៦ | សរុប) -->
       <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-hidden">
         <div class="overflow-x-auto no-scrollbar">
           <table class="w-full text-center text-xs">
-            <!-- Table Header -->
+            <!-- Table Header (ថ្ងៃ គ្មាន ទី) -->
             <thead class="bg-[#0F1B2E]/90 text-[10.5px] border-b border-white/10 text-slate-300">
               <tr>
                 <th onclick="toggleMemberDailyFilterMode('${safeName}')" 
                     class="py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
                     title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
                   <div class="flex items-center gap-1">
-                    <span>ថ្ងៃទី</span>
+                    <span>ថ្ងៃ</span>
                     <span class="text-[8.5px] px-1.5 py-0.5 rounded font-sans font-medium transition ${currentFilter === 'active' ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm' : 'bg-white/10 text-slate-400 border border-white/10'}">
                       ${currentFilter === 'active' ? 'លក់បាន ▾' : 'ទាំងអស់ ▾'}
                     </span>
@@ -5259,6 +5255,146 @@ function openMemberDailyBreakdownModal(memberName) {
 function toggleMemberDailyFilterMode(memberName) {
   window.memberDailyFilterMode = (window.memberDailyFilterMode === 'active' ? 'all' : 'active');
   openMemberDailyBreakdownModal(memberName);
+}
+
+// ==========================================
+// MEMBER DAILY ACTION SHEET (Share, Copy, PDF)
+// ==========================================
+function openMemberDailyActionSheet(memberName) {
+  let modal = document.getElementById('member-daily-action-sheet-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'member-daily-action-sheet-modal';
+    modal.className = 'fixed inset-0 z-[100] flex items-end justify-center font-kantumruy transition-all duration-300';
+    document.body.appendChild(modal);
+  }
+
+  const safeName = memberName.replace(/'/g, "\\'");
+
+  modal.innerHTML = `
+    <!-- Backdrop -->
+    <div onclick="closeMemberDailyActionSheet()" class="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"></div>
+
+    <!-- Slide-up Sheet -->
+    <div class="relative z-10 w-full max-w-sm mx-auto p-4 space-y-3 bg-[#0B1528] border-t border-white/10 rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom duration-200">
+      <div class="w-10 h-1 bg-white/20 rounded-full mx-auto mb-2"></div>
+      
+      <div class="text-center pb-2 border-b border-white/10">
+        <h4 class="font-bold text-sm text-white">${memberName}</h4>
+        <p class="text-[10px] text-slate-400 mt-0.5">ជម្រើសចែករំលែក និងទាញយករបាយការណ៍</p>
+      </div>
+
+      <div class="space-y-2">
+        <!-- 1. Share -->
+        <button type="button" onclick="shareMemberDailyReport('${safeName}')"
+                class="w-full p-3 rounded-2xl bg-sky-500/10 hover:bg-sky-500/20 active:scale-[0.99] border border-sky-500/30 flex items-center gap-3 text-sky-300 font-bold text-xs transition">
+          <div class="w-8 h-8 rounded-xl bg-sky-500/20 flex items-center justify-center shrink-0">
+            <i data-lucide="share-2" class="w-4 h-4 text-sky-400"></i>
+          </div>
+          <div class="text-left flex-1">
+            <div>ចែករំលែករបាយការណ៍ (Share)</div>
+            <div class="text-[9.5px] text-sky-300/70 font-normal">ផ្ញើទៅកាន់ Telegram, Messenger ឬកម្មវិធីផ្សេងៗ</div>
+          </div>
+        </button>
+
+        <!-- 2. Copy -->
+        <button type="button" onclick="copyMemberDailyReport('${safeName}')"
+                class="w-full p-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 active:scale-[0.99] border border-emerald-500/30 flex items-center gap-3 text-emerald-300 font-bold text-xs transition">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+            <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="text-left flex-1">
+            <div>ចម្លងជាអត្ថបទ (Copy Report)</div>
+            <div class="text-[9.5px] text-emerald-300/70 font-normal">ចម្លងសង្ខេបទិន្នន័យលក់ដាក់ Clipboard</div>
+          </div>
+        </button>
+
+        <!-- 3. Save as PDF / Print -->
+        <button type="button" onclick="printMemberDailyReport('${safeName}')"
+                class="w-full p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 active:scale-[0.99] border border-rose-500/30 flex items-center gap-3 text-rose-300 font-bold text-xs transition">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0">
+            <i data-lucide="file-text" class="w-4 h-4 text-rose-400"></i>
+          </div>
+          <div class="text-left flex-1">
+            <div>រក្សាទុកជា PDF (Save as PDF)</div>
+            <div class="text-[9.5px] text-rose-300/70 font-normal">ទាញយកជាឯកសារ PDF ឬបោះពុម្ព</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Cancel Button -->
+      <button type="button" onclick="closeMemberDailyActionSheet()" 
+              class="w-full py-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.99] text-slate-300 font-bold text-xs transition mt-2">
+        បោះបង់
+      </button>
+    </div>
+  `;
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeMemberDailyActionSheet() {
+  const modal = document.getElementById('member-daily-action-sheet-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function buildMemberReportText(memberName) {
+  const d = window.DataService && window.DataService.data ? window.DataService.data : null;
+  const data = getMemberBostarTrackSetsAndDaily(memberName, d);
+  return `📊 របាយការណ៍លក់តាមឈុត: ${memberName}\n` +
+         `📅 ខែ: ${data.monthLabel}\n` +
+         `🎯 គោលដៅ: ${data.target} ប្រអប់\n` +
+         `📦 លក់បាន: ${data.totalBoxes} ប្រអប់ (${data.percentage}%)\n` +
+         `📦 ឈុតផលិតផល:\n` +
+         `  • Set 1: ${data.setCounts[1] || 0}\n` +
+         `  • Set 2: ${data.setCounts[2] || 0}\n` +
+         `  • Set 3: ${data.setCounts[3] || 0}\n` +
+         `  • Set 5: ${data.setCounts[5] || 0}\n` +
+         `  • Set 6: ${data.setCounts[6] || 0}\n` +
+         `📈 Boost: ${data.boostDisplay}\n` +
+         `✨ BOSTAR GROUP • SD DATA`;
+}
+
+function copyMemberDailyReport(memberName) {
+  const text = buildMemberReportText(memberName);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      closeMemberDailyActionSheet();
+      if (typeof showToastNotification === 'function') {
+        showToastNotification('បានចម្លងរបាយការណ៍ជោគជ័យ! 📋✨');
+      }
+    }).catch(() => {
+      prompt('ចម្លងរបាយការណ៍ខាងក្រោម៖', text);
+      closeMemberDailyActionSheet();
+    });
+  } else {
+    prompt('ចម្លងរបាយការណ៍ខាងក្រោម៖', text);
+    closeMemberDailyActionSheet();
+  }
+}
+
+function shareMemberDailyReport(memberName) {
+  const text = buildMemberReportText(memberName);
+  if (navigator.share) {
+    navigator.share({
+      title: `របាយការណ៍លក់តាមឈុត: ${memberName}`,
+      text: text
+    }).then(() => {
+      closeMemberDailyActionSheet();
+    }).catch(() => {
+      copyMemberDailyReport(memberName);
+    });
+  } else {
+    copyMemberDailyReport(memberName);
+  }
+}
+
+function printMemberDailyReport(memberName) {
+  closeMemberDailyActionSheet();
+  setTimeout(() => {
+    window.print();
+  }, 200);
 }
 
 function closeMemberDailyBreakdownModal() {
@@ -5463,6 +5599,9 @@ function renderExecutiveHierarchyModalContent() {
               <div class="h-1.5 bg-gradient-to-r from-sky-500 to-teal-300" style="width: 100%"></div>
             </div>
           </div>
+
+          <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
+          ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
         </div>
       `;
     }
@@ -5778,8 +5917,6 @@ function renderExecutiveHierarchyModalContent() {
 
   container.innerHTML = `
     ${directorHtml}
-    <!-- 👥 គោលដៅលក់តាមក្រុម: ONLY shown in Tab Leader -->
-    ${execRole === 'leader' ? renderExecutiveLeaderTeamTargetCard(activeLeader, d) : ''}
     ${bodyContentHtml}
   `;
 
@@ -5819,6 +5956,11 @@ window.getMemberBostarTrackSetsAndDaily = getMemberBostarTrackSetsAndDaily;
 window.renderExecutiveLeaderTeamTargetCard = renderExecutiveLeaderTeamTargetCard;
 window.openMemberDailyBreakdownModal = openMemberDailyBreakdownModal;
 window.closeMemberDailyBreakdownModal = closeMemberDailyBreakdownModal;
+window.openMemberDailyActionSheet = openMemberDailyActionSheet;
+window.closeMemberDailyActionSheet = closeMemberDailyActionSheet;
+window.shareMemberDailyReport = shareMemberDailyReport;
+window.copyMemberDailyReport = copyMemberDailyReport;
+window.printMemberDailyReport = printMemberDailyReport;
 window.editMemberPersonalBoost = editMemberPersonalBoost;
 window.toggleMemberDailyFilterMode = toggleMemberDailyFilterMode;
 window.toggleSecurityBiometric = toggleSecurityBiometric;
@@ -6481,6 +6623,9 @@ function getDashboardViewHTML() {
                 <div class="h-1.5 bg-gradient-to-r from-sky-500 to-teal-300" style="width: 100%"></div>
               </div>
             </div>
+
+            <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
+            ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
           </div>
         `;
       }
@@ -6860,9 +7005,6 @@ function getDashboardViewHTML() {
             <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-[9px] font-mono text-amber-300 font-bold shrink-0">Full Access</span>
           </div>
         ` : ''}
-
-        <!-- 👥 គោលដៅលក់តាមក្រុម: ONLY shown in Tab Leader -->
-        ${execRole === 'leader' ? renderExecutiveLeaderTeamTargetCard(activeLeader, d) : ''}
 
         <!-- 2. MIDDLE TIER: ROLE LEADERBOARD OR DRILL-DOWN -->
         ${homeHierarchyBodyHtml}
@@ -16654,7 +16796,7 @@ function handleHomeClick(e) {
   const tutorialModal = document.getElementById('tutorial-modal');
   const isTutorialOpen = tutorialModal && !tutorialModal.classList.contains('hidden');
 
-  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #edit-bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #executive-hierarchy-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #change-pin-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden)');
+  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #edit-bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #executive-hierarchy-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #change-pin-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden), #member-daily-breakdown-modal:not(.hidden)');
 
   // Case 1: If Profile Drawer or any Modal is open ➔ Single tap smoothly dismisses it to reveal dashboard instantly (ZERO network reload)
   if (isDrawerOpen || openModal || isHonorsOpen || isTutorialOpen) {
