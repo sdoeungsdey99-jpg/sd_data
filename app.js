@@ -1277,7 +1277,7 @@ function setupPullToRefresh() {
 function handleBackNavigation() {
   // ជំហានទី ១ (Step 1): បិទផ្ទាំង Popover / Dropdown / Modal ដែលកំពុងបើកមុនគេ
   // 1a. Close any open modal context menu (PDF/Share/Copy)
-  const contextMenuTypes = ['sales', 'payables', 'expenses', 'cod'];
+  const contextMenuTypes = ['sales', 'payables', 'expenses', 'cod', 'member-daily'];
   for (const type of contextMenuTypes) {
     const m = document.getElementById(`modal-menu-${type}`);
     if (m && !m.classList.contains('hidden')) {
@@ -1359,6 +1359,11 @@ function handleBackNavigation() {
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
+  if (!document.getElementById('member-daily-breakdown-modal')?.classList?.contains('hidden')) {
+    closeMemberDailyBreakdownModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
   if (!document.getElementById('executive-hierarchy-modal')?.classList?.contains('hidden')) {
     closeExecutiveHierarchyModal();
     if (navigator.vibrate) navigator.vibrate(15);
@@ -1434,7 +1439,7 @@ function isAnyDrilldownModalOpen() {
     'edit-order-modal', 'team-members-modal', 'new-order-modal', 'new-expense-modal',
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
-    'executive-hierarchy-modal', 'daily-report-modal', 'honors-modal', 'tutorial-modal',
+    'executive-hierarchy-modal', 'member-daily-breakdown-modal', 'daily-report-modal', 'honors-modal', 'tutorial-modal',
     'attendance-leave-modal', 'attendance-manager-modal', 'attendance-top10-modal', 'attendance-certificate-modal', 'attendance-documents-modal',
     'profile-sub-modal', 'edit-profile-modal',
     'about-modal', 'change-pin-modal', 'shortcut-modal', 'edit-bank-modal', 'profile-settings-search-modal'
@@ -1489,8 +1494,18 @@ function setupSwipeToBack() {
     const isHonorsOpen = honorsEl && !honorsEl.classList.contains('hidden');
     const reportEl = document.getElementById('daily-report-modal');
     const isReportOpen = reportEl && !reportEl.classList.contains('hidden');
+    const dailyBreakdownEl = document.getElementById('member-daily-breakdown-modal');
+    const isDailyBreakdownOpen = dailyBreakdownEl && !dailyBreakdownEl.classList.contains('hidden');
+    const execModalEl = document.getElementById('executive-hierarchy-modal');
+    const isExecModalOpen = execModalEl && !execModalEl.classList.contains('hidden');
 
-    if (isReportOpen && e.target && e.target.closest('#daily-report-modal')) {
+    if (isDailyBreakdownOpen && touchStartX <= 80) {
+      isPotentialSwipe = true;
+      swipeOrigin = 'member-daily-breakdown-modal';
+    } else if (isExecModalOpen && touchStartX <= 80) {
+      isPotentialSwipe = true;
+      swipeOrigin = 'executive-hierarchy-modal';
+    } else if (isReportOpen && e.target && e.target.closest('#daily-report-modal')) {
       // Swiping inside Daily Report Modal -> Dismiss/Back
       isPotentialSwipe = true;
       swipeOrigin = 'daily-report-modal';
@@ -1540,6 +1555,24 @@ function setupSwipeToBack() {
     const deltaY = touchEndY - touchStartY;
     const isDrawerOpen = isProfileDrawerOpen();
     const isSubModalOpen = isProfileSubModalOpen();
+
+    // Case 000: Swiping Left-to-Right from left edge on Daily Breakdown or Exec Modal
+    if (swipeOrigin === 'member-daily-breakdown-modal') {
+      if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
+        closeMemberDailyBreakdownModal();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        isPotentialSwipe = false;
+        return;
+      }
+    }
+    if (swipeOrigin === 'executive-hierarchy-modal') {
+      if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
+        closeExecutiveHierarchyModal();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        isPotentialSwipe = false;
+        return;
+      }
+    }
 
     // Case 00: Swiping Left-to-Right anywhere on Daily Report Modal -> Dismiss/Back
     if (swipeOrigin === 'daily-report-modal') {
@@ -1621,8 +1654,18 @@ function setupSwipeToBack() {
     const isHonorsOpen = honorsEl && !honorsEl.classList.contains('hidden');
     const reportEl = document.getElementById('daily-report-modal');
     const isReportOpen = reportEl && !reportEl.classList.contains('hidden');
+    const dailyBreakdownEl = document.getElementById('member-daily-breakdown-modal');
+    const isDailyBreakdownOpen = dailyBreakdownEl && !dailyBreakdownEl.classList.contains('hidden');
+    const execModalEl = document.getElementById('executive-hierarchy-modal');
+    const isExecModalOpen = execModalEl && !execModalEl.classList.contains('hidden');
 
-    if (isReportOpen && e.target && e.target.closest('#daily-report-modal')) {
+    if (isDailyBreakdownOpen && touchStartX <= 80) {
+      isPotentialSwipe = true;
+      swipeOrigin = 'member-daily-breakdown-modal';
+    } else if (isExecModalOpen && touchStartX <= 80) {
+      isPotentialSwipe = true;
+      swipeOrigin = 'executive-hierarchy-modal';
+    } else if (isReportOpen && e.target && e.target.closest('#daily-report-modal')) {
       // Swiping inside Daily Report Modal -> Dismiss/Back
       isPotentialSwipe = true;
       swipeOrigin = 'daily-report-modal';
@@ -2322,6 +2365,7 @@ function closeAllModals() {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
+  if (typeof closeMemberDailyContextMenu === 'function') closeMemberDailyContextMenu();
   const drawerPanel = document.getElementById('profile-drawer-panel');
   if (drawerPanel) {
     drawerPanel.classList.remove('translate-x-0');
@@ -4423,6 +4467,7 @@ function getManagerRankBadge(rank) {
 }
 
 function openExecutiveHierarchyFromDrawer() {
+  window.execHierarchyOpenedFromDrawer = true;
   const isUnlocked = (sessionStorage.getItem('sd_exec_unlocked') === 'true');
   if (isUnlocked) {
     if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
@@ -4462,6 +4507,13 @@ function closeExecutiveHierarchyModal() {
   const modal = document.getElementById('executive-hierarchy-modal');
   if (modal) modal.classList.add('hidden');
   setDockVisible(true);
+
+  if (window.execHierarchyOpenedFromDrawer) {
+    window.execHierarchyOpenedFromDrawer = false;
+    if (typeof openProfileDrawer === 'function') {
+      openProfileDrawer();
+    }
+  }
 }
 
 function relockExecutiveHierarchyModal() {
@@ -4920,7 +4972,12 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
   const rawTarget = (d && d.monthlyTargets) ? (d.monthlyTargets[memberName] || d.monthlyTargets[cleanKm] || d.monthlyTargets[normName]) : 0;
   const isSdey = (normName.includes('sdoeung') || cleanKm.includes('ស្ដី') || cleanKm.includes('ស្តី') || cleanKm.includes('ស្នឹង'));
   const isSothy = (cleanKm.includes('សុធី') || normName.includes('sothy'));
-  const target = rawTarget > 0 ? rawTarget : (isSdey ? 150 : (isSothy ? 100 : 50));
+  const defaultTarget = rawTarget > 0 ? rawTarget : (isSdey ? 150 : (isSothy ? 100 : 50));
+
+  const targetKey = `sd_target_${normName}_${targetMonth}`;
+  const savedTarget = localStorage.getItem(targetKey) || localStorage.getItem(`sd_target_${normName}`);
+  const userTarget = savedTarget ? parseInt(savedTarget, 10) : 0;
+  const target = (userTarget > 0) ? userTarget : defaultTarget;
   const percentage = target > 0 ? ((totalBoxes / target) * 100).toFixed(1) : '0.0';
 
   const boostKey = `sd_boost_${normName}_${targetMonth}`;
@@ -5069,6 +5126,41 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
   `;
 }
 
+function editMemberPersonalTarget(memberName) {
+  const normName = normalizeSellerName(memberName);
+  let targetMonth = execHierarchyFilterState.selectedMonth;
+  if (!targetMonth || execHierarchyFilterState.mode === 'all') {
+    const now = new Date();
+    targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+  const targetKey = `sd_target_${normName}_${targetMonth}`;
+  const currentVal = localStorage.getItem(targetKey) || localStorage.getItem(`sd_target_${normName}`) || '';
+  const d = window.DataService && window.DataService.data ? window.DataService.data : null;
+  const currentData = getMemberBostarTrackSetsAndDaily(memberName, d);
+  const promptVal = currentVal || currentData.target;
+  const input = prompt('បញ្ចូលចំនួនប្រអប់គោលដៅសម្រាប់ ' + memberName + ' (ប្រអប់)៖', promptVal);
+  if (input !== null) {
+    const cleaned = parseInt(input.replace(/[^\d]/g, ''), 10);
+    if (!isNaN(cleaned) && cleaned > 0) {
+      localStorage.setItem(targetKey, cleaned);
+      localStorage.setItem(`sd_target_${normName}`, cleaned);
+      if (typeof showToastNotification === 'function') {
+        showToastNotification('បានកែប្រែគោលដៅជោគជ័យ! 🎯✨');
+      }
+    } else if (input.trim() === '') {
+      localStorage.removeItem(targetKey);
+      localStorage.removeItem(`sd_target_${normName}`);
+    }
+    openMemberDailyBreakdownModal(memberName);
+    if (typeof renderExecutiveHierarchyModalContent === 'function') {
+      renderExecutiveHierarchyModalContent();
+    }
+    if (typeof renderCurrentView === 'function') {
+      renderCurrentView();
+    }
+  }
+}
+
 function openMemberDailyBreakdownModal(memberName) {
   const d = window.DataService && window.DataService.data ? window.DataService.data : null;
   const data = getMemberBostarTrackSetsAndDaily(memberName, d);
@@ -5089,9 +5181,12 @@ function openMemberDailyBreakdownModal(memberName) {
     : data.dailyRows;
 
   container.innerHTML = `
+    <!-- Backdrop for Context Menu -->
+    <div onclick="closeMemberDailyContextMenu()" id="member-daily-context-backdrop" class="hidden absolute inset-0 z-40 bg-black/40 backdrop-blur-[1px] transition-all duration-200"></div>
+
     <!-- Top Sticky Bar (Image 2) with iOS standard tap-to-scroll-to-top -->
     <div onclick="handleHeaderScrollToTop(event, 'member-daily-breakdown-scroll-body')" 
-         class="px-3.5 pt-3 pb-3 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 flex items-center justify-between gap-2 select-none cursor-pointer">
+         class="px-3.5 pt-3 pb-3 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 flex items-center justify-between gap-2 select-none cursor-pointer relative z-50">
       <div class="flex items-center gap-2 min-w-0" data-prevent-scroll-top="true">
         <button type="button" onclick="closeMemberDailyBreakdownModal()" 
                 class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
@@ -5112,21 +5207,42 @@ function openMemberDailyBreakdownModal(memberName) {
         </div>
       </div>
 
-      <!-- 3 dots button for Action Sheet (Share / Copy / Save PDF) -->
-      <button type="button" onclick="event.stopPropagation(); openMemberDailyActionSheet('${safeName}');" 
-              class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center shrink-0 transition"
-              title="ជម្រើស (ចែករំលែក, ចម្លង, PDF)">
-        <i data-lucide="more-horizontal" class="w-4 h-4"></i>
-      </button>
+      <!-- 3 dots button with Context Menu (matching Personal Sales & Expenses Modal) -->
+      <div class="relative shrink-0 z-50">
+        <button type="button" onclick="event.stopPropagation(); toggleMemberDailyContextMenu('${safeName}', event);" 
+                class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" 
+                title="ជម្រើស">
+          <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+        </button>
+        <div id="modal-menu-member-daily" class="hidden absolute right-0 top-full mt-1.5 w-48 bg-[#0A1222]/95 backdrop-blur-3xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.85)] ring-1 ring-white/10 p-1.5 rounded-2xl z-50 divide-y divide-white/10 animate-fade-in font-sans">
+          <button type="button" onclick="handleMemberDailyAction('pdf', '${safeName}')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
+            <i data-lucide="file-text" class="w-4 h-4 text-orange-400"></i>
+            <span>រក្សាទុកជា PDF</span>
+          </button>
+          <button type="button" onclick="handleMemberDailyAction('share', '${safeName}')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
+            <i data-lucide="share-2" class="w-4 h-4 text-blue-400"></i>
+            <span>ចែករំលែក</span>
+          </button>
+          <button type="button" onclick="handleMemberDailyAction('copy', '${safeName}')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
+            <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
+            <span>ចម្លង</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Scrollable Body (Image 2) with ID for tap-to-scroll-to-top -->
     <div id="member-daily-breakdown-scroll-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 pb-32">
       <!-- 3 Summary KPI Cards (Image 2) -->
       <div class="grid grid-cols-3 gap-2">
-        <!-- 1. គោលដៅ -->
-        <div class="p-3 rounded-2xl bg-[#0F1B2E] border border-white/10 text-center space-y-1 shadow-lg">
-          <div class="text-[10px] text-slate-400 flex items-center justify-center gap-1 font-semibold">
+        <!-- 1. គោលដៅ (អាចកែប្រែបាន ជាមួយ icon edit លើស្តាំ) -->
+        <div onclick="editMemberPersonalTarget('${safeName}')" 
+             class="p-3 rounded-2xl bg-[#0F1B2E] border border-amber-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition relative group"
+             title="ចុចដើម្បីកែប្រែគោលដៅ">
+          <button type="button" class="absolute top-2 right-2 w-5 h-5 rounded-lg bg-amber-500/10 group-hover:bg-amber-500/25 text-amber-300 flex items-center justify-center transition border border-amber-500/20" title="កែប្រែគោលដៅ">
+            <i data-lucide="edit-3" class="w-3 h-3"></i>
+          </button>
+          <div class="text-[10px] text-amber-400 flex items-center justify-center gap-1 font-semibold pr-3">
             <span>🎯</span>
             <span>គោលដៅ</span>
           </div>
@@ -5144,7 +5260,7 @@ function openMemberDailyBreakdownModal(memberName) {
           </div>
         </div>
 
-        <!-- 3. Boost (ជាមួយ icon តូច លើស្តាំ) -->
+        <!-- 3. Boost (ជាមួយ icon edit លើស្តាំ) -->
         <div onclick="editMemberPersonalBoost('${safeName}')" 
              class="p-3 rounded-2xl bg-[#0F1B2E] border border-purple-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition relative group"
              title="ចុចដើម្បីកែប្រែ Boost ផ្ទាល់ខ្លួន">
@@ -5160,90 +5276,88 @@ function openMemberDailyBreakdownModal(memberName) {
       </div>
 
       <!-- Detailed Daily Breakdown Table (7 Columns: ថ្ងៃ ▾ | ឈុត ១ | ឈុត ២ | ឈុត ៣ | ឈុត ៥ | ឈុត ៦ | សរុប) -->
-      <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-hidden">
-        <div class="overflow-x-auto no-scrollbar">
-          <table class="w-full text-center text-xs">
-            <!-- Table Header (ថ្ងៃ គ្មាន ទី) -->
-            <thead class="bg-[#0F1B2E]/90 text-[10.5px] border-b border-white/10 text-slate-300">
-              <tr>
-                <th onclick="toggleMemberDailyFilterMode('${safeName}')" 
-                    class="py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
-                    title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
-                  <div class="flex items-center gap-1">
-                    <span>ថ្ងៃ</span>
-                    <span class="text-[8.5px] px-1.5 py-0.5 rounded font-sans font-medium transition ${currentFilter === 'active' ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm' : 'bg-white/10 text-slate-400 border border-white/10'}">
-                      ${currentFilter === 'active' ? 'លក់បាន ▾' : 'ទាំងអស់ ▾'}
-                    </span>
-                  </div>
-                </th>
-                <th class="py-2.5 px-1.5 font-bold">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[1] || 0}</span>
-                    <span class="text-[9px] text-slate-400">ឈុត ១</span>
-                  </div>
-                </th>
-                <th class="py-2.5 px-1.5 font-bold">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[2] || 0}</span>
-                    <span class="text-[9px] text-slate-400">ឈុត ២</span>
-                  </div>
-                </th>
-                <th class="py-2.5 px-1.5 font-bold">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[3] || 0}</span>
-                    <span class="text-[9px] text-slate-400">ឈុត ៣</span>
-                  </div>
-                </th>
-                <th class="py-2.5 px-1.5 font-bold">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[5] || 0}</span>
-                    <span class="text-[9px] text-slate-400">ឈុត ៥</span>
-                  </div>
-                </th>
-                <th class="py-2.5 px-1.5 font-bold">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[6] || 0}</span>
-                    <span class="text-[9px] text-slate-400">ឈុត ៦</span>
-                  </div>
-                </th>
-                <th class="py-2.5 px-2 font-bold">
-                  <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.totalBoxes}</span>
-                    <span class="text-[9px] text-emerald-400 font-bold">សរុប</span>
-                  </div>
-                </th>
-              </tr>
-            </thead>
+      <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-x-auto no-scrollbar relative">
+        <table class="w-full text-center text-xs border-collapse">
+          <!-- Table Header (ថ្ងៃ គ្មាន ទី - Sticky Locked when scrolling!) -->
+          <thead class="sticky top-0 z-20 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
+            <tr class="bg-[#0B1528]">
+              <th onclick="toggleMemberDailyFilterMode('${safeName}')" 
+                  class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
+                  title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
+                <div class="flex items-center gap-1">
+                  <span>ថ្ងៃ</span>
+                  <span class="text-[8.5px] px-1.5 py-0.5 rounded font-sans font-medium transition ${currentFilter === 'active' ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm' : 'bg-white/10 text-slate-400 border border-white/10'}">
+                    ${currentFilter === 'active' ? 'លក់បាន ▾' : 'ទាំងអស់ ▾'}
+                  </span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[1] || 0}</span>
+                  <span class="text-[9px] text-slate-400">ឈុត ១</span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[2] || 0}</span>
+                  <span class="text-[9px] text-slate-400">ឈុត ២</span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[3] || 0}</span>
+                  <span class="text-[9px] text-slate-400">ឈុត ៣</span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[5] || 0}</span>
+                  <span class="text-[9px] text-slate-400">ឈុត ៥</span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[6] || 0}</span>
+                  <span class="text-[9px] text-slate-400">ឈុត ៦</span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-2 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.totalBoxes}</span>
+                  <span class="text-[9px] text-emerald-400 font-bold">សរុប</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
 
-            <!-- Table Body Rows (7 Columns: Day, Set 1, Set 2, Set 3, Set 5, Set 6, Total) -->
-            <tbody class="divide-y divide-white/5 font-mono text-[11px]">
-              ${rowsToDisplay.length > 0 ? rowsToDisplay.map(r => {
-                const s1 = (r.sets[1] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">${r.sets[1]}</span>` : '<span class="text-slate-600">—</span>';
-                const s2 = (r.sets[2] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">${r.sets[2]}</span>` : '<span class="text-slate-600">—</span>';
-                const s3 = (r.sets[3] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">${r.sets[3]}</span>` : '<span class="text-slate-600">—</span>';
-                const s5 = (r.sets[5] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">${r.sets[5]}</span>` : '<span class="text-slate-600">—</span>';
-                const s6 = (r.sets[6] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">${r.sets[6]}</span>` : '<span class="text-slate-600">—</span>';
-                const tot = (r.totalBoxes > 0) ? `<span class="text-emerald-400 font-bold text-xs">${r.totalBoxes}</span>` : '<span class="text-slate-600">—</span>';
-                
-                return `
-                  <tr class="hover:bg-white/[0.03] transition">
-                    <td class="py-2 px-2 text-left font-bold text-slate-300 text-[10.5px]">${r.dayLabel}</td>
-                    <td class="py-2 px-1.5">${s1}</td>
-                    <td class="py-2 px-1.5">${s2}</td>
-                    <td class="py-2 px-1.5">${s3}</td>
-                    <td class="py-2 px-1.5">${s5}</td>
-                    <td class="py-2 px-1.5">${s6}</td>
-                    <td class="py-2 px-2">${tot}</td>
-                  </tr>
-                `;
-              }).join('') : `
-                <tr>
-                  <td colspan="7" class="py-6 text-center text-xs text-slate-500 italic">មិនមានការលក់ក្នុងខែនេះទេ</td>
+          <!-- Table Body Rows (7 Columns: Day, Set 1, Set 2, Set 3, Set 5, Set 6, Total) -->
+          <tbody class="divide-y divide-white/5 font-mono text-[11px]">
+            ${rowsToDisplay.length > 0 ? rowsToDisplay.map(r => {
+              const s1 = (r.sets[1] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">${r.sets[1]}</span>` : '<span class="text-slate-600">—</span>';
+              const s2 = (r.sets[2] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">${r.sets[2]}</span>` : '<span class="text-slate-600">—</span>';
+              const s3 = (r.sets[3] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">${r.sets[3]}</span>` : '<span class="text-slate-600">—</span>';
+              const s5 = (r.sets[5] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">${r.sets[5]}</span>` : '<span class="text-slate-600">—</span>';
+              const s6 = (r.sets[6] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">${r.sets[6]}</span>` : '<span class="text-slate-600">—</span>';
+              const tot = (r.totalBoxes > 0) ? `<span class="text-emerald-400 font-bold text-xs">${r.totalBoxes}</span>` : '<span class="text-slate-600">—</span>';
+              
+              return `
+                <tr class="hover:bg-white/[0.03] transition">
+                  <td class="py-2 px-2 text-left font-bold text-slate-300 text-[10.5px]">${r.dayLabel}</td>
+                  <td class="py-2 px-1.5">${s1}</td>
+                  <td class="py-2 px-1.5">${s2}</td>
+                  <td class="py-2 px-1.5">${s3}</td>
+                  <td class="py-2 px-1.5">${s5}</td>
+                  <td class="py-2 px-1.5">${s6}</td>
+                  <td class="py-2 px-2">${tot}</td>
                 </tr>
-              `}
-            </tbody>
-          </table>
-        </div>
+              `;
+            }).join('') : `
+              <tr>
+                <td colspan="7" class="py-6 text-center text-xs text-slate-500 italic">មិនមានការលក់ក្នុងខែនេះទេ</td>
+              </tr>
+            `}
+          </tbody>
+        </table>
       </div>
     </div>
   `;
@@ -5258,85 +5372,40 @@ function toggleMemberDailyFilterMode(memberName) {
 }
 
 // ==========================================
-// MEMBER DAILY ACTION SHEET (Share, Copy, PDF)
+// MEMBER DAILY CONTEXT MENU (Dropdown identical to Personal Sales & Expenses)
 // ==========================================
-function openMemberDailyActionSheet(memberName) {
-  let modal = document.getElementById('member-daily-action-sheet-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'member-daily-action-sheet-modal';
-    modal.className = 'fixed inset-0 z-[100] flex items-end justify-center font-kantumruy transition-all duration-300';
-    document.body.appendChild(modal);
+function toggleMemberDailyContextMenu(memberName, event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('modal-menu-member-daily');
+  const backdrop = document.getElementById('member-daily-context-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  if (isHidden) {
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
   }
-
-  const safeName = memberName.replace(/'/g, "\\'");
-
-  modal.innerHTML = `
-    <!-- Backdrop -->
-    <div onclick="closeMemberDailyActionSheet()" class="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"></div>
-
-    <!-- Slide-up Sheet -->
-    <div class="relative z-10 w-full max-w-sm mx-auto p-4 space-y-3 bg-[#0B1528] border-t border-white/10 rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom duration-200">
-      <div class="w-10 h-1 bg-white/20 rounded-full mx-auto mb-2"></div>
-      
-      <div class="text-center pb-2 border-b border-white/10">
-        <h4 class="font-bold text-sm text-white">${memberName}</h4>
-        <p class="text-[10px] text-slate-400 mt-0.5">ជម្រើសចែករំលែក និងទាញយករបាយការណ៍</p>
-      </div>
-
-      <div class="space-y-2">
-        <!-- 1. Share -->
-        <button type="button" onclick="shareMemberDailyReport('${safeName}')"
-                class="w-full p-3 rounded-2xl bg-sky-500/10 hover:bg-sky-500/20 active:scale-[0.99] border border-sky-500/30 flex items-center gap-3 text-sky-300 font-bold text-xs transition">
-          <div class="w-8 h-8 rounded-xl bg-sky-500/20 flex items-center justify-center shrink-0">
-            <i data-lucide="share-2" class="w-4 h-4 text-sky-400"></i>
-          </div>
-          <div class="text-left flex-1">
-            <div>ចែករំលែករបាយការណ៍ (Share)</div>
-            <div class="text-[9.5px] text-sky-300/70 font-normal">ផ្ញើទៅកាន់ Telegram, Messenger ឬកម្មវិធីផ្សេងៗ</div>
-          </div>
-        </button>
-
-        <!-- 2. Copy -->
-        <button type="button" onclick="copyMemberDailyReport('${safeName}')"
-                class="w-full p-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 active:scale-[0.99] border border-emerald-500/30 flex items-center gap-3 text-emerald-300 font-bold text-xs transition">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-            <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
-          </div>
-          <div class="text-left flex-1">
-            <div>ចម្លងជាអត្ថបទ (Copy Report)</div>
-            <div class="text-[9.5px] text-emerald-300/70 font-normal">ចម្លងសង្ខេបទិន្នន័យលក់ដាក់ Clipboard</div>
-          </div>
-        </button>
-
-        <!-- 3. Save as PDF / Print -->
-        <button type="button" onclick="printMemberDailyReport('${safeName}')"
-                class="w-full p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 active:scale-[0.99] border border-rose-500/30 flex items-center gap-3 text-rose-300 font-bold text-xs transition">
-          <div class="w-8 h-8 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0">
-            <i data-lucide="file-text" class="w-4 h-4 text-rose-400"></i>
-          </div>
-          <div class="text-left flex-1">
-            <div>រក្សាទុកជា PDF (Save as PDF)</div>
-            <div class="text-[9.5px] text-rose-300/70 font-normal">ទាញយកជាឯកសារ PDF ឬបោះពុម្ព</div>
-          </div>
-        </button>
-      </div>
-
-      <!-- Cancel Button -->
-      <button type="button" onclick="closeMemberDailyActionSheet()" 
-              class="w-full py-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.99] text-slate-300 font-bold text-xs transition mt-2">
-        បោះបង់
-      </button>
-    </div>
-  `;
-
-  modal.classList.remove('hidden');
-  if (window.lucide) window.lucide.createIcons();
 }
 
-function closeMemberDailyActionSheet() {
-  const modal = document.getElementById('member-daily-action-sheet-modal');
-  if (modal) modal.classList.add('hidden');
+function closeMemberDailyContextMenu() {
+  const menu = document.getElementById('modal-menu-member-daily');
+  const backdrop = document.getElementById('member-daily-context-backdrop');
+  if (menu) menu.classList.add('hidden');
+  if (backdrop) backdrop.classList.add('hidden');
+}
+
+function handleMemberDailyAction(action, memberName) {
+  closeMemberDailyContextMenu();
+  if (action === 'pdf') {
+    printMemberDailyReport(memberName);
+  } else if (action === 'share') {
+    shareMemberDailyReport(memberName);
+  } else if (action === 'copy') {
+    copyMemberDailyReport(memberName);
+  }
 }
 
 function buildMemberReportText(memberName) {
@@ -5358,30 +5427,27 @@ function buildMemberReportText(memberName) {
 
 function copyMemberDailyReport(memberName) {
   const text = buildMemberReportText(memberName);
+  closeMemberDailyContextMenu();
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(() => {
-      closeMemberDailyActionSheet();
       if (typeof showToastNotification === 'function') {
         showToastNotification('បានចម្លងរបាយការណ៍ជោគជ័យ! 📋✨');
       }
     }).catch(() => {
       prompt('ចម្លងរបាយការណ៍ខាងក្រោម៖', text);
-      closeMemberDailyActionSheet();
     });
   } else {
     prompt('ចម្លងរបាយការណ៍ខាងក្រោម៖', text);
-    closeMemberDailyActionSheet();
   }
 }
 
 function shareMemberDailyReport(memberName) {
   const text = buildMemberReportText(memberName);
+  closeMemberDailyContextMenu();
   if (navigator.share) {
     navigator.share({
       title: `របាយការណ៍លក់តាមឈុត: ${memberName}`,
       text: text
-    }).then(() => {
-      closeMemberDailyActionSheet();
     }).catch(() => {
       copyMemberDailyReport(memberName);
     });
@@ -5391,7 +5457,7 @@ function shareMemberDailyReport(memberName) {
 }
 
 function printMemberDailyReport(memberName) {
-  closeMemberDailyActionSheet();
+  closeMemberDailyContextMenu();
   setTimeout(() => {
     window.print();
   }, 200);
@@ -5561,6 +5627,43 @@ function renderExecutiveHierarchyModalContent() {
       const origRank = sortedLeaders.findIndex(l => l.km === selectedL.km) + 1;
       const rankBadge = getManagerRankBadge(origRank);
 
+      // Check if selected Leader is also a Manager (matching sortedManagers)
+      const matchingMgr = sortedManagers.find(m => normalizeSellerName(m.km) === normalizeSellerName(selectedL.km));
+      let leadersUnderMgrHtml = '';
+      if (matchingMgr && matchingMgr.teamLeaders && matchingMgr.teamLeaders.length > 0) {
+        leadersUnderMgrHtml = `
+          <div class="space-y-1.5">
+            <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
+              <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+              <span>Leader ក្នុងក្រុម (${matchingMgr.teamLeaders.length} រូប)</span>
+            </span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              ${matchingMgr.teamLeaders.map(tl => {
+                const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
+                const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
+                return `
+                  <div onclick="selectExecutiveLeader('${tl.km}')" 
+                       class="p-2.5 rounded-xl bg-black/40 border border-white/5 hover:border-sky-400/30 cursor-pointer flex items-center justify-between text-xs transition">
+                    <div>
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-slate-200">${tl.km}</span>
+                        ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                        ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      </div>
+                      <span class="text-[10px] text-slate-400 font-mono">${tl.en}</span>
+                    </div>
+                    <div class="text-right font-mono">
+                      <div class="font-bold text-sky-300">${tl.displayBoxes} ប្រអប់</div>
+                      <div class="text-[9.5px] text-slate-400">${tl.displayOrders} កុម្ម៉ង់</div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
       bodyContentHtml = `
         <div class="space-y-3.5">
           <!-- Selected Leader Highlight Card (Tap again to collapse and show all leaders) -->
@@ -5578,7 +5681,7 @@ function renderExecutiveHierarchyModalContent() {
                     <span class="text-[11px] text-slate-400 font-mono">(${selectedL.en})</span>
                   </div>
                   <div class="text-[10px] text-sky-300 mt-0.5">
-                    Leader • ${selectedL.teamMembers.length} សមាជិក
+                    ${matchingMgr ? 'Manager & Leader' : 'Leader'} • ${selectedL.teamMembers.length} សមាជិក
                   </div>
                 </div>
               </div>
@@ -5599,6 +5702,9 @@ function renderExecutiveHierarchyModalContent() {
               <div class="h-1.5 bg-gradient-to-r from-sky-500 to-teal-300" style="width: 100%"></div>
             </div>
           </div>
+
+          <!-- 👤 Leaders Under this Manager (If this Leader is a Manager) -->
+          ${leadersUnderMgrHtml}
 
           <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
           ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
@@ -5956,11 +6062,13 @@ window.getMemberBostarTrackSetsAndDaily = getMemberBostarTrackSetsAndDaily;
 window.renderExecutiveLeaderTeamTargetCard = renderExecutiveLeaderTeamTargetCard;
 window.openMemberDailyBreakdownModal = openMemberDailyBreakdownModal;
 window.closeMemberDailyBreakdownModal = closeMemberDailyBreakdownModal;
-window.openMemberDailyActionSheet = openMemberDailyActionSheet;
-window.closeMemberDailyActionSheet = closeMemberDailyActionSheet;
+window.toggleMemberDailyContextMenu = toggleMemberDailyContextMenu;
+window.closeMemberDailyContextMenu = closeMemberDailyContextMenu;
+window.handleMemberDailyAction = handleMemberDailyAction;
 window.shareMemberDailyReport = shareMemberDailyReport;
 window.copyMemberDailyReport = copyMemberDailyReport;
 window.printMemberDailyReport = printMemberDailyReport;
+window.editMemberPersonalTarget = editMemberPersonalTarget;
 window.editMemberPersonalBoost = editMemberPersonalBoost;
 window.toggleMemberDailyFilterMode = toggleMemberDailyFilterMode;
 window.toggleSecurityBiometric = toggleSecurityBiometric;
@@ -6587,6 +6695,43 @@ function getDashboardViewHTML() {
         const origRank = sortedLeaders.findIndex(l => l.km === selectedL.km) + 1;
         const rankBadge = getManagerRankBadge(origRank);
 
+        // Check if selected Leader is also a Manager (matching sortedManagers)
+        const matchingMgr = sortedManagers.find(m => normalizeSellerName(m.km) === normalizeSellerName(selectedL.km));
+        let leadersUnderMgrHtml = '';
+        if (matchingMgr && matchingMgr.teamLeaders && matchingMgr.teamLeaders.length > 0) {
+          leadersUnderMgrHtml = `
+            <div class="space-y-1.5">
+              <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
+                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+                <span>Leader ក្នុងក្រុម (${matchingMgr.teamLeaders.length} រូប)</span>
+              </span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                ${matchingMgr.teamLeaders.map(tl => {
+                  const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
+                  const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
+                  return `
+                    <div onclick="selectExecutiveLeader('${tl.km}')" 
+                         class="p-2.5 rounded-xl bg-black/40 border border-white/5 hover:border-sky-400/30 cursor-pointer flex items-center justify-between text-xs transition">
+                      <div>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <span class="font-bold text-slate-200">${tl.km}</span>
+                          ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                          ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-mono">${tl.en}</span>
+                      </div>
+                      <div class="text-right font-mono">
+                        <div class="font-bold text-sky-300">${tl.displayBoxes} ប្រអប់</div>
+                        <div class="text-[9.5px] text-slate-400">${tl.displayOrders} កុម្ម៉ង់</div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
+
         homeHierarchyBodyHtml = `
           <div class="space-y-3 relative z-10">
             <!-- Selected Leader Highlight Card -->
@@ -6603,7 +6748,9 @@ function getDashboardViewHTML() {
                       ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                       <span class="text-[11px] text-slate-400 font-mono">(${selectedL.en})</span>
                     </div>
-                    <div class="text-[10px] text-sky-300 mt-0.5">Leader • ${selectedL.teamMembers.length} សមាជិក</div>
+                    <div class="text-[10px] text-sky-300 mt-0.5">
+                      ${matchingMgr ? 'Manager & Leader' : 'Leader'} • ${selectedL.teamMembers.length} សមាជិក
+                    </div>
                   </div>
                 </div>
 
@@ -6623,6 +6770,9 @@ function getDashboardViewHTML() {
                 <div class="h-1.5 bg-gradient-to-r from-sky-500 to-teal-300" style="width: 100%"></div>
               </div>
             </div>
+
+            <!-- 👤 Leaders Under this Manager (If this Leader is a Manager) -->
+            ${leadersUnderMgrHtml}
 
             <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
             ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
@@ -17066,7 +17216,9 @@ function toggleModalContextMenu(modalType, event) {
 
 function closeAllModalContextMenus() {
   document.querySelectorAll('.modal-context-backdrop').forEach(el => el.classList.add('hidden'));
-  ['sales', 'payables', 'expenses', 'cod', 'bank', 'teamsets'].forEach(type => {
+  const backdrop = document.getElementById('member-daily-context-backdrop');
+  if (backdrop) backdrop.classList.add('hidden');
+  ['sales', 'payables', 'expenses', 'cod', 'bank', 'teamsets', 'member-daily'].forEach(type => {
     const m = document.getElementById(`modal-menu-${type}`);
     if (m) m.classList.add('hidden');
   });
