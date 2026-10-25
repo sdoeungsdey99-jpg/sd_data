@@ -24488,21 +24488,25 @@ function openTeamMemberDetail(sellerKmName) {
         </div>
       ` : ''}
 
-      <!-- Performance KPI Grid (2 Cards) -->
+      <!-- Performance KPI Grid (2 Cards - Centered Dashboard Style) -->
       <div class="grid grid-cols-2 gap-2">
-        <div class="py-1.5 px-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between shadow-sm">
-          <div class="text-left">
-            <span class="text-[9.5px] text-slate-400 block font-semibold">📦 ប្រអប់លក់សរុប</span>
-            <span class="text-[8.5px] text-slate-500 font-mono">ប្រអប់</span>
+        <div class="p-3 rounded-2xl bg-[#0F1B2E] border border-white/10 text-center space-y-1 shadow-lg">
+          <div class="text-[10px] text-slate-400 flex items-center justify-center gap-1 font-semibold">
+            <span>📦</span>
+            <span>ប្រអប់លក់សរុប</span>
           </div>
-          <span class="font-mono font-black text-base sm:text-lg text-emerald-400">${totalBoxes}</span>
+          <div class="text-base sm:text-lg font-black text-emerald-400 font-mono">
+            ${totalBoxes} <span class="text-[10px] font-bold text-emerald-400/80 font-sans">ប្រអប់</span>
+          </div>
         </div>
-        <div class="py-1.5 px-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between shadow-sm">
-          <div class="text-left">
-            <span class="text-[9.5px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់សរុប</span>
-            <span class="text-[8.5px] text-slate-500 font-mono">ជោគជ័យ</span>
+        <div class="p-3 rounded-2xl bg-[#0F1B2E] border border-white/10 text-center space-y-1 shadow-lg">
+          <div class="text-[10px] text-slate-400 flex items-center justify-center gap-1 font-semibold">
+            <span>🧾</span>
+            <span>កុម្ម៉ង់សរុប</span>
           </div>
-          <span class="font-mono font-black text-base sm:text-lg text-sky-400">${totalOrders}</span>
+          <div class="text-base sm:text-lg font-black text-sky-400 font-mono">
+            ${totalOrders} <span class="text-[10px] font-bold text-sky-400/80 font-sans">កុម្ម៉ង់</span>
+          </div>
         </div>
       </div>
     </div>
