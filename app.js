@@ -3336,7 +3336,8 @@ function handleLockedExecutiveCardClick(event) {
   }
 }
 
-function openExecutiveSecuritySettingsModal() {
+function openExecutiveSecurityModal(event) {
+  if (event) event.stopPropagation();
   const isUnlocked = (sessionStorage.getItem('sd_exec_unlocked') === 'true' || localStorage.getItem('sd_exec_remember') === 'true');
   if (!isUnlocked) {
     openExecutivePasscodeModal();
@@ -3364,7 +3365,7 @@ function openExecutiveSecuritySettingsModal() {
   modal.className = 'fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-200';
   modal.innerHTML = `
     <div class="w-full max-w-sm rounded-3xl bg-[#0C1425]/95 border border-amber-500/30 p-5 space-y-4 text-white relative shadow-2xl">
-      <button type="button" onclick="closeExecutiveSecuritySettingsModal()" 
+      <button type="button" onclick="closeExecutiveSecurityModal()" 
               class="absolute top-4 right-4 p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -3380,7 +3381,22 @@ function openExecutiveSecuritySettingsModal() {
 
       <!-- Settings List -->
       <div class="space-y-2">
-        <!-- 1. Biometric Toggle -->
+        <!-- 1. Lock Now -->
+        <button type="button" onclick="instantLockExecutiveCard()" 
+                class="w-full p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between group active:scale-[0.99] transition text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">ចាក់សោរភ្លាមៗ</div>
+              <div class="text-[10px] text-slate-400">ចាក់សោរកាតសម្រាប់ Session នេះ</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-white transition"></i>
+        </button>
+
+        <!-- 2. Biometric Toggle -->
         <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center">
@@ -3398,7 +3414,7 @@ function openExecutiveSecuritySettingsModal() {
           </button>
         </div>
 
-        <!-- 2. Remember Me Toggle -->
+        <!-- 3. Remember Me Toggle -->
         <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
@@ -3416,7 +3432,7 @@ function openExecutiveSecuritySettingsModal() {
           </button>
         </div>
 
-        <!-- 3. Lock & Clear Device Session -->
+        <!-- 4. Lock & Clear Device Session -->
         <button type="button" onclick="actionSheetLogOut()" 
                 class="w-full p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 flex items-center justify-between group active:scale-[0.99] transition text-left">
           <div class="flex items-center gap-3">
@@ -3433,7 +3449,7 @@ function openExecutiveSecuritySettingsModal() {
       </div>
 
       <!-- Close Button -->
-      <button type="button" onclick="closeExecutiveSecuritySettingsModal()" 
+      <button type="button" onclick="closeExecutiveSecurityModal()" 
               class="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-xs active:scale-95 transition text-center">
         បិទ
       </button>
@@ -3443,13 +3459,232 @@ function openExecutiveSecuritySettingsModal() {
   if (window.lucide) window.lucide.createIcons();
 }
 
-function closeExecutiveSecuritySettingsModal() {
+function closeExecutiveSecurityModal() {
   const modal = document.getElementById('executive-security-settings-modal');
   if (modal) modal.classList.add('hidden');
 }
 
-const openExecutiveSecurityActionSheet = openExecutiveSecuritySettingsModal;
-const closeExecutiveSecurityActionSheet = closeExecutiveSecuritySettingsModal;
+const openExecutiveSecuritySettingsModal = openExecutiveSecurityModal;
+const closeExecutiveSecuritySettingsModal = closeExecutiveSecurityModal;
+const openExecutiveSecurityActionSheet = openExecutiveSecurityModal;
+const closeExecutiveSecurityActionSheet = closeExecutiveSecurityModal;
+
+function instantLockExecutiveCard() {
+  closeExecutiveSecurityModal();
+  sessionStorage.removeItem('sd_exec_unlocked');
+  execHierarchyFilterState.selectedManager = null;
+  execHierarchyFilterState.selectedLeader = null;
+  closeExecutiveHierarchyModal();
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+  if (typeof showToastNotification === 'function') {
+    showToastNotification('បានចាក់សោរកាតរចនាសម្ព័ន្ធលក់ជោគជ័យ! 🔒');
+  }
+}
+
+function openAppWideSecurityModal() {
+  let modal = document.getElementById('app-wide-security-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'app-wide-security-modal';
+    document.body.appendChild(modal);
+  }
+
+  const isAppBioOn = (localStorage.getItem('sd_app_biometric_enabled') === 'true');
+  const isAppPinOn = appState.pinEnabled;
+  const isAppRememberOn = (localStorage.getItem('sd_app_remember_enabled') !== 'false');
+  const p = (typeof getProfileData === 'function') ? getProfileData() : null;
+  const userName = (p && p.name) ? p.name : 'BOSTAR GROUP';
+
+  modal.className = 'fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-200';
+  modal.innerHTML = `
+    <div class="w-full max-w-sm rounded-3xl bg-[#0C1425]/95 border border-emerald-500/30 p-5 space-y-4 text-white relative shadow-2xl">
+      <button type="button" onclick="closeAppWideSecurityModal()" 
+              class="absolute top-4 right-4 p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Header -->
+      <div class="text-center pt-1 pb-1 space-y-1">
+        <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-md">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-sm font-bold text-white uppercase tracking-wide">សុវត្ថិភាពកម្មវិធីទាំងមូល</h3>
+        <p class="text-[11px] text-emerald-400 font-medium">គណនី: ${userName}</p>
+      </div>
+
+      <!-- Settings List -->
+      <div class="space-y-2">
+        <!-- 1. Face ID / Fingerprint for App -->
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center">
+              <i data-lucide="scan-face" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">Face ID / ស្នាមម្រាមដៃ</div>
+              <div class="text-[10px] text-slate-400">ស្កេនដោះសោររហ័សពេលបើក App</div>
+            </div>
+          </div>
+          <button type="button" onclick="toggleAppBiometric()" 
+                  class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${isAppBioOn ? 'bg-emerald-500' : 'bg-slate-700'}"
+                  role="switch" aria-checked="${isAppBioOn}" title="បើក/បិទ Face ID សម្រាប់ App">
+            <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${isAppBioOn ? 'translate-x-5' : 'translate-x-0'}"></div>
+          </button>
+        </div>
+
+        <!-- 2. PIN 4 digits for App -->
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
+              <i data-lucide="key-round" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">លេខកូដសម្ងាត់ PIN ៤ ខ្ទង់</div>
+              <div class="text-[10px] text-slate-400">ទាមទារលេខកូដ ៤ ខ្ទង់ពេលបើក</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            ${isAppPinOn ? `
+              <button type="button" onclick="closeAppWideSecurityModal(); openChangePinModal();" 
+                      class="px-2 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-300 font-bold text-[9.5px] transition active:scale-95">
+                ប្តូរ PIN
+              </button>
+            ` : ''}
+            <button type="button" onclick="toggleAppPin()" 
+                    class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${isAppPinOn ? 'bg-emerald-500' : 'bg-slate-700'}"
+                    role="switch" aria-checked="${isAppPinOn}" title="បើក/បិទ PIN">
+              <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${isAppPinOn ? 'translate-x-5' : 'translate-x-0'}"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Remember Me for App -->
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center">
+              <i data-lucide="smartphone" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">ចងចាំការចូលប្រើ</div>
+              <div class="text-[10px] text-slate-400">មិនបាច់វាយកូដពេលអូស App ចេញ</div>
+            </div>
+          </div>
+          <button type="button" onclick="toggleAppRemember()" 
+                  class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${isAppRememberOn ? 'bg-emerald-500' : 'bg-slate-700'}"
+                  role="switch" aria-checked="${isAppRememberOn}" title="បើក/បិទ ចងចាំការចូល">
+            <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${isAppRememberOn ? 'translate-x-5' : 'translate-x-0'}"></div>
+          </button>
+        </div>
+
+        <!-- 4. Global App Log Out -->
+        <button type="button" onclick="closeAppWideSecurityModal(); openProfileSubModal('logout');" 
+                class="w-full p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 flex items-center justify-between group active:scale-[0.99] transition text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-rose-400">ចាកចេញពីកម្មវិធី (Log Out)</div>
+              <div class="text-[10px] text-slate-400">ប្តូរគណនី ដើម្បីប្រើអ៊ីមែលផ្សេង</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-rose-400/60 group-hover:text-rose-400 transition"></i>
+        </button>
+      </div>
+
+      <!-- Close Button -->
+      <button type="button" onclick="closeAppWideSecurityModal()" 
+              class="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-xs active:scale-95 transition text-center">
+        បិទ
+      </button>
+    </div>
+  `;
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeAppWideSecurityModal() {
+  const modal = document.getElementById('app-wide-security-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function toggleAppBiometric() {
+  const isAppBioOn = (localStorage.getItem('sd_app_biometric_enabled') === 'true');
+  if (isAppBioOn) {
+    localStorage.removeItem('sd_app_biometric_enabled');
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('បានបិទ Face ID សម្រាប់កម្មវិធី! 🛡️');
+    }
+  } else {
+    const success = await enrollBiometrics();
+    if (success) {
+      localStorage.setItem('sd_app_biometric_enabled', 'true');
+      if (typeof showToastNotification === 'function') {
+        showToastNotification('បានបើក Face ID សម្រាប់កម្មវិធីជោគជ័យ! 🛡️✨');
+      }
+    }
+  }
+  openAppWideSecurityModal();
+  renderCurrentView();
+}
+
+function toggleAppPin() {
+  togglePinEnabled();
+  openAppWideSecurityModal();
+  renderCurrentView();
+}
+
+function toggleAppRemember() {
+  const isRememberOn = (localStorage.getItem('sd_app_remember_enabled') !== 'false');
+  if (isRememberOn) {
+    localStorage.setItem('sd_app_remember_enabled', 'false');
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('បានបិទការចងចាំលើទូរស័ព្ទនេះ! 📱');
+    }
+  } else {
+    localStorage.setItem('sd_app_remember_enabled', 'true');
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('បានបើកការចងចាំលើទូរស័ព្ទនេះ! 📱✨');
+    }
+  }
+  openAppWideSecurityModal();
+}
+
+async function authenticateAppBiometric() {
+  try {
+    if (window.PublicKeyCredential && typeof navigator.credentials?.get === 'function') {
+      const challenge = new Uint8Array(32);
+      if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(challenge);
+      const assertion = await navigator.credentials.get({
+        publicKey: {
+          challenge: challenge,
+          timeout: 60000,
+          userVerification: "required"
+        }
+      });
+      if (!assertion) throw new Error('Biometric assertion rejected');
+    }
+    // Unlock app
+    sessionStorage.setItem('sd_unlocked', 'true');
+    appState.isLocked = false;
+    const lockScreen = document.getElementById('lock-screen');
+    if (lockScreen) {
+      lockScreen.classList.add('opacity-0', 'pointer-events-none', '-translate-y-full');
+      setTimeout(() => lockScreen.classList.add('hidden'), 500);
+    }
+    if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('ដោះសោរកម្មវិធីដោយ Face ID ជោគជ័យ! 🛡️✨');
+    }
+    renderCurrentView();
+  } catch (err) {
+    console.warn('App biometric unlock failed/cancelled:', err);
+    if (typeof showToastNotification === 'function' && err && err.name !== 'AbortError') {
+      showToastNotification('មិនអាចផ្ទៀងផ្ទាត់ Face ID បានទេ សូមវាយកូដ PIN 🔒');
+    }
+  }
+}
 
 async function toggleSecurityBiometric() {
   const isBioOn = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
@@ -5105,10 +5340,19 @@ window.dismissBiometricPrompt = dismissBiometricPrompt;
 window.closeBiometricPromptModal = closeBiometricPromptModal;
 window.enrollBiometrics = enrollBiometrics;
 window.authenticateWithBiometrics = authenticateWithBiometrics;
+window.openExecutiveSecurityModal = openExecutiveSecurityModal;
+window.closeExecutiveSecurityModal = closeExecutiveSecurityModal;
 window.openExecutiveSecuritySettingsModal = openExecutiveSecuritySettingsModal;
 window.closeExecutiveSecuritySettingsModal = closeExecutiveSecuritySettingsModal;
 window.openExecutiveSecurityActionSheet = openExecutiveSecurityActionSheet;
 window.closeExecutiveSecurityActionSheet = closeExecutiveSecurityActionSheet;
+window.instantLockExecutiveCard = instantLockExecutiveCard;
+window.openAppWideSecurityModal = openAppWideSecurityModal;
+window.closeAppWideSecurityModal = closeAppWideSecurityModal;
+window.toggleAppBiometric = toggleAppBiometric;
+window.toggleAppPin = toggleAppPin;
+window.toggleAppRemember = toggleAppRemember;
+window.authenticateAppBiometric = authenticateAppBiometric;
 window.toggleSecurityBiometric = toggleSecurityBiometric;
 window.toggleSecurityRemember = toggleSecurityRemember;
 window.actionSheetLogOut = actionSheetLogOut;
@@ -6128,9 +6372,9 @@ function getDashboardViewHTML() {
               <i data-lucide="maximize-2" class="w-3 h-3 text-amber-400"></i>
               <span class="hidden sm:inline">ពេញអេក្រង់</span>
             </button>
-            <button type="button" onclick="relockExecutiveCard(event)" 
+            <button type="button" onclick="openExecutiveSecurityModal(event)" 
                     class="w-7 h-7 rounded-full bg-rose-500/10 hover:bg-rose-500/20 active:scale-90 border border-rose-500/30 text-rose-400 flex items-center justify-center transition shrink-0" 
-                    title="ចាក់សោរភ្លាមៗ">
+                    title="សុវត្ថិភាព និងចាក់សោរ">
               <i data-lucide="lock" class="w-3.5 h-3.5"></i>
             </button>
           </div>
@@ -10327,7 +10571,7 @@ function getSettingsViewHTML() {
             <i data-lucide="shield" class="w-3.5 h-3.5 text-blue-400"></i>
             <span>${isKm ? 'គណនី និងសុវត្ថិភាព' : 'Account & Security'}</span>
           </span>
-          <span class="text-[10px] text-slate-500 font-mono">${isKm ? 'សុវត្ថិភាពផ្ទាល់ខ្លួន' : 'Personal Vault'}</span>
+          <span class="text-[10px] text-slate-500 font-mono">${isKm ? '២ ជម្រើស' : '2 Options'}</span>
         </div>
 
         <div class="settings-list-card bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
@@ -10349,47 +10593,21 @@ function getSettingsViewHTML() {
             </div>
           </div>
 
-          <!-- 2. ចាក់សោកម្មវិធី (App Lock) -->
-          <div class="settings-row p-3.5 flex items-center justify-between select-none transition-all duration-150">
+          <!-- 2. សុវត្ថិភាពកម្មវិធី (App Security & Face ID) -->
+          <div onclick="openAppWideSecurityModal()" 
+               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
             <div class="settings-row-left flex items-center gap-3 min-w-0">
               <div class="settings-icon-box w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
                 <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
               </div>
               <div class="min-w-0">
-                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${t('enablePinTitle')}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${t('enablePinDesc')}</p>
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isKm ? 'សុវត្ថិភាពកម្មវិធី' : 'App Security'}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'Face ID, លេខកូដ PIN ៤ ខ្ទង់ & ចងចាំការចូល' : 'Face ID, 4-digit PIN & Remember Me'}</p>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              ${appState.pinEnabled ? `
-                <button onclick="openChangePinModal()" 
-                        class="px-2.5 py-1 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-[10px] transition active:scale-95 shadow-md">
-                  ${t('changePinBtn')}
-                </button>
-              ` : ''}
-              <button onclick="togglePinEnabled()" 
-                      class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${appState.pinEnabled ? 'bg-emerald-500' : 'bg-slate-700'}"
-                      role="switch" aria-checked="${appState.pinEnabled}">
-                <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
-              </button>
-            </div>
-          </div>
-
-          <!-- 3. សុវត្ថិភាពរចនាសម្ព័ន្ធលក់ (Sales Hierarchy Security) -->
-          <div onclick="openExecutiveSecuritySettingsModal()" 
-               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
-            <div class="settings-row-left flex items-center gap-3 min-w-0">
-              <div class="settings-icon-box w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-                <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i>
-              </div>
-              <div class="min-w-0">
-                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isKm ? 'សុវត្ថិភាពរចនាសម្ព័ន្ធលក់' : 'Sales Hierarchy Security'}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'Face ID, ចងចាំការចូល & សិទ្ធិគ្រប់គ្រង' : 'Face ID, Remember & Permissions'}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <span class="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 font-mono">
-                ${(sessionStorage.getItem('sd_exec_unlocked') === 'true' || localStorage.getItem('sd_exec_remember') === 'true') ? 'បានដោះសោរ' : 'ចាក់សោរ'}
+              <span class="text-[10px] ${appState.pinEnabled || localStorage.getItem('sd_app_biometric_enabled') === 'true' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-slate-400 bg-white/5 border-white/10'} font-medium px-2 py-0.5 rounded-full border font-mono">
+                ${appState.pinEnabled ? 'PIN' : ''}${appState.pinEnabled && localStorage.getItem('sd_app_biometric_enabled') === 'true' ? ' + ' : ''}${localStorage.getItem('sd_app_biometric_enabled') === 'true' ? 'Face ID' : (!appState.pinEnabled ? (isKm ? 'មិនទាន់កំណត់' : 'Off') : '')}
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </div>
