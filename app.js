@@ -3310,22 +3310,18 @@ function submitExecutivePasscode(enteredVal) {
   let activeRole = null;
   let successMsg = '';
 
-  if (cleanCode === 'director' || code.toUpperCase() === '1MBOSTAR') {
-    maxRole = 'director';
-    activeRole = 'manager';
-    successMsg = 'ដោះសោរផ្ទាំង DIRECTOR ជោគជ័យ! 👑✨';
-  } else if (cleanCode === 'manager') {
+  if (cleanCode === '1mbostar' || cleanCode === 'manager' || cleanCode === 'director') {
     maxRole = 'manager';
     activeRole = 'manager';
-    successMsg = 'ដោះសោរផ្ទាំង MANAGERS ជោគជ័យ! 🎖️✨';
-  } else if (cleanCode === 'leader') {
+    successMsg = 'ដោះសោរផ្ទាំង MANAGER ជោគជ័យ! 🎖️✨';
+  } else if (cleanCode === 'bostar168' || cleanCode === 'leader') {
     maxRole = 'leader';
     activeRole = 'leader';
-    successMsg = 'ដោះសោរផ្ទាំង LEADERS (១២ រូប) ជោគជ័យ! 🌟✨';
-  } else if (cleanCode === '1234') {
+    successMsg = 'ដោះសោរផ្ទាំង LEADER (១២ រូប) ជោគជ័យ! 🌟✨';
+  } else if (cleanCode === 'bostargroup' || cleanCode === 'member' || cleanCode === '1234') {
     maxRole = 'member';
     activeRole = 'member';
-    successMsg = 'ដោះសោរផ្ទាំងសមាជិកក្រុម ៤៤ នាក់ ជោគជ័យ! 🤝✨';
+    successMsg = 'ដោះសោរផ្ទាំង MEMBER (សមាជិកក្រុម) ជោគជ័យ! 🤝✨';
   }
 
   if (maxRole) {
