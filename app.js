@@ -9750,14 +9750,14 @@ function renderSalesResetContent() {
   return `
     <div class="space-y-3.5 animate-fade-in">
       
-      <!-- Swipeable Trainer Carousel (4 VIP Leaders / Trainers - Gesture works naturally) -->
+      <!-- Swipeable Trainer Carousel (VIP Leaders / Trainers - Ultra Smooth 120Hz Snapping) -->
       <div id="trainer-carousel" 
            class="flex w-full max-w-full overflow-x-auto snap-x snap-mandatory no-scrollbar rounded-3xl" 
-           style="-webkit-overflow-scrolling: touch; touch-action: pan-y;"
+           style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-behavior: smooth;"
            onscroll="handleTrainerCarouselScroll(this)">
         
         <!-- Slide 1: ស្ថាបនិក បូស្តារ គ្រុប លោក ប៊ិច នោរ៉ា -->
-        <div id="trainer-slide-founder" class="w-full min-w-full shrink-0 snap-center">
+        <div id="trainer-slide-founder" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-br from-amber-500/20 via-[#181528] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -9785,8 +9785,8 @@ function renderSalesResetContent() {
                 </div>
                 <p class="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 tracking-wide">BECH NORA</p>
                 <p class="text-xs text-slate-300 font-medium mt-0.5">ស្ថាបនិក • BOSTAR GROUP CO.,LTD</p>
-                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[9.5px] border border-amber-500/40">
+                <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[9px] sm:text-[9.5px] border border-amber-500/40 whitespace-nowrap shrink-0">
                     BOSTAR GROUP • FOUNDER
                   </span>
                 </div>
@@ -9829,7 +9829,7 @@ function renderSalesResetContent() {
         </div>
 
         <!-- Slide 2: លោកអគ្គនាយក វណ្ណ ស៊ីថា -->
-        <div id="trainer-slide-ceo" class="w-full min-w-full shrink-0 snap-center">
+        <div id="trainer-slide-ceo" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-br from-amber-500/15 via-[#0C1527] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -9858,8 +9858,8 @@ function renderSalesResetContent() {
                 <p class="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 tracking-wide">CEO Vann Sitha</p>
                 <!-- ជួរទី ៣ ៖ តួនាទី -->
                 <p class="text-xs text-slate-300 font-medium mt-0.5">អគ្គនាយក • Vann Sitha Trading</p>
-                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[9.5px] border border-amber-500/40">
+                <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[9px] sm:text-[9.5px] border border-amber-500/40 whitespace-nowrap shrink-0">
                     SALES RESET • តុលា ២០២៦
                   </span>
                 </div>
@@ -9902,7 +9902,7 @@ function renderSalesResetContent() {
         </div>
 
         <!-- Slide 3: លោក ហ៊ួរ យ៉ារិទ្ធ -->
-        <div id="trainer-slide-yaith" class="w-full min-w-full shrink-0 snap-center">
+        <div id="trainer-slide-yaith" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-indigo-500/35 relative overflow-hidden bg-gradient-to-br from-indigo-500/20 via-[#0F1B38] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -9927,8 +9927,8 @@ function renderSalesResetContent() {
                 <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ហ៊ួរ យ៉ារិទ្ធ</h3>
                 <p class="text-xs sm:text-sm font-bold text-indigo-400 mt-0.5 tracking-wide">Hour Yaith</p>
                 <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • អ្នកបង្វឹកផ្នែកបិទការលក់</p>
-                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-300 font-bold text-[9.5px] border border-indigo-500/40">
+                <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-300 font-bold text-[9px] sm:text-[9.5px] border border-indigo-500/40 whitespace-nowrap shrink-0">
                     SALES CLOSING COACH
                   </span>
                 </div>
@@ -9971,17 +9971,17 @@ function renderSalesResetContent() {
         </div>
 
         <!-- Slide 4: លោក ហែម ចន្ធី -->
-        <div id="trainer-slide-chanthy" class="w-full min-w-full shrink-0 snap-center">
+        <div id="trainer-slide-chanthy" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-cyan-500/35 relative overflow-hidden bg-gradient-to-br from-cyan-500/15 via-[#0A1A2F] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
             <!-- Top Header Tags -->
             <div class="flex items-center justify-between mb-3">
-              <span class="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+              <span class="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-black text-[10px] sm:text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 truncate">
                 <span>💰</span>
-                <span>ហិរញ្ញវត្ថុ • ស្គាល់ខ្លួនឯង • ឥរិយាបថការងារ</span>
+                <span class="truncate">ហិរញ្ញវត្ថុ • ស្គាល់ខ្លួនឯង • ឥរិយាបថ</span>
               </span>
-              <span class="text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">MANAGER</span>
+              <span class="text-[10px] text-cyan-400 font-mono font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30 shrink-0">MANAGER</span>
             </div>
 
             <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
@@ -9996,9 +9996,9 @@ function renderSalesResetContent() {
                 <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ហែម ចន្ធី</h3>
                 <p class="text-xs sm:text-sm font-bold text-cyan-400 mt-0.5 tracking-wide">Hem Chanthy</p>
                 <p class="text-xs text-slate-300 font-medium mt-0.5">Manager</p>
-                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold text-[9.5px] border border-cyan-500/40">
-                    FINANCE • SELF-AWARENESS • WORK ETHICS
+                <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold text-[9px] sm:text-[9.5px] border border-cyan-500/40 whitespace-nowrap shrink-0">
+                    FINANCE • SELF • WORK ETHICS
                   </span>
                 </div>
               </div>
@@ -10040,17 +10040,17 @@ function renderSalesResetContent() {
         </div>
 
         <!-- Slide 5: លោក ប៊ិច ឧត្តម -->
-        <div id="trainer-slide-udom" class="w-full min-w-full shrink-0 snap-center">
+        <div id="trainer-slide-udom" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-emerald-500/35 relative overflow-hidden bg-gradient-to-br from-emerald-500/15 via-[#0A261E] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
             <!-- Top Header Tags -->
             <div class="flex items-center justify-between mb-3">
-              <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+              <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-black text-[10px] sm:text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 truncate">
                 <span>🎯</span>
-                <span>ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</span>
+                <span class="truncate">ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</span>
               </span>
-              <span class="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">MANAGER</span>
+              <span class="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30 shrink-0">MANAGER</span>
             </div>
 
             <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
@@ -10065,8 +10065,8 @@ function renderSalesResetContent() {
                 <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ប៊ិច ឧត្តម</h3>
                 <p class="text-xs sm:text-sm font-bold text-emerald-400 mt-0.5 tracking-wide">Bech Udom</p>
                 <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</p>
-                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold text-[9.5px] border border-emerald-500/40">
+                <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold text-[9px] sm:text-[9.5px] border border-emerald-500/40 whitespace-nowrap shrink-0">
                     SYSTEM & TECH SUPPORT
                   </span>
                 </div>
@@ -10109,17 +10109,17 @@ function renderSalesResetContent() {
         </div>
 
         <!-- Slide 6: លោក ស្រឿន លាងហាក់ -->
-        <div id="trainer-slide-leanghak" class="w-full min-w-full shrink-0 snap-center">
+        <div id="trainer-slide-leanghak" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-teal-500/35 relative overflow-hidden bg-gradient-to-br from-teal-500/15 via-[#0E202B] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-teal-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
             <!-- Top Header Tags -->
             <div class="flex items-center justify-between mb-3">
-              <span class="px-3 py-1 rounded-full bg-teal-500/20 border border-teal-500/40 text-teal-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+              <span class="px-3 py-1 rounded-full bg-teal-500/20 border border-teal-500/40 text-teal-300 font-black text-[10px] sm:text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 truncate">
                 <span>🎯</span>
-                <span>ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</span>
+                <span class="truncate">ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</span>
               </span>
-              <span class="text-[10px] text-teal-400 font-mono font-bold bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/30">MANAGER</span>
+              <span class="text-[10px] text-teal-400 font-mono font-bold bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/30 shrink-0">MANAGER</span>
             </div>
 
             <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
@@ -10134,8 +10134,8 @@ function renderSalesResetContent() {
                 <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ស្រឿន លាងហាក់</h3>
                 <p class="text-xs sm:text-sm font-bold text-teal-400 mt-0.5 tracking-wide">Sroeun Leanghak</p>
                 <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</p>
-                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-teal-500/20 text-teal-300 font-bold text-[9.5px] border border-teal-500/40">
+                <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-teal-500/20 text-teal-300 font-bold text-[9px] sm:text-[9.5px] border border-teal-500/40 whitespace-nowrap shrink-0">
                     CUSTOMER CARE & TEAM UNITY
                   </span>
                 </div>
@@ -10178,17 +10178,17 @@ function renderSalesResetContent() {
         </div>
 
         <!-- Slide 7: អ្នកគ្រូ សូត្រ ម៉ាស់យ៉ា -->
-        <div id="trainer-slide-masya" class="w-full min-w-full shrink-0 snap-center">
+        <div id="trainer-slide-masya" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-pink-500/35 relative overflow-hidden bg-gradient-to-br from-pink-500/15 via-[#170E22] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-pink-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
             <!-- Top Header Tags -->
             <div class="flex items-center justify-between mb-3">
-              <span class="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-500/40 text-rose-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+              <span class="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-500/40 text-rose-300 font-black text-[10px] sm:text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 truncate">
                 <span>🌸</span>
-                <span>អ្នកជំនាញសុខភាព</span>
+                <span class="truncate">អ្នកជំនាញសុខភាព</span>
               </span>
-              <span class="text-[10px] text-rose-400 font-mono font-bold bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/30">HEALTH</span>
+              <span class="text-[10px] text-rose-400 font-mono font-bold bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/30 shrink-0">HEALTH</span>
             </div>
 
             <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
@@ -10207,8 +10207,8 @@ function renderSalesResetContent() {
                 <p class="text-xs sm:text-sm font-bold text-rose-300 mt-0.5 tracking-wide">Coach Sot Masya</p>
                 <!-- ជួរទី ៣ ៖ តួនាទី -->
                 <p class="text-xs text-slate-300 font-medium mt-0.5">អ្នកចែករំលែកចំណេះដឹងសុខភាព</p>
-                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-pink-500/20 text-rose-300 font-bold text-[9.5px] border border-pink-500/40">
+                <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-pink-500/20 text-rose-300 font-bold text-[9px] sm:text-[9.5px] border border-pink-500/40 whitespace-nowrap shrink-0">
                     HEALTH & WELLNESS
                   </span>
                 </div>
@@ -10251,17 +10251,17 @@ function renderSalesResetContent() {
         </div>
 
         <!-- Slide 8: លោក ស្ដី ស្ដើង -->
-        <div id="trainer-slide-sdoeung" class="w-full min-w-full shrink-0 snap-center">
+        <div id="trainer-slide-sdoeung" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-sky-500/35 relative overflow-hidden bg-gradient-to-br from-sky-500/15 via-[#0C1B33] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-sky-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
             <!-- Top Header Tags -->
             <div class="flex items-center justify-between mb-3">
-              <span class="px-3 py-1 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+              <span class="px-3 py-1 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 font-black text-[10px] sm:text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 truncate">
                 <span>💻</span>
-                <span>Technical & Software</span>
+                <span class="truncate">Technical & Software</span>
               </span>
-              <span class="text-[10px] text-sky-400 font-mono font-bold bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/30">MANAGER</span>
+              <span class="text-[10px] text-sky-400 font-mono font-bold bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/30 shrink-0">MANAGER</span>
             </div>
 
             <!-- Horizontal Profile Row (ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
@@ -10279,9 +10279,9 @@ function renderSalesResetContent() {
                 <p class="text-xs sm:text-sm font-bold text-sky-400 mt-0.5 tracking-wide">Sdey Sdoeung</p>
                 <!-- ជួរទី ៣ ៖ តួនាទី -->
                 <p class="text-xs text-slate-300 font-medium mt-0.5">Manager</p>
-                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 font-bold text-[9.5px] border border-sky-500/40">
-                    AI • SD DASHBOARD • FB PAGE • VIDEO EDITING
+                <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 font-bold text-[9px] sm:text-[9.5px] border border-sky-500/40 whitespace-nowrap shrink-0">
+                    PAGE TECH • VIDEO • APP DEV
                   </span>
                 </div>
               </div>
