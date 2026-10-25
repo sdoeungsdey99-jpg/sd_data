@@ -1909,22 +1909,6 @@ function hookScrollableForDock(el, isMain = false) {
           expFilterBar.classList.add('filter-hidden');
         }
       }
-      if (el.id === 'cod-thai-orders-list' || el.id === 'cod-modal-table-container') {
-        const searchInput = document.getElementById('cod-thai-search-input');
-        const isTyping = (document.activeElement === searchInput);
-        if (!isTyping) {
-          const tabsBar = document.getElementById('cod-modal-tabs-bar');
-          if (tabsBar && !tabsBar.classList.contains('filter-hidden')) {
-            tabsBar.classList.add('filter-hidden');
-          }
-          if (el.id === 'cod-thai-orders-list') {
-            const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
-            if (thaiFilterBar && !thaiFilterBar.classList.contains('filter-hidden')) {
-              thaiFilterBar.classList.add('filter-hidden');
-            }
-          }
-        }
-      }
     }
     // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock & Filter Bar
     else if (diff < -6 || currentScrollTop <= 15) {
@@ -1949,16 +1933,6 @@ function hookScrollableForDock(el, isMain = false) {
           const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
           if (expFilterBar && expFilterBar.classList.contains('filter-hidden')) {
             expFilterBar.classList.remove('filter-hidden');
-          }
-        }
-        if (el.id === 'cod-thai-orders-list' || el.id === 'cod-modal-table-container') {
-          const tabsBar = document.getElementById('cod-modal-tabs-bar');
-          const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
-          if (tabsBar && tabsBar.classList.contains('filter-hidden')) {
-            tabsBar.classList.remove('filter-hidden');
-          }
-          if (thaiFilterBar && thaiFilterBar.classList.contains('filter-hidden')) {
-            thaiFilterBar.classList.remove('filter-hidden');
           }
         }
       }
@@ -12122,8 +12096,74 @@ function closePayablesModal() {
 // COD Receivables Full Drill-down Modal (Note 2)
 // ==========================================
 let activeCodModalTab = 'summary'; // 'summary' | 'thai'
-let thaiCodPhaseFilter = 'all';    // 'all' | '1st' | '2nd' | '3rd' | 'prepared'
+let thaiCodPhaseFilter = '1st';     // '1st' | '2nd' | '3rd'
 let thaiCodSearchQuery = '';
+
+const THAI_COD_DROPS_SCHEDULE = [
+  { drop: '01', day: 5, label: 'ជើងទី 01', text: 'ទម្លាក់ថ្ងៃ 05' },
+  { drop: '02', day: 9, label: 'ជើងទី 02', text: 'ទម្លាក់ថ្ងៃ 09' },
+  { drop: '03', day: 13, label: 'ជើងទី 03', text: 'ទម្លាក់ថ្ងៃ 13' },
+  { drop: '04', day: 17, label: 'ជើងទី 04', text: 'ទម្លាក់ថ្ងៃ 17' },
+  { drop: '05', day: 21, label: 'ជើងទី 05', text: 'ទម្លាក់ថ្ងៃ 21' },
+  { drop: '06', day: 25, label: 'ជើងទី 06', text: 'ទម្លាក់ថ្ងៃ 25' },
+  { drop: '07', day: 29, label: 'ជើងទី 07', text: 'ទម្លាក់ថ្ងៃ 29' },
+  { drop: '08', day: 1, label: 'ជើងទី 08', text: 'ទម្លាក់ថ្ងៃ 01' }
+];
+
+function getKhmerFullDateString(d = new Date()) {
+  const khmerDays = ['អាទិត្យ', 'ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
+  const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const dayName = khmerDays[d.getDay()];
+  const dayNum = String(d.getDate()).padStart(2, '0');
+  const monthName = khmerMonths[d.getMonth()];
+  const yearNum = d.getFullYear();
+  return `ថ្ងៃ ${dayName} ទី ${dayNum} ខែ ${monthName} ឆ្នាំ ${yearNum}`;
+}
+
+function openThaiCodScheduleModal() {
+  const modal = document.getElementById('thai-cod-schedule-modal');
+  const listEl = document.getElementById('thai-cod-schedule-list');
+  const todayEl = document.getElementById('thai-cod-schedule-today');
+  if (!modal) return;
+
+  const today = new Date();
+  const currentDay = today.getDate();
+
+  if (todayEl) {
+    todayEl.textContent = getKhmerFullDateString(today);
+  }
+
+  if (listEl) {
+    listEl.innerHTML = THAI_COD_DROPS_SCHEDULE.map(item => {
+      const isToday = (item.day === currentDay);
+      if (isToday) {
+        return `
+          <div class="flex items-center justify-between p-2 px-3 rounded-xl bg-orange-500/20 border border-orange-500/40 text-xs shadow-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-orange-300 font-bold">${item.label}</span>
+              <span class="px-1.5 py-0.5 rounded-full bg-orange-500 text-black font-bold text-[9px] uppercase tracking-wide">📍 ថ្ងៃនេះ</span>
+            </div>
+            <span class="font-mono font-bold text-white text-xs">${item.text}</span>
+          </div>
+        `;
+      }
+      return `
+        <div class="flex items-center justify-between p-2 px-3 rounded-xl bg-white/5 border border-white/5 text-xs hover:border-white/10 transition">
+          <span class="text-slate-300 font-medium">${item.label}</span>
+          <span class="font-mono font-semibold text-orange-400 text-xs">${item.text}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeThaiCodScheduleModal() {
+  const modal = document.getElementById('thai-cod-schedule-modal');
+  if (modal) modal.classList.add('hidden');
+}
 
 const COD_STATUS_OPTIONS = [
   'បានដាក់ការកុម្ម៉ង់',
@@ -12158,11 +12198,6 @@ function openCodModal() {
   const modal = document.getElementById('cod-modal');
   if (!modal) return;
 
-  const tabsBar = document.getElementById('cod-modal-tabs-bar');
-  const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
-  if (tabsBar) tabsBar.classList.remove('filter-hidden');
-  if (thaiFilterBar) thaiFilterBar.classList.remove('filter-hidden');
-
   renderCodSummary();
   switchCodModalTab(activeCodModalTab || 'summary');
 
@@ -12178,10 +12213,7 @@ function openCodModal() {
 function closeCodModal() {
   const modal = document.getElementById('cod-modal');
   if (modal) modal.classList.add('hidden');
-  const tabsBar = document.getElementById('cod-modal-tabs-bar');
-  const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
-  if (tabsBar) tabsBar.classList.remove('filter-hidden');
-  if (thaiFilterBar) thaiFilterBar.classList.remove('filter-hidden');
+  closeThaiCodScheduleModal();
   setDockVisible(true);
 }
 
@@ -12191,11 +12223,6 @@ function switchCodModalTab(tab) {
   const thaiBtn = document.getElementById('cod-tab-thai-btn');
   const summaryView = document.getElementById('cod-summary-view');
   const thaiView = document.getElementById('cod-thai-view');
-
-  const tabsBar = document.getElementById('cod-modal-tabs-bar');
-  const thaiFilterBar = document.getElementById('cod-thai-search-filter-bar');
-  if (tabsBar) tabsBar.classList.remove('filter-hidden');
-  if (thaiFilterBar) thaiFilterBar.classList.remove('filter-hidden');
 
   if (tab === 'summary') {
     if (summaryBtn) {
@@ -12230,10 +12257,16 @@ function renderCodSummary() {
   const footer = document.getElementById('cod-modal-footer');
   if (!tbody) return;
 
-  // Sort descending from 31 down to 01
-  const items = [...(d.pendingCodReceivables || [])].sort((a, b) => {
-    return (b.date || '').localeCompare(a.date || '');
-  });
+  // Filter out: បានទូទាត់, Canceled, ហ្វ្រី (Free)
+  const items = [...(d.pendingCodReceivables || [])]
+    .filter(item => {
+      const s = String(item.status || '').trim();
+      if (s.includes('បានទូទាត់') || s.includes('Canceled') || s.includes('ហ្វ្រី') || s.toLowerCase().includes('free')) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   if (countBadge) countBadge.textContent = items.length;
 
@@ -12350,13 +12383,12 @@ function getFilteredThaiCodOrders() {
   });
 
   // Filter by Phase pill
-  if (thaiCodPhaseFilter && thaiCodPhaseFilter !== 'all') {
+  if (thaiCodPhaseFilter) {
     orders = orders.filter(o => {
       const st = String(o.codStatus || '');
       if (thaiCodPhaseFilter === '1st') return st.includes('1st');
       if (thaiCodPhaseFilter === '2nd') return st.includes('2nd');
       if (thaiCodPhaseFilter === '3rd') return st.includes('3rd');
-      if (thaiCodPhaseFilter === 'prepared') return st.includes('រៀបចំ');
       return true;
     });
   }
