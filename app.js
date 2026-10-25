@@ -1298,6 +1298,17 @@ function handleBackNavigation() {
     }
   }
 
+  // 1b-2. If inside Team Members Detail View -> step back to Team Members List first!
+  const teamModalNav = document.getElementById('team-members-modal');
+  if (teamModalNav && !teamModalNav.classList.contains('hidden')) {
+    const teamDetailView = document.getElementById('team-members-detail-view');
+    if (teamDetailView && !teamDetailView.classList.contains('hidden')) {
+      if (typeof backToTeamMembersList === 'function') backToTeamMembersList();
+      if (navigator.vibrate) navigator.vibrate(15);
+      return true;
+    }
+  }
+
   // 1c. Close any open Profile Sub-Modal -> returns to Profile Drawer!
   if (!document.getElementById('attendance-leave-modal')?.classList?.contains('hidden')) {
     closeAttendanceLeaveModal();
@@ -1498,10 +1509,15 @@ function setupSwipeToBack() {
     const isDailyBreakdownOpen = dailyBreakdownEl && !dailyBreakdownEl.classList.contains('hidden');
     const execModalEl = document.getElementById('executive-hierarchy-modal');
     const isExecModalOpen = execModalEl && !execModalEl.classList.contains('hidden');
+    const teamModalEl = document.getElementById('team-members-modal');
+    const isTeamModalOpen = teamModalEl && !teamModalEl.classList.contains('hidden');
 
     if (isDailyBreakdownOpen && touchStartX <= 80) {
       isPotentialSwipe = true;
       swipeOrigin = 'member-daily-breakdown-modal';
+    } else if (isTeamModalOpen && touchStartX <= 80) {
+      isPotentialSwipe = true;
+      swipeOrigin = 'team-members-modal';
     } else if (isExecModalOpen && touchStartX <= 80) {
       isPotentialSwipe = true;
       swipeOrigin = 'executive-hierarchy-modal';
@@ -1568,6 +1584,14 @@ function setupSwipeToBack() {
     if (swipeOrigin === 'executive-hierarchy-modal') {
       if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
         closeExecutiveHierarchyModal();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        isPotentialSwipe = false;
+        return;
+      }
+    }
+    if (swipeOrigin === 'team-members-modal') {
+      if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
+        handleBackNavigation();
         if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
         isPotentialSwipe = false;
         return;
@@ -1658,10 +1682,15 @@ function setupSwipeToBack() {
     const isDailyBreakdownOpen = dailyBreakdownEl && !dailyBreakdownEl.classList.contains('hidden');
     const execModalEl = document.getElementById('executive-hierarchy-modal');
     const isExecModalOpen = execModalEl && !execModalEl.classList.contains('hidden');
+    const teamModalEl = document.getElementById('team-members-modal');
+    const isTeamModalOpen = teamModalEl && !teamModalEl.classList.contains('hidden');
 
     if (isDailyBreakdownOpen && touchStartX <= 80) {
       isPotentialSwipe = true;
       swipeOrigin = 'member-daily-breakdown-modal';
+    } else if (isTeamModalOpen && touchStartX <= 80) {
+      isPotentialSwipe = true;
+      swipeOrigin = 'team-members-modal';
     } else if (isExecModalOpen && touchStartX <= 80) {
       isPotentialSwipe = true;
       swipeOrigin = 'executive-hierarchy-modal';
@@ -1756,8 +1785,7 @@ function isDialogModalOpen() {
     'about-modal',
     'global-search-modal',
     'profile-settings-search-modal',
-    'honors-modal',
-    'team-members-modal'
+    'honors-modal'
   ];
   return ids.some(id => {
     const el = document.getElementById(id);
@@ -4901,12 +4929,12 @@ function getExecutiveHierarchyParsedData(d, statsMap) {
 // ==========================================
 // BOSTARTRACK TEAM TARGET & DAILY BREAKDOWN
 // ==========================================
-function getMemberBostarTrackSetsAndDaily(memberName, d) {
+function getMemberBostarTrackSetsAndDaily(memberName, d, monthOverride = null) {
   const normName = normalizeSellerName(memberName);
   const allOrders = (d && Array.isArray(d.bostarTrackSales)) ? d.bostarTrackSales : [];
   
-  let targetMonth = execHierarchyFilterState.selectedMonth;
-  if (!targetMonth || execHierarchyFilterState.mode === 'all') {
+  let targetMonth = monthOverride || (typeof teamMembersFilterState !== 'undefined' && teamMembersFilterState.selectedMonth) || (typeof execHierarchyFilterState !== 'undefined' && execHierarchyFilterState.selectedMonth);
+  if (!targetMonth || targetMonth === 'all') {
     const now = new Date();
     targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
@@ -17024,7 +17052,10 @@ function handleHeaderScrollToTop(e, targetId = null) {
         { modalId: 'profile-drawer-modal', listId: 'profile-drawer-content' },
         { modalId: 'daily-report-modal', listId: 'daily-report-body-content' },
         { modalId: 'executive-hierarchy-modal', listId: 'executive-hierarchy-scroll-body' },
-        { modalId: 'team-members-modal', listId: 'team-members-list' },
+        { modalId: 'team-members-modal', listId: () => {
+          const det = document.getElementById('team-members-detail-view');
+          return (det && !det.classList.contains('hidden')) ? 'team-members-detail-view' : 'team-members-list';
+        }},
         { modalId: 'tutorial-modal', listId: 'tutorial-modal-body' },
         { modalId: 'honors-modal', listId: 'honors-modal-body' },
         { modalId: 'edit-profile-modal', listId: 'edit-profile-body' },
@@ -23778,6 +23809,11 @@ function backToTeamMembersList() {
   const detailView = document.getElementById('team-members-detail-view');
   if (listView) listView.classList.remove('hidden');
   if (detailView) detailView.classList.add('hidden');
+  const listEl = document.getElementById('team-members-list');
+  if (listEl && typeof hookScrollableForDock === 'function') {
+    hookScrollableForDock(listEl, false);
+  }
+  setDockVisible(true);
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -24017,158 +24053,193 @@ function openTeamMemberDetail(sellerKmName) {
   detailView.classList.remove('hidden');
   detailView.scrollTop = 0;
 
-  if (isSelf) {
-    // ==========================================
-    // VIEWING OWN PROFILE (មានសិទ្ធិកែ និងកំណត់ឯកជនភាព)
-    // ==========================================
-    detailView.innerHTML = `
-      <!-- Top Action Bar for Detail View -->
-      <div class="flex items-center justify-between pb-1">
-        <button onclick="backToTeamMembersList()" 
-                class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
-          <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
-          <span>បញ្ជីសមាជិក</span>
-        </button>
-        <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
-      </div>
+  // Auto Dock Hook for Member Detail View (minimizes dock on scroll down, shows on scroll up)
+  if (typeof hookScrollableForDock === 'function') {
+    hookScrollableForDock(detailView, false);
+  }
 
-      <!-- Member Identity Header Card (Own Account) -->
-      <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/25 via-amber-500/15 to-transparent border border-orange-500/35 flex items-center gap-3.5 shadow-lg">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
-          ${seller.km.slice(0, 2)}
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2 flex-wrap">
-            <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
-            ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-            ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">' : ''}
-            <span class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-mono text-[9px] font-bold">👤 គណនីរបស់អ្នក</span>
-          </div>
-          <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
-          <span class="inline-block mt-1 text-[10px] text-amber-300 font-medium">✨ សមាជិកក្រុម BostarGroup</span>
-        </div>
-      </div>
+  // Calculate Daily Breakdown for this Member (Month view)
+  const now = new Date();
+  const currentIsoDay = getLocalIsoDate(now);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  let targetMonth = (typeof teamMembersFilterState !== 'undefined' && teamMembersFilterState.selectedMonth) 
+    ? teamMembersFilterState.selectedMonth 
+    : currentIsoMonth;
+  if (!targetMonth || targetMonth === 'all') {
+    targetMonth = currentIsoMonth;
+  }
 
+  const dailyData = getMemberBostarTrackSetsAndDaily(seller.km, d, targetMonth);
+  const safeName = (seller.km || '').replace(/'/g, "\\'");
+  const currentDetailFilter = window.teamMemberDetailFilterMode || 'all';
+  const rowsToDisplay = (currentDetailFilter === 'active')
+    ? dailyData.dailyRows.filter(r => r.totalBoxes > 0)
+    : dailyData.dailyRows;
+
+  detailView.innerHTML = `
+    <!-- Top Action Bar for Detail View (Image 1) -->
+    <div class="flex items-center justify-between pb-1">
+      <button onclick="backToTeamMembersList()" 
+              class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
+        <span>បញ្ជីសមាជិក</span>
+      </button>
+      <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
+    </div>
+
+    <!-- Member Identity Header Card (Image 1) -->
+    <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-3.5 shadow-lg">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
+        ${seller.km.slice(0, 2)}
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
+          ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+          ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">' : ''}
+          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">${isSelf ? '👤 គណនីរបស់អ្នក' : 'ACTIVE'}</span>
+        </div>
+        <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
+        <span class="inline-block mt-1 text-[10px] text-amber-300 font-medium">✨ សមាជិកក្រុម BostarGroup</span>
+      </div>
+    </div>
+
+    ${isSelf ? `
       <!-- Action Buttons for Self (កែប្រែ & ឯកជនភាព) -->
       <div class="grid grid-cols-2 gap-2">
         <button onclick="closeTeamMembersModal(); openEditProfileModal();" 
-                class="py-2.5 px-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-md shadow-orange-500/20">
-          <i data-lucide="user-pen" class="w-4 h-4"></i>
+                class="py-2 px-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-md shadow-orange-500/20">
+          <i data-lucide="user-pen" class="w-3.5 h-3.5"></i>
           <span>កែប្រែ Profile</span>
         </button>
         <button onclick="closeTeamMembersModal(); openProfileDrawer();" 
-                class="py-2.5 px-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-sm">
-          <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i>
+                class="py-2 px-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="shield" class="w-3.5 h-3.5 text-amber-400"></i>
           <span>ការកំណត់ឯកជនភាព</span>
         </button>
       </div>
+    ` : ''}
 
-      <!-- Performance KPI Grid (Full for Self) -->
-      <div class="grid grid-cols-3 gap-2">
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-          <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់</span>
-          <span class="font-mono font-bold text-base text-emerald-400 block">${totalBoxes}</span>
-          <span class="text-[9px] text-slate-500 font-mono">ប្រអប់</span>
-        </div>
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-          <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់</span>
-          <span class="font-mono font-bold text-base text-sky-400 block">${totalOrders}</span>
-          <span class="text-[9px] text-slate-500 font-mono">ជោគជ័យ</span>
-        </div>
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-          <span class="text-[10px] text-slate-400 block font-semibold">💵 ទឹកប្រាក់សរុប</span>
-          <span class="font-mono font-bold text-base text-amber-400 block">$${totalRevenue.toFixed(0)}</span>
-          <span class="text-[9px] text-slate-500 font-mono">USD</span>
-        </div>
+    <!-- Performance KPI Grid (Image 1: 2 Cards - NO Target Bar, NO Boost) -->
+    <div class="grid grid-cols-2 gap-2.5">
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+        <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់សរុប</span>
+        <span class="font-mono font-bold text-lg text-emerald-400 block">${totalBoxes}</span>
+        <span class="text-[9.5px] text-slate-500 font-mono">ប្រអប់</span>
       </div>
+      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
+        <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់សរុប</span>
+        <span class="font-mono font-bold text-lg text-sky-400 block">${totalOrders}</span>
+        <span class="text-[9.5px] text-slate-500 font-mono">ជោគជ័យ</span>
+      </div>
+    </div>
 
-      <!-- Recent Orders by this Member (Self View) -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
-        <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 mb-1">
-          <i data-lucide="history" class="w-3.5 h-3.5 text-sky-400"></i>
-          <span>ប្រវត្តិការលក់របស់អ្នក (${sales.length} កុម្ម៉ង់)</span>
-        </span>
-        ${sales.length === 0 ? `
-          <p class="text-[11px] text-slate-400 text-center py-5">មិនមានទិន្នន័យការលក់ក្នុងកាលបរិច្ឆេទនេះទេ</p>
-        ` : `
-          <div class="space-y-1.5 max-h-64 overflow-y-auto no-scrollbar">
-            ${sales.slice(0, 15).map(o => `
-              <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-xs">
-                <div>
-                  <span class="font-semibold text-white block text-[11px]">${escapeHtml(o.customer || o.customerName || 'អតិថិជន')}</span>
-                  <span class="text-[9.5px] text-slate-400 font-mono">${o.date || o.orderDate || ''} • ${escapeHtml(o.delivery || 'ដឹកជញ្ជូន')}</span>
-                </div>
-                <div class="text-right">
-                  <span class="font-mono font-bold text-emerald-400 text-xs">${o.totalBoxQty || o.boxes || 0} ប្រអប់</span>
-                  <span class="text-[9.5px] text-amber-400 font-mono block">$${Number(o.totalAmount || o.price || 0).toFixed(2)}</span>
-                </div>
-              </div>
-            `).join('')}
+    <!-- Detailed Daily Breakdown Table (ជំនួសរូបទី២ ដោយគ្មានរបារគោលដៅ ឬ Boost) -->
+    <div class="space-y-2 pt-1 pb-16">
+      <div class="flex items-center justify-between px-1">
+        <div class="flex items-center gap-1.5">
+          <div class="w-5 h-5 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <i data-lucide="calendar" class="w-3 h-3"></i>
           </div>
-        `}
-      </div>
-    `;
-  } else {
-    // ==========================================
-    // VIEWING ANOTHER MEMBER (លាក់ព័ត៌មានលម្អិត & ចំណូល រក្សាឯកជនភាព)
-    // ==========================================
-    detailView.innerHTML = `
-      <!-- Top Action Bar for Detail View -->
-      <div class="flex items-center justify-between pb-1">
-        <button onclick="backToTeamMembersList()" 
-                class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
-          <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
-          <span>បញ្ជីសមាជិក</span>
-        </button>
-        <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
+          <span class="text-xs font-bold text-slate-200 font-sans">តារាងលម្អិតលក់ប្រចាំថ្ងៃ (${dailyData.monthLabel})</span>
+        </div>
+        <span class="text-[10px] text-slate-400 font-mono">${rowsToDisplay.length} ថ្ងៃ</span>
       </div>
 
-      <!-- Member Identity Header Card -->
-      <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-3.5 shadow-lg">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
-          ${seller.km.slice(0, 2)}
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2 flex-wrap">
-            <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
-            ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-            ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">' : ''}
-            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">ACTIVE</span>
-          </div>
-          <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
-          <span class="inline-block mt-1 text-[10px] text-amber-300 font-medium">✨ សមាជិកក្រុម BostarGroup</span>
-        </div>
-      </div>
+      <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-hidden relative">
+        <table class="w-full text-center text-xs border-collapse">
+          <!-- Table Header (Sticky Locked When Scrolling) -->
+          <thead class="sticky top-0 z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
+            <tr class="bg-[#0B1528]">
+              <th onclick="toggleTeamMemberDetailFilterMode('${safeName}')" 
+                  class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
+                  title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
+                <div class="flex items-center gap-1">
+                  <span>ថ្ងៃ</span>
+                  <span class="text-[8.5px] px-1.5 py-0.5 rounded font-sans font-medium transition ${currentDetailFilter === 'active' ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm' : 'bg-white/10 text-slate-400 border border-white/10'}">
+                    ${currentDetailFilter === 'active' ? 'លក់បាន ▾' : 'ទាំងអស់ ▾'}
+                  </span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.setCounts[1] || 0}</span>
+                  <span class="text-[9px] text-slate-400">ឈុត ១</span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.setCounts[2] || 0}</span>
+                  <span class="text-[9px] text-slate-400">ឈុត ២</span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.setCounts[3] || 0}</span>
+                  <span class="text-[9px] text-slate-400">ឈុត ៣</span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.setCounts[5] || 0}</span>
+                  <span class="text-[9px] text-slate-400">ឈុត ៥</span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.setCounts[6] || 0}</span>
+                  <span class="text-[9px] text-slate-400">ឈុត ៦</span>
+                </div>
+              </th>
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.totalBoxes}</span>
+                  <span class="text-[9px] text-emerald-400 font-bold">សរុប</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
 
-      <!-- Performance KPI Grid (បង្ហាញតែចំនួនសរុប និងចំនួនកុម្ម៉ង់ប៉ុណ្ណោះ) -->
-      <div class="grid grid-cols-2 gap-2.5">
-        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-          <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់សរុប</span>
-          <span class="font-mono font-bold text-lg text-emerald-400 block">${totalBoxes}</span>
-          <span class="text-[9.5px] text-slate-500 font-mono">ប្រអប់</span>
-        </div>
-        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-          <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់សរុប</span>
-          <span class="font-mono font-bold text-lg text-sky-400 block">${totalOrders}</span>
-          <span class="text-[9.5px] text-slate-500 font-mono">ជោគជ័យ</span>
-        </div>
+          <!-- Table Body Rows -->
+          <tbody class="divide-y divide-white/5 font-mono text-[11px]">
+            ${rowsToDisplay.length > 0 ? rowsToDisplay.map(r => {
+              const s1 = (r.sets[1] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">${r.sets[1]}</span>` : '<span class="text-slate-600">—</span>';
+              const s2 = (r.sets[2] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">${r.sets[2]}</span>` : '<span class="text-slate-600">—</span>';
+              const s3 = (r.sets[3] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">${r.sets[3]}</span>` : '<span class="text-slate-600">—</span>';
+              const s5 = (r.sets[5] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">${r.sets[5]}</span>` : '<span class="text-slate-600">—</span>';
+              const s6 = (r.sets[6] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">${r.sets[6]}</span>` : '<span class="text-slate-600">—</span>';
+              const tot = (r.totalBoxes > 0) ? `<span class="text-emerald-400 font-bold text-xs">${r.totalBoxes}</span>` : '<span class="text-slate-600">—</span>';
+              
+              return `
+                <tr class="hover:bg-white/[0.03] transition">
+                  <td class="py-2 px-2 text-left font-bold text-slate-300 text-[10.5px]">${r.dayLabel}</td>
+                  <td class="py-2 px-1.5">${s1}</td>
+                  <td class="py-2 px-1.5">${s2}</td>
+                  <td class="py-2 px-1.5">${s3}</td>
+                  <td class="py-2 px-1.5">${s5}</td>
+                  <td class="py-2 px-1.5">${s6}</td>
+                  <td class="py-2 px-2">${tot}</td>
+                </tr>
+              `;
+            }).join('') : `
+              <tr>
+                <td colspan="7" class="py-6 text-center text-xs text-slate-500 italic">មិនមានការលក់ក្នុងកាលបរិច្ឆេទនេះទេ</td>
+              </tr>
+            `}
+          </tbody>
+        </table>
       </div>
-
-      <!-- Privacy Protected Card (រក្សាឯកជនភាពអតិថិជន និងចំណូល) -->
-      <div class="p-4 rounded-2xl bg-black/35 border border-white/10 text-center space-y-2 select-none shadow-sm">
-        <div class="w-10 h-10 mx-auto rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
-          <i data-lucide="shield-check" class="w-5 h-5"></i>
-        </div>
-        <h5 class="text-xs font-bold text-slate-200">ទិន្នន័យឯកជនភាពត្រូវបានការពារ</h5>
-        <p class="text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto">
-          ប្រវត្តិកុម្ម៉ង់លម្អិត ព័ត៌មានអតិថិជន និងចំណូលលក់ ត្រូវបានរក្សាជាការសម្ងាត់ អាចមើលឃើញបានតែម្ចាស់គណនីផ្ទាល់ប៉ុណ្ណោះ។
-        </p>
-      </div>
-    `;
-  }
+    </div>
+  `;
 
   if (window.lucide) window.lucide.createIcons();
 }
+
+function toggleTeamMemberDetailFilterMode(sellerKmName) {
+  window.teamMemberDetailFilterMode = (window.teamMemberDetailFilterMode === 'active') ? 'all' : 'active';
+  openTeamMemberDetail(sellerKmName);
+}
+window.toggleTeamMemberDetailFilterMode = toggleTeamMemberDetailFilterMode;
 
 function openMemberDetailCard(sellerKmName) {
   openTeamMemberDetail(sellerKmName);
