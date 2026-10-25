@@ -4300,6 +4300,7 @@ function handleDirectorClick(event) {
 }
 
 function selectExecutiveManager(mgrKm) {
+  execHierarchyFilterState.selectedSubLeader = null;
   if (execHierarchyFilterState.selectedManager === mgrKm) {
     execHierarchyFilterState.selectedManager = null;
   } else {
@@ -4311,6 +4312,7 @@ function selectExecutiveManager(mgrKm) {
 }
 
 function selectExecutiveLeader(ldrKm) {
+  execHierarchyFilterState.selectedSubLeader = null;
   if (execHierarchyFilterState.selectedLeader === ldrKm) {
     execHierarchyFilterState.selectedLeader = null;
   } else {
@@ -4321,21 +4323,44 @@ function selectExecutiveLeader(ldrKm) {
   if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
 }
 
-function getManagerTarget(mgrKm) {
+function selectExecutiveSubLeader(ldrKm, event) {
+  if (event) event.stopPropagation();
+  if (execHierarchyFilterState.selectedSubLeader === ldrKm) {
+    execHierarchyFilterState.selectedSubLeader = null;
+  } else {
+    execHierarchyFilterState.selectedSubLeader = ldrKm;
+  }
+  renderExecutiveHierarchyModalContent();
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function getMonthlyTargetFromSheet(nameKm) {
   const d = (typeof DataService !== 'undefined' && DataService.data) ? DataService.data : null;
-  if (d && d.monthlyTargets) {
-    const cleanName = mgrKm.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
-    if (d.monthlyTargets[mgrKm]) return Number(d.monthlyTargets[mgrKm]);
-    if (d.monthlyTargets[cleanName]) return Number(d.monthlyTargets[cleanName]);
-    for (const [k, v] of Object.entries(d.monthlyTargets)) {
-      if (k.includes(cleanName) || cleanName.includes(k)) return Number(v);
+  if (!d || !d.monthlyTargets) return 0;
+  const cleanName = nameKm.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+  const norm = (typeof normalizeSellerName === 'function') ? normalizeSellerName(nameKm) : cleanName.toLowerCase();
+  if (d.monthlyTargets[nameKm]) return Number(d.monthlyTargets[nameKm]);
+  if (d.monthlyTargets[cleanName]) return Number(d.monthlyTargets[cleanName]);
+  if (d.monthlyTargets[norm]) return Number(d.monthlyTargets[norm]);
+  for (const [k, v] of Object.entries(d.monthlyTargets)) {
+    const kClean = k.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+    const kNorm = (typeof normalizeSellerName === 'function') ? normalizeSellerName(k) : kClean.toLowerCase();
+    if (kClean === cleanName || kNorm === norm || (cleanName && kClean.includes(cleanName)) || (cleanName && cleanName.includes(kClean))) {
+      return Number(v);
     }
   }
-  try {
-    const saved = localStorage.getItem(`sd_mgr_target_${mgrKm}`);
-    if (saved && !isNaN(saved)) return Number(saved);
-  } catch (_) {}
-  return 100;
+  return 0;
+}
+
+function getManagerTarget(mgrKm) {
+  const t = getMonthlyTargetFromSheet(mgrKm);
+  return t > 0 ? t : 100;
+}
+
+function getLeaderTarget(ldrKm) {
+  const t = getMonthlyTargetFromSheet(ldrKm);
+  return t > 0 ? t : 0;
 }
 
 function setManagerTarget(mgrKm, targetVal) {
@@ -4788,10 +4813,15 @@ function getExecutiveHierarchyParsedData(d, statsMap) {
       displayOrders = teamMembers.reduce((acc, m) => acc + (Number(m.orders) || 0), 0);
     }
 
+    const targetBoxes = getLeaderTarget(l.km);
+    const targetPercent = targetBoxes > 0 ? Math.round((displayBoxes / targetBoxes) * 100) : 0;
+
     return {
       ...l,
       displayBoxes,
       displayOrders,
+      targetBoxes,
+      targetPercent,
       teamMembers
     };
   });
@@ -4969,16 +4999,15 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
   });
 
   const cleanKm = memberName.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
-  const rawTarget = (d && d.monthlyTargets) ? (d.monthlyTargets[memberName] || d.monthlyTargets[cleanKm] || d.monthlyTargets[normName]) : 0;
   const isSdey = (normName.includes('sdoeung') || cleanKm.includes('ស្ដី') || cleanKm.includes('ស្តី') || cleanKm.includes('ស្នឹង'));
-  const isSothy = (cleanKm.includes('សុធី') || normName.includes('sothy'));
-  const defaultTarget = rawTarget > 0 ? rawTarget : (isSdey ? 150 : (isSothy ? 100 : 50));
 
   const targetKey = `sd_target_${normName}_${targetMonth}`;
   const savedTarget = localStorage.getItem(targetKey) || localStorage.getItem(`sd_target_${normName}`);
-  const userTarget = savedTarget ? parseInt(savedTarget, 10) : 0;
-  const target = (userTarget > 0) ? userTarget : defaultTarget;
-  const percentage = target > 0 ? ((totalBoxes / target) * 100).toFixed(1) : '0.0';
+  const userTarget = (savedTarget && parseInt(savedTarget, 10) > 0) ? parseInt(savedTarget, 10) : null;
+  const target = userTarget;
+  const targetDisplay = (target !== null) ? String(target) : '--';
+  const percentage = (target !== null && target > 0) ? ((totalBoxes / target) * 100).toFixed(1) : null;
+  const percentageDisplay = (percentage !== null) ? `${percentage}%` : '--';
 
   const boostKey = `sd_boost_${normName}_${targetMonth}`;
   let boostSaved = localStorage.getItem(boostKey);
@@ -5004,8 +5033,10 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
   return {
     memberName,
     target,
+    targetDisplay,
     totalBoxes,
     percentage,
+    percentageDisplay,
     setCounts,
     dailyRows,
     monthLabel,
@@ -5044,7 +5075,9 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
   let groupTotalTarget = 0;
   const rosterData = teamRoster.map(mem => {
     const data = getMemberBostarTrackSetsAndDaily(mem.km, d);
-    groupTotalTarget += (data.target || 0);
+    if (data.target && data.target > 0) {
+      groupTotalTarget += data.target;
+    }
     return { mem, ...data };
   });
 
@@ -5060,7 +5093,7 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
         </div>
         <div class="px-2.5 sm:px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1.5 text-blue-300 text-[11px] sm:text-xs font-bold font-mono shrink-0">
           <span>🎯</span>
-          <span>${groupTotalTarget} ប្រអប់</span>
+          <span>${groupTotalTarget > 0 ? `${groupTotalTarget} ប្រអប់` : '--'}</span>
         </div>
       </div>
 
@@ -5074,6 +5107,7 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
             : (isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : '');
           const pctNum = parseFloat(item.percentage) || 0;
           const safeName = item.mem.km.replace(/'/g, "\\'");
+          const displayTargetText = item.targetDisplay || (item.target > 0 ? item.target : '--');
 
           return `
             <div onclick="openMemberDailyBreakdownModal('${safeName}')" 
@@ -5084,12 +5118,12 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
                   <span class="font-bold text-xs sm:text-sm text-white truncate">${item.mem.km}</span>
                   ${tickBadge}
                   <span class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono shrink-0">
-                    គោលដៅ: ${item.target}
+                    គោលដៅ: ${displayTargetText}
                   </span>
                 </div>
                 <div class="flex items-center gap-1 shrink-0 text-amber-400 font-bold text-xs sm:text-xs font-mono">
                   <span>${item.totalBoxes} ប្រអប់</span>
-                  <span class="text-amber-400/80">(${item.percentage}%)</span>
+                  ${item.percentageDisplay && item.percentageDisplay !== '--' ? `<span class="text-amber-400/80">(${item.percentageDisplay})</span>` : ''}
                   <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-400 transition"></i>
                 </div>
               </div>
@@ -5133,6 +5167,9 @@ function editMemberPersonalTarget(memberName) {
     const now = new Date();
     targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
+  const cleanKm = memberName.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+  const isSdey = (normName.includes('sdoeung') || cleanKm.includes('ស្ដី') || cleanKm.includes('ស្តី') || cleanKm.includes('ស្នឹង'));
+
   const targetKey = `sd_target_${normName}_${targetMonth}`;
   const currentVal = localStorage.getItem(targetKey) || localStorage.getItem(`sd_target_${normName}`) || '';
   const d = window.DataService && window.DataService.data ? window.DataService.data : null;
@@ -5232,103 +5269,106 @@ function openMemberDailyBreakdownModal(memberName) {
     </div>
 
     <!-- Scrollable Body (Image 2) with ID for tap-to-scroll-to-top -->
-    <div id="member-daily-breakdown-scroll-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 pb-32">
-      <!-- 3 Summary KPI Cards (Image 2) -->
-      <div class="grid grid-cols-3 gap-2">
-        <!-- 1. គោលដៅ (អាចកែប្រែបាន ជាមួយ icon edit លើស្តាំ) -->
-        <div onclick="editMemberPersonalTarget('${safeName}')" 
-             class="p-3 rounded-2xl bg-[#0F1B2E] border border-amber-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition relative group"
-             title="ចុចដើម្បីកែប្រែគោលដៅ">
-          <button type="button" class="absolute top-2 right-2 w-5 h-5 rounded-lg bg-amber-500/10 group-hover:bg-amber-500/25 text-amber-300 flex items-center justify-center transition border border-amber-500/20" title="កែប្រែគោលដៅ">
-            <i data-lucide="edit-3" class="w-3 h-3"></i>
-          </button>
-          <div class="text-[10px] text-amber-400 flex items-center justify-center gap-1 font-semibold pr-3">
-            <span>🎯</span>
-            <span>គោលដៅ</span>
+    <div id="member-daily-breakdown-scroll-body" class="flex-1 overflow-y-auto no-scrollbar pb-32">
+      <!-- 3 Summary KPI Cards (Image 2) with padding -->
+      <div class="p-3.5 pb-2.5">
+        <div class="grid grid-cols-3 gap-2">
+          <!-- 1. គោលដៅ (អាចកែប្រែបាន ជាមួយ icon edit លើស្តាំ, Default: --) -->
+          <div onclick="editMemberPersonalTarget('${safeName}')" 
+               class="p-3 rounded-2xl bg-[#0F1B2E] border border-amber-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition relative group"
+               title="ចុចដើម្បីកែប្រែគោលដៅ">
+            <button type="button" class="absolute top-2 right-2 w-5 h-5 rounded-lg bg-amber-500/10 group-hover:bg-amber-500/25 text-amber-300 flex items-center justify-center transition border border-amber-500/20" title="កែប្រែគោលដៅ">
+              <i data-lucide="edit-3" class="w-3 h-3"></i>
+            </button>
+            <div class="text-[10px] text-amber-400 flex items-center justify-center gap-1 font-semibold pr-3">
+              <span>🎯</span>
+              <span>គោលដៅ</span>
+            </div>
+            <div class="text-base sm:text-lg font-black text-white font-mono">${data.targetDisplay || '--'}</div>
           </div>
-          <div class="text-base sm:text-lg font-black text-white font-mono">${data.target}</div>
-        </div>
 
-        <!-- 2. លក់បាន -->
-        <div class="p-3 rounded-2xl bg-[#0F1B2E] border border-white/10 text-center space-y-1 shadow-lg">
-          <div class="text-[10px] text-emerald-400 flex items-center justify-center gap-1 font-semibold">
-            <span>📦</span>
-            <span>លក់បាន</span>
+          <!-- 2. លក់បាន (Default បើគ្មានគោលដៅ គឺមិនទាន់លោតភាគរយទេ) -->
+          <div class="p-3 rounded-2xl bg-[#0F1B2E] border border-white/10 text-center space-y-1 shadow-lg">
+            <div class="text-[10px] text-emerald-400 flex items-center justify-center gap-1 font-semibold">
+              <span>📦</span>
+              <span>លក់បាន</span>
+            </div>
+            <div class="text-sm sm:text-base font-black text-emerald-400 font-mono">
+              ${data.totalBoxes} ${data.percentageDisplay !== '--' ? `<span class="text-[10.5px] font-bold text-emerald-400/80">(${data.percentageDisplay})</span>` : ''}
+            </div>
           </div>
-          <div class="text-sm sm:text-base font-black text-emerald-400 font-mono">
-            ${data.totalBoxes} <span class="text-[10.5px] font-bold text-emerald-400/80">(${data.percentage}%)</span>
-          </div>
-        </div>
 
-        <!-- 3. Boost (ជាមួយ icon edit លើស្តាំ) -->
-        <div onclick="editMemberPersonalBoost('${safeName}')" 
-             class="p-3 rounded-2xl bg-[#0F1B2E] border border-purple-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition relative group"
-             title="ចុចដើម្បីកែប្រែ Boost ផ្ទាល់ខ្លួន">
-          <button type="button" class="absolute top-2 right-2 w-5 h-5 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/25 text-purple-300 flex items-center justify-center transition border border-purple-500/20" title="កែប្រែ Boost">
-            <i data-lucide="edit-3" class="w-3 h-3"></i>
-          </button>
-          <div class="text-[10px] text-purple-300 flex items-center justify-center gap-1 font-semibold pr-3">
-            <i data-lucide="trending-up" class="w-3 h-3 text-purple-400"></i>
-            <span>Boost</span>
+          <!-- 3. Boost (ជាមួយ icon edit លើស្តាំ) -->
+          <div onclick="editMemberPersonalBoost('${safeName}')" 
+               class="p-3 rounded-2xl bg-[#0F1B2E] border border-purple-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition relative group"
+               title="ចុចដើម្បីកែប្រែ Boost ផ្ទាល់ខ្លួន">
+            <button type="button" class="absolute top-2 right-2 w-5 h-5 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/25 text-purple-300 flex items-center justify-center transition border border-purple-500/20" title="កែប្រែ Boost">
+              <i data-lucide="edit-3" class="w-3 h-3"></i>
+            </button>
+            <div class="text-[10px] text-purple-300 flex items-center justify-center gap-1 font-semibold pr-3">
+              <i data-lucide="trending-up" class="w-3 h-3 text-purple-400"></i>
+              <span>Boost</span>
+            </div>
+            <div class="text-sm sm:text-base font-black text-white font-mono">${data.boostDisplay}</div>
           </div>
-          <div class="text-sm sm:text-base font-black text-white font-mono">${data.boostDisplay}</div>
         </div>
       </div>
 
-      <!-- Detailed Daily Breakdown Table (7 Columns: ថ្ងៃ ▾ | ឈុត ១ | ឈុត ២ | ឈុត ៣ | ឈុត ៥ | ឈុត ៦ | សរុប) -->
-      <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-x-auto no-scrollbar relative">
-        <table class="w-full text-center text-xs border-collapse">
-          <!-- Table Header (ថ្ងៃ គ្មាន ទី - Sticky Locked when scrolling!) -->
-          <thead class="sticky top-0 z-20 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
-            <tr class="bg-[#0B1528]">
-              <th onclick="toggleMemberDailyFilterMode('${safeName}')" 
-                  class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
-                  title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
-                <div class="flex items-center gap-1">
-                  <span>ថ្ងៃ</span>
-                  <span class="text-[8.5px] px-1.5 py-0.5 rounded font-sans font-medium transition ${currentFilter === 'active' ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm' : 'bg-white/10 text-slate-400 border border-white/10'}">
-                    ${currentFilter === 'active' ? 'លក់បាន ▾' : 'ទាំងអស់ ▾'}
-                  </span>
-                </div>
-              </th>
-              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-1.5 font-bold">
-                <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[1] || 0}</span>
-                  <span class="text-[9px] text-slate-400">ឈុត ១</span>
-                </div>
-              </th>
-              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-1.5 font-bold">
-                <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[2] || 0}</span>
-                  <span class="text-[9px] text-slate-400">ឈុត ២</span>
-                </div>
-              </th>
-              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-1.5 font-bold">
-                <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[3] || 0}</span>
-                  <span class="text-[9px] text-slate-400">ឈុត ៣</span>
-                </div>
-              </th>
-              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-1.5 font-bold">
-                <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[5] || 0}</span>
-                  <span class="text-[9px] text-slate-400">ឈុត ៥</span>
-                </div>
-              </th>
-              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-1.5 font-bold">
-                <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[6] || 0}</span>
-                  <span class="text-[9px] text-slate-400">ឈុត ៦</span>
-                </div>
-              </th>
-              <th class="sticky top-0 z-20 bg-[#0B1528] py-2.5 px-2 font-bold">
-                <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.totalBoxes}</span>
-                  <span class="text-[9px] text-emerald-400 font-bold">សរុប</span>
-                </div>
-              </th>
-            </tr>
-          </thead>
+      <!-- Detailed Daily Breakdown Table Container (Sticky Header Locked on Scroll) -->
+      <div class="px-3.5">
+        <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-visible relative">
+          <table class="w-full text-center text-xs border-collapse">
+            <!-- Table Header (ថ្ងៃ គ្មាន ទី - Sticky Locked When Scrolling!) -->
+            <thead class="sticky top-0 z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
+              <tr class="bg-[#0B1528]">
+                <th onclick="toggleMemberDailyFilterMode('${safeName}')" 
+                    class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
+                    title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
+                  <div class="flex items-center gap-1">
+                    <span>ថ្ងៃ</span>
+                    <span class="text-[8.5px] px-1.5 py-0.5 rounded font-sans font-medium transition ${currentFilter === 'active' ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm' : 'bg-white/10 text-slate-400 border border-white/10'}">
+                      ${currentFilter === 'active' ? 'លក់បាន ▾' : 'ទាំងអស់ ▾'}
+                    </span>
+                  </div>
+                </th>
+                <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[1] || 0}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត ១</span>
+                  </div>
+                </th>
+                <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[2] || 0}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត ២</span>
+                  </div>
+                </th>
+                <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[3] || 0}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត ៣</span>
+                  </div>
+                </th>
+                <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[5] || 0}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត ៥</span>
+                  </div>
+                </th>
+                <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[6] || 0}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត ៦</span>
+                  </div>
+                </th>
+                <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.totalBoxes}</span>
+                    <span class="text-[9px] text-emerald-400 font-bold">សរុប</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
 
           <!-- Table Body Rows (7 Columns: Day, Set 1, Set 2, Set 3, Set 5, Set 6, Total) -->
           <tbody class="divide-y divide-white/5 font-mono text-[11px]">
@@ -5360,6 +5400,7 @@ function openMemberDailyBreakdownModal(memberName) {
         </table>
       </div>
     </div>
+  </div>
   `;
 
   modal.classList.remove('hidden');
@@ -5492,6 +5533,171 @@ function editMemberPersonalBoost(memberName) {
   }
 }
 
+function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isCardE = false) {
+  if (!selectedM) return '';
+  const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
+  const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
+  const origRank = (d && d.managersList && Array.isArray(d.managersList)) ? (d.managersList.findIndex(m => m.km === selectedM.km) + 1 || 1) : 1;
+  const rankBadge = getManagerRankBadge(origRank);
+
+  const selTargetBoxes = selectedM.targetBoxes || getManagerTarget(selectedM.km);
+  const selTargetPercent = selectedM.targetPercent || (selTargetBoxes > 0 ? Math.round(((Number(selectedM.displayBoxes) || 0) / selTargetBoxes) * 100) : 0);
+  const selBarWidth = Math.min(100, selTargetPercent || 100);
+
+  const collapseFn = (contextRole === 'leader') ? `selectExecutiveLeader('${selectedM.km}')` : `selectExecutiveManager('${selectedM.km}')`;
+  const selectedSubLeaderKm = execHierarchyFilterState.selectedSubLeader;
+
+  return `
+    <div class="space-y-3.5 ${isCardE ? 'relative z-10' : ''}">
+      <!-- Selected Manager Highlight Card (Read-Only Target from Sheet) -->
+      <div onclick="${collapseFn}" 
+           class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/40 shadow-lg shadow-amber-500/10 space-y-2.5 cursor-pointer active:scale-[0.99] transition group"
+           title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញទាំងអស់វិញ">
+        <div class="flex items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2.5 min-w-0">
+            ${rankBadge}
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-bold text-sm text-white">${selectedM.km}</span>
+                ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
+              </div>
+              <!-- Read-only Target from Google Sheet -->
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 text-[9.5px] font-mono flex items-center gap-1">
+                  <span class="text-amber-400">🎯 គោលដៅ:</span>
+                  <span class="font-bold text-white">${selTargetBoxes > 0 ? selTargetBoxes : '--'}</span>
+                  <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                </span>
+                <span class="text-[9.5px] font-mono ${selTargetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                  (${selTargetPercent}%)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="text-right">
+              <div class="font-mono text-sm font-bold text-amber-300">${selectedM.displayBoxes} ប្រអប់</div>
+              <div class="text-[10px] font-mono text-slate-400">${selectedM.displayOrders} កុម្ម៉ង់</div>
+            </div>
+            <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-amber-300 font-semibold flex items-center gap-1 shadow-sm">
+              <i data-lucide="x" class="w-3 h-3"></i>
+              <span>បិទ</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+          <div class="h-1.5 ${selTargetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${selBarWidth}%"></div>
+        </div>
+      </div>
+
+      <!-- Leaders Section (Tap Leader to reveal their 300 target breakdown!) -->
+      ${selectedM.teamLeaders && selectedM.teamLeaders.length > 0 ? `
+        <div class="space-y-2">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider">
+              <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+              <span>Leader ក្នុងក្រុម (${selectedM.teamLeaders.length} រូប)</span>
+            </span>
+            <span class="text-[9.5px] text-slate-400">ចុចឈ្មោះ Leader ដើម្បីមើលគោលដៅ</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            ${selectedM.teamLeaders.map(tl => {
+              const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
+              const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
+              const isSelectedSub = (selectedSubLeaderKm === tl.km);
+              return `
+                <div class="space-y-2">
+                  <div onclick="selectExecutiveSubLeader('${tl.km}', event)" 
+                       class="p-2.5 rounded-xl ${isSelectedSub ? 'bg-sky-500/15 border-sky-400/50 shadow-md shadow-sky-500/10' : 'bg-black/40 border-white/5 hover:border-sky-400/30'} border flex items-center justify-between text-xs cursor-pointer active:scale-[0.99] transition group">
+                    <div>
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold ${isSelectedSub ? 'text-sky-300' : 'text-slate-200 group-hover:text-sky-300'} transition">${tl.km}</span>
+                        ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                        ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      </div>
+                      <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div class="text-right font-mono">
+                        <span class="text-sky-300 font-bold text-xs">${tl.displayBoxes} ប្រអប់</span>
+                        <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
+                      </div>
+                      <i data-lucide="${isSelectedSub ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5 ${isSelectedSub ? 'text-sky-400' : 'text-slate-500 group-hover:text-sky-400'} transition"></i>
+                    </div>
+                  </div>
+
+                  <!-- Revealed Team Target Card when this Leader is tapped -->
+                  ${isSelectedSub ? `
+                    <div class="animate-fadeIn">
+                      ${renderExecutiveLeaderTeamTargetCard(tl, d)}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Members Section (Image 1 Format) -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider">
+            <i data-lucide="users" class="w-3.5 h-3.5"></i>
+            <span>សមាជិកលក់ក្នុងក្រុម (${selectedM.teamMembers.length} នាក់)</span>
+          </span>
+          <span class="text-[9.5px] text-slate-400">ចុចឈ្មោះ Member មើលតារាងលម្អិត</span>
+        </div>
+
+        <div class="space-y-1.5 ${isCardE ? 'max-h-64 overflow-y-auto no-scrollbar pr-1' : ''}">
+          ${selectedM.teamMembers.length > 0 ? selectedM.teamMembers.map(mem => {
+            const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
+            const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+            const safeMemName = mem.km.replace(/'/g, "\\'");
+            return `
+              <div onclick="openMemberDailyBreakdownModal('${safeMemName}')" 
+                   class="p-2.5 rounded-xl bg-black/40 border border-white/5 hover:border-emerald-400/30 flex items-center justify-between gap-2 hover:bg-white/[0.04] cursor-pointer active:scale-[0.99] transition group shadow-sm"
+                   title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-bold text-xs text-white group-hover:text-emerald-300 transition truncate">${mem.km}</span>
+                      ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                      ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-0.5">
+                      Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 shrink-0 font-mono">
+                  <div class="text-right">
+                    <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
+                    <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                  </div>
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"></i>
+                </div>
+              </div>
+            `;
+          }).join('') : `
+            <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
+              មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
+            </div>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderExecutiveHierarchyModalContent() {
   const container = document.getElementById('executive-hierarchy-scroll-body');
   if (!container) return;
@@ -5561,7 +5767,8 @@ function renderExecutiveHierarchyModalContent() {
         const isSdoeung = (l.km && (l.km.includes('ស្ដី ស្ដើង') || l.km.includes('ស្តី ស្តើង')));
         const isBechNora = (l.km && (l.km.includes('ប៊ិច នោរ៉ា') || (l.en && l.en.toLowerCase().includes('bech nora'))));
         const percentOfTop = Math.min(100, Math.round(((Number(l.displayBoxes) || 0) / (topLeaderBoxes || 1)) * 100));
-        const barGradient = rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-sky-500 to-teal-400';
+        const barWidth = l.targetBoxes > 0 ? Math.min(100, l.targetPercent) : percentOfTop;
+        const barGradient = l.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-sky-500 to-teal-400');
 
         return `
           <div onclick="selectExecutiveLeader('${l.km}')" 
@@ -5576,10 +5783,18 @@ function renderExecutiveHierarchyModalContent() {
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[10px] text-slate-400 font-mono">(${l.en})</span>
                   </div>
-                  <div class="flex items-center gap-1.5 mt-1">
+                  <!-- Read-only Target from Google Sheet -->
+                  <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                     <span class="px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 text-[9.5px] font-mono flex items-center gap-1">
-                      <i data-lucide="users" class="w-2.5 h-2.5 text-sky-400"></i>
-                      <span>${l.teamMembers.length} សមាជិក</span>
+                      <span class="text-sky-400">🎯 គោលដៅ:</span>
+                      <span class="font-bold text-white">${l.targetBoxes > 0 ? l.targetBoxes : '--'}</span>
+                      <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                    </span>
+                    <span class="text-[9.5px] font-mono ${l.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                      (${l.targetPercent}%)
+                    </span>
+                    <span class="px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10 text-[9px] font-mono">
+                      ${l.teamMembers.length} សមាជិក
                     </span>
                   </div>
                 </div>
@@ -5599,7 +5814,7 @@ function renderExecutiveHierarchyModalContent() {
             </div>
 
             <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-              <div class="h-1.5 ${barGradient}" style="width: ${percentOfTop}%"></div>
+              <div class="h-1.5 ${barGradient}" style="width: ${barWidth}%"></div>
             </div>
           </div>
         `;
@@ -5622,94 +5837,70 @@ function renderExecutiveHierarchyModalContent() {
       `;
     } else {
       // Drill-down into selected Leader
-      const isSdoeung = (selectedL.km && (selectedL.km.includes('ស្ដី ស្ដើង') || selectedL.km.includes('ស្តី ស្តើង')));
-      const isBechNora = (selectedL.km && (selectedL.km.includes('ប៊ិច នោរ៉ា') || (selectedL.en && selectedL.en.toLowerCase().includes('bech nora'))));
-      const origRank = sortedLeaders.findIndex(l => l.km === selectedL.km) + 1;
-      const rankBadge = getManagerRankBadge(origRank);
-
-      // Check if selected Leader is also a Manager (matching sortedManagers)
       const matchingMgr = sortedManagers.find(m => normalizeSellerName(m.km) === normalizeSellerName(selectedL.km));
-      let leadersUnderMgrHtml = '';
-      if (matchingMgr && matchingMgr.teamLeaders && matchingMgr.teamLeaders.length > 0) {
-        leadersUnderMgrHtml = `
-          <div class="space-y-1.5">
-            <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
-              <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-              <span>Leader ក្នុងក្រុម (${matchingMgr.teamLeaders.length} រូប)</span>
-            </span>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              ${matchingMgr.teamLeaders.map(tl => {
-                const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
-                const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
-                return `
-                  <div onclick="selectExecutiveLeader('${tl.km}')" 
-                       class="p-2.5 rounded-xl bg-black/40 border border-white/5 hover:border-sky-400/30 cursor-pointer flex items-center justify-between text-xs transition">
-                    <div>
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-slate-200">${tl.km}</span>
-                        ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                        ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                      </div>
-                      <span class="text-[10px] text-slate-400 font-mono">${tl.en}</span>
+      if (matchingMgr) {
+        bodyContentHtml = renderManagerDrilldownLayout(matchingMgr, d, 'leader', false);
+      } else {
+        const isSdoeung = (selectedL.km && (selectedL.km.includes('ស្ដី ស្ដើង') || selectedL.km.includes('ស្តី ស្តើង')));
+        const isBechNora = (selectedL.km && (selectedL.km.includes('ប៊ិច នោរ៉ា') || (selectedL.en && selectedL.en.toLowerCase().includes('bech nora'))));
+        const origRank = sortedLeaders.findIndex(l => l.km === selectedL.km) + 1;
+        const rankBadge = getManagerRankBadge(origRank);
+        const selTargetBoxes = selectedL.targetBoxes || getLeaderTarget(selectedL.km);
+        const selTargetPercent = selectedL.targetPercent || (selTargetBoxes > 0 ? Math.round(((Number(selectedL.displayBoxes) || 0) / selTargetBoxes) * 100) : 0);
+        const selBarWidth = selTargetBoxes > 0 ? Math.min(100, selTargetPercent) : 100;
+
+        bodyContentHtml = `
+          <div class="space-y-3.5">
+            <!-- Selected Leader Highlight Card (Tap again to collapse and show all leaders) -->
+            <div onclick="selectExecutiveLeader('${selectedL.km}')" 
+                 class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/40 shadow-lg shadow-sky-500/10 space-y-2.5 cursor-pointer active:scale-[0.99] transition group"
+                 title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Leaders ទាំងអស់វិញ">
+              <div class="flex items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  ${rankBadge}
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-bold text-sm text-white">${selectedL.km}</span>
+                      ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                      ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      <span class="text-[11px] text-slate-400 font-mono">(${selectedL.en})</span>
                     </div>
-                    <div class="text-right font-mono">
-                      <div class="font-bold text-sky-300">${tl.displayBoxes} ប្រអប់</div>
-                      <div class="text-[9.5px] text-slate-400">${tl.displayOrders} កុម្ម៉ង់</div>
+                    <!-- Read-only Target from Google Sheet -->
+                    <div class="flex items-center gap-1.5 mt-1">
+                      <span class="px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 text-[9.5px] font-mono flex items-center gap-1">
+                        <span class="text-sky-400">🎯 គោលដៅ:</span>
+                        <span class="font-bold text-white">${selTargetBoxes > 0 ? selTargetBoxes : '--'}</span>
+                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                      </span>
+                      <span class="text-[9.5px] font-mono ${selTargetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                        (${selTargetPercent}%)
+                      </span>
                     </div>
                   </div>
-                `;
-              }).join('')}
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <div class="text-right">
+                    <div class="font-mono text-sm font-bold text-sky-300">${selectedL.displayBoxes} ប្រអប់</div>
+                    <div class="text-[10px] font-mono text-slate-400">${selectedL.displayOrders} កុម្ម៉ង់</div>
+                  </div>
+                  <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-sky-300 font-semibold flex items-center gap-1 shadow-sm">
+                    <i data-lucide="x" class="w-3 h-3"></i>
+                    <span>បិទ</span>
+                  </span>
+                </div>
+              </div>
+
+              <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                <div class="h-1.5 ${selTargetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-sky-500 to-teal-300'}" style="width: ${selBarWidth}%"></div>
+              </div>
             </div>
+
+            <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
+            ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
           </div>
         `;
       }
-
-      bodyContentHtml = `
-        <div class="space-y-3.5">
-          <!-- Selected Leader Highlight Card (Tap again to collapse and show all leaders) -->
-          <div onclick="selectExecutiveLeader('${selectedL.km}')" 
-               class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/40 shadow-lg shadow-sky-500/10 space-y-2.5 cursor-pointer active:scale-[0.99] transition group"
-               title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Leaders ទាំងអស់វិញ">
-            <div class="flex items-center justify-between gap-2.5">
-              <div class="flex items-center gap-2.5 min-w-0">
-                ${rankBadge}
-                <div class="min-w-0">
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="font-bold text-sm text-white">${selectedL.km}</span>
-                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                    <span class="text-[11px] text-slate-400 font-mono">(${selectedL.en})</span>
-                  </div>
-                  <div class="text-[10px] text-sky-300 mt-0.5">
-                    ${matchingMgr ? 'Manager & Leader' : 'Leader'} • ${selectedL.teamMembers.length} សមាជិក
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2 shrink-0">
-                <div class="text-right">
-                  <div class="font-mono text-sm font-bold text-sky-300">${selectedL.displayBoxes} ប្រអប់</div>
-                  <div class="text-[10px] font-mono text-slate-400">${selectedL.displayOrders} កុម្ម៉ង់</div>
-                </div>
-                <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-sky-300 font-semibold flex items-center gap-1 shadow-sm">
-                  <i data-lucide="x" class="w-3 h-3"></i>
-                  <span>បិទ</span>
-                </span>
-              </div>
-            </div>
-
-            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-              <div class="h-1.5 bg-gradient-to-r from-sky-500 to-teal-300" style="width: 100%"></div>
-            </div>
-          </div>
-
-          <!-- 👤 Leaders Under this Manager (If this Leader is a Manager) -->
-          ${leadersUnderMgrHtml}
-
-          <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
-          ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
-        </div>
-      `;
     }
   } 
   // ==========================================
@@ -5806,11 +5997,10 @@ function renderExecutiveHierarchyModalContent() {
 
         const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
         const isBechNora = (m.km && (m.km.includes('ប៊ិច នោរ៉ា') || (m.en && m.en.toLowerCase().includes('bech nora'))));
-        const canViewEdit = canViewAndEditManagerTarget(m);
         const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
-        const barWidth = canViewEdit ? Math.min(100, m.targetPercent) : percentOfTop;
-        const barGradient = canViewEdit
-          ? (m.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300')
+        const barWidth = m.targetBoxes > 0 ? Math.min(100, m.targetPercent) : percentOfTop;
+        const barGradient = m.targetPercent >= 100
+          ? 'bg-gradient-to-r from-emerald-500 to-teal-300'
           : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400');
 
         return `
@@ -5826,20 +6016,17 @@ function renderExecutiveHierarchyModalContent() {
                     ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                   </div>
-                  ${canViewEdit ? `
-                    <!-- Target Pill (Visible ONLY for Director or this Manager) -->
-                    <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
-                      <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
-                        <span class="text-amber-400">🎯 គោលដៅ:</span>
-                        <span class="font-bold text-white">${m.targetBoxes}</span>
-                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                        <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
-                      </span>
-                      <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                        (${m.targetPercent}%)
-                      </span>
-                    </div>
-                  ` : ''}
+                  <!-- Target Pill: Read-Only from Sheet with percentage & progress bar -->
+                  <div class="flex items-center gap-1.5 mt-1">
+                    <span class="px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 text-[9.5px] font-mono flex items-center gap-1">
+                      <span class="text-amber-400">🎯 គោលដៅ:</span>
+                      <span class="font-bold text-white">${m.targetBoxes > 0 ? m.targetBoxes : '--'}</span>
+                      <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                    </span>
+                    <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                      (${m.targetPercent}%)
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -5879,145 +6066,8 @@ function renderExecutiveHierarchyModalContent() {
         </div>
       `;
     } else {
-      // DRILL-DOWN INTO SELECTED MANAGER (Tapping him again collapses him and reveals all managers!)
-      const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
-      const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
-      const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
-      const rankBadge = getManagerRankBadge(origRank);
-      const canViewEditSelected = canViewAndEditManagerTarget(selectedM);
-      const selBarWidth = canViewEditSelected ? Math.min(100, selectedM.targetPercent) : 100;
-
-      bodyContentHtml = `
-        <div class="space-y-3.5">
-          <!-- Selected Manager Highlight Card (Tap again to collapse and show all managers) -->
-          <div onclick="selectExecutiveManager('${selectedM.km}')" 
-               class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/40 shadow-lg shadow-amber-500/10 space-y-2.5 cursor-pointer active:scale-[0.99] transition group"
-               title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Managers ទាំងអស់វិញ">
-            <div class="flex items-center justify-between gap-2.5">
-              <div class="flex items-center gap-2.5 min-w-0">
-                ${rankBadge}
-                <div class="min-w-0">
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="font-bold text-sm text-white">${selectedM.km}</span>
-                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                    <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
-                  </div>
-                  ${canViewEditSelected ? `
-                    <!-- Target Pill (Visible ONLY for Director or this Manager) -->
-                    <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
-                      <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
-                        <span class="text-amber-400">🎯 គោលដៅ:</span>
-                        <span class="font-bold text-white">${selectedM.targetBoxes}</span>
-                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                        <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
-                      </span>
-                      <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                        (${selectedM.targetPercent}%)
-                      </span>
-                    </div>
-                  ` : ''}
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2 shrink-0">
-                <div class="text-right">
-                  <div class="font-mono text-sm font-bold text-amber-300">${selectedM.displayBoxes} ប្រអប់</div>
-                  <div class="text-[10px] font-mono text-slate-400">${selectedM.displayOrders} កុម្ម៉ង់</div>
-                </div>
-                <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-amber-300 font-semibold flex items-center gap-1 shadow-sm">
-                  <i data-lucide="x" class="w-3 h-3"></i>
-                  <span>បិទ</span>
-                </span>
-              </div>
-            </div>
-
-            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-              <div class="h-1.5 ${canViewEditSelected && selectedM.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${selBarWidth}%"></div>
-            </div>
-          </div>
-
-          ${selectedM.teamLeaders.length > 0 ? `
-            <!-- Leaders Section -->
-            <div class="space-y-1.5">
-              <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
-                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-                <span>Leader ក្នុងក្រុម (${selectedM.teamLeaders.length} រូប)</span>
-              </span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                ${selectedM.teamLeaders.map(tl => {
-                  const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
-                  const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
-                  return `
-                  <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
-                    <div>
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-slate-200">${tl.km}</span>
-                        ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                        ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                      </div>
-                      <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
-                    </div>
-                    <div class="text-right font-mono">
-                      <span class="text-sky-300 font-bold text-xs">${tl.displayBoxes} ប្រអប់</span>
-                      <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
-                    </div>
-                  </div>
-                `;}).join('')}
-              </div>
-            </div>
-          ` : ''}
-
-          <!-- Members Section -->
-          <div class="space-y-2">
-            <div class="flex items-center justify-between px-1">
-              <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider">
-                <i data-lucide="users" class="w-3.5 h-3.5"></i>
-                <span>សមាជិកលក់ក្នុងក្រុម (${selectedM.teamMembers.length} នាក់)</span>
-              </span>
-            </div>
-
-            <div class="space-y-1.5">
-              ${selectedM.teamMembers.length > 0 ? selectedM.teamMembers.map(mem => {
-                const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
-                const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
-                const safeMemName = mem.km.replace(/'/g, "\\'");
-                return `
-                <div onclick="openMemberDailyBreakdownModal('${safeMemName}')" 
-                     class="p-2.5 rounded-xl bg-black/40 border border-white/5 hover:border-emerald-400/30 flex items-center justify-between gap-2 hover:bg-white/[0.04] cursor-pointer active:scale-[0.99] transition group"
-                     title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
-                  <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-xs text-white group-hover:text-emerald-300 transition truncate">${mem.km}</span>
-                        ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                        ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                        <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 mt-0.5">
-                        Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-1.5 shrink-0 font-mono">
-                    <div class="text-right">
-                      <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
-                      <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
-                    </div>
-                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"></i>
-                  </div>
-                </div>
-              `;}).join('') : `
-                <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
-                  មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
-                </div>
-              `}
-            </div>
-          </div>
-        </div>
-      `;
+      // DRILL-DOWN INTO SELECTED MANAGER (Unified with Tab Leader)
+      bodyContentHtml = renderManagerDrilldownLayout(selectedM, d, 'manager', false);
     }
   }
 
@@ -6060,6 +6110,8 @@ window.toggleAppRemember = toggleAppRemember;
 window.authenticateAppBiometric = authenticateAppBiometric;
 window.getMemberBostarTrackSetsAndDaily = getMemberBostarTrackSetsAndDaily;
 window.renderExecutiveLeaderTeamTargetCard = renderExecutiveLeaderTeamTargetCard;
+window.renderManagerDrilldownLayout = renderManagerDrilldownLayout;
+window.selectExecutiveSubLeader = selectExecutiveSubLeader;
 window.openMemberDailyBreakdownModal = openMemberDailyBreakdownModal;
 window.closeMemberDailyBreakdownModal = closeMemberDailyBreakdownModal;
 window.toggleMemberDailyContextMenu = toggleMemberDailyContextMenu;
@@ -6629,7 +6681,8 @@ function getDashboardViewHTML() {
           const isSdoeung = (l.km && (l.km.includes('ស្ដី ស្ដើង') || l.km.includes('ស្តី ស្តើង')));
           const isBechNora = (l.km && (l.km.includes('ប៊ិច នោរ៉ា') || (l.en && l.en.toLowerCase().includes('bech nora'))));
           const percentOfTop = Math.min(100, Math.round(((Number(l.displayBoxes) || 0) / (topLeaderBoxes || 1)) * 100));
-          const barGradient = rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-sky-500 to-teal-400';
+          const barWidth = l.targetBoxes > 0 ? Math.min(100, l.targetPercent) : percentOfTop;
+          const barGradient = l.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-sky-500 to-teal-400');
 
           return `
             <div onclick="selectExecutiveLeader('${l.km}')" 
@@ -6644,10 +6697,18 @@ function getDashboardViewHTML() {
                       ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                       <span class="text-[10px] text-slate-400 font-mono">(${l.en})</span>
                     </div>
-                    <div class="flex items-center gap-1.5 mt-1">
+                    <!-- Read-only Target from Google Sheet -->
+                    <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                       <span class="px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 text-[9.5px] font-mono flex items-center gap-1">
-                        <i data-lucide="users" class="w-2.5 h-2.5 text-sky-400"></i>
-                        <span>${l.teamMembers.length} សមាជិក</span>
+                        <span class="text-sky-400">🎯 គោលដៅ:</span>
+                        <span class="font-bold text-white">${l.targetBoxes > 0 ? l.targetBoxes : '--'}</span>
+                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                      </span>
+                      <span class="text-[9.5px] font-mono ${l.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                        (${l.targetPercent}%)
+                      </span>
+                      <span class="px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10 text-[9px] font-mono">
+                        ${l.teamMembers.length} សមាជិក
                       </span>
                     </div>
                   </div>
@@ -6667,7 +6728,7 @@ function getDashboardViewHTML() {
               </div>
 
               <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                <div class="h-1 ${barGradient}" style="width: ${percentOfTop}%"></div>
+                <div class="h-1 ${barGradient}" style="width: ${barWidth}%"></div>
               </div>
             </div>
           `;
@@ -6690,94 +6751,70 @@ function getDashboardViewHTML() {
         `;
       } else {
         // Drill-down into selected Leader in Card E
-        const isSdoeung = (selectedL.km && (selectedL.km.includes('ស្ដី ស្ដើង') || selectedL.km.includes('ស្តី ស្តើង')));
-        const isBechNora = (selectedL.km && (selectedL.km.includes('ប៊ិច នោរ៉ា') || (selectedL.en && selectedL.en.toLowerCase().includes('bech nora'))));
-        const origRank = sortedLeaders.findIndex(l => l.km === selectedL.km) + 1;
-        const rankBadge = getManagerRankBadge(origRank);
-
-        // Check if selected Leader is also a Manager (matching sortedManagers)
         const matchingMgr = sortedManagers.find(m => normalizeSellerName(m.km) === normalizeSellerName(selectedL.km));
-        let leadersUnderMgrHtml = '';
-        if (matchingMgr && matchingMgr.teamLeaders && matchingMgr.teamLeaders.length > 0) {
-          leadersUnderMgrHtml = `
-            <div class="space-y-1.5">
-              <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
-                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-                <span>Leader ក្នុងក្រុម (${matchingMgr.teamLeaders.length} រូប)</span>
-              </span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                ${matchingMgr.teamLeaders.map(tl => {
-                  const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
-                  const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
-                  return `
-                    <div onclick="selectExecutiveLeader('${tl.km}')" 
-                         class="p-2.5 rounded-xl bg-black/40 border border-white/5 hover:border-sky-400/30 cursor-pointer flex items-center justify-between text-xs transition">
-                      <div>
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                          <span class="font-bold text-slate-200">${tl.km}</span>
-                          ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                          ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                        </div>
-                        <span class="text-[10px] text-slate-400 font-mono">${tl.en}</span>
+        if (matchingMgr) {
+          homeHierarchyBodyHtml = renderManagerDrilldownLayout(matchingMgr, d, 'leader', true);
+        } else {
+          const isSdoeung = (selectedL.km && (selectedL.km.includes('ស្ដី ស្ដើង') || selectedL.km.includes('ស្តី ស្តើង')));
+          const isBechNora = (selectedL.km && (selectedL.km.includes('ប៊ិច នោរ៉ា') || (selectedL.en && selectedL.en.toLowerCase().includes('bech nora'))));
+          const origRank = sortedLeaders.findIndex(l => l.km === selectedL.km) + 1;
+          const rankBadge = getManagerRankBadge(origRank);
+          const selTargetBoxes = selectedL.targetBoxes || getLeaderTarget(selectedL.km);
+          const selTargetPercent = selectedL.targetPercent || (selTargetBoxes > 0 ? Math.round(((Number(selectedL.displayBoxes) || 0) / selTargetBoxes) * 100) : 0);
+          const selBarWidth = selTargetBoxes > 0 ? Math.min(100, selTargetPercent) : 100;
+
+          homeHierarchyBodyHtml = `
+            <div class="space-y-3 relative z-10">
+              <!-- Selected Leader Highlight Card -->
+              <div onclick="selectExecutiveLeader('${selectedL.km}')" 
+                   class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/40 shadow-lg shadow-sky-500/10 space-y-2 cursor-pointer active:scale-[0.99] transition group"
+                   title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Leaders ទាំងអស់វិញ">
+                <div class="flex items-center justify-between gap-2.5">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    ${rankBadge}
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-sm text-white">${selectedL.km}</span>
+                        ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+                        ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                        <span class="text-[11px] text-slate-400 font-mono">(${selectedL.en})</span>
                       </div>
-                      <div class="text-right font-mono">
-                        <div class="font-bold text-sky-300">${tl.displayBoxes} ប្រអប់</div>
-                        <div class="text-[9.5px] text-slate-400">${tl.displayOrders} កុម្ម៉ង់</div>
+                      <!-- Read-only Target from Google Sheet -->
+                      <div class="flex items-center gap-1.5 mt-1">
+                        <span class="px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 text-[9.5px] font-mono flex items-center gap-1">
+                          <span class="text-sky-400">🎯 គោលដៅ:</span>
+                          <span class="font-bold text-white">${selTargetBoxes > 0 ? selTargetBoxes : '--'}</span>
+                          <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                        </span>
+                        <span class="text-[9.5px] font-mono ${selTargetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                          (${selTargetPercent}%)
+                        </span>
                       </div>
                     </div>
-                  `;
-                }).join('')}
+                  </div>
+
+                  <div class="flex items-center gap-2 shrink-0">
+                    <div class="text-right">
+                      <div class="font-mono text-sm font-bold text-sky-300">${selectedL.displayBoxes} ប្រអប់</div>
+                      <div class="text-[10px] font-mono text-slate-400">${selectedL.displayOrders} កុម្ម៉ង់</div>
+                    </div>
+                    <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-sky-300 font-semibold flex items-center gap-1 shadow-sm">
+                      <i data-lucide="x" class="w-3 h-3"></i>
+                      <span>បិទ</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                  <div class="h-1.5 ${selTargetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-sky-500 to-teal-300'}" style="width: ${selBarWidth}%"></div>
+                </div>
               </div>
+
+              <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
+              ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
             </div>
           `;
         }
-
-        homeHierarchyBodyHtml = `
-          <div class="space-y-3 relative z-10">
-            <!-- Selected Leader Highlight Card -->
-            <div onclick="selectExecutiveLeader('${selectedL.km}')" 
-                 class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/40 shadow-lg shadow-sky-500/10 space-y-2 cursor-pointer active:scale-[0.99] transition group"
-                 title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Leaders ទាំងអស់វិញ">
-              <div class="flex items-center justify-between gap-2.5">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  ${rankBadge}
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                      <span class="font-bold text-sm text-white">${selectedL.km}</span>
-                      ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                      ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                      <span class="text-[11px] text-slate-400 font-mono">(${selectedL.en})</span>
-                    </div>
-                    <div class="text-[10px] text-sky-300 mt-0.5">
-                      ${matchingMgr ? 'Manager & Leader' : 'Leader'} • ${selectedL.teamMembers.length} សមាជិក
-                    </div>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-2 shrink-0">
-                  <div class="text-right">
-                    <div class="font-mono text-sm font-bold text-sky-300">${selectedL.displayBoxes} ប្រអប់</div>
-                    <div class="text-[10px] font-mono text-slate-400">${selectedL.displayOrders} កុម្ម៉ង់</div>
-                  </div>
-                  <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-sky-300 font-semibold flex items-center gap-1 shadow-sm">
-                    <i data-lucide="x" class="w-3 h-3"></i>
-                    <span>បិទ</span>
-                  </span>
-                </div>
-              </div>
-
-              <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-                <div class="h-1.5 bg-gradient-to-r from-sky-500 to-teal-300" style="width: 100%"></div>
-              </div>
-            </div>
-
-            <!-- 👤 Leaders Under this Manager (If this Leader is a Manager) -->
-            ${leadersUnderMgrHtml}
-
-            <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
-            ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
-          </div>
-        `;
       }
     }
     // ==========================================
@@ -6873,11 +6910,10 @@ function getDashboardViewHTML() {
 
           const isSdoeung = (m.km && (m.km.includes('ស្ដី ស្ដើង') || m.km.includes('ស្តី ស្តើង')));
           const isBechNora = (m.km && (m.km.includes('ប៊ិច នោរ៉ា') || (m.en && m.en.toLowerCase().includes('bech nora'))));
-          const canViewEdit = canViewAndEditManagerTarget(m);
           const percentOfTop = Math.min(100, Math.round(((Number(m.displayBoxes) || 0) / (topBoxes || 1)) * 100));
-          const barWidth = canViewEdit ? Math.min(100, m.targetPercent) : percentOfTop;
-          const barGradient = canViewEdit
-            ? (m.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300')
+          const barWidth = m.targetBoxes > 0 ? Math.min(100, m.targetPercent) : percentOfTop;
+          const barGradient = m.targetPercent >= 100
+            ? 'bg-gradient-to-r from-emerald-500 to-teal-300'
             : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400');
 
           return `
@@ -6893,20 +6929,17 @@ function getDashboardViewHTML() {
                       ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                       <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                     </div>
-                    ${canViewEdit ? `
-                      <!-- Target Pill (Visible ONLY for Director or this Manager) -->
-                      <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${m.km}', event)">
-                        <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
-                          <span class="text-amber-400">🎯 គោលដៅ:</span>
-                          <span class="font-bold text-white">${m.targetBoxes}</span>
-                          <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                          <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
-                        </span>
-                        <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                          (${m.targetPercent}%)
-                        </span>
-                      </div>
-                    ` : ''}
+                    <!-- Read-only Target from Google Sheet -->
+                    <div class="flex items-center gap-1.5 mt-1">
+                      <span class="px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/10 text-[9.5px] font-mono flex items-center gap-1">
+                        <span class="text-amber-400">🎯 គោលដៅ:</span>
+                        <span class="font-bold text-white">${m.targetBoxes > 0 ? m.targetBoxes : '--'}</span>
+                        <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
+                      </span>
+                      <span class="text-[9.5px] font-mono ${m.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                        (${m.targetPercent}%)
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -6946,141 +6979,8 @@ function getDashboardViewHTML() {
           </div>
         `;
       } else {
-        // Home Screen Drill-down into Selected Manager
-        const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
-        const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
-        const origRank = sortedManagers.findIndex(m => m.km === selectedM.km) + 1;
-        const rankBadge = getManagerRankBadge(origRank);
-        const canViewEditSelected = canViewAndEditManagerTarget(selectedM);
-        const selBarWidth = canViewEditSelected ? Math.min(100, selectedM.targetPercent) : 100;
-
-        homeHierarchyBodyHtml = `
-          <div class="space-y-3 relative z-10">
-            <!-- Selected Manager Highlight Card (Tap again to collapse and show all managers) -->
-            <div onclick="selectExecutiveManager('${selectedM.km}')" 
-                 class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/40 shadow-lg shadow-amber-500/10 space-y-2 cursor-pointer active:scale-[0.99] transition group"
-                 title="ចុចលើកាតនេះម្តងទៀតដើម្បីបង្ហាញ Managers ទាំងអស់វិញ">
-              <div class="flex items-center justify-between gap-2.5">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  ${rankBadge}
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                      <span class="font-bold text-sm text-white">${selectedM.km}</span>
-                      ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                      ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                      <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
-                    </div>
-                    ${canViewEditSelected ? `
-                      <!-- Target Pill (Visible ONLY for Director or this Manager) -->
-                      <div class="flex items-center gap-1.5 mt-1" onclick="editManagerTargetPrompt('${selectedM.km}', event)">
-                        <span class="px-2 py-0.5 rounded-md bg-white/5 hover:bg-amber-500/20 hover:border-amber-400/40 text-slate-300 hover:text-amber-300 cursor-pointer border border-white/10 text-[9.5px] font-mono flex items-center gap-1 transition" title="ចុចដើម្បីកែប្រែគោលដៅ">
-                          <span class="text-amber-400">🎯 គោលដៅ:</span>
-                          <span class="font-bold text-white">${selectedM.targetBoxes}</span>
-                          <span class="text-[8.5px] text-slate-400 font-sans">ប្រអប់</span>
-                          <i data-lucide="edit-2" class="w-2.5 h-2.5 opacity-60"></i>
-                        </span>
-                        <span class="text-[9.5px] font-mono ${selectedM.targetPercent >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                          (${selectedM.targetPercent}%)
-                        </span>
-                      </div>
-                    ` : ''}
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-2 shrink-0">
-                  <div class="text-right">
-                    <div class="font-mono text-sm font-bold text-amber-300">${selectedM.displayBoxes} ប្រអប់</div>
-                    <div class="text-[10px] font-mono text-slate-400">${selectedM.displayOrders} កុម្ម៉ង់</div>
-                  </div>
-                  <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-amber-300 font-semibold flex items-center gap-1 shadow-sm">
-                    <i data-lucide="x" class="w-3 h-3"></i>
-                    <span>បិទ</span>
-                  </span>
-                </div>
-              </div>
-
-              <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-                <div class="h-1.5 ${canViewEditSelected && selectedM.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : 'bg-gradient-to-r from-amber-500 to-amber-300'}" style="width: ${selBarWidth}%"></div>
-              </div>
-            </div>
-
-            ${selectedM.teamLeaders.length > 0 ? `
-              <div class="space-y-1.5">
-                <span class="text-[11px] font-bold uppercase text-sky-400 flex items-center gap-1.5 tracking-wider px-1">
-                  <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-                  <span>Leader ក្នុងក្រុម (${selectedM.teamLeaders.length} រូប)</span>
-                </span>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  ${selectedM.teamLeaders.map(tl => {
-                    const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
-                    const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
-                    return `
-                    <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
-                      <div>
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                          <span class="font-bold text-slate-200">${tl.km}</span>
-                          ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                          ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
-                        </div>
-                        <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
-                      </div>
-                      <div class="text-right font-mono">
-                        <span class="text-sky-300 font-bold text-xs">${tl.displayBoxes} ប្រអប់</span>
-                        <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
-                      </div>
-                    </div>
-                  `;}).join('')}
-                </div>
-              </div>
-            ` : ''}
-
-            <div class="space-y-2">
-              <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider px-1">
-                <i data-lucide="users" class="w-3.5 h-3.5"></i>
-                <span>សមាជិកលក់ក្នុងក្រុម (${selectedM.teamMembers.length} នាក់)</span>
-              </span>
-
-              <div class="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar pr-1">
-                ${selectedM.teamMembers.length > 0 ? selectedM.teamMembers.map(mem => {
-                  const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
-                  const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
-                  const safeMemName = mem.km.replace(/'/g, "\\'");
-                  return `
-                  <div onclick="openMemberDailyBreakdownModal('${safeMemName}')" 
-                       class="p-2 rounded-xl bg-black/40 border border-white/5 hover:border-emerald-400/30 flex items-center justify-between gap-2 hover:bg-white/[0.04] cursor-pointer active:scale-[0.99] transition group"
-                       title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-                      <div class="min-w-0">
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                          <span class="font-bold text-xs text-white group-hover:text-emerald-300 transition truncate">${mem.km}</span>
-                          ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                          ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
-                          <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">
-                          Leader: <span class="text-amber-300 font-medium">${mem.leader}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="flex items-center gap-1.5 shrink-0 font-mono">
-                      <div class="text-right">
-                        <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
-                        <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
-                      </div>
-                      <i data-lucide="chevron-right" class="w-3 h-3 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"></i>
-                    </div>
-                  </div>
-                `;}).join('') : `
-                  <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
-                    មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
-                  </div>
-                `}
-              </div>
-            </div>
-          </div>
-        `;
+        // Home Screen Drill-down into Selected Manager (Unified with Tab Leader)
+        homeHierarchyBodyHtml = renderManagerDrilldownLayout(selectedM, d, 'manager', true);
       }
     }
 
