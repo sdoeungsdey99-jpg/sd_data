@@ -4804,6 +4804,395 @@ function getExecutiveHierarchyParsedData(d, statsMap) {
   };
 }
 
+// ==========================================
+// BOSTARTRACK TEAM TARGET & DAILY BREAKDOWN
+// ==========================================
+function getMemberBostarTrackSetsAndDaily(memberName, d) {
+  const normName = normalizeSellerName(memberName);
+  const allOrders = (d && Array.isArray(d.bostarTrackSales)) ? d.bostarTrackSales : [];
+  
+  let targetMonth = execHierarchyFilterState.selectedMonth;
+  if (!targetMonth || execHierarchyFilterState.mode === 'all') {
+    const now = new Date();
+    targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+  
+  const parts = targetMonth.split('-');
+  const yearNum = parseInt(parts[0], 10) || 2026;
+  const monthNum = parseInt(parts[1], 10) || 10;
+  const daysInMonth = new Date(yearNum, monthNum, 0).getDate();
+  const monthAbbrs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthAbbr = monthAbbrs[monthNum - 1] || 'Oct';
+  const monthLabel = `${String(monthNum).padStart(2, '0')}/${yearNum}`;
+
+  const memberOrders = allOrders.filter(o => {
+    if (!o.isoDate || !o.isoDate.startsWith(targetMonth)) return false;
+    const sNorm = normalizeSellerName(o.seller);
+    return sNorm === normName || (sNorm && normName && (sNorm.includes(normName) || normName.includes(sNorm)));
+  });
+
+  const setCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  let totalBoxes = 0;
+
+  const dailyMap = {};
+  for (let day = 1; day <= daysInMonth; day++) {
+    dailyMap[day] = { sets: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, totalBoxes: 0, orders: 0 };
+  }
+
+  memberOrders.forEach(o => {
+    const yl = Number(o.qtyYL || 0);
+    const ylp = Number(o.qtyYLP || 0);
+    const kn = Number(o.qtyKN || 0);
+    const pdo = Number(o.qtyPDO || 0);
+    const free = Number(o.freeQty || 0);
+    let b = yl + ylp + kn + pdo + free;
+    if (b <= 0 && Number(o.totalBoxQty || 0) > 0) b = Number(o.totalBoxQty || 0);
+    b = Math.max(0, Math.round(b));
+
+    if (b === 1) setCounts[1]++;
+    else if (b === 2) setCounts[2]++;
+    else if (b === 3) setCounts[3]++;
+    else if (b === 4) setCounts[4]++;
+    else if (b >= 5) setCounts[5]++;
+
+    totalBoxes += b;
+
+    if (o.isoDate) {
+      const dtParts = o.isoDate.split('-');
+      if (dtParts.length === 3) {
+        const dayNum = parseInt(dtParts[2], 10);
+        if (dailyMap[dayNum]) {
+          dailyMap[dayNum].orders++;
+          dailyMap[dayNum].totalBoxes += b;
+          if (b === 1) dailyMap[dayNum].sets[1]++;
+          else if (b === 2) dailyMap[dayNum].sets[2]++;
+          else if (b === 3) dailyMap[dayNum].sets[3]++;
+          else if (b === 4) dailyMap[dayNum].sets[4]++;
+          else if (b >= 5) dailyMap[dayNum].sets[5]++;
+        }
+      }
+    }
+  });
+
+  const cleanKm = memberName.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+  const rawTarget = (d && d.monthlyTargets) ? (d.monthlyTargets[memberName] || d.monthlyTargets[cleanKm] || d.monthlyTargets[normName]) : 0;
+  const target = rawTarget > 0 ? rawTarget : (normName.includes('sdoeung') || cleanKm.includes('ស្ដី') || cleanKm.includes('ស្តី') ? 150 : (cleanKm.includes('សុធី') ? 100 : 50));
+  const percentage = target > 0 ? ((totalBoxes / target) * 100).toFixed(1) : '0.0';
+
+  const boostKey = `sd_boost_${normName}_${targetMonth}`;
+  let boostSaved = localStorage.getItem(boostKey);
+  if (!boostSaved && (normName.includes('sdoeung') || cleanKm.includes('ស្ដី') || cleanKm.includes('ស្តី'))) {
+    boostSaved = '818.00';
+  }
+  const boostAmount = boostSaved ? parseFloat(boostSaved) : null;
+  const boostDisplay = (boostAmount !== null && !isNaN(boostAmount)) ? `$${boostAmount.toFixed(2)}` : '--';
+
+  const dailyRows = [];
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayPadded = String(day).padStart(2, '0');
+    const dayLabel = `${dayPadded}-${monthAbbr}`;
+    dailyRows.push({
+      dayNum: day,
+      dayLabel,
+      sets: dailyMap[day].sets,
+      totalBoxes: dailyMap[day].totalBoxes,
+      orders: dailyMap[day].orders
+    });
+  }
+
+  return {
+    memberName,
+    target,
+    totalBoxes,
+    percentage,
+    setCounts,
+    dailyRows,
+    monthLabel,
+    boostDisplay,
+    daysInMonth
+  };
+}
+
+function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
+  if (!selectedL) return '';
+  const hierarchy = (d && d.teamHierarchy) ? d.teamHierarchy : null;
+  const rawMembers = (hierarchy && Array.isArray(hierarchy.members) && hierarchy.members.length > 0) ? hierarchy.members : (window.BOSTAR_TEAM_SELLERS || []);
+
+  const l_clean = selectedL.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+  const teamMembers = rawMembers.filter(mem => {
+    const memLeader = (mem.leader || '').trim();
+    const memLeaderClean = memLeader.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+    return memLeader === selectedL.km || (l_clean && memLeaderClean === l_clean) || (l_clean && memLeader.includes(l_clean));
+  });
+
+  const leaderInList = teamMembers.some(m => normalizeSellerName(m.km) === normalizeSellerName(selectedL.km));
+  const teamRoster = leaderInList ? teamMembers : [{ ...selectedL, role: 'Leader' }, ...teamMembers];
+
+  let groupTotalTarget = 0;
+  const rosterData = teamRoster.map(mem => {
+    const data = getMemberBostarTrackSetsAndDaily(mem.km, d);
+    groupTotalTarget += (data.target || 0);
+    return { mem, ...data };
+  });
+
+  return `
+    <div class="p-3.5 sm:p-4 rounded-3xl bg-[#0B1528] border border-white/10 shadow-2xl space-y-3 select-none">
+      <!-- Card Header: Title + Target pill (Exact Image 1) -->
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+            <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+          </div>
+          <h3 class="font-black text-xs sm:text-sm text-white tracking-wide truncate">គោលដៅលក់តាមក្រុម</h3>
+        </div>
+        <div class="px-2.5 sm:px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1.5 text-blue-300 text-[11px] sm:text-xs font-bold font-mono shrink-0">
+          <span>🎯</span>
+          <span>${groupTotalTarget} ប្រអប់</span>
+        </div>
+      </div>
+
+      <!-- Member Rows (Exact 100% Image 1) -->
+      <div class="space-y-2">
+        ${rosterData.map(item => {
+          const isMemBechNora = (item.mem.km && (item.mem.km.includes('ប៊ិច នោរ៉ា') || (item.mem.en && item.mem.en.toLowerCase().includes('bech nora'))));
+          const pctNum = parseFloat(item.percentage) || 0;
+          const safeName = item.mem.km.replace(/'/g, "\\'");
+
+          return `
+            <div onclick="openMemberDailyBreakdownModal('${safeName}')" 
+                 class="p-3 sm:p-3.5 rounded-2xl bg-black/40 hover:bg-white/[0.04] border border-white/5 hover:border-amber-500/30 cursor-pointer active:scale-[0.99] transition duration-150 space-y-2 group shadow-sm">
+              <!-- Top Row: Name + Verified + Target pill (Left) | Boxes + % + Chevron (Right) -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="font-bold text-xs sm:text-sm text-white truncate">${item.mem.km}</span>
+                  ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">'}
+                  <span class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono shrink-0">
+                    គោលដៅ: ${item.target}
+                  </span>
+                </div>
+                <div class="flex items-center gap-1 shrink-0 text-amber-400 font-bold text-xs sm:text-xs font-mono">
+                  <span>${item.totalBoxes} ប្រអប់</span>
+                  <span class="text-amber-400/80">(${item.percentage}%)</span>
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-400 transition"></i>
+                </div>
+              </div>
+
+              <!-- Set Badges Row -->
+              <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
+                  Set 1: <strong class="text-white">${item.setCounts[1]}</strong>
+                </span>
+                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
+                  Set 2: <strong class="text-white">${item.setCounts[2]}</strong>
+                </span>
+                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
+                  Set 3: <strong class="text-white">${item.setCounts[3]}</strong>
+                </span>
+                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
+                  Set 4: <strong class="text-white">${item.setCounts[4]}</strong>
+                </span>
+                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
+                  Set 5: <strong class="text-white">${item.setCounts[5]}</strong>
+                </span>
+              </div>
+
+              <!-- Glowing Amber Progress Bar -->
+              <div class="w-full bg-slate-800/80 h-1.5 sm:h-2 rounded-full overflow-hidden p-0.5 border border-white/5">
+                <div class="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-400 shadow-sm shadow-amber-500/50 transition-all duration-500" 
+                     style="width: ${Math.min(pctNum, 100)}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function openMemberDailyBreakdownModal(memberName) {
+  const d = window.DataService && window.DataService.data ? window.DataService.data : null;
+  const data = getMemberBostarTrackSetsAndDaily(memberName, d);
+  const container = document.getElementById('member-daily-breakdown-container');
+  const modal = document.getElementById('member-daily-breakdown-modal');
+  if (!container || !modal) return;
+
+  const isMemBechNora = (memberName.includes('ប៊ិច នោរ៉ា') || memberName.toLowerCase().includes('bech nora'));
+  const safeName = memberName.replace(/'/g, "\\'");
+
+  container.innerHTML = `
+    <!-- Top Sticky Bar (Image 2) -->
+    <div class="px-3.5 pt-3 pb-3 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 flex items-center justify-between gap-2 select-none">
+      <div class="flex items-center gap-2 min-w-0">
+        <button type="button" onclick="closeMemberDailyBreakdownModal()" 
+                class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
+                title="ត្រឡប់">
+          <i data-lucide="chevron-left" class="w-4 h-4 text-amber-400"></i>
+        </button>
+
+        <div class="w-7 h-7 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+        </div>
+
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h3 class="font-bold text-xs sm:text-sm text-white truncate">${memberName}</h3>
+            ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">'}
+          </div>
+          <p class="text-[10px] text-slate-400 mt-0.5 truncate">តារាងលម្អិតលក់ប្រចាំថ្ងៃ (${data.monthLabel})</p>
+        </div>
+      </div>
+
+      <button type="button" onclick="editMemberPersonalBoost('${safeName}')" 
+              class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 transition"
+              title="កែប្រែ Boost">
+        <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Scrollable Body (Image 2) -->
+    <div class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 pb-24">
+      <!-- 3 Summary KPI Cards (Image 2) -->
+      <div class="grid grid-cols-3 gap-2">
+        <!-- 1. គោលដៅ -->
+        <div class="p-3 rounded-2xl bg-[#0F1B2E] border border-white/10 text-center space-y-1 shadow-lg">
+          <div class="text-[10px] text-slate-400 flex items-center justify-center gap-1 font-semibold">
+            <span>🎯</span>
+            <span>គោលដៅ</span>
+          </div>
+          <div class="text-base sm:text-lg font-black text-white font-mono">${data.target}</div>
+        </div>
+
+        <!-- 2. លក់បាន -->
+        <div class="p-3 rounded-2xl bg-[#0F1B2E] border border-white/10 text-center space-y-1 shadow-lg">
+          <div class="text-[10px] text-emerald-400 flex items-center justify-center gap-1 font-semibold">
+            <span>📦</span>
+            <span>លក់បាន</span>
+          </div>
+          <div class="text-sm sm:text-base font-black text-emerald-400 font-mono">
+            ${data.totalBoxes} <span class="text-[10.5px] font-bold text-emerald-400/80">(${data.percentage}%)</span>
+          </div>
+        </div>
+
+        <!-- 3. Boost -->
+        <div onclick="editMemberPersonalBoost('${safeName}')" 
+             class="p-3 rounded-2xl bg-[#0F1B2E] border border-purple-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition"
+             title="ចុចដើម្បីកែប្រែ Boost ផ្ទាល់ខ្លួន">
+          <div class="text-[10px] text-purple-300 flex items-center justify-center gap-1 font-semibold">
+            <i data-lucide="trending-up" class="w-3 h-3 text-purple-400"></i>
+            <span>Boost</span>
+          </div>
+          <div class="text-sm sm:text-base font-black text-white font-mono">${data.boostDisplay}</div>
+        </div>
+      </div>
+
+      <!-- Detailed Daily Breakdown Table (Image 2) -->
+      <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto no-scrollbar">
+          <table class="w-full text-center text-xs">
+            <!-- Table Header -->
+            <thead class="bg-[#0F1B2E]/90 text-[10.5px] border-b border-white/10 text-slate-300">
+              <tr>
+                <th class="py-2.5 px-2 text-left font-bold text-slate-200">ថ្ងៃទី ▾</th>
+                <th class="py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[1]}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត ១</span>
+                  </div>
+                </th>
+                <th class="py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[2]}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត ២</span>
+                  </div>
+                </th>
+                <th class="py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[3]}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត ៣</span>
+                  </div>
+                </th>
+                <th class="py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[5]}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត ៥</span>
+                  </div>
+                </th>
+                <th class="py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.totalBoxes}</span>
+                    <span class="text-[9px] text-emerald-400 font-bold">សរុប</span>
+                  </div>
+                </th>
+                <th class="py-2.5 px-2 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono text-[9px]">${data.boostDisplay}</span>
+                    <span class="text-[9px] text-purple-300 font-bold">Boost</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+
+            <!-- Table Body Rows (Image 2) -->
+            <tbody class="divide-y divide-white/5 font-mono text-[11px]">
+              ${data.dailyRows.map(r => {
+                const s1 = r.sets[1] > 0 ? `<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">${r.sets[1]}</span>` : '<span class="text-slate-600">—</span>';
+                const s2 = r.sets[2] > 0 ? `<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">${r.sets[2]}</span>` : '<span class="text-slate-600">—</span>';
+                const s3 = r.sets[3] > 0 ? `<span class="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">${r.sets[3]}</span>` : '<span class="text-slate-600">—</span>';
+                const s5 = r.sets[5] > 0 ? `<span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">${r.sets[5]}</span>` : '<span class="text-slate-600">—</span>';
+                const tot = r.totalBoxes > 0 ? `<span class="text-emerald-400 font-bold text-xs">${r.totalBoxes}</span>` : '<span class="text-slate-600">—</span>';
+                
+                return `
+                  <tr class="hover:bg-white/[0.03] transition">
+                    <td class="py-2 px-2 text-left font-bold text-slate-300 text-[10.5px]">${r.dayLabel}</td>
+                    <td class="py-2 px-1.5">${s1}</td>
+                    <td class="py-2 px-1.5">${s2}</td>
+                    <td class="py-2 px-1.5">${s3}</td>
+                    <td class="py-2 px-1.5">${s5}</td>
+                    <td class="py-2 px-1.5">${tot}</td>
+                    <td class="py-2 px-2 text-slate-600">—</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeMemberDailyBreakdownModal() {
+  const modal = document.getElementById('member-daily-breakdown-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function editMemberPersonalBoost(memberName) {
+  const normName = normalizeSellerName(memberName);
+  let targetMonth = execHierarchyFilterState.selectedMonth;
+  if (!targetMonth || execHierarchyFilterState.mode === 'all') {
+    const now = new Date();
+    targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+  const boostKey = `sd_boost_${normName}_${targetMonth}`;
+  const currentVal = localStorage.getItem(boostKey) || '818.00';
+  const input = prompt('បញ្ចូលចំនួនទឹកប្រាក់ Boost សម្រាប់ ' + memberName + ' ($)៖', currentVal);
+  if (input !== null) {
+    const cleaned = parseFloat(input.replace(/[$,\s]/g, ''));
+    if (!isNaN(cleaned) && cleaned >= 0) {
+      localStorage.setItem(boostKey, cleaned.toFixed(2));
+      if (typeof showToastNotification === 'function') {
+        showToastNotification('បានកែប្រែ Boost ជោគជ័យ! 📈✨');
+      }
+    } else if (input.trim() === '') {
+      localStorage.removeItem(boostKey);
+    }
+    openMemberDailyBreakdownModal(memberName);
+  }
+}
+
 function renderExecutiveHierarchyModalContent() {
   const container = document.getElementById('executive-hierarchy-scroll-body');
   if (!container) return;
@@ -4974,47 +5363,8 @@ function renderExecutiveHierarchyModalContent() {
             </div>
           </div>
 
-          <div class="space-y-2">
-            <div class="flex items-center justify-between px-1">
-              <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider">
-                <i data-lucide="users" class="w-3.5 h-3.5"></i>
-                <span>សមាជិកលក់ក្នុងក្រុម (${selectedL.teamMembers.length} នាក់)</span>
-              </span>
-            </div>
-
-            <div class="space-y-1.5">
-              ${selectedL.teamMembers.length > 0 ? selectedL.teamMembers.map(mem => {
-                const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
-                const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
-                return `
-                <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
-                  <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-xs text-white truncate">${mem.km}</span>
-                        ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                        ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
-                        <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 mt-0.5">
-                        Leader: <span class="text-sky-300 font-medium">${mem.leader || selectedL.km}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="text-right shrink-0 font-mono">
-                    <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
-                    <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
-                  </div>
-                </div>
-              `;}).join('') : `
-                <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
-                  មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
-                </div>
-              `}
-            </div>
-          </div>
+          <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) -->
+          ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
         </div>
       `;
     }
@@ -5353,6 +5703,11 @@ window.toggleAppBiometric = toggleAppBiometric;
 window.toggleAppPin = toggleAppPin;
 window.toggleAppRemember = toggleAppRemember;
 window.authenticateAppBiometric = authenticateAppBiometric;
+window.getMemberBostarTrackSetsAndDaily = getMemberBostarTrackSetsAndDaily;
+window.renderExecutiveLeaderTeamTargetCard = renderExecutiveLeaderTeamTargetCard;
+window.openMemberDailyBreakdownModal = openMemberDailyBreakdownModal;
+window.closeMemberDailyBreakdownModal = closeMemberDailyBreakdownModal;
+window.editMemberPersonalBoost = editMemberPersonalBoost;
 window.toggleSecurityBiometric = toggleSecurityBiometric;
 window.toggleSecurityRemember = toggleSecurityRemember;
 window.actionSheetLogOut = actionSheetLogOut;
@@ -6010,45 +6365,8 @@ function getDashboardViewHTML() {
               </div>
             </div>
 
-            <div class="space-y-2">
-              <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider px-1">
-                <i data-lucide="users" class="w-3.5 h-3.5"></i>
-                <span>សមាជិកលក់ក្នុងក្រុម (${selectedL.teamMembers.length} នាក់)</span>
-              </span>
-
-              <div class="space-y-1.5 max-h-64 overflow-y-auto no-scrollbar pr-1">
-                ${selectedL.teamMembers.length > 0 ? selectedL.teamMembers.map(mem => {
-                  const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
-                  const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
-                  return `
-                  <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-                      <div class="min-w-0">
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                          <span class="font-bold text-xs text-white truncate">${mem.km}</span>
-                          ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                          ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
-                          <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">
-                          Leader: <span class="text-sky-300 font-medium">${mem.leader || selectedL.km}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="text-right shrink-0 font-mono">
-                      <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
-                      <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
-                    </div>
-                  </div>
-                `;}).join('') : `
-                  <div class="p-4 text-center text-xs text-slate-500 italic bg-black/20 rounded-2xl border border-white/5">
-                    មិនទាន់មានសមាជិករាយការណ៍ក្នុងក្រុមនេះទេ
-                  </div>
-                `}
-              </div>
-            </div>
+            <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) -->
+            ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
           </div>
         `;
       }

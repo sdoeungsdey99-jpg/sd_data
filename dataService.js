@@ -983,7 +983,7 @@ window.DataService = {
           // Column 9 is Stock ($), Col 10 is Note, Col 11 is Record_ID
           const col8Num = cleanNumber(r[8]);
           const sumQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
-          const totalBoxQty = col8Num > 0 ? col8Num : sumQty;
+          const totalBoxQty = (freeQty < 0 && sumQty > 0) ? sumQty : (col8Num > 0 ? col8Num : sumQty);
           const stock = cleanNumber(r[9]);
           const note = String(r[10] || '').trim();
           const recordId = String(r[11] || orderId || `REC-BT-${i}`).trim();
