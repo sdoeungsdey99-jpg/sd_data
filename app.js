@@ -24058,12 +24058,13 @@ function openTeamMemberDetail(sellerKmName) {
     setDockVisible(true);
   }
 
+  // Hide 45-member list header when viewing individual member detail
+  const teamHeader = document.getElementById('team-members-header');
+  if (teamHeader) teamHeader.classList.add('hidden');
+
   const listView = document.getElementById('team-members-list-view');
   const detailView = document.getElementById('team-members-detail-view');
   if (!detailView) return;
-
-  const teamHeader = document.getElementById('team-members-header');
-  if (teamHeader) teamHeader.classList.add('hidden');
 
   if (listView) listView.classList.add('hidden');
   detailView.classList.remove('hidden');
@@ -24093,8 +24094,8 @@ function openTeamMemberDetail(sellerKmName) {
     : dailyData.dailyRows;
 
   detailView.innerHTML = `
-    <!-- Top Compact Header Section (រូបទី១ សម្រួលឱ្យតូចស្រឡះ) -->
-    <div class="p-3.5 pb-2 space-y-2">
+    <!-- 1. Sticky Locked Identity Bar (រូបសំណូមពរ៖ ជាប់ស្អិតនៅខាងលើបង្អស់ Lock Permanently on Scroll) -->
+    <div id="team-member-locked-bar" class="sticky top-0 z-40 bg-[#070D18]/98 backdrop-blur-2xl px-3.5 pt-2 pb-2 space-y-2 border-b border-white/10 shadow-lg select-none">
       <!-- Back Navigation & Member ID -->
       <div class="flex items-center justify-between pb-0.5">
         <button onclick="backToTeamMembersList()" 
@@ -24105,7 +24106,7 @@ function openTeamMemberDetail(sellerKmName) {
         <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
       </div>
 
-      <!-- Member Identity Header Card (សម្រួលឱ្យតូចស្រឡះ - Compact) -->
+      <!-- Member Identity Header Card (LOCKED BAR) -->
       <div class="py-2 px-3 rounded-2xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-2.5 shadow-sm">
         <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-xs flex items-center justify-center shadow-md shadow-orange-500/20 shrink-0">
           ${seller.km.slice(0, 2)}
@@ -24123,7 +24124,10 @@ function openTeamMemberDetail(sellerKmName) {
           </div>
         </div>
       </div>
+    </div>
 
+    <!-- 2. Middle Section (Actions for Self if any + 2 KPI Boxes) -->
+    <div class="p-3.5 pt-2.5 pb-2 space-y-2">
       ${isSelf ? `
         <!-- Action Buttons for Self (កែប្រែ & ឯកជនភាព) -->
         <div class="grid grid-cols-2 gap-2">
@@ -24140,16 +24144,16 @@ function openTeamMemberDetail(sellerKmName) {
         </div>
       ` : ''}
 
-      <!-- Performance KPI Grid (សម្រួលឱ្យតូចស្រឡះ - Compact 2 Cards) -->
+      <!-- Performance KPI Grid (2 Cards) -->
       <div class="grid grid-cols-2 gap-2">
-        <div class="py-1.5 px-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between">
+        <div class="py-1.5 px-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between shadow-sm">
           <div class="text-left">
             <span class="text-[9.5px] text-slate-400 block font-semibold">📦 ប្រអប់លក់សរុប</span>
             <span class="text-[8.5px] text-slate-500 font-mono">ប្រអប់</span>
           </div>
           <span class="font-mono font-black text-base sm:text-lg text-emerald-400">${totalBoxes}</span>
         </div>
-        <div class="py-1.5 px-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between">
+        <div class="py-1.5 px-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between shadow-sm">
           <div class="text-left">
             <span class="text-[9.5px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់សរុប</span>
             <span class="text-[8.5px] text-slate-500 font-mono">ជោគជ័យ</span>
@@ -24159,8 +24163,8 @@ function openTeamMemberDetail(sellerKmName) {
       </div>
     </div>
 
-    <!-- Detailed Daily Breakdown Table (Sticky Lock exactly like «តារាងលម្អិតលក់ប្រចាំថ្ងៃ») -->
-    <div class="px-3.5 space-y-1.5">
+    <!-- 3. Detailed Daily Breakdown Table (Sticky Lock exactly like «តារាងលម្អិតលក់ប្រចាំថ្ងៃ») -->
+    <div class="px-3.5 space-y-1.5 pb-20">
       <div class="flex items-center justify-between px-1">
         <div class="flex items-center gap-1.5">
           <div class="w-4 h-4 rounded-md bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
@@ -24173,11 +24177,11 @@ function openTeamMemberDetail(sellerKmName) {
 
       <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-visible relative">
         <table class="w-full text-center text-xs border-collapse">
-          <!-- Table Header (Sticky Locked directly below top action bar!) -->
-          <thead class="sticky top-[42px] z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
+          <!-- Table Header (Sticky Locked directly below locked bar!) -->
+          <thead id="team-member-daily-thead" class="sticky top-[96px] z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
             <tr class="bg-[#0B1528]">
               <th onclick="toggleTeamMemberDetailFilterMode('${safeName}')" 
-                  class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
+                  class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
                   title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
                 <div class="flex items-center gap-1">
                   <span>ថ្ងៃ</span>
@@ -24186,37 +24190,37 @@ function openTeamMemberDetail(sellerKmName) {
                   </span>
                 </div>
               </th>
-              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
+              <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[1] || 0}</span>
                   <span class="text-[8.5px] text-slate-400">ឈុត ១</span>
                 </div>
               </th>
-              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
+              <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[2] || 0}</span>
                   <span class="text-[8.5px] text-slate-400">ឈុត ២</span>
                 </div>
               </th>
-              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
+              <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[3] || 0}</span>
                   <span class="text-[8.5px] text-slate-400">ឈុត ៣</span>
                 </div>
               </th>
-              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
+              <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[5] || 0}</span>
                   <span class="text-[8.5px] text-slate-400">ឈុត ៥</span>
                 </div>
               </th>
-              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
+              <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[6] || 0}</span>
                   <span class="text-[8.5px] text-slate-400">ឈុត ៦</span>
                 </div>
               </th>
-              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1.5 font-bold">
+              <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1.5 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.totalBoxes}</span>
                   <span class="text-[8.5px] text-emerald-400 font-bold">សរុប</span>
@@ -24256,6 +24260,19 @@ function openTeamMemberDetail(sellerKmName) {
       </div>
     </div>
   `;
+
+  // Dynamically sync sticky offset of thead with the actual height of the locked bar
+  requestAnimationFrame(() => {
+    const bar = document.getElementById('team-member-locked-bar');
+    const thead = document.getElementById('team-member-daily-thead');
+    if (bar && thead) {
+      const h = bar.offsetHeight || 96;
+      thead.style.top = `${h}px`;
+      thead.querySelectorAll('th').forEach(th => {
+        th.style.top = `${h}px`;
+      });
+    }
+  });
 
   if (window.lucide) window.lucide.createIcons();
 }
