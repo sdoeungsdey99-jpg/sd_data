@@ -5486,11 +5486,11 @@ function openMemberDailyBreakdownModal(memberName) {
       <div class="px-3.5">
         <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-visible relative">
           <table class="w-full text-center text-xs border-collapse">
-            <!-- Table Header (ថ្ងៃ គ្មាន ទី - Sticky Locked When Scrolling!) -->
-            <thead class="sticky top-0 z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
-              <tr class="bg-[#0B1528]">
+            <!-- Table Header (ថ្ងៃ គ្មាន ទី - Sticky Locked When Scrolling with Smooth 2XL Rounded Corners) -->
+            <thead class="sticky top-0 z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md rounded-t-2xl">
+              <tr class="bg-[#0B1528] rounded-t-2xl">
                 <th onclick="toggleMemberDailyFilterMode('${safeName}')" 
-                    class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
+                    class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group rounded-tl-2xl" 
                     title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
                   <div class="flex items-center gap-1">
                     <span>ថ្ងៃ</span>
@@ -5529,7 +5529,7 @@ function openMemberDailyBreakdownModal(memberName) {
                     <span class="text-[9px] text-slate-400">ឈុត ៦</span>
                   </div>
                 </th>
-                <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 font-bold">
+                <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 font-bold rounded-tr-2xl">
                   <div class="flex flex-col items-center gap-0.5">
                     <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.totalBoxes}</span>
                     <span class="text-[9px] text-emerald-400 font-bold">សរុប</span>
@@ -24521,11 +24521,11 @@ function openTeamMemberDetail(sellerKmName) {
 
       <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-visible relative">
         <table class="w-full text-center text-xs border-collapse">
-          <!-- Table Header (Sticky Locked directly below locked bar!) -->
-          <thead id="team-member-daily-thead" class="sticky top-[96px] z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
-            <tr class="bg-[#0B1528]">
+          <!-- Table Header (Sticky Locked directly below locked bar with Smooth 2XL Rounded Corners) -->
+          <thead id="team-member-daily-thead" class="sticky top-[96px] z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md rounded-t-2xl">
+            <tr class="bg-[#0B1528] rounded-t-2xl">
               <th onclick="toggleTeamMemberDetailFilterMode('${safeName}')" 
-                  class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
+                  class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group rounded-tl-2xl" 
                   title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
                 <div class="flex items-center gap-1">
                   <span>ថ្ងៃ</span>
@@ -24564,7 +24564,7 @@ function openTeamMemberDetail(sellerKmName) {
                   <span class="text-[8.5px] text-slate-400">ឈុត ៦</span>
                 </div>
               </th>
-              <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1.5 font-bold">
+              <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1.5 font-bold rounded-tr-2xl">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.totalBoxes}</span>
                   <span class="text-[8.5px] text-emerald-400 font-bold">សរុប</span>
