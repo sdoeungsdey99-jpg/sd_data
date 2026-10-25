@@ -24077,82 +24077,91 @@ function openTeamMemberDetail(sellerKmName) {
     : dailyData.dailyRows;
 
   detailView.innerHTML = `
-    <!-- Top Action Bar for Detail View (Image 1) -->
-    <div class="flex items-center justify-between pb-1">
-      <button onclick="backToTeamMembersList()" 
-              class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
-        <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
-        <span>បញ្ជីសមាជិក</span>
-      </button>
-      <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
-    </div>
-
-    <!-- Member Identity Header Card (Image 1) -->
-    <div class="p-4 rounded-3xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-3.5 shadow-lg">
-      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-orange-500/25 shrink-0">
-        ${seller.km.slice(0, 2)}
+    <!-- Top Compact Header Section (រូបទី១ សម្រួលឱ្យតូចស្រឡះ) -->
+    <div class="p-3.5 pb-2 space-y-2">
+      <!-- Back Navigation & Member ID -->
+      <div class="flex items-center justify-between pb-0.5">
+        <button onclick="backToTeamMembersList()" 
+                class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-orange-400"></i>
+          <span>បញ្ជីសមាជិក</span>
+        </button>
+        <span class="text-[11px] font-bold text-amber-400 font-mono">ID: ${escapeHtml(seller.en)}</span>
       </div>
-      <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-2 flex-wrap">
-          <h4 class="font-bold text-sm sm:text-base text-white truncate">${seller.km}</h4>
-          ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-          ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">' : ''}
-          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[9px] font-bold">${isSelf ? '👤 គណនីរបស់អ្នក' : 'ACTIVE'}</span>
+
+      <!-- Member Identity Header Card (សម្រួលឱ្យតូចស្រឡះ - Compact) -->
+      <div class="py-2 px-3 rounded-2xl bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent border border-orange-500/30 flex items-center gap-2.5 shadow-sm">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-bold text-xs flex items-center justify-center shadow-md shadow-orange-500/20 shrink-0">
+          ${seller.km.slice(0, 2)}
         </div>
-        <p class="text-[11px] text-slate-300 font-mono mt-0.5">${seller.en}</p>
-        <span class="inline-block mt-1 text-[10px] text-amber-300 font-medium">✨ សមាជិកក្រុម BostarGroup</span>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h4 class="font-bold text-xs sm:text-sm text-white truncate">${seller.km}</h4>
+            ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
+            ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+            <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[8.5px] font-bold">${isSelf ? '👤 គណនីរបស់អ្នក' : 'ACTIVE'}</span>
+          </div>
+          <div class="flex items-center gap-2 text-[10px] text-slate-300 font-mono mt-0.5">
+            <span>${seller.en}</span>
+            <span class="text-amber-300/80 font-sans">• BostarGroup</span>
+          </div>
+        </div>
       </div>
-    </div>
 
-    ${isSelf ? `
-      <!-- Action Buttons for Self (កែប្រែ & ឯកជនភាព) -->
+      ${isSelf ? `
+        <!-- Action Buttons for Self (កែប្រែ & ឯកជនភាព) -->
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="closeTeamMembersModal(); openEditProfileModal();" 
+                  class="py-1.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-sm">
+            <i data-lucide="user-pen" class="w-3.5 h-3.5"></i>
+            <span>កែប្រែ Profile</span>
+          </button>
+          <button onclick="closeTeamMembersModal(); openProfileDrawer();" 
+                  class="py-1.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-sm">
+            <i data-lucide="shield" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>ការកំណត់ឯកជនភាព</span>
+          </button>
+        </div>
+      ` : ''}
+
+      <!-- Performance KPI Grid (សម្រួលឱ្យតូចស្រឡះ - Compact 2 Cards) -->
       <div class="grid grid-cols-2 gap-2">
-        <button onclick="closeTeamMembersModal(); openEditProfileModal();" 
-                class="py-2 px-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-md shadow-orange-500/20">
-          <i data-lucide="user-pen" class="w-3.5 h-3.5"></i>
-          <span>កែប្រែ Profile</span>
-        </button>
-        <button onclick="closeTeamMembersModal(); openProfileDrawer();" 
-                class="py-2 px-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition shadow-sm">
-          <i data-lucide="shield" class="w-3.5 h-3.5 text-amber-400"></i>
-          <span>ការកំណត់ឯកជនភាព</span>
-        </button>
-      </div>
-    ` : ''}
-
-    <!-- Performance KPI Grid (Image 1: 2 Cards - NO Target Bar, NO Boost) -->
-    <div class="grid grid-cols-2 gap-2.5">
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-        <span class="text-[10px] text-slate-400 block font-semibold">📦 ប្រអប់លក់សរុប</span>
-        <span class="font-mono font-bold text-lg text-emerald-400 block">${totalBoxes}</span>
-        <span class="text-[9.5px] text-slate-500 font-mono">ប្រអប់</span>
-      </div>
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-center space-y-1">
-        <span class="text-[10px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់សរុប</span>
-        <span class="font-mono font-bold text-lg text-sky-400 block">${totalOrders}</span>
-        <span class="text-[9.5px] text-slate-500 font-mono">ជោគជ័យ</span>
+        <div class="py-1.5 px-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between">
+          <div class="text-left">
+            <span class="text-[9.5px] text-slate-400 block font-semibold">📦 ប្រអប់លក់សរុប</span>
+            <span class="text-[8.5px] text-slate-500 font-mono">ប្រអប់</span>
+          </div>
+          <span class="font-mono font-black text-base sm:text-lg text-emerald-400">${totalBoxes}</span>
+        </div>
+        <div class="py-1.5 px-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between">
+          <div class="text-left">
+            <span class="text-[9.5px] text-slate-400 block font-semibold">🧾 កុម្ម៉ង់សរុប</span>
+            <span class="text-[8.5px] text-slate-500 font-mono">ជោគជ័យ</span>
+          </div>
+          <span class="font-mono font-black text-base sm:text-lg text-sky-400">${totalOrders}</span>
+        </div>
       </div>
     </div>
 
-    <!-- Detailed Daily Breakdown Table (ជំនួសរូបទី២ ដោយគ្មានរបារគោលដៅ ឬ Boost) -->
-    <div class="space-y-2 pt-1 pb-16">
+    <!-- Detailed Daily Breakdown Table (Sticky Lock exactly like «តារាងលម្អិតលក់ប្រចាំថ្ងៃ») -->
+    <div class="px-3.5 space-y-1.5">
       <div class="flex items-center justify-between px-1">
         <div class="flex items-center gap-1.5">
-          <div class="w-5 h-5 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <i data-lucide="calendar" class="w-3 h-3"></i>
+          <div class="w-4 h-4 rounded-md bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <i data-lucide="calendar" class="w-2.5 h-2.5"></i>
           </div>
-          <span class="text-xs font-bold text-slate-200 font-sans">តារាងលម្អិតលក់ប្រចាំថ្ងៃ (${dailyData.monthLabel})</span>
+          <span class="text-[11px] font-bold text-slate-200 font-sans">តារាងលម្អិតលក់ប្រចាំថ្ងៃ (${dailyData.monthLabel})</span>
         </div>
-        <span class="text-[10px] text-slate-400 font-mono">${rowsToDisplay.length} ថ្ងៃ</span>
+        <span class="text-[9.5px] text-slate-400 font-mono">${rowsToDisplay.length} ថ្ងៃ</span>
       </div>
 
-      <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-hidden relative">
+      <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-visible relative">
         <table class="w-full text-center text-xs border-collapse">
-          <!-- Table Header (Sticky Locked When Scrolling) -->
+          <!-- Table Header (Sticky Locked When Scrolling!) -->
           <thead class="sticky top-0 z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
             <tr class="bg-[#0B1528]">
               <th onclick="toggleTeamMemberDetailFilterMode('${safeName}')" 
-                  class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
+                  class="sticky top-0 z-30 bg-[#0B1528] py-2 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
                   title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
                 <div class="flex items-center gap-1">
                   <span>ថ្ងៃ</span>
@@ -24161,40 +24170,40 @@ function openTeamMemberDetail(sellerKmName) {
                   </span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.setCounts[1] || 0}</span>
-                  <span class="text-[9px] text-slate-400">ឈុត ១</span>
+                  <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[1] || 0}</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត ១</span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.setCounts[2] || 0}</span>
-                  <span class="text-[9px] text-slate-400">ឈុត ២</span>
+                  <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[2] || 0}</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត ២</span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.setCounts[3] || 0}</span>
-                  <span class="text-[9px] text-slate-400">ឈុត ៣</span>
+                  <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[3] || 0}</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត ៣</span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.setCounts[5] || 0}</span>
-                  <span class="text-[9px] text-slate-400">ឈុត ៥</span>
+                  <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[5] || 0}</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត ៥</span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.setCounts[6] || 0}</span>
-                  <span class="text-[9px] text-slate-400">ឈុត ៦</span>
+                  <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[6] || 0}</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត ៦</span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 font-bold">
+              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1.5 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
-                  <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9.5px]">${dailyData.totalBoxes}</span>
-                  <span class="text-[9px] text-emerald-400 font-bold">សរុប</span>
+                  <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.totalBoxes}</span>
+                  <span class="text-[8.5px] text-emerald-400 font-bold">សរុប</span>
                 </div>
               </th>
             </tr>
@@ -24203,22 +24212,22 @@ function openTeamMemberDetail(sellerKmName) {
           <!-- Table Body Rows -->
           <tbody class="divide-y divide-white/5 font-mono text-[11px]">
             ${rowsToDisplay.length > 0 ? rowsToDisplay.map(r => {
-              const s1 = (r.sets[1] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">${r.sets[1]}</span>` : '<span class="text-slate-600">—</span>';
-              const s2 = (r.sets[2] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">${r.sets[2]}</span>` : '<span class="text-slate-600">—</span>';
-              const s3 = (r.sets[3] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">${r.sets[3]}</span>` : '<span class="text-slate-600">—</span>';
-              const s5 = (r.sets[5] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">${r.sets[5]}</span>` : '<span class="text-slate-600">—</span>';
-              const s6 = (r.sets[6] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">${r.sets[6]}</span>` : '<span class="text-slate-600">—</span>';
+              const s1 = (r.sets[1] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">${r.sets[1]}</span>` : '<span class="text-slate-600">—</span>';
+              const s2 = (r.sets[2] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">${r.sets[2]}</span>` : '<span class="text-slate-600">—</span>';
+              const s3 = (r.sets[3] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">${r.sets[3]}</span>` : '<span class="text-slate-600">—</span>';
+              const s5 = (r.sets[5] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">${r.sets[5]}</span>` : '<span class="text-slate-600">—</span>';
+              const s6 = (r.sets[6] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">${r.sets[6]}</span>` : '<span class="text-slate-600">—</span>';
               const tot = (r.totalBoxes > 0) ? `<span class="text-emerald-400 font-bold text-xs">${r.totalBoxes}</span>` : '<span class="text-slate-600">—</span>';
               
               return `
                 <tr class="hover:bg-white/[0.03] transition">
                   <td class="py-2 px-2 text-left font-bold text-slate-300 text-[10.5px]">${r.dayLabel}</td>
-                  <td class="py-2 px-1.5">${s1}</td>
-                  <td class="py-2 px-1.5">${s2}</td>
-                  <td class="py-2 px-1.5">${s3}</td>
-                  <td class="py-2 px-1.5">${s5}</td>
-                  <td class="py-2 px-1.5">${s6}</td>
-                  <td class="py-2 px-2">${tot}</td>
+                  <td class="py-2 px-1">${s1}</td>
+                  <td class="py-2 px-1">${s2}</td>
+                  <td class="py-2 px-1">${s3}</td>
+                  <td class="py-2 px-1">${s5}</td>
+                  <td class="py-2 px-1">${s6}</td>
+                  <td class="py-2 px-1.5">${tot}</td>
                 </tr>
               `;
             }).join('') : `
