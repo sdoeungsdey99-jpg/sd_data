@@ -175,6 +175,9 @@ function insertPersonalSalesOrder(ss, order) {
 
   var newOrderId = String(order.orderId || '').trim();
 
+  // ប្រភេទការលក់៖ 'standard' (ស្តុកក្រុមហ៊ុន), 'reward' (លក់រង្វាន់), 'return' (លក់អីវ៉ាន់ត្រឡប់)
+  var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();
+
   var maxRecNum = 0;
   var targetRow = -1; // ជួរដេកដែលត្រូវបំពេញ
 
@@ -190,8 +193,8 @@ function insertPersonalSalesOrder(ss, order) {
       if (recVal > maxRecNum) maxRecNum = recVal;
     }
 
-    // ពិនិត្យភាពស្ទួនតាម Order ID (បើ Order ID ដូចគ្នា មិនឱ្យបញ្ចូលទេ តែលេខទូរស័ព្ទដូចគ្នាអនុញ្ញាត)
-    if (newOrderId && existingOrderId && newOrderId.toLowerCase() === existingOrderId.toLowerCase()) {
+    // ពិនិត្យភាពស្ទួនតាម Order ID (អនុវត្តត្រឹមតែការកុម្ម៉ង់ចេញពីក្រុមហ៊ុន 'standard' ប៉ុណ្ណោះ, លក់រង្វាន់ ឬអីវ៉ាន់ត្រឡប់អនុញ្ញាតលេខចាស់ ឬគ្មានលេខបាន)
+    if (orderType === 'standard' && newOrderId && existingOrderId && newOrderId.toLowerCase() === existingOrderId.toLowerCase()) {
       return { 
         status: 'duplicate', 
         message: 'Order ID ' + newOrderId + ' មានរួចហើយក្នុងជួរទី ' + (r + 1),
@@ -213,9 +216,6 @@ function insertPersonalSalesOrder(ss, order) {
   // បង្កើត Record_ID ថ្មីបន្តបន្ទាប់ (ឧ. REC-0503)
   var nextRecNum = maxRecNum + 1;
   var formattedRecId = 'REC-' + ('0000' + nextRecNum).slice(-4);
-
-  // ប្រភេទការលក់៖ 'standard' (ស្តុកក្រុមហ៊ុន), 'reward' (លក់រង្វាន់), 'return' (លក់អីវ៉ាន់ត្រឡប់)
-  var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();
 
   // គណនាចំនួនប្រអប់សរុប
   var totalBoxes = Number(order.totalBoxQty || 0);

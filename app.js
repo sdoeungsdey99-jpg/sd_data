@@ -27270,8 +27270,10 @@ function setOrderType(type) {
       capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">រង្វាន់</span>`;
       capsuleBtn.onclick = toggleOrderTypeCapsule;
     }
-    if (desc) desc.innerText = 'លក់រង្វាន់: គិតថ្លៃដើម $5/ប្រអប់, បូកសរុបចូលជួរ V (Reward QTY) និងដកថ្លៃដឹក។';
-    if (orderIdGroup) orderIdGroup.classList.add('opacity-40', 'pointer-events-none');
+    if (desc) desc.innerText = 'លក់រង្វាន់: គិតថ្លៃដើម $5/ប្រអប់, បូកសរុបចូលជួរ V (Reward QTY) និងដកថ្លៃដឹក (មិនទាមទារលេខកុម្ម៉ង់)។';
+    if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
+    const idInput = document.getElementById('order-field-id');
+    if (idInput) idInput.placeholder = '# (មិនដាក់ក៏បាន)';
     if (sellerPhoneInput && isMaster) sellerPhoneInput.value = '097 859 5526';
   } else if (type === 'return') {
     if (btnRet) btnRet.className = 'py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-sky-500/20 border-sky-500 text-sky-400 shadow-sm';
@@ -27280,8 +27282,10 @@ function setOrderType(type) {
       capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ត្រឡប់</span>`;
       capsuleBtn.onclick = toggleOrderTypeCapsule;
     }
-    if (desc) desc.innerText = 'លក់អីវ៉ាន់ត្រឡប់: គិតថ្លៃដើម $0.00 (បានទូទាត់ថ្លៃដើមរួចហើយ) និងដកថ្លៃដឹក។';
+    if (desc) desc.innerText = 'លក់អីវ៉ាន់ត្រឡប់: គិតថ្លៃដើម $0.00 (បានទូទាត់ថ្លៃដើមរួចហើយ) និងដកថ្លៃដឹក (អនុញ្ញាតលេខកុម្ម៉ង់ចាស់)។';
     if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
+    const idInput = document.getElementById('order-field-id');
+    if (idInput) idInput.placeholder = '# (ប្រើលេខចាស់បាន)';
   } else {
     // standard
     if (btnStd) btnStd.className = 'py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-orange-500/20 border-orange-500 text-orange-400 shadow-sm';
@@ -27290,8 +27294,10 @@ function setOrderType(type) {
       capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ស្តុក</span>`;
       capsuleBtn.onclick = toggleOrderTypeCapsule;
     }
-    if (desc) desc.innerText = 'ស្តុកក្រុមហ៊ុន: គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ។';
+    if (desc) desc.innerText = 'ស្តុកក្រុមហ៊ុន: គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ (មិនឱ្យស្ទួន)។';
     if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
+    const idInput = document.getElementById('order-field-id');
+    if (idInput) idInput.placeholder = '#';
     if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
   }
 
@@ -27309,7 +27315,13 @@ function setOrderType(type) {
 
 function adjustProductQty(prod, delta) {
   if (currentOrderProducts[prod] !== undefined) {
-    currentOrderProducts[prod] = Math.max(0, (currentOrderProducts[prod] || 0) + delta);
+    if (prod === 'free') {
+      // Allow Free to go negative down to -6 for team promotion offsets (e.g. -1, -2, -3)
+      // Positive up to 10. Default starts at 0!
+      currentOrderProducts[prod] = Math.max(-6, Math.min(10, (currentOrderProducts[prod] || 0) + delta));
+    } else {
+      currentOrderProducts[prod] = Math.max(0, (currentOrderProducts[prod] || 0) + delta);
+    }
     updateProductQtyDisplay();
     updateAutoOrderNote();
     calculateOrderFinancials();
@@ -27317,6 +27329,27 @@ function adjustProductQty(prod, delta) {
     if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
   }
 }
+
+function handleFreeCardClick(e) {
+  if (e && e.target && e.target.closest('button')) return;
+  // Tap cycles: 0 -> -1 -> -2 -> -3 -> 0
+  const cur = currentOrderProducts.free || 0;
+  if (cur === 0) {
+    currentOrderProducts.free = -1;
+  } else if (cur === -1) {
+    currentOrderProducts.free = -2;
+  } else if (cur === -2) {
+    currentOrderProducts.free = -3;
+  } else {
+    currentOrderProducts.free = 0;
+  }
+  updateProductQtyDisplay();
+  updateAutoOrderNote();
+  calculateOrderFinancials();
+  checkOrderSubmitValidation();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+}
+window.handleFreeCardClick = handleFreeCardClick;
 
 function updateProductQtyDisplay() {
   const prods = ['yl', 'ylp', 'kn', 'pdo', 'emmi', 'sgp', 'free'];
@@ -27330,18 +27363,62 @@ function updateProductQtyDisplay() {
 
     const fillBar = document.getElementById(`fill-bar-${p}`);
     if (fillBar) {
-      const pct = qty >= 6 ? 100 : (steps[qty] || 0);
-      fillBar.style.width = `${pct}%`;
+      if (p === 'free' && qty < 0) {
+        // Negative Free QTY (Offset): Dual-color subtle amber/orange glow
+        const absQty = Math.abs(qty);
+        const pct = absQty >= 6 ? 100 : (steps[absQty] || 0);
+        fillBar.style.width = `${pct}%`;
+        fillBar.className = 'absolute inset-y-0 left-0 bg-gradient-to-r from-amber-500/25 to-orange-500/35 border-r border-orange-400/50 rounded-xl transition-all duration-300 pointer-events-none';
+      } else if (p === 'free') {
+        // Positive or zero Free QTY: Standard clean white glass
+        const pct = qty >= 6 ? 100 : (steps[qty] || 0);
+        fillBar.style.width = `${pct}%`;
+        fillBar.className = 'absolute inset-y-0 left-0 bg-gradient-to-r from-white/15 to-white/25 border-r border-white/40 rounded-xl transition-all duration-300 pointer-events-none';
+      } else {
+        const pct = qty >= 6 ? 100 : (steps[qty] || 0);
+        fillBar.style.width = `${pct}%`;
+      }
     }
 
     const card = document.getElementById(`product-card-${p}`);
     if (card) {
-      if (qty > 0) {
-        card.classList.add('border-white/25');
-        card.classList.remove('border-white/10');
+      if (p === 'free') {
+        const tag = document.getElementById('tag-free-offset');
+        const dot = document.getElementById('dot-free');
+        if (qty < 0) {
+          card.classList.add('border-orange-500/30', 'bg-orange-500/[0.04]');
+          card.classList.remove('border-white/10', 'border-white/25');
+          if (el) el.className = 'w-6 text-center font-bold font-mono text-xs text-orange-400';
+          if (tag) {
+            tag.classList.remove('hidden');
+            tag.textContent = `កាត់កង ${qty}`;
+          }
+          if (dot) {
+            dot.className = 'w-2 h-2 rounded-full bg-orange-400 shadow-sm shadow-orange-400/50 shrink-0 transition-colors';
+          }
+        } else {
+          card.classList.remove('border-orange-500/30', 'bg-orange-500/[0.04]');
+          if (el) el.className = 'w-6 text-center font-bold font-mono text-xs text-white';
+          if (tag) tag.classList.add('hidden');
+          if (dot) {
+            dot.className = 'w-2 h-2 rounded-full bg-white/80 shadow-sm shadow-white/50 shrink-0 transition-colors';
+          }
+          if (qty > 0) {
+            card.classList.add('border-white/25');
+            card.classList.remove('border-white/10');
+          } else {
+            card.classList.remove('border-white/25');
+            card.classList.add('border-white/10');
+          }
+        }
       } else {
-        card.classList.remove('border-white/25');
-        card.classList.add('border-white/10');
+        if (qty > 0) {
+          card.classList.add('border-white/25');
+          card.classList.remove('border-white/10');
+        } else {
+          card.classList.remove('border-white/25');
+          card.classList.add('border-white/10');
+        }
       }
     }
   });
@@ -27645,7 +27722,8 @@ async function submitNewOrder() {
 
   const isReward = (currentOrderType === 'reward');
   const isReturn = (currentOrderType === 'return');
-  const orderId = isReward ? '' : getVal('order-field-id');
+  const isStandard = (currentOrderType === 'standard');
+  const orderId = getVal('order-field-id');
   
   // Format date to DD/MM/YYYY for Google Sheet
   const dateText = getVal('order-field-date-text');
@@ -27710,11 +27788,12 @@ async function submitNewOrder() {
     return;
   }
 
-  // ពិនិត្យភាពស្ទួនតាម Order ID (លក្ខខណ្ឌ៖ លេខទូរស័ព្ទដូចគ្នាអនុញ្ញាត តែ Order ID / Row ដូចគ្នាមិនបានទេ)
-  if (orderId && DataService.data && Array.isArray(DataService.data.personalSales)) {
+  // ពិនិត្យភាពស្ទួនតាម Order ID (អនុវត្តត្រឹមតែការកុម្ម៉ង់ចេញពីក្រុមហ៊ុន/ស្តុក standard ប៉ុណ្ណោះ)
+  // លក់រង្វាន់ (reward) អាចគ្មានលេខកុម្ម៉ង់បាន និងលក់អីវ៉ាន់ត្រឡប់ (return) អាចប្រើលេខកុម្ម៉ង់ចាស់បាន
+  if (isStandard && orderId && DataService.data && Array.isArray(DataService.data.personalSales)) {
     const isDup = DataService.data.personalSales.some(s => s.orderId && s.orderId.toLowerCase() === orderId.toLowerCase());
     if (isDup) {
-      alert(`⚠️ លេខកុម្ម៉ង់ ${orderId} នេះមានរួចហើយក្នុង Personal Sales! មិនអាចបញ្ចូលស្ទួនបានទេ។`);
+      alert(`⚠️ លេខកុម្ម៉ង់ ${orderId} នេះមានរួចហើយក្នុង Personal Sales! មិនអាចបញ្ចូលស្ទួនបានទេ (សម្រាប់ស្តុកក្រុមហ៊ុន)។`);
       if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
       return;
     }
@@ -27766,7 +27845,11 @@ async function submitNewOrder() {
   if (currentOrderProducts.pdo > 0) prodParts.push(`PDO (${currentOrderProducts.pdo})`);
   if (currentOrderProducts.emmi > 0) prodParts.push(`Emmi (${currentOrderProducts.emmi})`);
   if (currentOrderProducts.sgp > 0) prodParts.push(`SGP (${currentOrderProducts.sgp})`);
-  if (currentOrderProducts.free > 0) prodParts.push(`Free (${currentOrderProducts.free})`);
+  if (currentOrderProducts.free > 0) {
+    prodParts.push(`Free (${currentOrderProducts.free})`);
+  } else if (currentOrderProducts.free < 0) {
+    prodParts.push(`Free (${currentOrderProducts.free})`);
+  }
   const productSummary = prodParts.join(', ') || 'ទំនិញ';
 
   const newRecord = {
