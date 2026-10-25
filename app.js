@@ -2970,26 +2970,31 @@ function getExecMaxRole() {
 }
 
 function getExecActiveRole() {
-  return sessionStorage.getItem('sd_exec_role') || localStorage.getItem('sd_exec_role') || getExecMaxRole();
+  const role = sessionStorage.getItem('sd_exec_role') || localStorage.getItem('sd_exec_role');
+  if (role === 'director' || !role) {
+    return 'manager';
+  }
+  return role;
 }
 
 function initExecutiveSecurityState() {
   const isRemembered = (localStorage.getItem('sd_exec_remember') === 'true');
   const isBioEnabled = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
   const savedMaxRole = localStorage.getItem('sd_exec_max_role');
-  const savedRole = localStorage.getItem('sd_exec_role');
+  let savedRole = localStorage.getItem('sd_exec_role');
+  if (savedRole === 'director') savedRole = 'manager';
 
   if (isRemembered && savedMaxRole) {
     if (!isBioEnabled) {
       // Auto-unlock session immediately if Remember Me is ON and Biometrics is OFF
       sessionStorage.setItem('sd_exec_unlocked', 'true');
       sessionStorage.setItem('sd_exec_max_role', savedMaxRole);
-      sessionStorage.setItem('sd_exec_role', savedRole || savedMaxRole);
+      sessionStorage.setItem('sd_exec_role', savedRole || (savedMaxRole === 'director' ? 'manager' : savedMaxRole));
     } else {
       // Biometrics is enabled: keep locked for 1-tap Face ID / Touch ID unlock
       sessionStorage.removeItem('sd_exec_unlocked');
       sessionStorage.setItem('sd_exec_max_role', savedMaxRole);
-      sessionStorage.setItem('sd_exec_role', savedRole || savedMaxRole);
+      sessionStorage.setItem('sd_exec_role', savedRole || (savedMaxRole === 'director' ? 'manager' : savedMaxRole));
     }
   }
 }
@@ -3093,12 +3098,12 @@ function submitExecutivePasscode(enteredVal) {
 
   if (cleanCode === 'director' || code.toUpperCase() === '1MBOSTAR') {
     maxRole = 'director';
-    activeRole = 'director';
+    activeRole = 'manager';
     successMsg = 'ដោះសោរផ្ទាំង DIRECTOR ជោគជ័យ! 👑✨';
   } else if (cleanCode === 'manager') {
     maxRole = 'manager';
     activeRole = 'manager';
-    successMsg = 'ដោះសោរផ្ទាំង MANAGERS ជោគជ័យ! 👔✨';
+    successMsg = 'ដោះសោរផ្ទាំង MANAGERS ជោគជ័យ! 🎖️✨';
   } else if (cleanCode === 'leader') {
     maxRole = 'leader';
     activeRole = 'leader';
@@ -3331,57 +3336,51 @@ function handleLockedExecutiveCardClick(event) {
   }
 }
 
-function openExecutiveSecurityActionSheet(event) {
-  if (event) event.stopPropagation();
-  let sheet = document.getElementById('executive-security-action-sheet');
-  if (!sheet) {
-    sheet = document.createElement('div');
-    sheet.id = 'executive-security-action-sheet';
-    document.body.appendChild(sheet);
+function openExecutiveSecuritySettingsModal() {
+  const isUnlocked = (sessionStorage.getItem('sd_exec_unlocked') === 'true' || localStorage.getItem('sd_exec_remember') === 'true');
+  if (!isUnlocked) {
+    openExecutivePasscodeModal();
+    return;
+  }
+
+  let modal = document.getElementById('executive-security-settings-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'executive-security-settings-modal';
+    document.body.appendChild(modal);
   }
 
   const isRememberOn = (localStorage.getItem('sd_exec_remember') === 'true');
   const isBioOn = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
   const maxRole = getExecMaxRole();
   const roleLabels = {
-    director: '👑 Director (ស្ថាបនិក)',
-    manager: '👔 Manager (ថ្នាក់គ្រប់គ្រង)',
+    director: '👑 Director (ស្ថាបនិក BOSTAR)',
+    manager: '🎖️ Manager (ថ្នាក់គ្រប់គ្រង)',
     leader: '🌟 Leader (ប្រធានក្រុម)',
     member: '🤝 Member (សមាជិក)'
   };
   const roleTitle = roleLabels[maxRole] || 'VIP Executive';
 
-  sheet.className = 'fixed inset-0 z-[10000] flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md transition-all duration-200';
-  sheet.innerHTML = `
-    <div class="w-full max-w-sm rounded-3xl bg-[#0C1425]/95 border border-amber-500/30 p-4 space-y-3.5 text-white relative shadow-2xl">
-      
-      <!-- Action Sheet Header -->
-      <div class="text-center pt-1 pb-1 border-b border-white/10 space-y-1">
-        <div class="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-md">
+  modal.className = 'fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-200';
+  modal.innerHTML = `
+    <div class="w-full max-w-sm rounded-3xl bg-[#0C1425]/95 border border-amber-500/30 p-5 space-y-4 text-white relative shadow-2xl">
+      <button type="button" onclick="closeExecutiveSecuritySettingsModal()" 
+              class="absolute top-4 right-4 p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Header -->
+      <div class="text-center pt-1 pb-1 space-y-1">
+        <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-md">
           <i data-lucide="shield-check" class="w-5 h-5"></i>
         </div>
         <h3 class="text-sm font-bold text-white uppercase tracking-wide">សុវត្ថិភាពរចនាសម្ព័ន្ធលក់</h3>
         <p class="text-[11px] text-amber-400 font-medium">${roleTitle}</p>
       </div>
 
-      <!-- Settings & Controls List (iOS Grouped Style) -->
+      <!-- Settings List -->
       <div class="space-y-2">
-        <!-- 1. Lock Now -->
-        <button type="button" onclick="actionSheetLockNow()" 
-                class="w-full p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between group active:scale-[0.99] transition text-left">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
-              <i data-lucide="lock" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <div class="text-xs font-bold text-white">ចាក់សោរភ្លាមៗ</div>
-              <div class="text-[10px] text-slate-400">ចាក់សោរកាតសម្រាប់ Session នេះ</div>
-            </div>
-          </div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-white transition"></i>
-        </button>
-
-        <!-- 2. Biometric (Face ID / Fingerprint) Toggle -->
+        <!-- 1. Biometric Toggle -->
         <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center">
@@ -3393,39 +3392,39 @@ function openExecutiveSecurityActionSheet(event) {
             </div>
           </div>
           <button type="button" onclick="toggleSecurityBiometric()" 
-                  class="w-12 h-6.5 rounded-full transition-all relative flex items-center p-0.5 ${isBioOn ? 'bg-amber-500' : 'bg-white/20'}"
-                  title="បើក/បិទ Face ID">
-            <span class="w-5.5 h-5.5 rounded-full bg-white transition-transform transform ${isBioOn ? 'translate-x-5.5' : 'translate-x-0'} shadow-md"></span>
+                  class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${isBioOn ? 'bg-amber-500' : 'bg-slate-700'}"
+                  role="switch" aria-checked="${isBioOn}" title="បើក/បិទ Face ID">
+            <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${isBioOn ? 'translate-x-5' : 'translate-x-0'}"></div>
           </button>
         </div>
 
-        <!-- 3. Remember Me Toggle -->
+        <!-- 2. Remember Me Toggle -->
         <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
               <i data-lucide="smartphone" class="w-4 h-4"></i>
             </div>
             <div>
-              <div class="text-xs font-bold text-white">ចងចាំការចូល (Remember)</div>
+              <div class="text-xs font-bold text-white">ចងចាំការចូលប្រើ</div>
               <div class="text-[10px] text-slate-400">មិនបាច់វាយកូដពេលអូស App ចេញ</div>
             </div>
           </div>
           <button type="button" onclick="toggleSecurityRemember()" 
-                  class="w-12 h-6.5 rounded-full transition-all relative flex items-center p-0.5 ${isRememberOn ? 'bg-amber-500' : 'bg-white/20'}"
-                  title="បើក/បិទ ចងចាំការចូល">
-            <span class="w-5.5 h-5.5 rounded-full bg-white transition-transform transform ${isRememberOn ? 'translate-x-5.5' : 'translate-x-0'} shadow-md"></span>
+                  class="w-11 h-6 rounded-full transition-colors duration-200 p-0.5 relative flex items-center shrink-0 ${isRememberOn ? 'bg-amber-500' : 'bg-slate-700'}"
+                  role="switch" aria-checked="${isRememberOn}" title="បើក/បិទ ចងចាំការចូល">
+            <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${isRememberOn ? 'translate-x-5' : 'translate-x-0'}"></div>
           </button>
         </div>
 
-        <!-- 4. Log Out / Reset Device -->
+        <!-- 3. Lock & Clear Device Session -->
         <button type="button" onclick="actionSheetLogOut()" 
                 class="w-full p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 flex items-center justify-between group active:scale-[0.99] transition text-left">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
-              <i data-lucide="log-out" class="w-4 h-4"></i>
+              <i data-lucide="lock" class="w-4 h-4"></i>
             </div>
             <div>
-              <div class="text-xs font-bold text-rose-400">ចាកចេញ និងលុបការចងចាំ</div>
+              <div class="text-xs font-bold text-rose-400">ចាក់សោរ និងលុបការចងចាំ</div>
               <div class="text-[10px] text-slate-400">តម្រូវឱ្យវាយលេខកូដឡើងវិញគ្រប់ពេល</div>
             </div>
           </div>
@@ -3433,34 +3432,24 @@ function openExecutiveSecurityActionSheet(event) {
         </button>
       </div>
 
-      <!-- Cancel Button -->
-      <button type="button" onclick="closeExecutiveSecurityActionSheet()" 
+      <!-- Close Button -->
+      <button type="button" onclick="closeExecutiveSecuritySettingsModal()" 
               class="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-xs active:scale-95 transition text-center">
-        បោះបង់
+        បិទ
       </button>
     </div>
   `;
-  sheet.classList.remove('hidden');
+  modal.classList.remove('hidden');
   if (window.lucide) window.lucide.createIcons();
 }
 
-function closeExecutiveSecurityActionSheet() {
-  const sheet = document.getElementById('executive-security-action-sheet');
-  if (sheet) sheet.classList.add('hidden');
+function closeExecutiveSecuritySettingsModal() {
+  const modal = document.getElementById('executive-security-settings-modal');
+  if (modal) modal.classList.add('hidden');
 }
 
-function actionSheetLockNow() {
-  closeExecutiveSecurityActionSheet();
-  sessionStorage.removeItem('sd_exec_unlocked');
-  execHierarchyFilterState.selectedManager = null;
-  execHierarchyFilterState.selectedLeader = null;
-  closeExecutiveHierarchyModal();
-  renderCurrentView();
-  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
-  if (typeof showToastNotification === 'function') {
-    showToastNotification('បានចាក់សោរកាតរចនាសម្ព័ន្ធលក់! 🔒');
-  }
-}
+const openExecutiveSecurityActionSheet = openExecutiveSecuritySettingsModal;
+const closeExecutiveSecurityActionSheet = closeExecutiveSecuritySettingsModal;
 
 async function toggleSecurityBiometric() {
   const isBioOn = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
@@ -3470,11 +3459,11 @@ async function toggleSecurityBiometric() {
     if (typeof showToastNotification === 'function') {
       showToastNotification('បានបិទ Face ID / ស្នាមម្រាមដៃ! 🛡️');
     }
-    openExecutiveSecurityActionSheet();
+    openExecutiveSecuritySettingsModal();
   } else {
     const success = await enrollBiometrics();
     if (success) {
-      openExecutiveSecurityActionSheet();
+      openExecutiveSecuritySettingsModal();
     }
   }
 }
@@ -3494,11 +3483,11 @@ function toggleSecurityRemember() {
       showToastNotification('បានបើកការចងចាំលើទូរស័ព្ទនេះ! 📱✨');
     }
   }
-  openExecutiveSecurityActionSheet();
+  openExecutiveSecuritySettingsModal();
 }
 
 function actionSheetLogOut() {
-  closeExecutiveSecurityActionSheet();
+  closeExecutiveSecuritySettingsModal();
   localStorage.removeItem('sd_exec_remember');
   localStorage.removeItem('sd_exec_biometric_enabled');
   localStorage.removeItem('sd_exec_biometric_dismissed');
@@ -3515,7 +3504,7 @@ function actionSheetLogOut() {
   renderCurrentView();
   if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch (_) {}
   if (typeof showToastNotification === 'function') {
-    showToastNotification('បានចាកចេញ និងកំណត់ឡើងវិញជោគជ័យ! 🔒');
+    showToastNotification('បានចាក់សោរ និងលុបការចងចាំជោគជ័យ! 🔒');
   }
 }
 
@@ -3535,14 +3524,13 @@ function renderExecutiveRoleSwitcherHtml(context = 'card') {
   let allowedRoles = [];
   if (maxRole === 'director') {
     allowedRoles = [
-      { id: 'director', label: 'Director', badge: '👑' },
-      { id: 'manager', label: 'Managers', badge: '👔' },
+      { id: 'manager', label: 'Managers', badge: '🎖️' },
       { id: 'leader', label: 'Leaders', badge: '🌟' },
       { id: 'member', label: 'Members', badge: '🤝' }
     ];
   } else if (maxRole === 'manager') {
     allowedRoles = [
-      { id: 'manager', label: 'Managers', badge: '👔' },
+      { id: 'manager', label: 'Managers', badge: '🎖️' },
       { id: 'leader', label: 'Leaders', badge: '🌟' },
       { id: 'member', label: 'Members', badge: '🤝' }
     ];
@@ -3590,7 +3578,7 @@ function switchExecutiveRole(newRole, event) {
   const maxRole = getExecMaxRole();
 
   const validHierarchy = {
-    director: ['director', 'manager', 'leader', 'member'],
+    director: ['manager', 'leader', 'member'],
     manager: ['manager', 'leader', 'member'],
     leader: ['leader', 'member'],
     member: ['member']
@@ -3618,11 +3606,28 @@ function switchExecutiveRole(newRole, event) {
 }
 
 function relockExecutiveCard(event) {
-  openExecutiveSecurityActionSheet(event);
+  if (event) event.stopPropagation();
+  sessionStorage.removeItem('sd_exec_unlocked');
+  execHierarchyFilterState.selectedManager = null;
+  execHierarchyFilterState.selectedLeader = null;
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+  if (typeof showToastNotification === 'function') {
+    showToastNotification('បានចាក់សោរកាតរចនាសម្ព័ន្ធលក់ជោគជ័យ! 🔒');
+  }
 }
 
 function relockExecutiveHierarchyModal(event) {
-  openExecutiveSecurityActionSheet(event);
+  if (event) event.stopPropagation();
+  sessionStorage.removeItem('sd_exec_unlocked');
+  execHierarchyFilterState.selectedManager = null;
+  execHierarchyFilterState.selectedLeader = null;
+  closeExecutiveHierarchyModal();
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+  if (typeof showToastNotification === 'function') {
+    showToastNotification('បានចាក់សោរកាតរចនាសម្ព័ន្ធលក់ជោគជ័យ! 🔒');
+  }
 }
 
 function toggleManagerRoster(idx, event) {
@@ -5100,6 +5105,8 @@ window.dismissBiometricPrompt = dismissBiometricPrompt;
 window.closeBiometricPromptModal = closeBiometricPromptModal;
 window.enrollBiometrics = enrollBiometrics;
 window.authenticateWithBiometrics = authenticateWithBiometrics;
+window.openExecutiveSecuritySettingsModal = openExecutiveSecuritySettingsModal;
+window.closeExecutiveSecuritySettingsModal = closeExecutiveSecuritySettingsModal;
 window.openExecutiveSecurityActionSheet = openExecutiveSecurityActionSheet;
 window.closeExecutiveSecurityActionSheet = closeExecutiveSecurityActionSheet;
 window.actionSheetLockNow = actionSheetLockNow;
@@ -6122,11 +6129,10 @@ function getDashboardViewHTML() {
               <i data-lucide="maximize-2" class="w-3 h-3 text-amber-400"></i>
               <span class="hidden sm:inline">ពេញអេក្រង់</span>
             </button>
-            <button type="button" onclick="openExecutiveSecurityActionSheet(event)" 
-                    class="px-2.5 py-1 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold flex items-center gap-1.5 transition active:scale-95 shrink-0" title="ការកំណត់សុវត្ថិភាព">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              <i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>
-              <span>🔒 ចាក់សោរ ▾</span>
+            <button type="button" onclick="relockExecutiveCard(event)" 
+                    class="w-7 h-7 rounded-full bg-rose-500/10 hover:bg-rose-500/20 active:scale-90 border border-rose-500/30 text-rose-400 flex items-center justify-center transition shrink-0" 
+                    title="ចាក់សោរភ្លាមៗ">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
             </button>
           </div>
         </div>
@@ -10367,6 +10373,26 @@ function getSettingsViewHTML() {
                       role="switch" aria-checked="${appState.pinEnabled}">
                 <div class="w-5 h-5 bg-white switch-thumb rounded-full shadow-md transform transition-transform duration-200 ${appState.pinEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
               </button>
+            </div>
+          </div>
+
+          <!-- 3. សុវត្ថិភាពរចនាសម្ព័ន្ធលក់ (Sales Hierarchy Security) -->
+          <div onclick="openExecutiveSecuritySettingsModal()" 
+               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all duration-150 select-none">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isKm ? 'សុវត្ថិភាពរចនាសម្ព័ន្ធលក់' : 'Sales Hierarchy Security'}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'Face ID, ចងចាំការចូល & សិទ្ធិគ្រប់គ្រង' : 'Face ID, Remember & Permissions'}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 font-mono">
+                ${(sessionStorage.getItem('sd_exec_unlocked') === 'true' || localStorage.getItem('sd_exec_remember') === 'true') ? 'បានដោះសោរ' : 'ចាក់សោរ'}
+              </span>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </div>
           </div>
         </div>
