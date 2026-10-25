@@ -4235,9 +4235,11 @@ function toggleExecDirectorExpanded() {
 
 function handleDirectorClick(event) {
   if (event) event.stopPropagation();
+  sessionStorage.setItem('sd_exec_role', 'manager');
   execHierarchyFilterState.selectedManager = null;
   execHierarchyFilterState.selectedLeader = null;
   execHierarchyFilterState.isDirectorExpanded = true;
+  renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
   renderCurrentView();
   if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
@@ -4859,13 +4861,13 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
   const monthAbbr = monthAbbrs[monthNum - 1] || 'Aug';
   const monthLabel = `${String(monthNum).padStart(2, '0')}/${yearNum}`;
 
-  // NO Set 4 in BostarTrack!
-  const setCounts = { 1: 0, 2: 0, 3: 0, 5: 0 };
+  // BostarTrack product sets: Set 1, Set 2, Set 3, Set 5, Set 6 (NO Set 4!)
+  const setCounts = { 1: 0, 2: 0, 3: 0, 5: 0, 6: 0 };
   let totalBoxes = 0;
 
   const dailyMap = {};
   for (let day = 1; day <= daysInMonth; day++) {
-    dailyMap[day] = { sets: { 1: 0, 2: 0, 3: 0, 5: 0 }, totalBoxes: 0, orders: 0 };
+    dailyMap[day] = { sets: { 1: 0, 2: 0, 3: 0, 5: 0, 6: 0 }, totalBoxes: 0, orders: 0 };
   }
 
   memberOrders.forEach(o => {
@@ -4878,11 +4880,12 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
     if (b <= 0 && Number(o.totalBoxQty || 0) > 0) b = Number(o.totalBoxQty || 0);
     b = Math.max(0, Math.round(b));
 
-    // Bostar sets: Set 1 (1 box), Set 2 (2 boxes), Set 3 (3 boxes, or 3+1 promo 4-box), Set 5 (>=5 boxes)
+    // Bostar sets: Set 1 (1 box), Set 2 (2 boxes), Set 3 (3 boxes, or 3+1 promo 4-box), Set 5 (5 boxes), Set 6 (>=6 boxes)
     if (b === 1) setCounts[1]++;
     else if (b === 2) setCounts[2]++;
     else if (b === 3 || b === 4) setCounts[3]++;
-    else if (b >= 5) setCounts[5]++;
+    else if (b === 5) setCounts[5]++;
+    else if (b >= 6) setCounts[6]++;
 
     totalBoxes += b;
 
@@ -4896,7 +4899,8 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
           if (b === 1) dailyMap[dayNum].sets[1]++;
           else if (b === 2) dailyMap[dayNum].sets[2]++;
           else if (b === 3 || b === 4) dailyMap[dayNum].sets[3]++;
-          else if (b >= 5) dailyMap[dayNum].sets[5]++;
+          else if (b === 5) dailyMap[dayNum].sets[5]++;
+          else if (b >= 6) dailyMap[dayNum].sets[6]++;
         }
       }
     }
@@ -5013,6 +5017,10 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
       <div class="space-y-2">
         ${rosterData.map(item => {
           const isMemBechNora = (item.mem.km && (item.mem.km.includes('ប៊ិច នោរ៉ា') || (item.mem.en && item.mem.en.toLowerCase().includes('bech nora'))));
+          const isMemSdoeung = (item.mem.km && (item.mem.km.includes('ស្ដី ស្ដើង') || item.mem.km.includes('ស្តី ស្តើង') || item.mem.km.includes('ស្តី ស្នឹង')));
+          const tickBadge = isMemBechNora 
+            ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' 
+            : (isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : '');
           const pctNum = parseFloat(item.percentage) || 0;
           const safeName = item.mem.km.replace(/'/g, "\\'");
 
@@ -5023,7 +5031,7 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-1.5 min-w-0">
                   <span class="font-bold text-xs sm:text-sm text-white truncate">${item.mem.km}</span>
-                  ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">'}
+                  ${tickBadge}
                   <span class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono shrink-0">
                     គោលដៅ: ${item.target}
                   </span>
@@ -5035,19 +5043,22 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
                 </div>
               </div>
 
-              <!-- Set Badges Row (Exact Image 1 - NO Set 4) -->
+              <!-- Set Badges Row (Exact Image 1: Set 1, Set 2, Set 3, Set 5, Set 6 - NO Set 4) -->
               <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                 <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
-                  Set 1: <strong class="text-white">${item.setCounts[1]}</strong>
+                  Set 1: <strong class="text-white">${item.setCounts[1] || 0}</strong>
                 </span>
                 <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
-                  Set 2: <strong class="text-white">${item.setCounts[2]}</strong>
+                  Set 2: <strong class="text-white">${item.setCounts[2] || 0}</strong>
                 </span>
                 <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
-                  Set 3: <strong class="text-white">${item.setCounts[3]}</strong>
+                  Set 3: <strong class="text-white">${item.setCounts[3] || 0}</strong>
                 </span>
                 <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
-                  Set 5: <strong class="text-white">${item.setCounts[5]}</strong>
+                  Set 5: <strong class="text-white">${item.setCounts[5] || 0}</strong>
+                </span>
+                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
+                  Set 6: <strong class="text-white">${item.setCounts[6] || 0}</strong>
                 </span>
               </div>
 
@@ -5072,7 +5083,16 @@ function openMemberDailyBreakdownModal(memberName) {
   if (!container || !modal) return;
 
   const isMemBechNora = (memberName.includes('ប៊ិច នោរ៉ា') || memberName.toLowerCase().includes('bech nora'));
+  const isMemSdoeung = (memberName.includes('ស្ដី ស្ដើង') || memberName.includes('ស្តី ស្តើង') || memberName.includes('ស្តី ស្នឹង'));
+  const modalTickBadge = isMemBechNora 
+    ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' 
+    : (isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : '');
+
   const safeName = memberName.replace(/'/g, "\\'");
+  const currentFilter = window.memberDailyFilterMode || 'all';
+  const rowsToDisplay = (currentFilter === 'active')
+    ? data.dailyRows.filter(r => r.totalBoxes > 0)
+    : data.dailyRows;
 
   container.innerHTML = `
     <!-- Top Sticky Bar (Image 2) -->
@@ -5091,7 +5111,7 @@ function openMemberDailyBreakdownModal(memberName) {
         <div class="min-w-0">
           <div class="flex items-center gap-1.5 flex-wrap">
             <h3 class="font-bold text-xs sm:text-sm text-white truncate">${memberName}</h3>
-            ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">'}
+            ${modalTickBadge}
           </div>
           <p class="text-[10px] text-slate-400 mt-0.5 truncate">តារាងលម្អិតលក់ប្រចាំថ្ងៃ (${data.monthLabel})</p>
         </div>
@@ -5128,11 +5148,14 @@ function openMemberDailyBreakdownModal(memberName) {
           </div>
         </div>
 
-        <!-- 3. Boost -->
+        <!-- 3. Boost (ជាមួយ icon តូច លើស្តាំ) -->
         <div onclick="editMemberPersonalBoost('${safeName}')" 
-             class="p-3 rounded-2xl bg-[#0F1B2E] border border-purple-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition"
+             class="p-3 rounded-2xl bg-[#0F1B2E] border border-purple-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition relative group"
              title="ចុចដើម្បីកែប្រែ Boost ផ្ទាល់ខ្លួន">
-          <div class="text-[10px] text-purple-300 flex items-center justify-center gap-1 font-semibold">
+          <button type="button" class="absolute top-2 right-2 w-5 h-5 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/25 text-purple-300 flex items-center justify-center transition border border-purple-500/20" title="កែប្រែ Boost">
+            <i data-lucide="edit-3" class="w-3 h-3"></i>
+          </button>
+          <div class="text-[10px] text-purple-300 flex items-center justify-center gap-1 font-semibold pr-3">
             <i data-lucide="trending-up" class="w-3 h-3 text-purple-400"></i>
             <span>Boost</span>
           </div>
@@ -5140,61 +5163,71 @@ function openMemberDailyBreakdownModal(memberName) {
         </div>
       </div>
 
-      <!-- Detailed Daily Breakdown Table (Image 2) -->
+      <!-- Detailed Daily Breakdown Table (7 Columns: ថ្ងៃទី ▾ | ឈុត ១ | ឈុត ២ | ឈុត ៣ | ឈុត ៥ | ឈុត ៦ | សរុប) -->
       <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-hidden">
         <div class="overflow-x-auto no-scrollbar">
           <table class="w-full text-center text-xs">
             <!-- Table Header -->
             <thead class="bg-[#0F1B2E]/90 text-[10.5px] border-b border-white/10 text-slate-300">
               <tr>
-                <th class="py-2.5 px-2 text-left font-bold text-slate-200">ថ្ងៃទី ▾</th>
+                <th onclick="toggleMemberDailyFilterMode('${safeName}')" 
+                    class="py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
+                    title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
+                  <div class="flex items-center gap-1">
+                    <span>ថ្ងៃទី</span>
+                    <span class="text-[8.5px] px-1.5 py-0.5 rounded font-sans font-medium transition ${currentFilter === 'active' ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm' : 'bg-white/10 text-slate-400 border border-white/10'}">
+                      ${currentFilter === 'active' ? 'លក់បាន ▾' : 'ទាំងអស់ ▾'}
+                    </span>
+                  </div>
+                </th>
                 <th class="py-2.5 px-1.5 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[1]}</span>
+                    <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[1] || 0}</span>
                     <span class="text-[9px] text-slate-400">ឈុត ១</span>
                   </div>
                 </th>
                 <th class="py-2.5 px-1.5 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[2]}</span>
+                    <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[2] || 0}</span>
                     <span class="text-[9px] text-slate-400">ឈុត ២</span>
                   </div>
                 </th>
                 <th class="py-2.5 px-1.5 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[3]}</span>
+                    <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[3] || 0}</span>
                     <span class="text-[9px] text-slate-400">ឈុត ៣</span>
                   </div>
                 </th>
                 <th class="py-2.5 px-1.5 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[5]}</span>
+                    <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[5] || 0}</span>
                     <span class="text-[9px] text-slate-400">ឈុត ៥</span>
                   </div>
                 </th>
                 <th class="py-2.5 px-1.5 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
-                    <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.totalBoxes}</span>
-                    <span class="text-[9px] text-emerald-400 font-bold">សរុប</span>
+                    <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[6] || 0}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត ៦</span>
                   </div>
                 </th>
                 <th class="py-2.5 px-2 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
-                    <span class="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono text-[9px]">${data.boostDisplay}</span>
-                    <span class="text-[9px] text-purple-300 font-bold">Boost</span>
+                    <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.totalBoxes}</span>
+                    <span class="text-[9px] text-emerald-400 font-bold">សរុប</span>
                   </div>
                 </th>
               </tr>
             </thead>
 
-            <!-- Table Body Rows (Image 2) -->
+            <!-- Table Body Rows (7 Columns: Day, Set 1, Set 2, Set 3, Set 5, Set 6, Total) -->
             <tbody class="divide-y divide-white/5 font-mono text-[11px]">
-              ${data.dailyRows.map(r => {
-                const s1 = r.sets[1] > 0 ? `<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">${r.sets[1]}</span>` : '<span class="text-slate-600">—</span>';
-                const s2 = r.sets[2] > 0 ? `<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">${r.sets[2]}</span>` : '<span class="text-slate-600">—</span>';
-                const s3 = r.sets[3] > 0 ? `<span class="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">${r.sets[3]}</span>` : '<span class="text-slate-600">—</span>';
-                const s5 = r.sets[5] > 0 ? `<span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">${r.sets[5]}</span>` : '<span class="text-slate-600">—</span>';
-                const tot = r.totalBoxes > 0 ? `<span class="text-emerald-400 font-bold text-xs">${r.totalBoxes}</span>` : '<span class="text-slate-600">—</span>';
+              ${rowsToDisplay.length > 0 ? rowsToDisplay.map(r => {
+                const s1 = (r.sets[1] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">${r.sets[1]}</span>` : '<span class="text-slate-600">—</span>';
+                const s2 = (r.sets[2] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">${r.sets[2]}</span>` : '<span class="text-slate-600">—</span>';
+                const s3 = (r.sets[3] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">${r.sets[3]}</span>` : '<span class="text-slate-600">—</span>';
+                const s5 = (r.sets[5] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">${r.sets[5]}</span>` : '<span class="text-slate-600">—</span>';
+                const s6 = (r.sets[6] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">${r.sets[6]}</span>` : '<span class="text-slate-600">—</span>';
+                const tot = (r.totalBoxes > 0) ? `<span class="text-emerald-400 font-bold text-xs">${r.totalBoxes}</span>` : '<span class="text-slate-600">—</span>';
                 
                 return `
                   <tr class="hover:bg-white/[0.03] transition">
@@ -5203,11 +5236,15 @@ function openMemberDailyBreakdownModal(memberName) {
                     <td class="py-2 px-1.5">${s2}</td>
                     <td class="py-2 px-1.5">${s3}</td>
                     <td class="py-2 px-1.5">${s5}</td>
-                    <td class="py-2 px-1.5">${tot}</td>
-                    <td class="py-2 px-2 text-slate-600">—</td>
+                    <td class="py-2 px-1.5">${s6}</td>
+                    <td class="py-2 px-2">${tot}</td>
                   </tr>
                 `;
-              }).join('')}
+              }).join('') : `
+                <tr>
+                  <td colspan="7" class="py-6 text-center text-xs text-slate-500 italic">មិនមានការលក់ក្នុងខែនេះទេ</td>
+                </tr>
+              `}
             </tbody>
           </table>
         </div>
@@ -5217,6 +5254,11 @@ function openMemberDailyBreakdownModal(memberName) {
 
   modal.classList.remove('hidden');
   if (window.lucide) window.lucide.createIcons();
+}
+
+function toggleMemberDailyFilterMode(memberName) {
+  window.memberDailyFilterMode = (window.memberDailyFilterMode === 'active' ? 'all' : 'active');
+  openMemberDailyBreakdownModal(memberName);
 }
 
 function closeMemberDailyBreakdownModal() {
@@ -5442,15 +5484,18 @@ function renderExecutiveHierarchyModalContent() {
       const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
       const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
       const percentOfTop = Math.min(100, Math.round(((Number(mem.displayBoxes) || 0) / (topMemberBoxes || 1)) * 100));
+      const safeMemName = mem.km.replace(/'/g, "\\'");
 
       return `
-        <div class="p-3 rounded-2xl bg-black/40 border ${borderAccent} space-y-2 hover:bg-white/[0.03] transition shadow-sm">
+        <div onclick="openMemberDailyBreakdownModal('${safeMemName}')"
+             class="p-3 rounded-2xl bg-black/40 border ${borderAccent} space-y-2 hover:bg-white/[0.04] hover:border-emerald-400/40 cursor-pointer active:scale-[0.99] transition shadow-sm group"
+             title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
           <div class="flex items-center justify-between gap-2.5">
             <div class="flex items-center gap-2.5 min-w-0">
               ${rankBadge}
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                  <span class="font-bold text-xs text-white group-hover:text-emerald-300 transition truncate">${mem.km}</span>
                   ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                   ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                   <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
@@ -5461,9 +5506,12 @@ function renderExecutiveHierarchyModalContent() {
               </div>
             </div>
 
-            <div class="text-right shrink-0 font-mono">
-              <div class="text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">${mem.displayBoxes} ប្រអប់</div>
-              <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+            <div class="flex items-center gap-1.5 shrink-0 font-mono">
+              <div class="text-right">
+                <div class="text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">${mem.displayBoxes} ប្រអប់</div>
+                <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+              </div>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"></i>
             </div>
           </div>
 
@@ -5688,13 +5736,16 @@ function renderExecutiveHierarchyModalContent() {
               ${selectedM.teamMembers.length > 0 ? selectedM.teamMembers.map(mem => {
                 const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
                 const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+                const safeMemName = mem.km.replace(/'/g, "\\'");
                 return `
-                <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
+                <div onclick="openMemberDailyBreakdownModal('${safeMemName}')" 
+                     class="p-2.5 rounded-xl bg-black/40 border border-white/5 hover:border-emerald-400/30 flex items-center justify-between gap-2 hover:bg-white/[0.04] cursor-pointer active:scale-[0.99] transition group"
+                     title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
                   <div class="flex items-center gap-2 min-w-0">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
                     <div class="min-w-0">
                       <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                        <span class="font-bold text-xs text-white group-hover:text-emerald-300 transition truncate">${mem.km}</span>
                         ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                         ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                         <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
@@ -5705,9 +5756,12 @@ function renderExecutiveHierarchyModalContent() {
                     </div>
                   </div>
 
-                  <div class="text-right shrink-0 font-mono">
-                    <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
-                    <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                  <div class="flex items-center gap-1.5 shrink-0 font-mono">
+                    <div class="text-right">
+                      <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
+                      <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"></i>
                   </div>
                 </div>
               `;}).join('') : `
@@ -5724,8 +5778,8 @@ function renderExecutiveHierarchyModalContent() {
 
   container.innerHTML = `
     ${directorHtml}
-    <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - ALWAYS IMMEDIATELY VISIBLE -->
-    ${renderExecutiveLeaderTeamTargetCard(activeLeader, d)}
+    <!-- 👥 គោលដៅលក់តាមក្រុម: ONLY shown in Tab Leader -->
+    ${execRole === 'leader' ? renderExecutiveLeaderTeamTargetCard(activeLeader, d) : ''}
     ${bodyContentHtml}
   `;
 
@@ -5766,6 +5820,7 @@ window.renderExecutiveLeaderTeamTargetCard = renderExecutiveLeaderTeamTargetCard
 window.openMemberDailyBreakdownModal = openMemberDailyBreakdownModal;
 window.closeMemberDailyBreakdownModal = closeMemberDailyBreakdownModal;
 window.editMemberPersonalBoost = editMemberPersonalBoost;
+window.toggleMemberDailyFilterMode = toggleMemberDailyFilterMode;
 window.toggleSecurityBiometric = toggleSecurityBiometric;
 window.toggleSecurityRemember = toggleSecurityRemember;
 window.actionSheetLogOut = actionSheetLogOut;
@@ -6447,15 +6502,18 @@ function getDashboardViewHTML() {
         const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
         const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
         const percentOfTop = Math.min(100, Math.round(((Number(mem.displayBoxes) || 0) / (topMemberBoxes || 1)) * 100));
+        const safeMemName = mem.km.replace(/'/g, "\\'");
 
         return `
-          <div class="p-2.5 rounded-2xl bg-black/40 border ${borderAccent} space-y-1.5 hover:bg-white/[0.03] transition shadow-sm">
+          <div onclick="openMemberDailyBreakdownModal('${safeMemName}')"
+               class="p-2.5 rounded-2xl bg-black/40 border ${borderAccent} space-y-1.5 hover:bg-white/[0.04] hover:border-emerald-400/40 cursor-pointer active:scale-[0.99] transition shadow-sm group"
+               title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
             <div class="flex items-center justify-between gap-2.5">
               <div class="flex items-center gap-2.5 min-w-0">
                 ${rankBadge}
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                    <span class="font-bold text-xs text-white group-hover:text-emerald-300 transition truncate">${mem.km}</span>
                     ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                     ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
                     <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
@@ -6466,9 +6524,12 @@ function getDashboardViewHTML() {
                 </div>
               </div>
 
-              <div class="text-right shrink-0 font-mono">
-                <div class="text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">${mem.displayBoxes} ប្រអប់</div>
-                <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+              <div class="flex items-center gap-1.5 shrink-0 font-mono">
+                <div class="text-right">
+                  <div class="text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">${mem.displayBoxes} ប្រអប់</div>
+                  <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                </div>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"></i>
               </div>
             </div>
 
@@ -6688,13 +6749,16 @@ function getDashboardViewHTML() {
                 ${selectedM.teamMembers.length > 0 ? selectedM.teamMembers.map(mem => {
                   const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
                   const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
+                  const safeMemName = mem.km.replace(/'/g, "\\'");
                   return `
-                  <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between gap-2 hover:bg-white/[0.04] transition">
+                  <div onclick="openMemberDailyBreakdownModal('${safeMemName}')" 
+                       class="p-2 rounded-xl bg-black/40 border border-white/5 hover:border-emerald-400/30 flex items-center justify-between gap-2 hover:bg-white/[0.04] cursor-pointer active:scale-[0.99] transition group"
+                       title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
                     <div class="flex items-center gap-2 min-w-0">
                       <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
                       <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                          <span class="font-bold text-xs text-white truncate">${mem.km}</span>
+                          <span class="font-bold text-xs text-white group-hover:text-emerald-300 transition truncate">${mem.km}</span>
                           ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3 h-3 object-contain shrink-0" title="Director Verified 🌟">' : ''}
                           ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3 h-3 object-contain shrink-0">' : ''}
                           <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
@@ -6705,9 +6769,12 @@ function getDashboardViewHTML() {
                       </div>
                     </div>
 
-                    <div class="text-right shrink-0 font-mono">
-                      <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
-                      <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                    <div class="flex items-center gap-1.5 shrink-0 font-mono">
+                      <div class="text-right">
+                        <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
+                        <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                      </div>
+                      <i data-lucide="chevron-right" class="w-3 h-3 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"></i>
                     </div>
                   </div>
                 `;}).join('') : `
@@ -6794,8 +6861,8 @@ function getDashboardViewHTML() {
           </div>
         ` : ''}
 
-        <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - ALWAYS PROMINENTLY VISIBLE -->
-        ${renderExecutiveLeaderTeamTargetCard(activeLeader, d)}
+        <!-- 👥 គោលដៅលក់តាមក្រុម: ONLY shown in Tab Leader -->
+        ${execRole === 'leader' ? renderExecutiveLeaderTeamTargetCard(activeLeader, d) : ''}
 
         <!-- 2. MIDDLE TIER: ROLE LEADERBOARD OR DRILL-DOWN -->
         ${homeHierarchyBodyHtml}
