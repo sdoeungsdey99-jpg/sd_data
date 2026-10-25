@@ -12185,7 +12185,7 @@ function getCodStatusBadgeClass(status) {
   if (s.includes('បានទូទាត់')) return 'bg-slate-400/25 text-slate-200 border border-slate-400/40';
   if (s.includes('មិនទាន់ទូទាត់')) return 'bg-orange-400/25 text-orange-200 border border-orange-400/40';
   if (s.includes('បានរៀបចំ')) return 'bg-red-700/40 text-red-200 border border-red-600/50';
-  if (s.includes('បានដាក់ការកុម្ម')) return 'bg-slate-700/50 text-slate-200 border border-slate-600/50';
+  if (s.includes('បានដាក់ការកុម្ម')) return 'bg-sky-500/25 text-sky-200 border border-sky-500/40';
   if (s.includes('Canceled')) return 'bg-rose-500/35 text-rose-200 border border-rose-500/50';
   if (s.includes('ហ្វ្រី') || s.includes('Free')) return 'bg-slate-500/25 text-slate-300 border border-slate-500/40';
   return 'bg-white/10 text-slate-300 border border-white/10';
@@ -12257,23 +12257,84 @@ function renderCodSummary() {
   const footer = document.getElementById('cod-modal-footer');
   if (!tbody) return;
 
-  // Filter out: បានទូទាត់, Canceled, ហ្វ្រី (Free)
-  const items = [...(d.pendingCodReceivables || [])]
-    .filter(item => {
-      const s = String(item.status || '').trim();
-      if (s.includes('បានទូទាត់') || s.includes('Canceled') || s.includes('ហ្វ្រី') || s.toLowerCase().includes('free')) {
-        return false;
-      }
+  const isSettled = (st) => {
+    const s = String(st || '').trim();
+    if (!s) return false;
+    return s.includes('បានទូទាត់') || s.includes('Canceled') || s.includes('ហ្វ្រី') || s.toLowerCase().includes('free');
+  };
+
+  // 1. Bank sheet rows (pendingCodReceivables) excluding settled
+  const bankItems = (d.pendingCodReceivables || [])
+    .filter(item => !isSettled(item.status))
+    .map(item => ({
+      no: item.no || '',
+      date: item.date || '',
+      customer: item.customer || 'អតិថិជន COD',
+      qtyBoxes: item.qtyBoxes || '—',
+      status: item.status || 'រង់ចាំទូទាត់',
+      amount: cleanNumber(item.amount),
+      source: 'bank'
+    }));
+
+  // 2. Pull in orders from Personal Sales (Column Q), specifically «បានដាក់ការកុម្ម៉ង់» and active pending
+  const currentMonthKey = (appState.periodFilter === 'month' && appState.selectedMonthKey) ? 
+                          appState.selectedMonthKey : 
+                          getLocalIsoDate(new Date()).slice(0, 7);
+
+  const salesItems = (d.personalSales || [])
+    .filter(o => {
+      const st = String(o.codStatus || '').trim();
+      // Must not be settled
+      if (isSettled(st)) return false;
+      // Must have valid status or amount
+      if (!st && cleanNumber(o.totalAmount) <= 0) return false;
+      // Filter for active month
+      if (o.isoDate && !o.isoDate.startsWith(currentMonthKey)) return false;
       return true;
     })
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    .map(o => ({
+      no: o.orderId || o.id || '',
+      date: o.date || '',
+      customer: o.customer || 'អតិថិជន',
+      qtyBoxes: `${o.totalBoxQty || 1} ប្រអប់`,
+      status: o.codStatus || 'បានដាក់ការកុម្ម៉ង់',
+      amount: cleanNumber(o.totalAmount),
+      source: 'sales'
+    }));
+
+  // 3. Combine both: prioritize bankItems, add salesItems that aren't duplicates
+  const combined = [...bankItems];
+  salesItems.forEach(sItem => {
+    const exists = bankItems.some(b => b.date === sItem.date && Math.abs(b.amount - sItem.amount) < 0.01 && b.status === sItem.status);
+    if (!exists) {
+      combined.push(sItem);
+    }
+  });
+
+  // Sort descending by date (from 31 down to 01)
+  const parseD = (dStr) => {
+    if (!dStr) return '';
+    const p = dStr.split('/');
+    if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`;
+    return dStr;
+  };
+  combined.sort((a, b) => parseD(b.date).localeCompare(parseD(a.date)));
+
+  // Assign sequential index numbers descending
+  const items = combined.map((it, idx) => ({
+    ...it,
+    displayNo: combined.length - idx
+  }));
 
   if (countBadge) countBadge.textContent = items.length;
 
   tbody.innerHTML = items.map(item => `
     <tr class="hover:bg-white/5 transition">
-      <td class="py-2.5 px-2.5 font-mono text-orange-400 font-bold text-[11px]">${item.no}</td>
-      <td class="py-2.5 px-2.5 text-slate-300 font-mono text-[11px]">${item.date}</td>
+      <td class="py-2.5 px-2.5 font-mono text-orange-400 font-bold text-[11px]">${item.displayNo}</td>
+      <td class="py-2.5 px-2.5 text-slate-300 font-mono text-[11px]">
+        <div>${item.date}</div>
+        ${item.customer && item.customer !== 'អតិថិជន COD' ? `<div class="text-[10px] text-slate-400 font-sans truncate max-w-[110px]">${item.customer}</div>` : ''}
+      </td>
       <td class="py-2.5 px-2.5 text-white font-medium text-[11px]">${item.qtyBoxes}</td>
       <td class="py-2.5 px-2.5">
         <span class="px-2 py-0.5 rounded-full text-[10.5px] font-semibold whitespace-nowrap ${getCodStatusBadgeClass(item.status)}">
@@ -12442,9 +12503,9 @@ function setThaiCodPhaseFilter(phase) {
   thaiCodPhaseFilter = phase;
   document.querySelectorAll('.thai-cod-pill').forEach(btn => {
     if (btn.getAttribute('data-phase') === phase) {
-      btn.className = 'thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40';
+      btn.className = 'thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40';
     } else {
-      btn.className = 'thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10';
+      btn.className = 'thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10';
     }
   });
   renderThaiCodOrders();
