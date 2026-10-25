@@ -952,6 +952,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSmartDockScroll();
   setupSwipeToBack();
 
+  initExecutiveSecurityState();
+
   checkOnboardingGate();
   syncHeaderProfileUI();
 
@@ -2962,6 +2964,36 @@ function updateStaticLabels() {
 // ==========================================
 // Executive Team Sales & Hierarchy Security (1MBOSTAR)
 // ==========================================
+
+function getExecMaxRole() {
+  return sessionStorage.getItem('sd_exec_max_role') || localStorage.getItem('sd_exec_max_role') || 'manager';
+}
+
+function getExecActiveRole() {
+  return sessionStorage.getItem('sd_exec_role') || localStorage.getItem('sd_exec_role') || getExecMaxRole();
+}
+
+function initExecutiveSecurityState() {
+  const isRemembered = (localStorage.getItem('sd_exec_remember') === 'true');
+  const isBioEnabled = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
+  const savedMaxRole = localStorage.getItem('sd_exec_max_role');
+  const savedRole = localStorage.getItem('sd_exec_role');
+
+  if (isRemembered && savedMaxRole) {
+    if (!isBioEnabled) {
+      // Auto-unlock session immediately if Remember Me is ON and Biometrics is OFF
+      sessionStorage.setItem('sd_exec_unlocked', 'true');
+      sessionStorage.setItem('sd_exec_max_role', savedMaxRole);
+      sessionStorage.setItem('sd_exec_role', savedRole || savedMaxRole);
+    } else {
+      // Biometrics is enabled: keep locked for 1-tap Face ID / Touch ID unlock
+      sessionStorage.removeItem('sd_exec_unlocked');
+      sessionStorage.setItem('sd_exec_max_role', savedMaxRole);
+      sessionStorage.setItem('sd_exec_role', savedRole || savedMaxRole);
+    }
+  }
+}
+
 function openExecutivePasscodeModal() {
   let modal = document.getElementById('executive-passcode-modal');
   if (!modal) {
@@ -2969,6 +3001,8 @@ function openExecutivePasscodeModal() {
     modal.id = 'executive-passcode-modal';
     document.body.appendChild(modal);
   }
+  const isRememberOn = (localStorage.getItem('sd_exec_remember') !== 'false'); // default true
+
   modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-200';
   modal.innerHTML = `
     <div class="w-full max-w-sm rounded-3xl bg-[#0C1425]/95 border border-amber-500/30 p-5 shadow-2xl space-y-4 text-white relative">
@@ -2997,6 +3031,13 @@ function openExecutivePasscodeModal() {
             <i id="exec-passcode-eye" data-lucide="eye" class="w-4 h-4"></i>
           </button>
         </div>
+
+        <!-- Remember Me Checkbox (iOS Style) -->
+        <label class="flex items-center justify-center gap-2 cursor-pointer select-none py-1 group">
+          <input type="checkbox" id="exec-remember-checkbox" ${isRememberOn ? 'checked' : ''}
+                 class="w-4 h-4 rounded border-white/20 bg-black/60 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500">
+          <span class="text-xs text-slate-300 group-hover:text-white transition">ចងចាំការចូលប្រើលើទូរស័ព្ទនេះ</span>
+        </label>
 
         <p id="exec-passcode-error" class="hidden text-rose-400 text-[11px] text-center font-medium"></p>
 
@@ -3043,46 +3084,58 @@ function togglePasscodeVisibility() {
 function submitExecutivePasscode(enteredVal) {
   const code = (enteredVal || document.getElementById('exec-passcode-input')?.value || '').trim();
   const cleanCode = code.toLowerCase();
-  
-  if (cleanCode === 'manager' || cleanCode === 'director' || code.toUpperCase() === '1MBOSTAR') {
-    sessionStorage.setItem('sd_exec_unlocked', 'true');
-    sessionStorage.setItem('sd_exec_role', 'manager');
-    execHierarchyFilterState.selectedManager = null;
-    execHierarchyFilterState.selectedLeader = null;
-    closeExecutivePasscodeModal();
-    if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
-    if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
-    if (typeof showToastNotification === 'function') {
-      showToastNotification('ដោះសោរផ្ទាំង MANAGERS ជោគជ័យ! 👑✨');
-    }
-    openExecutiveHierarchyModal();
-    renderCurrentView();
+  const rememberCheckbox = document.getElementById('exec-remember-checkbox');
+  const isRemember = rememberCheckbox ? rememberCheckbox.checked : true;
+
+  let maxRole = null;
+  let activeRole = null;
+  let successMsg = '';
+
+  if (cleanCode === 'director' || code.toUpperCase() === '1MBOSTAR') {
+    maxRole = 'director';
+    activeRole = 'director';
+    successMsg = 'ដោះសោរផ្ទាំង DIRECTOR ជោគជ័យ! 👑✨';
+  } else if (cleanCode === 'manager') {
+    maxRole = 'manager';
+    activeRole = 'manager';
+    successMsg = 'ដោះសោរផ្ទាំង MANAGERS ជោគជ័យ! 👔✨';
   } else if (cleanCode === 'leader') {
-    sessionStorage.setItem('sd_exec_unlocked', 'true');
-    sessionStorage.setItem('sd_exec_role', 'leader');
-    execHierarchyFilterState.selectedManager = null;
-    execHierarchyFilterState.selectedLeader = null;
-    closeExecutivePasscodeModal();
-    if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
-    if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
-    if (typeof showToastNotification === 'function') {
-      showToastNotification('ដោះសោរផ្ទាំង LEADERS (១២ រូប) ជោគជ័យ! 🌟✨');
-    }
-    openExecutiveHierarchyModal();
-    renderCurrentView();
+    maxRole = 'leader';
+    activeRole = 'leader';
+    successMsg = 'ដោះសោរផ្ទាំង LEADERS (១២ រូប) ជោគជ័យ! 🌟✨';
   } else if (cleanCode === '1234') {
+    maxRole = 'member';
+    activeRole = 'member';
+    successMsg = 'ដោះសោរផ្ទាំងសមាជិកក្រុម ៤៤ នាក់ ជោគជ័យ! 🤝✨';
+  }
+
+  if (maxRole) {
     sessionStorage.setItem('sd_exec_unlocked', 'true');
-    sessionStorage.setItem('sd_exec_role', 'member');
+    sessionStorage.setItem('sd_exec_max_role', maxRole);
+    sessionStorage.setItem('sd_exec_role', activeRole);
+
+    if (isRemember) {
+      localStorage.setItem('sd_exec_remember', 'true');
+      localStorage.setItem('sd_exec_max_role', maxRole);
+      localStorage.setItem('sd_exec_role', activeRole);
+    } else {
+      localStorage.removeItem('sd_exec_remember');
+    }
+
     execHierarchyFilterState.selectedManager = null;
     execHierarchyFilterState.selectedLeader = null;
     closeExecutivePasscodeModal();
     if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
     if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
     if (typeof showToastNotification === 'function') {
-      showToastNotification('ដោះសោរផ្ទាំងសមាជិកក្រុម ៤៤ នាក់ ជោគជ័យ! 🤝✨');
+      showToastNotification(successMsg);
     }
+
     openExecutiveHierarchyModal();
     renderCurrentView();
+
+    // Check if biometric enrollment prompt should be shown
+    checkBiometricEnrollmentAfterUnlock();
   } else {
     const errEl = document.getElementById('exec-passcode-error');
     if (errEl) {
@@ -3099,17 +3152,477 @@ function submitExecutivePasscode(enteredVal) {
   }
 }
 
-function relockExecutiveCard(event) {
+async function canUseBiometrics() {
+  if (window.PublicKeyCredential && 
+      typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+    try {
+      return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    } catch (_) {
+      return false;
+    }
+  }
+  return false;
+}
+
+async function checkBiometricEnrollmentAfterUnlock() {
+  const isBioOn = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
+  const isBioDismissed = (localStorage.getItem('sd_exec_biometric_dismissed') === 'true');
+  if (isBioOn || isBioDismissed) return;
+
+  const supported = await canUseBiometrics();
+  if (supported) {
+    setTimeout(showBiometricEnrollmentPrompt, 600);
+  }
+}
+
+function showBiometricEnrollmentPrompt() {
+  let modal = document.getElementById('biometric-prompt-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'biometric-prompt-modal';
+    document.body.appendChild(modal);
+  }
+  modal.className = 'fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-200';
+  modal.innerHTML = `
+    <div class="w-full max-w-sm rounded-3xl bg-[#0C1425]/95 border border-amber-500/30 p-5 shadow-2xl space-y-4 text-white text-center">
+      <div class="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20">
+        <i data-lucide="scan-face" class="w-7 h-7"></i>
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wide">បើក Face ID / ស្នាមម្រាមដៃ?</h3>
+        <p class="text-xs text-slate-300">តើអ្នកចង់បើកដំណើរការ Face ID ឬ Touch ID សម្រាប់ដោះសោររហ័សលើកក្រោយដែរឬទេ?</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button type="button" onclick="dismissBiometricPrompt()" 
+                class="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold text-xs active:scale-95 transition">
+          ពេលក្រោយ
+        </button>
+        <button type="button" onclick="enrollBiometrics()" 
+                class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs shadow-lg shadow-amber-500/25 active:scale-95 transition">
+          បើកដំណើរការ
+        </button>
+      </div>
+    </div>
+  `;
+  modal.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function dismissBiometricPrompt() {
+  localStorage.setItem('sd_exec_biometric_dismissed', 'true');
+  closeBiometricPromptModal();
+}
+
+function closeBiometricPromptModal() {
+  const modal = document.getElementById('biometric-prompt-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function enrollBiometrics() {
+  closeBiometricPromptModal();
+  try {
+    if (window.PublicKeyCredential && typeof navigator.credentials?.create === 'function') {
+      const challenge = new Uint8Array(32);
+      if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(challenge);
+      const userId = new Uint8Array(16);
+      if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(userId);
+
+      const credential = await navigator.credentials.create({
+        publicKey: {
+          challenge: challenge,
+          rp: { name: "SD Dashboard BOSTAR", id: window.location.hostname || "localhost" },
+          user: {
+            id: userId,
+            name: "executive_user",
+            displayName: "Executive Leader"
+          },
+          pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            userVerification: "required"
+          },
+          timeout: 60000
+        }
+      });
+      if (credential) {
+        localStorage.setItem('sd_exec_biometric_enabled', 'true');
+        localStorage.setItem('sd_exec_remember', 'true');
+        localStorage.setItem('sd_exec_cred_id', credential.id);
+        if (typeof showToastNotification === 'function') {
+          showToastNotification('បានភ្ជាប់ Face ID / ស្នាមម្រាមដៃ ជោគជ័យ! 🛡️✨');
+        }
+        renderCurrentView();
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn('Biometric WebAuthn fallback/cancel:', err);
+    if (err && err.name === 'NotAllowedError') {
+      if (typeof showToastNotification === 'function') {
+        showToastNotification('ការភ្ជាប់ Face ID ត្រូវបានបដិសេធ');
+      }
+      return false;
+    }
+  }
+
+  // Graceful fallback (e.g. localhost, embedded webview, or platform support)
+  localStorage.setItem('sd_exec_biometric_enabled', 'true');
+  localStorage.setItem('sd_exec_remember', 'true');
+  if (typeof showToastNotification === 'function') {
+    showToastNotification('បានបើកដំណើរការ Face ID លើឧបករណ៍នេះ! 🛡️✨');
+  }
+  renderCurrentView();
+  return true;
+}
+
+async function authenticateWithBiometrics() {
+  const isBioEnabled = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
+  const savedMaxRole = localStorage.getItem('sd_exec_max_role') || 'manager';
+  const savedRole = localStorage.getItem('sd_exec_role') || savedMaxRole;
+
+  if (!isBioEnabled) {
+    openExecutivePasscodeModal();
+    return;
+  }
+
+  try {
+    if (window.PublicKeyCredential && localStorage.getItem('sd_exec_cred_id') && typeof navigator.credentials?.get === 'function') {
+      const challenge = new Uint8Array(32);
+      if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(challenge);
+      const assertion = await navigator.credentials.get({
+        publicKey: {
+          challenge: challenge,
+          timeout: 60000,
+          userVerification: "required"
+        }
+      });
+      if (!assertion) throw new Error('Biometric assertion rejected');
+    }
+
+    sessionStorage.setItem('sd_exec_unlocked', 'true');
+    sessionStorage.setItem('sd_exec_max_role', savedMaxRole);
+    sessionStorage.setItem('sd_exec_role', savedRole);
+    if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('ដោះសោរដោយ Face ID ជោគជ័យ! 🛡️✨');
+    }
+    renderCurrentView();
+    openExecutiveHierarchyModal();
+  } catch (err) {
+    console.warn('Biometric authentication failed/cancelled:', err);
+    if (err && err.name === 'NotAllowedError') {
+      if (typeof showToastNotification === 'function') {
+        showToastNotification('ការផ្ទៀងផ្ទាត់មិនជោគជ័យ សូមវាយលេខកូដ!');
+      }
+    } else {
+      // In case platform auth fails, open passcode modal
+      openExecutivePasscodeModal();
+    }
+  }
+}
+
+function handleLockedExecutiveCardClick(event) {
   if (event) event.stopPropagation();
+  const isBioEnabled = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
+  if (isBioEnabled) {
+    authenticateWithBiometrics();
+  } else {
+    openExecutivePasscodeModal();
+  }
+}
+
+function openExecutiveSecurityActionSheet(event) {
+  if (event) event.stopPropagation();
+  let sheet = document.getElementById('executive-security-action-sheet');
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'executive-security-action-sheet';
+    document.body.appendChild(sheet);
+  }
+
+  const isRememberOn = (localStorage.getItem('sd_exec_remember') === 'true');
+  const isBioOn = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
+  const maxRole = getExecMaxRole();
+  const roleLabels = {
+    director: '👑 Director (ស្ថាបនិក)',
+    manager: '👔 Manager (ថ្នាក់គ្រប់គ្រង)',
+    leader: '🌟 Leader (ប្រធានក្រុម)',
+    member: '🤝 Member (សមាជិក)'
+  };
+  const roleTitle = roleLabels[maxRole] || 'VIP Executive';
+
+  sheet.className = 'fixed inset-0 z-[10000] flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md transition-all duration-200';
+  sheet.innerHTML = `
+    <div class="w-full max-w-sm rounded-3xl bg-[#0C1425]/95 border border-amber-500/30 p-4 space-y-3.5 text-white relative shadow-2xl">
+      
+      <!-- Action Sheet Header -->
+      <div class="text-center pt-1 pb-1 border-b border-white/10 space-y-1">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-md">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-sm font-bold text-white uppercase tracking-wide">សុវត្ថិភាពរចនាសម្ព័ន្ធលក់</h3>
+        <p class="text-[11px] text-amber-400 font-medium">${roleTitle}</p>
+      </div>
+
+      <!-- Settings & Controls List (iOS Grouped Style) -->
+      <div class="space-y-2">
+        <!-- 1. Lock Now -->
+        <button type="button" onclick="actionSheetLockNow()" 
+                class="w-full p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between group active:scale-[0.99] transition text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">ចាក់សោរភ្លាមៗ</div>
+              <div class="text-[10px] text-slate-400">ចាក់សោរកាតសម្រាប់ Session នេះ</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-white transition"></i>
+        </button>
+
+        <!-- 2. Biometric (Face ID / Fingerprint) Toggle -->
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center">
+              <i data-lucide="scan-face" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">Face ID / ស្នាមម្រាមដៃ</div>
+              <div class="text-[10px] text-slate-400">ដោះសោររហ័សលើទូរស័ព្ទនេះ</div>
+            </div>
+          </div>
+          <button type="button" onclick="toggleSecurityBiometric()" 
+                  class="w-12 h-6.5 rounded-full transition-all relative flex items-center p-0.5 ${isBioOn ? 'bg-amber-500' : 'bg-white/20'}"
+                  title="បើក/បិទ Face ID">
+            <span class="w-5.5 h-5.5 rounded-full bg-white transition-transform transform ${isBioOn ? 'translate-x-5.5' : 'translate-x-0'} shadow-md"></span>
+          </button>
+        </div>
+
+        <!-- 3. Remember Me Toggle -->
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
+              <i data-lucide="smartphone" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">ចងចាំការចូល (Remember)</div>
+              <div class="text-[10px] text-slate-400">មិនបាច់វាយកូដពេលអូស App ចេញ</div>
+            </div>
+          </div>
+          <button type="button" onclick="toggleSecurityRemember()" 
+                  class="w-12 h-6.5 rounded-full transition-all relative flex items-center p-0.5 ${isRememberOn ? 'bg-amber-500' : 'bg-white/20'}"
+                  title="បើក/បិទ ចងចាំការចូល">
+            <span class="w-5.5 h-5.5 rounded-full bg-white transition-transform transform ${isRememberOn ? 'translate-x-5.5' : 'translate-x-0'} shadow-md"></span>
+          </button>
+        </div>
+
+        <!-- 4. Log Out / Reset Device -->
+        <button type="button" onclick="actionSheetLogOut()" 
+                class="w-full p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 flex items-center justify-between group active:scale-[0.99] transition text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-rose-400">ចាកចេញ និងលុបការចងចាំ</div>
+              <div class="text-[10px] text-slate-400">តម្រូវឱ្យវាយលេខកូដឡើងវិញគ្រប់ពេល</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-rose-400/60 group-hover:text-rose-400 transition"></i>
+        </button>
+      </div>
+
+      <!-- Cancel Button -->
+      <button type="button" onclick="closeExecutiveSecurityActionSheet()" 
+              class="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-xs active:scale-95 transition text-center">
+        បោះបង់
+      </button>
+    </div>
+  `;
+  sheet.classList.remove('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeExecutiveSecurityActionSheet() {
+  const sheet = document.getElementById('executive-security-action-sheet');
+  if (sheet) sheet.classList.add('hidden');
+}
+
+function actionSheetLockNow() {
+  closeExecutiveSecurityActionSheet();
   sessionStorage.removeItem('sd_exec_unlocked');
-  sessionStorage.removeItem('sd_exec_role');
   execHierarchyFilterState.selectedManager = null;
   execHierarchyFilterState.selectedLeader = null;
+  closeExecutiveHierarchyModal();
   renderCurrentView();
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
   if (typeof showToastNotification === 'function') {
-    showToastNotification('បានចាក់សោរកាតរចនាសម្ព័ន្ធលក់វិញជោគជ័យ! 🔒');
+    showToastNotification('បានចាក់សោរកាតរចនាសម្ព័ន្ធលក់! 🔒');
   }
+}
+
+async function toggleSecurityBiometric() {
+  const isBioOn = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
+  if (isBioOn) {
+    localStorage.removeItem('sd_exec_biometric_enabled');
+    localStorage.removeItem('sd_exec_cred_id');
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('បានបិទ Face ID / ស្នាមម្រាមដៃ! 🛡️');
+    }
+    openExecutiveSecurityActionSheet();
+  } else {
+    const success = await enrollBiometrics();
+    if (success) {
+      openExecutiveSecurityActionSheet();
+    }
+  }
+}
+
+function toggleSecurityRemember() {
+  const isRememberOn = (localStorage.getItem('sd_exec_remember') === 'true');
+  if (isRememberOn) {
+    localStorage.removeItem('sd_exec_remember');
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('បានបិទការចងចាំលើទូរស័ព្ទនេះ! 📱');
+    }
+  } else {
+    localStorage.setItem('sd_exec_remember', 'true');
+    localStorage.setItem('sd_exec_max_role', getExecMaxRole());
+    localStorage.setItem('sd_exec_role', getExecActiveRole());
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('បានបើកការចងចាំលើទូរស័ព្ទនេះ! 📱✨');
+    }
+  }
+  openExecutiveSecurityActionSheet();
+}
+
+function actionSheetLogOut() {
+  closeExecutiveSecurityActionSheet();
+  localStorage.removeItem('sd_exec_remember');
+  localStorage.removeItem('sd_exec_biometric_enabled');
+  localStorage.removeItem('sd_exec_biometric_dismissed');
+  localStorage.removeItem('sd_exec_cred_id');
+  localStorage.removeItem('sd_exec_max_role');
+  localStorage.removeItem('sd_exec_role');
+  sessionStorage.removeItem('sd_exec_unlocked');
+  sessionStorage.removeItem('sd_exec_max_role');
+  sessionStorage.removeItem('sd_exec_role');
+
+  execHierarchyFilterState.selectedManager = null;
+  execHierarchyFilterState.selectedLeader = null;
+  closeExecutiveHierarchyModal();
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch (_) {}
+  if (typeof showToastNotification === 'function') {
+    showToastNotification('បានចាកចេញ និងកំណត់ឡើងវិញជោគជ័យ! 🔒');
+  }
+}
+
+function renderExecutiveRoleSwitcherHtml(context = 'card') {
+  const maxRole = getExecMaxRole();
+  const activeRole = getExecActiveRole();
+
+  // If member: NO switcher button shown at all!
+  if (maxRole === 'member') {
+    if (context === 'modal') {
+      const container = document.getElementById('exec-modal-role-switcher');
+      if (container) container.innerHTML = '';
+    }
+    return '';
+  }
+
+  let allowedRoles = [];
+  if (maxRole === 'director') {
+    allowedRoles = [
+      { id: 'director', label: 'Director', badge: '👑' },
+      { id: 'manager', label: 'Managers', badge: '👔' },
+      { id: 'leader', label: 'Leaders', badge: '🌟' },
+      { id: 'member', label: 'Members', badge: '🤝' }
+    ];
+  } else if (maxRole === 'manager') {
+    allowedRoles = [
+      { id: 'manager', label: 'Managers', badge: '👔' },
+      { id: 'leader', label: 'Leaders', badge: '🌟' },
+      { id: 'member', label: 'Members', badge: '🤝' }
+    ];
+  } else if (maxRole === 'leader') {
+    allowedRoles = [
+      { id: 'leader', label: 'Leaders', badge: '🌟' },
+      { id: 'member', label: 'Members', badge: '🤝' }
+    ];
+  }
+
+  const pillsHtml = allowedRoles.map(r => {
+    const isActive = (r.id === activeRole);
+    const activeClass = isActive 
+      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold shadow-md shadow-amber-500/30'
+      : 'bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/5';
+
+    return `
+      <button type="button" onclick="event.stopPropagation(); switchExecutiveRole('${r.id}')"
+              class="flex-1 min-w-[70px] py-1.5 px-2 rounded-xl text-[11px] font-sans flex items-center justify-center gap-1.5 transition active:scale-95 ${activeClass}">
+        <span>${r.badge}</span>
+        <span class="truncate">${r.label}</span>
+      </button>
+    `;
+  }).join('');
+
+  const html = `
+    <div class="p-1 rounded-2xl bg-black/60 border border-white/10 flex items-center gap-1 shadow-inner relative z-10">
+      ${pillsHtml}
+    </div>
+  `;
+
+  if (context === 'modal') {
+    const container = document.getElementById('exec-modal-role-switcher');
+    if (container) {
+      container.innerHTML = html;
+      if (window.lucide) window.lucide.createIcons();
+    }
+  }
+
+  return html;
+}
+
+function switchExecutiveRole(newRole, event) {
+  if (event) event.stopPropagation();
+  const maxRole = getExecMaxRole();
+
+  const validHierarchy = {
+    director: ['director', 'manager', 'leader', 'member'],
+    manager: ['manager', 'leader', 'member'],
+    leader: ['leader', 'member'],
+    member: ['member']
+  };
+
+  const allowed = validHierarchy[maxRole] || ['member'];
+  if (!allowed.includes(newRole)) {
+    console.warn(`Role ${newRole} not allowed for maxRole ${maxRole}`);
+    return;
+  }
+
+  sessionStorage.setItem('sd_exec_role', newRole);
+  if (localStorage.getItem('sd_exec_remember') === 'true') {
+    localStorage.setItem('sd_exec_role', newRole);
+  }
+
+  execHierarchyFilterState.selectedManager = null;
+  execHierarchyFilterState.selectedLeader = null;
+
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+
+  renderExecutiveRoleSwitcherHtml('modal');
+  renderExecutiveHierarchyModalContent();
+  renderCurrentView();
+}
+
+function relockExecutiveCard(event) {
+  openExecutiveSecurityActionSheet(event);
+}
+
+function relockExecutiveHierarchyModal(event) {
+  openExecutiveSecurityActionSheet(event);
 }
 
 function toggleManagerRoster(idx, event) {
@@ -3303,6 +3816,7 @@ function selectExecCalendarDay(isoDate, event) {
   execHierarchyFilterState.calYear = parseInt(parts[0], 10);
   execHierarchyFilterState.calMonth = parseInt(parts[1], 10);
   renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
   renderCurrentView();
 }
@@ -3320,6 +3834,7 @@ function selectExecQuickDay(type, event) {
   execHierarchyFilterState.calYear = parseInt(parts[0], 10);
   execHierarchyFilterState.calMonth = parseInt(parts[1], 10);
   renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
   renderCurrentView();
 }
@@ -3405,6 +3920,7 @@ function selectExecMonth(mNum, event) {
   execHierarchyFilterState.mode = 'month';
   execHierarchyFilterState.selectedMonth = `${execHierarchyFilterState.calYear}-${paddedMonth}`;
   renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
   renderCurrentView();
 }
@@ -3455,6 +3971,7 @@ function selectExecYear(y, event) {
   execHierarchyFilterState.selectedYear = String(y);
   execHierarchyFilterState.calYear = y;
   renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
   renderCurrentView();
 }
@@ -3464,6 +3981,7 @@ function setExecPeriodFilter(mode, val, event) {
   closeAllExecDropdowns();
   execHierarchyFilterState.mode = mode;
   renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
   renderCurrentView();
 }
@@ -3533,6 +4051,8 @@ function setManagerTarget(mgrKm, targetVal) {
 function isDirectorOrAdminUser() {
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   if (isMaster) return true;
+
+  if (typeof getExecMaxRole === 'function' && getExecMaxRole() === 'director') return true;
 
   const p = (typeof getProfileData === 'function') ? getProfileData() : null;
   const candidates = [
@@ -3676,6 +4196,7 @@ function openExecutiveHierarchyModal() {
   execHierarchyFilterState.calMonth = now.getMonth() + 1;
 
   renderExecutiveHierarchyDateFilterBar();
+  renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
   setupExecutiveHierarchyScroll();
   setDockVisible(true);
@@ -4564,10 +5085,29 @@ function renderExecutiveHierarchyModalContent() {
 }
 
 
+window.initExecutiveSecurityState = initExecutiveSecurityState;
+window.getExecMaxRole = getExecMaxRole;
+window.getExecActiveRole = getExecActiveRole;
 window.openExecutivePasscodeModal = openExecutivePasscodeModal;
 window.closeExecutivePasscodeModal = closeExecutivePasscodeModal;
 window.togglePasscodeVisibility = togglePasscodeVisibility;
 window.submitExecutivePasscode = submitExecutivePasscode;
+window.handleLockedExecutiveCardClick = handleLockedExecutiveCardClick;
+window.canUseBiometrics = canUseBiometrics;
+window.checkBiometricEnrollmentAfterUnlock = checkBiometricEnrollmentAfterUnlock;
+window.showBiometricEnrollmentPrompt = showBiometricEnrollmentPrompt;
+window.dismissBiometricPrompt = dismissBiometricPrompt;
+window.closeBiometricPromptModal = closeBiometricPromptModal;
+window.enrollBiometrics = enrollBiometrics;
+window.authenticateWithBiometrics = authenticateWithBiometrics;
+window.openExecutiveSecurityActionSheet = openExecutiveSecurityActionSheet;
+window.closeExecutiveSecurityActionSheet = closeExecutiveSecurityActionSheet;
+window.actionSheetLockNow = actionSheetLockNow;
+window.toggleSecurityBiometric = toggleSecurityBiometric;
+window.toggleSecurityRemember = toggleSecurityRemember;
+window.actionSheetLogOut = actionSheetLogOut;
+window.renderExecutiveRoleSwitcherHtml = renderExecutiveRoleSwitcherHtml;
+window.switchExecutiveRole = switchExecutiveRole;
 window.relockExecutiveCard = relockExecutiveCard;
 window.toggleManagerRoster = toggleManagerRoster;
 window.openExecutiveHierarchyFromDrawer = openExecutiveHierarchyFromDrawer;
@@ -5018,10 +5558,11 @@ function getDashboardViewHTML() {
     // ------------------------------------------
     // 1. LOCKED STATE: VIP Executive Vault Card
     // ------------------------------------------
+    const isBioEnabled = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
     cardTeamSales = `
       <!-- CARD E: VIP EXECUTIVE VAULT (LOCKED STATE) -->
       <div class="ios-glass-card rounded-3xl p-5 border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[#0C1425]/90 to-[#0A0F1D]/90 shadow-2xl relative overflow-hidden group cursor-pointer active:scale-[0.99] transition"
-           onclick="openExecutivePasscodeModal()">
+           onclick="handleLockedExecutiveCardClick(event)">
         <!-- Ambient Decorative Glows -->
         <div class="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="absolute -left-8 -bottom-8 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -5049,17 +5590,32 @@ function getDashboardViewHTML() {
         <!-- Center Locked Teaser Badge -->
         <div class="py-5 px-4 rounded-2xl bg-black/40 border border-white/5 text-center flex flex-col items-center justify-center gap-2.5 relative z-10 backdrop-blur-md">
           <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/10 animate-pulse">
-            <i data-lucide="shield-check" class="w-6 h-6"></i>
+            <i data-lucide="${isBioEnabled ? 'scan-face' : 'shield-check'}" class="w-6 h-6"></i>
           </div>
           <div>
             <h4 class="text-xs font-bold text-white">ទិន្នន័យក្រុមទាំងមូល</h4>
             <p class="text-[10px] text-slate-400 mt-0.5">តារាងចំណាត់ថ្នាក់ ៦ Managers, Leaders & ៤៤ Members</p>
           </div>
-          <button type="button" 
-                  class="mt-1 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/25 active:scale-95 transition">
-            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
-            <span>ចុចទីនេះដើម្បីដោះសោរ</span>
-          </button>
+          ${isBioEnabled ? `
+            <div class="flex flex-col sm:flex-row items-center gap-2 mt-1 w-full justify-center">
+              <button type="button" onclick="event.stopPropagation(); authenticateWithBiometrics();"
+                      class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/25 active:scale-95 transition">
+                <i data-lucide="scan-face" class="w-4 h-4"></i>
+                <span>ដោះសោរដោយ Face ID</span>
+              </button>
+              <button type="button" onclick="event.stopPropagation(); openExecutivePasscodeModal();"
+                      class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-medium text-[11px] flex items-center gap-1.5 active:scale-95 transition">
+                <i data-lucide="key-round" class="w-3 h-3"></i>
+                <span>វាយលេខកូដ</span>
+              </button>
+            </div>
+          ` : `
+            <button type="button" onclick="event.stopPropagation(); openExecutivePasscodeModal();"
+                    class="mt-1 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/25 active:scale-95 transition">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+              <span>ចុចទីនេះដើម្បីដោះសោរ</span>
+            </button>
+          `}
         </div>
       </div>
     `;
@@ -5539,7 +6095,7 @@ function getDashboardViewHTML() {
       }
     }
 
-    const cardSubtitleText = execRole === 'leader' ? 'BOSTAR GROUP • LEADERS' : (execRole === 'member' ? 'BOSTAR GROUP • សមាជិកទាំងអស់' : 'BOSTAR GROUP • MANAGERS');
+    const cardSubtitleText = execRole === 'director' ? 'BOSTAR GROUP • DIRECTOR OVERVIEW' : (execRole === 'leader' ? 'BOSTAR GROUP • LEADERS' : (execRole === 'member' ? 'BOSTAR GROUP • សមាជិកទាំងអស់' : 'BOSTAR GROUP • MANAGERS'));
 
     cardTeamSales = `
       <!-- CARD E: VIP EXECUTIVE COMMAND CENTER (UNLOCKED STATE) -->
@@ -5566,16 +6122,17 @@ function getDashboardViewHTML() {
               <i data-lucide="maximize-2" class="w-3 h-3 text-amber-400"></i>
               <span class="hidden sm:inline">ពេញអេក្រង់</span>
             </button>
-            <button type="button" onclick="relockExecutiveCard(event)" 
-                    class="px-2.5 py-1 rounded-full bg-emerald-500/10 hover:bg-rose-500/15 border border-emerald-500/30 hover:border-rose-500/30 text-emerald-400 hover:text-rose-400 text-[10px] font-semibold flex items-center gap-1.5 transition active:scale-95 group" title="ចុចដើម្បីចាក់សោរវិញ">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 group-hover:bg-rose-400 transition-colors"></span>
-              <i data-lucide="unlock" class="w-3 h-3 group-hover:hidden"></i>
-              <i data-lucide="lock" class="w-3 h-3 hidden group-hover:inline"></i>
-              <span class="group-hover:hidden">Unlocked</span>
-              <span class="hidden group-hover:inline">ចាក់សោរ</span>
+            <button type="button" onclick="openExecutiveSecurityActionSheet(event)" 
+                    class="px-2.5 py-1 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold flex items-center gap-1.5 transition active:scale-95 shrink-0" title="ការកំណត់សុវត្ថិភាព">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>
+              <span>🔒 ចាក់សោរ ▾</span>
             </button>
           </div>
         </div>
+
+        <!-- Dynamic Role Switcher Pill Bar -->
+        ${renderExecutiveRoleSwitcherHtml('card')}
 
         <!-- 1. TOP TIER: DIRECTOR PROFILE -->
         <div onclick="handleDirectorClick(event)" 
@@ -5600,6 +6157,16 @@ function getDashboardViewHTML() {
             <div class="text-[10px] font-mono text-slate-400">${directorOrders} កុម្ម៉ង់</div>
           </div>
         </div>
+
+        ${execRole === 'director' ? `
+          <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between relative z-10 shadow-sm">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">👑</div>
+              <div class="text-xs font-bold text-amber-300">ទិដ្ឋភាពថ្នាក់ដឹកនាំកំពូល (Director Mode)</div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-[9px] font-mono text-amber-300 font-bold shrink-0">Full Access</span>
+          </div>
+        ` : ''}
 
         <!-- 2. MIDDLE TIER: ROLE LEADERBOARD OR DRILL-DOWN -->
         ${homeHierarchyBodyHtml}

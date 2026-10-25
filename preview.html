@@ -3682,15 +3682,18 @@
             </h3>
           </div>
 
-          <!-- Consolidated Lock/Unlock Toggle Button -->
-          <button type="button" onclick="relockExecutiveHierarchyModal()" 
-                  class="px-2.5 py-1 rounded-full bg-emerald-500/10 hover:bg-rose-500/15 border border-emerald-500/30 hover:border-rose-500/30 text-emerald-400 hover:text-rose-400 text-[10px] font-semibold flex items-center gap-1.5 transition active:scale-95 group shrink-0" title="ចុចដើម្បីចាក់សោរវិញ">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 group-hover:bg-rose-400 transition-colors"></span>
-            <i data-lucide="unlock" class="w-3 h-3 group-hover:hidden"></i>
-            <i data-lucide="lock" class="w-3 h-3 hidden group-hover:inline"></i>
-            <span class="group-hover:hidden">Unlocked</span>
-            <span class="hidden group-hover:inline">ចាក់សោរ</span>
+          <!-- Consolidated iOS Security Action Sheet Button -->
+          <button type="button" onclick="openExecutiveSecurityActionSheet(event)" 
+                  class="px-2.5 py-1 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold flex items-center gap-1.5 transition active:scale-95 shrink-0" title="ការកំណត់សុវត្ថិភាព">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i>
+            <span>🔒 ចាក់សោរ ▾</span>
           </button>
+        </div>
+
+        <!-- Role Switcher Segmented Bar (Dynamic) -->
+        <div id="exec-modal-role-switcher" class="relative z-40">
+          <!-- Injected dynamically by renderExecutiveRoleSwitcherHtml('modal') -->
         </div>
 
         <!-- Date Filter Bar (Auto-hides on drag up, reveals on scroll down) -->
@@ -5568,6 +5571,6 @@
   </div>
 
   <script src="dataService.js?v=7.6"></script>
-  <script src="app.js?v=43.2"></script>
+  <script src="app.js?v=43.3"></script>
 </body>
 </html>
