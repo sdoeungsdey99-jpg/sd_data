@@ -4816,27 +4816,56 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
     const now = new Date();
     targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
+
+  const matchSeller = (orderSeller) => {
+    const sNorm = normalizeSellerName(orderSeller);
+    if (!sNorm || !normName) return false;
+    if (sNorm === normName) return true;
+    if (sNorm.includes(normName) || normName.includes(sNorm)) return true;
+    // Cross-match Sdey Sdoeung / Sdey Snoeung
+    const isSdey1 = normName.includes('sdoeung') || normName.includes('ស្ដី') || normName.includes('ស្តី') || normName.includes('ស្នឹង');
+    const isSdey2 = sNorm.includes('sdoeung') || sNorm.includes('ស្ដី') || sNorm.includes('ស្តី') || sNorm.includes('ស្នឹង');
+    if (isSdey1 && isSdey2) return true;
+    // Cross-match Chheng Rasung / Vansung
+    const isSung1 = normName.includes('rasung') || normName.includes('ស៊ុង');
+    const isSung2 = sNorm.includes('rasung') || sNorm.includes('ស៊ុង');
+    if (isSung1 && isSung2) return true;
+    return false;
+  };
+
+  let memberOrders = allOrders.filter(o => {
+    if (!o.isoDate || !o.isoDate.startsWith(targetMonth)) return false;
+    return matchSeller(o.seller);
+  });
+
+  // Fallback: If no orders found for the target month, look up latest available month with orders for this seller
+  if (memberOrders.length === 0 && allOrders.length > 0) {
+    const sellerOrdersAll = allOrders.filter(o => matchSeller(o.seller));
+    if (sellerOrdersAll.length > 0) {
+      const months = [...new Set(sellerOrdersAll.map(o => (o.isoDate || '').slice(0, 7)).filter(Boolean))].sort();
+      const fallbackMonth = months[months.length - 1];
+      if (fallbackMonth) {
+        targetMonth = fallbackMonth;
+        memberOrders = sellerOrdersAll.filter(o => o.isoDate && o.isoDate.startsWith(fallbackMonth));
+      }
+    }
+  }
   
   const parts = targetMonth.split('-');
   const yearNum = parseInt(parts[0], 10) || 2026;
-  const monthNum = parseInt(parts[1], 10) || 10;
+  const monthNum = parseInt(parts[1], 10) || 8;
   const daysInMonth = new Date(yearNum, monthNum, 0).getDate();
   const monthAbbrs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthAbbr = monthAbbrs[monthNum - 1] || 'Oct';
+  const monthAbbr = monthAbbrs[monthNum - 1] || 'Aug';
   const monthLabel = `${String(monthNum).padStart(2, '0')}/${yearNum}`;
 
-  const memberOrders = allOrders.filter(o => {
-    if (!o.isoDate || !o.isoDate.startsWith(targetMonth)) return false;
-    const sNorm = normalizeSellerName(o.seller);
-    return sNorm === normName || (sNorm && normName && (sNorm.includes(normName) || normName.includes(sNorm)));
-  });
-
-  const setCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  // NO Set 4 in BostarTrack!
+  const setCounts = { 1: 0, 2: 0, 3: 0, 5: 0 };
   let totalBoxes = 0;
 
   const dailyMap = {};
   for (let day = 1; day <= daysInMonth; day++) {
-    dailyMap[day] = { sets: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, totalBoxes: 0, orders: 0 };
+    dailyMap[day] = { sets: { 1: 0, 2: 0, 3: 0, 5: 0 }, totalBoxes: 0, orders: 0 };
   }
 
   memberOrders.forEach(o => {
@@ -4849,10 +4878,10 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
     if (b <= 0 && Number(o.totalBoxQty || 0) > 0) b = Number(o.totalBoxQty || 0);
     b = Math.max(0, Math.round(b));
 
+    // Bostar sets: Set 1 (1 box), Set 2 (2 boxes), Set 3 (3 boxes, or 3+1 promo 4-box), Set 5 (>=5 boxes)
     if (b === 1) setCounts[1]++;
     else if (b === 2) setCounts[2]++;
-    else if (b === 3) setCounts[3]++;
-    else if (b === 4) setCounts[4]++;
+    else if (b === 3 || b === 4) setCounts[3]++;
     else if (b >= 5) setCounts[5]++;
 
     totalBoxes += b;
@@ -4866,8 +4895,7 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
           dailyMap[dayNum].totalBoxes += b;
           if (b === 1) dailyMap[dayNum].sets[1]++;
           else if (b === 2) dailyMap[dayNum].sets[2]++;
-          else if (b === 3) dailyMap[dayNum].sets[3]++;
-          else if (b === 4) dailyMap[dayNum].sets[4]++;
+          else if (b === 3 || b === 4) dailyMap[dayNum].sets[3]++;
           else if (b >= 5) dailyMap[dayNum].sets[5]++;
         }
       }
@@ -4876,12 +4904,14 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
 
   const cleanKm = memberName.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
   const rawTarget = (d && d.monthlyTargets) ? (d.monthlyTargets[memberName] || d.monthlyTargets[cleanKm] || d.monthlyTargets[normName]) : 0;
-  const target = rawTarget > 0 ? rawTarget : (normName.includes('sdoeung') || cleanKm.includes('ស្ដី') || cleanKm.includes('ស្តី') ? 150 : (cleanKm.includes('សុធី') ? 100 : 50));
+  const isSdey = (normName.includes('sdoeung') || cleanKm.includes('ស្ដី') || cleanKm.includes('ស្តី') || cleanKm.includes('ស្នឹង'));
+  const isSothy = (cleanKm.includes('សុធី') || normName.includes('sothy'));
+  const target = rawTarget > 0 ? rawTarget : (isSdey ? 150 : (isSothy ? 100 : 50));
   const percentage = target > 0 ? ((totalBoxes / target) * 100).toFixed(1) : '0.0';
 
   const boostKey = `sd_boost_${normName}_${targetMonth}`;
   let boostSaved = localStorage.getItem(boostKey);
-  if (!boostSaved && (normName.includes('sdoeung') || cleanKm.includes('ស្ដី') || cleanKm.includes('ស្តី'))) {
+  if (!boostSaved && isSdey) {
     boostSaved = '818.00';
   }
   const boostAmount = boostSaved ? parseFloat(boostSaved) : null;
@@ -4919,11 +4949,39 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
   const rawMembers = (hierarchy && Array.isArray(hierarchy.members) && hierarchy.members.length > 0) ? hierarchy.members : (window.BOSTAR_TEAM_SELLERS || []);
 
   const l_clean = selectedL.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
-  const teamMembers = rawMembers.filter(mem => {
+  let teamMembers = rawMembers.filter(mem => {
     const memLeader = (mem.leader || '').trim();
     const memLeaderClean = memLeader.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
     return memLeader === selectedL.km || (l_clean && memLeaderClean === l_clean) || (l_clean && memLeader.includes(l_clean));
   });
+
+  const isSdeySdoeungLeader = (selectedL.km && (selectedL.km.includes('ស្ដី ស្ដើង') || selectedL.km.includes('ស្តី ស្តើង') || selectedL.km.includes('ស្តី ស្នឹង')));
+
+  // Ensure Sdey Sdoeung team always has the exact 3 members from Image 1:
+  if (isSdeySdoeungLeader) {
+    const hasSdoeung = teamMembers.some(m => normalizeSellerName(m.km).includes('sdoeung') || normalizeSellerName(m.km).includes('ស្ដី') || normalizeSellerName(m.km).includes('ស្តី') || normalizeSellerName(m.km).includes('ស្នឹង'));
+    const hasSothy = teamMembers.some(m => normalizeSellerName(m.km).includes('sothy') || normalizeSellerName(m.km).includes('សុធី'));
+    const hasRasung = teamMembers.some(m => normalizeSellerName(m.km).includes('rasung') || normalizeSellerName(m.km).includes('ស៊ុង'));
+
+    if (!hasSdoeung) teamMembers.unshift({ km: 'ស្តី ស្នឹង', en: 'Sdey Sdoeung', leader: selectedL.km });
+    if (!hasSothy) teamMembers.push({ km: 'ឆេង សុធី', en: 'Chheng Sothy', leader: selectedL.km });
+    if (!hasRasung) teamMembers.push({ km: 'ឆេង វ៉ាន់ស៊ុង', en: 'Chheng Rasung', leader: selectedL.km });
+
+    // Standardize display names for Sdey Sdoeung team exactly like Image 1:
+    teamMembers = teamMembers.map(m => {
+      const n = normalizeSellerName(m.km);
+      if (n.includes('sdoeung') || n.includes('ស្ដី') || n.includes('ស្តី') || n.includes('ស្នឹង')) {
+        return { ...m, km: 'ស្តី ស្នឹង' };
+      }
+      if (n.includes('rasung') || n.includes('ស៊ុង')) {
+        return { ...m, km: 'ឆេង វ៉ាន់ស៊ុង' };
+      }
+      if (n.includes('sothy') || n.includes('សុធី')) {
+        return { ...m, km: 'ឆេង សុធី' };
+      }
+      return m;
+    });
+  }
 
   const leaderInList = teamMembers.some(m => normalizeSellerName(m.km) === normalizeSellerName(selectedL.km));
   const teamRoster = leaderInList ? teamMembers : [{ ...selectedL, role: 'Leader' }, ...teamMembers];
@@ -4943,7 +5001,7 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
           <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
             <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
           </div>
-          <h3 class="font-black text-xs sm:text-sm text-white tracking-wide truncate">គោលដៅលក់តាមក្រុម</h3>
+          <h3 class="font-black text-xs sm:text-sm text-white tracking-wide truncate">👥 គោលដៅលក់តាមក្រុម</h3>
         </div>
         <div class="px-2.5 sm:px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1.5 text-blue-300 text-[11px] sm:text-xs font-bold font-mono shrink-0">
           <span>🎯</span>
@@ -4977,7 +5035,7 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
                 </div>
               </div>
 
-              <!-- Set Badges Row -->
+              <!-- Set Badges Row (Exact Image 1 - NO Set 4) -->
               <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                 <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
                   Set 1: <strong class="text-white">${item.setCounts[1]}</strong>
@@ -4987,9 +5045,6 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
                 </span>
                 <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
                   Set 3: <strong class="text-white">${item.setCounts[3]}</strong>
-                </span>
-                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
-                  Set 4: <strong class="text-white">${item.setCounts[4]}</strong>
                 </span>
                 <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
                   Set 5: <strong class="text-white">${item.setCounts[5]}</strong>
@@ -5210,6 +5265,10 @@ function renderExecutiveHierarchyModalContent() {
     sortedMembers
   } = getExecutiveHierarchyParsedData(d, statsMap);
 
+  const selectedLdrName = execHierarchyFilterState.selectedLeader;
+  const selectedL = selectedLdrName ? sortedLeaders.find(l => l.km === selectedLdrName) : null;
+  const activeLeader = selectedL || sortedLeaders.find(l => l.km && (l.km.includes('ស្ដី ស្ដើង') || l.km.includes('ស្តី ស្តើង') || l.km.includes('ស្តី ស្នឹង'))) || sortedLeaders[0];
+
   // 1. DIRECTOR SHOWCASE CARD (Tapping always resets/shows all Leaders or Managers!)
   const directorHtml = `
     <div onclick="handleDirectorClick(event)" 
@@ -5362,9 +5421,6 @@ function renderExecutiveHierarchyModalContent() {
               <div class="h-1.5 bg-gradient-to-r from-sky-500 to-teal-300" style="width: 100%"></div>
             </div>
           </div>
-
-          <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) -->
-          ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
         </div>
       `;
     }
@@ -5668,6 +5724,8 @@ function renderExecutiveHierarchyModalContent() {
 
   container.innerHTML = `
     ${directorHtml}
+    <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - ALWAYS IMMEDIATELY VISIBLE -->
+    ${renderExecutiveLeaderTeamTargetCard(activeLeader, d)}
     ${bodyContentHtml}
   `;
 
@@ -6240,6 +6298,10 @@ function getDashboardViewHTML() {
       sortedMembers
     } = getExecutiveHierarchyParsedData(d, statsMap);
 
+    const selectedLdrName = execHierarchyFilterState.selectedLeader;
+    const selectedL = selectedLdrName ? sortedLeaders.find(l => l.km === selectedLdrName) : null;
+    const activeLeader = selectedL || sortedLeaders.find(l => l.km && (l.km.includes('ស្ដី ស្ដើង') || l.km.includes('ស្តី ស្តើង') || l.km.includes('ស្តី ស្នឹង'))) || sortedLeaders[0];
+
     let homeHierarchyBodyHtml = '';
 
     // ==========================================
@@ -6364,9 +6426,6 @@ function getDashboardViewHTML() {
                 <div class="h-1.5 bg-gradient-to-r from-sky-500 to-teal-300" style="width: 100%"></div>
               </div>
             </div>
-
-            <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) -->
-            ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
           </div>
         `;
       }
@@ -6734,6 +6793,9 @@ function getDashboardViewHTML() {
             <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-[9px] font-mono text-amber-300 font-bold shrink-0">Full Access</span>
           </div>
         ` : ''}
+
+        <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - ALWAYS PROMINENTLY VISIBLE -->
+        ${renderExecutiveLeaderTeamTargetCard(activeLeader, d)}
 
         <!-- 2. MIDDLE TIER: ROLE LEADERBOARD OR DRILL-DOWN -->
         ${homeHierarchyBodyHtml}
