@@ -1104,6 +1104,67 @@ function onDataUpdated(service) {
   if (notifM && !notifM.classList.contains('hidden') && service.data) {
     renderNotificationsFeed(service.data);
   }
+
+  // ----------------------------------------------------
+  // Sync & Re-render Active Open Modals with Fresh Data
+  // (គោលការណ៍អត្តសញ្ញាណ Dashboard Pull-to-Refresh & Live Sync)
+  // ----------------------------------------------------
+  const salesM = document.getElementById('sales-modal');
+  if (salesM && !salesM.classList.contains('hidden') && typeof openPersonalSalesModal === 'function') {
+    openPersonalSalesModal();
+  }
+  const expM = document.getElementById('expenses-modal');
+  if (expM && !expM.classList.contains('hidden') && typeof applyExpensesFilterAndRender === 'function') {
+    applyExpensesFilterAndRender();
+  }
+  const bankM = document.getElementById('bank-modal');
+  if (bankM && !bankM.classList.contains('hidden') && typeof openBankModal === 'function') {
+    openBankModal();
+  }
+  const payM = document.getElementById('payables-modal');
+  if (payM && !payM.classList.contains('hidden') && typeof renderPayablesList === 'function') {
+    renderPayablesList();
+  }
+  const codM = document.getElementById('cod-modal');
+  if (codM && !codM.classList.contains('hidden')) {
+    if (typeof renderCodSummary === 'function') renderCodSummary();
+    if (typeof switchCodModalTab === 'function') switchCodModalTab(activeCodModalTab || 'summary');
+  }
+  const teamSetsM = document.getElementById('team-sets-modal');
+  if (teamSetsM && !teamSetsM.classList.contains('hidden') && typeof renderTeamSetsModalContent === 'function') {
+    renderTeamSetsModalContent();
+  }
+  const execM = document.getElementById('executive-hierarchy-modal');
+  if (execM && !execM.classList.contains('hidden') && typeof renderExecutiveHierarchyModalContent === 'function') {
+    renderExecutiveHierarchyModalContent();
+  }
+  const attM = document.getElementById('attendance-modal');
+  if (attM && !attM.classList.contains('hidden') && typeof renderAttendanceContent === 'function') {
+    renderAttendanceContent();
+  }
+  const attMgrM = document.getElementById('attendance-manager-modal');
+  if (attMgrM && !attMgrM.classList.contains('hidden') && typeof renderManagerModalContent === 'function') {
+    renderManagerModalContent();
+  }
+  const attTop10M = document.getElementById('attendance-top10-modal');
+  if (attTop10M && !attTop10M.classList.contains('hidden') && typeof renderAttendanceTop10Content === 'function') {
+    renderAttendanceTop10Content();
+  }
+  const repM = document.getElementById('daily-report-modal');
+  if (repM && !repM.classList.contains('hidden') && typeof renderDailyReportModal === 'function') {
+    renderDailyReportModal();
+  }
+  const drawerM = document.getElementById('profile-drawer-modal');
+  if (drawerM && !drawerM.classList.contains('hidden') && typeof renderProfileDrawerContent === 'function') {
+    renderProfileDrawerContent();
+  }
+
+  // Auto-collapse any open pull indicators upon successful data update
+  const mainInd = document.getElementById('pull-refresh-indicator');
+  if (mainInd) mainInd.style.height = '0px';
+  document.querySelectorAll('.universal-pull-refresh-indicator').forEach(ind => {
+    ind.style.height = '0px';
+  });
   if (urlParams.get('open_notif') === '1') {
     if (notifM && notifM.classList.contains('hidden')) {
       toggleNotificationsModal();
@@ -1220,6 +1281,31 @@ function checkOnlineOfflineStatus() {
   }
 }
 
+// ==========================================
+// UNIVERSAL PULL-TO-REFRESH (អូសចុះក្រោមអស់ដើម្បី Refresh)
+// គោលការណ៍អត្តសញ្ញាណ Dashboard (Dashboard Identity UX Principle)
+// ==========================================
+const UNIVERSAL_PULL_REFRESH_TARGETS = [
+  'main-content',
+  'sales-modal-list',
+  'expenses-modal-list',
+  'bank-modal-list',
+  'cod-modal-table-container',
+  'cod-thai-orders-list',
+  'payables-modal-list',
+  'all-customers-list',
+  'team-sets-modal-table-container',
+  'team-members-list',
+  'executive-hierarchy-scroll-body',
+  'attendance-modal-body',
+  'attendance-leave-body',
+  'attendance-manager-body',
+  'attendance-top10-body',
+  'daily-report-body-content',
+  'profile-drawer-content',
+  'notif-feed-list'
+];
+
 async function manualReload() {
   const indicator = document.getElementById('pull-refresh-indicator');
   if (indicator) {
@@ -1228,6 +1314,12 @@ async function manualReload() {
       indicator.style.height = '0px';
     }, 800);
   }
+  document.querySelectorAll('.universal-pull-refresh-indicator').forEach(ind => {
+    ind.style.height = '36px';
+    setTimeout(() => {
+      ind.style.height = '0px';
+    }, 800);
+  });
   if (navigator.onLine && typeof syncOfflineQueue === 'function') {
     try {
       await syncOfflineQueue();
@@ -1236,37 +1328,107 @@ async function manualReload() {
   DataService.fetchData(false);
 }
 
-function setupPullToRefresh() {
-  const main = document.getElementById('main-content');
-  const indicator = document.getElementById('pull-refresh-indicator');
+function attachUniversalPullToRefresh(target) {
+  const el = typeof target === 'string' ? document.getElementById(target) : target;
+  if (!el || el._pullRefreshAttached) return;
+  el._pullRefreshAttached = true;
+
+  let indicator = null;
+  if (el.id === 'main-content') {
+    indicator = document.getElementById('pull-refresh-indicator');
+  } else {
+    const prev = el.previousElementSibling;
+    if (prev && prev.classList && prev.classList.contains('universal-pull-refresh-indicator')) {
+      indicator = prev;
+    } else if (el.parentElement) {
+      indicator = document.createElement('div');
+      indicator.className = 'universal-pull-refresh-indicator h-0 overflow-hidden flex items-center justify-center text-xs text-orange-400 transition-all duration-200 bg-[#0B1528]/95 shrink-0 select-none pointer-events-none z-20';
+      indicator.innerHTML = `
+        <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 font-medium text-[11px] shadow-sm">
+          <svg class="w-3.5 h-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>កំពុង Refresh...</span>
+        </span>
+      `;
+      el.parentElement.insertBefore(indicator, el);
+    }
+  }
+
   let startY = 0;
+  let startX = 0;
   let isPulling = false;
+  let hasVibrated = false;
 
-  main.addEventListener('touchstart', (e) => {
-    if (main.scrollTop === 0) {
+  el.addEventListener('touchstart', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    if (el.scrollTop <= 2) {
       startY = e.touches[0].pageY;
+      startX = e.touches[0].pageX;
       isPulling = true;
+      hasVibrated = false;
+    } else {
+      isPulling = false;
     }
   }, { passive: true });
 
-  main.addEventListener('touchmove', (e) => {
-    if (!isPulling) return;
-    const diff = e.touches[0].pageY - startY;
-    if (diff > 40 && main.scrollTop === 0) {
-      indicator.style.height = '35px';
+  el.addEventListener('touchmove', (e) => {
+    if (!isPulling || !indicator) return;
+    if (el.scrollTop > 2) {
+      isPulling = false;
+      indicator.style.height = '0px';
+      return;
+    }
+    const currentY = e.touches[0].pageY;
+    const currentX = e.touches[0].pageX;
+    const diffY = currentY - startY;
+    const diffX = currentX - startX;
+
+    // Strict gesture isolation:
+    // If movement is mostly horizontal (e.g. swipe-back) or moving upward, ignore
+    if (Math.abs(diffX) > Math.abs(diffY) || diffY <= 0) {
+      if (indicator.style.height !== '0px') indicator.style.height = '0px';
+      return;
+    }
+
+    if (diffY > 45) {
+      indicator.style.height = '36px';
+      if (!hasVibrated && navigator.vibrate) {
+        try { navigator.vibrate(12); } catch (_) {}
+        hasVibrated = true;
+      }
+    } else if (diffY > 12) {
+      const pullH = Math.min(36, Math.round(diffY * 0.7));
+      indicator.style.height = `${pullH}px`;
     }
   }, { passive: true });
 
-  main.addEventListener('touchend', () => {
-    if (isPulling && indicator.style.height === '35px') {
+  el.addEventListener('touchend', () => {
+    if (!indicator) return;
+    if (isPulling && parseInt(indicator.style.height || '0', 10) >= 30) {
+      indicator.style.height = '36px';
       manualReload();
       setTimeout(() => {
-        indicator.style.height = '0px';
+        if (indicator) indicator.style.height = '0px';
       }, 1000);
     } else {
       indicator.style.height = '0px';
     }
     isPulling = false;
+    hasVibrated = false;
+  }, { passive: true });
+
+  el.addEventListener('touchcancel', () => {
+    if (indicator) indicator.style.height = '0px';
+    isPulling = false;
+    hasVibrated = false;
+  }, { passive: true });
+}
+
+function setupPullToRefresh() {
+  UNIVERSAL_PULL_REFRESH_TARGETS.forEach(targetId => {
+    attachUniversalPullToRefresh(targetId);
   });
 }
 
@@ -29326,4 +29488,9 @@ window.toggleInlineMonthBoost = toggleInlineMonthBoost;
 window.cancelInlineMonthBoost = cancelInlineMonthBoost;
 window.saveInlineMonthBoost = saveInlineMonthBoost;
 window.resetInlineMonthBoost = resetInlineMonthBoost;
+
+// Universal Pull to Refresh
+window.attachUniversalPullToRefresh = attachUniversalPullToRefresh;
+window.setupPullToRefresh = setupPullToRefresh;
+window.UNIVERSAL_PULL_REFRESH_TARGETS = UNIVERSAL_PULL_REFRESH_TARGETS;
 
