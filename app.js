@@ -17051,6 +17051,8 @@ function handleHeaderScrollToTop(e, targetId = null) {
         { modalId: 'expenses-modal', listId: 'expenses-modal-list' },
         { modalId: 'cod-modal', listId: () => (activeCodModalTab === 'thai' ? 'cod-thai-orders-list' : 'cod-modal-table-container') },
         { modalId: 'bank-modal', listId: 'bank-modal-list' },
+        { modalId: 'boost-modal', listId: 'boost-modal-list' },
+        { modalId: 'team-sets-modal', listId: 'team-sets-modal-table-container' },
         { modalId: 'payables-modal', listId: 'payables-modal-list' },
         { modalId: 'notif-modal', listId: 'notif-feed-list' },
         { modalId: 'profile-drawer-modal', listId: 'profile-drawer-content' },
@@ -24094,8 +24096,10 @@ function openTeamMemberDetail(sellerKmName) {
     : dailyData.dailyRows;
 
   detailView.innerHTML = `
-    <!-- 1. Sticky Locked Identity Bar (រូបសំណូមពរ៖ ជាប់ស្អិតនៅខាងលើបង្អស់ Lock Permanently on Scroll) -->
-    <div id="team-member-locked-bar" class="sticky top-0 z-40 bg-[#070D18]/98 backdrop-blur-2xl px-3.5 pt-2 pb-2 space-y-2 border-b border-white/10 shadow-lg select-none">
+    <!-- 1. Sticky Locked Identity Bar (រូបសំណូមពរ៖ ជាប់ស្អិតនៅខាងលើបង្អស់ Lock Permanently on Scroll + Tap to Scroll to Top) -->
+    <div id="team-member-locked-bar" 
+         onclick="handleHeaderScrollToTop(event, 'team-members-detail-view')"
+         class="sticky top-0 z-40 bg-[#070D18]/98 backdrop-blur-2xl px-3.5 pt-2 pb-2 space-y-2 border-b border-white/10 shadow-lg select-none cursor-pointer">
       <!-- Back Navigation & Member ID -->
       <div class="flex items-center justify-between pb-0.5">
         <button onclick="backToTeamMembersList()" 
