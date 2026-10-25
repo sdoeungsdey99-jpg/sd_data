@@ -12248,6 +12248,201 @@ function switchCodModalTab(tab) {
   if (window.lucide) window.lucide.createIcons();
 }
 
+let currentPickerItem = null;
+let activeCodSummaryItems = [];
+
+function openCodStatusPicker(idx) {
+  const item = activeCodSummaryItems[idx];
+  if (!item) return;
+  currentPickerItem = item;
+
+  const modal = document.getElementById('cod-status-picker-modal');
+  const infoEl = document.getElementById('cod-picker-order-info');
+  const listEl = document.getElementById('cod-picker-options-list');
+  if (!modal || !listEl) return;
+
+  if (infoEl) {
+    infoEl.textContent = `${item.date} • ${item.customer || 'អតិថិជន'} • ${formatUSD(item.amount)}`;
+  }
+
+  const statusOptions = [
+    {
+      status: 'បានទូទាត់',
+      label: 'បានទូទាត់ (Settled / Paid)',
+      desc: 'កញ្ចប់នេះទូទាត់រួច (នឹងលុបចេញពីតារាងនេះ)',
+      icon: 'check-circle-2',
+      badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+      isPrimary: true
+    },
+    {
+      status: 'ដល់អតិថិជន 1st',
+      label: 'ដល់អតិថិជន 1st',
+      desc: 'ទម្លាក់ជើងទី ១ របស់ Thai COD',
+      icon: 'truck',
+      badgeClass: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40'
+    },
+    {
+      status: 'ដល់អតិថិជន 2nd',
+      label: 'ដល់អតិថិជន 2nd',
+      desc: 'ទម្លាក់ជើងទី ២ របស់ Thai COD',
+      icon: 'truck',
+      badgeClass: 'bg-orange-500/20 text-orange-300 border-orange-500/40'
+    },
+    {
+      status: 'ដល់អតិថិជន 3rd',
+      label: 'ដល់អតិថិជន 3rd',
+      desc: 'ទម្លាក់ជើងទី ៣ របស់ Thai COD',
+      icon: 'truck',
+      badgeClass: 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+    },
+    {
+      status: 'បានរៀបចំ',
+      label: 'បានរៀបចំ',
+      desc: 'កញ្ចប់ត្រូវបានវេចខ្ចប់រៀបចំរួចរាល់',
+      icon: 'package-check',
+      badgeClass: 'bg-red-500/20 text-red-300 border-red-500/40'
+    },
+    {
+      status: 'បានដាក់ការកុម្ម៉ង់',
+      label: 'បានដាក់ការកុម្ម៉ង់',
+      desc: 'ទើបទទួលបានការកុម្ម៉ង់ថ្មី (មិនទាន់បញ្ជូន)',
+      icon: 'shopping-cart',
+      badgeClass: 'bg-sky-500/25 text-sky-200 border-sky-500/40'
+    },
+    {
+      status: 'អតិថិជនដកអីវ៉ាន់',
+      label: 'អតិថិជនដកអីវ៉ាន់ (Customer Returned)',
+      desc: 'អតិថិជនដកអីវ៉ាន់ ឬផ្ញើត្រឡប់មកវិញ',
+      icon: 'rotate-ccw',
+      badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+    },
+    {
+      status: 'Canceled',
+      label: 'Canceled (បោះបង់)',
+      desc: 'ការកុម្ម៉ង់ត្រូវបានលុបចោល',
+      icon: 'x-circle',
+      badgeClass: 'bg-rose-500/25 text-rose-300 border-rose-500/40'
+    },
+    {
+      status: 'ហ្វ្រី (Free)',
+      label: 'ហ្វ្រី (Free)',
+      desc: 'កញ្ចប់ថែមជូន ឬមិនគិតប្រាក់',
+      icon: 'gift',
+      badgeClass: 'bg-slate-500/25 text-slate-300 border-slate-500/40'
+    }
+  ];
+
+  listEl.innerHTML = statusOptions.map(opt => {
+    const isCurrent = (item.status || '').trim() === opt.status;
+    return `
+      <button type="button" 
+              onclick="applyCodStatusChange('${opt.status}')" 
+              class="w-full p-2.5 rounded-xl text-left transition-all active:scale-[0.98] border flex items-center justify-between gap-2.5 ${
+                isCurrent 
+                  ? 'bg-orange-500/15 border-orange-500/40 ring-1 ring-orange-500/30' 
+                  : opt.isPrimary 
+                    ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/35 ring-1 ring-emerald-500/20' 
+                    : 'bg-white/5 hover:bg-white/10 border-white/5'
+              }">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${opt.badgeClass}">
+            <i data-lucide="${opt.icon}" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-semibold text-white leading-tight flex items-center gap-1.5">
+              <span>${opt.label}</span>
+              ${isCurrent ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-orange-500/30 text-orange-300 font-normal">បច្ចុប្បន្ន</span>' : ''}
+            </div>
+            <div class="text-[10px] text-slate-400 truncate mt-0.5">${opt.desc}</div>
+          </div>
+        </div>
+        <div class="shrink-0 text-slate-400">
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 opacity-60"></i>
+        </div>
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+  modal.classList.remove('hidden');
+}
+
+function closeCodStatusPickerModal() {
+  const modal = document.getElementById('cod-status-picker-modal');
+  if (modal) modal.classList.add('hidden');
+  currentPickerItem = null;
+}
+
+async function applyCodStatusChange(newStatus) {
+  if (!currentPickerItem) return;
+  const item = currentPickerItem;
+  const oldStatus = item.status;
+  closeCodStatusPickerModal();
+
+  if (oldStatus === newStatus) return;
+
+  const d = DataService.data;
+
+  // 1. Optimistic Local Update
+  if (d && Array.isArray(d.personalSales)) {
+    const saleMatch = d.personalSales.find(o => {
+      if (item.recordId && o.recordId === item.recordId) return true;
+      if (item.orderId && (o.orderId === item.orderId || o.id === item.orderId)) return true;
+      if (item.no && (o.orderId === item.no || o.id === item.no)) return true;
+      if (o.date === item.date && Math.abs(cleanNumber(o.totalAmount) - item.amount) < 0.01) return true;
+      return false;
+    });
+    if (saleMatch) {
+      saleMatch.codStatus = newStatus;
+    }
+  }
+
+  if (d && Array.isArray(d.pendingCodReceivables)) {
+    const bankMatch = d.pendingCodReceivables.find(b => {
+      if (item.no && b.no === item.no) return true;
+      if (b.date === item.date && Math.abs(cleanNumber(b.amount) - item.amount) < 0.01) return true;
+      return false;
+    });
+    if (bankMatch) {
+      bankMatch.status = newStatus;
+    }
+  }
+
+  // Immediate UI Re-render
+  renderCodSummary();
+  if (typeof renderThaiCodOrders === 'function') renderThaiCodOrders();
+
+  showToastNotification(`បានកែប្រែស្ថានភាពជា «${newStatus}» ជោគជ័យ! ✅`);
+
+  // 2. Dispatch to Webhook
+  try {
+    const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function' ? getAppsScriptWebhookUrl() : null) || (typeof DEFAULT_APPS_SCRIPT_URL !== 'undefined' ? DEFAULT_APPS_SCRIPT_URL : '');
+    const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
+
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_cod_status',
+          sheetId: activeSheetId,
+          data: {
+            recordId: item.recordId || '',
+            orderId: item.orderId || item.no || '',
+            date: item.date || '',
+            amount: item.amount || 0,
+            customer: item.customer || '',
+            codStatus: newStatus
+          }
+        })
+      }).catch(err => console.warn('Webhook codStatus sync warn:', err));
+    }
+  } catch (err) {
+    console.warn('[Webhook] Sync status warning:', err);
+  }
+}
+
 function renderCodSummary() {
   const d = DataService.data;
   if (!d) return;
@@ -12268,6 +12463,8 @@ function renderCodSummary() {
     .filter(item => !isSettled(item.status))
     .map(item => ({
       no: item.no || '',
+      recordId: '',
+      orderId: item.no || '',
       date: item.date || '',
       customer: item.customer || 'អតិថិជន COD',
       qtyBoxes: item.qtyBoxes || '—',
@@ -12294,6 +12491,8 @@ function renderCodSummary() {
     })
     .map(o => ({
       no: o.orderId || o.id || '',
+      recordId: o.recordId || '',
+      orderId: o.orderId || o.id || '',
       date: o.date || '',
       customer: o.customer || 'អតិថិជន',
       qtyBoxes: `${o.totalBoxQty || 1} ប្រអប់`,
@@ -12326,9 +12525,11 @@ function renderCodSummary() {
     displayNo: combined.length - idx
   }));
 
+  activeCodSummaryItems = items;
+
   if (countBadge) countBadge.textContent = items.length;
 
-  tbody.innerHTML = items.map(item => `
+  tbody.innerHTML = items.map((item, idx) => `
     <tr class="hover:bg-white/5 transition">
       <td class="py-2.5 px-2.5 font-mono text-orange-400 font-bold text-[11px]">${item.displayNo}</td>
       <td class="py-2.5 px-2.5 text-slate-300 font-mono text-[11px]">
@@ -12337,13 +12538,19 @@ function renderCodSummary() {
       </td>
       <td class="py-2.5 px-2.5 text-white font-medium text-[11px]">${item.qtyBoxes}</td>
       <td class="py-2.5 px-2.5">
-        <span class="px-2 py-0.5 rounded-full text-[10.5px] font-semibold whitespace-nowrap ${getCodStatusBadgeClass(item.status)}">
-          ${item.status}
-        </span>
+        <button type="button" 
+                onclick="openCodStatusPicker(${idx})" 
+                class="group/badge px-2 py-0.5 rounded-full text-[10.5px] font-semibold whitespace-nowrap ${getCodStatusBadgeClass(item.status)} cursor-pointer hover:brightness-125 hover:ring-1 hover:ring-white/40 active:scale-95 transition-all inline-flex items-center gap-1 shadow-sm"
+                title="ចុចដើម្បីប្តូរស្ថានភាព">
+          <span>${item.status}</span>
+          <i data-lucide="chevron-down" class="w-2.5 h-2.5 opacity-60 group-hover/badge:opacity-100 transition"></i>
+        </button>
       </td>
       <td class="py-2.5 px-2.5 text-right font-mono font-bold text-amber-400 text-[12px]">${formatUSD(item.amount)}</td>
     </tr>
   `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-500">${t('noData')}</td></tr>`;
+
+  if (window.lucide) window.lucide.createIcons();
 
   // Calculate totals
   const totalAmount = items.reduce((sum, it) => sum + (it.amount || 0), 0);

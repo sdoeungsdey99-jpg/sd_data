@@ -535,6 +535,20 @@ function updateCodStatus(ss, data) {
     }
   }
 
+  // Fallback 1: Match by Date and Amount in Personal Sales
+  if (matchedRow <= 0 && data.date && data.amount) {
+    var targetDate = String(data.date).trim();
+    var targetAmt = Number(data.amount);
+    for (var r = numRows - 1; r >= 1; r--) {
+      var rowDate = String(values[r][1] || '').trim();
+      var rowAmt = Number(values[r][13] || values[r][14] || 0);
+      if (rowDate.includes(targetDate) && Math.abs(rowAmt - targetAmt) < 0.05) {
+        matchedRow = r + 1;
+        break;
+      }
+    }
+  }
+
   if (matchedRow > 0) {
     sheet.getRange(matchedRow, 17).setValue(newStatus); // Col 17 (Q) is COD Status
     return {
@@ -543,6 +557,26 @@ function updateCodStatus(ss, data) {
       row: matchedRow,
       codStatus: newStatus
     };
+  }
+
+  // Fallback 2: Check Bank & Cash Balance sheet (Pending COD section)
+  var bankSheet = ss.getSheetByName('Bank & Cash Balance') || ss.getSheetByName('Bank & Cash');
+  if (bankSheet) {
+    var bVals = bankSheet.getDataRange().getValues();
+    var bMatchRow = -1;
+    for (var br = 0; br < bVals.length; br++) {
+      var bNo = String(bVals[br][0] || '').trim();
+      var bDate = String(bVals[br][1] || '').trim();
+      var bAmt = Number(bVals[br][5] || 0);
+      if ((targetOrderId && bNo === targetOrderId) || (data.date && bDate.includes(data.date) && Math.abs(bAmt - Number(data.amount)) < 0.05)) {
+        bMatchRow = br + 1;
+        break;
+      }
+    }
+    if (bMatchRow > 0) {
+      bankSheet.getRange(bMatchRow, 7).setValue(newStatus); // Col G (7) is status in Bank & Cash Balance
+      return { status: 'success', message: 'Updated COD status in Bank sheet at row ' + bMatchRow, row: bMatchRow, codStatus: newStatus };
+    }
   }
 
   return { status: 'not_found', message: 'Order ' + (targetOrderId || targetRecordId) + ' not found for status update' };
