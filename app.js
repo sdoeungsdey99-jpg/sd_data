@@ -1298,7 +1298,7 @@ function handleBackNavigation() {
     }
   }
 
-  // 1b-2. If inside Team Members Detail View -> step back to Team Members List first!
+  // 1b-2. If inside Team Members Modal -> return to List first, or to Profile Drawer!
   const teamModalNav = document.getElementById('team-members-modal');
   if (teamModalNav && !teamModalNav.classList.contains('hidden')) {
     const teamDetailView = document.getElementById('team-members-detail-view');
@@ -1307,6 +1307,10 @@ function handleBackNavigation() {
       if (navigator.vibrate) navigator.vibrate(15);
       return true;
     }
+    // If on Team Members List -> close modal and step back to Profile Drawer!
+    if (typeof closeTeamMembersModal === 'function') closeTeamMembersModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
   }
 
   // 1c. Close any open Profile Sub-Modal -> returns to Profile Drawer!
@@ -23749,6 +23753,8 @@ function openTeamMembersModal(memberNameToOpen = null) {
   if (searchBar) searchBar.classList.add('hidden');
   if (searchInput) searchInput.value = '';
 
+  const teamHeader = document.getElementById('team-members-header');
+  if (teamHeader) teamHeader.classList.remove('hidden');
   const listView = document.getElementById('team-members-list-view');
   const detailView = document.getElementById('team-members-detail-view');
   if (listView) listView.classList.remove('hidden');
@@ -23797,14 +23803,21 @@ function openTeamMembersModal(memberNameToOpen = null) {
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
 }
 
-function closeTeamMembersModal() {
+function closeTeamMembersModal(skipDrawer = false) {
   closeAllTeamDropdowns();
+  const teamHeader = document.getElementById('team-members-header');
+  if (teamHeader) teamHeader.classList.remove('hidden');
   const modal = document.getElementById('team-members-modal');
   if (modal) modal.classList.add('hidden');
   setDockVisible(true);
+  if (!skipDrawer && typeof openProfileDrawer === 'function') {
+    openProfileDrawer();
+  }
 }
 
 function backToTeamMembersList() {
+  const teamHeader = document.getElementById('team-members-header');
+  if (teamHeader) teamHeader.classList.remove('hidden');
   const listView = document.getElementById('team-members-list-view');
   const detailView = document.getElementById('team-members-detail-view');
   if (listView) listView.classList.remove('hidden');
@@ -24049,6 +24062,9 @@ function openTeamMemberDetail(sellerKmName) {
   const detailView = document.getElementById('team-members-detail-view');
   if (!detailView) return;
 
+  const teamHeader = document.getElementById('team-members-header');
+  if (teamHeader) teamHeader.classList.add('hidden');
+
   if (listView) listView.classList.add('hidden');
   detailView.classList.remove('hidden');
   detailView.scrollTop = 0;
@@ -24157,11 +24173,11 @@ function openTeamMemberDetail(sellerKmName) {
 
       <div class="rounded-2xl bg-[#0B1528] border border-white/10 shadow-xl overflow-visible relative">
         <table class="w-full text-center text-xs border-collapse">
-          <!-- Table Header (Sticky Locked When Scrolling!) -->
-          <thead class="sticky top-0 z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
+          <!-- Table Header (Sticky Locked directly below top action bar!) -->
+          <thead class="sticky top-[42px] z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md">
             <tr class="bg-[#0B1528]">
               <th onclick="toggleTeamMemberDetailFilterMode('${safeName}')" 
-                  class="sticky top-0 z-30 bg-[#0B1528] py-2 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
+                  class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group" 
                   title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
                 <div class="flex items-center gap-1">
                   <span>ថ្ងៃ</span>
@@ -24170,37 +24186,37 @@ function openTeamMemberDetail(sellerKmName) {
                   </span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1 font-bold">
+              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[1] || 0}</span>
                   <span class="text-[8.5px] text-slate-400">ឈុត ១</span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1 font-bold">
+              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[2] || 0}</span>
                   <span class="text-[8.5px] text-slate-400">ឈុត ២</span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1 font-bold">
+              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[3] || 0}</span>
                   <span class="text-[8.5px] text-slate-400">ឈុត ៣</span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1 font-bold">
+              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[5] || 0}</span>
                   <span class="text-[8.5px] text-slate-400">ឈុត ៥</span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1 font-bold">
+              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[6] || 0}</span>
                   <span class="text-[8.5px] text-slate-400">ឈុត ៦</span>
                 </div>
               </th>
-              <th class="sticky top-0 z-30 bg-[#0B1528] py-2 px-1.5 font-bold">
+              <th class="sticky top-[42px] z-30 bg-[#0B1528] py-2 px-1.5 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.totalBoxes}</span>
                   <span class="text-[8.5px] text-emerald-400 font-bold">សរុប</span>
