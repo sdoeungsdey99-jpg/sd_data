@@ -28,7 +28,7 @@ const translations = {
     boxUnit: 'ប្រអប់',
     pendingCodTitle: 'លុយនៅអតិថិជន / COD មិនទាន់ទូទាត់',
     pendingCodHint: 'Outstanding Customer Payment',
-    netCashTitle: 'សង្ខេបស្ថាពរហិរញ្ញវត្ថុសុទ្ធ (Net Cash Position)',
+    netCashTitle: 'សង្ខេបស្ថាពរហិរញ្ញវត្ថុ',
     actualCash: 'សរុបសាច់ប្រាក់ជាក់ស្តែង',
     pendingCod: 'លុយ COD រង់ចាំទូទាត់',
     liquidAssets: 'សរុបទ្រព្យសកម្មរាវ',
@@ -14726,7 +14726,7 @@ const TUTORIAL_CHAPTERS = [
         `
       },
       {
-        stepTitle: 'សង្ខេបស្ថាពរហិរញ្ញវត្ថុ (Net Cash Position)',
+        stepTitle: 'សង្ខេបស្ថាពរហិរញ្ញវត្ថុ',
         stepSubtitle: 'តាមដានសាច់ប្រាក់ជាក់ស្តែង, COD និងបំណុល',
         bullets: [
           'កាត Net Cash Position បង្ហាញសន្ទស្សន៍ហិរញ្ញវត្ថុ ៤ ជ្រុងច្បាស់លាស់',
