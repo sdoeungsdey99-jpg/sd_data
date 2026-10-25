@@ -1731,19 +1731,15 @@
     #sticky-filter-bar,
     #expenses-modal-date-filter-bar,
     #analytics-sticky-header,
-    #study-sticky-header,
-    #cod-modal-tabs-bar,
-    #cod-thai-search-filter-bar {
-      max-height: 140px;
+    #study-sticky-header {
+      max-height: 120px;
       transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, padding 0.3s ease, margin 0.3s ease;
       overflow: visible;
     }
     #sticky-filter-bar.filter-hidden,
     #expenses-modal-date-filter-bar.filter-hidden,
     #analytics-sticky-header.filter-hidden,
-    #study-sticky-header.filter-hidden,
-    #cod-modal-tabs-bar.filter-hidden,
-    #cod-thai-search-filter-bar.filter-hidden {
+    #study-sticky-header.filter-hidden {
       max-height: 0 !important;
       opacity: 0 !important;
       padding-top: 0 !important;
@@ -2840,6 +2836,37 @@
       <!-- Backdrop Blur Overlay for Context Menu -->
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
+      <!-- Thai COD Drop Schedule Modal (Centered Popup) -->
+      <div id="thai-cod-schedule-modal" class="hidden absolute inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" onclick="if(event.target===this) closeThaiCodScheduleModal()">
+        <div class="w-full max-w-sm rounded-2xl bg-[#0B1528] border border-white/20 shadow-2xl p-4 space-y-3 relative overflow-hidden" onclick="event.stopPropagation()">
+          <!-- Header -->
+          <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center">
+                <i data-lucide="calendar" class="w-4 h-4"></i>
+              </div>
+              <h4 class="text-xs font-bold text-white tracking-wide">+ ថ្ងៃផ្ញើរបាយការណ៍គិតលុយ Thai COD</h4>
+            </div>
+            <button onclick="closeThaiCodScheduleModal()" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition active:scale-90">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- 8 Drops Schedule List -->
+          <div class="space-y-1.5 text-xs" id="thai-cod-schedule-list">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- Footer: Live Date -->
+          <div class="pt-2.5 border-t border-white/10 text-center">
+            <div class="text-[10px] text-slate-400 font-sans mb-0.5">កាលបរិច្ឆេទថ្ងៃនេះ៖</div>
+            <div id="thai-cod-schedule-today" class="text-xs font-semibold text-emerald-400 font-sans">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Header matching iOS Standard -->
       <div onclick="handleHeaderScrollToTop(event)" class="relative z-50 p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
@@ -2855,23 +2882,9 @@
           </div>
         </div>
         <div class="relative shrink-0 z-50">
-            <button onclick="toggleModalContextMenu('cod', event)" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 active:scale-95 transition" title="ជម្រើស">
-              <i data-lucide="more-horizontal" class="w-5 h-5"></i>
-            </button>
-            <div id="modal-menu-cod" class="hidden absolute right-0 top-full mt-1.5 w-48 bg-[#0A1222]/85 backdrop-blur-3xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.85)] ring-1 ring-white/10 p-1.5 rounded-2xl z-50 divide-y divide-white/10 animate-fade-in font-sans">
-              <button onclick="handleModalMenuAction('cod', 'pdf')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
-                <i data-lucide="file-text" class="w-4 h-4 text-orange-400"></i>
-                <span class="action-label-pdf">រក្សាទុកជា PDF</span>
-              </button>
-              <button onclick="handleModalMenuAction('cod', 'share')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
-                <i data-lucide="share-2" class="w-4 h-4 text-blue-400"></i>
-                <span class="action-label-share">ចែករំលែក</span>
-              </button>
-              <button onclick="handleModalMenuAction('cod', 'copy')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
-                <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
-                <span class="action-label-copy">ចម្លង</span>
-              </button>
-            </div>
+          <button onclick="openThaiCodScheduleModal()" class="w-8 h-8 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 active:scale-95 border border-orange-500/30 text-orange-400 flex items-center justify-center shrink-0 transition" title="កាលវិភាគទម្លាក់អីវ៉ាន់ Thai COD">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
+          </button>
         </div>
       </div>
 
@@ -2880,11 +2893,11 @@
         <div class="grid grid-cols-2 p-1 bg-black/40 rounded-xl border border-white/10 flex-1">
           <button id="cod-tab-summary-btn" onclick="switchCodModalTab('summary')" class="py-1.5 px-2.5 rounded-lg text-xs font-semibold transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center gap-1.5">
             <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
-            <span>📊 លុយនៅអតិថិជន</span>
+            <span>លុយភ្ញៀវមិនទាន់ទូទាត់</span>
           </button>
           <button id="cod-tab-thai-btn" onclick="switchCodModalTab('thai')" class="py-1.5 px-2.5 rounded-lg text-xs font-semibold transition active:scale-95 text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
             <i data-lucide="truck" class="w-3.5 h-3.5"></i>
-            <span>🇹🇭 ទូទាត់ Thai COD</span>
+            <span>ទូទាត់ COD Thai</span>
           </button>
         </div>
       </div>
@@ -2915,26 +2928,14 @@
         </div>
       </div>
 
-      <!-- VIEW 2: Thai COD Detailed Settlement (1st, 2nd, 3rd Phases & 4-digit search) -->
+      <!-- VIEW 2: Thai COD Detailed Settlement (1st, 2nd, 3rd Phases) -->
       <div id="cod-thai-view" class="hidden flex flex-col flex-1 overflow-hidden">
-        <!-- Search & Filter Controls Subheader -->
-        <div id="cod-thai-search-filter-bar" class="p-3 border-b border-white/10 bg-black/30 space-y-2.5 shrink-0">
-          <!-- Search input -->
-          <div class="relative">
-            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-            <input type="text" id="cod-thai-search-input" oninput="handleThaiCodFilterChange()" placeholder="ស្វែងរកលេខកន្ទុយ ៤ ខ្ទង់ (ឧ. 9503, 1387), Order ID, ឈ្មោះ..." class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-8 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50">
-            <button onclick="clearThaiCodSearch()" id="cod-thai-search-clear" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5">
-              <i data-lucide="x" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
-
-          <!-- Filter Pills (Scrollable) -->
-          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-[11px]" id="cod-thai-filter-pills">
-            <button onclick="setThaiCodPhaseFilter('all')" data-phase="all" class="thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40">ទាំងអស់</button>
-            <button onclick="setThaiCodPhaseFilter('1st')" data-phase="1st" class="thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10">🟡 ដល់អតិថិជន 1st</button>
+        <!-- Filter Pills Bar (Clean single line without search bar) -->
+        <div id="cod-thai-filter-bar" class="px-3 py-2 border-b border-white/10 bg-black/30 shrink-0">
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[11px]" id="cod-thai-filter-pills">
+            <button onclick="setThaiCodPhaseFilter('1st')" data-phase="1st" class="thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40">🟡 ដល់អតិថិជន 1st</button>
             <button onclick="setThaiCodPhaseFilter('2nd')" data-phase="2nd" class="thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10">🟠 ដល់អតិថិជន 2nd</button>
             <button onclick="setThaiCodPhaseFilter('3rd')" data-phase="3rd" class="thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10">🔵 ដល់អតិថិជន 3rd</button>
-            <button onclick="setThaiCodPhaseFilter('prepared')" data-phase="prepared" class="thai-cod-pill px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10">📦 បានរៀបចំ</button>
           </div>
         </div>
 

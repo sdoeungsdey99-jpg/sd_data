@@ -24604,8 +24604,8 @@ window.submitUserFeedback = submitUserFeedback;
 // Left Hand Taps Field to Select | Right Hand Swipes Ruler to Adjust
 // ========================================================
 let _rulerState = {
-  targetFieldId: 'rep-field-chat-total',
-  title: 'ឆាតថ្មីសរុប',
+  targetFieldId: 'rep-field-chat-target',
+  title: 'ឆាតគោលដៅ',
   min: 0,
   max: 500,
   unit: 'នាក់',
@@ -24629,10 +24629,6 @@ function changeReportFieldVal(fieldId, delta) {
   if (val < 0) val = 0;
   input.value = val;
 
-  if (fieldId === 'rep-field-chat-target') {
-    input.dataset.manualEdited = 'true';
-  }
-
   // Subtle highlight card when clicked
   const card = document.getElementById(`card-${fieldId}`);
   if (card) {
@@ -24653,10 +24649,6 @@ function onReportFieldManualInput(fieldId) {
   if (clean === '') clean = '0';
   const val = parseInt(clean, 10) || 0;
   input.value = val;
-
-  if (fieldId === 'rep-field-chat-target') {
-    input.dataset.manualEdited = 'true';
-  }
 
   calculateDailyReportMetrics();
 }
@@ -24741,6 +24733,36 @@ function renderRulerNumberControl(id, label, defaultVal, unit, min, max, fieldTi
   `;
 }
 
+function renderAutoChatTotalControl(id, label, defaultVal, unit) {
+  const v = Number(defaultVal) || 0;
+  return `
+    <div id="card-${id}"
+         class="report-field-item p-2 sm:p-2.5 rounded-2xl bg-[#0B1528] border border-emerald-500/30 hover:border-emerald-500/50 transition select-none flex flex-col justify-between group shadow-sm relative overflow-hidden">
+      <!-- Ambient subtle glow for Auto field -->
+      <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+
+      <div class="flex items-center justify-between mb-1.5 min-w-0 relative z-10">
+        <div class="flex items-center gap-1.5 truncate">
+          <span class="text-xs text-emerald-300 font-bold truncate">${label}</span>
+          <span class="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-[9px] font-bold border border-emerald-500/30 leading-none">AUTO</span>
+        </div>
+        <span class="text-[10px] text-slate-400 font-kantumruy font-semibold shrink-0 ml-1">${unit}</span>
+      </div>
+
+      <!-- Center Auto Total Display matching stepper height -->
+      <div class="flex items-center justify-center bg-black/60 px-2 py-1 rounded-xl border border-emerald-500/30 gap-1.5 h-[36px] sm:h-[40px] relative z-10 shadow-inner">
+        <i data-lucide="calculator" class="w-3.5 h-3.5 text-emerald-400/80 shrink-0"></i>
+        <input type="text"
+               id="${id}"
+               value="${v}"
+               readonly
+               class="w-full bg-transparent text-center text-base sm:text-lg font-mono font-black text-emerald-400 p-0 m-0 border-none leading-tight drop-shadow-sm cursor-default select-none pointer-events-none"
+               style="font-size: 17px !important;">
+      </div>
+    </div>
+  `;
+}
+
 function setActiveReportField(fieldId, label, min, max, unit, shouldScroll = true) {
   // Clear previous active highlights from all items
   document.querySelectorAll('.report-field-item').forEach(el => {
@@ -24760,9 +24782,6 @@ function syncRulerToField() {
   const hiddenInput = document.getElementById(_rulerState.targetFieldId);
   if (hiddenInput) {
     hiddenInput.value = _rulerState.val;
-    if (_rulerState.targetFieldId === 'rep-field-chat-target') {
-      hiddenInput.dataset.manualEdited = 'true';
-    }
   }
   const disp = document.getElementById(`${_rulerState.targetFieldId}-disp`);
   if (disp) disp.innerText = _rulerState.val;
@@ -24954,17 +24973,15 @@ function draw3DRuler() {
 }
 
 function calculateDailyReportMetrics() {
-  const chatTotal = cleanNumber(document.getElementById('rep-field-chat-total')?.value);
+  const chatTarget = cleanNumber(document.getElementById('rep-field-chat-target')?.value);
   const chatMistake = cleanNumber(document.getElementById('rep-field-chat-mistake')?.value);
-  const targetInput = document.getElementById('rep-field-chat-target');
+  const totalInput = document.getElementById('rep-field-chat-total');
   
-  if (chatTotal > 0 && chatMistake >= 0 && targetInput) {
-    if (!targetInput.dataset.manualEdited) {
-      const autoTarget = Math.max(0, chatTotal - chatMistake);
-      targetInput.value = autoTarget;
-      const targetDisp = document.getElementById('rep-field-chat-target-disp');
-      if (targetDisp) targetDisp.innerText = autoTarget;
-    }
+  const autoTotal = chatTarget + chatMistake;
+  if (totalInput) {
+    totalInput.value = autoTotal;
+    const totalDisp = document.getElementById('rep-field-chat-total-disp');
+    if (totalDisp) totalDisp.innerText = autoTotal;
   }
 
   const buyNewB = cleanNumber(document.getElementById('rep-buy-new-b')?.value);
@@ -25709,9 +25726,9 @@ function renderDailyReportModal() {
           </span>
         </div>
         <div class="grid grid-cols-2 gap-2.5">
-          ${renderRulerNumberControl('rep-field-chat-total', 'ឆាតថ្មីសរុប', 0, 'នាក់', 0, 500, 'ឆាតថ្មីសរុប')}
-          ${renderRulerNumberControl('rep-field-chat-mistake', 'ឆាតប៉ះដៃ (Spam)', 0, 'នាក់', 0, 500, 'ឆាតប៉ះដៃ')}
           ${renderRulerNumberControl('rep-field-chat-target', 'ឆាតគោលដៅ', 0, 'នាក់', 0, 500, 'ឆាតគោលដៅ')}
+          ${renderRulerNumberControl('rep-field-chat-mistake', 'ឆាតប៉ះដៃ (Spam)', 0, 'នាក់', 0, 500, 'ឆាតប៉ះដៃ')}
+          ${renderAutoChatTotalControl('rep-field-chat-total', 'ឆាតថ្មីសរុប', 0, 'នាក់')}
           ${renderRulerNumberControl('rep-field-call-direct', 'អតិថិជនខលផ្ទាល់', 0, 'នាក់', 0, 100, 'អតិថិជនខល')}
         </div>
       </div>
@@ -25883,8 +25900,6 @@ function resetDailyReportFields() {
   });
   const chalEl = document.getElementById('rep-field-challenges');
   if (chalEl) chalEl.value = '';
-  const targetInput = document.getElementById('rep-field-chat-target');
-  if (targetInput) delete targetInput.dataset.manualEdited;
   calculateDailyReportMetrics();
   
   // Reset ruler display
