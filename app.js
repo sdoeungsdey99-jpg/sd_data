@@ -4968,8 +4968,8 @@ function getMemberBostarTrackSetsAndDaily(memberName, d) {
     const kn = Number(o.qtyKN || 0);
     const pdo = Number(o.qtyPDO || 0);
     const free = Number(o.freeQty || 0);
-    let b = yl + ylp + kn + pdo + free;
-    if (b <= 0 && Number(o.totalBoxQty || 0) > 0) b = Number(o.totalBoxQty || 0);
+    let b = Number(o.totalBoxQty || 0);
+    if (b <= 0) b = yl + ylp + kn + pdo + free;
     b = Math.max(0, Math.round(b));
 
     // Bostar sets: Set 1 (1 box), Set 2 (2 boxes), Set 3 (3 boxes, or 3+1 promo 4-box), Set 5 (5 boxes), Set 6 (>=6 boxes)
