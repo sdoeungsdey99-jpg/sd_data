@@ -5109,7 +5109,6 @@ window.openExecutiveSecuritySettingsModal = openExecutiveSecuritySettingsModal;
 window.closeExecutiveSecuritySettingsModal = closeExecutiveSecuritySettingsModal;
 window.openExecutiveSecurityActionSheet = openExecutiveSecurityActionSheet;
 window.closeExecutiveSecurityActionSheet = closeExecutiveSecurityActionSheet;
-window.actionSheetLockNow = actionSheetLockNow;
 window.toggleSecurityBiometric = toggleSecurityBiometric;
 window.toggleSecurityRemember = toggleSecurityRemember;
 window.actionSheetLogOut = actionSheetLogOut;
