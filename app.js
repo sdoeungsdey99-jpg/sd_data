@@ -200,6 +200,7 @@ const appState = {
   isAnalyticsDetailMinimized: true,
   isAnalyticsTableMinimized: true,
   analyticsTab: 'all', // 'all' | 'business' | 'expenses'
+  analyticsExpenseChartMode: 'trend', // 'trend' (bars) | 'donut' (% breakdown)
   hasReadNotifications: false,
   studyWordCount: 5,
   studyTab: 'sales_reset', // 'sales_reset' | 'quotes' | 'english'
@@ -6749,7 +6750,9 @@ function getDashboardViewHTML() {
       <!-- Expenses List (Sorted latest 31 ➔ 01 / Month 12 ➔ 01) -->
       <div class="space-y-2 max-h-52 overflow-y-auto no-scrollbar">
         ${sortedFilteredExpenses.slice(0, 15).map((e, idx) => `
-          <div class="p-2.5 rounded-2xl bg-black/25 border border-white/5 flex items-center justify-between text-xs hover:border-white/10 transition">
+          <div onclick="event.stopPropagation(); openEditExpenseModalByRow(${e.rowIndex || idx})"
+               title="ចុចដើម្បីកែប្រែចំណាយនេះ"
+               class="p-2.5 rounded-2xl bg-black/25 border border-white/5 flex items-center justify-between text-xs hover:border-rose-500/30 hover:bg-white/[0.04] active:scale-[0.99] transition cursor-pointer select-none">
             <div class="flex items-center gap-2.5 min-w-0 pr-2">
               <span class="w-5 h-5 rounded-lg bg-white/5 text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
                 ${idx + 1}
@@ -6763,7 +6766,10 @@ function getDashboardViewHTML() {
                 </div>
               </div>
             </div>
-            <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(e.amount)}</span>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="font-mono text-rose-400 font-bold text-xs whitespace-nowrap">${formatUSD(e.amount)}</span>
+              <i data-lucide="edit-3" class="w-3.5 h-3.5 text-slate-400 opacity-60"></i>
+            </div>
           </div>
         `).join('') || `<p class="text-xs text-slate-400 py-6 text-center">${t('noData')}</p>`}
       </div>
@@ -8278,6 +8284,191 @@ function getAnalyticsViewHTML() {
       `;
     }
 
+    let analyticsMiddleChartHtml = '';
+    if (currentTab === 'expenses') {
+      const expenseChartMode = appState.analyticsExpenseChartMode || 'trend';
+
+      // 1. Group month expenses by category
+      const categoryMap = {};
+      monthExpenses.forEach(e => {
+        const cat = (e.category || 'ផ្សេងៗ').trim() || 'ផ្សេងៗ';
+        const amt = Number(e.amount) || 0;
+        if (!categoryMap[cat]) {
+          categoryMap[cat] = { name: cat, total: 0, count: 0 };
+        }
+        categoryMap[cat].total += amt;
+        categoryMap[cat].count++;
+      });
+      const sortedCats = Object.values(categoryMap).sort((a, b) => b.total - a.total);
+      sortedCats.forEach((c, idx) => {
+        c.style = getExpenseCategoryStyle(c.name, idx);
+        c.pct = monthTotalExpense > 0 ? (c.total / monthTotalExpense) * 100 : 0;
+      });
+
+      // 2. SVG calculations for Donut
+      const donutRadius = 66;
+      const strokeWidth = 22;
+      const circumference = 2 * Math.PI * donutRadius;
+      let accumulatedLen = 0;
+      let accumulatedPct = 0;
+      let slicesSvg = '';
+      let labelsSvg = '';
+
+      sortedCats.forEach(cat => {
+        const strokeLen = (cat.pct / 100) * circumference;
+        const offset = -accumulatedLen;
+
+        slicesSvg += `
+          <circle cx="100" cy="100" r="${donutRadius}" fill="none"
+                  stroke="${cat.style.color}"
+                  stroke-width="${strokeWidth}"
+                  stroke-dasharray="${strokeLen.toFixed(2)} ${(circumference - strokeLen).toFixed(2)}"
+                  stroke-dashoffset="${offset.toFixed(2)}"
+                  class="transition-all duration-500" />
+        `;
+
+        if (cat.pct >= 7) {
+          const startAngle = (accumulatedPct / 100) * 360;
+          const endAngle = startAngle + (cat.pct / 100) * 360;
+          const midAngle = (startAngle + endAngle) / 2;
+          const angleRad = (midAngle - 90) * (Math.PI / 180);
+          const lx = 100 + donutRadius * Math.cos(angleRad);
+          const ly = 100 + donutRadius * Math.sin(angleRad);
+
+          labelsSvg += `
+            <text x="${lx.toFixed(1)}" y="${(ly + 3.5).toFixed(1)}"
+                  text-anchor="middle"
+                  fill="#FFFFFF"
+                  font-size="${cat.pct >= 12 ? '10.5' : '9'}"
+                  font-weight="bold"
+                  font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+                  style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.95)); pointer-events: none;">
+              ${cat.pct.toFixed(0)}%
+            </text>
+          `;
+        }
+
+        accumulatedLen += strokeLen;
+        accumulatedPct += cat.pct;
+      });
+
+      const donutContentHtml = `
+        <div id="analytics-donut-chart-view" 
+             onclick="toggleAnalyticsExpenseChartMode()"
+             title="ប៉ះដើម្បីប្តូរមកក្រាហ្វិករបារប្រចាំថ្ងៃ (Tap to switch)"
+             class="p-3.5 rounded-2xl bg-black/25 border border-white/5 flex flex-col items-center justify-center cursor-pointer select-none active:scale-[0.99] transition shadow-inner">
+          <div class="relative w-48 h-48 mx-auto flex items-center justify-center">
+            <!-- Rotated SVG for slices -->
+            <svg viewBox="0 0 200 200" class="w-full h-full transform -rotate-90 select-none">
+              <circle cx="100" cy="100" r="${donutRadius}" fill="none"
+                      stroke="rgba(255,255,255,0.06)"
+                      stroke-width="${strokeWidth}" class="donut-bg-track" />
+              ${slicesSvg}
+            </svg>
+            <!-- Upright percentage labels -->
+            <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full pointer-events-none select-none">
+              ${labelsSvg}
+            </svg>
+            <!-- Center Total & Label -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
+              <span class="text-white font-mono font-bold text-xl tracking-tight leading-none drop-shadow-md donut-center-amt">
+                ${formatUSD(monthTotalExpense)}
+              </span>
+              <span class="text-[9.5px] font-sans font-bold text-slate-300 uppercase tracking-wider mt-1 donut-center-sub">
+                ចំណាយសរុប
+              </span>
+              <span class="text-[9.5px] font-mono text-slate-400 mt-0.5 donut-center-count">
+                ${monthExpenses.length} មុខ
+              </span>
+            </div>
+          </div>
+
+          <!-- Category Legend Grid (Strictly View-Only, No Edit Trigger) -->
+          <div class="w-full grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-white/10" onclick="event.stopPropagation();">
+            ${sortedCats.map(c => `
+              <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-xs transition donut-legend-item">
+                <div class="flex items-center gap-2 min-w-0 pr-1">
+                  <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style="background-color: ${c.style.color}"></span>
+                  <span class="text-white font-medium text-[11px] truncate leading-tight donut-cat-name">${c.name}</span>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="font-mono text-rose-400 font-bold text-[11px] block leading-tight">${formatUSD(c.total)}</span>
+                  <span class="font-mono text-[9px] text-slate-400 block">${c.pct.toFixed(1)}%</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <p class="text-[10px] text-slate-400 text-center mt-2.5 font-mono flex items-center justify-center gap-1.5 opacity-80">
+            <i data-lucide="touchpad" class="w-3 h-3 text-orange-400"></i>
+            <span>ប៉ះលើផ្ទាំង ឬ អូស ↔ ដើម្បីប្តូរមកក្រាហ្វិកប្រចាំថ្ងៃ</span>
+          </p>
+        </div>
+      `;
+
+      const trendBarsContentHtml = `
+        <div id="analytics-trend-bars-view" class="space-y-1.5">
+          <div class="overflow-x-auto pb-3 pt-2 no-scrollbar rounded-2xl bg-black/20 border border-white/5" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
+            <div class="h-44 flex items-end gap-2 px-3 pb-2 pt-6 relative" style="min-width: ${dailyW}px;">
+              ${dailySvgRunner}
+              ${chartBarsHtml}
+            </div>
+          </div>
+        </div>
+      `;
+
+      analyticsMiddleChartHtml = `
+        <div class="space-y-1.5 mt-3" 
+             ontouchstart="handleAnalyticsExpenseTouchStart(event)" 
+             ontouchend="handleAnalyticsExpenseTouchEnd(event)">
+          <div class="flex items-center justify-between px-1 gap-2">
+            <div class="flex items-center gap-1.5 min-w-0 cursor-pointer select-none" onclick="toggleAnalyticsExpenseChartMode()" title="ចុចដើម្បីប្តូរក្រាហ្វិក">
+              <i data-lucide="${expenseChartMode === 'donut' ? 'pie-chart' : 'bar-chart'}" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+              <span class="text-[10.5px] text-slate-300 font-bold leading-tight truncate">
+                ${expenseChartMode === 'donut' ? `បែងចែកតាមប្រភេទ % (${sortedCats.length} ប្រភេទ)` : `ក្រាហ្វិកប្រចាំថ្ងៃ (${daysSorted.length} ថ្ងៃ)`}
+              </span>
+            </div>
+
+            <!-- Segment Switcher Pills -->
+            <div class="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10 shrink-0 select-none">
+              <button type="button" onclick="event.stopPropagation(); setAnalyticsExpenseChartMode('trend')" 
+                      class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${expenseChartMode !== 'donut' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'}">
+                <i data-lucide="bar-chart-2" class="w-3 h-3"></i>
+                <span>តាមថ្ងៃ</span>
+              </button>
+              <button type="button" onclick="event.stopPropagation(); setAnalyticsExpenseChartMode('donut')" 
+                      class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${expenseChartMode === 'donut' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'}">
+                <i data-lucide="pie-chart" class="w-3 h-3"></i>
+                <span>ប្រភេទ %</span>
+              </button>
+            </div>
+          </div>
+
+          ${expenseChartMode === 'donut' ? donutContentHtml : trendBarsContentHtml}
+        </div>
+      `;
+    } else {
+      analyticsMiddleChartHtml = `
+        <div class="space-y-1.5 mt-3">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5 flex-wrap">
+              <i data-lucide="bar-chart" class="w-3 h-3 text-orange-400"></i>
+              <span>ក្រាហ្វិកប្រចាំថ្ងៃ (${daysSorted.length} ថ្ងៃ)</span>
+              <span class="text-[9px] text-slate-400">• ${chartLegendHtml}</span>
+            </span>
+            <span class="text-[9px] text-orange-400 font-mono">← អូសឆ្វេង-ស្តាំ →</span>
+          </div>
+          
+          <div class="overflow-x-auto pb-3 pt-2 no-scrollbar rounded-2xl bg-black/20 border border-white/5" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
+            <div class="h-44 flex items-end gap-2 px-3 pb-2 pt-6 relative" style="min-width: ${dailyW}px;">
+              ${dailySvgRunner}
+              ${chartBarsHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     return `
       ${stickyYearHeaderHtml}
       <div class="space-y-3.5 px-3.5 pt-2.5 pb-6">
@@ -8316,23 +8507,7 @@ function getAnalyticsViewHTML() {
           ${kpiGridHtml}
 
           <!-- Daily Chart with Touch-friendly Smooth Horizontal Scroll on iPhone 17 Pro (Middle) -->
-          <div class="space-y-1.5 mt-3">
-            <div class="flex items-center justify-between px-1">
-              <span class="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5 flex-wrap">
-                <i data-lucide="bar-chart" class="w-3 h-3 text-orange-400"></i>
-                <span>ក្រាហ្វិកប្រចាំថ្ងៃ (${daysSorted.length} ថ្ងៃ)</span>
-                <span class="text-[9px] text-slate-400">• ${chartLegendHtml}</span>
-              </span>
-              <span class="text-[9px] text-orange-400 font-mono">← អូសឆ្វេង-ស្តាំ →</span>
-            </div>
-            
-            <div class="overflow-x-auto pb-3 pt-2 no-scrollbar rounded-2xl bg-black/20 border border-white/5" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
-              <div class="h-44 flex items-end gap-2 px-3 pb-2 pt-6 relative" style="min-width: ${dailyW}px;">
-                ${dailySvgRunner}
-                ${chartBarsHtml}
-              </div>
-            </div>
-          </div>
+          ${analyticsMiddleChartHtml}
 
           <!-- True Net Pocket Cash / Volume / Expense Highlight (Bottom of Card) -->
           ${monthBottomBannerHtml}
@@ -14433,7 +14608,7 @@ let expensesFilterState = {
   calYear: new Date().getFullYear(),
   calMonth: new Date().getMonth() + 1,
   isSearchOpen: false,
-  viewTab: 'breakdown', // 'breakdown' (iOS style donut + categories) | 'list' (flat list)
+  viewTab: 'list', // 'list' (flat list) | 'breakdown' (iOS style donut + categories)
   expandedCategories: {},
   activeCategoryFilter: 'all',
   currentPeriodLabel: 'ទាំងអស់'
@@ -14971,7 +15146,7 @@ function openExpensesModal(mode = false) {
     searchToggleBtn.classList.add('bg-white/5', 'text-orange-400', 'border-white/10');
   }
   expensesFilterState.isSearchOpen = false;
-  expensesFilterState.viewTab = 'breakdown';
+  expensesFilterState.viewTab = 'list';
   expensesFilterState.activeCategoryFilter = 'all';
 
   closeAllExpensesDropdowns();
@@ -15410,14 +15585,33 @@ function handleExpenseTouchEnd(e, el) {
 
 function getExpenseFromTarget(expOrIdx) {
   if (typeof expOrIdx === 'object' && expOrIdx !== null) return expOrIdx;
-  if (typeof expOrIdx === 'number' && expOrIdx >= 0) {
-    if (currentLoadedExpenses && currentLoadedExpenses[expOrIdx]) return currentLoadedExpenses[expOrIdx];
-    if (DataService.data && Array.isArray(DataService.data.expenses) && DataService.data.expenses[expOrIdx]) {
-      return DataService.data.expenses[expOrIdx];
+  const num = parseInt(expOrIdx, 10);
+  if (!isNaN(num)) {
+    if (DataService.data && Array.isArray(DataService.data.expenses)) {
+      const byRow = DataService.data.expenses.find(e => e && e.rowIndex === num);
+      if (byRow) return byRow;
+    }
+    if (currentLoadedExpenses && Array.isArray(currentLoadedExpenses)) {
+      const byRowLoaded = currentLoadedExpenses.find(e => e && e.rowIndex === num);
+      if (byRowLoaded) return byRowLoaded;
+      if (currentLoadedExpenses[num]) return currentLoadedExpenses[num];
+    }
+    if (DataService.data && Array.isArray(DataService.data.expenses) && DataService.data.expenses[num]) {
+      return DataService.data.expenses[num];
     }
   }
   return null;
 }
+
+function openEditExpenseModalByRow(rowIndex) {
+  const exp = getExpenseFromTarget(rowIndex);
+  if (exp) {
+    openEditExpenseModal(exp);
+  } else {
+    console.warn('Expense not found for rowIndex:', rowIndex);
+  }
+}
+window.openEditExpenseModalByRow = openEditExpenseModalByRow;
 
 function openExpenseActionSheet(expOrIdx) {
   const exp = getExpenseFromTarget(expOrIdx);
@@ -15605,7 +15799,7 @@ function renderExpensesModalRows(items) {
 
   if (expensesFilterState.viewTab === 'list') {
     listEl.innerHTML = items.map((item, idx) => `
-      <div onclick="openExpenseActionSheet(${idx})"
+      <div onclick="openExpenseActionSheet(${item.rowIndex || idx})"
            title="ចុចដើម្បីកែប្រែ ឬលុបចំណាយ"
            class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 hover:border-rose-500/25 hover:bg-white/[0.07] active:scale-[0.99] active:bg-white/10 transition cursor-pointer select-none shadow-sm">
         <div class="flex items-center justify-between">
@@ -29498,6 +29692,46 @@ function toggleAnalyticsProfitMode() {
   if (typeof renderCurrentView === 'function') renderCurrentView();
 }
 window.toggleAnalyticsProfitMode = toggleAnalyticsProfitMode;
+
+let analyticsSwipeStartX = 0;
+let analyticsSwipeStartY = 0;
+function handleAnalyticsExpenseTouchStart(e) {
+  if (e.touches && e.touches[0]) {
+    analyticsSwipeStartX = e.touches[0].clientX;
+    analyticsSwipeStartY = e.touches[0].clientY;
+  }
+}
+function handleAnalyticsExpenseTouchEnd(e) {
+  if (e.changedTouches && e.changedTouches[0]) {
+    const deltaX = e.changedTouches[0].clientX - analyticsSwipeStartX;
+    const deltaY = e.changedTouches[0].clientY - analyticsSwipeStartY;
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      if (deltaX < 0) {
+        setAnalyticsExpenseChartMode('donut');
+      } else {
+        setAnalyticsExpenseChartMode('trend');
+      }
+    }
+  }
+}
+window.handleAnalyticsExpenseTouchStart = handleAnalyticsExpenseTouchStart;
+window.handleAnalyticsExpenseTouchEnd = handleAnalyticsExpenseTouchEnd;
+
+function toggleAnalyticsExpenseChartMode() {
+  appState.analyticsExpenseChartMode = (appState.analyticsExpenseChartMode === 'donut') ? 'trend' : 'donut';
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+  if (typeof renderCurrentView === 'function') renderCurrentView();
+}
+window.toggleAnalyticsExpenseChartMode = toggleAnalyticsExpenseChartMode;
+
+function setAnalyticsExpenseChartMode(mode) {
+  if (appState.analyticsExpenseChartMode !== mode) {
+    appState.analyticsExpenseChartMode = mode;
+    if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+    if (typeof renderCurrentView === 'function') renderCurrentView();
+  }
+}
+window.setAnalyticsExpenseChartMode = setAnalyticsExpenseChartMode;
 
 window.updateDeliveryShippingDefault = updateDeliveryShippingDefault;
 window.updateModalLanguage = updateModalLanguage;

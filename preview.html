@@ -2856,6 +2856,31 @@
       border-bottom: 1px solid #E2E8F0 !important;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
     }
+    /* Analytics Expenses Donut Chart Light Theme overrides */
+    .light-theme #analytics-donut-chart-view {
+      background-color: rgba(248, 250, 252, 0.9) !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #analytics-donut-chart-view .donut-bg-track {
+      stroke: rgba(0, 0, 0, 0.08) !important;
+    }
+    .light-theme #analytics-donut-chart-view .donut-center-amt {
+      color: #0F172A !important;
+    }
+    .light-theme #analytics-donut-chart-view .donut-center-sub {
+      color: #64748B !important;
+    }
+    .light-theme #analytics-donut-chart-view .donut-center-count {
+      color: #94A3B8 !important;
+    }
+    .light-theme #analytics-donut-chart-view .donut-legend-item {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    }
+    .light-theme #analytics-donut-chart-view .donut-cat-name {
+      color: #1E293B !important;
+    }
   </style>
 </head>
 
@@ -3771,7 +3796,7 @@
       </div>
 
       <!-- Segmented View Tabs (iOS Storage style: Breakdown vs Flat List) -->
-      <div id="expenses-modal-view-switcher" class="px-3.5 py-1.5 bg-[#060D1A]/90 border-b border-white/10 flex items-center justify-center shrink-0">
+      <div id="expenses-modal-view-switcher" class="hidden px-3.5 py-1.5 bg-[#060D1A]/90 border-b border-white/10 flex items-center justify-center shrink-0">
         <div class="flex items-center p-0.5 rounded-2xl bg-white/5 border border-white/10 w-full max-w-xs text-xs font-semibold">
           <button type="button" id="expenses-tab-breakdown-btn" onclick="setExpensesViewTab('breakdown')" 
                   class="flex-1 py-1.5 px-2 rounded-xl text-center transition flex items-center justify-center gap-1.5 bg-orange-500 text-white font-bold shadow-sm">
@@ -6541,6 +6566,6 @@
   </div>
 
   <script src="dataService.js?v=7.7"></script>
-  <script src="app.js?v=46.9"></script>
+  <script src="app.js?v=47.0"></script>
 </body>
 </html>
