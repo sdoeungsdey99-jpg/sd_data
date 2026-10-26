@@ -12638,12 +12638,15 @@ function renderCodSummary() {
       source: 'sales'
     }));
 
-  // 3. Combine both: prioritize bankItems, add salesItems that aren't duplicates
-  const combined = [...bankItems];
-  salesItems.forEach(sItem => {
-    const exists = bankItems.some(b => b.date === sItem.date && Math.abs(b.amount - sItem.amount) < 0.01 && b.status === sItem.status);
-    if (!exists) {
-      combined.push(sItem);
+  // 3. Combine both: Prioritize salesItems so every customer has real name, phone, seller, and box count!
+  const combined = [...salesItems];
+  bankItems.forEach(bItem => {
+    const match = combined.find(s => {
+      return (s.date === bItem.date && Math.abs(s.amount - bItem.amount) < 0.01) ||
+             (bItem.customer && bItem.customer !== 'អតិថិជន COD' && s.customer.toLowerCase().includes(bItem.customer.toLowerCase()));
+    });
+    if (!match) {
+      combined.push(bItem);
     }
   });
 
