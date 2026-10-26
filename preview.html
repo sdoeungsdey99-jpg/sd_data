@@ -6499,9 +6499,9 @@
 
   <!-- iOS Expense Action Sheet (Long-Press / Swipe Quick Action) -->
   <div id="expense-action-sheet" onclick="closeExpenseActionSheet(event)"
-       class="fixed inset-0 z-[85] bg-black/75 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
+       class="fixed inset-0 z-[105] bg-black/75 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all duration-300">
     <div onclick="event.stopPropagation()"
-         class="w-full max-w-sm bg-[#0D1526] border-t sm:border border-white/15 rounded-t-[32px] sm:rounded-3xl p-5 shadow-[0_-12px_45px_rgba(0,0,0,0.85)] relative animate-slide-up text-left select-none font-kantumruy">
+         class="w-full max-w-sm bg-[#0D1526] border-t sm:border border-white/15 rounded-t-[32px] sm:rounded-3xl p-5 pb-8 sm:pb-5 shadow-[0_-12px_45px_rgba(0,0,0,0.85)] relative animate-slide-up text-left select-none font-kantumruy">
       
       <!-- Item Preview Header -->
       <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 mb-4 flex items-center justify-between">
@@ -6543,7 +6543,7 @@
 
   <!-- iOS Expense Delete Confirmation Dialog -->
   <div id="expense-delete-modal" onclick="closeExpenseDeleteModal(event)"
-       class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-300">
+       class="fixed inset-0 z-[110] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-300">
     <div onclick="event.stopPropagation()"
          class="w-full max-w-xs bg-[#0D1526] border border-white/15 rounded-3xl p-5 shadow-2xl relative animate-scale-up text-center select-none font-kantumruy">
       <div class="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto mb-3 shadow-md">
@@ -6566,6 +6566,6 @@
   </div>
 
   <script src="dataService.js?v=7.7"></script>
-  <script src="app.js?v=47.0"></script>
+  <script src="app.js?v=47.1"></script>
 </body>
 </html>
