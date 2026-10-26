@@ -13098,7 +13098,7 @@ function openBankModal() {
           </div>
           <div class="min-w-0">
             <div class="text-white font-bold text-xs sm:text-sm truncate">${safeName}</div>
-            <span class="text-[10px] text-slate-400 font-mono">Bank Account #${acc.no || '—'}</span>
+            <span class="text-[10.5px] text-slate-400 font-medium">${appState.language === 'en' ? 'Bank Account #' : 'គណនីធនាគារ #'}${acc.no || '—'}</span>
           </div>
         </div>
         <div class="text-right font-mono shrink-0 ml-2">
