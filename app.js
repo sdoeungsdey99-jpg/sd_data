@@ -22947,14 +22947,6 @@ function renderAllCustomersList() {
             <div class="space-y-2 max-h-56 overflow-y-auto no-scrollbar">
               ${sortedOrders.map(o => {
                 const currentStatus = String(o.codStatus || 'មិនទាន់ទូទាត់').trim();
-                const statusOptions = COD_STATUS_OPTIONS.includes(currentStatus) 
-                  ? COD_STATUS_OPTIONS 
-                  : [currentStatus, ...COD_STATUS_OPTIONS];
-                const safeRecId = typeof escapeHtml === 'function' ? escapeHtml(o.recordId || '') : (o.recordId || '');
-                const safeOrderId = typeof escapeHtml === 'function' ? escapeHtml(o.orderId || o.id || '') : (o.orderId || o.id || '');
-                const safeDate = typeof escapeHtml === 'function' ? escapeHtml(o.date || '') : (o.date || '');
-                const safePhone = typeof escapeHtml === 'function' ? escapeHtml(o.phone || '') : (o.phone || '');
-                const rIdx = (o.rowIndex !== undefined && o.rowIndex !== null) ? o.rowIndex : -1;
 
                 return `
                   <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col gap-1.5 transition select-none">
@@ -22970,24 +22962,16 @@ function renderAllCustomersList() {
                       </div>
                     </div>
 
-                    <!-- Line 2: Box qty, Seller/Delivery on Left | COD Status Selector Dropdown on Right -->
+                    <!-- Line 2: Box qty, Seller/Delivery on Left | Static COD Status Badge on Right (View-Only) -->
                     <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
                       <div class="flex items-center gap-1.5 text-slate-400 truncate min-w-0">
                         <span class="font-mono text-orange-400 font-bold shrink-0">${o.totalBoxQty || 1} ប្រអប់</span>
                         ${o.deliveryMethod ? `<span>•</span><span class="truncate max-w-[80px] sm:max-w-[120px]">${o.deliveryMethod}</span>` : ''}
                         ${o.seller ? `<span>•</span><span class="truncate max-w-[80px] sm:max-w-[120px]">👤 ${o.seller}</span>` : ''}
                       </div>
-                      <div class="relative shrink-0" onclick="event.stopPropagation()">
-                        <select onchange="handleCodStatusChange('${safeRecId}', '${safeOrderId}', this.value, ${rIdx}, '${safeDate}', '${safePhone}')"
-                                class="cod-status-select text-[10.5px] font-semibold py-0.5 pl-2 pr-5 rounded-lg border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(currentStatus)}">
-                          ${statusOptions.map(opt => `
-                            <option value="${opt}" ${opt === currentStatus ? 'selected' : ''} class="bg-[#0B1528] text-white">
-                              ${opt}
-                            </option>
-                          `).join('')}
-                        </select>
-                        <i data-lucide="chevron-down" class="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
-                      </div>
+                      <span class="text-[10px] font-semibold py-0.5 px-2 rounded-lg border shrink-0 ${getCodStatusBadgeClass(currentStatus)}">
+                        ${currentStatus}
+                      </span>
                     </div>
                   </div>
                 `;
