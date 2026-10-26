@@ -6753,9 +6753,7 @@ function getDashboardViewHTML() {
       <!-- Expenses List (Sorted latest 31 ➔ 01 / Month 12 ➔ 01) -->
       <div class="space-y-2 max-h-52 overflow-y-auto no-scrollbar">
         ${sortedFilteredExpenses.slice(0, 15).map((e, idx) => `
-          <div onclick="event.stopPropagation(); openEditExpenseModalByRow(${e.rowIndex || idx})"
-               title="ចុចដើម្បីកែប្រែចំណាយនេះ"
-               class="p-2.5 rounded-2xl bg-black/25 border border-white/5 flex items-center justify-between text-xs hover:border-rose-500/30 hover:bg-white/[0.04] active:scale-[0.99] transition cursor-pointer select-none">
+          <div class="p-2.5 rounded-2xl bg-black/25 border border-white/5 flex items-center justify-between text-xs transition select-none">
             <div class="flex items-center gap-2.5 min-w-0 pr-2">
               <span class="w-5 h-5 rounded-lg bg-white/5 text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
                 ${idx + 1}
@@ -6771,7 +6769,6 @@ function getDashboardViewHTML() {
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <span class="font-mono text-rose-400 font-bold text-xs whitespace-nowrap">${formatUSD(e.amount)}</span>
-              <i data-lucide="edit-3" class="w-3.5 h-3.5 text-slate-400 opacity-60"></i>
             </div>
           </div>
         `).join('') || `<p class="text-xs text-slate-400 py-6 text-center">${t('noData')}</p>`}
@@ -8434,9 +8431,7 @@ function getAnalyticsViewHTML() {
 
               <div class="space-y-1.5 max-h-56 overflow-y-auto no-scrollbar">
                 ${selectedCatObj.items.map((item, iIdx) => `
-                  <div onclick="event.stopPropagation(); openEditExpenseModalByRow(${item.rowIndex || 0})"
-                       title="ចុចដើម្បីកែប្រែចំណាយនេះ"
-                       class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs hover:border-rose-500/30 hover:bg-white/[0.04] active:scale-[0.99] cursor-pointer transition select-none">
+                  <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs select-none">
                     <div class="flex items-center gap-2 min-w-0 pr-2">
                       <span class="w-5 h-5 rounded-md bg-white/5 text-slate-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
                         ${iIdx + 1}
@@ -8451,7 +8446,6 @@ function getAnalyticsViewHTML() {
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0">
                       <span class="font-mono text-rose-400 font-bold text-xs whitespace-nowrap">${formatUSD(item.amount)}</span>
-                      <i data-lucide="edit-3" class="w-3 h-3 text-slate-400 opacity-60"></i>
                     </div>
                   </div>
                 `).join('')}
@@ -12229,7 +12223,7 @@ function openPersonalSalesModal() {
   subtitle.textContent = `តារាងកុម្ម៉ង់ទាំងអស់ (${sortedSales.length} នាក់) - ពីថ្ងៃចុងក្រោយមកមុន`;
 
   listEl.innerHTML = sortedSales.slice(0, 50).map(item => `
-    <div onclick="openEditSalesOrder('${item.recordId || ''}', '${item.orderId || ''}', ${item.rowIndex !== undefined ? item.rowIndex : -1}, '${item.date || ''}', '${item.phone || ''}')" class="p-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex flex-col gap-1.5 cursor-pointer transition">
+    <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 transition select-none">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-1.5 flex-wrap">
           <span class="font-bold text-xs text-white">${item.customer}</span>
@@ -12716,8 +12710,8 @@ const COD_STATUS_OPTIONS = [
   'ដល់អតិថិជន 1st',
   'ដល់អតិថិជន 2nd',
   'ដល់អតិថិជន 3rd',
-  'បានទូទាត់',
   'មិនទាន់ទូទាត់',
+  'បានទូទាត់',
   'សុំ Canceled',
   'ហ្វ្រី (Free)'
 ];
@@ -12984,8 +12978,7 @@ function renderCodSummary() {
     const formattedPhone = formatTab1PlainPhone(item.phone);
 
     return `
-      <div ${item.source === 'sales' && safeRecId ? `onclick="openEditSalesOrder('${safeRecId}', '${safeOrderId}', ${item.rowIndex !== undefined ? item.rowIndex : -1}, '${item.date || ''}', '${item.phone || ''}')"` : ''} 
-           class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 active:scale-[0.99] transition flex flex-col gap-1.5 ${item.source === 'sales' && safeRecId ? 'cursor-pointer' : ''}">
+      <div class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
         <!-- Top Row: Date & Customer on Left | Amount ($) on Right -->
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1.5 min-w-0">
@@ -12999,7 +12992,7 @@ function renderCodSummary() {
           </div>
         </div>
 
-        <!-- Bottom Row: Seller, Plain Phone (NO highlight!), Box qty on Left | Status Dropdown on Right -->
+        <!-- Bottom Row: Seller, Plain Phone (NO highlight!), Box qty on Left | Status Badge on Right (View & Report) -->
         <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
           <div class="flex items-center gap-1.5 text-slate-400 truncate min-w-0">
             <span class="truncate max-w-[75px] sm:max-w-[120px]">👤 ${item.seller || (isEn ? 'Seller' : 'អ្នកលក់')}</span>
@@ -13007,17 +13000,9 @@ function renderCodSummary() {
             <span>•</span>
             <span class="font-mono text-slate-300 whitespace-nowrap shrink-0">${item.qtyBoxes}</span>
           </div>
-          <div class="relative shrink-0" onclick="event.stopPropagation()">
-            <select onchange="handleTab1CodStatusChange(${idx}, this.value)" 
-                    class="text-[11px] font-semibold py-0.5 pl-2 pr-5 rounded-lg border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(currentStatus)}">
-              ${COD_STATUS_OPTIONS.map(opt => `
-                <option value="${opt}" ${opt === currentStatus ? 'selected' : ''} class="bg-[#0B1528] text-white">
-                  ${opt}
-                </option>
-              `).join('')}
-            </select>
-            <i data-lucide="chevron-down" class="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
-          </div>
+          <span class="text-[10px] font-semibold py-0.5 px-2 rounded-lg border shrink-0 ${getCodStatusBadgeClass(currentStatus)}">
+            ${currentStatus}
+          </span>
         </div>
       </div>
     `;
@@ -13261,8 +13246,7 @@ function renderThaiCodOrders() {
     const safeOrderId = o.id || '';
 
     return `
-      <div onclick="openEditSalesOrder('${safeRecId}', '${safeOrderId}', ${o.rowIndex !== undefined ? o.rowIndex : -1}, '${o.date || ''}', '${o.phone || ''}')" 
-           class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 active:scale-[0.99] transition flex flex-col gap-1.5 cursor-pointer">
+      <div class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
         <!-- Top Row: Date & Customer on Left | THB & USD on Right -->
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1.5 min-w-0">
@@ -13277,7 +13261,7 @@ function renderThaiCodOrders() {
           </div>
         </div>
 
-        <!-- Bottom Row: Seller, Phone (with highlighted tail), Box qty on Left | Status Dropdown on Right -->
+        <!-- Bottom Row: Seller, Phone (with highlighted tail), Box qty on Left | Status Badge on Right (View & Report) -->
         <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
           <div class="flex items-center gap-1 text-slate-400 truncate min-w-0">
             <span class="truncate max-w-[70px] sm:max-w-[110px]">👤 ${o.seller || (isEn ? 'Seller' : 'អ្នកលក់')}</span>
@@ -13285,17 +13269,9 @@ function renderThaiCodOrders() {
             <span>•</span>
             <span class="font-mono text-slate-300 whitespace-nowrap shrink-0">${boxQty} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>
           </div>
-          <div class="relative shrink-0" onclick="event.stopPropagation()">
-            <select onchange="handleCodStatusChange('${safeRecId}', '${safeOrderId}', this.value)" 
-                    class="text-[11px] font-semibold py-0.5 pl-2 pr-5 rounded-lg border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(currentStatus)}">
-              ${COD_STATUS_OPTIONS.map(opt => `
-                <option value="${opt}" ${opt === currentStatus ? 'selected' : ''} class="bg-[#0B1528] text-white">
-                  ${opt}
-                </option>
-              `).join('')}
-            </select>
-            <i data-lucide="chevron-down" class="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
-          </div>
+          <span class="text-[10px] font-semibold py-0.5 px-2 rounded-lg border shrink-0 ${getCodStatusBadgeClass(currentStatus)}">
+            ${currentStatus}
+          </span>
         </div>
       </div>
     `;
@@ -13304,22 +13280,48 @@ function renderThaiCodOrders() {
   if (window.lucide) window.lucide.createIcons();
 }
 
-function handleCodStatusChange(recordId, orderId, newStatus) {
+function handleCodStatusChange(recordId, orderId, newStatus, rowIndex, date, phone) {
   const d = DataService.data;
   if (!d || !Array.isArray(d.personalSales)) return;
 
   // 1. Optimistic local update in personalSales
-  const match = d.personalSales.find(o => {
-    return (recordId && o.recordId === recordId) || (orderId && o.id === orderId);
-  });
+  let match = null;
+  if (typeof findSalesOrder === 'function') {
+    match = findSalesOrder(recordId, orderId, rowIndex, date, phone);
+  }
+  if (!match) {
+    match = d.personalSales.find(o => {
+      if (recordId && o.recordId && o.recordId === recordId) return true;
+      if (orderId && ((o.orderId && o.orderId === orderId) || (o.id && o.id === orderId))) return true;
+      if (date && o.date === date && phone && o.phone && String(o.phone).replace(/\D/g, '') === String(phone).replace(/\D/g, '')) return true;
+      return false;
+    });
+  }
 
   if (match) {
     match.codStatus = newStatus;
   }
 
-  showToastNotification(`បានប្តូរស្ថានភាពជា «${newStatus}» ជោគជ័យ!`);
-  renderThaiCodOrders();
-  renderCodSummary();
+  // Also update corresponding pendingCodReceivables if present
+  if (Array.isArray(d.pendingCodReceivables)) {
+    const bankMatch = d.pendingCodReceivables.find(b => {
+      if (orderId && (b.no === orderId || b.orderId === orderId)) return true;
+      if (match && match.date && b.date === match.date && Math.abs(cleanNumber(b.amount) - (match.totalAmount || 0)) < 0.01) return true;
+      if (date && b.date === date) return true;
+      return false;
+    });
+    if (bankMatch) {
+      bankMatch.status = newStatus;
+    }
+  }
+
+  showToastNotification(`បានប្តូរស្ថានភាពជា «${newStatus}» ជោគជ័យ! ✅`);
+
+  // Immediate UI Re-render across all synchronized views
+  if (typeof renderAllCustomersList === 'function') renderAllCustomersList();
+  if (typeof renderThaiCodOrders === 'function') renderThaiCodOrders();
+  if (typeof renderPendingCodList === 'function') renderPendingCodList();
+  if (typeof renderCodSummary === 'function') renderCodSummary();
   if (typeof renderDashboard === 'function') renderDashboard();
   if (typeof renderHome === 'function') renderHome();
 
@@ -13333,11 +13335,14 @@ function handleCodStatusChange(recordId, orderId, newStatus) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'update_cod_status',
-          sheetId: DataService.getActiveSheetId(),
+          sheetId: (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '',
           data: {
-            recordId: recordId,
-            orderId: orderId,
-            codStatus: newStatus
+            recordId: match?.recordId || recordId || '',
+            orderId: match?.orderId || orderId || '',
+            codStatus: newStatus,
+            date: match?.date || date || '',
+            customer: match?.customer || '',
+            phone: match?.phone || phone || ''
           }
         })
       }).catch(err => console.warn('Sync status warn:', err));
@@ -13346,6 +13351,8 @@ function handleCodStatusChange(recordId, orderId, newStatus) {
     console.warn('Sync status error:', e);
   }
 }
+window.handleCodStatusChange = handleCodStatusChange;
+window.handleCustomerCodStatusChange = handleCodStatusChange;
 
 function copyThaiCodTelegramStatement() {
   const orders = getFilteredThaiCodOrders();
@@ -15865,9 +15872,7 @@ function renderExpensesModalRows(items) {
 
   if (expensesFilterState.viewTab === 'list') {
     listEl.innerHTML = items.map((item, idx) => `
-      <div onclick="openExpenseActionSheet(${item.rowIndex || idx})"
-           title="ចុចដើម្បីកែប្រែ ឬលុបចំណាយ"
-           class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 hover:border-rose-500/25 hover:bg-white/[0.07] active:scale-[0.99] active:bg-white/10 transition cursor-pointer select-none shadow-sm">
+      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 transition select-none shadow-sm">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 min-w-0 pr-2">
             <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
@@ -22938,30 +22943,54 @@ function renderAllCustomersList() {
                 </div>
               ` : ''}
             </div>
-            <div class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
-              ${sortedOrders.map(o => `
-                <div onclick="event.stopPropagation(); openEditSalesOrder('${o.recordId || ''}', '${o.orderId || ''}', ${o.rowIndex !== undefined ? o.rowIndex : -1}, '${o.date || ''}', '${o.phone || ''}')" 
-                     class="p-2 rounded-xl bg-black/30 hover:bg-white/10 active:scale-[0.99] border border-white/5 flex items-center justify-between text-[11px] cursor-pointer transition">
-                  <div class="flex items-center gap-1.5 min-w-0 pr-2">
-                    <span class="font-mono text-white font-bold shrink-0">${o.date}</span>
-                    <span class="text-slate-300 font-medium truncate">(${getOrderProductSummary(o)})</span>
-                    ${o.codStatus ? `
-                      <span class="px-1.5 py-0.2 rounded text-[9px] font-semibold shrink-0 ${getCodStatusBadgeClass(o.codStatus)}">
-                        ${o.codStatus}
-                      </span>
-                    ` : ''}
+            <div class="space-y-2 max-h-56 overflow-y-auto no-scrollbar">
+              ${sortedOrders.map(o => {
+                const currentStatus = String(o.codStatus || 'មិនទាន់ទូទាត់').trim();
+                const statusOptions = COD_STATUS_OPTIONS.includes(currentStatus) 
+                  ? COD_STATUS_OPTIONS 
+                  : [currentStatus, ...COD_STATUS_OPTIONS];
+                const safeRecId = typeof escapeHtml === 'function' ? escapeHtml(o.recordId || '') : (o.recordId || '');
+                const safeOrderId = typeof escapeHtml === 'function' ? escapeHtml(o.orderId || o.id || '') : (o.orderId || o.id || '');
+                const safeDate = typeof escapeHtml === 'function' ? escapeHtml(o.date || '') : (o.date || '');
+                const safePhone = typeof escapeHtml === 'function' ? escapeHtml(o.phone || '') : (o.phone || '');
+                const rIdx = (o.rowIndex !== undefined && o.rowIndex !== null) ? o.rowIndex : -1;
+
+                return `
+                  <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col gap-1.5 transition select-none">
+                    <!-- Line 1: Date & Products on Left | USD/THB amounts on Right -->
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-1.5 min-w-0 pr-1 truncate">
+                        <span class="font-mono text-white font-bold text-[11px] shrink-0">${o.date}</span>
+                        <span class="text-slate-300 font-medium text-[10.5px] truncate">(${getOrderProductSummary(o)})</span>
+                      </div>
+                      <div class="font-mono text-right shrink-0 whitespace-nowrap text-xs">
+                        ${(o.thaiBaht > 0 || o.price > 0) ? `<span class="text-slate-300 text-[10.5px]">${formatInt(o.thaiBaht || o.price)} ฿</span><span class="text-slate-500 mx-1">•</span>` : ''}
+                        <span class="text-emerald-400 font-bold">${formatUSD(o.totalAmount)}</span>
+                      </div>
+                    </div>
+
+                    <!-- Line 2: Box qty, Seller/Delivery on Left | COD Status Selector Dropdown on Right -->
+                    <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
+                      <div class="flex items-center gap-1.5 text-slate-400 truncate min-w-0">
+                        <span class="font-mono text-orange-400 font-bold shrink-0">${o.totalBoxQty || 1} ប្រអប់</span>
+                        ${o.deliveryMethod ? `<span>•</span><span class="truncate max-w-[80px] sm:max-w-[120px]">${o.deliveryMethod}</span>` : ''}
+                        ${o.seller ? `<span>•</span><span class="truncate max-w-[80px] sm:max-w-[120px]">👤 ${o.seller}</span>` : ''}
+                      </div>
+                      <div class="relative shrink-0" onclick="event.stopPropagation()">
+                        <select onchange="handleCodStatusChange('${safeRecId}', '${safeOrderId}', this.value, ${rIdx}, '${safeDate}', '${safePhone}')"
+                                class="cod-status-select text-[10.5px] font-semibold py-0.5 pl-2 pr-5 rounded-lg border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(currentStatus)}">
+                          ${statusOptions.map(opt => `
+                            <option value="${opt}" ${opt === currentStatus ? 'selected' : ''} class="bg-[#0B1528] text-white">
+                              ${opt}
+                            </option>
+                          `).join('')}
+                        </select>
+                        <i data-lucide="chevron-down" class="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
+                      </div>
+                    </div>
                   </div>
-                  <div class="font-mono text-right shrink-0">
-                    ${(o.thaiBaht > 0 || o.price > 0) ? `
-                      <span class="text-slate-200 font-medium text-[10.5px]">${formatInt(o.thaiBaht || o.price)} ฿</span>
-                      <span class="text-slate-500 mx-1">•</span>
-                    ` : ''}
-                    <span class="text-orange-400 font-bold">${o.totalBoxQty} ប្រអប់</span>
-                    <span class="text-slate-500 mx-1">|</span>
-                    <span class="text-emerald-400 font-bold">${formatUSD(o.totalAmount)}</span>
-                  </div>
-                </div>
-              `).join('')}
+                `;
+              }).join('')}
             </div>
           </div>
         ` : ''}
