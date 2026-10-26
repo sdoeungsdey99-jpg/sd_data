@@ -12558,6 +12558,22 @@ async function handleTab1CodStatusChange(idx, newStatus) {
   }
 }
 
+function formatTab1PlainPhone(rawPhone) {
+  if (!rawPhone) return '';
+  const digits = String(rawPhone).replace(/\D/g, '');
+  if (!digits || digits.length < 4) return String(rawPhone);
+  if (digits.length === 10) {
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  } else if (digits.length === 9) {
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  } else if (digits.length === 8) {
+    return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5)}`;
+  } else if (digits.length > 4) {
+    return `${digits.slice(0, -4)} ${digits.slice(-4)}`;
+  }
+  return String(rawPhone);
+}
+
 function renderCodSummary() {
   const d = DataService.data;
   if (!d) return;
@@ -12580,8 +12596,11 @@ function renderCodSummary() {
       no: item.no || '',
       recordId: '',
       orderId: item.no || '',
+      rowIndex: -1,
       date: item.date || '',
       customer: item.customer || 'អតិថិជន COD',
+      seller: item.carrier || 'អ្នកលក់',
+      phone: '',
       qtyBoxes: item.qtyBoxes || '—',
       status: item.status || 'រង់ចាំទូទាត់',
       amount: cleanNumber(item.amount),
@@ -12608,8 +12627,11 @@ function renderCodSummary() {
       no: o.orderId || o.id || '',
       recordId: o.recordId || '',
       orderId: o.orderId || o.id || '',
+      rowIndex: o.rowIndex,
       date: o.date || '',
       customer: o.customer || 'អតិថិជន',
+      seller: o.seller || 'អ្នកលក់',
+      phone: o.phone || '',
       qtyBoxes: `${o.totalBoxQty || 1} ប្រអប់`,
       status: o.codStatus || 'បានដាក់ការកុម្ម៉ង់',
       amount: cleanNumber(o.totalAmount),
@@ -12644,30 +12666,53 @@ function renderCodSummary() {
 
   if (countBadge) countBadge.textContent = items.length;
 
-  tbody.innerHTML = items.map((item, idx) => `
-    <tr class="hover:bg-white/5 transition">
-      <td class="py-2.5 px-2.5 font-mono text-orange-400 font-bold text-[11px]">${item.displayNo}</td>
-      <td class="py-2.5 px-2.5 text-slate-300 font-mono text-[11px]">
-        <div>${item.date}</div>
-        ${item.customer && item.customer !== 'អតិថិជន COD' ? `<div class="text-[10px] text-slate-400 font-sans truncate max-w-[110px]">${item.customer}</div>` : ''}
-      </td>
-      <td class="py-2.5 px-2.5 text-white font-medium text-[11px]">${item.qtyBoxes}</td>
-      <td class="py-2.5 px-2.5" onclick="event.stopPropagation()">
-        <div class="relative inline-block">
-          <select onchange="handleTab1CodStatusChange(${idx}, this.value)" 
-                  class="text-[11px] font-semibold py-0.5 pl-2 pr-5 rounded-lg border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(item.status)}">
-            ${COD_STATUS_OPTIONS.map(opt => `
-              <option value="${opt}" ${opt === item.status ? 'selected' : ''} class="bg-[#0B1528] text-white">
-                ${opt}
-              </option>
-            `).join('')}
-          </select>
-          <i data-lucide="chevron-down" class="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
+  const isEn = appState.language === 'en';
+
+  tbody.innerHTML = items.map((item, idx) => {
+    const safeRecId = item.recordId || '';
+    const safeOrderId = item.orderId || item.no || '';
+    const currentStatus = String(item.status || 'បានដាក់ការកុម្ម៉ង់').trim();
+    const formattedPhone = formatTab1PlainPhone(item.phone);
+
+    return `
+      <div ${item.source === 'sales' && safeRecId ? `onclick="openEditSalesOrder('${safeRecId}', '${safeOrderId}', ${item.rowIndex !== undefined ? item.rowIndex : -1}, '${item.date || ''}', '${item.phone || ''}')"` : ''} 
+           class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 active:scale-[0.99] transition flex flex-col gap-1.5 ${item.source === 'sales' && safeRecId ? 'cursor-pointer' : ''}">
+        <!-- Top Row: Date & Customer on Left | Amount ($) on Right -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-mono text-slate-400 text-[10.5px] whitespace-nowrap">${item.date}</span>
+            <span class="font-bold text-white text-xs truncate max-w-[150px] sm:max-w-[240px]" title="${item.customer || ''}">${item.customer || (isEn ? 'Customer' : 'អតិថិជន')}</span>
+            ${item.displayNo ? `<span class="px-1.5 py-0.2 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono text-[9px] font-bold whitespace-nowrap">#${item.displayNo}</span>` : ''}
+          </div>
+          <!-- Right: USD Amount -->
+          <div class="flex flex-col items-end shrink-0 text-right leading-tight">
+            <span class="font-mono font-bold text-amber-400 text-xs sm:text-sm whitespace-nowrap">${formatUSD(item.amount)}</span>
+          </div>
         </div>
-      </td>
-      <td class="py-2.5 px-2.5 text-right font-mono font-bold text-amber-400 text-[12px]">${formatUSD(item.amount)}</td>
-    </tr>
-  `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-500">${t('noData')}</td></tr>`;
+
+        <!-- Bottom Row: Seller, Plain Phone (NO highlight!), Box qty on Left | Status Dropdown on Right -->
+        <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
+          <div class="flex items-center gap-1.5 text-slate-400 truncate min-w-0">
+            <span class="truncate max-w-[75px] sm:max-w-[120px]">👤 ${item.seller || (isEn ? 'Seller' : 'អ្នកលក់')}</span>
+            ${formattedPhone ? `<span>•</span><span class="font-mono text-slate-300 whitespace-nowrap">📞 ${formattedPhone}</span>` : ''}
+            <span>•</span>
+            <span class="font-mono text-slate-300 whitespace-nowrap shrink-0">${item.qtyBoxes}</span>
+          </div>
+          <div class="relative shrink-0" onclick="event.stopPropagation()">
+            <select onchange="handleTab1CodStatusChange(${idx}, this.value)" 
+                    class="text-[11px] font-semibold py-0.5 pl-2 pr-5 rounded-lg border appearance-none cursor-pointer focus:outline-none transition ${getCodStatusBadgeClass(currentStatus)}">
+              ${COD_STATUS_OPTIONS.map(opt => `
+                <option value="${opt}" ${opt === currentStatus ? 'selected' : ''} class="bg-[#0B1528] text-white">
+                  ${opt}
+                </option>
+              `).join('')}
+            </select>
+            <i data-lucide="chevron-down" class="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('') || `<p class="text-xs text-slate-400 text-center py-10">${isEn ? 'No pending customer receivables' : 'មិនមានទិន្នន័យលុយភ្ញៀវមិនទាន់ទូទាត់ទេ'}</p>`;
 
   if (window.lucide) window.lucide.createIcons();
 
