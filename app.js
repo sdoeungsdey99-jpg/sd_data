@@ -6345,8 +6345,77 @@ window.toggleExecDirectorExpanded = toggleExecDirectorExpanded;
 window.selectExecutiveManager = selectExecutiveManager;
 
 // ==========================================
-// 4. View: Dashboard
+// 4. View: Dashboard & Live Pending COD Calculation
 // ==========================================
+function getLivePendingCodTotal() {
+  const d = DataService.data;
+  if (!d) return 0;
+
+  // Exact 6 valid pending COD statuses explicitly requested:
+  // បានដាក់ការកុម្ម៉ង់, បានរៀបចំ, ដល់អតិថិជន 1st, ដល់អតិថិជន 2nd, ដល់អតិថិជន 3rd, មិនទាន់ទូទាត់
+  const validPendingStatuses = [
+    'បានដាក់ការកុម្ម៉ង់',
+    'បានដាក់ការកុម្មង់',
+    'បានរៀបចំ',
+    'ដល់អតិថិជន 1st',
+    'ដល់អតិថិជន 2nd',
+    'ដល់អតិថិជន 3rd',
+    'មិនទាន់ទូទាត់'
+  ];
+
+  const isSettled = (st) => {
+    const s = String(st || '').trim();
+    if (!s) return false;
+    return s.includes('បានទូទាត់') || s.includes('Canceled') || s.includes('ហ្វ្រី') || s.toLowerCase().includes('free');
+  };
+
+  const currentMonthKey = (appState.periodFilter === 'month' && appState.selectedMonthKey) ? 
+                          appState.selectedMonthKey : 
+                          getLocalIsoDate(new Date()).slice(0, 7);
+
+  // 1. Sales items matching the 6 pending statuses
+  const salesItems = (d.personalSales || [])
+    .filter(o => {
+      const st = String(o.codStatus || '').trim();
+      if (isSettled(st)) return false;
+      if (!st && cleanNumber(o.totalAmount) <= 0) return false;
+      const isPending = validPendingStatuses.some(v => st.includes(v));
+      if (!isPending) return false;
+      if (o.isoDate && !o.isoDate.startsWith(currentMonthKey)) return false;
+      return true;
+    })
+    .map(o => ({
+      date: o.date || '',
+      amount: cleanNumber(o.totalAmount),
+      status: o.codStatus || ''
+    }));
+
+  // 2. Bank items
+  const bankItems = (d.pendingCodReceivables || [])
+    .filter(item => {
+      const st = String(item.status || '').trim();
+      if (isSettled(st)) return false;
+      if (!st && cleanNumber(item.amount) <= 0) return false;
+      return validPendingStatuses.some(v => st.includes(v)) || st.includes('រង់ចាំទូទាត់');
+    })
+    .map(item => ({
+      date: item.date || '',
+      amount: cleanNumber(item.amount),
+      status: item.status || ''
+    }));
+
+  // 3. Combine both: prioritize salesItems
+  const combined = [...salesItems];
+  bankItems.forEach(bItem => {
+    const match = combined.find(s => s.date === bItem.date && Math.abs(s.amount - bItem.amount) < 0.01);
+    if (!match) {
+      combined.push(bItem);
+    }
+  });
+
+  return combined.reduce((sum, it) => sum + (it.amount || 0), 0);
+}
+
 function getDashboardViewHTML() {
   const d = DataService.data;
   if (!d) {
@@ -6510,6 +6579,8 @@ function getDashboardViewHTML() {
   const profitTitle = isNetProfit ? (isEn ? 'Net Profit:' : 'ចំណេញសុទ្ធ:') : (isEn ? 'Gross Profit:' : 'ចំណេញដុល:');
 
   const netCash = (d.bank && d.bank.netCashPosition) || {};
+  const livePendingCod = typeof getLivePendingCodTotal === 'function' ? getLivePendingCodTotal() : (netCash.pendingCodReceivables || 0);
+  const displayedPendingCod = livePendingCod > 0 ? livePendingCod : (netCash.pendingCodReceivables || 0);
 
   const cardPerformance = `
     <!-- UNIFIED SALES & EXPENSES PERFORMANCE CARD -->
@@ -6622,7 +6693,7 @@ function getDashboardViewHTML() {
              title="ចុចដើម្បីមើលតារាង COD ទាំងអស់"
              class="p-2.5 rounded-xl bg-black/25 border border-white/5 cursor-pointer hover:border-amber-500/30 transition ios-touch-item flex flex-col justify-between select-none">
           <span class="text-slate-400 text-[10px] block leading-tight mb-1">${t('pendingCod')}:</span>
-          <span class="font-mono text-amber-400 font-bold text-base tracking-tight mt-0.5">${formatUSD(netCash.pendingCodReceivables || 0)}</span>
+          <span class="font-mono text-amber-400 font-bold text-base tracking-tight mt-0.5">${formatUSD(displayedPendingCod)}</span>
         </div>
 
         <!-- Box 3: Liquid Assets -->
@@ -12528,6 +12599,8 @@ async function handleTab1CodStatusChange(idx, newStatus) {
   showToastNotification(`បានកែប្រែស្ថានភាពជា «${newStatus}» ជោគជ័យ! ✅`);
   renderCodSummary();
   if (typeof renderThaiCodOrders === 'function') renderThaiCodOrders();
+  if (typeof renderDashboard === 'function') renderDashboard();
+  if (typeof renderHome === 'function') renderHome();
 
   // 2. Dispatch to Webhook
   try {
@@ -13013,6 +13086,9 @@ function handleCodStatusChange(recordId, orderId, newStatus) {
 
   showToastNotification(`បានប្តូរស្ថានភាពជា «${newStatus}» ជោគជ័យ!`);
   renderThaiCodOrders();
+  renderCodSummary();
+  if (typeof renderDashboard === 'function') renderDashboard();
+  if (typeof renderHome === 'function') renderHome();
 
   // 2. Sync to Google Sheet via Google Apps Script Web App
   try {
@@ -13166,6 +13242,8 @@ function openBankModal() {
   `;
 
   const netCash = (d.bank && d.bank.netCashPosition) || {};
+  const livePendingCod = typeof getLivePendingCodTotal === 'function' ? getLivePendingCodTotal() : (netCash.pendingCodReceivables || 0);
+  const displayedPendingCod = livePendingCod > 0 ? livePendingCod : (netCash.pendingCodReceivables || 0);
   if (footer) {
     footer.innerHTML = `
       <div class="flex items-center gap-2">
@@ -17727,6 +17805,8 @@ function getModalShareText(modalType) {
   } else if (modalType === 'bank') {
     const accounts = (d.bank && d.bank.accounts) || [];
     const netCash = (d.bank && d.bank.netCashPosition) || {};
+  const livePendingCod = typeof getLivePendingCodTotal === 'function' ? getLivePendingCodTotal() : (netCash.pendingCodReceivables || 0);
+  const displayedPendingCod = livePendingCod > 0 ? livePendingCod : (netCash.pendingCodReceivables || 0);
     let txt = `🏦 ${isKm ? 'ឈ្មោះគណនី / ធនាគារ និងសមតុល្យ' : 'Bank Accounts & Cash Balance'} (${dateStr})\n`;
     txt += `------------------------------------\n`;
     txt += `${isKm ? 'ចំនួនគណនី' : 'Total Accounts'}: ${accounts.length}\n`;
