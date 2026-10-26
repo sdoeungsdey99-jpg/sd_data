@@ -1901,6 +1901,39 @@
     .light-theme #dock-blur-backdrop {
       background: linear-gradient(to top, rgba(248, 250, 252, 0.96), rgba(248, 250, 252, 0)) !important;
     }
+
+    /* 12. Executive & Director VIP Cards in Light Mode */
+    .light-theme .director-showcase-card,
+    .light-theme [class*="via-[#0C1425]"],
+    .light-theme [class*="to-[#0A0F1D]"],
+    .light-theme [onclick*="handleDirectorClick"] {
+      background: linear-gradient(135deg, rgba(254, 243, 199, 0.8) 0%, rgba(255, 251, 235, 0.92) 45%, #FFFFFF 100%) !important;
+      border-color: rgba(245, 158, 11, 0.35) !important;
+      box-shadow: 0 4px 18px -2px rgba(245, 158, 11, 0.12) !important;
+    }
+    .light-theme .director-showcase-card h4,
+    .light-theme [onclick*="handleDirectorClick"] h4 {
+      color: #0F172A !important;
+    }
+    .light-theme .director-showcase-card p,
+    .light-theme [onclick*="handleDirectorClick"] p {
+      color: #64748B !important;
+    }
+    .light-theme .director-showcase-card .text-amber-300,
+    .light-theme [onclick*="handleDirectorClick"] .text-amber-300 {
+      color: #D97706 !important;
+      font-weight: 800 !important;
+    }
+    .light-theme .director-showcase-card .text-slate-400,
+    .light-theme [onclick*="handleDirectorClick"] .text-slate-400 {
+      color: #64748B !important;
+    }
+    .light-theme .director-showcase-card span.bg-amber-500\/20,
+    .light-theme [onclick*="handleDirectorClick"] span.bg-amber-500\/20 {
+      background-color: #FEF3C7 !important;
+      border-color: #FDE68A !important;
+      color: #B45309 !important;
+    }
     /* Auto-hide Sticky Filter Bar (Zero-Height Collapse: eliminates any blank gap completely) */
     #sticky-filter-bar,
     #expenses-modal-date-filter-bar,
@@ -5759,6 +5792,6 @@
   </div>
 
   <script src="dataService.js?v=7.7"></script>
-  <script src="app.js?v=46.0"></script>
+  <script src="app.js?v=46.1"></script>
 </body>
 </html>

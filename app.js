@@ -5886,7 +5886,7 @@ function renderExecutiveHierarchyModalContent() {
   // 1. DIRECTOR SHOWCASE CARD (Tapping always resets/shows all Leaders or Managers!)
   const directorHtml = `
     <div onclick="handleDirectorClick(event)" 
-         class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0C1425]/90 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5"
+         class="director-showcase-card p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0C1425]/90 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5"
          title="ចុចដើម្បីបង្ហាញបញ្ជីទាំងអស់ឡើងវិញ">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-black flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/30 shrink-0">
@@ -7188,7 +7188,7 @@ function getDashboardViewHTML() {
 
         <!-- 1. TOP TIER: DIRECTOR PROFILE -->
         <div onclick="handleDirectorClick(event)" 
-             class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0C1425]/90 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 relative z-10 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5"
+             class="director-showcase-card p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0C1425]/90 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 relative z-10 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5"
              title="ចុចដើម្បីបង្ហាញបញ្ជីទាំងអស់ឡើងវិញ">
           <div class="flex items-center gap-3 min-w-0">
             <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-black flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/30 shrink-0">
