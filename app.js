@@ -12635,8 +12635,85 @@ function closePayablesModal() {
 // COD Receivables Full Drill-down Modal (Note 2)
 // ==========================================
 let activeCodModalTab = 'summary'; // 'summary' | 'thai'
-let thaiCodPhaseFilter = '1st';     // '1st' | '2nd' | '3rd'
+let thaiCodPhaseFilter = 'tick';    // 'tick' | '1st' | '2nd' | '3rd'
 let thaiCodSearchQuery = '';
+
+// Ticked COD Orders State Management (Persistent across modal toggles and page reloads)
+let tickedCodOrderKeys = new Set();
+try {
+  const savedTicked = localStorage.getItem('sd_ticked_cod_orders');
+  if (savedTicked) {
+    const parsed = JSON.parse(savedTicked);
+    if (Array.isArray(parsed)) {
+      tickedCodOrderKeys = new Set(parsed);
+    }
+  }
+} catch (e) {
+  tickedCodOrderKeys = new Set();
+}
+
+function saveTickedCodOrders() {
+  try {
+    localStorage.setItem('sd_ticked_cod_orders', JSON.stringify([...tickedCodOrderKeys]));
+  } catch (e) {}
+}
+
+function getCodOrderUniqueKey(o) {
+  if (!o) return '';
+  if (o.recordId) return 'rec_' + String(o.recordId);
+  if (o.id) return 'id_' + String(o.id);
+  if (o.orderId) return 'ord_' + String(o.orderId);
+  if (o.no) return 'no_' + String(o.no);
+  const p = String(o.phone || '').replace(/\D/g, '');
+  const c = String(o.customer || '').trim();
+  const d = String(o.date || o.isoDate || '').trim();
+  const a = cleanNumber(o.totalAmount || o.amount || o.thaiBaht || 0);
+  return `key_${d}_${p}_${c}_${a}`;
+}
+
+function isCodOrderTicked(key) {
+  if (!key) return false;
+  return tickedCodOrderKeys.has(String(key));
+}
+
+function toggleTickThaiCodOrder(key) {
+  if (!key) return;
+  const k = String(key);
+  if (tickedCodOrderKeys.has(k)) {
+    tickedCodOrderKeys.delete(k);
+  } else {
+    tickedCodOrderKeys.add(k);
+  }
+  saveTickedCodOrders();
+  updateTickedCodBadgeCount();
+  if (typeof renderThaiCodOrders === 'function') renderThaiCodOrders();
+  if (typeof renderCodSummary === 'function') renderCodSummary();
+}
+
+function clearAllTickedCodOrders() {
+  if (tickedCodOrderKeys.size === 0) return;
+  tickedCodOrderKeys.clear();
+  saveTickedCodOrders();
+  updateTickedCodBadgeCount();
+  if (typeof renderThaiCodOrders === 'function') renderThaiCodOrders();
+  if (typeof renderCodSummary === 'function') renderCodSummary();
+  if (typeof showToastNotification === 'function') {
+    showToastNotification('បានដក Tick ទាំងអស់រួចរាល់! 🔄');
+  }
+}
+
+function updateTickedCodBadgeCount() {
+  const badge = document.getElementById('thai-cod-tick-count-badge');
+  if (badge) {
+    badge.textContent = tickedCodOrderKeys.size;
+  }
+}
+
+window.toggleTickThaiCodOrder = toggleTickThaiCodOrder;
+window.clearAllTickedCodOrders = clearAllTickedCodOrders;
+window.updateTickedCodBadgeCount = updateTickedCodBadgeCount;
+window.isCodOrderTicked = isCodOrderTicked;
+window.getCodOrderUniqueKey = getCodOrderUniqueKey;
 
 const THAI_COD_DROPS_SCHEDULE = [
   { drop: '01', day: 5, label: 'ជើងទី 01', text: 'ទម្លាក់ថ្ងៃ 05' },
@@ -12737,6 +12814,7 @@ function openCodModal() {
   const modal = document.getElementById('cod-modal');
   if (!modal) return;
 
+  updateTickedCodBadgeCount();
   renderCodSummary();
   switchCodModalTab(activeCodModalTab || 'summary');
 
@@ -12782,8 +12860,9 @@ function switchCodModalTab(tab) {
     }
     if (summaryView) summaryView.classList.add('hidden');
     if (thaiView) thaiView.classList.remove('hidden');
-    renderThaiCodOrders();
+    setThaiCodPhaseFilter(thaiCodPhaseFilter || 'tick');
   }
+  updateTickedCodBadgeCount();
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -12976,26 +13055,36 @@ function renderCodSummary() {
     const safeOrderId = item.orderId || item.no || '';
     const currentStatus = String(item.status || 'បានដាក់ការកុម្ម៉ង់').trim();
     const formattedPhone = formatTab1PlainPhone(item.phone);
+    const orderKey = getCodOrderUniqueKey(item);
+    const isTicked = isCodOrderTicked(orderKey);
+
+    const cardClass = isTicked
+      ? 'ios-glass-card ticked-cod-card rounded-xl p-2 px-2.5 border border-emerald-500/40 bg-emerald-500/[0.08] hover:border-emerald-500/60 hover:bg-emerald-500/[0.12] cursor-pointer transition flex flex-col gap-1.5 select-none'
+      : 'ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 cursor-pointer transition flex flex-col gap-1.5 select-none';
+
+    const badgeHtml = isTicked
+      ? `<span class="px-1.5 py-0.2 rounded bg-emerald-500/25 border border-emerald-500/50 text-emerald-400 font-mono text-[9.5px] font-bold whitespace-nowrap flex items-center gap-0.5" title="បាន Tick រួចរាល់">✓ #${item.displayNo}</span>`
+      : (item.displayNo ? `<span class="px-1.5 py-0.2 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono text-[9px] font-bold whitespace-nowrap">#${item.displayNo}</span>` : '');
 
     return `
-      <div class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
+      <div onclick="toggleTickThaiCodOrder('${escapeHtml(orderKey)}')" class="${cardClass}">
         <!-- Top Row: Date & Customer on Left | Amount ($) on Right -->
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1.5 min-w-0">
             <span class="font-mono text-slate-400 text-[10.5px] whitespace-nowrap">${item.date}</span>
-            <span class="font-bold text-white text-xs truncate max-w-[150px] sm:max-w-[240px]" title="${item.customer || ''}">${item.customer || (isEn ? 'Customer' : 'អតិថិជន')}</span>
-            ${item.displayNo ? `<span class="px-1.5 py-0.2 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono text-[9px] font-bold whitespace-nowrap">#${item.displayNo}</span>` : ''}
+            <span class="font-bold text-white text-xs truncate max-w-[150px] sm:max-w-[240px]" title="${escapeHtml(item.customer || '')}">${escapeHtml(item.customer || (isEn ? 'Customer' : 'អតិថិជន'))}</span>
+            ${badgeHtml}
           </div>
           <!-- Right: USD Amount -->
           <div class="flex flex-col items-end shrink-0 text-right leading-tight">
-            <span class="font-mono font-bold text-amber-400 text-xs sm:text-sm whitespace-nowrap">${formatUSD(item.amount)}</span>
+            <span class="font-mono font-bold ${isTicked ? 'text-emerald-400' : 'text-amber-400'} text-xs sm:text-sm whitespace-nowrap">${formatUSD(item.amount)}</span>
           </div>
         </div>
 
         <!-- Bottom Row: Seller, Plain Phone (NO highlight!), Box qty on Left | Status Badge on Right (View & Report) -->
         <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
           <div class="flex items-center gap-1.5 text-slate-400 truncate min-w-0">
-            <span class="truncate max-w-[75px] sm:max-w-[120px]">👤 ${item.seller || (isEn ? 'Seller' : 'អ្នកលក់')}</span>
+            <span class="truncate max-w-[75px] sm:max-w-[120px]">👤 ${escapeHtml(item.seller || (isEn ? 'Seller' : 'អ្នកលក់'))}</span>
             ${formattedPhone ? `<span>•</span><span class="font-mono text-slate-300 whitespace-nowrap">📞 ${formattedPhone}</span>` : ''}
             <span>•</span>
             <span class="font-mono text-slate-300 whitespace-nowrap shrink-0">${item.qtyBoxes}</span>
@@ -13084,12 +13173,6 @@ function getFilteredThaiCodOrders() {
 
   // Filter Thai COD orders
   let orders = d.personalSales.filter(o => {
-    const deliv = String(o.deliveryMethod || '').toLowerCase();
-    const loc = String(o.location || '');
-    const baht = cleanNumber(o.thaiBaht);
-    const isThai = deliv.includes('thai') || loc.includes('ថៃ') || baht > 0;
-    if (!isThai) return false;
-
     const st = String(o.codStatus || '').trim();
     // Exclude if empty, settled, cancelled, or free
     if (!st || st.includes('បានទូទាត់') || st.includes('Canceled') || st.includes('ហ្វ្រី')) {
@@ -13105,19 +13188,23 @@ function getFilteredThaiCodOrders() {
       return false;
     }
 
+    // If standing on 'tick' phase pill: filter specifically by ticked status!
+    if (thaiCodPhaseFilter === 'tick') {
+      return isCodOrderTicked(getCodOrderUniqueKey(o));
+    }
+
+    const deliv = String(o.deliveryMethod || '').toLowerCase();
+    const loc = String(o.location || '');
+    const baht = cleanNumber(o.thaiBaht);
+    const isThai = deliv.includes('thai') || loc.includes('ថៃ') || baht > 0;
+    if (!isThai) return false;
+
+    if (thaiCodPhaseFilter === '1st') return st.includes('1st');
+    if (thaiCodPhaseFilter === '2nd') return st.includes('2nd');
+    if (thaiCodPhaseFilter === '3rd') return st.includes('3rd');
+
     return true;
   });
-
-  // Filter by Phase pill
-  if (thaiCodPhaseFilter) {
-    orders = orders.filter(o => {
-      const st = String(o.codStatus || '');
-      if (thaiCodPhaseFilter === '1st') return st.includes('1st');
-      if (thaiCodPhaseFilter === '2nd') return st.includes('2nd');
-      if (thaiCodPhaseFilter === '3rd') return st.includes('3rd');
-      return true;
-    });
-  }
 
   // Filter by search query (4-digit phone ending, orderId, name, seller)
   if (thaiCodSearchQuery) {
@@ -13167,10 +13254,15 @@ function clearThaiCodSearch() {
 function setThaiCodPhaseFilter(phase) {
   thaiCodPhaseFilter = phase;
   document.querySelectorAll('.thai-cod-pill').forEach(btn => {
-    if (btn.getAttribute('data-phase') === phase) {
-      btn.className = 'thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40';
+    const p = btn.getAttribute('data-phase');
+    if (p === phase) {
+      if (phase === 'tick') {
+        btn.className = 'thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5';
+      } else {
+        btn.className = 'thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center gap-1.5';
+      }
     } else {
-      btn.className = 'thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10';
+      btn.className = 'thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center gap-1.5';
     }
   });
   renderThaiCodOrders();
@@ -13206,6 +13298,8 @@ function renderThaiCodOrders() {
   const listEl = document.getElementById('cod-thai-orders-list');
   if (!listEl) return;
 
+  updateTickedCodBadgeCount();
+
   const orders = getFilteredThaiCodOrders();
   const rate = getThaiExchangeRate();
   const isEn = appState.language === 'en';
@@ -13230,11 +13324,31 @@ function renderThaiCodOrders() {
   if (statUsdEl) statUsdEl.textContent = formatUSD(totalUSD);
 
   if (orders.length === 0) {
-    listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">${isEn ? 'No pending Thai COD orders for this period' : 'មិនមានទិន្នន័យ Thai COD រង់ចាំគិតលុយក្នុងខែនេះទេ'}</p>`;
+    if (thaiCodPhaseFilter === 'tick') {
+      listEl.innerHTML = `
+        <div class="text-center py-12 px-4 text-slate-400">
+          <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl font-bold">✓</div>
+          <p class="text-xs font-semibold text-white">មិនទាន់មានអតិថិជនដែលបាន Tick ឡើយ</p>
+          <p class="text-[11px] text-slate-400 mt-1 max-w-[260px] mx-auto">សូមចុចលើផ្ទាំង «1st», «2nd», ឬ «3rd» រួចប៉ះលើរបារអតិថិជនដើម្បី Tick ផ្ទៀងផ្ទាត់</p>
+        </div>
+      `;
+    } else {
+      listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">${isEn ? 'No pending Thai COD orders for this period' : 'មិនមានទិន្នន័យ Thai COD រង់ចាំគិតលុយក្នុងខែនេះទេ'}</p>`;
+    }
     return;
   }
 
-  listEl.innerHTML = orders.map((o) => {
+  const headerHtml = (thaiCodPhaseFilter === 'tick') ? `
+    <div class="flex items-center justify-between px-1 py-1 mb-1 text-[11px]">
+      <span class="text-emerald-400 font-medium">✅ បាន Tick សរុប: <strong>${orders.length}</strong> នាក់</span>
+      <button onclick="clearAllTickedCodOrders()" class="text-rose-400 hover:text-rose-300 active:scale-95 text-[10.5px] px-2 py-0.5 rounded-lg bg-rose-500/10 border border-rose-500/20 transition">✕ ដក Tick ទាំងអស់</button>
+    </div>
+  ` : '';
+
+  listEl.innerHTML = headerHtml + orders.map((o, idx) => {
+    const displayNo = orders.length - idx;
+    const orderKey = getCodOrderUniqueKey(o);
+    const isTicked = isCodOrderTicked(orderKey);
     const phoneDigits = String(o.phone || '').replace(/\D/g, '');
     const last4 = phoneDigits.length >= 4 ? phoneDigits.slice(-4) : (phoneDigits || '—');
     const phoneHtml = renderThaiCodPhoneHtml(o.phone, last4);
@@ -13242,21 +13356,28 @@ function renderThaiCodOrders() {
     const baht = cleanNumber(o.thaiBaht || o.price);
     const usd = cleanNumber(o.totalAmount);
     const boxQty = o.totalBoxQty || 1;
-    const safeRecId = o.recordId || '';
-    const safeOrderId = o.id || '';
+
+    const cardClass = isTicked
+      ? 'ios-glass-card ticked-cod-card rounded-xl p-2 px-2.5 border border-emerald-500/40 bg-emerald-500/[0.08] hover:border-emerald-500/60 hover:bg-emerald-500/[0.12] cursor-pointer transition flex flex-col gap-1.5 select-none'
+      : 'ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 cursor-pointer transition flex flex-col gap-1.5 select-none';
+
+    const badgeHtml = isTicked
+      ? `<span class="px-1.5 py-0.2 rounded bg-emerald-500/25 border border-emerald-500/50 text-emerald-400 font-mono text-[9.5px] font-bold whitespace-nowrap flex items-center gap-0.5" title="បាន Tick រួចរាល់">✓ #${displayNo}</span>`
+      : `<span class="px-1.5 py-0.2 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono text-[9px] font-bold whitespace-nowrap">#${displayNo}</span>`;
 
     return `
-      <div class="ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
+      <div onclick="toggleTickThaiCodOrder('${escapeHtml(orderKey)}')" class="${cardClass}">
         <!-- Top Row: Date & Customer on Left | THB & USD on Right -->
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1.5 min-w-0">
             <span class="font-mono text-slate-400 text-[10.5px] whitespace-nowrap">${o.date}</span>
-            <span class="font-bold text-white text-xs truncate max-w-[140px] sm:max-w-[220px]" title="${o.customer || ''}">${o.customer || (isEn ? 'Customer' : 'អតិថិជន')}</span>
-            <span class="px-1 py-0.2 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-semibold whitespace-nowrap hidden sm:inline">${o.deliveryMethod || 'Thai COD'}</span>
+            <span class="font-bold text-white text-xs truncate max-w-[130px] sm:max-w-[200px]" title="${escapeHtml(o.customer || '')}">${escapeHtml(o.customer || (isEn ? 'Customer' : 'អតិថិជន'))}</span>
+            ${badgeHtml}
+            <span class="px-1 py-0.2 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-semibold whitespace-nowrap hidden sm:inline">${escapeHtml(o.deliveryMethod || 'Thai COD')}</span>
           </div>
           <!-- Right: THB and USD amounts neatly stacked - NEVER cut off! -->
           <div class="flex flex-col items-end shrink-0 text-right leading-tight">
-            <span class="font-mono font-bold text-orange-400 text-xs sm:text-sm whitespace-nowrap">${formatInt(baht)} THB</span>
+            <span class="font-mono font-bold ${isTicked ? 'text-emerald-400' : 'text-orange-400'} text-xs sm:text-sm whitespace-nowrap">${formatInt(baht)} THB</span>
             <span class="font-mono text-[10px] text-emerald-400 font-semibold whitespace-nowrap">${formatUSD(usd)}</span>
           </div>
         </div>
@@ -13264,7 +13385,7 @@ function renderThaiCodOrders() {
         <!-- Bottom Row: Seller, Phone (with highlighted tail), Box qty on Left | Status Badge on Right (View & Report) -->
         <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
           <div class="flex items-center gap-1 text-slate-400 truncate min-w-0">
-            <span class="truncate max-w-[70px] sm:max-w-[110px]">👤 ${o.seller || (isEn ? 'Seller' : 'អ្នកលក់')}</span>
+            <span class="truncate max-w-[70px] sm:max-w-[110px]">👤 ${escapeHtml(o.seller || (isEn ? 'Seller' : 'អ្នកលក់'))}</span>
             ${phoneHtml ? `<span>•</span><span>📞 ${phoneHtml}</span>` : ''}
             <span>•</span>
             <span class="font-mono text-slate-300 whitespace-nowrap shrink-0">${boxQty} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>

@@ -1331,6 +1331,19 @@
       background-color: #F8FAFC !important;
       color: #0F172A !important;
     }
+    .light-theme .ticked-cod-card {
+      background-color: #ECFDF5 !important;
+      border-color: #A7F3D0 !important;
+    }
+    .light-theme .ticked-cod-card:hover {
+      background-color: #D1FAE5 !important;
+      border-color: #6EE7B7 !important;
+    }
+    .light-theme .thai-cod-pill[data-phase="tick"].bg-emerald-500\/20 {
+      background-color: #ECFDF5 !important;
+      color: #059669 !important;
+      border-color: #6EE7B7 !important;
+    }
     .light-theme #profile-drawer-card {
       background-color: #F8FAFC !important;
       border-color: #E2E8F0 !important;
@@ -3923,7 +3936,11 @@
         <!-- Filter Pills Bar (Clean single line centered) -->
         <div id="cod-thai-filter-bar" class="px-3 py-2.5 border-b border-white/10 bg-black/30 shrink-0 flex items-center justify-center">
           <div class="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar text-[11px] w-full" id="cod-thai-filter-pills">
-            <button onclick="setThaiCodPhaseFilter('1st')" data-phase="1st" class="thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40">🟡 ដល់អតិថិជន 1st</button>
+            <button onclick="setThaiCodPhaseFilter('tick')" data-phase="tick" class="thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5">
+              <span>✅ Tick</span>
+              <span id="thai-cod-tick-count-badge" class="px-1.5 py-0.2 rounded-full bg-emerald-500/30 text-[9.5px] font-mono font-bold">0</span>
+            </button>
+            <button onclick="setThaiCodPhaseFilter('1st')" data-phase="1st" class="thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10">🟡 ដល់អតិថិជន 1st</button>
             <button onclick="setThaiCodPhaseFilter('2nd')" data-phase="2nd" class="thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10">🟠 ដល់អតិថិជន 2nd</button>
             <button onclick="setThaiCodPhaseFilter('3rd')" data-phase="3rd" class="thai-cod-pill px-3 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10">🔵 ដល់អតិថិជន 3rd</button>
           </div>
@@ -6576,6 +6593,6 @@
   </div>
 
   <script src="dataService.js?v=7.7"></script>
-  <script src="app.js?v=47.5"></script>
+  <script src="app.js?v=47.6"></script>
 </body>
 </html>
