@@ -13339,6 +13339,7 @@ function handleCodStatusChange(recordId, orderId, newStatus, rowIndex, date, pho
           data: {
             recordId: match?.recordId || recordId || '',
             orderId: match?.orderId || orderId || '',
+            amount: match?.totalAmount || 0,
             codStatus: newStatus,
             date: match?.date || date || '',
             customer: match?.customer || '',
