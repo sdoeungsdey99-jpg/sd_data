@@ -10207,7 +10207,7 @@ function renderSalesResetContent() {
               <div class="min-w-0 flex-1">
                 <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ហែម ចន្ធី</h3>
                 <p class="text-xs sm:text-sm font-bold text-cyan-400 mt-0.5 tracking-wide">Hem Chanthy</p>
-                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • ហិរញ្ញវត្ថុ & ឥរិយាបថការងារ</p>
                 <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
                   <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold text-[9px] sm:text-[9.5px] border border-cyan-500/40 whitespace-nowrap shrink-0">
                     FINANCE • SELF • WORK ETHICS
@@ -10471,7 +10471,7 @@ function renderSalesResetContent() {
             <div class="flex items-center justify-between mb-3">
               <span class="px-3 py-1 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 font-black text-[10px] sm:text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 truncate">
                 <span>💻</span>
-                <span class="truncate">Technical & Software</span>
+                <span class="truncate">បច្ចេកវិទ្យា & ប្រព័ន្ធកម្មវិធី</span>
               </span>
               <span class="text-[10px] text-sky-400 font-mono font-bold bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/30 shrink-0">MANAGER</span>
             </div>
@@ -10490,7 +10490,7 @@ function renderSalesResetContent() {
                 <!-- ជួរទី ២ ៖ ឈ្មោះឡាតាំងនៅក្រោម -->
                 <p class="text-xs sm:text-sm font-bold text-sky-400 mt-0.5 tracking-wide">Sdey Sdoeung</p>
                 <!-- ជួរទី ៣ ៖ តួនាទី -->
-                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • បច្ចេកវិទ្យា & ប្រព័ន្ធកម្មវិធី</p>
                 <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
                   <span class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 font-bold text-[9px] sm:text-[9.5px] border border-sky-500/40 whitespace-nowrap shrink-0">
                     PAGE TECH • VIDEO • APP DEV
