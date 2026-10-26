@@ -9206,9 +9206,9 @@ function renderTrainerSelectorBarHTML(activeTrainer) {
     { id: 'founder', name: 'នោរ៉ា', title: 'ស្ថាបនិក', icon: '👑' },
     { id: 'ceo', name: 'ស៊ីថា', title: 'អគ្គនាយក', icon: '🎓' },
     { id: 'yaith', name: 'យ៉ារិទ្ធ', title: 'បិទការលក់', icon: '🎯' },
-    { id: 'chanthy', name: 'ចាន់ធី', title: 'ហិរញ្ញវត្ថុ', icon: '💼' },
+    { id: 'chanthy', name: 'ចន្ធី', title: 'ហិរញ្ញវត្ថុ', icon: '💰' },
     { id: 'udom', name: 'ឧត្ដម', title: 'ប្រព័ន្ធការងារ', icon: '⚙️' },
-    { id: 'leanghak', name: 'លាងហាក់', title: 'កាត់តវីដេអូ', icon: '🎬' },
+    { id: 'leanghak', name: 'លាងហាក់', title: 'សេវាកម្ម & ក្រុម', icon: '🤝' },
     { id: 'masya', name: 'ម៉ាស៊ីយ៉ា', title: 'សុខភាព', icon: '🌸' },
     { id: 'sdoeung', name: 'ស្ដើង', title: 'AI & Dev', icon: '💻' }
   ];
@@ -10328,8 +10328,8 @@ function renderSalesResetContent() {
             <!-- Top Header Tags -->
             <div class="flex items-center justify-between mb-3">
               <span class="px-3 py-1 rounded-full bg-teal-500/20 border border-teal-500/40 text-teal-300 font-black text-[10px] sm:text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 truncate">
-                <span>🎯</span>
-                <span class="truncate">ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</span>
+                <span>🤝</span>
+                <span class="truncate">សេវាកម្មអតិថិជន & សាមគ្គីភាពក្រុម</span>
               </span>
               <span class="text-[10px] text-teal-400 font-mono font-bold bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/30 shrink-0">MANAGER</span>
             </div>
@@ -10345,7 +10345,7 @@ function renderSalesResetContent() {
               <div class="min-w-0 flex-1">
                 <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោក ស្រឿន លាងហាក់</h3>
                 <p class="text-xs sm:text-sm font-bold text-teal-400 mt-0.5 tracking-wide">Sroeun Leanghak</p>
-                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • ជំនាញបច្ចេកទេស & ដឹកនាំក្រុមលក់</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • សេវាកម្មអតិថិជន & សាមគ្គីភាពក្រុម</p>
                 <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
                   <span class="px-2.5 py-0.5 rounded-lg bg-teal-500/20 text-teal-300 font-bold text-[9px] sm:text-[9.5px] border border-teal-500/40 whitespace-nowrap shrink-0">
                     CUSTOMER CARE & TEAM UNITY
