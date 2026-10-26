@@ -12838,7 +12838,7 @@ async function handleTab1CodStatusChange(idx, newStatus) {
       fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'update_cod_status',
           sheetId: activeSheetId,
@@ -13332,7 +13332,7 @@ function handleCodStatusChange(recordId, orderId, newStatus, rowIndex, date, pho
       fetch(appsScriptUrl, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'update_cod_status',
           sheetId: (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '',
