@@ -12222,29 +12222,47 @@ function openPersonalSalesModal() {
 
   subtitle.textContent = `តារាងកុម្ម៉ង់ទាំងអស់ (${sortedSales.length} នាក់) - ពីថ្ងៃចុងក្រោយមកមុន`;
 
-  listEl.innerHTML = sortedSales.slice(0, 50).map(item => `
-    <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 transition select-none">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-1.5 flex-wrap">
-          <span class="font-bold text-xs text-white">${item.customer}</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 font-mono">${item.orderId}</span>
-          ${item.note && item.note.includes('[SG Pro]') ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/25 text-purple-300 font-bold border border-purple-500/40">SG Pro</span>' : ''}
+  listEl.innerHTML = sortedSales.slice(0, 80).map(item => {
+    const currentStatus = String(item.codStatus || 'បានដាក់ការកុម្ម៉ង់').trim();
+    const formattedPhone = (typeof formatTab1PlainPhone === 'function') 
+      ? formatTab1PlainPhone(item.phone) 
+      : String(item.phone || '').trim();
+
+    return `
+      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
+        <!-- Row 1: Left: Phone (in front) + Customer Name | Right: Total Amount -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+            ${formattedPhone ? `<span class="font-mono text-slate-300 text-[11px] whitespace-nowrap">📞 ${formattedPhone}</span><span class="text-slate-500 text-xs">•</span>` : ''}
+            <span class="font-bold text-xs text-white truncate max-w-[150px] sm:max-w-[220px]" title="${escapeHtml(item.customer || '')}">${escapeHtml(item.customer || 'អតិថិជន')}</span>
+            ${item.note && item.note.includes('[SG Pro]') ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/25 text-purple-300 font-bold border border-purple-500/40">SG Pro</span>' : ''}
+          </div>
+          <span class="font-mono text-emerald-400 font-bold text-xs sm:text-sm whitespace-nowrap">${formatUSD(item.totalAmount)}</span>
         </div>
-        <span class="font-mono text-emerald-400 font-bold text-xs">${formatUSD(item.totalAmount)}</span>
+
+        <!-- Row 2: Left: Location | Right: COD Status Badge (replacing phone) -->
+        <div class="text-[11px] text-slate-400 flex items-center justify-between gap-2">
+          <span class="truncate max-w-[180px] sm:max-w-[260px]">📍 ${escapeHtml(item.location || '—')}</span>
+          <span class="text-[10px] font-semibold py-0.5 px-2 rounded-lg border shrink-0 ${getCodStatusBadgeClass(currentStatus)}">
+            ${currentStatus}
+          </span>
+        </div>
+
+        <!-- Note Row (if any) -->
+        ${item.note ? `<div class="text-[10px] text-slate-400 italic">📝 ${escapeHtml(item.note)}</div>` : ''}
+
+        <!-- Row 3: Left: Date & Box Qty | Right: Profit (replacing COD status) -->
+        <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
+          <div class="flex items-center gap-2">
+            <span>កាលបរិច្ឆេទ: <strong class="text-white font-mono">${item.date}</strong></span>
+            <span>•</span>
+            <span>ប្រអប់: <strong class="text-white font-mono">${item.totalBoxQty || 1}</strong></span>
+          </div>
+          <span class="font-mono text-[10.5px] whitespace-nowrap text-slate-300">ចំណេញ: <strong class="text-blue-400 font-bold">${formatUSD(item.profit)}</strong></span>
+        </div>
       </div>
-      <div class="text-[11px] text-slate-400 flex items-center justify-between">
-        <span>📍 ${item.location || '—'}</span>
-        <span>📞 ${item.phone || '—'}</span>
-      </div>
-      ${item.note ? `<div class="text-[10px] text-slate-400 italic">📝 ${item.note}</div>` : ''}
-      <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
-        <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
-        <span>ប្រអប់: <strong class="text-white">${item.totalBoxQty}</strong></span>
-        <span>ចំណេញ: <strong class="text-blue-400">${formatUSD(item.profit)}</strong></span>
-        <span class="${item.codStatus.includes('បានទូទាត់') ? 'text-emerald-400' : 'text-amber-400'}">${item.codStatus}</span>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   const footer = document.getElementById('sales-modal-footer');
   if (footer) {
