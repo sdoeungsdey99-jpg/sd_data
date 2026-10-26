@@ -9201,6 +9201,83 @@ const SDEY_SDOEUNG_TOPICS = [
   }
 ];
 
+function renderTrainerSelectorBarHTML(activeTrainer) {
+  const trainers = [
+    { id: 'founder', name: 'នោរ៉ា', title: 'ស្ថាបនិក', icon: '👑' },
+    { id: 'ceo', name: 'ស៊ីថា', title: 'អគ្គនាយក', icon: '🎓' },
+    { id: 'yaith', name: 'យ៉ារិទ្ធ', title: 'បិទការលក់', icon: '🎯' },
+    { id: 'chanthy', name: 'ចាន់ធី', title: 'ហិរញ្ញវត្ថុ', icon: '💼' },
+    { id: 'udom', name: 'ឧត្ដម', title: 'ប្រព័ន្ធការងារ', icon: '⚙️' },
+    { id: 'leanghak', name: 'លាងហាក់', title: 'កាត់តវីដេអូ', icon: '🎬' },
+    { id: 'masya', name: 'ម៉ាស៊ីយ៉ា', title: 'សុខភាព', icon: '🌸' },
+    { id: 'sdoeung', name: 'ស្ដើង', title: 'AI & Dev', icon: '💻' }
+  ];
+
+  const activeIdx = trainers.findIndex(t => t.id === activeTrainer);
+  const currentIdx = activeIdx >= 0 ? activeIdx : 0;
+
+  return `
+    <div class="space-y-2 select-none pt-0.5">
+      <!-- 1. Apple-style Dots Indicator -->
+      <div id="trainer-dots-row" class="flex items-center justify-center gap-1.5 py-0.5">
+        ${trainers.map((t, idx) => `
+          <button type="button" onclick="switchTrainer('${t.id}')" title="${t.title} ${t.name}"
+                  class="trainer-dot-btn transition-all duration-300 rounded-full ${idx === currentIdx ? 'w-5 h-1.5 bg-gradient-to-r from-orange-500 to-amber-500 shadow-sm shadow-orange-500/40' : 'w-1.5 h-1.5 bg-white/20 hover:bg-white/40'}">
+          </button>
+        `).join('')}
+      </div>
+
+      <!-- 2. Horizontal Trainer Capsule Selector Bar (Quick 1-Tap Jump) -->
+      <div id="trainer-pills-bar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 scrollbar-none" style="-webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+        ${trainers.map((t) => {
+          const isActive = t.id === activeTrainer;
+          return `
+            <button type="button" 
+                    id="trainer-pill-btn-${t.id}"
+                    onclick="switchTrainer('${t.id}')"
+                    class="trainer-selector-pill px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 flex items-center gap-1.5 shrink-0 ${isActive ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-md shadow-orange-500/25 border border-orange-400/40' : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5'}">
+              <span>${t.icon}</span>
+              <span>${t.title}</span>
+            </button>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+window.renderTrainerSelectorBarHTML = renderTrainerSelectorBarHTML;
+
+function updateTrainerNavIndicators(trainer) {
+  const trainers = ['founder', 'ceo', 'yaith', 'chanthy', 'udom', 'leanghak', 'masya', 'sdoeung'];
+  const activeIdx = trainers.indexOf(trainer);
+  if (activeIdx === -1) return;
+
+  // Update dots
+  const dots = document.querySelectorAll('#trainer-dots-row .trainer-dot-btn');
+  dots.forEach((dot, idx) => {
+    if (idx === activeIdx) {
+      dot.className = 'trainer-dot-btn transition-all duration-300 rounded-full w-5 h-1.5 bg-gradient-to-r from-orange-500 to-amber-500 shadow-sm shadow-orange-500/40';
+    } else {
+      dot.className = 'trainer-dot-btn transition-all duration-300 rounded-full w-1.5 h-1.5 bg-white/20 hover:bg-white/40';
+    }
+  });
+
+  // Update pills
+  const pills = document.querySelectorAll('.trainer-selector-pill');
+  pills.forEach(pill => {
+    const isThis = pill.id === `trainer-pill-btn-${trainer}`;
+    if (isThis) {
+      pill.className = 'trainer-selector-pill px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition active:scale-95 flex items-center gap-1.5 shrink-0 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-md shadow-orange-500/25 border border-orange-400/40';
+      try {
+        pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      } catch (_) {}
+    } else {
+      pill.className = 'trainer-selector-pill px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 flex items-center gap-1.5 shrink-0 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5';
+    }
+  });
+}
+window.updateTrainerNavIndicators = updateTrainerNavIndicators;
+
 let trainerScrollTimer = null;
 function handleTrainerCarouselScroll(el) {
   if (!el) return;
@@ -9214,6 +9291,7 @@ function handleTrainerCarouselScroll(el) {
       appState.activeTrainer = newTrainer;
       if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
       updateTrainerContentArea();
+      updateTrainerNavIndicators(newTrainer);
     }
   }, 70);
 }
@@ -9235,6 +9313,7 @@ function switchTrainer(trainer) {
     }
   }
   updateTrainerContentArea();
+  updateTrainerNavIndicators(trainer);
 }
 window.switchTrainer = switchTrainer;
 
@@ -9868,6 +9947,7 @@ function renderSalesResetContent() {
     if (carousel && slide) {
       carousel.scrollTo({ left: slide.offsetLeft, behavior: 'instant' });
     }
+    if (typeof updateTrainerNavIndicators === 'function') updateTrainerNavIndicators(targetTrainer);
   }, 40);
 
   let initialContent = renderFounderLessonsContentHTML();
@@ -10455,6 +10535,9 @@ function renderSalesResetContent() {
         </div>
 
       </div>
+
+      <!-- Quick Trainer Switcher Bar & Pagination Indicator -->
+      ${renderTrainerSelectorBarHTML(activeTrainer)}
 
       <!-- Dynamic Content Area (Switches based on active trainer: Founder, CEO, Yaith, Masya) -->
       <div id="trainer-content-area" class="space-y-3.5">
