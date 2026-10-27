@@ -4851,6 +4851,77 @@ function renderExecutiveHierarchyDateFilterBar() {
   if (window.lucide) window.lucide.createIcons();
 }
 
+function getPreviousMonthKey(monthKey) {
+  if (!monthKey || typeof monthKey !== 'string' || !monthKey.includes('-')) {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth(); // 0-indexed, so current month - 1
+    if (m === 0) return `${y - 1}-12`;
+    return `${y}-${String(m).padStart(2, '0')}`;
+  }
+  const parts = monthKey.split('-');
+  let y = parseInt(parts[0], 10);
+  let m = parseInt(parts[1], 10);
+  m -= 1;
+  if (m < 1) {
+    m = 12;
+    y -= 1;
+  }
+  return `${y}-${String(m).padStart(2, '0')}`;
+}
+
+function calculateMoMGrowth(curVal, prevVal) {
+  const cur = Number(curVal) || 0;
+  const prev = Number(prevVal) || 0;
+  if (prev === 0 && cur === 0) return null;
+  if (prev === 0 && cur > 0) {
+    return {
+      percent: 100,
+      text: '+100%',
+      isPositive: true,
+      isNew: true
+    };
+  }
+  const diff = cur - prev;
+  const pct = (diff / prev) * 100;
+  const rounded = Math.round(pct * 10) / 10;
+  const isPos = rounded >= 0;
+  return {
+    percent: rounded,
+    text: `${isPos ? '+' : ''}${rounded.toFixed(1)}%`,
+    isPositive: isPos,
+    isNew: false
+  };
+}
+
+function renderMoMBadgeHtml(growth, options = {}) {
+  if (!growth) return '';
+  const isPos = growth.isPositive;
+  const colorClass = isPos
+    ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25'
+    : 'text-rose-400 bg-rose-500/10 border-rose-500/25';
+  const arrow = isPos ? '↗' : '↘';
+  const extraClass = options.extraClass || '';
+  const tooltip = options.tooltip || `ធៀបនឹងខែមុន (${growth.text})`;
+  return `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded font-mono text-[9px] font-bold border ${colorClass} ${extraClass}" title="${escapeHtml(tooltip)}"><span>${growth.text}</span><span class="text-[9.5px] leading-none">${arrow}</span></span>`;
+}
+
+function getExecMonthStatsMap(d, targetMonth) {
+  if (!d || !targetMonth) return {};
+  const allOrders = (Array.isArray(d.bostarTrackSales)) ? d.bostarTrackSales : [];
+  const filtered = allOrders.filter(o => o.isoDate && o.isoDate.startsWith(targetMonth));
+  const statsMap = {};
+  filtered.forEach(o => {
+    const sName = (o.seller || '').trim();
+    if (!sName) return;
+    if (!statsMap[sName]) statsMap[sName] = { boxes: 0, orders: 0 };
+    const b = Number(o.totalBoxQty || o.boxes || 0);
+    statsMap[sName].boxes += b;
+    statsMap[sName].orders += 1;
+  });
+  return statsMap;
+}
+
 function getExecFilteredStats(d) {
   const mode = execHierarchyFilterState.mode || 'all';
   if (mode === 'all') return null;
@@ -5701,12 +5772,27 @@ function editMemberPersonalBoost(memberName) {
   }
 }
 
-function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isCardE = false) {
+function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isCardE = false, prevParsed = null) {
   if (!selectedM) return '';
   const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
   const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
   const origRank = (d && d.managersList && Array.isArray(d.managersList)) ? (d.managersList.findIndex(m => m.km === selectedM.km) + 1 || 1) : 1;
   const rankBadge = getManagerRankBadge(origRank);
+
+  if (!prevParsed && execHierarchyFilterState.mode === 'month') {
+    const curIso = getLocalIsoDate(new Date()).slice(0, 7);
+    const tMonth = execHierarchyFilterState.selectedMonth || curIso;
+    const pMonth = getPreviousMonthKey(tMonth);
+    const pStats = getExecMonthStatsMap(d, pMonth);
+    prevParsed = getExecutiveHierarchyParsedData(d, pStats);
+  }
+
+  const prevM = prevParsed?.sortedManagers?.find(pm => normalizeSellerName(pm.km) === normalizeSellerName(selectedM.km)) || prevParsed?.sortedLeaders?.find(pl => normalizeSellerName(pl.km) === normalizeSellerName(selectedM.km));
+  const mgrGrowth = prevParsed ? calculateMoMGrowth(selectedM.displayBoxes, prevM?.displayBoxes) : null;
+  const mgrMomBadgeHtml = renderMoMBadgeHtml(mgrGrowth, {
+    extraClass: 'mt-0.5',
+    tooltip: `ធៀបនឹងខែមុន (${mgrGrowth ? mgrGrowth.text : '0%'}) • ${selectedM.displayOrders} កុម្ម៉ង់`
+  });
 
   const selTargetBoxes = selectedM.targetBoxes || getManagerTarget(selectedM.km);
   const selTargetPercent = selectedM.targetPercent || (selTargetBoxes > 0 ? Math.round(((Number(selectedM.displayBoxes) || 0) / selTargetBoxes) * 100) : 0);
@@ -5746,9 +5832,9 @@ function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isC
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
-            <div class="text-right">
-              <div class="font-mono text-sm font-bold text-amber-300">${selectedM.displayBoxes} ប្រអប់</div>
-              <div class="text-[10px] font-mono text-slate-400">${selectedM.displayOrders} កុម្ម៉ង់</div>
+            <div class="text-right flex flex-col items-end">
+              <div class="font-mono text-sm font-bold text-amber-300 leading-tight">${selectedM.displayBoxes} ប្រអប់</div>
+              ${mgrMomBadgeHtml ? `<div class="mt-0.5">${mgrMomBadgeHtml}</div>` : `<div class="text-[10px] font-mono text-slate-400 leading-tight mt-0.5">${selectedM.displayOrders} កុម្ម៉ង់</div>`}
             </div>
             <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-amber-300 font-semibold flex items-center gap-1 shadow-sm">
               <i data-lucide="x" class="w-3 h-3"></i>
@@ -5778,6 +5864,12 @@ function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isC
               const isTlBechNora = (tl.km && (tl.km.includes('ប៊ិច នោរ៉ា') || (tl.en && tl.en.toLowerCase().includes('bech nora'))));
               const isTlSdoeung = (tl.km && (tl.km.includes('ស្ដី ស្ដើង') || tl.km.includes('ស្តី ស្តើង')));
               const isSelectedSub = (selectedSubLeaderKm === tl.km);
+              const prevTl = prevParsed?.sortedLeaders?.find(pl => normalizeSellerName(pl.km) === normalizeSellerName(tl.km));
+              const tlGrowth = prevParsed ? calculateMoMGrowth(tl.displayBoxes, prevTl?.displayBoxes) : null;
+              const tlMomBadgeHtml = renderMoMBadgeHtml(tlGrowth, {
+                extraClass: 'mt-0.5',
+                tooltip: `ធៀបនឹងខែមុន (${tlGrowth ? tlGrowth.text : '0%'}) • ${tl.displayOrders} កុម្ម៉ង់`
+              });
               return `
                 <div class="space-y-2">
                   <div onclick="selectExecutiveSubLeader('${tl.km}', event)" 
@@ -5791,9 +5883,9 @@ function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isC
                       <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <div class="text-right font-mono">
-                        <span class="text-sky-300 font-bold text-xs">${tl.displayBoxes} ប្រអប់</span>
-                        <span class="text-slate-400 block text-[10px]">${tl.displayOrders} កុម្ម៉ង់</span>
+                      <div class="text-right font-mono flex flex-col items-end">
+                        <span class="text-sky-300 font-bold text-xs leading-tight">${tl.displayBoxes} ប្រអប់</span>
+                        ${tlMomBadgeHtml ? `<div class="mt-0.5">${tlMomBadgeHtml}</div>` : `<span class="text-slate-400 block text-[10px] leading-tight mt-0.5">${tl.displayOrders} កុម្ម៉ង់</span>`}
                       </div>
                       <i data-lucide="${isSelectedSub ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5 ${isSelectedSub ? 'text-sky-400' : 'text-slate-500 group-hover:text-sky-400'} transition"></i>
                     </div>
@@ -5827,6 +5919,12 @@ function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isC
             const isMemBechNora = (mem.km && (mem.km.includes('ប៊ិច នោរ៉ា') || (mem.en && mem.en.toLowerCase().includes('bech nora'))));
             const isMemSdoeung = (mem.km && (mem.km.includes('ស្ដី ស្ដើង') || mem.km.includes('ស្តី ស្តើង')));
             const safeMemName = mem.km.replace(/'/g, "\\'");
+            const prevMem = prevParsed?.sortedMembers?.find(pm => normalizeSellerName(pm.km) === normalizeSellerName(mem.km));
+            const memGrowth = prevParsed ? calculateMoMGrowth(mem.displayBoxes, prevMem?.displayBoxes) : null;
+            const memMomBadgeHtml = renderMoMBadgeHtml(memGrowth, {
+              extraClass: 'mt-0.5',
+              tooltip: `ធៀបនឹងខែមុន (${memGrowth ? memGrowth.text : '0%'}) • ${mem.displayOrders} កុម្ម៉ង់`
+            });
             return `
               <div onclick="openMemberDailyBreakdownModal('${safeMemName}')" 
                    class="p-2.5 rounded-xl bg-black/40 border border-white/5 hover:border-emerald-400/30 flex items-center justify-between gap-2 hover:bg-white/[0.04] cursor-pointer active:scale-[0.99] transition group shadow-sm"
@@ -5847,9 +5945,9 @@ function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isC
                 </div>
 
                 <div class="flex items-center gap-1.5 shrink-0 font-mono">
-                  <div class="text-right">
-                    <div class="text-xs font-bold text-emerald-400">${mem.displayBoxes} ប្រអប់</div>
-                    <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+                  <div class="text-right flex flex-col items-end">
+                    <div class="text-xs font-bold text-emerald-400 leading-tight">${mem.displayBoxes} ប្រអប់</div>
+                    ${memMomBadgeHtml ? `<div class="mt-0.5">${memMomBadgeHtml}</div>` : `<div class="text-[10px] text-slate-400 leading-tight mt-0.5">${mem.displayOrders} កុម្ម៉ង់</div>`}
                   </div>
                   <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"></i>
                 </div>
@@ -5883,11 +5981,31 @@ function renderExecutiveHierarchyModalContent() {
     sortedMembers
   } = getExecutiveHierarchyParsedData(d, statsMap);
 
+  const now = new Date();
+  const curIsoMonth = getLocalIsoDate(now).slice(0, 7);
+  const targetMonth = (execHierarchyFilterState.mode === 'month')
+    ? (execHierarchyFilterState.selectedMonth || curIsoMonth)
+    : null;
+
+  let prevParsed = null;
+  if (targetMonth) {
+    const prevMonth = getPreviousMonthKey(targetMonth);
+    const prevStatsMap = getExecMonthStatsMap(d, prevMonth);
+    prevParsed = getExecutiveHierarchyParsedData(d, prevStatsMap);
+  }
+
   const selectedLdrName = execHierarchyFilterState.selectedLeader;
   const selectedL = selectedLdrName ? sortedLeaders.find(l => l.km === selectedLdrName) : null;
   const activeLeader = selectedL || sortedLeaders.find(l => l.km && (l.km.includes('ស្ដី ស្ដើង') || l.km.includes('ស្តី ស្តើង') || l.km.includes('ស្តី ស្នឹង'))) || sortedLeaders[0];
 
   // 1. DIRECTOR SHOWCASE CARD (Tapping always resets/shows all Leaders or Managers!)
+  const dirPrevBoxes = prevParsed ? prevParsed.directorBoxes : 0;
+  const dirGrowth = prevParsed ? calculateMoMGrowth(directorBoxes, dirPrevBoxes) : null;
+  const dirMomBadgeHtml = renderMoMBadgeHtml(dirGrowth, {
+    extraClass: 'mt-0.5',
+    tooltip: `ធៀបនឹងខែមុន (${dirGrowth ? dirGrowth.text : '0%'}) • ${directorOrders} កុម្ម៉ង់`
+  });
+
   const directorHtml = `
     <div onclick="handleDirectorClick(event)" 
          class="director-showcase-card p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0C1425]/90 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5"
@@ -5906,9 +6024,9 @@ function renderExecutiveHierarchyModalContent() {
         </div>
       </div>
 
-      <div class="text-right shrink-0">
-        <div class="text-xs font-mono font-bold text-amber-300">${directorBoxes} ប្រអប់</div>
-        <div class="text-[10px] font-mono text-slate-400">${directorOrders} កុម្ម៉ង់</div>
+      <div class="text-right shrink-0 flex flex-col items-end">
+        <div class="text-xs font-mono font-bold text-amber-300 leading-tight">${directorBoxes} ប្រអប់</div>
+        ${dirMomBadgeHtml ? `<div class="mt-0.5">${dirMomBadgeHtml}</div>` : `<div class="text-[10px] font-mono text-slate-400 leading-tight mt-0.5">${directorOrders} កុម្ម៉ង់</div>`}
       </div>
     </div>
   `;
@@ -5937,6 +6055,13 @@ function renderExecutiveHierarchyModalContent() {
         const percentOfTop = Math.min(100, Math.round(((Number(l.displayBoxes) || 0) / (topLeaderBoxes || 1)) * 100));
         const barWidth = l.targetBoxes > 0 ? Math.min(100, l.targetPercent) : percentOfTop;
         const barGradient = l.targetPercent >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-300' : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-sky-500 to-teal-400');
+
+        const prevL = prevParsed?.sortedLeaders?.find(pl => normalizeSellerName(pl.km) === normalizeSellerName(l.km));
+        const lGrowth = prevParsed ? calculateMoMGrowth(l.displayBoxes, prevL?.displayBoxes) : null;
+        const lMomBadgeHtml = renderMoMBadgeHtml(lGrowth, {
+          extraClass: 'mt-0.5',
+          tooltip: `ធៀបនឹងខែមុន (${lGrowth ? lGrowth.text : '0%'}) • ${l.displayOrders} កុម្ម៉ង់`
+        });
 
         return `
           <div onclick="selectExecutiveLeader('${l.km}')" 
@@ -5969,13 +6094,11 @@ function renderExecutiveHierarchyModalContent() {
               </div>
 
               <div class="flex items-center gap-2 shrink-0">
-                <div class="text-right">
-                  <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-sky-300'}">
+                <div class="text-right flex flex-col items-end">
+                  <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-sky-300'} leading-tight">
                     ${l.displayBoxes} ប្រអប់
                   </div>
-                  <div class="text-[10px] font-mono text-slate-400">
-                    ${l.displayOrders} កុម្ម៉ង់
-                  </div>
+                  ${lMomBadgeHtml ? `<div class="mt-0.5">${lMomBadgeHtml}</div>` : `<div class="text-[10px] font-mono text-slate-400 leading-tight mt-0.5">${l.displayOrders} កុម្ម៉ង់</div>`}
                 </div>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all"></i>
               </div>
@@ -6007,7 +6130,7 @@ function renderExecutiveHierarchyModalContent() {
       // Drill-down into selected Leader
       const matchingMgr = sortedManagers.find(m => normalizeSellerName(m.km) === normalizeSellerName(selectedL.km));
       if (matchingMgr) {
-        bodyContentHtml = renderManagerDrilldownLayout(matchingMgr, d, 'leader', false);
+        bodyContentHtml = renderManagerDrilldownLayout(matchingMgr, d, 'leader', false, prevParsed);
       } else {
         const isSdoeung = (selectedL.km && (selectedL.km.includes('ស្ដី ស្ដើង') || selectedL.km.includes('ស្តី ស្តើង')));
         const isBechNora = (selectedL.km && (selectedL.km.includes('ប៊ិច នោរ៉ា') || (selectedL.en && selectedL.en.toLowerCase().includes('bech nora'))));
@@ -6016,6 +6139,13 @@ function renderExecutiveHierarchyModalContent() {
         const selTargetBoxes = selectedL.targetBoxes || getLeaderTarget(selectedL.km);
         const selTargetPercent = selectedL.targetPercent || (selTargetBoxes > 0 ? Math.round(((Number(selectedL.displayBoxes) || 0) / selTargetBoxes) * 100) : 0);
         const selBarWidth = selTargetBoxes > 0 ? Math.min(100, selTargetPercent) : 100;
+
+        const prevSelL = prevParsed?.sortedLeaders?.find(pl => normalizeSellerName(pl.km) === normalizeSellerName(selectedL.km));
+        const selLGrowth = prevParsed ? calculateMoMGrowth(selectedL.displayBoxes, prevSelL?.displayBoxes) : null;
+        const selLMomBadgeHtml = renderMoMBadgeHtml(selLGrowth, {
+          extraClass: 'mt-0.5',
+          tooltip: `ធៀបនឹងខែមុន (${selLGrowth ? selLGrowth.text : '0%'}) • ${selectedL.displayOrders} កុម្ម៉ង់`
+        });
 
         bodyContentHtml = `
           <div class="space-y-3.5">
@@ -6048,9 +6178,9 @@ function renderExecutiveHierarchyModalContent() {
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0">
-                  <div class="text-right">
-                    <div class="font-mono text-sm font-bold text-sky-300">${selectedL.displayBoxes} ប្រអប់</div>
-                    <div class="text-[10px] font-mono text-slate-400">${selectedL.displayOrders} កុម្ម៉ង់</div>
+                  <div class="text-right flex flex-col items-end">
+                    <div class="font-mono text-sm font-bold text-sky-300 leading-tight">${selectedL.displayBoxes} ប្រអប់</div>
+                    ${selLMomBadgeHtml ? `<div class="mt-0.5">${selLMomBadgeHtml}</div>` : `<div class="text-[10px] font-mono text-slate-400 leading-tight mt-0.5">${selectedL.displayOrders} កុម្ម៉ង់</div>`}
                   </div>
                   <span class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-[10px] text-sky-300 font-semibold flex items-center gap-1 shadow-sm">
                     <i data-lucide="x" class="w-3 h-3"></i>
@@ -6090,6 +6220,13 @@ function renderExecutiveHierarchyModalContent() {
       const percentOfTop = Math.min(100, Math.round(((Number(mem.displayBoxes) || 0) / (topMemberBoxes || 1)) * 100));
       const safeMemName = mem.km.replace(/'/g, "\\'");
 
+      const prevMem = prevParsed?.sortedMembers?.find(pm => normalizeSellerName(pm.km) === normalizeSellerName(mem.km));
+      const memGrowth = prevParsed ? calculateMoMGrowth(mem.displayBoxes, prevMem?.displayBoxes) : null;
+      const memMomBadgeHtml = renderMoMBadgeHtml(memGrowth, {
+        extraClass: 'mt-0.5',
+        tooltip: `ធៀបនឹងខែមុន (${memGrowth ? memGrowth.text : '0%'}) • ${mem.displayOrders} កុម្ម៉ង់`
+      });
+
       return `
         <div onclick="openMemberDailyBreakdownModal('${safeMemName}')"
              class="p-3 rounded-2xl bg-black/40 border ${borderAccent} space-y-2 hover:bg-white/[0.04] hover:border-emerald-400/40 cursor-pointer active:scale-[0.99] transition shadow-sm group"
@@ -6111,9 +6248,9 @@ function renderExecutiveHierarchyModalContent() {
             </div>
 
             <div class="flex items-center gap-1.5 shrink-0 font-mono">
-              <div class="text-right">
-                <div class="text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">${mem.displayBoxes} ប្រអប់</div>
-                <div class="text-[10px] text-slate-400">${mem.displayOrders} កុម្ម៉ង់</div>
+              <div class="text-right flex flex-col items-end">
+                <div class="text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'} leading-tight">${mem.displayBoxes} ប្រអប់</div>
+                ${memMomBadgeHtml ? `<div class="mt-0.5">${memMomBadgeHtml}</div>` : `<div class="text-[10px] text-slate-400 leading-tight mt-0.5">${mem.displayOrders} កុម្ម៉ង់</div>`}
               </div>
               <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"></i>
             </div>
@@ -6171,6 +6308,13 @@ function renderExecutiveHierarchyModalContent() {
           ? 'bg-gradient-to-r from-emerald-500 to-teal-300'
           : (rank === 1 ? 'bg-gradient-to-r from-amber-500 to-amber-300' : 'bg-gradient-to-r from-emerald-500 to-teal-400');
 
+        const prevM = prevParsed?.sortedManagers?.find(pm => normalizeSellerName(pm.km) === normalizeSellerName(m.km));
+        const mGrowth = prevParsed ? calculateMoMGrowth(m.displayBoxes, prevM?.displayBoxes) : null;
+        const mMomBadgeHtml = renderMoMBadgeHtml(mGrowth, {
+          extraClass: 'mt-0.5',
+          tooltip: `ធៀបនឹងខែមុន (${mGrowth ? mGrowth.text : '0%'}) • ${m.displayOrders} កុម្ម៉ង់`
+        });
+
         return `
           <div onclick="selectExecutiveManager('${m.km}')" 
                class="p-3.5 rounded-2xl bg-black/40 border ${borderAccent} cursor-pointer active:scale-[0.99] transition select-none space-y-2.5 hover:bg-white/[0.03] group shadow-sm">
@@ -6199,13 +6343,11 @@ function renderExecutiveHierarchyModalContent() {
               </div>
 
               <div class="flex items-center gap-2 shrink-0">
-                <div class="text-right">
-                  <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'}">
+                <div class="text-right flex flex-col items-end">
+                  <div class="font-mono text-xs font-bold ${rank === 1 ? 'text-amber-300' : 'text-emerald-400'} leading-tight">
                     ${m.displayBoxes} ប្រអប់
                   </div>
-                  <div class="text-[10px] font-mono text-slate-400">
-                    ${m.displayOrders} កុម្ម៉ង់
-                  </div>
+                  ${mMomBadgeHtml ? `<div class="mt-0.5">${mMomBadgeHtml}</div>` : `<div class="text-[10px] font-mono text-slate-400 leading-tight mt-0.5">${m.displayOrders} កុម្ម៉ង់</div>`}
                 </div>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all"></i>
               </div>
@@ -6235,7 +6377,7 @@ function renderExecutiveHierarchyModalContent() {
       `;
     } else {
       // DRILL-DOWN INTO SELECTED MANAGER (Unified with Tab Leader)
-      bodyContentHtml = renderManagerDrilldownLayout(selectedM, d, 'manager', false);
+      bodyContentHtml = renderManagerDrilldownLayout(selectedM, d, 'manager', false, prevParsed);
     }
   }
 
@@ -25105,6 +25247,27 @@ function renderTeamMembersList() {
     totalTeamRev += amt;
   });
 
+  // Calculate Previous Month Stats for MoM (Month-over-Month) Growth %
+  let prevSellerStats = null;
+  let prevTotalTeamBoxes = 0;
+  if (teamMembersFilterState.mode === 'month') {
+    const currentMonthKey = teamMembersFilterState.selectedMonth || currentIsoMonth;
+    const prevMonthKey = getPreviousMonthKey(currentMonthKey);
+    prevSellerStats = {};
+    const prevSales = allSales.filter(s => (s.isoDate || '').startsWith(prevMonthKey));
+    prevSales.forEach(s => {
+      const sName = (s.seller || '').trim();
+      if (!sName) return;
+      if (!prevSellerStats[sName]) {
+        prevSellerStats[sName] = { boxes: 0, orders: 0, totalAmount: 0 };
+      }
+      const b = Number(s.totalBoxQty || s.boxes || 0);
+      prevSellerStats[sName].boxes += b;
+      prevSellerStats[sName].orders += 1;
+      prevTotalTeamBoxes += b;
+    });
+  }
+
   const normQuery = normalizeSellerName(query);
   const filtered = BOSTAR_TEAM_SELLERS.filter(seller => {
     if (!query) return true;
@@ -25118,6 +25281,15 @@ function renderTeamMembersList() {
     countBadge.textContent = `(${filtered.length} នាក់)`;
   }
 
+  let teamGrowthBadge = '';
+  if (prevSellerStats !== null) {
+    const teamGrowth = calculateMoMGrowth(totalTeamBoxes, prevTotalTeamBoxes);
+    teamGrowthBadge = renderMoMBadgeHtml(teamGrowth, {
+      extraClass: 'scale-90 origin-right',
+      tooltip: `ការលក់សរុបទូទាំងក្រុមធៀបនឹងខែមុន (${teamGrowth ? teamGrowth.text : '0%'})`
+    });
+  }
+
   if (summaryStrip) {
     summaryStrip.innerHTML = `
       <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex flex-col justify-between">
@@ -25125,7 +25297,10 @@ function renderTeamMembersList() {
         <span class="font-mono text-white font-bold text-xs sm:text-sm mt-0.5">${filtered.length} <span class="text-[9.5px] font-sans font-normal text-slate-400">នាក់</span></span>
       </div>
       <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex flex-col justify-between">
-        <span class="text-[10px] text-slate-400 font-semibold truncate">📦 លក់សរុប</span>
+        <div class="flex items-center justify-between gap-1">
+          <span class="text-[10px] text-slate-400 font-semibold truncate">📦 លក់សរុប</span>
+          ${teamGrowthBadge}
+        </div>
         <span class="font-mono text-emerald-400 font-bold text-xs sm:text-sm mt-0.5">${formatInt(totalTeamBoxes)} <span class="text-[9.5px] font-sans font-normal text-slate-400">ប្រអប់</span></span>
       </div>
       <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex flex-col justify-between">
@@ -25153,6 +25328,16 @@ function renderTeamMembersList() {
     const isBechNora = (seller.km && (seller.km.includes('ប៊ិច នោរ៉ា') || (seller.en && seller.en.toLowerCase().includes('bech nora'))));
     const isSdoeung = (seller.km && (seller.km.includes('ស្ដី ស្ដើង') || seller.km.includes('ស្តី ស្តើង')));
 
+    let momBadgeHtml = '';
+    if (prevSellerStats !== null) {
+      const prevStats = getSellerAggregatedStats(seller, prevSellerStats);
+      const growth = calculateMoMGrowth(stats.boxes, prevStats.boxes);
+      momBadgeHtml = renderMoMBadgeHtml(growth, {
+        extraClass: 'mt-0.5',
+        tooltip: `ធៀបនឹងខែមុន (${growth ? growth.text : '0%'}) • ${stats.orders} កុម្ម៉ង់`
+      });
+    }
+
     return `
       <div onclick="openTeamMemberDetail('${escapeHtml(seller.km)}')" 
            class="p-3.5 rounded-2xl ios-glass-card border border-white/10 hover:border-orange-500/40 flex items-center justify-between cursor-pointer active:scale-[0.99] transition group shadow-sm">
@@ -25174,8 +25359,11 @@ function renderTeamMembersList() {
         </div>
 
         <div class="flex items-center gap-2.5 shrink-0 pl-2">
-          <div class="text-right">
-            <span class="font-mono font-bold text-xs sm:text-sm text-emerald-400 block">${stats.boxes} <span class="text-[9.5px] font-sans font-normal text-slate-400">ប្រអប់</span></span>
+          <div class="text-right flex flex-col items-end justify-center">
+            <span class="font-mono font-bold text-xs sm:text-sm text-emerald-400 block leading-tight">
+              ${stats.boxes} <span class="text-[9.5px] font-sans font-normal text-slate-400">ប្រអប់</span>
+            </span>
+            ${momBadgeHtml}
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-orange-400 group-hover:translate-x-0.5 transition"></i>
         </div>
@@ -25252,6 +25440,25 @@ function openTeamMemberDetail(sellerKmName) {
     ? dailyData.dailyRows.filter(r => r.totalBoxes > 0)
     : dailyData.dailyRows;
 
+  // Calculate MoM growth for this member in Month view
+  let detailMoMBadgeHtml = '';
+  if (teamMembersFilterState.mode === 'month') {
+    const prevMKey = getPreviousMonthKey(targetMonth);
+    const prevSales = allSales.filter(s => {
+      if (!s.isoDate || !s.isoDate.startsWith(prevMKey)) return false;
+      const sName = (s.seller || '').trim();
+      if (!sName) return false;
+      const normS = normalizeSellerName(sName);
+      return sName === seller.km || sName === seller.en || (normKm && normS === normKm) || (normEn && normS === normEn);
+    });
+    const prevTotalBoxes = prevSales.reduce((sum, s) => sum + Number(s.totalBoxQty || s.boxes || 0), 0);
+    const memberGrowth = calculateMoMGrowth(totalBoxes, prevTotalBoxes);
+    detailMoMBadgeHtml = renderMoMBadgeHtml(memberGrowth, {
+      extraClass: 'mt-1',
+      tooltip: `ធៀបនឹងខែមុន (${memberGrowth ? memberGrowth.text : '0%'})`
+    });
+  }
+
   detailView.innerHTML = `
     <!-- 1. Sticky Locked Identity Bar (រូបសំណូមពរ៖ ជាប់ស្អិតនៅខាងលើបង្អស់ Lock Permanently on Scroll + Tap to Scroll to Top) -->
     <div id="team-member-locked-bar" 
@@ -25315,6 +25522,7 @@ function openTeamMemberDetail(sellerKmName) {
           <div class="text-base sm:text-lg font-black text-emerald-400 font-mono">
             ${totalBoxes} <span class="text-[10px] font-bold text-emerald-400/80 font-sans">ប្រអប់</span>
           </div>
+          ${detailMoMBadgeHtml ? `<div class="flex justify-center">${detailMoMBadgeHtml}</div>` : ''}
         </div>
         <div class="p-3 rounded-2xl bg-[#0F1B2E] border border-white/10 text-center space-y-1 shadow-lg">
           <div class="text-[10px] text-slate-400 flex items-center justify-center gap-1 font-semibold">
