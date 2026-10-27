@@ -13315,13 +13315,16 @@ function toggleThaiCodPhaseDropdown(e) {
   if (e) e.stopPropagation();
   const menu = document.getElementById('menu-thai-cod-phase');
   const arrow = document.getElementById('icon-thai-cod-dropdown-arrow');
+  const backdrop = document.getElementById('backdrop-thai-cod-phase');
   if (!menu) return;
   const isHidden = menu.classList.contains('hidden');
   if (isHidden) {
     menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
     if (arrow) arrow.style.transform = 'rotate(180deg)';
   } else {
     menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
     if (arrow) arrow.style.transform = 'rotate(0deg)';
   }
 }
@@ -13330,7 +13333,9 @@ window.toggleThaiCodPhaseDropdown = toggleThaiCodPhaseDropdown;
 function closeThaiCodPhaseDropdown() {
   const menu = document.getElementById('menu-thai-cod-phase');
   const arrow = document.getElementById('icon-thai-cod-dropdown-arrow');
+  const backdrop = document.getElementById('backdrop-thai-cod-phase');
   if (menu) menu.classList.add('hidden');
+  if (backdrop) backdrop.classList.add('hidden');
   if (arrow) arrow.style.transform = 'rotate(0deg)';
 }
 window.closeThaiCodPhaseDropdown = closeThaiCodPhaseDropdown;
@@ -13348,10 +13353,19 @@ function setThaiCodPhaseFilter(phase) {
   const dropdownBtn = document.getElementById('btn-thai-cod-dropdown');
   const activeLabel = document.getElementById('label-thai-cod-active-phase');
   
-  const phaseLabels = {
-    '1st': '🟡 ជើងទី ១ (1st)',
-    '2nd': '🟠 ជើងទី ២ (2nd)',
-    '3rd': '🔵 ជើងទី ៣ (3rd)'
+  const phaseMeta = {
+    '1st': {
+      label: '🟡 ជើងទី ១ (1st)',
+      btnClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+    },
+    '2nd': {
+      label: '🟠 ជើងទី ២ (2nd)',
+      btnClass: 'bg-orange-500/20 text-orange-400 border-orange-500/40'
+    },
+    '3rd': {
+      label: '🔵 ជើងទី ៣ (3rd)',
+      btnClass: 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+    }
   };
   
   if (phase === 'tick') {
@@ -13362,14 +13376,15 @@ function setThaiCodPhaseFilter(phase) {
       dropdownBtn.className = 'w-full h-9 px-3 rounded-xl text-xs font-bold transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center justify-center gap-1.5 shadow-sm';
     }
   } else {
+    const meta = phaseMeta[phase] || phaseMeta['1st'];
     if (tickBtn) {
       tickBtn.className = 'thai-cod-pill w-full h-9 px-3 rounded-xl font-bold text-xs whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center justify-center gap-1.5 shadow-sm';
     }
     if (dropdownBtn) {
-      dropdownBtn.className = 'w-full h-9 px-3 rounded-xl text-xs font-bold transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center justify-center gap-1.5 shadow-sm';
+      dropdownBtn.className = `w-full h-9 px-3 rounded-xl text-xs font-bold transition active:scale-95 ${meta.btnClass} flex items-center justify-center gap-1.5 shadow-sm`;
     }
-    if (activeLabel && phaseLabels[phase]) {
-      activeLabel.textContent = phaseLabels[phase];
+    if (activeLabel) {
+      activeLabel.textContent = meta.label;
     }
   }
 
@@ -13541,12 +13556,12 @@ function renderThaiCodOrders() {
     const boxQty = o.totalBoxQty || 1;
 
     const cardClass = isTicked
-      ? 'ios-glass-card ticked-cod-card rounded-xl p-2 px-2.5 border border-emerald-500/40 bg-emerald-500/[0.08] hover:border-emerald-500/60 hover:bg-emerald-500/[0.12] cursor-pointer transition flex flex-col gap-1.5 select-none'
-      : 'ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 cursor-pointer transition flex flex-col gap-1.5 select-none';
+      ? 'ios-glass-card ticked-cod-card rounded-2xl p-2.5 px-3 border border-emerald-500/40 bg-emerald-500/[0.08] hover:border-emerald-500/60 hover:bg-emerald-500/[0.12] active:scale-[0.98] cursor-pointer transition-all duration-150 flex flex-col gap-1.5 select-none'
+      : 'ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 active:scale-[0.98] cursor-pointer transition-all duration-150 flex flex-col gap-1.5 select-none';
 
     const badgeHtml = isTicked
-      ? `<span class="px-1.5 py-0.2 rounded bg-emerald-500/25 border border-emerald-500/50 text-emerald-400 font-mono text-[9.5px] font-bold whitespace-nowrap flex items-center gap-0.5" title="បាន Tick រួចរាល់">✓ #${displayNo}</span>`
-      : `<span class="px-1.5 py-0.2 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono text-[9px] font-bold whitespace-nowrap">#${displayNo}</span>`;
+      ? `<span class="px-1.5 py-0.5 rounded-md bg-emerald-500/25 border border-emerald-500/50 text-emerald-400 font-mono text-[9.5px] font-bold whitespace-nowrap flex items-center gap-0.5" title="បាន Tick រួចរាល់">✓ #${displayNo}</span>`
+      : `<span class="px-1.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono text-[9px] font-bold whitespace-nowrap">#${displayNo}</span>`;
 
     return `
       <div onclick="toggleTickThaiCodOrder('${escapeHtml(orderKey)}')" class="${cardClass}">
@@ -13556,7 +13571,7 @@ function renderThaiCodOrders() {
             <span class="font-mono text-slate-400 text-[10.5px] whitespace-nowrap">${o.date}</span>
             <span class="font-bold text-white text-xs truncate max-w-[130px] sm:max-w-[200px]" title="${escapeHtml(o.customer || '')}">${escapeHtml(o.customer || (isEn ? 'Customer' : 'អតិថិជន'))}</span>
             ${badgeHtml}
-            <span class="px-1 py-0.2 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-semibold whitespace-nowrap hidden sm:inline">${escapeHtml(o.deliveryMethod || 'Thai COD')}</span>
+            <span class="px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-semibold whitespace-nowrap hidden sm:inline">${escapeHtml(o.deliveryMethod || 'Thai COD')}</span>
           </div>
           <!-- Right: THB and USD amounts neatly stacked - NEVER cut off! -->
           <div class="flex flex-col items-end shrink-0 text-right leading-tight">
