@@ -23911,11 +23911,12 @@ function checkOnboardingGate() {
   if (!gate) return;
 
   const urlParams = new URLSearchParams(window.location.search);
-  const skipGate = urlParams.get('skip_gate') === '1' || urlParams.get('admin') === '1';
+  const skipGate = urlParams.get('skip_gate') === '1' || urlParams.get('admin') === '1' || urlParams.get('unlock') === '1';
   const hasCustomSheet = Boolean(localStorage.getItem('sd_custom_sheet_id'));
   const hasOnboardingDone = localStorage.getItem('sd_onboarding_completed') === 'true';
+  const isMasterAdminAuth = localStorage.getItem('sd_master_admin_authenticated') === 'true';
 
-  if (!skipGate && (!hasCustomSheet || !hasOnboardingDone)) {
+  if (!skipGate && !isMasterAdminAuth && (!hasCustomSheet || !hasOnboardingDone)) {
     gate.classList.remove('hidden');
     if (dock) dock.classList.add('hidden');
     setDockVisible(false);
@@ -24042,10 +24043,20 @@ async function submitMasterPin() {
     closeMasterPinModal();
     const masterId = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
     localStorage.setItem('sd_custom_sheet_id', masterId);
+    localStorage.setItem('sd_onboarding_completed', 'true');
+    localStorage.setItem('sd_master_admin_authenticated', 'true');
     localStorage.setItem('sd_profile_data', JSON.stringify(DEFAULT_PROFILE_DATA));
+    
+    // Explicitly hide onboarding gate and show dock immediately
+    const gate = document.getElementById('onboarding-gate');
+    if (gate) gate.classList.add('hidden');
+    const dock = document.getElementById('bottom-dock');
+    if (dock) dock.classList.remove('hidden');
+    setDockVisible(true);
+
     syncHeaderProfileUI();
     checkOnboardingGate();
-    showToastNotification('🔓 ស្វាគមន៍ការចូលប្រើប្រាស់ជា Master Admin (ស្តី ស្តើង)');
+    showToastNotification('🔓 ស្វាគមន៍ការចូលប្រើប្រាស់ជា Master Admin (ស្ដី ស្នើង)');
     await DataService.fetchData(false);
     renderCurrentView();
   } else {
@@ -24065,6 +24076,10 @@ function disconnectCustomSheet() {
       localStorage.removeItem('sd_profile_data');
     } catch (_) {}
   }
+  try {
+    localStorage.removeItem('sd_onboarding_completed');
+    localStorage.removeItem('sd_master_admin_authenticated');
+  } catch (_) {}
   document.getElementById('profile-sub-modal')?.classList?.add('hidden');
   document.getElementById('profile-dashboard-drawer')?.classList?.add('translate-x-full');
   syncHeaderProfileUI();
