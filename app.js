@@ -19994,7 +19994,7 @@ function submitAttendancePin() {
   const err = document.getElementById('att-admin-pin-err');
   const val = input ? input.value.trim() : '';
 
-  const validPins = ['2026', 'sd2026', '1234', '5136', '8899', '7788', '9988', '1999', '8888', '9999'];
+  const validPins = ['Growupalltogeter168$', 'Growupalltogether168$', '2026', 'sd2026', '1234', '5136', '8899', '7788', '9988', '1999', '8888', '9999'];
   if (validPins.includes(val)) {
     window._attendanceAdminUnlocked = true;
     closeAttendancePinModal();
@@ -24034,12 +24034,28 @@ function closeMasterPinModal() {
   if (m) m.classList.add('hidden');
 }
 
+function toggleMasterPinVisibility() {
+  const input = document.getElementById('master-pin-input');
+  const icon = document.getElementById('master-pin-eye-icon');
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) icon.setAttribute('data-lucide', 'eye-off');
+  } else {
+    input.type = 'password';
+    if (icon) icon.setAttribute('data-lucide', 'eye');
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+window.toggleMasterPinVisibility = toggleMasterPinVisibility;
+
 async function submitMasterPin() {
   const input = document.getElementById('master-pin-input');
   const err = document.getElementById('master-pin-err');
   const pin = input ? input.value.trim() : '';
 
-  if (pin === '2026' || pin === 'sd2026' || pin === '1234' || pin === '5136') {
+  const validPasswords = ['Growupalltogeter168$', 'Growupalltogether168$', '2026', 'sd2026', '1234', '5136'];
+  if (validPasswords.includes(pin)) {
     closeMasterPinModal();
     const masterId = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
     localStorage.setItem('sd_custom_sheet_id', masterId);
@@ -24061,7 +24077,7 @@ async function submitMasterPin() {
     renderCurrentView();
   } else {
     if (err) {
-      err.textContent = 'លេខកូដមិនត្រឹមត្រូវឡើយ';
+      err.textContent = 'ពាក្យសម្ងាត់មិនត្រឹមត្រូវឡើយ';
       err.classList.remove('hidden');
     }
   }
@@ -24168,7 +24184,8 @@ function verifySupportAdminPin() {
   const pinInput = document.getElementById('support-admin-pin');
   const errEl = document.getElementById('support-pin-err');
   const pin = (pinInput?.value || '').trim();
-  if (pin === '2026' || pin === 'sd2026' || pin === '1234' || pin === '5136') {
+  const validPasswords = ['Growupalltogeter168$', 'Growupalltogether168$', '2026', 'sd2026', '1234', '5136'];
+  if (validPasswords.includes(pin)) {
     window._supportAdminUnlocked = true;
     openProfileSubModal('feedback_support');
   } else {
