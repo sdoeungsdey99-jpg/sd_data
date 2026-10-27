@@ -7457,6 +7457,36 @@ function selectAnalyticsTab(tab) {
   renderCurrentView();
 }
 
+function cycleAnalyticsPerspective(event) {
+  if (event && event.target) {
+    const ignored = event.target.closest(
+      'button, a, input, select, textarea, ' +
+      '[onclick*="toggleAnalyticsProfitMode"], ' +
+      '[onclick*="openBoostModal"], ' +
+      '[onclick*="setAnalyticsMonth"], ' +
+      '[onclick*="setAnalyticsExpenseChartMode"], ' +
+      '[onclick*="selectAnalyticsExpenseCategory"], ' +
+      '.overflow-x-auto, svg, .donut-legend-item, #analytics-donut-chart-view'
+    );
+    if (ignored) return;
+  }
+
+  const cur = appState.analyticsTab || 'all';
+  let next = 'all';
+  if (cur === 'all') {
+    next = 'business';
+  } else if (cur === 'business') {
+    next = 'expenses';
+  } else {
+    next = 'all';
+  }
+
+  selectAnalyticsTab(next);
+  if (navigator.vibrate) {
+    try { navigator.vibrate(12); } catch (_) {}
+  }
+}
+
 function toggleAnalyticsAnnualTable() {
   appState.isAnalyticsTableMinimized = !appState.isAnalyticsTableMinimized;
   const content = document.getElementById('analytics-annual-table-content');
@@ -7543,6 +7573,7 @@ function toggleAnalyticsDetailTable() {
 
 window.toggleAnalyticsViewDropdown = toggleAnalyticsViewDropdown;
 window.selectAnalyticsTab = selectAnalyticsTab;
+window.cycleAnalyticsPerspective = cycleAnalyticsPerspective;
 window.toggleAnalyticsAnnualTable = toggleAnalyticsAnnualTable;
 window.toggleAnalyticsDetailTable = toggleAnalyticsDetailTable;
 window.setAnalyticsYear = setAnalyticsYear;
@@ -8528,7 +8559,9 @@ function getAnalyticsViewHTML() {
         ${monthTabsUnlockedHtml}
 
         <!-- Month Hero Card -->
-        <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 relative overflow-hidden">
+        <div onclick="cycleAnalyticsPerspective(event)" 
+             title="ចុចកន្លែងទំនេរដើម្បីឆ្លាស់ទិដ្ឋភាព (ទិដ្ឋភាពរួម • អាជីវកម្ម • ចំណាយផ្ទាល់ខ្លួន)"
+             class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 relative overflow-hidden cursor-pointer select-none">
           <div class="flex items-center justify-between mb-3 gap-1.5">
             <div class="flex items-center gap-2 min-w-0 flex-1">
               <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
@@ -9085,7 +9118,9 @@ function getAnalyticsViewHTML() {
       ${monthTabsUnlockedHtml}
 
       <!-- Year Hero Card -->
-      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 relative overflow-hidden">
+      <div onclick="cycleAnalyticsPerspective(event)" 
+           title="ចុចកន្លែងទំនេរដើម្បីឆ្លាស់ទិដ្ឋភាព (ទិដ្ឋភាពរួម • អាជីវកម្ម • ចំណាយផ្ទាល់ខ្លួន)"
+           class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 relative overflow-hidden cursor-pointer select-none">
         <div class="flex items-center justify-between mb-3.5">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
