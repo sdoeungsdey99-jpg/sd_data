@@ -13452,7 +13452,7 @@ function renderThaiCodOrders() {
       } else if (totalUSD >= 100 && totalUSD < 300) {
         motivationEl.innerHTML = `<span class="text-emerald-400">📈</span> <span class="text-emerald-300 font-medium">លទ្ធផលគិតលុយល្អប្រសើរ! ចរន្តលក់ និងការប្រមូលប្រាក់កំពុងដំណើរការយ៉ាងរលូន! 📦✨</span>`;
       } else {
-        motivationEl.innerHTML = `<span class="text-amber-300">🎉</span> <span class="text-amber-300 font-bold">អស្ចារ្យណាស់! ជើងនេះប្រមូលប្រាក់ COD បានយ៉ាងច្រើនគាប់ប្រសើរ! 💸🔥🚀</span>`;
+        motivationEl.innerHTML = `<span class="text-amber-300">🎉</span> <span class="text-amber-300 font-bold">អស្ចារ្យណាស់! ជើងនេះប្រមូលប្រាក់ COD បានយ៉ាងច្រើនគួរជាទីគាប់ចិត្ត! 💸🔥🚀</span>`;
       }
     }
   }
@@ -13469,7 +13469,7 @@ function renderThaiCodOrders() {
     } else {
       let phaseTitle = 'ជើងទី ១ (1st)';
       let phaseIcon = '🟡';
-      let phaseDesc = 'ទំនិញអាចកំពុងស្ថិតក្នុងការដឹកជញ្ជូន ឬអតិថិជនមិនទាន់ទទួលបានទំនិញនៅឡើយ';
+      let phaseDesc = 'ទំនិញអាចកំពុងស្ថិតក្នុងការដឹកជញ្ជូន ឬអតិថិជនមិនទាន់ទទួលបាននៅឡើយ';
       
       if (thaiCodPhaseFilter === '2nd') {
         phaseTitle = 'ជើងទី ២ (2nd)';
@@ -13478,7 +13478,7 @@ function renderThaiCodOrders() {
       } else if (thaiCodPhaseFilter === '3rd') {
         phaseTitle = 'ជើងទី ៣ (3rd)';
         phaseIcon = '🔵';
-        phaseDesc = 'ជើងនេះជាជុំទី ៣ សូមរង់ចាំការដឹកជញ្ជូន និងការផ្ទៀងផ្ទាត់ទទួលទំនិញពីអតិថិជនពេញលេញ';
+        phaseDesc = 'ជើងនេះជាជុំទី ៣ សូមរង់ចាំការដឹកជញ្ជូន និងការផ្ទៀងផ្ទាត់ការទទួលទំនិញរបស់អតិថិជនឱ្យបានពេញលេញ';
       }
 
       listEl.innerHTML = `
@@ -13522,7 +13522,7 @@ function renderThaiCodOrders() {
         • ការគិតលុយ Thai COD ត្រូវបានទូទាត់តាមជើង (ជើង ១ • ជើង ២ • ជើង ៣) ផ្អែកលើការទទួលជាក់ស្តែងរបស់អតិថិជន។
       </p>
       <div class="pt-1 border-t border-white/5 flex flex-col gap-1 text-[10px] text-slate-400 font-sans">
-        <p>💡 ចុចលើ <strong class="text-orange-300">Icon ប្រតិទិន 📅 នៅខាងស្តាំលើ</strong> ដើម្បីដឹងថ្ងៃដែលត្រូវផ្ញើរបាយការណ៍ និងគិតលុយ COD!</p>
+        <p>💡 ចុចលើ <strong class="text-orange-300">Icon ប្រតិទិន 📅 នៅខាងស្តាំលើ</strong> ដើម្បីពិនិត្យកាលបរិច្ឆេទផ្ញើរបាយការណ៍ និងគិតលុយ COD!</p>
         <p>📋 ចុចលើ <strong class="text-emerald-300">Icon ចម្លង 📋 នៅខាងស្តាំកាតសង្ខេប</strong> ដើម្បីចម្លង Statement បញ្ជីថ្ងៃ និងលេខកន្ទុយផ្ញើជូនអ្នកគិតលុយ COD ភ្លាមៗ!</p>
       </div>
     </div>
