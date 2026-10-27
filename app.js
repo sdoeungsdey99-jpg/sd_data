@@ -12696,6 +12696,7 @@ function closePayablesModal() {
 // ==========================================
 let activeCodModalTab = 'summary'; // 'summary' | 'thai'
 let thaiCodPhaseFilter = 'tick';    // 'tick' | '1st' | '2nd' | '3rd'
+let thaiCodLastSelectedPhase = '1st';
 let thaiCodSearchQuery = '';
 
 // Ticked COD Orders State Management (Persistent across modal toggles and page reloads)
@@ -13388,11 +13389,27 @@ function setThaiCodPhaseFilter(phase) {
     }
   }
 
+  if (phase !== 'tick') {
+    thaiCodLastSelectedPhase = phase;
+  }
+  const currentHighlight = (phase === 'tick') ? thaiCodLastSelectedPhase : phase;
+
   ['1st', '2nd', '3rd'].forEach(p => {
     const checkEl = document.getElementById(`check-thai-cod-${p}`);
+    const itemBtn = document.getElementById(`btn-thai-cod-item-${p}`);
+    const isSelected = (p === currentHighlight);
     if (checkEl) {
-      if (p === phase) checkEl.classList.remove('hidden');
+      if (isSelected) checkEl.classList.remove('hidden');
       else checkEl.classList.add('hidden');
+    }
+    if (itemBtn) {
+      if (isSelected) {
+        itemBtn.classList.add('bg-white/10', 'text-white', 'font-bold');
+        itemBtn.classList.remove('text-slate-200');
+      } else {
+        itemBtn.classList.remove('bg-white/10', 'text-white', 'font-bold');
+        itemBtn.classList.add('text-slate-200');
+      }
     }
   });
 
