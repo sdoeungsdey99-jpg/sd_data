@@ -13310,12 +13310,12 @@ function setThaiCodPhaseFilter(phase) {
     const p = btn.getAttribute('data-phase');
     if (p === phase) {
       if (phase === 'tick') {
-        btn.className = 'thai-cod-pill px-2 sm:px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1 shrink-0';
+        btn.className = 'thai-cod-pill px-1.5 py-0.5 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1 shrink-0';
       } else {
-        btn.className = 'thai-cod-pill px-2 sm:px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center gap-1 shrink-0';
+        btn.className = 'thai-cod-pill px-1.5 py-0.5 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center gap-1 shrink-0';
       }
     } else {
-      btn.className = 'thai-cod-pill px-2 sm:px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center gap-1 shrink-0';
+      btn.className = 'thai-cod-pill px-1.5 py-0.5 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center gap-1 shrink-0';
     }
   });
   renderThaiCodOrders();
