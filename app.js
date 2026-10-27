@@ -26594,7 +26594,8 @@ async function syncDailyReportToGoogleSheet(options = {}) {
   if (isReportSyncing) return false;
   isReportSyncing = true;
 
-  const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function' ? getAppsScriptWebhookUrl() : null) || DEFAULT_APPS_SCRIPT_URL;
+  const BOSTAR_TRACK_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzGLHc2-bPoKyfjo2jb2Rv2MymxXG7uqvDtgGiv2fQ6FD5Hqz4AbIAUTHrFwGLFqWT-/exec';
+  const webhookUrl = BOSTAR_TRACK_WEBHOOK_URL;
   const bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
 
   console.log('[DailyReport] Syncing to Google Sheet via webhook:', webhookUrl, report);
@@ -27452,7 +27453,7 @@ window.toggleTeamSetsFilterOnlySales = toggleTeamSetsFilterOnlySales;
 window.openTeamSetsModal = openTeamSetsModal;
 window.closeTeamSetsModal = closeTeamSetsModal;
 
-const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyk9xwOPmje8H_qAI5abZ3dg5CWjxJ4aZ1YvwhDk8IUAXC1k8L6-_8B7_G6AIUGYQ/exec';
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGLHc2-bPoKyfjo2jb2Rv2MymxXG7uqvDtgGiv2fQ6FD5Hqz4AbIAUTHrFwGLFqWT-/exec';
 
 function getAppsScriptWebhookUrl() {
   localStorage.setItem('sd_apps_script_url', DEFAULT_APPS_SCRIPT_URL);
