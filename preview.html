@@ -2270,6 +2270,22 @@
     .light-theme #honors-modal {
       background-color: #F8FAFC !important;
     }
+    .light-theme #honors-tab-switcher {
+      background-color: #F1F5F9 !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #honors-tab-switcher > div {
+      background-color: #E2E8F0 !important;
+      border-color: #CBD5E1 !important;
+    }
+    .light-theme #honors-modal-body h2,
+    .light-theme #honors-modal-body h3,
+    .light-theme #honors-modal-body h4 {
+      color: #0F172A !important;
+    }
+    .light-theme #honors-modal-body p {
+      color: #475569 !important;
+    }
     .light-theme #honors-modal-body > div:first-child {
       background: linear-gradient(135deg, rgba(254, 243, 199, 0.85) 0%, rgba(255, 251, 235, 0.95) 50%, #FFFFFF 100%) !important;
       border-color: rgba(245, 158, 11, 0.35) !important;
@@ -3131,15 +3147,35 @@
         <p class="text-[10.5px] text-slate-300">៣. ចុច <strong>Copy link</strong> រួចយកមក Paste ក្នុងប្រអប់ខាងលើជាការស្រេច!</p>
       </div>
 
-      <!-- Honors & Dedication Quick Banner (កាតកិត្តិយស & ការដឹងគុណ) -->
-      <button onclick="openHonorsModal()" class="w-full p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 border border-amber-500/25 hover:border-amber-400/40 text-left active:scale-[0.98] transition mb-3 shadow-md group flex items-center justify-between">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
-            <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+      <!-- App Benefits & MC Presentation Deck (អត្ថប្រយោជន៍ & ស្លាយបទបង្ហាញកម្មវិធី) -->
+      <button type="button" onclick="openHonorsModal('benefits')" class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-blue-600/15 via-indigo-600/15 to-emerald-600/10 border border-blue-500/30 hover:border-blue-400/50 text-left active:scale-[0.98] transition mb-2.5 shadow-lg shadow-blue-500/10 group flex items-center justify-between">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500/25 to-indigo-500/20 border border-blue-500/40 flex items-center justify-center shrink-0 shadow-inner">
+            <i data-lucide="sparkles" class="w-5 h-5 text-blue-400"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="text-xs font-bold text-amber-300 truncate">🌟 កាតកិត្តិយស & ការដឹងគុណ</h4>
-            <p class="text-[10px] text-slate-400 truncate">ស្ថាបនិក • គណៈគ្រប់គ្រង • អ្នករៀបចំប្រព័ន្ធ</p>
+            <div class="flex items-center gap-1.5 mb-0.5">
+              <h4 class="text-xs font-bold text-white group-hover:text-blue-300 transition truncate">អត្ថប្រយោជន៍ & ស្លាយបទបង្ហាញ</h4>
+              <span class="px-1.5 py-0.5 rounded-full bg-blue-500/25 border border-blue-500/40 text-[9px] font-bold text-blue-300 whitespace-nowrap">MC & សមាជិក</span>
+            </div>
+            <p class="text-[10px] text-slate-300 truncate">អ្នកប្រើប្រាស់ទូទៅ • ក្រុមការងារលក់ • អ្នកដឹកនាំ</p>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-blue-400/70 group-hover:translate-x-0.5 transition shrink-0"></i>
+      </button>
+
+      <!-- Honors & Dedication Quick Banner (កាតកិត្តិយស & ការដឹងគុណ) -->
+      <button type="button" onclick="openHonorsModal('honors')" class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-yellow-500/10 border border-amber-500/30 hover:border-amber-400/45 text-left active:scale-[0.98] transition mb-3 shadow-md group flex items-center justify-between">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
+            <i data-lucide="award" class="w-5 h-5 text-amber-400"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 mb-0.5">
+              <h4 class="text-xs font-bold text-amber-300 truncate">🌟 កាតកិត្តិយស & ការដឹងគុណ</h4>
+              <span class="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/35 text-[9px] font-bold text-amber-300 whitespace-nowrap">Bostar Leadership</span>
+            </div>
+            <p class="text-[10px] text-slate-300 truncate">ស្ថាបនិក • គណៈគ្រប់គ្រង • អ្នករៀបចំប្រព័ន្ធ</p>
           </div>
         </div>
         <i data-lucide="chevron-right" class="w-4 h-4 text-amber-400/70 group-hover:translate-x-0.5 transition shrink-0"></i>
@@ -5710,7 +5746,7 @@
   <!-- ======================================================== -->
   <!-- FULL-SCREEN BOSTAR HONORS & DEDICATION MODAL (100% SCREEN VIEW) -->
   <!-- ======================================================== -->
-  <div id="honors-modal" class="fixed inset-0 z-[70] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300">
+  <div id="honors-modal" class="fixed inset-0 z-[100] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300">
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in relative">
       
       <!-- Top Modal Header -->
@@ -5723,14 +5759,19 @@
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
           </button>
 
-          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0 shadow-sm">
+          <div id="honors-header-icon" class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0 shadow-sm">
             <i data-lucide="award" class="w-4 h-4"></i>
           </div>
           <div class="min-w-0 truncate">
-            <h3 class="font-bold text-sm text-white leading-tight truncate">កាតកិត្តិយស & ការដឹងគុណ</h3>
-            <p class="text-[11px] text-slate-400 mt-0.5 truncate">BostarGroup Leadership Plaque</p>
+            <h3 id="honors-header-title" class="font-bold text-sm text-white leading-tight truncate">កាតកិត្តិយស & ការដឹងគុណ</h3>
+            <p id="honors-header-subtitle" class="text-[11px] text-slate-400 mt-0.5 truncate">BostarGroup Leadership Plaque</p>
           </div>
         </div>
+      </div>
+
+      <!-- Tab Switcher for Outer Gate Mode (Honors vs Benefits for MC) -->
+      <div id="honors-tab-switcher" class="hidden px-4 py-2 bg-[#08101E] border-b border-white/10 shrink-0">
+        <!-- Rendered dynamically -->
       </div>
 
       <!-- Scrollable Honors Content -->
@@ -6741,6 +6782,6 @@
   </div>
 
   <script src="dataService.js?v=7.7"></script>
-  <script src="app.js?v=49.0"></script>
+  <script src="app.js?v=49.1"></script>
 </body>
 </html>

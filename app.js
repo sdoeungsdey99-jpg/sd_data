@@ -16587,158 +16587,500 @@ function closeAboutModal(e) {
 }
 
 // ========================================================
-// FULL-SCREEN BOSTAR HONORS & DEDICATION MODAL
+// FULL-SCREEN BOSTAR HONORS & MC PRESENTATION MODAL
 // ========================================================
+window._currentHonorsTab = 'honors';
+
+function switchHonorsTab(tab) {
+  window._currentHonorsTab = tab;
+  renderHonorsModalContent();
+  const honorsBody = document.getElementById('honors-modal-body');
+  if (honorsBody) honorsBody.scrollTop = 0;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+window.switchHonorsTab = switchHonorsTab;
+
 function renderHonorsModalContent() {
   const isKm = appState.language === 'km';
   const container = document.getElementById('honors-modal-body');
   if (!container) return;
 
-  container.innerHTML = `
-    <!-- Top Prestige Banner -->
-    <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent border border-amber-500/30 text-center relative overflow-hidden shadow-xl">
-      <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-amber-500/20 blur-3xl pointer-events-none"></div>
-      <div class="relative z-10 flex flex-col items-center">
-        <!-- Cosmic Celestial Aura & Bostar 3D Gold Crest (No outer frame) -->
-        <div class="relative w-28 h-28 flex items-center justify-center mb-1.5">
-          <!-- Subtle Cosmic Universe Halo -->
-          <div class="absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(251,191,36,0.26)_0%,rgba(147,51,234,0.18)_35%,rgba(30,58,138,0.14)_60%,transparent_75%)] blur-md cosmic-halo-breath pointer-events-none"></div>
-          <div class="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.16)_0%,transparent_70%)] blur-xl pointer-events-none"></div>
-          <!-- Subtle cosmic starlight dust sparkles -->
-          <div class="absolute inset-0 pointer-events-none opacity-65 celestial-star-twinkle" style="background-image: radial-gradient(1.5px 1.5px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 78% 22%, #fde047, transparent), radial-gradient(1.5px 1.5px at 82% 65%, #fff, transparent), radial-gradient(1px 1px at 28% 78%, #93c5fd, transparent), radial-gradient(1.5px 1.5px at 62% 86%, #fde047, transparent);"></div>
-          <!-- 3D Gold Bostar Emblem -->
-          <img src="bostar-gold-crest.png" alt="BostarGroup" class="relative z-10 w-24 h-24 object-contain filter drop-shadow-[0_6px_22px_rgba(245,158,11,0.55)] drop-shadow-[0_0_15px_rgba(251,191,36,0.35)] active:scale-95 transition-transform duration-300">
+  const gate = document.getElementById('onboarding-gate');
+  const isGateOpen = gate && !gate.classList.contains('hidden');
+  
+  // If inside the app, STRICTLY force honors tab only (Benefits are ONLY for outer onboarding screen)
+  const currentTab = isGateOpen ? (window._currentHonorsTab || 'honors') : 'honors';
+
+  // Toggle tab switcher visibility
+  const tabSwitcher = document.getElementById('honors-tab-switcher');
+  if (tabSwitcher) {
+    if (isGateOpen) {
+      tabSwitcher.classList.remove('hidden');
+      const isBenefits = currentTab === 'benefits';
+      tabSwitcher.innerHTML = `
+        <div class="flex items-center p-1 rounded-xl bg-white/[0.05] border border-white/10 gap-1.5 max-w-sm mx-auto">
+          <button type="button" onclick="switchHonorsTab('benefits')" 
+                  class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${isBenefits ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 border border-blue-400/40' : 'text-slate-400 hover:text-white'}">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 ${isBenefits ? 'text-blue-200' : 'text-blue-400'}"></i>
+            <span>${isKm ? 'អត្ថប្រយោជន៍ (MC)' : 'Benefits (MC)'}</span>
+          </button>
+          <button type="button" onclick="switchHonorsTab('honors')" 
+                  class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${!isBenefits ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/20 border border-amber-400/40' : 'text-slate-400 hover:text-white'}">
+            <i data-lucide="award" class="w-3.5 h-3.5 ${!isBenefits ? 'text-amber-200' : 'text-amber-400'}"></i>
+            <span>${isKm ? 'កាតកិត្តិយស' : 'Honors Plaque'}</span>
+          </button>
         </div>
-        <span class="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 font-black text-xs tracking-wider uppercase mb-1.5 shadow-sm">
-          ★ BOSTAR GROUP LEADERSHIP ★
-        </span>
-        <h2 class="text-lg font-black text-white brand-title tracking-wide">កាតកិត្តិយស & ការដឹងគុណ</h2>
-        <p class="text-[11px] text-slate-300 max-w-xs mt-1 leading-relaxed">
-          សូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះគណៈស្ថាបនិក និងថ្នាក់ដឹកនាំទាំងអស់
+      `;
+    } else {
+      tabSwitcher.classList.add('hidden');
+      tabSwitcher.innerHTML = '';
+    }
+  }
+
+  // Update header title, subtitle & icon
+  const headerIcon = document.getElementById('honors-header-icon');
+  const headerTitle = document.getElementById('honors-header-title');
+  const headerSubtitle = document.getElementById('honors-header-subtitle');
+
+  if (currentTab === 'benefits' && isGateOpen) {
+    if (headerIcon) {
+      headerIcon.className = "w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0 shadow-sm";
+      headerIcon.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i>`;
+    }
+    if (headerTitle) headerTitle.textContent = isKm ? 'អត្ថប្រយោជន៍ & ស្លាយ MC' : 'App Benefits & MC Slides';
+    if (headerSubtitle) headerSubtitle.textContent = isKm ? '៣ ក្រុមគោលដៅ • ស្លាយបទបង្ហាញ' : '3 Target Pillars • MC Presentation';
+
+    // RENDER APP BENEFITS FOR MC & VISITORS
+    container.innerHTML = `
+      <!-- Top MC Presentation Hero Banner -->
+      <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-transparent border border-blue-500/30 text-center relative overflow-hidden shadow-xl">
+        <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-blue-500/20 blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col items-center">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20 mb-2">
+            <i data-lucide="presentation" class="w-7 h-7 text-white"></i>
+          </div>
+          <span class="px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/35 text-blue-300 font-black text-[10.5px] tracking-wider uppercase mb-1.5 shadow-sm">
+            ★ MC PRESENTATION SLIDES ★
+          </span>
+          <h2 class="text-lg font-black text-white brand-title tracking-wide leading-snug">
+            ${isKm ? 'អត្ថប្រយោជន៍ & ភាពងាយស្រួលនៃប្រព័ន្ធ' : 'App Benefits & Key Values'}
+          </h2>
+          <p class="text-[11px] text-slate-300 max-w-sm mt-1 leading-relaxed">
+            ${isKm ? 'ដំណោះស្រាយគ្រប់គ្រងការលក់ស្តង់ដារឌីជីថល ឆ្លើយតបគ្រប់តម្រូវការជាក់ស្តែងទាំង ៣ កម្រិត' : 'Standardized digital sales management system covering 3 key pillars'}
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Pill Index for MC -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="p-2 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 text-center">
+          <div class="text-[12px] font-black text-cyan-400">១. ទូទៅ</div>
+          <div class="text-[9px] text-slate-400 truncate">General Users</div>
+        </div>
+        <div class="p-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-center">
+          <div class="text-[12px] font-black text-emerald-400">២. ក្រុមលក់</div>
+          <div class="text-[9px] text-slate-400 truncate">Sales Team</div>
+        </div>
+        <div class="p-2 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-center">
+          <div class="text-[12px] font-black text-amber-400">៣. ថ្នាក់ដឹកនាំ</div>
+          <div class="text-[9px] text-slate-400 truncate">Leaders</div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SLIDE 1: 👥 ១. អ្នកប្រើប្រាស់ទូទៅ (General Users) -->
+      <!-- ============================================== -->
+      <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-cyan-500/15 via-white/[0.03] to-transparent border border-cyan-500/35 relative overflow-hidden shadow-xl text-left">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+              <i data-lucide="users" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-mono font-bold text-cyan-300 uppercase tracking-wider">PILLAR 01</span>
+              <h3 class="text-sm font-black text-white leading-tight">អ្នកប្រើប្រាស់ទូទៅ (General Users)</h3>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/35 text-cyan-300 font-bold text-[10px]">
+            ✨ ងាយស្រួលបំផុត
+          </span>
+        </div>
+
+        <div class="space-y-2.5 text-xs text-slate-200">
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="zap" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">តភ្ជាប់រហ័សក្នុង ៣ វិនាទី (Instant Setup)</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                មិនបាច់ដំឡើង ឬចាំ Password ស្មុគស្មាញ គ្រាន់តែ Copy link Google Sheet គំរូ យកមក Paste គឺចូលប្រើប្រាស់បានភ្លាម។
+              </p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="copy" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">ចម្លងគំរូ Sheet ស្តង់ដារដោយ ១ ឃ្លីក (One-Tap Template)</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                មានប៊ូតុង «ចម្លងគំរូ Sheet ថ្មី» រៀបចំរូបមន្តគណនា និងទម្រង់ស្រេច ១០០% មិនបាច់ចេះបច្ចេកទេសស្មុគស្មាញ។
+              </p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="smartphone" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">ប្រើប្រាស់បានគ្រប់ឧបករណ៍ (Cross-Platform)</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                គាំទ្រយ៉ាងពេញលេញលើ iPhone (iOS), Android និងកុំព្យូទ័រ ដោយមិនស៊ីទំហំទូរស័ព្ទ (PWA Web App)។
+              </p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="shield" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">សុវត្ថិភាពទិន្នន័យផ្ទាល់ខ្លួន ១០០% (Data Privacy)</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                ទិន្នន័យស្ថិតនៅលើ Google Drive ផ្ទាល់ខ្លួនរបស់អ្នក គ្មាននរណាម្នាក់អាចមើលឃើញ ឬលួចយកបានឡើយ។
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SLIDE 2: 💼 ២. ក្រុមការងារលក់ (Sales Team)     -->
+      <!-- ============================================== -->
+      <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-emerald-500/15 via-white/[0.03] to-transparent border border-emerald-500/35 relative overflow-hidden shadow-xl text-left">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+              <i data-lucide="trending-up" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-mono font-bold text-emerald-300 uppercase tracking-wider">PILLAR 02</span>
+              <h3 class="text-sm font-black text-white leading-tight">ក្រុមការងារលក់ (Sales Team)</h3>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/35 text-emerald-300 font-bold text-[10px]">
+            🚀 បង្កើនល្បឿនលក់
+          </span>
+        </div>
+
+        <div class="space-y-2.5 text-xs text-slate-200">
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="bar-chart-2" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">តាមដានការលក់ & ប្រាក់ចំណូលជាក់ស្តែង (Real-Time)</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                ដឹងចំនួនកញ្ចប់លក់ប្រចាំថ្ងៃ សប្តាហ៍ និងខែភ្លាមៗ ទាំងការលក់ក្នុងស្រុក និង COD ក្រៅប្រទេស (ថៃ)។
+              </p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="badge-dollar-sign" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">គណនាកម្រៃជើងសារ (Commission & Profit) ស្វ័យប្រវត្ត</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                គណនាប្រាក់ចំណេញសុទ្ធ និងប្រាក់កម្រៃជើងសារដោយស្វ័យប្រវត្ត មិនបាច់ចំណាយពេលចុចម៉ាស៊ីនគិតលេខ។
+              </p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="send" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">ចម្លង Statement ផ្ញើ Telegram ដោយ ១ ឃ្លីក</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                មានប៊ូតុង One-Tap Copy រៀបចំរបាយការណ៍លក់ជាអក្សរស្អាតបាត ផ្ញើចូលគ្រុប Telegram ក្រុមការងារបានលឿន។
+              </p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="truck" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">គ្រប់គ្រងការដឹកជញ្ជូន & COD ថៃ រលូន</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                តាមដានស្ថានភាពទំនិញដឹកជញ្ជូន ជួយកាត់បន្ថយបញ្ហាទំនិញកកស្ទះ និងទារប្រាក់ COD បានគ្រប់ចំនួន។
+              </p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="arrow-left-right" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">បម្លែងរូបិយប័ណ្ណ ($, ៛, ฿) តាមហាងឆេងទិញចូល</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                គណនា និងបម្លែងតម្លៃស្វ័យប្រវត្ត ជាមួយការកំណត់ហាងឆេងទិញចូលត្រឹមត្រូវ និងច្បាស់លាស់។
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SLIDE 3: 👑 ៣. អ្នកដឹកនាំ (Leaders / Management) -->
+      <!-- ============================================== -->
+      <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/35 relative overflow-hidden shadow-xl text-left">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+              <i data-lucide="crown" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-mono font-bold text-amber-300 uppercase tracking-wider">PILLAR 03</span>
+              <h3 class="text-sm font-black text-white leading-tight">អ្នកដឹកនាំ (Leaders / Management)</h3>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/35 text-amber-300 font-bold text-[10px]">
+            👑 ការគ្រប់គ្រងជាន់ខ្ពស់
+          </span>
+        </div>
+
+        <div class="space-y-2.5 text-xs text-slate-200">
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="pie-chart" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">ផ្ទាំងវិភាគទូទៅកម្រិតកំពូល (Executive Analytics Hero)</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                មើលឃើញសុខភាពអាជីវកម្មទាំងមូលក្នុងមួយភ្លែត រួមមានចំណូលសរុប ប្រាក់ចំណេញ និងកំណើនប្រចាំខែ/ឆ្នាំ។
+              </p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="award" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">តាមដានកម្លាំងលក់ & សមិទ្ធផលក្រុម (Team Performance)</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                ពិនិត្យទិន្នន័យរួមនៃក្រុមការងារ ដើម្បីលើកទឹកចិត្ត និងផ្តល់រង្វាន់ដល់បុគ្គលិកឆ្នើមបានច្បាស់លាស់ និងយុត្តិធម៌។
+              </p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="wallet" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">ត្រួតពិនិត្យសមតុល្យធនាគារជាក់ស្តែង (Cash Flow Control)</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                ផ្ទៀងផ្ទាត់សមតុល្យសាច់ប្រាក់ជាក់ស្តែងក្នុងធនាគារ (ABA, Wing, TrueMoney) ការពារការបាត់បង់លុយកាក់ និងចន្លោះប្រហោង។
+              </p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
+            <div class="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="shield-check" class="w-3 h-3"></i>
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-bold text-white text-[11.5px] leading-snug">ប្រព័ន្ធ Master Admin ឯកសិទ្ធិពិសេស (Central Admin)</h4>
+              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
+                មានប្រព័ន្ធគ្រប់គ្រងកណ្តាលការពារដោយលេខកូដសម្ងាត់ស្តង់ដារសុវត្ថិភាពខ្ពស់ សម្រាប់តែថ្នាក់ដឹកនាំជាន់ខ្ពស់។
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MC Script Speaking Cue -->
+      <div class="w-full p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-left">
+        <div class="flex items-center gap-2 mb-1.5 text-indigo-300 font-bold text-xs">
+          <i data-lucide="mic" class="w-4 h-4 text-indigo-400"></i>
+          <span>🎙️ គន្លឹះសម្រាប់ MC ធ្វើបទបង្ហាញ (MC Script Cue)</span>
+        </div>
+        <p class="text-[11px] text-slate-300 leading-relaxed italic">
+          «សួស្តីបងប្អូនទាំងអស់គ្នា! BostarGroup SD Dashboard ត្រូវបានបង្កើតឡើងដើម្បីដោះស្រាយការងារជាក់ស្តែងទាំង ៣ កម្រិត៖ អ្នកប្រើប្រាស់ទូទៅងាយស្រួលភ្ជាប់ភ្លាមៗក្នុង ៣ វិនាទី, ក្រុមការងារលក់មានឧបករណ៍គណនា Commission និង Copy Statement រហ័ស, ហើយថ្នាក់ដឹកនាំមាន Dashboard តាមដានលំហូរសាច់ប្រាក់ និងសុខភាពអាជីវកម្មយ៉ាងពេញលេញ!»
         </p>
       </div>
-    </div>
 
-    <!-- 1. អ្នកបណ្តុះបណ្តាល៖ លោកអគ្គនាយក វណ្ណ ស៊ីថា (Corporate Coach & CEO) -->
-    <div class="w-full p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/35 relative overflow-hidden shadow-xl text-left">
-      <div class="flex items-center justify-between mb-2.5">
-        <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
-          <span>🎓</span>
-          <span>${isKm ? 'អ្នកបណ្តុះបណ្តាល' : 'Corporate Coach / Trainer'}</span>
-        </span>
-        <span class="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono text-[10px] font-bold">CEO</span>
+      <!-- Action Button to Switch to Honors or Close -->
+      <div class="pt-2 flex items-center gap-2">
+        <button type="button" onclick="switchHonorsTab('honors')" 
+                class="flex-1 py-3 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/35 text-amber-300 font-bold text-xs active:scale-[0.98] transition flex items-center justify-center gap-2">
+          <i data-lucide="award" class="w-4 h-4"></i>
+          <span>មើលកាតកិត្តិយស & ការដឹងគុណ</span>
+        </button>
+        <button type="button" onclick="closeHonorsModal()" 
+                class="px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold text-xs active:scale-[0.98] transition">
+          <span>បិទ</span>
+        </button>
       </div>
-      <div class="flex items-center gap-3 sm:gap-3.5">
-        <div class="relative shrink-0">
-          <img src="ceo-vann-sitha.jpg?v=2" alt="Vann Sitha" 
-               class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-amber-400 shadow-xl" style="width:72px; height:72px;">
-          <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
-        </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-base font-black text-white brand-title leading-tight">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
-          <p class="text-xs text-amber-300 font-bold tracking-wide mt-0.5">VANN SITHA</p>
-          <div class="mt-1.5">
-            <span class="inline-block px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[10px] border border-amber-500/40 leading-snug">
-              អគ្គនាយកក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក
-            </span>
+    `;
+  } else {
+    // RENDER HONORS PLAQUE (Original content)
+    container.innerHTML = `
+      <!-- Top Prestige Banner -->
+      <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent border border-amber-500/30 text-center relative overflow-hidden shadow-xl">
+        <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-amber-500/20 blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col items-center">
+          <!-- Cosmic Celestial Aura & Bostar 3D Gold Crest (No outer frame) -->
+          <div class="relative w-28 h-28 flex items-center justify-center mb-1.5">
+            <!-- Subtle Cosmic Universe Halo -->
+            <div class="absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(251,191,36,0.26)_0%,rgba(147,51,234,0.18)_35%,rgba(30,58,138,0.14)_60%,transparent_75%)] blur-md cosmic-halo-breath pointer-events-none"></div>
+            <div class="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.16)_0%,transparent_70%)] blur-xl pointer-events-none"></div>
+            <!-- Subtle cosmic starlight dust sparkles -->
+            <div class="absolute inset-0 pointer-events-none opacity-65 celestial-star-twinkle" style="background-image: radial-gradient(1.5px 1.5px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 78% 22%, #fde047, transparent), radial-gradient(1.5px 1.5px at 82% 65%, #fff, transparent), radial-gradient(1px 1px at 28% 78%, #93c5fd, transparent), radial-gradient(1.5px 1.5px at 62% 86%, #fde047, transparent);"></div>
+            <!-- 3D Gold Bostar Emblem -->
+            <img src="bostar-gold-crest.png" alt="BostarGroup" class="relative z-10 w-24 h-24 object-contain filter drop-shadow-[0_6px_22px_rgba(245,158,11,0.55)] drop-shadow-[0_0_15px_rgba(251,191,36,0.35)] active:scale-95 transition-transform duration-300">
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. អ្នកផ្តើមគំនិតបង្កើត App៖ លោក ប៊ិច នោរ៉ា -->
-    <div class="w-full p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-orange-500/15 via-white/[0.03] to-transparent border border-orange-500/35 relative overflow-hidden shadow-xl text-left">
-      <div class="flex items-center justify-between mb-2.5">
-        <span class="px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
-          <span>💡</span>
-          <span>${isKm ? 'អ្នកផ្តើមគំនិតបង្កើត App' : 'App Visionary & Founder'}</span>
-        </span>
-        <span class="px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-300 font-mono text-[10px] font-bold">FOUNDER</span>
-      </div>
-      <div class="flex items-center gap-3 sm:gap-3.5">
-        <div class="relative shrink-0">
-          <img src="leader-bech-nora.jpg" alt="Bech Nora" 
-               class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-orange-400 shadow-xl" style="width:72px; height:72px;">
-          <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-white font-black shadow">✓</span>
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <h3 class="text-base font-black text-white brand-title leading-tight">លោក ប៊ិច នោរ៉ា</h3>
-            <img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" style="width: 16px; height: 16px;" title="Director Verified 🌟">
-          </div>
-          <p class="text-xs text-orange-300 font-bold tracking-wide mt-0.5">BECH NORA</p>
-          <div class="mt-1.5">
-            <span class="inline-block px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-300 font-bold text-[10px] border border-orange-500/40 leading-snug">
-              ស្ថាបនិក Bostar Group
-            </span>
-          </div>
+          <span class="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 font-black text-xs tracking-wider uppercase mb-1.5 shadow-sm">
+            ★ BOSTAR GROUP LEADERSHIP ★
+          </span>
+          <h2 class="text-lg font-black text-white brand-title tracking-wide">កាតកិត្តិយស & ការដឹងគុណ</h2>
+          <p class="text-[11px] text-slate-300 max-w-xs mt-1 leading-relaxed">
+            សូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះគណៈស្ថាបនិក និងថ្នាក់ដឹកនាំទាំងអស់
+          </p>
         </div>
       </div>
-    </div>
 
-    <!-- 3. ថ្នាក់ដឹកនាំគាំទ្រ (5 Managers) -->
-    <div class="w-full p-4 rounded-3xl bg-white/[0.03] border border-white/10 shadow-xl text-left">
-      <div class="flex items-center justify-between mb-3 px-0.5">
-        <span class="px-3 py-1 rounded-full bg-white/10 text-slate-300 font-bold text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
-          <span>🤝</span>
-          <span>${isKm ? 'ថ្នាក់ដឹកនាំគាំទ្រ (Managers)' : 'Supporting Managers'}</span>
-        </span>
-        <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-bold">5 រូប</span>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        <!-- 1. Hou Yarith -->
-        <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
-          <img src="leader-hou-yarith.jpg" alt="Hou Yarith" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
-          <div class="min-w-0">
-            <h4 class="text-xs font-bold text-white truncate">លោក ហ៊ួរ យ៉ារិទ្ធ</h4>
-            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager គ្រូបង្វឹកផ្នែកលក់</p>
-            <p class="text-[9px] text-slate-400 font-mono truncate">Hou_Yarith</p>
-          </div>
+      <!-- 1. អ្នកបណ្តុះបណ្តាល៖ លោកអគ្គនាយក វណ្ណ ស៊ីថា (Corporate Coach & CEO) -->
+      <div class="w-full p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/35 relative overflow-hidden shadow-xl text-left">
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+            <span>🎓</span>
+            <span>${isKm ? 'អ្នកបណ្តុះបណ្តាល' : 'Corporate Coach / Trainer'}</span>
+          </span>
+          <span class="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono text-[10px] font-bold">CEO</span>
         </div>
-
-        <!-- 2. Hem Chanthy -->
-        <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
-          <img src="leader-hem-chanthy.jpg" alt="Hem Chanthy" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
-          <div class="min-w-0">
-            <h4 class="text-xs font-bold text-white truncate">លោក ហែម ចន្ធី</h4>
-            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager គ្រូបង្វឹកចំណេះដឹងទូទៅ</p>
-            <p class="text-[9px] text-slate-400 font-mono truncate">Hem_Chanthy</p>
+        <div class="flex items-center gap-3 sm:gap-3.5">
+          <div class="relative shrink-0">
+            <img src="ceo-vann-sitha.jpg?v=2" alt="Vann Sitha" 
+                 class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-amber-400 shadow-xl" style="width:72px; height:72px;">
+            <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-black font-black shadow">★</span>
           </div>
-        </div>
-
-        <!-- 3. Sroeun Leanghak -->
-        <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
-          <img src="leader-sroeun-leanghak.jpg" alt="Sroeun Leanghak" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
-          <div class="min-w-0">
-            <h4 class="text-xs font-bold text-white truncate">លោក ស្រឿន លាងហាក់</h4>
-            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager បច្ចេកទេស</p>
-            <p class="text-[9px] text-slate-400 font-mono truncate">Sroeun_Leanghak</p>
-          </div>
-        </div>
-
-        <!-- 4. Bech Udom -->
-        <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
-          <img src="leader-bech-udom.jpg" alt="Bech Udom" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
-          <div class="min-w-0">
-            <h4 class="text-xs font-bold text-white truncate">លោក ប៊ិច ឧត្ដម</h4>
-            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager អ្នកបច្ចេកទេស</p>
-            <p class="text-[9px] text-slate-400 font-mono truncate">Bech_Udom</p>
-          </div>
-        </div>
-
-        <!-- 5. Sdey Sdoeung -->
-        <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition sm:col-span-2">
-          <img src="leader-sdey-sdoeung.jpg" alt="Sdey Sdoeung" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
-          <div class="min-w-0">
-            <h4 class="text-xs font-bold text-white truncate">លោក ស្ដី ស្ដើង</h4>
-            <p class="text-[10px] text-amber-300 truncate font-semibold">Manager បច្ចេកទេស និង អភិវឌ្ឍន៍កម្មវិធី</p>
-            <p class="text-[9px] text-slate-400 font-mono truncate">Sdey_Sdoeung</p>
+          <div class="min-w-0 flex-1">
+            <h3 class="text-base font-black text-white brand-title leading-tight">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
+            <p class="text-xs text-amber-300 font-bold tracking-wide mt-0.5">VANN SITHA</p>
+            <div class="mt-1.5">
+              <span class="inline-block px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-bold text-[10px] border border-amber-500/40 leading-snug">
+                អគ្គនាយកក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង ឯ.ក
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `;
+
+      <!-- 2. អ្នកផ្តើមគំនិតបង្កើត App៖ លោក ប៊ិច នោរ៉ា -->
+      <div class="w-full p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-orange-500/15 via-white/[0.03] to-transparent border border-orange-500/35 relative overflow-hidden shadow-xl text-left">
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-300 font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+            <span>💡</span>
+            <span>${isKm ? 'អ្នកផ្តើមគំនិតបង្កើត App' : 'App Visionary & Founder'}</span>
+          </span>
+          <span class="px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-300 font-mono text-[10px] font-bold">FOUNDER</span>
+        </div>
+        <div class="flex items-center gap-3 sm:gap-3.5">
+          <div class="relative shrink-0">
+            <img src="leader-bech-nora.jpg" alt="Bech Nora" 
+                 class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-orange-400 shadow-xl" style="width:72px; height:72px;">
+            <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-white font-black shadow">✓</span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <h3 class="text-base font-black text-white brand-title leading-tight">លោក ប៊ិច នោរ៉ា</h3>
+              <img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" style="width: 16px; height: 16px;" title="Director Verified 🌟">
+            </div>
+            <p class="text-xs text-orange-300 font-bold tracking-wide mt-0.5">BECH NORA</p>
+            <div class="mt-1.5">
+              <span class="inline-block px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-300 font-bold text-[10px] border border-orange-500/40 leading-snug">
+                ស្ថាបនិក Bostar Group
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. ថ្នាក់ដឹកនាំគាំទ្រ (5 Managers) -->
+      <div class="w-full p-4 rounded-3xl bg-white/[0.03] border border-white/10 shadow-xl text-left">
+        <div class="flex items-center justify-between mb-3 px-0.5">
+          <span class="px-3 py-1 rounded-full bg-white/10 text-slate-300 font-bold text-[10.5px] uppercase tracking-wider flex items-center gap-1.5">
+            <span>🤝</span>
+            <span>${isKm ? 'ថ្នាក់ដឹកនាំគាំទ្រ (Managers)' : 'Supporting Managers'}</span>
+          </span>
+          <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-bold">5 រូប</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <!-- 1. Hou Yarith -->
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
+            <img src="leader-hou-yarith.jpg" alt="Hou Yarith" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">លោក ហ៊ួរ យ៉ារិទ្ធ</h4>
+              <p class="text-[10px] text-amber-300 truncate font-semibold">Manager គ្រូបង្វឹកផ្នែកលក់</p>
+              <p class="text-[9px] text-slate-400 font-mono truncate">Hou_Yarith</p>
+            </div>
+          </div>
+
+          <!-- 2. Hem Chanthy -->
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
+            <img src="leader-hem-chanthy.jpg" alt="Hem Chanthy" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">លោក ហែម ចន្ធី</h4>
+              <p class="text-[10px] text-amber-300 truncate font-semibold">Manager គ្រូបង្វឹកចំណេះដឹងទូទៅ</p>
+              <p class="text-[9px] text-slate-400 font-mono truncate">Hem_Chanthy</p>
+            </div>
+          </div>
+
+          <!-- 3. Sroeun Leanghak -->
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
+            <img src="leader-sroeun-leanghak.jpg" alt="Sroeun Leanghak" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">លោក ស្រឿន លាងហាក់</h4>
+              <p class="text-[10px] text-amber-300 truncate font-semibold">Manager បច្ចេកទេស</p>
+              <p class="text-[9px] text-slate-400 font-mono truncate">Sroeun_Leanghak</p>
+            </div>
+          </div>
+
+          <!-- 4. Bech Udom -->
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition">
+            <img src="leader-bech-udom.jpg" alt="Bech Udom" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">លោក ប៊ិច ឧត្ដម</h4>
+              <p class="text-[10px] text-amber-300 truncate font-semibold">Manager អ្នកបច្ចេកទេស</p>
+              <p class="text-[9px] text-slate-400 font-mono truncate">Bech_Udom</p>
+            </div>
+          </div>
+
+          <!-- 5. Sdey Sdoeung -->
+          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3 hover:bg-white/[0.06] transition sm:col-span-2">
+            <img src="leader-sdey-sdoeung.jpg" alt="Sdey Sdoeung" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/15 shadow">
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">លោក ស្ដី ស្ដើង</h4>
+              <p class="text-[10px] text-amber-300 truncate font-semibold">Manager បច្ចេកទេស និង អភិវឌ្ឍន៍កម្មវិធី</p>
+              <p class="text-[9px] text-slate-400 font-mono truncate">Sdey_Sdoeung</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -16780,13 +17122,15 @@ function hookHonorsModalGestures() {
   }, { passive: true });
 }
 
-function openHonorsModal() {
+function openHonorsModal(tab = 'honors') {
   const modal = document.getElementById('honors-modal');
   if (modal) {
-    renderHonorsModalContent();
-    modal.classList.remove('hidden');
     const gate = document.getElementById('onboarding-gate');
     const isGateOpen = gate && !gate.classList.contains('hidden');
+    // If inside app, strictly stay on 'honors'. If on gate, support both tabs.
+    window._currentHonorsTab = isGateOpen ? (tab || 'honors') : 'honors';
+    renderHonorsModalContent();
+    modal.classList.remove('hidden');
     if (!isGateOpen) {
       setDockVisible(true);
       const honorsBody = document.getElementById('honors-modal-body');
