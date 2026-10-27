@@ -13356,17 +13356,17 @@ function setThaiCodPhaseFilter(phase) {
   
   if (phase === 'tick') {
     if (tickBtn) {
-      tickBtn.className = 'thai-cod-pill px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5 shadow-sm';
+      tickBtn.className = 'thai-cod-pill w-full h-9 px-3 rounded-xl font-bold text-xs whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center gap-1.5 shadow-sm';
     }
     if (dropdownBtn) {
-      dropdownBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center gap-1.5 shadow-sm';
+      dropdownBtn.className = 'w-full h-9 px-3 rounded-xl text-xs font-bold transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center justify-center gap-1.5 shadow-sm';
     }
   } else {
     if (tickBtn) {
-      tickBtn.className = 'thai-cod-pill px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center gap-1.5 shadow-sm';
+      tickBtn.className = 'thai-cod-pill w-full h-9 px-3 rounded-xl font-bold text-xs whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center justify-center gap-1.5 shadow-sm';
     }
     if (dropdownBtn) {
-      dropdownBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center gap-1.5 shadow-sm';
+      dropdownBtn.className = 'w-full h-9 px-3 rounded-xl text-xs font-bold transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center justify-center gap-1.5 shadow-sm';
     }
     if (activeLabel && phaseLabels[phase]) {
       activeLabel.textContent = phaseLabels[phase];
@@ -13519,11 +13519,11 @@ function renderThaiCodOrders() {
         <span>កាលវិភាគគិតលុយ & របាយការណ៍</span>
       </div>
       <p class="text-[10.5px] text-slate-300 leading-relaxed">
-        • ការគិតលុយ Thai COD ត្រូវបានទូទាត់តាមជើង (ជើង ១ • ជើង ២ • ជើង ៣) ផ្អែកលើការទទួលជាក់ស្តែងរបស់អតិថិជន។
+        • ការគិតលុយ Thai COD ត្រូវបានទូទាត់តាមជើង ផ្អែកលើការទទួលជាក់ស្តែងរបស់អតិថិជន។
       </p>
       <div class="pt-1 border-t border-white/5 flex flex-col gap-1 text-[10px] text-slate-400 font-sans">
-        <p>💡 ចុចលើ <strong class="text-orange-300">Icon ប្រតិទិន 📅 នៅខាងស្តាំលើ</strong> ដើម្បីពិនិត្យកាលបរិច្ឆេទផ្ញើរបាយការណ៍ និងគិតលុយ COD!</p>
-        <p>📋 ចុចលើ <strong class="text-emerald-300">Icon ចម្លង 📋 នៅខាងស្តាំកាតសង្ខេប</strong> ដើម្បីចម្លង Statement បញ្ជីថ្ងៃ និងលេខកន្ទុយផ្ញើជូនអ្នកគិតលុយ COD ភ្លាមៗ!</p>
+        <p>💡 ចុច <strong class="text-orange-300">Icon ប្រតិទិន 📅 ខាងស្តាំលើ</strong> ដើម្បីពិនិត្យកាលបរិច្ឆេទផ្ញើរបាយការណ៍ និងគិតលុយ COD!</p>
+        <p>📋 ចុច <strong class="text-emerald-300">Icon ចម្លង 📋 លើកាតសង្ខេប</strong> ដើម្បីចម្លង Statement បញ្ជីថ្ងៃ និងលេខកន្ទុយផ្ញើជូនអ្នកគិតលុយ COD!</p>
       </div>
     </div>
   `;

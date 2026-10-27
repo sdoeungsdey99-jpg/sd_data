@@ -3953,25 +3953,25 @@
       <div id="cod-thai-view" class="hidden flex flex-col flex-1 overflow-hidden">
         <!-- Filter Pills Bar (Ticked Pill + Phase Dropdown) -->
         <div id="cod-thai-filter-bar" class="px-3 py-2 border-b border-white/10 bg-black/30 shrink-0">
-          <div class="flex items-center justify-between gap-2 max-w-sm mx-auto" id="cod-thai-filter-pills">
+          <div class="grid grid-cols-2 gap-2 max-w-sm mx-auto" id="cod-thai-filter-pills">
             <!-- Left: Ticked Pill -->
             <button onclick="setThaiCodPhaseFilter('tick')" data-phase="tick" id="btn-phase-tick" 
-                    class="thai-cod-pill px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5 shadow-sm">
+                    class="thai-cod-pill w-full h-9 px-3 rounded-xl font-bold text-xs whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center gap-1.5 shadow-sm">
               <span>✅ Ticked</span>
-              <span id="thai-cod-tick-count-badge" class="px-1.5 py-0.5 rounded-full bg-emerald-500/30 text-[10px] font-mono font-bold">0</span>
+              <span id="thai-cod-tick-count-badge" class="px-1.5 py-0.5 rounded-full bg-emerald-500/30 text-[10px] font-mono font-bold leading-none">0</span>
             </button>
 
             <!-- Right: Phase Dropdown -->
-            <div class="relative shrink-0">
+            <div class="relative w-full">
               <button type="button" id="btn-thai-cod-dropdown" onclick="toggleThaiCodPhaseDropdown(event)" 
-                      class="px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 bg-white/5 text-slate-200 hover:text-white border border-white/10 flex items-center gap-1.5 shadow-sm">
-                <span id="label-thai-cod-active-phase">🟡 ជើងទី ១ (1st)</span>
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" id="icon-thai-cod-dropdown-arrow"></i>
+                      class="w-full h-9 px-3 rounded-xl text-xs font-bold transition active:scale-95 bg-white/5 text-slate-200 hover:text-white border border-white/10 flex items-center justify-center gap-1.5 shadow-sm">
+                <span id="label-thai-cod-active-phase" class="truncate">🟡 ជើងទី ១ (1st)</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" id="icon-thai-cod-dropdown-arrow"></i>
               </button>
 
               <!-- Dropdown Menu -->
               <div id="menu-thai-cod-phase" 
-                   class="hidden absolute right-0 top-full mt-1.5 w-52 bg-[#0A1222]/95 backdrop-blur-2xl border border-white/15 shadow-2xl rounded-2xl p-1.5 z-50 divide-y divide-white/10 font-sans animate-fade-in select-none">
+                   class="hidden absolute right-0 top-full mt-1.5 w-full min-w-[200px] bg-[#0A1222]/95 backdrop-blur-2xl border border-white/15 shadow-2xl rounded-2xl p-1.5 z-50 divide-y divide-white/10 font-sans animate-fade-in select-none">
                 <div class="py-1">
                   <button type="button" onclick="selectThaiCodPhase('1st')" 
                           class="w-full px-3 py-2 text-left text-xs font-semibold rounded-xl flex items-center justify-between transition active:scale-95 text-slate-200 hover:bg-white/10 hover:text-white">
@@ -6717,6 +6717,6 @@
   </div>
 
   <script src="dataService.js?v=7.7"></script>
-  <script src="app.js?v=48.4"></script>
+  <script src="app.js?v=48.5"></script>
 </body>
 </html>
