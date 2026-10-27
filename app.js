@@ -27731,6 +27731,8 @@ function openNewOrderModal(mode = 'dock') {
       stockCapsuleBtn.classList.add('hidden');
       stockCapsuleBtn.style.display = 'none';
     }
+    const btnOriginalForm = document.getElementById('btn-order-original-form');
+    if (btnOriginalForm) btnOriginalForm.classList.add('hidden');
     // Telegram Mode: Restore Original Button!
     if (submitSlider) submitSlider.classList.add('hidden');
     if (sliderHint) sliderHint.classList.add('hidden');
@@ -27767,6 +27769,8 @@ function openNewOrderModal(mode = 'dock') {
       stockCapsuleBtn.title = 'ស្តុក';
       stockCapsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ស្តុក</span>`;
     }
+    const btnOriginalForm = document.getElementById('btn-order-original-form');
+    if (btnOriginalForm) btnOriginalForm.classList.remove('hidden');
     // Dock Mode: Slide to Submit
     if (submitSlider) {
       submitSlider.classList.remove('hidden');

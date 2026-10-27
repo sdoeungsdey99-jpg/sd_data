@@ -5886,21 +5886,33 @@
         <!-- Date & Mini Calendar (Outside Card, Left-aligned above ថ្នាក់ដឹកនាំ) -->
         <div class="px-1 space-y-1">
           <label id="order-label-date" class="block text-[11px] text-slate-400 font-semibold">កាលបរិច្ឆេទ:</label>
-          <div class="relative flex items-center w-36 max-w-full">
-            <input type="text" id="order-field-date-text" value="20/10/2026" placeholder="DD/MM/YYYY" 
-                   onfocus="openOrderDatePicker()" oninput="onOrderDateTextInput(this.value)" 
-                   class="w-full bg-black/50 border border-white/10 rounded-xl py-2 pl-3 pr-9 text-white font-mono text-xs focus:outline-none focus:border-orange-500 transition cursor-pointer">
-            <button type="button" onclick="toggleOrderMiniCalendar(event)" id="btn-toggle-mini-calendar" 
-                    class="absolute right-1 w-7 h-7 rounded-lg text-orange-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition" 
-                    title="ជ្រើសរើសប្រតិទិន">
-              <i data-lucide="calendar" class="w-4 h-4 pointer-events-none"></i>
-            </button>
-            <input type="hidden" id="order-field-date" value="2026-10-20">
+          <div class="flex items-center justify-between gap-2">
+            <div class="relative flex items-center w-36 max-w-full">
+              <input type="text" id="order-field-date-text" value="20/10/2026" placeholder="DD/MM/YYYY" 
+                     onfocus="openOrderDatePicker()" oninput="onOrderDateTextInput(this.value)" 
+                     class="w-full bg-black/50 border border-white/10 rounded-xl py-2 pl-3 pr-9 text-white font-mono text-xs focus:outline-none focus:border-orange-500 transition cursor-pointer">
+              <button type="button" onclick="toggleOrderMiniCalendar(event)" id="btn-toggle-mini-calendar" 
+                      class="absolute right-1 w-7 h-7 rounded-lg text-orange-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition" 
+                      title="ជ្រើសរើសប្រតិទិន">
+                <i data-lucide="calendar" class="w-4 h-4 pointer-events-none"></i>
+              </button>
+              <input type="hidden" id="order-field-date" value="2026-10-20">
 
-            <!-- iOS Style Mini Calendar Widget Popup -->
-            <div id="order-mini-calendar-popup" 
-                 class="hidden absolute z-50 top-full mt-2 left-0 w-[240px] bg-[#1C1C1E] border border-white/15 rounded-3xl p-3.5 shadow-2xl animate-fade-in font-sans select-none">
+              <!-- iOS Style Mini Calendar Widget Popup -->
+              <div id="order-mini-calendar-popup" 
+                   class="hidden absolute z-50 top-full mt-2 left-0 w-[240px] bg-[#1C1C1E] border border-white/15 rounded-3xl p-3.5 shadow-2xl animate-fade-in font-sans select-none">
+              </div>
             </div>
+
+            <!-- Right: Capsule Button "ទម្រង់ដើម" -->
+            <a id="btn-order-original-form" 
+               href="https://docs.google.com/forms/d/e/1FAIpQLSd_hP30dqB-F5gCV44AuxcftgmoDjo5zzkN-NSMiK-1rDEqPQ/viewform?usp=header" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               class="px-3.5 py-1.5 rounded-full bg-orange-500/15 hover:bg-orange-500/25 active:scale-95 border border-orange-500/40 text-xs font-bold text-orange-400 flex items-center justify-center shadow-sm transition select-none shrink-0" 
+               title="ទម្រង់ដើម">
+              ទម្រង់ដើម
+            </a>
           </div>
         </div>
 
@@ -6661,6 +6673,6 @@
   </div>
 
   <script src="dataService.js?v=7.7"></script>
-  <script src="app.js?v=47.9"></script>
+  <script src="app.js?v=48.0"></script>
 </body>
 </html>
