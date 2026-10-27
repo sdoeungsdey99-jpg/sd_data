@@ -6131,7 +6131,7 @@
           </span>
 
           <div class="grid grid-cols-2 gap-2.5">
-            <!-- Row 1: ក្រុមហ៊ុនដឹកជញ្ជូន (Left) | តម្លៃសរុប (Right) -->
+            <!-- Row 1: ក្រុមហ៊ុនដឹកជញ្ជូន (Left) | ស្ថានភាព (Right) -->
             <div class="relative">
               <div class="flex items-center justify-between mb-1 h-5">
                 <label id="order-label-delivery" class="text-[10px] text-slate-400 font-semibold truncate">ក្រុមហ៊ុនដឹកជញ្ជូន:</label>
@@ -6213,14 +6213,61 @@
               </div>
             </div>
 
-            <div>
+            <div class="relative">
               <div class="flex items-center justify-between mb-1 h-5">
-                <label id="order-label-total-usd" class="text-[10px] text-slate-400 font-semibold truncate">តម្លៃសរុប ($):</label>
+                <label id="order-label-cod-status" class="text-[10px] text-slate-400 font-semibold truncate">ស្ថានភាព:</label>
               </div>
-              <input type="number" step="0.01" id="order-field-total-usd" placeholder="0.00" oninput="calculateOrderFinancials()" class="w-full h-9 bg-black/50 border border-white/10 rounded-xl px-2.5 py-1.5 text-emerald-400 font-bold font-mono focus:outline-none focus:border-orange-500 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+              <button type="button" id="btn-order-cod-status-trigger" onclick="toggleOrderCodStatusDropdown(event)" 
+                      class="w-full h-9 bg-black/50 border border-white/10 hover:border-white/20 active:scale-[0.98] rounded-xl px-2.5 py-1.5 text-white text-xs flex items-center justify-between transition focus:outline-none focus:border-orange-500 shadow-sm">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span id="order-cod-status-dot" class="w-2 h-2 rounded-full bg-sky-400 shrink-0"></span>
+                  <span id="order-cod-status-disp" class="font-semibold truncate">បានដាក់ការកុម្ម៉ង់</span>
+                </div>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200" id="order-cod-status-chevron"></i>
+              </button>
+
+              <input type="hidden" id="order-field-cod-status" value="បានដាក់ការកុម្ម៉ង់">
+
+              <!-- Custom Dropdown Menu for COD Status -->
+              <div id="order-cod-status-dropdown-menu" 
+                   class="hidden absolute right-0 w-48 max-w-[calc(100vw-3rem)] top-full mt-1.5 bg-[#0D1829] backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl p-1 z-[60] divide-y divide-white/5 animate-fade-in select-none">
+                <div class="p-1 space-y-0.5">
+                  <button type="button" onclick="setOrderCodStatus('បានដាក់ការកុម្ម៉ង់')" class="w-full text-left px-2.5 py-1.5 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition">
+                    <span class="flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                      <span class="font-semibold">បានដាក់ការកុម្ម៉ង់</span>
+                    </span>
+                    <span id="order-status-check-ordered" class="text-orange-400 font-bold text-xs">✓</span>
+                  </button>
+                  <button type="button" onclick="setOrderCodStatus('មិនទាន់ទូទាត់')" class="w-full text-left px-2.5 py-1.5 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition">
+                    <span class="flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-orange-400"></span>
+                      <span class="font-semibold">មិនទាន់ទូទាត់</span>
+                    </span>
+                    <span id="order-status-check-unpaid" class="text-orange-400 font-bold text-xs hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="setOrderCodStatus('បានទូទាត់')" class="w-full text-left px-2.5 py-1.5 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition">
+                    <span class="flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                      <span class="font-semibold">បានទូទាត់</span>
+                    </span>
+                    <span id="order-status-check-paid" class="text-orange-400 font-bold text-xs hidden">✓</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <!-- Row 2: ថ្លៃដឹកជញ្ជូន (Left) | ថ្លៃដើមស្តុក (Right) -->
+            <!-- Row 2: ថ្លៃដើមស្តុក (Left) | ថ្លៃដឹកជញ្ជូន (Right) -->
+            <div>
+              <div class="flex items-center justify-between mb-1 h-5">
+                <span id="order-label-stock-text" class="text-[10px] text-slate-400 font-semibold truncate">ថ្លៃដើមស្តុក:</span>
+              </div>
+              <div class="w-full h-9 bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 flex items-center justify-between font-mono">
+                <span class="text-[10px] text-slate-500">Stock</span>
+                <span id="summary-stock-disp" class="text-rose-400 font-bold text-xs">$0.00</span>
+              </div>
+            </div>
+
             <div class="relative">
               <div class="flex items-center justify-between mb-1 h-5">
                 <label id="order-label-ship" class="text-[10px] text-slate-400 font-semibold truncate">ថ្លៃដឹកជញ្ជូន ($):</label>
@@ -6266,36 +6313,38 @@
               </div>
             </div>
 
-            <div>
-              <div class="flex items-center justify-between mb-1 h-5">
-                <span id="order-label-stock-text" class="text-[10px] text-slate-400 font-semibold truncate">ថ្លៃដើមស្តុក:</span>
-              </div>
-              <div class="w-full h-9 bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 flex items-center justify-between font-mono">
-                <span class="text-[10px] text-slate-500">Stock</span>
-                <span id="summary-stock-disp" class="text-rose-400 font-bold text-xs">$48.00</span>
-              </div>
-            </div>
-
-            <!-- Row 3: តម្លៃលក់ (Left) | ប្រាក់ចំណេញ (Right) -->
+            <!-- Row 3: តម្លៃលក់ (Left) | ប្តូររូបិយប័ណ្ណ (Right) -->
             <div>
               <div class="flex items-center justify-between mb-1 h-5">
                 <label id="order-label-price-raw" class="text-[10px] text-slate-400 font-semibold truncate">តម្លៃលក់:</label>
-                <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-black/60 border border-white/10 shrink-0" id="order-currency-switch">
-                  <button type="button" onclick="setOrderCurrency('KHR')" id="curr-btn-khr" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition bg-orange-500 text-white shadow-sm flex items-center justify-center min-w-[20px] leading-none">៛</button>
-                  <button type="button" onclick="setOrderCurrency('THB')" id="curr-btn-thb" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center min-w-[20px] leading-none">฿</button>
-                  <button type="button" onclick="setOrderCurrency('USD')" id="curr-btn-usd" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center min-w-[20px] leading-none">$</button>
-                </div>
               </div>
               <input type="number" id="order-field-price-raw" placeholder="0" oninput="onPriceRawInput(true)" class="w-full h-9 bg-black/50 border border-white/10 rounded-xl px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-orange-500 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
             </div>
 
             <div>
+              <div class="mb-1 h-5"></div>
+              <div class="flex items-center gap-2 h-9" id="order-currency-switch">
+                <button type="button" onclick="setOrderCurrency('KHR')" id="curr-btn-khr" class="w-8 h-8 rounded-lg font-mono font-bold text-xs flex items-center justify-center active:scale-90 transition shadow-sm bg-orange-500 text-white">៛</button>
+                <button type="button" onclick="setOrderCurrency('THB')" id="curr-btn-thb" class="w-8 h-8 rounded-lg font-mono font-bold text-xs flex items-center justify-center active:scale-90 transition shadow-sm bg-white/10 hover:bg-white/20 border border-white/20 text-slate-300">฿</button>
+                <button type="button" onclick="setOrderCurrency('USD')" id="curr-btn-usd" class="w-8 h-8 rounded-lg font-mono font-bold text-xs flex items-center justify-center active:scale-90 transition shadow-sm bg-white/10 hover:bg-white/20 border border-white/20 text-slate-300">$</button>
+              </div>
+            </div>
+
+            <!-- Row 4: តម្លៃសរុប (Left) | ប្រាក់ចំណេញ (Right) -->
+            <div>
               <div class="flex items-center justify-between mb-1 h-5">
-                <span id="order-label-profit-text" class="text-[10px] text-slate-400 font-semibold truncate">ប្រាក់ចំណេញ:</span>
+                <label id="order-label-total-usd" class="text-[10px] text-slate-400 font-semibold truncate">តម្លៃសរុប ($):</label>
+              </div>
+              <input type="number" step="0.01" id="order-field-total-usd" placeholder="0.00" oninput="calculateOrderFinancials()" class="w-full h-9 bg-black/50 border border-white/10 rounded-xl px-2.5 py-1.5 text-emerald-400 font-bold font-mono focus:outline-none focus:border-orange-500 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1 h-5">
+                <span id="order-label-profit-text" class="text-[10px] text-slate-400 font-semibold truncate">ប្រាក់ចំណេញ ($):</span>
               </div>
               <div class="w-full h-9 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-2.5 py-1.5 flex items-center justify-between font-mono">
                 <span class="text-[10px] text-emerald-400/80">Profit</span>
-                <span id="summary-profit-disp" class="text-emerald-400 font-bold text-sm">$39.00</span>
+                <span id="summary-profit-disp" class="text-emerald-400 font-bold text-sm">$0.00</span>
               </div>
             </div>
           </div>
@@ -6612,6 +6661,6 @@
   </div>
 
   <script src="dataService.js?v=7.7"></script>
-  <script src="app.js?v=47.7"></script>
+  <script src="app.js?v=47.8"></script>
 </body>
 </html>

@@ -27492,8 +27492,8 @@ function setOrderCurrency(curr) {
   const btnThb = document.getElementById('curr-btn-thb');
   const btnUsd = document.getElementById('curr-btn-usd');
 
-  const activeCls = 'px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition bg-orange-500 text-white shadow-sm flex items-center justify-center min-w-[20px] leading-none';
-  const inactiveCls = 'px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center min-w-[20px] leading-none';
+  const activeCls = 'w-8 h-8 rounded-lg font-mono font-bold text-xs flex items-center justify-center active:scale-90 transition shadow-sm bg-orange-500 text-white';
+  const inactiveCls = 'w-8 h-8 rounded-lg font-mono font-bold text-xs flex items-center justify-center active:scale-90 transition shadow-sm bg-white/10 hover:bg-white/20 border border-white/20 text-slate-300';
 
   if (btnKhr) btnKhr.className = (currentOrderCurrency === 'KHR' ? activeCls : inactiveCls);
   if (btnThb) btnThb.className = (currentOrderCurrency === 'THB' ? activeCls : inactiveCls);
@@ -27878,6 +27878,7 @@ function closeNewOrderModal() {
   if (delivMenu) delivMenu.classList.add('hidden');
   const shipMenu = document.getElementById('order-ship-presets-dropdown-menu');
   if (shipMenu) shipMenu.classList.add('hidden');
+  if (typeof closeOrderCodStatusDropdown === 'function') closeOrderCodStatusDropdown();
   if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
   modal.classList.add('hidden');
   setDockVisible(true);
@@ -28137,6 +28138,8 @@ function clearOrderInput() {
 
   const deliveryInput = document.getElementById('order-field-delivery');
   if (deliveryInput) deliveryInput.value = 'VET (COD)';
+  if (typeof syncOrderCarrierUI === 'function') syncOrderCarrierUI();
+  if (typeof setOrderCodStatus === 'function') setOrderCodStatus('បានដាក់ការកុម្ម៉ង់');
 
   const shipInput = document.getElementById('order-field-ship');
   if (shipInput) shipInput.value = '';
@@ -28724,6 +28727,7 @@ async function submitNewOrder() {
   const location = getVal('order-field-location');
   const customer = getVal('order-field-customer');
   const delivery = getVal('order-field-delivery') || 'VET (COD)';
+  const codStatus = getVal('order-field-cod-status') || 'បានដាក់ការកុម្ម៉ង់';
   const totalUsd = cleanNumber(getVal('order-field-total-usd')) || 90.00;
   const shipFee = cleanNumber(getVal('order-field-ship')) || 3.00;
   const priceRaw = cleanNumber(getVal('order-field-price-raw')) || 360000;
@@ -28862,7 +28866,7 @@ async function submitNewOrder() {
     shipFee: shipFee,
     stockCost: stockCost,
     deliveryMethod: delivery,
-    codStatus: 'បានដាក់ការកុម្ម៉ង់', // កំណត់ពាក្យ "បានដាក់ការកុម្ម៉ង់" ជា Default
+    codStatus: codStatus, // ស្ថានភាពដែលបានជ្រើសរើស (បានដាក់ការកុម្ម៉ង់, មិនទាន់ទូទាត់, បានទូទាត់)
     profit: profit,
     note: note,
     syncToBostarTrack: true,
@@ -29669,13 +29673,15 @@ function updateDeliveryShippingDefault() {
 }
 
 // ==========================================
-// Delivery & Shipping Fee Custom UI Controls
+// Delivery, COD Status & Shipping Fee Custom UI Controls
 // ==========================================
 function toggleOrderDeliveryDropdown(event) {
   if (event) event.stopPropagation();
   const menu = document.getElementById('order-delivery-dropdown-menu');
   const shipMenu = document.getElementById('order-ship-presets-dropdown-menu');
+  const statusMenu = document.getElementById('order-cod-status-dropdown-menu');
   if (shipMenu) shipMenu.classList.add('hidden');
+  if (statusMenu) statusMenu.classList.add('hidden');
   if (!menu) return;
   menu.classList.toggle('hidden');
   if (window.lucide) window.lucide.createIcons();
@@ -29685,10 +29691,67 @@ function toggleOrderShipPresetsDropdown(event) {
   if (event) event.stopPropagation();
   const menu = document.getElementById('order-ship-presets-dropdown-menu');
   const delivMenu = document.getElementById('order-delivery-dropdown-menu');
+  const statusMenu = document.getElementById('order-cod-status-dropdown-menu');
   if (delivMenu) delivMenu.classList.add('hidden');
+  if (statusMenu) statusMenu.classList.add('hidden');
   if (!menu) return;
   menu.classList.toggle('hidden');
   if (window.lucide) window.lucide.createIcons();
+}
+
+function toggleOrderCodStatusDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('order-cod-status-dropdown-menu');
+  const delivMenu = document.getElementById('order-delivery-dropdown-menu');
+  const shipMenu = document.getElementById('order-ship-presets-dropdown-menu');
+  if (delivMenu) delivMenu.classList.add('hidden');
+  if (shipMenu) shipMenu.classList.add('hidden');
+  if (!menu) return;
+  menu.classList.toggle('hidden');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeOrderCodStatusDropdown() {
+  const menu = document.getElementById('order-cod-status-dropdown-menu');
+  if (menu) menu.classList.add('hidden');
+}
+
+function setOrderCodStatus(statusVal) {
+  const hiddenInput = document.getElementById('order-field-cod-status');
+  if (hiddenInput) {
+    hiddenInput.value = statusVal;
+  }
+  syncOrderCodStatusUI();
+  closeOrderCodStatusDropdown();
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function syncOrderCodStatusUI() {
+  const hiddenInput = document.getElementById('order-field-cod-status');
+  const disp = document.getElementById('order-cod-status-disp');
+  const dot = document.getElementById('order-cod-status-dot');
+  const val = hiddenInput?.value || 'បានដាក់ការកុម្ម៉ង់';
+  if (disp) disp.textContent = val;
+
+  if (dot) {
+    if (val === 'បានទូទាត់') dot.className = 'w-2 h-2 rounded-full bg-emerald-400 shrink-0';
+    else if (val === 'មិនទាន់ទូទាត់') dot.className = 'w-2 h-2 rounded-full bg-orange-400 shrink-0';
+    else dot.className = 'w-2 h-2 rounded-full bg-sky-400 shrink-0';
+  }
+
+  const map = {
+    'បានដាក់ការកុម្ម៉ង់': 'order-status-check-ordered',
+    'មិនទាន់ទូទាត់': 'order-status-check-unpaid',
+    'បានទូទាត់': 'order-status-check-paid'
+  };
+
+  Object.entries(map).forEach(([k, checkId]) => {
+    const el = document.getElementById(checkId);
+    if (el) {
+      if (k === val) el.classList.remove('hidden');
+      else el.classList.add('hidden');
+    }
+  });
 }
 
 function setOrderCarrier(carrierVal) {
@@ -29762,7 +29825,7 @@ function syncOrderShipUI() {
   });
 }
 
-// Global click handler to close order delivery, ship preset, and team dropdowns when tapping outside
+// Global click handler to close order delivery, COD status, ship preset, and team dropdowns when tapping outside
 document.addEventListener('click', (e) => {
   if (!e.target.closest('#group-order-team')) {
     closeOrderTeamDropdown();
@@ -29770,6 +29833,9 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('#btn-order-delivery-trigger') && !e.target.closest('#order-delivery-dropdown-menu')) {
     const menu = document.getElementById('order-delivery-dropdown-menu');
     if (menu) menu.classList.add('hidden');
+  }
+  if (!e.target.closest('#btn-order-cod-status-trigger') && !e.target.closest('#order-cod-status-dropdown-menu')) {
+    closeOrderCodStatusDropdown();
   }
   if (!e.target.closest('#order-field-ship') && !e.target.closest('#order-ship-presets-dropdown-menu') && !e.target.closest('[onclick*="toggleOrderShipPresetsDropdown"]')) {
     const menu = document.getElementById('order-ship-presets-dropdown-menu');
@@ -29944,6 +30010,10 @@ window.updateDeliveryShippingDefault = updateDeliveryShippingDefault;
 window.updateModalLanguage = updateModalLanguage;
 window.toggleOrderDeliveryDropdown = toggleOrderDeliveryDropdown;
 window.toggleOrderShipPresetsDropdown = toggleOrderShipPresetsDropdown;
+window.toggleOrderCodStatusDropdown = toggleOrderCodStatusDropdown;
+window.closeOrderCodStatusDropdown = closeOrderCodStatusDropdown;
+window.setOrderCodStatus = setOrderCodStatus;
+window.syncOrderCodStatusUI = syncOrderCodStatusUI;
 window.setOrderCarrier = setOrderCarrier;
 window.setOrderShippingFee = setOrderShippingFee;
 window.syncOrderCarrierUI = syncOrderCarrierUI;
