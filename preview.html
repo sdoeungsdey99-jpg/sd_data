@@ -3913,8 +3913,9 @@
           </div>
         </div>
         <div class="relative shrink-0 z-50">
-          <button onclick="openThaiCodScheduleModal()" class="w-8 h-8 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 active:scale-95 border border-orange-500/30 text-orange-400 flex items-center justify-center shrink-0 transition" title="កាលវិភាគទម្លាក់អីវ៉ាន់ Thai COD">
+          <button onclick="openThaiCodScheduleModal()" class="w-8 h-8 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 active:scale-95 border border-orange-500/30 text-orange-400 flex items-center justify-center shrink-0 transition relative group" title="កាលវិភាគថ្ងៃគិតលុយ Thai COD">
             <i data-lucide="calendar" class="w-4 h-4"></i>
+            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-orange-500 border border-[#0B1528] shadow-sm animate-pulse" title="កាលវិភាគថ្ងៃគិតលុយ"></span>
           </button>
         </div>
       </div>
@@ -3950,16 +3951,55 @@
 
       <!-- VIEW 2: Thai COD Detailed Settlement (1st, 2nd, 3rd Phases) -->
       <div id="cod-thai-view" class="hidden flex flex-col flex-1 overflow-hidden">
-        <!-- Filter Pills Bar (Clean single line centered) -->
-        <div id="cod-thai-filter-bar" class="px-1 sm:px-2 py-1.5 border-b border-white/10 bg-black/30 shrink-0 flex items-center justify-center">
-          <div class="flex items-center justify-center gap-1 overflow-x-auto no-scrollbar text-[10px] sm:text-[10.5px] w-full" id="cod-thai-filter-pills">
-            <button onclick="setThaiCodPhaseFilter('tick')" data-phase="tick" class="thai-cod-pill px-1.5 py-0.5 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1 shrink-0">
-              <span>✅ Tick</span>
-              <span id="thai-cod-tick-count-badge" class="px-1 py-0.2 rounded-full bg-emerald-500/30 text-[9px] font-mono font-bold">0</span>
+        <!-- Filter Pills Bar (Ticked Pill + Phase Dropdown) -->
+        <div id="cod-thai-filter-bar" class="px-3 py-2 border-b border-white/10 bg-black/30 shrink-0">
+          <div class="flex items-center justify-between gap-2 max-w-sm mx-auto" id="cod-thai-filter-pills">
+            <!-- Left: Ticked Pill -->
+            <button onclick="setThaiCodPhaseFilter('tick')" data-phase="tick" id="btn-phase-tick" 
+                    class="thai-cod-pill px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5 shadow-sm">
+              <span>✅ Ticked</span>
+              <span id="thai-cod-tick-count-badge" class="px-1.5 py-0.5 rounded-full bg-emerald-500/30 text-[10px] font-mono font-bold">0</span>
             </button>
-            <button onclick="setThaiCodPhaseFilter('1st')" data-phase="1st" class="thai-cod-pill px-1.5 py-0.5 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 shrink-0">🟡 ដល់អតិថិជន 1st</button>
-            <button onclick="setThaiCodPhaseFilter('2nd')" data-phase="2nd" class="thai-cod-pill px-1.5 py-0.5 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 shrink-0">🟠 ដល់អតិថិជន 2nd</button>
-            <button onclick="setThaiCodPhaseFilter('3rd')" data-phase="3rd" class="thai-cod-pill px-1.5 py-0.5 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 shrink-0">🔵 ដល់អតិថិជន 3rd</button>
+
+            <!-- Right: Phase Dropdown -->
+            <div class="relative shrink-0">
+              <button type="button" id="btn-thai-cod-dropdown" onclick="toggleThaiCodPhaseDropdown(event)" 
+                      class="px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 bg-white/5 text-slate-200 hover:text-white border border-white/10 flex items-center gap-1.5 shadow-sm">
+                <span id="label-thai-cod-active-phase">🟡 ជើងទី ១ (1st)</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" id="icon-thai-cod-dropdown-arrow"></i>
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div id="menu-thai-cod-phase" 
+                   class="hidden absolute right-0 top-full mt-1.5 w-52 bg-[#0A1222]/95 backdrop-blur-2xl border border-white/15 shadow-2xl rounded-2xl p-1.5 z-50 divide-y divide-white/10 font-sans animate-fade-in select-none">
+                <div class="py-1">
+                  <button type="button" onclick="selectThaiCodPhase('1st')" 
+                          class="w-full px-3 py-2 text-left text-xs font-semibold rounded-xl flex items-center justify-between transition active:scale-95 text-slate-200 hover:bg-white/10 hover:text-white">
+                    <span class="flex items-center gap-2">
+                      <span>🟡</span>
+                      <span>ជើងទី ១ (1st)</span>
+                    </span>
+                    <span id="check-thai-cod-1st" class="text-orange-400 font-bold hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectThaiCodPhase('2nd')" 
+                          class="w-full px-3 py-2 text-left text-xs font-semibold rounded-xl flex items-center justify-between transition active:scale-95 text-slate-200 hover:bg-white/10 hover:text-white">
+                    <span class="flex items-center gap-2">
+                      <span>🟠</span>
+                      <span>ជើងទី ២ (2nd)</span>
+                    </span>
+                    <span id="check-thai-cod-2nd" class="text-orange-400 font-bold hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectThaiCodPhase('3rd')" 
+                          class="w-full px-3 py-2 text-left text-xs font-semibold rounded-xl flex items-center justify-between transition active:scale-95 text-slate-200 hover:bg-white/10 hover:text-white">
+                    <span class="flex items-center gap-2">
+                      <span>🔵</span>
+                      <span>ជើងទី ៣ (3rd)</span>
+                    </span>
+                    <span id="check-thai-cod-3rd" class="text-orange-400 font-bold hidden">✓</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -3976,24 +4016,30 @@
             </div>
           </div>
 
-          <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between text-xs">
-            <div class="space-y-0.5">
-              <span class="text-slate-400 text-[10.5px] block">ចំនួនលុយសរុប៖</span>
-              <span id="thai-cod-stat-baht" class="font-mono font-bold text-orange-400 text-sm">0 THB</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="text-right">
-                <div class="flex items-center justify-end text-[11px]">
-                  <span id="thai-cod-stat-rate" onclick="promptChangeThaiExchangeRate()" class="font-mono font-semibold text-slate-300 hover:text-white cursor-pointer hover:underline transition" title="ចុចដើម្បីកែប្រែ">1$ = 36.70 B</span>
-                </div>
-                <div class="font-mono font-bold text-emerald-400 text-xs mt-0.5">
-                  <span class="text-[10px] text-slate-400 font-sans font-normal">ស្មើនឹងលុយ $៖ </span>
-                  <span id="thai-cod-stat-usd">$0.00</span>
-                </div>
+          <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <div class="space-y-0.5">
+                <span class="text-slate-400 text-[10.5px] block">ចំនួនលុយសរុប៖</span>
+                <span id="thai-cod-stat-baht" class="font-mono font-bold text-orange-400 text-sm">0 THB</span>
               </div>
-              <button onclick="copyThaiCodTelegramStatement()" class="w-9 h-9 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 active:scale-90 border border-emerald-500/30 text-emerald-400 flex items-center justify-center transition shrink-0 ml-1" title="ចម្លង (Copy)">
-                <i data-lucide="copy" class="w-4 h-4"></i>
-              </button>
+              <div class="flex items-center gap-2">
+                <div class="text-right">
+                  <div class="flex items-center justify-end text-[11px]">
+                    <span id="thai-cod-stat-rate" onclick="promptChangeThaiExchangeRate()" class="font-mono font-semibold text-slate-300 hover:text-white cursor-pointer hover:underline transition" title="ចុចដើម្បីកែប្រែ">1$ = 36.70 B</span>
+                  </div>
+                  <div class="font-mono font-bold text-emerald-400 text-xs mt-0.5">
+                    <span class="text-[10px] text-slate-400 font-sans font-normal">ស្មើនឹងលុយ $៖ </span>
+                    <span id="thai-cod-stat-usd">$0.00</span>
+                  </div>
+                </div>
+                <button onclick="copyThaiCodTelegramStatement()" class="w-9 h-9 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 active:scale-90 border border-emerald-500/30 text-emerald-400 flex items-center justify-center transition shrink-0 ml-1" title="ចម្លង (Copy)">
+                  <i data-lucide="copy" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Motivational / Celebration Banner -->
+            <div id="thai-cod-motivational-banner" class="hidden pt-1.5 border-t border-white/5 flex items-center gap-1.5 text-[10.5px] leading-tight select-none">
             </div>
           </div>
         </div>
@@ -6671,6 +6717,6 @@
   </div>
 
   <script src="dataService.js?v=7.7"></script>
-  <script src="app.js?v=48.2"></script>
+  <script src="app.js?v=48.3"></script>
 </body>
 </html>

@@ -7590,6 +7590,13 @@ if (typeof window !== 'undefined' && !window.__analyticsDropdownListenerAdded) {
         menu.classList.add('hidden');
       }
     }
+    const thaiMenu = document.getElementById('menu-thai-cod-phase');
+    const thaiBtn = document.getElementById('btn-thai-cod-dropdown');
+    if (thaiMenu && !thaiMenu.classList.contains('hidden')) {
+      if (!thaiMenu.contains(e.target) && (!thaiBtn || !thaiBtn.contains(e.target))) {
+        if (typeof closeThaiCodPhaseDropdown === 'function') closeThaiCodPhaseDropdown();
+      }
+    }
   });
 }
 
@@ -13304,22 +13311,79 @@ function clearThaiCodSearch() {
   renderThaiCodOrders();
 }
 
+function toggleThaiCodPhaseDropdown(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('menu-thai-cod-phase');
+  const arrow = document.getElementById('icon-thai-cod-dropdown-arrow');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  if (isHidden) {
+    menu.classList.remove('hidden');
+    if (arrow) arrow.style.transform = 'rotate(180deg)';
+  } else {
+    menu.classList.add('hidden');
+    if (arrow) arrow.style.transform = 'rotate(0deg)';
+  }
+}
+window.toggleThaiCodPhaseDropdown = toggleThaiCodPhaseDropdown;
+
+function closeThaiCodPhaseDropdown() {
+  const menu = document.getElementById('menu-thai-cod-phase');
+  const arrow = document.getElementById('icon-thai-cod-dropdown-arrow');
+  if (menu) menu.classList.add('hidden');
+  if (arrow) arrow.style.transform = 'rotate(0deg)';
+}
+window.closeThaiCodPhaseDropdown = closeThaiCodPhaseDropdown;
+
+function selectThaiCodPhase(phase) {
+  closeThaiCodPhaseDropdown();
+  setThaiCodPhaseFilter(phase);
+}
+window.selectThaiCodPhase = selectThaiCodPhase;
+
 function setThaiCodPhaseFilter(phase) {
   thaiCodPhaseFilter = phase;
-  document.querySelectorAll('.thai-cod-pill').forEach(btn => {
-    const p = btn.getAttribute('data-phase');
-    if (p === phase) {
-      if (phase === 'tick') {
-        btn.className = 'thai-cod-pill px-1.5 py-0.5 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1 shrink-0';
-      } else {
-        btn.className = 'thai-cod-pill px-1.5 py-0.5 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center gap-1 shrink-0';
-      }
-    } else {
-      btn.className = 'thai-cod-pill px-1.5 py-0.5 rounded-lg font-medium whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center gap-1 shrink-0';
+  
+  const tickBtn = document.getElementById('btn-phase-tick');
+  const dropdownBtn = document.getElementById('btn-thai-cod-dropdown');
+  const activeLabel = document.getElementById('label-thai-cod-active-phase');
+  
+  const phaseLabels = {
+    '1st': '🟡 ជើងទី ១ (1st)',
+    '2nd': '🟠 ជើងទី ២ (2nd)',
+    '3rd': '🔵 ជើងទី ៣ (3rd)'
+  };
+  
+  if (phase === 'tick') {
+    if (tickBtn) {
+      tickBtn.className = 'thai-cod-pill px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap transition active:scale-95 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5 shadow-sm';
+    }
+    if (dropdownBtn) {
+      dropdownBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center gap-1.5 shadow-sm';
+    }
+  } else {
+    if (tickBtn) {
+      tickBtn.className = 'thai-cod-pill px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap transition active:scale-95 bg-white/5 text-slate-300 hover:text-white border border-white/10 flex items-center gap-1.5 shadow-sm';
+    }
+    if (dropdownBtn) {
+      dropdownBtn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/40 flex items-center gap-1.5 shadow-sm';
+    }
+    if (activeLabel && phaseLabels[phase]) {
+      activeLabel.textContent = phaseLabels[phase];
+    }
+  }
+
+  ['1st', '2nd', '3rd'].forEach(p => {
+    const checkEl = document.getElementById(`check-thai-cod-${p}`);
+    if (checkEl) {
+      if (p === phase) checkEl.classList.remove('hidden');
+      else checkEl.classList.add('hidden');
     }
   });
+
   renderThaiCodOrders();
 }
+window.setThaiCodPhaseFilter = setThaiCodPhaseFilter;
 
 function renderThaiCodPhoneHtml(rawPhone, fallbackDigits = '') {
   const digits = String(rawPhone || '').replace(/\D/g, '');
@@ -13376,17 +13440,67 @@ function renderThaiCodOrders() {
   if (statRateEl) statRateEl.textContent = `1$ = ${rate.toFixed(2)} B`;
   if (statUsdEl) statUsdEl.textContent = formatUSD(totalUSD);
 
+  // Motivational / Celebratory Message Banner
+  const motivationEl = document.getElementById('thai-cod-motivational-banner');
+  if (motivationEl) {
+    if (orders.length === 0) {
+      motivationEl.classList.add('hidden');
+    } else {
+      motivationEl.classList.remove('hidden');
+      if (totalUSD < 100) {
+        motivationEl.innerHTML = `<span class="text-amber-400">🌱</span> <span class="text-slate-300 font-medium">ការចាប់ផ្តើមដ៏ល្អ! បន្តខិតខំទាំងអស់គ្នា ជើងបន្ទាប់ទិន្នផលនឹងកាន់តែច្រើន! 💪✨</span>`;
+      } else if (totalUSD >= 100 && totalUSD < 300) {
+        motivationEl.innerHTML = `<span class="text-emerald-400">📈</span> <span class="text-emerald-300 font-medium">លទ្ធផលគិតលុយល្អប្រសើរ! ចរន្តលក់ និងការប្រមូលប្រាក់កំពុងដំណើរការយ៉ាងរលូន! 📦✨</span>`;
+      } else {
+        motivationEl.innerHTML = `<span class="text-amber-300">🎉</span> <span class="text-amber-300 font-bold">អស្ចារ្យណាស់! ជើងនេះប្រមូលប្រាក់ COD បានយ៉ាងច្រើនគាប់ប្រសើរ! 💸🔥🚀</span>`;
+      }
+    }
+  }
+
   if (orders.length === 0) {
     if (thaiCodPhaseFilter === 'tick') {
       listEl.innerHTML = `
         <div class="text-center py-12 px-4 text-slate-400">
           <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl font-bold">✓</div>
-          <p class="text-xs font-semibold text-white">មិនទាន់មានអតិថិជនដែលបាន Tick ឡើយ</p>
-          <p class="text-[11px] text-slate-400 mt-1 max-w-[260px] mx-auto">សូមចុចលើផ្ទាំង «1st», «2nd», ឬ «3rd» រួចប៉ះលើរបារអតិថិជនដើម្បី Tick ផ្ទៀងផ្ទាត់</p>
+          <p class="text-xs font-semibold text-white">មិនទាន់មាន Order ណាត្រូវបាន Tick ផ្ទៀងផ្ទាត់នៅឡើយទេ</p>
+          <p class="text-[11px] text-slate-400 mt-1 max-w-[280px] mx-auto">សូមជ្រើសរើសជើងទី ១, ២ ឬ ៣ រួចប៉ះលើ Order ណាមួយដើម្បី Tick ផ្ទៀងផ្ទាត់ទិន្នន័យ</p>
         </div>
       `;
     } else {
-      listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">${isEn ? 'No pending Thai COD orders for this period' : 'មិនមានទិន្នន័យ Thai COD រង់ចាំគិតលុយក្នុងខែនេះទេ'}</p>`;
+      let phaseTitle = 'ជើងទី ១ (1st)';
+      let phaseIcon = '🟡';
+      let phaseDesc = 'ទំនិញអាចកំពុងស្ថិតក្នុងការដឹកជញ្ជូន ឬអតិថិជនមិនទាន់ទទួលបានទំនិញនៅឡើយ';
+      
+      if (thaiCodPhaseFilter === '2nd') {
+        phaseTitle = 'ជើងទី ២ (2nd)';
+        phaseIcon = '🟠';
+        phaseDesc = 'សូមរង់ចាំការទូទាត់ជុំបន្ទាប់ ឬពិនិត្យបញ្ជីដើមក្នុង Google Sheet';
+      } else if (thaiCodPhaseFilter === '3rd') {
+        phaseTitle = 'ជើងទី ៣ (3rd)';
+        phaseIcon = '🔵';
+        phaseDesc = 'ជើងនេះជាជុំទី ៣ សូមរង់ចាំការដឹកជញ្ជូន និងការផ្ទៀងផ្ទាត់ទទួលទំនិញពីអតិថិជនពេញលេញ';
+      }
+
+      listEl.innerHTML = `
+        <div class="text-center py-10 px-4 text-slate-400 space-y-3">
+          <div class="w-12 h-12 mx-auto rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xl shadow-inner">
+            ${phaseIcon}
+          </div>
+          <div>
+            <p class="text-xs font-bold text-white">មិនមានទិន្នន័យគិតលុយ COD ${phaseTitle} ទេ</p>
+            <p class="text-[11px] text-slate-400 mt-1 max-w-[290px] mx-auto leading-relaxed">${phaseDesc}</p>
+          </div>
+          
+          <div class="pt-1">
+            <button onclick="openThaiCodScheduleModal()" 
+                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 active:scale-95 border border-orange-500/30 text-orange-400 font-semibold text-xs transition shadow-sm">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+              <span>📅 មើលកាលវិភាគថ្ងៃគិតលុយ COD ↗</span>
+            </button>
+          </div>
+        </div>
+      `;
+      if (window.lucide) window.lucide.createIcons();
     }
     return;
   }
@@ -13397,6 +13511,22 @@ function renderThaiCodOrders() {
       <button onclick="clearAllTickedCodOrders()" class="text-rose-400 hover:text-rose-300 active:scale-95 text-[10.5px] px-2 py-0.5 rounded-lg bg-rose-500/10 border border-rose-500/20 transition">✕ ដក Tick ទាំងអស់</button>
     </div>
   ` : '';
+
+  const bottomGuideHtml = `
+    <div class="p-3 rounded-2xl bg-black/35 border border-white/10 space-y-1.5 text-xs mt-3 select-none">
+      <div class="flex items-center gap-1.5 text-orange-400 font-bold text-[11px]">
+        <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+        <span>កាលវិភាគគិតលុយ & របាយការណ៍</span>
+      </div>
+      <p class="text-[10.5px] text-slate-300 leading-relaxed">
+        • ការគិតលុយ Thai COD ត្រូវបានទូទាត់តាមជើង (ជើង ១ • ជើង ២ • ជើង ៣) ផ្អែកលើការទទួលជាក់ស្តែងរបស់អតិថិជន។
+      </p>
+      <div class="pt-1 border-t border-white/5 flex flex-col gap-1 text-[10px] text-slate-400 font-sans">
+        <p>💡 ចុចលើ <strong class="text-orange-300">Icon ប្រតិទិន 📅 នៅខាងស្តាំលើ</strong> ដើម្បីដឹងថ្ងៃដែលត្រូវផ្ញើរបាយការណ៍ និងគិតលុយ COD!</p>
+        <p>📋 ចុចលើ <strong class="text-emerald-300">Icon ចម្លង 📋 នៅខាងស្តាំកាតសង្ខេប</strong> ដើម្បីចម្លង Statement បញ្ជីថ្ងៃ និងលេខកន្ទុយផ្ញើជូនអ្នកគិតលុយ COD ភ្លាមៗ!</p>
+      </div>
+    </div>
+  `;
 
   listEl.innerHTML = headerHtml + orders.map((o, idx) => {
     const displayNo = orders.length - idx;
@@ -13449,7 +13579,7 @@ function renderThaiCodOrders() {
         </div>
       </div>
     `;
-  }).join('');
+  }).join('') + bottomGuideHtml;
 
   if (window.lucide) window.lucide.createIcons();
 }
