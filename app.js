@@ -12895,6 +12895,7 @@ function toggleTickThaiCodOrder(key) {
 
 function clearAllTickedCodOrders() {
   if (tickedCodOrderKeys.size === 0) return;
+  if (!confirm('តើបងពិតជាចង់ដក Tick ទាំងអស់មែនទេ?')) return;
   tickedCodOrderKeys.clear();
   saveTickedCodOrders();
   updateTickedCodBadgeCount();
@@ -12952,9 +12953,24 @@ function openThaiCodScheduleModal() {
     todayEl.textContent = getKhmerFullDateString(today);
   }
 
+  // Find next upcoming drop date if today is not an exact drop date
+  let nextDropItem = null;
+  const isExactToday = THAI_COD_DROPS_SCHEDULE.some(it => it.day === currentDay);
+  if (!isExactToday) {
+    const upcomingThisMonth = THAI_COD_DROPS_SCHEDULE.filter(it => it.day > currentDay);
+    if (upcomingThisMonth.length > 0) {
+      upcomingThisMonth.sort((a, b) => a.day - b.day);
+      nextDropItem = upcomingThisMonth[0];
+    } else {
+      nextDropItem = THAI_COD_DROPS_SCHEDULE.find(it => it.day === 1) || null;
+    }
+  }
+
   if (listEl) {
     listEl.innerHTML = THAI_COD_DROPS_SCHEDULE.map(item => {
       const isToday = (item.day === currentDay);
+      const isNext = (!isToday && nextDropItem && item.drop === nextDropItem.drop);
+
       if (isToday) {
         return `
           <div class="flex items-center justify-between p-2 px-3 rounded-xl bg-orange-500/20 border border-orange-500/40 text-xs shadow-sm">
@@ -12963,6 +12979,17 @@ function openThaiCodScheduleModal() {
               <span class="px-1.5 py-0.5 rounded-full bg-orange-500 text-black font-bold text-[9px] uppercase tracking-wide">📍 ថ្ងៃនេះ</span>
             </div>
             <span class="font-mono font-bold text-white text-xs">${item.text}</span>
+          </div>
+        `;
+      }
+      if (isNext) {
+        return `
+          <div class="flex items-center justify-between p-2 px-3 rounded-xl bg-cyan-500/15 border border-cyan-500/35 text-xs shadow-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-cyan-300 font-bold">${item.label}</span>
+              <span class="px-1.5 py-0.5 rounded-full bg-cyan-500/30 text-cyan-200 border border-cyan-400/30 font-bold text-[9px] tracking-wide">⏳ ជើងបន្ទាប់</span>
+            </div>
+            <span class="font-mono font-bold text-cyan-300 text-xs">${item.text}</span>
           </div>
         `;
       }
@@ -13262,12 +13289,12 @@ function renderCodSummary() {
     const isTicked = isCodOrderTicked(orderKey);
 
     const cardClass = isTicked
-      ? 'ios-glass-card ticked-cod-card rounded-xl p-2 px-2.5 border border-emerald-500/40 bg-emerald-500/[0.08] hover:border-emerald-500/60 hover:bg-emerald-500/[0.12] cursor-pointer transition flex flex-col gap-1.5 select-none'
-      : 'ios-glass-card rounded-xl p-2 px-2.5 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 cursor-pointer transition flex flex-col gap-1.5 select-none';
+      ? 'ios-glass-card ticked-cod-card rounded-2xl p-2.5 px-3 border border-emerald-500/40 bg-emerald-500/[0.08] hover:border-emerald-500/60 hover:bg-emerald-500/[0.12] active:scale-[0.98] cursor-pointer transition-all duration-150 flex flex-col gap-1.5 select-none'
+      : 'ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 active:scale-[0.98] cursor-pointer transition-all duration-150 flex flex-col gap-1.5 select-none';
 
     const badgeHtml = isTicked
-      ? `<span class="px-1.5 py-0.2 rounded bg-emerald-500/25 border border-emerald-500/50 text-emerald-400 font-mono text-[9.5px] font-bold whitespace-nowrap flex items-center gap-0.5" title="បាន Tick រួចរាល់">✓ #${item.displayNo}</span>`
-      : (item.displayNo ? `<span class="px-1.5 py-0.2 rounded bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono text-[9px] font-bold whitespace-nowrap">#${item.displayNo}</span>` : '');
+      ? `<span class="px-1.5 py-0.5 rounded-md bg-emerald-500/25 border border-emerald-500/50 text-emerald-400 font-mono text-[9.5px] font-bold whitespace-nowrap flex items-center gap-0.5" title="បាន Tick រួចរាល់">✓ #${item.displayNo}</span>`
+      : (item.displayNo ? `<span class="px-1.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono text-[9px] font-bold whitespace-nowrap">#${item.displayNo}</span>` : '');
 
     return `
       <div onclick="toggleTickThaiCodOrder('${escapeHtml(orderKey)}')" class="${cardClass}">
@@ -13343,12 +13370,12 @@ function getThaiExchangeRate() {
 function promptChangeThaiExchangeRate() {
   const current = getThaiExchangeRate();
   const isEn = appState.language === 'en';
-  const val = prompt(isEn ? 'Set exchange rate (THB per USD):' : 'កំណត់ហាងឆេង (THB ក្នុង ១ ដុល្លារ):', current);
+  const val = prompt(isEn ? 'Set buying exchange rate (THB per 1 USD):' : 'កំណត់ហាងឆេងទិញចូល (THB ក្នុង ១ ដុល្លារ):', current);
   if (val !== null) {
     const n = parseFloat(String(val).trim());
     if (!isNaN(n) && n > 0) {
       localStorage.setItem('sd_thai_exchange_rate', n);
-      showToastNotification(isEn ? `Exchange rate set to 1$ = ${n} B!` : `បានកំណត់ 1$ = ${n} B ជោគជ័យ!`);
+      showToastNotification(isEn ? `Buying exchange rate set to 1$ = ${n} B!` : `បានកំណត់ហាងឆេងទិញចូល 1$ = ${n} B ជោគជ័យ!`);
       renderThaiCodOrders();
     }
   }
