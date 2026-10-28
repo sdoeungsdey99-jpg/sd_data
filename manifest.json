@@ -1,7 +1,7 @@
 {
-  "name": "SD Data - Liquid Fintech ERP",
-  "short_name": "SD Data",
-  "description": "SD Data Dashboard & Fintech ERP",
+  "name": "BostarGroup",
+  "short_name": "BostarGroup",
+  "description": "BostarGroup Performance Dashboard & Fintech ERP",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#070D18",

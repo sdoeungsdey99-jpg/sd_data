@@ -1325,7 +1325,7 @@ function updateReloadBadge(service) {
   }
 }
 
-// 🌐 Option B: Zero-Noise UI (Hidden Always, Show ONLY on Loading / No Internet / Connection Error with Smooth Fade Animation)
+// 🌐 Option B: Zero-Noise UI (Hidden Always, Show ONLY on Loading / No Internet / Connection Error with Scale-Down & Fade Animation)
 let reloadButtonHideTimer = null;
 
 function checkOnlineOfflineStatus() {
@@ -1338,8 +1338,8 @@ function checkOnlineOfflineStatus() {
     if (reloadButtonHideTimer) clearTimeout(reloadButtonHideTimer);
     if (icon) icon.classList.add('animate-spin');
     if (timeText) timeText.textContent = '...';
-    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none', 'border-amber-500/40', 'bg-amber-500/10', 'text-amber-400');
-    btnReload.classList.add('opacity-100');
+    btnReload.classList.remove('hidden', 'opacity-0', 'scale-90', 'pointer-events-none', 'border-amber-500/40', 'bg-amber-500/10', 'text-amber-400');
+    btnReload.classList.add('opacity-100', 'scale-100');
     return;
   }
 
@@ -1348,8 +1348,8 @@ function checkOnlineOfflineStatus() {
 
   if (isOffline || hasError) {
     if (reloadButtonHideTimer) clearTimeout(reloadButtonHideTimer);
-    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none', 'border-white/10', 'bg-white/5');
-    btnReload.classList.add('opacity-100', 'border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
+    btnReload.classList.remove('hidden', 'opacity-0', 'scale-90', 'pointer-events-none', 'border-white/10', 'bg-white/5');
+    btnReload.classList.add('opacity-100', 'scale-100', 'border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
     if (timeText) timeText.textContent = isOffline ? 'Offline' : 'Error';
     if (icon) icon.classList.remove('animate-spin');
   } else {
@@ -1359,18 +1359,19 @@ function checkOnlineOfflineStatus() {
       timeText.textContent = DataService.lastFetched.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
     }
     btnReload.classList.remove('border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
-    btnReload.classList.add('border-white/10', 'bg-white/5');
+    btnReload.classList.add('border-white/10', 'bg-white/5', 'opacity-100', 'scale-100');
 
-    // Smooth exit animation: keep visible for 1.5s so user sees sync success time, then smooth fade-out
+    // Smooth exit animation (Option 1: Scale-down + Fade out, snappy 800ms hold + 200ms transition)
     if (reloadButtonHideTimer) clearTimeout(reloadButtonHideTimer);
     reloadButtonHideTimer = setTimeout(() => {
-      btnReload.classList.add('opacity-0', 'pointer-events-none');
+      btnReload.classList.remove('opacity-100', 'scale-100');
+      btnReload.classList.add('opacity-0', 'scale-90', 'pointer-events-none');
       setTimeout(() => {
         if (!DataService.isLoading && !DataService.error && navigator.onLine) {
           btnReload.classList.add('hidden');
         }
-      }, 350);
-    }, 1500);
+      }, 200);
+    }, 800);
   }
 }
 
@@ -1409,8 +1410,8 @@ async function manualReload() {
 
   // Immediately animate and reveal reload button
   if (btnReload) {
-    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-    btnReload.classList.add('opacity-100');
+    btnReload.classList.remove('hidden', 'opacity-0', 'scale-90', 'pointer-events-none');
+    btnReload.classList.add('opacity-100', 'scale-100');
   }
   if (icon) icon.classList.add('animate-spin');
   if (timeText) timeText.textContent = '...';
