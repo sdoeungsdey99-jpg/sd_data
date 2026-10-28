@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="km" class="dark h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bostar Group — SD Data ERP Visual Presentation</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Kantumruy Pro, Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Kantumruy Pro"', '"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"Plus Jakarta Sans"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              gold: '#F59E0B',
+              orange: '#F97316',
+              dark: '#070D18',
+              card: '#0F1B2E',
+              border: '#1E2D4A'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #060B14;
+      color: #F1F5F9;
+      font-family: 'Kantumruy Pro', sans-serif;
+      overflow-x: hidden;
+    }
+    .glass-card {
+      background: linear-gradient(135deg, rgba(15, 27, 46, 0.85) 0%, rgba(10, 20, 36, 0.95) 100%);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.6);
+    }
+    .iphone-frame {
+      width: 295px;
+      height: 610px;
+      border-radius: 44px;
+      border: 7px solid #1E293B;
+      box-shadow: 0 0 0 2px #0F172A, 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 35px rgba(249, 115, 22, 0.2);
+      position: relative;
+      background: #000;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    @media (min-width: 1024px) {
+      .iphone-frame {
+        width: 315px;
+        height: 650px;
+      }
+    }
+    .dynamic-island {
+      width: 85px;
+      height: 22px;
+      background: #000;
+      border-radius: 20px;
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40;
+    }
+    .glow-orange {
+      background: radial-gradient(circle, rgba(249, 115, 22, 0.22) 0%, transparent 70%);
+    }
+    .glow-blue {
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.2) 0%, transparent 70%);
+    }
+    .slide-enter {
+      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    /* Print to PDF */
+    @media print {
+      body { background: white !important; color: black !important; }
+      #top-navbar, #bottom-dock, #thumbnail-drawer, #action-buttons { display: none !important; }
+      .slide-container { display: flex !important; page-break-after: always; min-height: 100vh; padding: 20px 0; }
+      .glass-card { border: 1px solid #ccc !important; box-shadow: none !important; background: #fafafa !important; color: #111 !important; }
+      .iphone-frame { box-shadow: none !important; border-color: #333 !important; }
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col justify-between selection:bg-orange-500 selection:text-white">
+
+  <!-- Ambient Ambient Glows -->
+  <div class="fixed top-[-120px] left-[-120px] w-[550px] h-[550px] glow-orange rounded-full pointer-events-none z-0"></div>
+  <div class="fixed bottom-[-120px] right-[-120px] w-[550px] h-[550px] glow-blue rounded-full pointer-events-none z-0"></div>
+
+  <!-- TOP NAVBAR -->
+  <header id="top-navbar" class="relative z-30 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-3 flex items-center justify-between border-b border-white/10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-orange-500/30 flex items-center justify-center p-1.5 shadow-lg shadow-orange-500/10">
+        <img src="bostar-logo.png" alt="Bostar" class="w-full h-full object-contain">
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm sm:text-base font-bold text-white tracking-tight">SD Data ERP — Bostar Group</span>
+          <span class="px-2 py-0.5 text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full font-mono">LIVE APP DATA</span>
+        </div>
+        <p class="text-xs text-slate-400 hidden sm:block">ស្លាយបង្ហាញមុខងារជាក់ស្តែង សម្រាប់យុទ្ធនាការ Promotion ខែ ១១-១២ (៣,០០០+ ប្រអប់)</p>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div id="action-buttons" class="flex items-center gap-2">
+      <!-- Slide Selector Toggle -->
+      <button onclick="toggleThumbnails()" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold border border-white/10 flex items-center gap-1.5 transition">
+        <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-orange-400"></i>
+        <span class="hidden md:inline">បញ្ជីស្លាយ</span>
+      </button>
+
+      <!-- Print / PDF -->
+      <a href="slides_printable.html" target="_blank" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold border border-white/10 flex items-center gap-1.5 transition" title="បើកផ្ទាំងស្លាយទាំងអស់សម្រាប់ Print ឬទាញយកជា PDF">
+        <i data-lucide="printer" class="w-3.5 h-3.5 text-sky-400"></i>
+        <span class="hidden md:inline">Print / PDF (១២ ស្លាយ)</span>
+      </a>
+
+      <!-- Fullscreen Toggle -->
+      <button onclick="toggleFullscreen()" class="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-lg shadow-orange-500/25 flex items-center gap-1.5 transition">
+        <i data-lucide="maximize" class="w-3.5 h-3.5"></i>
+        <span class="hidden sm:inline">ពេញអេក្រង់</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN SLIDE VIEWER -->
+  <main class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 flex-1 flex items-center justify-center">
+    
+    <div id="slide-stage" class="w-full flex items-center justify-center">
+      <!-- Dynamic Slide Injected by JS -->
+    </div>
+
+  </main>
+
+  <!-- BOTTOM FLOATING DOCK CONTROLS -->
+  <footer id="bottom-dock" class="relative z-30 w-full max-w-xl mx-auto px-4 pb-4">
+    <div class="h-16 rounded-full glass-card border border-white/15 px-4 flex items-center justify-between shadow-2xl">
+      
+      <!-- Prev Button -->
+      <button onclick="prevSlide()" class="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition">
+        <i data-lucide="chevron-left" class="w-6 h-6"></i>
+      </button>
+
+      <!-- Progress / Slide Number -->
+      <div class="flex flex-col items-center">
+        <div class="flex items-center gap-2">
+          <span id="current-slide-num" class="text-base font-extrabold text-orange-400 font-mono">01</span>
+          <span class="text-xs text-slate-500 font-mono">/</span>
+          <span id="total-slides-num" class="text-xs font-bold text-slate-400 font-mono">11</span>
+        </div>
+        <span id="slide-title-preview" class="text-[11px] text-slate-400 font-medium truncate max-w-[200px] text-center mt-0.5">ទំព័រដើម & តុល្យភាពសាច់ប្រាក់</span>
+      </div>
+
+      <!-- Next Button -->
+      <button onclick="nextSlide()" class="w-11 h-11 rounded-full bg-orange-500 hover:bg-orange-600 active:scale-95 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 transition">
+        <i data-lucide="chevron-right" class="w-6 h-6"></i>
+      </button>
+
+    </div>
+  </footer>
+
+  <!-- THUMBNAIL DRAWER MODAL -->
+  <div id="thumbnail-drawer" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl max-h-[85vh] glass-card rounded-3xl p-6 flex flex-col border border-white/20 shadow-2xl">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-white/10">
+        <div class="flex items-center gap-2">
+          <i data-lucide="layers" class="w-5 h-5 text-orange-400"></i>
+          <h2 class="text-base font-bold text-white">មាតិកាស្លាយទាំងអស់ (Slide Deck Navigator)</h2>
+        </div>
+        <button onclick="toggleThumbnails()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Grid of Thumbnails -->
+      <div id="thumbnail-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 overflow-y-auto py-4 flex-1">
+        <!-- Rendered by JS -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCRIPT DATA & CONTROLLER -->
+  <script>
+    const slidesData = [
+      {
+        id: 'cover',
+        badge: 'BOSTAR GROUP • PROMOTION PLAN 11-12/2026',
+        badgeColor: 'amber',
+        title: 'SD Data ERP — អាវុធបច្ចេកវិទ្យាជំរុញការលក់ ៣,០០០+ ប្រអប់',
+        subtitle: 'ដំណោះស្រាយកត់ត្រាឆ្លាតវៃ លក់កាន់តែស្រួល ចំណេញកាន់តែច្បាស់ និងធានាសម្រេចគ្រប់គោលដៅ',
+        img: 'slides_assets/01_dashboard_hero.png',
+        points: [
+          '**ប្រូម៉ូសិនពិសេស ២ខែពេញ៖** ទិញ ៤ ថែម ១ (អតិថិជនបាន ៥ ប្រអប់ ដោយចាយត្រឹម $150 ក្រុមហ៊ុនជាអ្នករ៉ាប់រងប្រអប់ថែម)។',
+          '**រង្វាន់លើកទឹកចិត្តធំ៖** អ្នកដឹកនាំ $\\ge 500$ ប្រអប់ ទទួលបាន $500, អ្នកលក់ 100= $50, 150= $100 និង $0.5/ប្រអប់បន្ថែម។',
+          '**គោលដៅធំ 3,000+ ប្រអប់៖** បែងចែករវាងអតិថិជនចាស់ 1,000 ប្រអប់ និងអតិថិជនថ្មី 2,000 ប្រអប់។',
+          '**តួនាទីកម្មវិធី SD ERP៖** ដៃគូកត់ត្រា និងតាមដានទិន្នន័យជាក់ស្តែងពីទូរស័ព្ទដៃផ្ទាល់ មិនឱ្យបាត់បង់ Order ឬច្រឡំលុយឡើយ!'
+        ],
+        formula: '🔥 គោលដៅធំ៖ 3,000 ប្រអប់ | រង្វាន់អ្នកដឹកនាំ៖ $500 | រង្វាន់អ្នកលក់៖ រហូតដល់ $100+ | រង្វាន់ KPI៖ +$0.5/ប្រអប់'
+      },
+      {
+        id: 'hero',
+        badge: 'មុខងារស្នូល ០១ • HERO BALANCE',
+        badgeColor: 'orange',
+        title: 'ផ្ទាំងទំព័រដើម & តុល្យភាពសាច់ប្រាក់ (Hero Balance Card)',
+        subtitle: 'មើលឃើញស្ថានភាពហិរញ្ញវត្ថុពិតប្រាកដ និងប្រាក់ចំណេញសុទ្ធ ២៤/៧',
+        img: 'slides_assets/01_dashboard_hero.png',
+        points: [
+          '**ដឹងពីលុយពិតជាក់ស្តែង៖** បង្ហាញសមតុល្យសាច់ប្រាក់ និងគណនីធនាគារ (ABA, ACLEDA) ទាំងដុល្លារ ($) និងប្រាក់រៀល (៛)។',
+          '**សង្ខេបលទ្ធផលលក់ប្រចាំខែ៖** ឃើញចំនួនកុម្ម៉ង់ (Orders), ចំណូលសរុប (Revenue), ថ្លៃដើមរោងចក្រ ($24/ប្រអប់) និងចំណេញដុល (Gross Profit)។',
+          '**លុយសុទ្ធក្នុងដៃ (Net Cash Position)៖** បង្ហាញភាពច្បាស់លាស់រវាងប្រាក់បានមកពីការលក់ និងប្រាក់ចំណាយប្រតិបត្តិការ។',
+          '**ការពារកុំឱ្យភ័ន្តច្រឡំ៖** មិនបាច់ចាំដល់ចុងខែទើបធ្វើបញ្ជី ដឹងសុខភាពហិរញ្ញវត្ថុជារៀងរាល់ថ្ងៃ!'
+        ],
+        formula: '💡 ចំណេញសុទ្ធ = ចំណូលសរុប - ថ្លៃដើមរោងចក្រ - ថ្លៃ Boost Ads - ចំណាយប្រតិបត្តិការ'
+      },
+      {
+        id: 'order',
+        badge: 'មុខងារស្នូល ០២ • QUICK ORDER MODAL',
+        badgeColor: 'emerald',
+        title: 'កត់ត្រាការកុម្ម៉ង់រហ័ស & គណនាប្រូម៉ូសិន ៤ ថែម ១ ស្វ័យប្រវត្តិ',
+        subtitle: 'កត់ត្រាលើទូរស័ព្ទដៃត្រឹម ១៥ វិនាទី — គណនាប្រាក់ចំណេញច្បាស់ៗភ្លាមៗ',
+        img: 'slides_assets/03_quick_order_modal.png',
+        points: [
+          '**គាំទ្រប្រូម៉ូសិនខែ ១១-១២៖** ជ្រើសរើសទំនិញ ៤ ប្រអប់ + ថែម ១ ប្រអប់ (Free) ដោយប្រព័ន្ធដឹងស្វ័យប្រវត្តិ។',
+          '**ធានាប្រាក់ចំណេញអ្នកលក់ ($54)៖** ទោះបីភ្ញៀវទទួលបាន ៥ ប្រអប់ តែប្រព័ន្ធគិតតម្លៃ $150 ត្រឹមត្រូវ មិនច្រឡំ ឬកាត់ចំណេញអ្នកលក់ឡើយ។',
+          '**បញ្ចូលព័ត៌មានភ្ញៀវងាយស្រួល៖** ឈ្មោះ Facebook, លេខទូរស័ព្ទ, ទីតាំងដឹកជញ្ជូន, និងកំណត់ចំណាំ។',
+          '**Sync ចូល Google Sheet ភ្លាមៗ៖** ទិន្នន័យរត់ចូលប្រព័ន្ធក្រុមហ៊ុនភ្លាមៗ មិនបាច់សរសេរលើសៀវភៅ ឬផ្ញើរូបភាពស្មុគស្មាញ។'
+        ],
+        formula: '🎯 កញ្ចប់ប្រូម៉ូសិន៖ 1=$45 (ចំណេញ $21) | 2=$80 (ចំណេញ $32) | 3=$120 (ចំណេញ $48) | 4=$150 (ថែម១ ចំណេញ $54)'
+      },
+      {
+        id: 'customers',
+        badge: 'មុខងារស្នូល ០៣ • OLD CUSTOMER 1,000 TARGET',
+        badgeColor: 'blue',
+        title: 'ផ្ទាំងអតិថិជនចាស់ទាំងអស់ (All Customers Database)',
+        subtitle: 'ចាក់សោរគោលដៅ ១,០០០ ប្រអប់ — តាមដានភ្ញៀវចាស់ ២៥ ប្រអប់/ម្នាក់',
+        img: 'slides_assets/04_all_customers_modal.png',
+        points: [
+          '**មូលដ្ឋានទិន្នន័យអតិថិជនចាស់រាប់ពាន់នាក់៖** រក្សាទុកប្រវត្តិទិញ, ឈ្មោះ, លេខទូរស័ព្ទ, ទីតាំង និងចំនួនប្រអប់ដែលធ្លាប់បានប្រើប្រាស់។',
+          '**ស្វែងរករហ័ស (Smart Search)៖** វាយតែឈ្មោះ ឬលេខទូរស័ព្ទ គឺឃើញប្រវត្តិទិញភ្លាមៗ។',
+          '**យុទ្ធសាស្ត្រ Follow Up 25 ប្រអប់/ម្នាក់៖** អ្នកលក់ងាយស្រួលឆែកមើលភ្ញៀវចាស់ណាដែលដល់ពេលទិញបន្ត ដើម្បីផ្តល់ប្រូម៉ូសិន «ទិញ ៤ ថែម ១»។',
+          '**យុទ្ធនាការ Video Feedback៖** ងាយស្រួលស្រង់ឈ្មោះភ្ញៀវចាស់ដែលពេញចិត្ត ដើម្បីសុំ Video Feedback ថែមជូនផលិតផល ១ប្រអប់ឥតគិតថ្លៃ!'
+        ],
+        formula: '📌 រូបមន្តជោគជ័យ៖ អតិថិជនចាស់ ១,០០០ ប្រអប់ = ៣០% នៃគោលដៅសរុប (ម្នាក់ទទួលខុសត្រូវ ២៥ ប្រអប់)'
+      },
+      {
+        id: 'cod_thai',
+        badge: 'មុខងារស្នូល ០៤ • THAI MARKET EXPANSION',
+        badgeColor: 'rose',
+        title: 'តាមដានការដឹកជញ្ជូន & លុយ COD ប្រទេសថៃ (Thai COD Tracking)',
+        subtitle: 'វាយលុកទីផ្សារប្រទេសថៃដោយទំនុកចិត្ត — តាមដានលុយ COD គ្រប់បាត',
+        img: 'slides_assets/05_cod_thai_modal.png',
+        points: [
+          '**ការប៊ូសលក់នៅថៃ៖** តាមដានកញ្ចប់ទំនិញដែលបានបញ្ជូនទៅអតិថិជននៅប្រទេសថៃជារូបិយប័ណ្ណបាត (THB)។',
+          '**ស្ថានភាពកញ្ចប់ទំនិញ (Real-Time Status)៖** ដឹងច្បាស់ថាកញ្ចប់ណា *បានទូទាត់រួច (Paid)*, កញ្ចប់ណា *កំពុងដឹក (Shipping)*, និងកញ្ចប់ណា *មានបញ្ហា (Issue)*។',
+          '**ទប់ស្កាត់ការ Return អីវ៉ាន់៖** ពេលដឹងថាកញ្ចប់ទំនិញដល់ដៃសេវាដឹក អ្នកលក់អាចខលរំលឹកភ្ញៀវទៅទទួលទាន់ពេល។',
+          '**ផ្ទៀងផ្ទាត់លុយចូលគណនី៖** ការពារការបាត់បង់ ឬធ្លាយលុយ COD ពីក្រុមហ៊ុនដឹកជញ្ជូននៅថៃ។'
+        ],
+        formula: '🇹🇭 ទីផ្សារថៃ៖ គិតថ្លៃដឹក $2.50 - $5.50 | តាមដានស្ថានភាព COD មិនឱ្យកកស្ទះលុយបង្វិល'
+      },
+      {
+        id: 'cod_cambodia',
+        badge: 'មុខងារស្នូល ០៥ • DOMESTIC LOGISTICS',
+        badgeColor: 'sky',
+        title: 'តាមដានការដឹកជញ្ជូនក្នុងស្រុក & COD កម្ពុជា (VET, J&T)',
+        subtitle: 'គ្រប់គ្រងការផ្ញើទំនិញទូទាំង ២៥ ខេត្ត-ក្រុង ដោយរលូន និងច្បាស់លាស់',
+        img: 'slides_assets/06_cod_cambodia_modal.png',
+        points: [
+          '**បែងចែកតាមក្រុមហ៊ុនដឹកជញ្ជូន៖** តាមដានការផ្ញើតាម វីរៈប៊ុនថាំ (VET COD), J&T និងសេវាដឹកផ្សេងៗ។',
+          '**គ្រប់គ្រងវិក្កយបត្រ (Order ID)៖** ងាយស្រួលទាញយកវិក្កយបត្រមកផ្ទៀងផ្ទាត់ជាមួយបុងដឹកជញ្ជូន។',
+          '**ដឹងពីលុយជំពាក់ និងលុយបានទូទាត់៖** ដឹងថាក្រុមហ៊ុនដឹកជញ្ជូនបានផ្ទេរប្រាក់ COD ចូលគណនីក្រុមហ៊ុនគ្រប់ចំនួនឬនៅ។',
+          '**បង្កើនទំនុកចិត្តអតិថិជន៖** អាចឆ្លើយតបភ្ញៀវបានភ្លាមៗពេលភ្ញៀវសួររកកញ្ចប់ទំនិញរបស់គាត់។'
+        ],
+        formula: '📦 គ្រប់គ្រងចរន្តទំនិញ និងចរន្តសាច់ប្រាក់ COD ឱ្យស្របគ្នា ១០០%'
+      },
+      {
+        id: 'team_targets',
+        badge: 'មុខងារស្នូល ០៦ • TEAM PERFORMANCE CARD',
+        badgeColor: 'amber',
+        title: 'តាមដានការលក់ & គោលដៅក្រុម (Team Sales Targets Card)',
+        subtitle: 'ដឹងពីចម្ងាយឆ្ពោះទៅគោលដៅ ៣,៣២៥ ប្រអប់ តាមក្រុមនីមួយៗផ្ទាល់',
+        img: 'slides_assets/02_team_targets_card.png',
+        points: [
+          '**បង្ហាញតួលេខក្រុមទាំង ៧៖** ក្រុមស្តី ស្តើង (300), ចន្ធី (600), ហាក់ (500), ឧត្តម (350), ធារ៉ា (250), យ៉ារិទ្ធ (725), និង នោរ៉ា (200)។',
+          '**ដឹងពីភាគរយសម្រេច (% Progress Bar)៖** មើលឃើញរបារភាគរយរត់ Live ពីចំនួនប្រអប់ដែលលក់បានជាក់ស្តែង។',
+          '**ដឹងពីប្រអប់ដែលនៅខ្វះ៖** ជួយឱ្យមេក្រុមនីមួយៗដឹងថា ថ្ងៃនេះត្រូវរុញប៉ុន្មានប្រអប់ទៀត ដើម្បីឱ្យគ្រប់ 500 ប្រអប់ និងទទួលបាន **រង្វាន់ $500**! ',
+          '**តម្លាភាពក្នុងការងារ៖** ទាំងមេក្រុម និងថ្នាក់ដឹកនាំកំពូល អាចមើលឃើញទិន្នន័យដូចគ្នា គ្មានការបិទបាំង។'
+        ],
+        formula: '🏆 គោលដៅអ្នកដឹកនាំ៖ $\\ge 500$ ប្រអប់ = ប្រាក់រង្វាន់ $500 ភ្លាមៗ!'
+      },
+      {
+        id: 'team_members',
+        badge: 'មុខងារស្នូល ០៧ • TEAM LEADERBOARD',
+        badgeColor: 'violet',
+        title: 'តារាងកិត្តិយស & ការប្រកួតប្រជែងអ្នកលក់ (Team Leaderboard)',
+        subtitle: 'ជំរុញស្មារតីប្រកួតប្រជែងវិជ្ជមាន — ដេញយកពាន និងរង្វាន់ធំ',
+        img: 'slides_assets/07_team_members_modal.png',
+        points: [
+          '**តារាងចំណាត់ថ្នាក់បុគ្គលិក (Top Sellers)៖** បង្ហាញអ្នកលក់ឆ្នើមដែលលក់បានច្រើនជាងគេប្រចាំសប្តាហ៍ និងប្រចាំខែ។',
+          '**ដេញយករង្វាន់អ្នកលក់ផ្ទាល់៖** តាមដានថាអ្នកណាជិតដល់ 100 ប្រអប់ ($50) ឬ 150 ប្រអប់ ($100)។',
+          '**លើកទឹកចិត្តអ្នកធ្វើសម្រេច KPI៖** បុគ្គលិកគ្រប់រូបដែលសម្រេចគោលដៅ ក្រុមហ៊ុនផ្តល់បន្ថែម **$0.5 ក្នុងមួយប្រអប់** រហូតដាច់ឆ្នាំ២០២៦។',
+          '**តាមដានសកម្មភាពលក់៖** មេក្រុមអាចមើលដឹងថា សមាជិកណាកំពុងសកម្មខ្លាំង និងសមាជិកណាត្រូវការជំនួយ ឬបណ្តុះបណ្តាលបន្ថែម។'
+        ],
+        formula: '🎁 រង្វាន់អ្នកលក់៖ 100 ប្រអប់ = $50 | 150 ប្រអប់ = $100 | បូកថែម $0.5/ប្រអប់ ពេលសម្រេច KPI'
+      },
+      {
+        id: 'expenses',
+        badge: 'មុខងារស្នូល ០៨ • ADS & BUDGET CONTROL',
+        badgeColor: 'rose',
+        title: 'គ្រប់គ្រងការចំណាយប្រតិបត្តិការ & 300 Ads (Daily Expenses)',
+        subtitle: 'គ្រប់គ្រងថវិកាផ្សព្វផ្សាយ និងការពារកុំឱ្យបែកថវិកាខាតបង់',
+        img: 'slides_assets/08_daily_expenses_modal.png',
+        points: [
+          '**គ្រប់គ្រង 300 Ads ក្នុងប្រព័ន្ធ៖** យុទ្ធសាស្ត្រខែ ១១ តម្រូវឱ្យពង្រាយប្រហែល 10 Ads/ម្នាក់ $\\rightarrow$ ការកត់ត្រាចំណាយ Ads គឺសំខាន់បំផុត។',
+          '**បែងចែក ៧ ប្រភេទចំណាយច្បាស់លាស់៖** ចំណាយថេរ, ហូបចុក, កម្សាន្ត, វិនិយោគ, សុខភាព, សង្គ្រោះបន្ទាន់, និងផ្សេងៗ។',
+          '**វិភាគប្រសិទ្ធភាព Ads (Ads ROI)៖** ដឹងថាចំណាយលើ Ads ប៉ុន្មាន ហើយទទួលបានផលត្រឡប់មកវិញជាចំនួន Order និងប្រាក់ចំណេញប៉ុន្មាន។',
+          '**កត់ត្រាលឿនលើទូរស័ព្ទ៖** មិនបាច់ចាំដល់ចុងខែ ចំណាយអ្វី កត់ត្រាភ្លាមៗ មិនឱ្យភ្លេច។'
+        ],
+        formula: '📊 គោលការណ៍ហិរញ្ញវត្ថុ៖ «ចំណាយ Ads កើនឡើង តែប្រាក់ចំណេញសុទ្ធត្រូវតែកើនឡើងតាមនោះដែរ»'
+      },
+      {
+        id: 'analytics',
+        badge: 'មុខងារស្នូល ០៩ • BUSINESS INTELLIGENCE',
+        badgeColor: 'indigo',
+        title: 'ផ្ទាំងវិភាគទិន្នន័យស៊ីជម្រៅ (Analytics & Performance View)',
+        subtitle: 'មើលឃើញនិន្នាការលូតលាស់ពីមួយខែទៅមួយខែ តាមរយៈក្រាហ្វិកឆ្លាតវៃ',
+        img: 'slides_assets/09_analytics_view.png',
+        points: [
+          '**ក្រាហ្វិកវិភាគនិន្នាការ (Trend Charts)៖** មើលឃើញការកើនឡើងនៃចំនួនលក់ពីមួយថ្ងៃទៅមួយថ្ងៃ និងពីមួយខែទៅមួយខែ។',
+          '**ប្រៀបធៀបផលិតផលលក់ដាច់៖** ដឹងច្បាស់ថាផលិតផលណាខ្លះលក់ដាច់ខ្លាំងជាងគេ (Yong Liang, Kidney Pro, SG Pro...)។',
+          '**ការវិភាគខួបលក់ប្រចាំឆ្នាំ៖** ផ្ទៀងផ្ទាត់តួលេខសរុប 500+ orders ក្នុងឆ្នាំ ២០២៦ យ៉ាងរលូន។',
+          '**ជួយអ្នកដឹកនាំធ្វើសេចក្តីសម្រេចចិត្ត៖** ប្រើប្រាស់ទិន្នន័យពិតដើម្បីកែសម្រួលយុទ្ធសាស្ត្រ Ads និងការផលិតមាតិកា AI។'
+        ],
+        formula: '📈 Data-Driven Leadership៖ ដឹកនាំដោយតួលេខ និងទិន្នន័យ មិនមែនដោយការទស្សន៍ទាយ!'
+      },
+      {
+        id: 'certificates',
+        badge: 'មុខងារស្នូល ១០ • RECOGNITION & DISCIPLINE',
+        badgeColor: 'amber',
+        title: 'ការលើកតម្កើងកិត្តិយស & វិន័យការងារ (Certificates & GPS Attendance)',
+        subtitle: 'លើកកម្ពស់វិន័យការងារ និងផ្តល់កិត្តិយសដល់អ្នកលក់ឆ្នើម Rank 1, 2, 3',
+        img: 'slides_assets/10_certificates_modal.png',
+        points: [
+          '**ប័ណ្ណសរសើរចំណាត់ថ្នាក់ស្វ័យប្រវត្តិ (Certificates Rank 1, 2, 3)៖** ចេញប័ណ្ណកិត្តិយសដោយផ្ទាល់ពីប្រព័ន្ធ មានឈ្មោះ រូបថត និងសមិទ្ធផលច្បាស់ៗ។',
+          '**វត្តមានការងារផ្ទៀងផ្ទាត់ GPS (Office Attendance)៖** ធានាវិន័យការងារចូលបំពេញការងារ និងប្រជុំប្រចាំសប្តាហ៍។',
+          '**សេចក្តីជូនដំណឹង និងការលើកទឹកចិត្ត៖** ផ្សព្វផ្សាយសមិទ្ធផលចូលក្នុងក្រុម Telegram បង្កើតមោទនភាព និងកម្លាំងចិត្តធ្វើការ។',
+          '**កសាងវប្បធម៌ស្ថាប័នរឹងមាំ៖** ធ្វើឱ្យ Bostar Group ក្លាយជាស្ថាប័នដែលមានស្តង់ដារវិជ្ជាជីវៈខ្ពស់។'
+        ],
+        formula: '🎖️ ទទួលស្គាល់ការខិតខំប្រឹងប្រែង = ក្រុមការងារមានថាមពលសម្រេចគោលដៅ 3,000+ ប្រអប់!'
+      },
+      {
+        id: 'summary',
+        badge: 'សកម្មភាពបន្ទាប់ • CALL TO ACTION',
+        badgeColor: 'emerald',
+        title: 'រួមគ្នាកត់ត្រាឱ្យបានត្រឹមត្រូវ ដើម្បីប្រាក់ចំណេញ និងរង្វាន់ធំទាំងអស់គ្នា!',
+        subtitle: '៣ ជំហានសាមញ្ញដើម្បីចាប់ផ្តើមប្រើប្រាស់ SD Data ERP លើទូរស័ព្ទដៃ',
+        img: 'slides_assets/01_dashboard_hero.png',
+        points: [
+          '**ជំហានទី ១ (Add to Home Screen)៖** បើក Link លើ Safari (iPhone) ឬ Chrome (Android) $\\rightarrow$ ចុច Share $\\rightarrow$ ចុច «Add to Home Screen»។',
+          '**ជំហានទី ២ (សាកល្បងបញ្ចូល Order)៖** សាកល្បងចុចបញ្ចូលកុម្ម៉ង់ប្រូម៉ូសិន ៤ ថែម ១ និងឆែកមើលបញ្ជីអតិថិជនចាស់របស់ខ្លួន។',
+          '**ជំហានទី ៣ (វាយលុកយុទ្ធនាការ)៖** ចាប់ផ្តើម Follow up ភ្ញៀវចាស់ ២៥ នាក់/ម្នាក់ និងពង្រាយ Ads 10 Ads/ម្នាក់ ដើម្បីដេញយករង្វាន់ $500 & $100!',
+          '**សារដាស់តឿន៖** «កត់ត្រាបានច្បាស់លាស់ ស្មើនឹងលុយនៅក្នុងដៃច្បាស់លាស់!»'
+        ],
+        formula: '🚀 ឆ្ពោះទៅសម្រេច 3,000+ ប្រអប់ និងដណ្តើមប្រាក់រង្វាន់រាប់ពាន់ដុល្លារទាំងអស់គ្នា!'
+      }
+    ];
+
+    let currentSlide = 0;
+
+    function renderSlide(index) {
+      if (index < 0) index = 0;
+      if (index >= slidesData.length) index = slidesData.length - 1;
+      currentSlide = index;
+
+      const slide = slidesData[index];
+
+      // Update Header/Footer info
+      document.getElementById('current-slide-num').textContent = String(index + 1).padStart(2, '0');
+      document.getElementById('total-slides-num').textContent = String(slidesData.length).padStart(2, '0');
+      document.getElementById('slide-title-preview').textContent = slide.title;
+
+      const stage = document.getElementById('slide-stage');
+      stage.innerHTML = `
+        <div class="slide-container w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center slide-enter">
+          
+          <!-- LEFT: Real App Retina Screenshot inside iPhone Mockup (5 cols) -->
+          <div class="lg:col-span-5 flex justify-center items-center">
+            <div class="iphone-frame group relative">
+              <!-- Dynamic Island -->
+              <div class="dynamic-island flex items-center justify-between px-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700/60"></span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500/80 animate-pulse"></span>
+              </div>
+              
+              <!-- Real Retina Screenshot -->
+              <img src="${slide.img}" 
+                   alt="${slide.title}" 
+                   class="w-full h-full object-cover object-top transition duration-500 group-hover:scale-[1.02] cursor-pointer"
+                   onclick="zoomImage('${slide.img}')"
+                   title="ចុចដើម្បីមើលរូបភាពធំ">
+
+              <!-- Click to zoom hint overlay -->
+              <div class="absolute bottom-4 inset-x-4 py-1.5 px-3 rounded-full bg-black/60 backdrop-blur-md text-center text-[10px] text-slate-300 pointer-events-none opacity-0 group-hover:opacity-100 transition">
+                🔍 ចុចលើរូបភាពដើម្បីមើលទំហំធំ
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Rich Narrative & Benefits Card (7 cols) -->
+          <div class="lg:col-span-7 flex flex-col justify-center space-y-4">
+            
+            <!-- Badge -->
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 rounded-full text-xs font-bold font-mono tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/40">
+                ${slide.badge}
+              </span>
+              <span class="text-xs text-slate-500 font-mono">SLIDE ${String(index + 1).padStart(2, '0')}</span>
+            </div>
+
+            <!-- Title & Subtitle -->
+            <div>
+              <h2 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-snug tracking-tight">
+                ${slide.title}
+              </h2>
+              <p class="text-sm sm:text-base text-slate-300 font-medium mt-1">
+                ${slide.subtitle}
+              </p>
+            </div>
+
+            <!-- Bullet Points -->
+            <div class="glass-card rounded-2xl p-4 sm:p-5 border border-white/10 space-y-3">
+              ${slide.points.map(pt => {
+                // parse simple markdown bold **text**
+                const formatted = pt.replace(/\\\$/g, '$').replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
+                return `
+                  <div class="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    <div class="w-5 h-5 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                      <i data-lucide="check" class="w-3.5 h-3.5 text-orange-400"></i>
+                    </div>
+                    <div>${formatted}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Formula / Key Takeaway Box -->
+            <div class="p-3.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-transparent border-l-4 border-orange-500 text-xs sm:text-sm text-amber-200 font-medium">
+              ${slide.formula}
+            </div>
+
+            <!-- Next Slide Shortcut -->
+            <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
+              <span>ចុចគ្រាប់ចុច <strong>←</strong> / <strong>→</strong> ឬ Spacebar ដើម្បីបញ្ជាស្លាយ</span>
+              <button onclick="nextSlide()" class="text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1 transition">
+                <span>បន្ទាប់</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      `;
+
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) renderSlide(currentSlide - 1);
+    }
+
+    function nextSlide() {
+      if (currentSlide < slidesData.length - 1) renderSlide(currentSlide + 1);
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'Escape') {
+        const modal = document.getElementById('thumbnail-drawer');
+        if (modal && !modal.classList.contains('hidden')) toggleThumbnails();
+      }
+    });
+
+    // Thumbnails Drawer
+    function toggleThumbnails() {
+      const drawer = document.getElementById('thumbnail-drawer');
+      const isHidden = drawer.classList.contains('hidden');
+      if (isHidden) {
+        drawer.classList.remove('hidden');
+        renderThumbnails();
+      } else {
+        drawer.classList.add('hidden');
+      }
+    }
+
+    function renderThumbnails() {
+      const grid = document.getElementById('thumbnail-grid');
+      grid.innerHTML = slidesData.map((s, idx) => `
+        <div onclick="selectSlide(${idx})" class="p-2.5 rounded-xl border ${currentSlide === idx ? 'border-orange-500 bg-orange-500/20 ring-2 ring-orange-500/30' : 'border-white/10 bg-white/5 hover:bg-white/10'} cursor-pointer transition flex flex-col items-center text-center">
+          <div class="w-full h-24 rounded-lg bg-black/60 overflow-hidden mb-2 relative flex items-center justify-center border border-white/10">
+            <img src="${s.img}" alt="${s.title}" class="w-full h-full object-cover object-top opacity-80 hover:opacity-100 transition">
+            <span class="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-[9px] font-mono text-orange-400 font-bold">${String(idx + 1).padStart(2, '0')}</span>
+          </div>
+          <span class="text-[11px] font-bold text-white line-clamp-1">${s.title}</span>
+          <span class="text-[9px] text-slate-400 font-mono mt-0.5">${s.badge.split('•')[0]}</span>
+        </div>
+      `).join('');
+    }
+
+    function selectSlide(idx) {
+      toggleThumbnails();
+      renderSlide(idx);
+    }
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    // Simple Image Zoom Modal
+    function zoomImage(src) {
+      window.open(src, '_blank');
+    }
+
+    // Initial render
+    renderSlide(0);
+  </script>
+</body>
+</html>
