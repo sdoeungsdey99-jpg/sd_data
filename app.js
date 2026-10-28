@@ -24020,7 +24020,7 @@ async function setCustomersScope(mode) {
     );
 
     if (!matchedSeller) {
-      alert(`ឈ្មោះ Profile "${currentName}" មិនត្រូវគ្នានឹងឈ្មោះអ្នកលក់ផ្លូវការក្នុង Tab Team Name ឡើយ!\n\nសូមពិនិត្យឈ្មោះក្នុង Profile ឬទាក់ទង Admin។`);
+      alert(`ឈ្មោះ Profile "${currentName}" មិនត្រូវគ្នានឹងឈ្មោះអ្នកលក់ផ្លូវការឡើយ!\n\nសូមពិនិត្យឈ្មោះក្នុង Profile ឬទាក់ទង Admin។`);
       return;
     }
 
@@ -24104,7 +24104,7 @@ async function submitMasterCustomerAuthCode() {
       ], { duration: 250 });
     }
     if (errEl && errText) {
-      errText.textContent = 'លេខកូដពិសេសមិនត្រឹមត្រូវ! សូមពិនិត្យកូដក្នុង Tab Team Name ជួរ D';
+      errText.textContent = 'លេខកូដពិសេសមិនត្រឹមត្រូវ! សូមពិនិត្យលេខកូដឡើងវិញ';
       errEl.classList.remove('hidden');
     }
   }
@@ -24802,7 +24802,7 @@ async function submitOnboardingConnection() {
 
   if (!code) {
     if (statusBox) {
-      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលលេខកូដពិសេស (Tab Team Name ជួរ D)</span>';
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលលេខកូដពិសេសរបស់អ្នក</span>';
       if (window.lucide) window.lucide.createIcons();
     }
     codeInput?.focus();
@@ -24839,7 +24839,7 @@ async function submitOnboardingConnection() {
 
   if (!matchedSeller) {
     if (statusBox) {
-      statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>ឈ្មោះ "${escapeHtml(name)}" មិនត្រូវគ្នានឹងឈ្មោះអ្នកលក់ក្នុង Tab Team Name ឡើយ!</span></span>`;
+      statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>ឈ្មោះ "${escapeHtml(name)}" មិនត្រូវគ្នានឹងឈ្មោះអ្នកលក់ផ្លូវការឡើយ!</span></span>`;
       if (window.lucide) window.lucide.createIcons();
     }
     nameInput?.focus();
@@ -24849,7 +24849,7 @@ async function submitOnboardingConnection() {
   const expectedCode = String(matchedSeller.code || '').trim().toUpperCase();
   if (code !== expectedCode) {
     if (statusBox) {
-      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>លេខកូដពិសេសមិនត្រឹមត្រូវ! សូមពិនិត្យកូដក្នុង Tab Team Name ជួរ D</span></span>';
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>លេខកូដពិសេសមិនត្រឹមត្រូវ! សូមពិនិត្យលេខកូដឡើងវិញ</span></span>';
       if (window.lucide) window.lucide.createIcons();
     }
     codeInput?.focus();

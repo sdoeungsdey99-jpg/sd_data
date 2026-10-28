@@ -3125,8 +3125,8 @@
 
           <div>
             <label class="block text-[11px] font-medium text-slate-300 mb-1">លេខកូដពិសេស (Special Code) <span class="text-rose-400">*</span></label>
-            <input id="onboard-member-code" type="text" placeholder="បញ្ចូលកូដពិសេសពី Tab Team Name (ឧ. B****)" 
-                   class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white font-mono uppercase tracking-wider placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition">
+            <input id="onboard-member-code" type="text" placeholder="បញ្ចូលលេខកូដពិសេស (ឧ. B****)" 
+                   class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white font-mono uppercase tracking-wider placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition">
           </div>
 
           <div>
@@ -4379,13 +4379,13 @@
 
       <div class="p-3 rounded-2xl bg-white/5 border border-white/10 mb-4 text-left space-y-1.5">
         <div class="flex items-center gap-1.5 text-[11px] text-slate-400">
-          <i data-lucide="info" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
-          <span>បញ្ចូលលេខកូដពិសេសពី Tab <strong>Team Name</strong> ជួរ D</span>
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+          <span>បញ្ចូលលេខកូដពិសេស (Special Code) ប្រចាំខ្លួនរបស់អ្នក</span>
         </div>
         <input type="text" id="master-cust-auth-code-input" 
                onkeydown="if(event.key === 'Enter') submitMasterCustomerAuthCode()"
-               placeholder="បញ្ចូលកូដពិសេស (ឧ. B****)" 
-               class="w-full mt-1.5 px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/20 text-white font-mono text-center text-sm font-bold tracking-widest uppercase focus:outline-none focus:border-amber-400 transition">
+               placeholder="បញ្ចូលលេខកូដពិសេស (ឧ. B****)" 
+               class="w-full mt-1.5 px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/20 text-white font-mono text-center text-sm font-bold tracking-widest uppercase placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder-slate-500 focus:outline-none focus:border-amber-400 transition">
         <div id="master-cust-auth-error" class="text-[11px] text-rose-400 font-medium hidden pt-1 flex items-center gap-1">
           <i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0"></i>
           <span id="master-cust-auth-error-text">លេខកូដមិនត្រឹមត្រូវ!</span>
@@ -6884,6 +6884,6 @@
   </div>
 
   <script src="dataService.js?v=7.8"></script>
-  <script src="app.js?v=49.5"></script>
+  <script src="app.js?v=49.6"></script>
 </body>
 </html>
