@@ -27474,8 +27474,6 @@ function generateDailyReportText() {
   const chatTarget = document.getElementById('rep-field-chat-target')?.value || '0';
   const callDirect = document.getElementById('rep-field-call-direct')?.value || '0';
 
-  const followOld = document.getElementById('rep-field-follow-old')?.value || '0';
-
   const buyNewP = document.getElementById('rep-buy-new-p')?.value || '0';
   const buyNewB = document.getElementById('rep-buy-new-b')?.value || '0';
   const buyOldP = document.getElementById('rep-buy-old-p')?.value || '0';
@@ -27498,8 +27496,6 @@ function generateDailyReportText() {
 
 • ឆាតសរុប៖ ${chatTotal} នាក់ (គោលដៅ: ${chatTarget} | ប៉ះដៃ: ${chatMistake})
 • ខលផ្ទាល់៖ ${callDirect} នាក់
-+ តាមដានភ្ញៀវ (Follow Up)
-• សួរសុខទុក្ខភ្ញៀវចាស់៖ ${followOld} នាក់
 + លទ្ធផលលក់ជាក់ស្តែង:
 • ភ្ញៀវថ្មីទិញ៖ ${buyNewP} នាក់ ➔ ${buyNewB} ប្រអប់
 • ភ្ញៀវចាស់ទិញថែម៖ ${buyOldP} នាក់ ➔ ${buyOldB} ប្រអប់
