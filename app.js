@@ -977,7 +977,9 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('online', async () => {
     showToastNotification('📡 មានអ៊ីនធឺណិតឡើងវិញ! កំពុង Sync ទិន្នន័យ...');
     if (typeof syncOfflineQueue === 'function') await syncOfflineQueue();
-    DataService.fetchData(false);
+    if (window.DataService && typeof window.DataService.fetchData === 'function') {
+      window.DataService.fetchData(false);
+    }
     checkOnlineOfflineStatus();
   });
   window.addEventListener('offline', () => {
@@ -985,6 +987,30 @@ document.addEventListener('DOMContentLoaded', () => {
     checkOnlineOfflineStatus();
   });
   setInterval(checkOnlineOfflineStatus, 2000);
+
+  // Mobile Browser Visibility & Wakeup Auto-Sync (Safari & Chrome on Tab Switch / Screen Unlock)
+  let lastAppResumeTime = Date.now();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const now = Date.now();
+      if (now - lastAppResumeTime > 30000) {
+        lastAppResumeTime = now;
+        if (window.DataService && typeof window.DataService.hasActiveSheet === 'function' && window.DataService.hasActiveSheet() && !window.DataService.isLoading) {
+          window.DataService.fetchData(true);
+        }
+      }
+      checkOnlineOfflineStatus();
+    }
+  });
+
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      if (window.DataService && typeof window.DataService.hasActiveSheet === 'function' && window.DataService.hasActiveSheet() && !window.DataService.isLoading) {
+        window.DataService.fetchData(true);
+      }
+      checkOnlineOfflineStatus();
+    }
+  });
 
   // Purge any legacy leftover demo notifications
   try {
@@ -1024,7 +1050,7 @@ document.addEventListener('DOMContentLoaded', () => {
   DataService.subscribe(onDataUpdated);
   if (DataService.hasActiveSheet()) {
     DataService.fetchData();
-    DataService.startAutoReload(5);
+    DataService.startAutoReload(2);
   }
 
   renderCurrentView();
@@ -1324,27 +1350,38 @@ function updateReloadBadge(service) {
   }
 }
 
-// 🌐 Option B: Zero-Noise UI (Hidden Always, Show ONLY on No Internet / Connection Error)
+// 🌐 Live Status & In-App Quick Refresh UX
 function checkOnlineOfflineStatus() {
   const btnReload = document.getElementById('btn-reload');
+  const icon = document.getElementById('reload-icon');
+  const timeText = document.getElementById('reload-time-text');
   if (!btnReload) return;
 
-  // If currently fetching, keep visible
+  // Keep accessible so users can tap to sync anytime without browser reload
+  btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+
   if (DataService.isLoading) {
-    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+    if (icon) icon.classList.add('animate-spin');
+    if (timeText) timeText.textContent = '...';
+    btnReload.classList.remove('border-amber-500/40', 'bg-amber-500/10', 'text-amber-400');
     return;
   }
 
-  const isOffline = !navigator.onLine || Boolean(DataService.error);
+  const isOffline = !navigator.onLine;
+  const hasError = Boolean(DataService.error);
 
-  if (isOffline) {
-    // Reveal ONLY when No Internet or Connection Failed
-    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-    btnReload.classList.add('border-amber-500/40', 'bg-amber-500/10');
+  if (isOffline || hasError) {
+    btnReload.classList.remove('border-white/10', 'bg-white/5');
+    btnReload.classList.add('border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
+    if (timeText) timeText.textContent = isOffline ? 'Offline' : 'Error';
+    if (icon) icon.classList.remove('animate-spin');
   } else {
-    // Normal connection: Hide 100% to keep header clean and distraction-free!
-    btnReload.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-    btnReload.classList.remove('border-amber-500/40', 'bg-amber-500/10');
+    btnReload.classList.remove('border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
+    btnReload.classList.add('border-white/10', 'bg-white/5', 'text-slate-300');
+    if (icon) icon.classList.remove('animate-spin');
+    if (DataService.lastFetched && timeText && timeText.textContent === '...') {
+      timeText.textContent = DataService.lastFetched.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    }
   }
 }
 
@@ -1374,6 +1411,14 @@ const UNIVERSAL_PULL_REFRESH_TARGETS = [
 ];
 
 async function manualReload() {
+  if (navigator.vibrate) {
+    try { navigator.vibrate(15); } catch (_) {}
+  }
+  const icon = document.getElementById('reload-icon');
+  if (icon) icon.classList.add('animate-spin');
+  const timeText = document.getElementById('reload-time-text');
+  if (timeText) timeText.textContent = '...';
+
   const indicator = document.getElementById('pull-refresh-indicator');
   if (indicator) {
     indicator.style.height = '35px';
@@ -1392,7 +1437,10 @@ async function manualReload() {
       await syncOfflineQueue();
     } catch (_) {}
   }
-  DataService.fetchData(false);
+  await DataService.fetchData(false);
+  if (typeof renderCurrentView === 'function') {
+    renderCurrentView();
+  }
 }
 
 function attachUniversalPullToRefresh(target) {
@@ -19397,8 +19445,12 @@ function syncHeaderProfileUI() {
     if (isMaster) {
       badgeEl.classList.remove('hidden');
       const isBechNoraProf = p.name && (p.name.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora')));
-      badgeEl.src = isBechNoraProf ? 'gold-tick.png?v=39.6' : 'blue-tick.png';
-      badgeEl.title = isBechNoraProf ? 'Director Verified 🌟' : 'Verified';
+      badgeEl.src = isBechNoraProf ? 'gold-tick.svg' : 'blue-tick.png';
+      badgeEl.title = isBechNoraProf ? 'Director Verified 🌟' : 'Master Admin Verified 🌟';
+    } else if (p.name && p.name !== 'BostarGroup') {
+      badgeEl.classList.remove('hidden');
+      badgeEl.src = 'gold-tick.svg';
+      badgeEl.title = 'Verified BostarGroup Member ✨';
     } else {
       badgeEl.classList.add('hidden');
     }
@@ -24775,7 +24827,12 @@ function enterTestMode() {
   const dock = document.getElementById('bottom-dock');
   if (dock) dock.classList.remove('hidden');
   setDockVisible(true);
-  if (window.DataService) window.DataService.fetchData(false);
+  if (window.DataService) {
+    window.DataService.fetchData(false);
+    if (typeof window.DataService.startAutoReload === 'function') {
+      window.DataService.startAutoReload(2);
+    }
+  }
   renderCurrentView();
   showToastNotification('🎉 ស្វាគមន៍មកកាន់ Test Mode! ជាមួយ Google Sheet ថ្មី');
 }
@@ -24914,6 +24971,9 @@ async function submitOnboardingConnection() {
     
     showToastNotification(`🎉 ភ្ជាប់ជោគជ័យ! សូមស្វាគមន៍ ${verifiedSellerKm}`);
     await DataService.fetchData(false);
+    if (typeof DataService.startAutoReload === 'function') {
+      DataService.startAutoReload(2);
+    }
     renderCurrentView();
   } catch (err) {
     if (statusBox) {

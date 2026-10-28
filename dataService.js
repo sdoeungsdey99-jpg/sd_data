@@ -108,21 +108,30 @@ function loadCachedData() {
 async function fetchGoogleSheetGViz(param, sheetNameFallback) {
   const sheetId = getActiveSheetId();
   const queryParam = isNaN(param) ? `sheet=${encodeURIComponent(param)}` : `gid=${param}`;
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&${queryParam}`;
+  const timestamp = Date.now();
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&${queryParam}&_t=${timestamp}`;
 
   let response;
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 7000);
-    response = await fetch(url, { signal: controller.signal });
+    const timer = setTimeout(() => controller.abort(), 12000);
+    response = await fetch(url, { 
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
     clearTimeout(timer);
   } catch (e) {
     if (sheetNameFallback) {
-      const retryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}`;
+      const retryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}&_t=${Date.now()}`;
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 7000);
+      const timer = setTimeout(() => controller.abort(), 12000);
       try {
-        response = await fetch(retryUrl, { signal: controller.signal });
+        response = await fetch(retryUrl, { 
+          signal: controller.signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+        });
       } catch (_) {}
       clearTimeout(timer);
     }
@@ -143,21 +152,30 @@ async function fetchGoogleSheetGViz(param, sheetNameFallback) {
 async function fetchGoogleSheetCSV(param, sheetNameFallback) {
   const sheetId = getActiveSheetId();
   const queryParam = isNaN(param) ? `sheet=${encodeURIComponent(param)}` : `gid=${param}`;
-  const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&${queryParam}`;
+  const timestamp = Date.now();
+  const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&${queryParam}&_t=${timestamp}`;
 
   let response;
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 7000);
-    response = await fetch(gvizUrl, { signal: controller.signal });
+    const timer = setTimeout(() => controller.abort(), 12000);
+    response = await fetch(gvizUrl, { 
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
     clearTimeout(timer);
   } catch (e) {
     if (sheetNameFallback) {
-      const fallbackUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}`;
+      const fallbackUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}&_t=${Date.now()}`;
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 7000);
+      const timer = setTimeout(() => controller.abort(), 12000);
       try {
-        response = await fetch(fallbackUrl, { signal: controller.signal });
+        response = await fetch(fallbackUrl, { 
+          signal: controller.signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+        });
       } catch (_) {}
       clearTimeout(timer);
     }
@@ -204,10 +222,14 @@ function parseCSV(text) {
 async function fetchTeamHierarchyCSV() {
   const sId = TEAM_HIERARCHY_SHEET_ID;
   try {
-    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${TEAM_HIERARCHY_GID}`;
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${TEAM_HIERARCHY_GID}&_t=${Date.now()}`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 7000);
-    const resp = await fetch(gvizUrl, { signal: controller.signal });
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(gvizUrl, { 
+      signal: controller.signal, 
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
     clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
@@ -219,8 +241,15 @@ async function fetchTeamHierarchyCSV() {
   } catch (_) {}
 
   try {
-    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Team Hierarchy')}`;
-    const resp = await fetch(gvizFallback);
+    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Team Hierarchy')}&_t=${Date.now()}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(gvizFallback, {
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
+    clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
       if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
@@ -236,10 +265,14 @@ async function fetchTeamHierarchyCSV() {
 async function fetchBostarTrackSalesCSV() {
   const sId = TEAM_HIERARCHY_SHEET_ID;
   try {
-    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${BOSTAR_TRACK_GID}`;
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${BOSTAR_TRACK_GID}&_t=${Date.now()}`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 7000);
-    const resp = await fetch(gvizUrl, { signal: controller.signal });
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(gvizUrl, { 
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
     clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
@@ -251,8 +284,15 @@ async function fetchBostarTrackSalesCSV() {
   } catch (_) {}
 
   try {
-    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('BostarTrack')}`;
-    const resp = await fetch(gvizFallback);
+    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('BostarTrack')}&_t=${Date.now()}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(gvizFallback, {
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
+    clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
       if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
@@ -268,10 +308,14 @@ async function fetchBostarTrackSalesCSV() {
 async function fetchMonthlyTargetsCSV() {
   const sId = TEAM_HIERARCHY_SHEET_ID;
   try {
-    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Monthly Targets')}`;
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Monthly Targets')}&_t=${Date.now()}`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 7000);
-    const resp = await fetch(gvizUrl, { signal: controller.signal });
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(gvizUrl, { 
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
     clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
@@ -291,10 +335,14 @@ const MASTER_DATA_TAB_GID = '0';
 async function fetchTeamNameCodesCSV() {
   const sId = TEAM_HIERARCHY_SHEET_ID;
   try {
-    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${TEAM_NAME_TAB_GID}`;
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${TEAM_NAME_TAB_GID}&_t=${Date.now()}`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 7000);
-    const resp = await fetch(gvizUrl, { signal: controller.signal });
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(gvizUrl, { 
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
     clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
@@ -306,8 +354,15 @@ async function fetchTeamNameCodesCSV() {
   } catch (_) {}
 
   try {
-    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Team Name')}`;
-    const resp = await fetch(gvizFallback);
+    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Team Name')}&_t=${Date.now()}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(gvizFallback, {
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
+    clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
       if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
@@ -323,10 +378,14 @@ async function fetchTeamNameCodesCSV() {
 async function fetchMasterDataSalesCSV() {
   const sId = TEAM_HIERARCHY_SHEET_ID;
   try {
-    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${MASTER_DATA_TAB_GID}`;
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${MASTER_DATA_TAB_GID}&_t=${Date.now()}`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 14000);
-    const resp = await fetch(gvizUrl, { signal: controller.signal });
+    const timer = setTimeout(() => controller.abort(), 15000);
+    const resp = await fetch(gvizUrl, { 
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
     clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
@@ -338,8 +397,15 @@ async function fetchMasterDataSalesCSV() {
   } catch (_) {}
 
   try {
-    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Master Data')}`;
-    const resp = await fetch(gvizFallback);
+    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Master Data')}&_t=${Date.now()}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    const resp = await fetch(gvizFallback, {
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
+    clearTimeout(timer);
     if (resp && resp.ok) {
       const text = await resp.text();
       if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
@@ -363,6 +429,9 @@ window.DataService = {
   subscribe(listener) {
     if (typeof listener === 'function') {
       this.listeners.push(listener);
+    }
+    if (typeof this.initLifecycleSync === 'function') {
+      this.initLifecycleSync();
     }
   },
 
@@ -512,6 +581,12 @@ window.DataService = {
         });
       }
 
+      // Preserve cached data if fetch timed out or returned empty
+      if (personalSales.length === 0 && this.data && Array.isArray(this.data.personalSales) && this.data.personalSales.length > 0) {
+        console.warn('⚠️ Personal sales fetch returned 0 rows (retaining previous cached sales)');
+        personalSales.push(...this.data.personalSales);
+      }
+
       // ==========================================
       // 2. Process Daily Expenses (from CSV)
       // ==========================================
@@ -548,6 +623,12 @@ window.DataService = {
           note: String(r[4] || '').trim(),
           rowIndex: i
         });
+      }
+
+      // Preserve cached expenses if fetch timed out or returned empty
+      if (expenses.length === 0 && this.data && Array.isArray(this.data.expenses) && this.data.expenses.length > 0) {
+        console.warn('⚠️ Expenses fetch returned 0 rows (retaining previous cached expenses)');
+        expenses.push(...this.data.expenses);
       }
 
       // ==========================================
@@ -672,6 +753,20 @@ window.DataService = {
       // Fallback: If totalNetCash not set from label, use netCashPositionFinal or bank sum
       if (!netCashPosition.totalNetCash) {
         netCashPosition.totalNetCash = netCashPosition.netCashPositionFinal || (netCashPosition.totalLiquidAssets - netCashPosition.totalAccountsPayable);
+      }
+
+      // Preserve cached bank accounts if fetch timed out or returned empty
+      if (accounts.length === 0 && this.data && this.data.bank && Array.isArray(this.data.bank.accounts) && this.data.bank.accounts.length > 0) {
+        console.warn('⚠️ Bank accounts fetch returned 0 rows (retaining previous cached bank data)');
+        accounts.push(...this.data.bank.accounts);
+        pureUsdTotal = this.data.bank.pureUsdTotal || pureUsdTotal;
+        pureKhrTotal = this.data.bank.pureKhrTotal || pureKhrTotal;
+        if (this.data.bank.netCashPosition) {
+          Object.assign(netCashPosition, this.data.bank.netCashPosition);
+        }
+        if (Array.isArray(this.data.bank.payables)) {
+          payables.push(...this.data.bank.payables);
+        }
       }
 
       // ==========================================
@@ -1160,16 +1255,53 @@ window.DataService = {
     }
   },
 
-  startAutoReload(intervalMinutes = 5) {
+  startAutoReload(intervalMinutes = 2) {
     if (this.pollTimer) clearInterval(this.pollTimer);
     const ms = intervalMinutes * 60 * 1000;
     this.pollTimer = setInterval(() => {
-      this.fetchData(true);
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible' && (!('onLine' in navigator) || navigator.onLine)) {
+        this.fetchData(true);
+      }
     }, ms);
+    this.initLifecycleSync();
   },
 
   stopAutoReload() {
     if (this.pollTimer) clearInterval(this.pollTimer);
+    this.pollTimer = null;
+  },
+
+  initLifecycleSync() {
+    if (this._lifecycleInitialized || typeof window === 'undefined' || typeof document === 'undefined') return;
+    this._lifecycleInitialized = true;
+
+    // 1. Mobile tab visibility recovery (app switch back, unlocking phone, returning to browser)
+    let lastResumeFetch = Date.now();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        const now = Date.now();
+        const lastFetchMs = this.lastFetched ? this.lastFetched.getTime() : 0;
+        // If tab was away for over 35 seconds, silently fetch fresh data
+        if ((now - lastFetchMs > 35000 || now - lastResumeFetch > 35000) && !this.isLoading && this.hasActiveSheet()) {
+          lastResumeFetch = now;
+          this.fetchData(true);
+        }
+      }
+    });
+
+    // 2. iOS Safari bfcache (Back-Forward Cache) recovery
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted && !this.isLoading && this.hasActiveSheet()) {
+        this.fetchData(true);
+      }
+    });
+
+    // 3. Online network reconnection recovery
+    window.addEventListener('online', () => {
+      if (this.hasActiveSheet()) {
+        this.fetchData(true);
+      }
+    });
   },
 
   isUsingCustomSheet() {
@@ -1234,10 +1366,21 @@ window.DataService = {
 
   async testSheetConnection(input) {
     const cleanId = extractSheetId(input) || DEFAULT_MASTER_SHEET_ID;
-    const url = `https://docs.google.com/spreadsheets/d/${cleanId}/gviz/tq?tqx=out:json&headers=0&sheet=Personal%20Sales`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`HTTP Error ${res.status}: សូមពិនិត្យសិទ្ធិចែករំលែក (Anyone with link can view)`);
+    const url = `https://docs.google.com/spreadsheets/d/${cleanId}/gviz/tq?tqx=out:json&headers=0&sheet=Personal%20Sales&_t=${Date.now()}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    let res;
+    try {
+      res = await fetch(url, {
+        signal: controller.signal,
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!res || !res.ok) {
+      throw new Error(`HTTP Error ${res ? res.status : 'Network'}: សូមពិនិត្យសិទ្ធិចែករំលែក (Anyone with link can view)`);
     }
     const text = await res.text();
     const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);/);
