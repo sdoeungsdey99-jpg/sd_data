@@ -87,8 +87,18 @@
     }
   </script>
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Lucide Icons (Offline-first local bundle with multi-CDN fallbacks) -->
+  <script src="lucide.min.js?v=0.469.0"></script>
+  <script>
+    if (!window.lucide) {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"><\/script>');
+    }
+  </script>
+  <script>
+    if (!window.lucide) {
+      document.write('<script src="https://unpkg.com/lucide@latest"><\/script>');
+    }
+  </script>
 
   <style>
     /* iOS System Status Bar & UI Mode Synchronization */
@@ -6800,6 +6810,6 @@
   </div>
 
   <script src="dataService.js?v=7.7"></script>
-  <script src="app.js?v=49.2"></script>
+  <script src="app.js?v=49.3"></script>
 </body>
 </html>

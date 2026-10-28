@@ -8,6 +8,68 @@
  *    working Khmer/English translation, remove duplicate Telegram.
  */
 
+// ==========================================
+// UNIVERSAL AUTO-HEALING LUCIDE ICON OBSERVER
+// Guarantees no icon ever appears as an empty/blank box
+// ==========================================
+(function initLucideAutoHealer() {
+  if (typeof window === 'undefined') return;
+  
+  window.refreshAllLucideIcons = function() {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      try {
+        window.lucide.createIcons();
+      } catch (e) {}
+    }
+  };
+
+  if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined') {
+    let debounceTimer = null;
+    const observer = new MutationObserver((mutations) => {
+      let hasUnprocessedLucide = false;
+      for (let i = 0; i < mutations.length; i++) {
+        const m = mutations[i];
+        if (m.addedNodes && m.addedNodes.length > 0) {
+          for (let j = 0; j < m.addedNodes.length; j++) {
+            const node = m.addedNodes[j];
+            if (node.nodeType === 1) { // ELEMENT_NODE
+              if (node.hasAttribute && node.hasAttribute('data-lucide')) {
+                hasUnprocessedLucide = true;
+                break;
+              }
+              if (node.querySelector && node.querySelector('[data-lucide]')) {
+                hasUnprocessedLucide = true;
+                break;
+              }
+            }
+          }
+        }
+        if (hasUnprocessedLucide) break;
+      }
+
+      if (hasUnprocessedLucide) {
+        if (debounceTimer) cancelAnimationFrame(debounceTimer);
+        debounceTimer = requestAnimationFrame(() => {
+          window.refreshAllLucideIcons();
+        });
+      }
+    });
+
+    const attachObserver = () => {
+      if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+        window.refreshAllLucideIcons();
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attachObserver);
+    } else {
+      attachObserver();
+    }
+  }
+})();
+
 const translations = {
   km: {
     appTitle: 'SD Data',
@@ -1159,6 +1221,9 @@ function onDataUpdated(service) {
   const drawerM = document.getElementById('profile-drawer-modal');
   if (drawerM && !drawerM.classList.contains('hidden') && typeof renderProfileDrawerContent === 'function') {
     renderProfileDrawerContent();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
   }
 
   // Auto-collapse any open pull indicators upon successful data update
@@ -22683,7 +22748,14 @@ function openProfileDrawer() {
   // Start frameless executive sales motto rotation
   startDrawerMottoRotation();
 
-  if (window.lucide) window.lucide.createIcons();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+  setTimeout(() => {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }, 120);
   if (navigator.vibrate) navigator.vibrate(15);
 }
 
@@ -23182,6 +23254,14 @@ function renderProfileDrawerContent() {
 
     </div>
   `;
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    try {
+      window.lucide.createIcons();
+    } catch (e) {
+      console.warn('Lucide drawer createIcons error:', e);
+    }
+  }
 }
 
 function getProfileViewHTML() {
@@ -23805,6 +23885,9 @@ function toggleDrawerMemberInfo() {
     body.classList.remove('hidden');
     if (chevron) chevron.style.transform = 'rotate(180deg)';
     if (editBtn) editBtn.classList.remove('hidden');
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
   } else {
     body.classList.add('hidden');
     if (chevron) chevron.style.transform = 'rotate(0deg)';
@@ -23820,6 +23903,9 @@ function toggleProfileViewMemberInfo() {
   if (isHidden) {
     body.classList.remove('hidden');
     if (chevron) chevron.style.transform = 'rotate(180deg)';
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
   } else {
     body.classList.add('hidden');
     if (chevron) chevron.style.transform = 'rotate(0deg)';
