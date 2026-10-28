@@ -1255,7 +1255,7 @@ window.DataService = {
     }
   },
 
-  startAutoReload(intervalMinutes = 2) {
+  startAutoReload(intervalMinutes = 1) {
     if (this.pollTimer) clearInterval(this.pollTimer);
     const ms = intervalMinutes * 60 * 1000;
     this.pollTimer = setInterval(() => {
@@ -1281,8 +1281,8 @@ window.DataService = {
       if (document.visibilityState === 'visible') {
         const now = Date.now();
         const lastFetchMs = this.lastFetched ? this.lastFetched.getTime() : 0;
-        // If tab was away for over 35 seconds, silently fetch fresh data
-        if ((now - lastFetchMs > 35000 || now - lastResumeFetch > 35000) && !this.isLoading && this.hasActiveSheet()) {
+        // If tab was away for over 8 seconds, silently fetch fresh data
+        if ((now - lastFetchMs > 8000 || now - lastResumeFetch > 8000) && !this.isLoading && this.hasActiveSheet()) {
           lastResumeFetch = now;
           this.fetchData(true);
         }
@@ -1501,3 +1501,6 @@ window.DataService = {
     return sales;
   }
 };
+
+var DataService = window.DataService;
+if (typeof globalThis !== 'undefined') globalThis.DataService = window.DataService;

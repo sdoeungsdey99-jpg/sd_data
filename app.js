@@ -305,6 +305,29 @@ const appState = {
   })()
 };
 
+const DEFAULT_GUEST_PROFILE_DATA = {
+  name: 'សមាជិក Bostar',
+  memberId: 'BG-001',
+  subtitle: 'BostarGroup Member',
+  avatar: 'bostar-logo.png',
+  work: 'សមាជិកក្រុម BostarGroup',
+  study: 'BostarGroup',
+  live: 'រាជធានីភ្នំពេញ',
+  from: 'ព្រះរាជាណាចក្រកម្ពុជា',
+  status: 'សកម្មក្នុងការងារ',
+  birthday: '',
+  phone: '',
+  privacy: {
+    showWork: true,
+    showStudy: true,
+    showLive: true,
+    showFrom: true,
+    showStatus: true,
+    showBirth: false,
+    showPhone: false
+  }
+};
+
 function applyHideSubtitles(hide) {
   if (hide) {
     document.body.classList.add('hide-subtitles');
@@ -961,7 +984,9 @@ function togglePinEnabled() {
 // ==========================================
 // 2. Initialization & Data Engine
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
+  if (window._appInitialized) return;
+  window._appInitialized = true;
   applyTheme(appState.theme);
   applyThemeAccent(appState.themeAccent);
   applyLockWallpaper(appState.lockWallpaper);
@@ -993,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       const now = Date.now();
-      if (now - lastAppResumeTime > 30000) {
+      if (now - lastAppResumeTime > 8000) {
         lastAppResumeTime = now;
         if (window.DataService && typeof window.DataService.hasActiveSheet === 'function' && window.DataService.hasActiveSheet() && !window.DataService.isLoading) {
           window.DataService.fetchData(true);
@@ -1156,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openProfileSubModal(urlParams.get('submodal'));
     }, 150);
   }
-});
+}
 
 function onDataUpdated(service) {
   if (service && service.data && Array.isArray(service.data.teamMembers) && service.data.teamMembers.length > 0) {
@@ -19387,29 +19412,6 @@ const DEFAULT_PROFILE_DATA = {
   }
 };
 
-const DEFAULT_GUEST_PROFILE_DATA = {
-  name: 'សមាជិក Bostar',
-  memberId: 'BG-001',
-  subtitle: 'BostarGroup Member',
-  avatar: 'bostar-logo.png',
-  work: 'សមាជិកក្រុម BostarGroup',
-  study: 'BostarGroup',
-  live: 'រាជធានីភ្នំពេញ',
-  from: 'ព្រះរាជាណាចក្រកម្ពុជា',
-  status: 'សកម្មក្នុងការងារ',
-  birthday: '',
-  phone: '',
-  privacy: {
-    showWork: true,
-    showStudy: true,
-    showLive: true,
-    showFrom: true,
-    showStatus: true,
-    showBirth: false,
-    showPhone: false
-  }
-};
-
 function getProfileData() {
   try {
     const raw = localStorage.getItem('sd_profile_data');
@@ -19442,16 +19444,20 @@ function syncHeaderProfileUI() {
   if (nameEl) nameEl.textContent = isMaster ? (p.name || 'ស្តី ស្តើង') : (p.name || 'BostarGroup');
   if (subEl) subEl.textContent = isMaster ? (p.subtitle || 'SDEY SDOEUNG') : (p.subtitle || 'Bostar Sales & Finance');
   if (badgeEl) {
-    if (isMaster) {
-      badgeEl.classList.remove('hidden');
-      const isBechNoraProf = p.name && (p.name.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora')));
-      badgeEl.src = isBechNoraProf ? 'gold-tick.svg' : 'blue-tick.png';
-      badgeEl.title = isBechNoraProf ? 'Director Verified 🌟' : 'Master Admin Verified 🌟';
-    } else if (p.name && p.name !== 'BostarGroup') {
+    const profName = String(p.name || '').trim();
+    const isBechNora = profName.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora'));
+    const isSdeySdoeung = isMaster || profName.includes('ស្តី ស្តើង') || (p.subtitle && p.subtitle.toLowerCase().includes('sdey sdoeung'));
+
+    if (isBechNora) {
       badgeEl.classList.remove('hidden');
       badgeEl.src = 'gold-tick.svg';
-      badgeEl.title = 'Verified BostarGroup Member ✨';
+      badgeEl.title = 'Director Verified 🌟';
+    } else if (isSdeySdoeung) {
+      badgeEl.classList.remove('hidden');
+      badgeEl.src = 'blue-tick.png';
+      badgeEl.title = 'Master Admin Verified 🌟';
     } else {
+      // គោលការណ៍កិត្តិយសខ្ពស់បំផុត៖ គ្មាន Tick សម្រាប់សមាជិកទូទៅឡើយ (មានត្រឹមតែ ២ រូបប៉ុណ្ណោះ៖ ស្តី ស្តើង & ប៊ិច នោរ៉ា)
       badgeEl.classList.add('hidden');
     }
   }
@@ -31648,4 +31654,15 @@ window.resetInlineMonthBoost = resetInlineMonthBoost;
 window.attachUniversalPullToRefresh = attachUniversalPullToRefresh;
 window.setupPullToRefresh = setupPullToRefresh;
 window.UNIVERSAL_PULL_REFRESH_TARGETS = UNIVERSAL_PULL_REFRESH_TARGETS;
+
+// Universal DOM Loading Safeguard:
+// Placed at the very end of app.js so all 31,000+ lines are fully parsed before initApp runs!
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
+}
+
 
