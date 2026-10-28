@@ -16722,7 +16722,7 @@ function renderHonorsModalContent() {
           <button type="button" onclick="switchHonorsTab('benefits')" 
                   class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${isBenefits ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 border border-blue-400/40' : 'text-slate-400 hover:text-white'}">
             <i data-lucide="sparkles" class="w-3.5 h-3.5 ${isBenefits ? 'text-blue-200' : 'text-blue-400'}"></i>
-            <span>${isKm ? 'អត្ថប្រយោជន៍ (MC)' : 'Benefits (MC)'}</span>
+            <span>${isKm ? 'អត្ថប្រយោជន៍កម្មវិធី' : 'App Benefits'}</span>
           </button>
           <button type="button" onclick="switchHonorsTab('honors')" 
                   class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${!isBenefits ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/20 border border-amber-400/40' : 'text-slate-400 hover:text-white'}">
@@ -16747,7 +16747,7 @@ function renderHonorsModalContent() {
       headerIcon.className = "w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0 shadow-sm";
       headerIcon.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i>`;
     }
-    if (headerTitle) headerTitle.textContent = isKm ? 'អត្ថប្រយោជន៍ & ស្លាយ MC' : 'App Benefits & MC Slides';
+    if (headerTitle) headerTitle.textContent = isKm ? 'អត្ថប្រយោជន៍នៃកម្មវិធី' : 'App Benefits & Features';
     if (headerSubtitle) headerSubtitle.textContent = isKm ? 'ដំណោះស្រាយងាយស្រួល រហ័ស & ឯកជនភាព' : 'Quick, Standardized & 100% Private';
 
     const subFilter = window._currentBenefitsSubFilter || 'all';
