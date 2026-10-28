@@ -12,63 +12,13 @@
 // UNIVERSAL AUTO-HEALING LUCIDE ICON OBSERVER
 // Guarantees no icon ever appears as an empty/blank box
 // ==========================================
-(function initLucideAutoHealer() {
-  if (typeof window === 'undefined') return;
-  
-  window.refreshAllLucideIcons = function() {
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-      try {
-        window.lucide.createIcons();
-      } catch (e) {}
-    }
-  };
-
-  if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined') {
-    let debounceTimer = null;
-    const observer = new MutationObserver((mutations) => {
-      let hasUnprocessedLucide = false;
-      for (let i = 0; i < mutations.length; i++) {
-        const m = mutations[i];
-        if (m.addedNodes && m.addedNodes.length > 0) {
-          for (let j = 0; j < m.addedNodes.length; j++) {
-            const node = m.addedNodes[j];
-            if (node.nodeType === 1) { // ELEMENT_NODE
-              if (node.hasAttribute && node.hasAttribute('data-lucide')) {
-                hasUnprocessedLucide = true;
-                break;
-              }
-              if (node.querySelector && node.querySelector('[data-lucide]')) {
-                hasUnprocessedLucide = true;
-                break;
-              }
-            }
-          }
-        }
-        if (hasUnprocessedLucide) break;
-      }
-
-      if (hasUnprocessedLucide) {
-        if (debounceTimer) cancelAnimationFrame(debounceTimer);
-        debounceTimer = requestAnimationFrame(() => {
-          window.refreshAllLucideIcons();
-        });
-      }
-    });
-
-    const attachObserver = () => {
-      if (document.body) {
-        observer.observe(document.body, { childList: true, subtree: true });
-        window.refreshAllLucideIcons();
-      }
-    };
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', attachObserver);
-    } else {
-      attachObserver();
-    }
+window.refreshAllLucideIcons = function() {
+  if (typeof window !== 'undefined' && window.lucide && typeof window.lucide.createIcons === 'function') {
+    try {
+      window.lucide.createIcons();
+    } catch (e) {}
   }
-})();
+};
 
 const translations = {
   km: {
@@ -1375,7 +1325,9 @@ function updateReloadBadge(service) {
   }
 }
 
-// 🌐 Option B: Zero-Noise UI (Hidden Always, Show ONLY on Loading / No Internet / Connection Error)
+// 🌐 Option B: Zero-Noise UI (Hidden Always, Show ONLY on Loading / No Internet / Connection Error with Smooth Fade Animation)
+let reloadButtonHideTimer = null;
+
 function checkOnlineOfflineStatus() {
   const btnReload = document.getElementById('btn-reload');
   const icon = document.getElementById('reload-icon');
@@ -1383,9 +1335,11 @@ function checkOnlineOfflineStatus() {
   if (!btnReload) return;
 
   if (DataService.isLoading) {
+    if (reloadButtonHideTimer) clearTimeout(reloadButtonHideTimer);
     if (icon) icon.classList.add('animate-spin');
     if (timeText) timeText.textContent = '...';
     btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none', 'border-amber-500/40', 'bg-amber-500/10', 'text-amber-400');
+    btnReload.classList.add('opacity-100');
     return;
   }
 
@@ -1393,15 +1347,30 @@ function checkOnlineOfflineStatus() {
   const hasError = Boolean(DataService.error);
 
   if (isOffline || hasError) {
+    if (reloadButtonHideTimer) clearTimeout(reloadButtonHideTimer);
     btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none', 'border-white/10', 'bg-white/5');
-    btnReload.classList.add('border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
+    btnReload.classList.add('opacity-100', 'border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
     if (timeText) timeText.textContent = isOffline ? 'Offline' : 'Error';
     if (icon) icon.classList.remove('animate-spin');
   } else {
-    // Zero-Noise Principle: Normal connection -> Auto-hide 100% to keep header clean and pristine!
-    btnReload.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-    btnReload.classList.remove('border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
+    // Zero-Noise Principle with smooth transition:
     if (icon) icon.classList.remove('animate-spin');
+    if (DataService.lastFetched && timeText) {
+      timeText.textContent = DataService.lastFetched.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    }
+    btnReload.classList.remove('border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
+    btnReload.classList.add('border-white/10', 'bg-white/5');
+
+    // Smooth exit animation: keep visible for 1.5s so user sees sync success time, then smooth fade-out
+    if (reloadButtonHideTimer) clearTimeout(reloadButtonHideTimer);
+    reloadButtonHideTimer = setTimeout(() => {
+      btnReload.classList.add('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        if (!DataService.isLoading && !DataService.error && navigator.onLine) {
+          btnReload.classList.add('hidden');
+        }
+      }, 350);
+    }, 1500);
   }
 }
 
@@ -1434,9 +1403,16 @@ async function manualReload() {
   if (navigator.vibrate) {
     try { navigator.vibrate(15); } catch (_) {}
   }
+  const btnReload = document.getElementById('btn-reload');
   const icon = document.getElementById('reload-icon');
-  if (icon) icon.classList.add('animate-spin');
   const timeText = document.getElementById('reload-time-text');
+
+  // Immediately animate and reveal reload button
+  if (btnReload) {
+    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+    btnReload.classList.add('opacity-100');
+  }
+  if (icon) icon.classList.add('animate-spin');
   if (timeText) timeText.textContent = '...';
 
   const indicator = document.getElementById('pull-refresh-indicator');
@@ -31646,6 +31622,23 @@ window.resetInlineMonthBoost = resetInlineMonthBoost;
 window.attachUniversalPullToRefresh = attachUniversalPullToRefresh;
 window.setupPullToRefresh = setupPullToRefresh;
 window.UNIVERSAL_PULL_REFRESH_TARGETS = UNIVERSAL_PULL_REFRESH_TARGETS;
+
+// Universal Modal Close & Navigation Handlers
+window.closeSalesModal = closeSalesModal;
+window.closePayablesModal = closePayablesModal;
+window.closeBoostModal = closeBoostModal;
+window.closeExpensesModal = closeExpensesModal;
+window.closeCodModal = closeCodModal;
+window.closeBankModal = closeBankModal;
+window.closeTeamSetsModal = closeTeamSetsModal;
+window.closeDailyReportModal = closeDailyReportModal;
+window.closeHonorsModal = closeHonorsModal;
+window.closeTutorialModal = closeTutorialModal;
+window.closeAllCustomersModal = closeAllCustomersModal;
+window.closeTeamMembersModal = closeTeamMembersModal;
+window.closeProfileDrawer = closeProfileDrawer;
+window.handleBackNavigation = handleBackNavigation;
+window.manualReload = manualReload;
 
 // Universal DOM Loading Safeguard:
 // Placed at the very end of app.js so all 31,000+ lines are fully parsed before initApp runs!
