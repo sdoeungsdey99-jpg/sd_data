@@ -3118,13 +3118,19 @@
         
         <div class="space-y-3">
           <div>
-            <label class="block text-[11px] font-medium text-slate-300 mb-1">ឈ្មោះថ្នាក់ដឹកនាំ / អ្នកលក់ (Your Name)</label>
-            <input id="onboard-member-name" type="text" placeholder="ឧ. Hou Yarith / Hem Chanthy / ..." 
+            <label class="block text-[11px] font-medium text-slate-300 mb-1">ឈ្មោះអ្នកលក់ (Seller / Member Name) <span class="text-rose-400">*</span></label>
+            <input id="onboard-member-name" type="text" placeholder="ឧ. វន ស្រីនិច / ជាន ស្រីនិច / ..." 
                    class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition">
           </div>
 
           <div>
-            <label class="block text-[11px] font-medium text-slate-300 mb-1">Link Google Sheet ដែលបាន Copy រួច</label>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1">លេខកូដពិសេស (Special Code) <span class="text-rose-400">*</span></label>
+            <input id="onboard-member-code" type="text" placeholder="បញ្ចូលកូដពិសេសពី Tab Team Name (ឧ. B****)" 
+                   class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white font-mono uppercase tracking-wider placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1">Link Google Sheet ផ្ទាល់ខ្លួន <span class="text-rose-400">*</span></label>
             <input id="onboard-sheet-url" type="text" placeholder="Paste Link Google Sheet នៅទីនេះ..." 
                    class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition">
           </div>
@@ -3191,9 +3197,9 @@
         <i data-lucide="chevron-right" class="w-4 h-4 text-amber-400/70 group-hover:translate-x-0.5 transition shrink-0"></i>
       </button>
 
-      <!-- Master Admin Executive Card for Brother Sdoeung -->
-      <button onclick="openMasterAdminPinModal()" 
-              class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-orange-500/15 via-amber-500/15 to-yellow-500/10 border border-orange-500/35 hover:border-orange-500/55 text-left active:scale-[0.98] transition mb-3 shadow-lg shadow-orange-500/10 group flex items-center justify-between">
+      <!-- Master Admin Executive Card for Brother Sdoeung (Hidden from default onboarding view) -->
+      <button id="onboard-master-admin-btn" onclick="openMasterAdminPinModal()" 
+              class="hidden w-full p-3.5 rounded-2xl bg-gradient-to-r from-orange-500/15 via-amber-500/15 to-yellow-500/10 border border-orange-500/35 hover:border-orange-500/55 text-left active:scale-[0.98] transition mb-3 shadow-lg shadow-orange-500/10 group flex items-center justify-between">
         <div class="flex items-center gap-3 min-w-0">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500/25 to-amber-500/20 border border-orange-500/40 flex items-center justify-center shrink-0 shadow-inner">
             <i data-lucide="shield-check" class="w-5 h-5 text-orange-400"></i>
@@ -6878,6 +6884,6 @@
   </div>
 
   <script src="dataService.js?v=7.8"></script>
-  <script src="app.js?v=49.4"></script>
+  <script src="app.js?v=49.5"></script>
 </body>
 </html>

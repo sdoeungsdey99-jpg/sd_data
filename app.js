@@ -24783,31 +24783,92 @@ window.enterTestMode = enterTestMode;
 
 async function submitOnboardingConnection() {
   const nameInput = document.getElementById('onboard-member-name');
+  const codeInput = document.getElementById('onboard-member-code');
   const urlInput = document.getElementById('onboard-sheet-url');
   const statusBox = document.getElementById('onboard-status-box');
 
   const name = nameInput ? nameInput.value.trim() : '';
+  const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
   const url = urlInput ? urlInput.value.trim() : '';
 
-  if (!url) {
+  if (!name) {
     if (statusBox) {
-      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូល Link Google Sheet របស់អ្នក</span>';
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលឈ្មោះអ្នកលក់របស់អ្នក</span>';
       if (window.lucide) window.lucide.createIcons();
     }
+    nameInput?.focus();
     return;
   }
 
+  if (!code) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលលេខកូដពិសេស (Tab Team Name ជួរ D)</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    codeInput?.focus();
+    return;
+  }
+
+  if (!url) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូល Link Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នក</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    urlInput?.focus();
+    return;
+  }
+
+  if (statusBox) {
+    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងផ្ទៀងផ្ទាត់ឈ្មោះ និងលេខកូដពិសេស...</span>';
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // 1. Verify Name & Special Code against Tab Team Name
+  let teamCodes = [];
+  try {
+    teamCodes = await DataService.getTeamNameCodes();
+  } catch (e) {
+    console.warn('Error fetching team codes:', e);
+  }
+
+  const normCurrent = (typeof normalizeSellerName === 'function') ? normalizeSellerName(name) : name.toLowerCase().trim();
+  const matchedSeller = teamCodes.find(t => 
+    ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.km) : t.km.toLowerCase().trim()) === normCurrent || 
+    ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.en) : t.en.toLowerCase().trim()) === normCurrent
+  );
+
+  if (!matchedSeller) {
+    if (statusBox) {
+      statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>ឈ្មោះ "${escapeHtml(name)}" មិនត្រូវគ្នានឹងឈ្មោះអ្នកលក់ក្នុង Tab Team Name ឡើយ!</span></span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+    nameInput?.focus();
+    return;
+  }
+
+  const expectedCode = String(matchedSeller.code || '').trim().toUpperCase();
+  if (code !== expectedCode) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>លេខកូដពិសេសមិនត្រឹមត្រូវ! សូមពិនិត្យកូដក្នុង Tab Team Name ជួរ D</span></span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    codeInput?.focus();
+    return;
+  }
+
+  // 2. Verify Google Sheet Connection
   const cleanId = (typeof extractSheetId === 'function') ? extractSheetId(url) : (url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/) ? url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)[1] : url);
   if (!cleanId || cleanId.length < 15) {
     if (statusBox) {
       statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Link ឬ Sheet ID មិនត្រឹមត្រូវឡើយ</span>';
       if (window.lucide) window.lucide.createIcons();
     }
+    urlInput?.focus();
     return;
   }
 
   if (statusBox) {
-    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងពិនិត្យការតភ្ជាប់ទៅកាន់ Google Sheet...</span>';
+    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កូដត្រឹមត្រូវ! កំពុងភ្ជាប់ទៅកាន់ Google Sheet ផ្ទាល់ខ្លួន...</span>';
     if (window.lucide) window.lucide.createIcons();
   }
 
@@ -24819,11 +24880,14 @@ async function submitOnboardingConnection() {
     } catch (_) {}
     localStorage.setItem('sd_custom_sheet_id', cleanId);
     
-    const memberName = name || 'សមាជិក Bostar';
+    // Auto-authorize Master Data for this seller
+    const verifiedSellerKm = matchedSeller.km || name;
+    localStorage.setItem('sd_master_cust_auth_' + normalizeSellerName(verifiedSellerKm), 'true');
+
     const memberProfile = {
-      name: memberName,
+      name: verifiedSellerKm,
       memberId: 'BG-' + Math.floor(100 + Math.random() * 900),
-      subtitle: name ? `${memberName} • BostarGroup` : 'BostarGroup Member',
+      subtitle: `${verifiedSellerKm} • BostarGroup`,
       avatar: 'bostar-logo.png',
       work: 'សមាជិកក្រុម BostarGroup',
       study: 'BostarGroup',
@@ -24848,7 +24912,7 @@ async function submitOnboardingConnection() {
     syncHeaderProfileUI();
     checkOnboardingGate();
     
-    showToastNotification(`🎉 ភ្ជាប់ជោគជ័យ! សូមស្វាគមន៍ ${memberName}`);
+    showToastNotification(`🎉 ភ្ជាប់ជោគជ័យ! សូមស្វាគមន៍ ${verifiedSellerKm}`);
     await DataService.fetchData(false);
     renderCurrentView();
   } catch (err) {
