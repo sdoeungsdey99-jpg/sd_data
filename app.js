@@ -19583,14 +19583,14 @@ function triggerDrawerGreetingAnimation(e) {
   }, 3200);
 }
 
-const DEFAULT_TELEGRAM_GROUP_URL = 'https://t.me/+j-M2q84kQJ1hYzY1';
+const DEFAULT_TELEGRAM_GROUP_URL = 'https://t.me/+wxFdXyeRLcY5ZDRl';
 const DEFAULT_TELEGRAM_BOT_TOKEN = '8606222639:AAHizZMN6HOHDZqf9FlRjAI40jeerJxQnSM';
-const DEFAULT_TELEGRAM_CHAT_ID = '-811940176';
+const DEFAULT_TELEGRAM_CHAT_ID = '-967358085';
 
 function getTelegramGroupUrl() {
   try {
     const saved = (localStorage.getItem('sd_telegram_group_url') || '').trim();
-    if (saved && saved.startsWith('http') && saved !== 'https://t.me/sdey_sdoeung') return saved;
+    if (saved && saved.startsWith('http') && saved !== 'https://t.me/sdey_sdoeung' && saved !== 'https://t.me/+j-M2q84kQJ1hYzY1') return saved;
   } catch (e) {}
   return DEFAULT_TELEGRAM_GROUP_URL;
 }
@@ -19606,7 +19606,7 @@ function getTelegramBotToken() {
 function getTelegramChatId() {
   try {
     const saved = (localStorage.getItem('sd_telegram_chat_id') || '').trim();
-    if (saved) return saved;
+    if (saved && saved !== '-811940176') return saved;
   } catch (e) {}
   return DEFAULT_TELEGRAM_CHAT_ID;
 }
@@ -27492,25 +27492,20 @@ function generateDailyReportText() {
   }
 
   return `🔰 របាយការណ៍លក់ប្រចាំថ្ងៃ ទី ${date}
-🚩 ផេក៖ ${page}
-👤 អ្នកលក់៖ ${staff}
+ផេក៖ ${page}
+អ្នកលក់៖ ${staff}
 ━━━━━━━━━━━━━━━━━━
 📊 សរុបលក់បាន៖ ${totalBoxes} ប្រអប់ 🏆
 
-📥 ១. ឆាត & ខល (Traffic)
 • ឆាតសរុប៖ ${chatTotal} នាក់ (គោលដៅ: ${chatTarget} | ប៉ះដៃ: ${chatMistake})
 • ខលផ្ទាល់៖ ${callDirect} នាក់
-
-🔄 ២. តាមដានភ្ញៀវ (Follow Up)
++ តាមដានភ្ញៀវ (Follow Up)
 • សួរសុខទុក្ខភ្ញៀវចាស់៖ ${followOld} នាក់
 • ភ្ញៀវកំពុងពិចារណា៖ ${followPending} នាក់
-
-📦 ៣. លទ្ធផលលក់ជាក់ស្តែង (Sales)
++ លទ្ធផលលក់ជាក់ស្តែង:
 • ភ្ញៀវថ្មីទិញ៖ ${buyNewP} នាក់ ➔ ${buyNewB} ប្រអប់
 • ភ្ញៀវចាស់ទិញថែម៖ ${buyOldP} នាក់ ➔ ${buyOldB} ប្រអប់
 • ភ្ញៀវបាន Follow Up៖ ${buyFollowP} នាក់ ➔ ${buyFollowB} ប្រអប់
-
-• បញ្ហាប្រឈម / ចំណាំ៖ ${challenges || 'គ្មាន'}
 ━━━━━━━━━━━━━━━━━━
 ⏰ ម៉ោងរាយការណ៍៖ ៩:០០ យប់`;
 }
