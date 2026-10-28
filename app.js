@@ -28747,7 +28747,8 @@ function toggleOrderMiniCalendar(e) {
 function closeMiniCalendarOnClickOutside(e) {
   const popup = document.getElementById('order-mini-calendar-popup');
   const btn = document.getElementById('btn-toggle-mini-calendar');
-  if (popup && !popup.contains(e.target) && btn && !btn.contains(e.target)) {
+  const inp = document.getElementById('order-field-date-text');
+  if (popup && !popup.contains(e.target) && btn && !btn.contains(e.target) && inp && !inp.contains(e.target)) {
     popup.classList.add('hidden');
     document.removeEventListener('click', closeMiniCalendarOnClickOutside);
   }
@@ -28785,6 +28786,23 @@ function changeMiniCalMonth(delta, e) {
   renderOrderMiniCalendar();
 }
 
+function selectMiniCalToday(e) {
+  if (e) e.stopPropagation();
+  const now = new Date();
+  miniCalYear = now.getFullYear();
+  miniCalMonth = now.getMonth();
+  selectMiniCalDay(now.getDate(), e);
+}
+
+function selectMiniCalYesterday(e) {
+  if (e) e.stopPropagation();
+  const y = new Date();
+  y.setDate(y.getDate() - 1);
+  miniCalYear = y.getFullYear();
+  miniCalMonth = y.getMonth();
+  selectMiniCalDay(y.getDate(), e);
+}
+
 function selectMiniCalDay(day, e) {
   if (e) e.stopPropagation();
   miniCalSelectedDay = day;
@@ -28816,30 +28834,51 @@ function renderOrderMiniCalendar() {
   const popup = document.getElementById('order-mini-calendar-popup');
   if (!popup) return;
 
-  const monthNames = [
-    'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
-    'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+  const khmerMonths = [
+    'មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា',
+    'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'
   ];
-  const monthName = monthNames[miniCalMonth] || 'OCTOBER';
+  const monthTitle = `${khmerMonths[miniCalMonth] || 'តុលា'} ${miniCalYear}`;
   const firstDay = new Date(miniCalYear, miniCalMonth, 1).getDay(); // 0 = Sun
   const daysInMonth = new Date(miniCalYear, miniCalMonth + 1, 0).getDate();
 
+  const now = new Date();
+  const isCurrentYearMonth = (now.getFullYear() === miniCalYear && now.getMonth() === miniCalMonth);
+  const realTodayDate = now.getDate();
+
+  const yest = new Date();
+  yest.setDate(yest.getDate() - 1);
+  const isYesterdayYearMonth = (yest.getFullYear() === miniCalYear && yest.getMonth() === miniCalMonth);
+  const realYesterdayDate = yest.getDate();
+
+  const isTodaySelected = isCurrentYearMonth && (miniCalSelectedDay === realTodayDate);
+  const isYesterdaySelected = isYesterdayYearMonth && (miniCalSelectedDay === realYesterdayDate);
+
   let html = `
-    <!-- Header with Red Month Name and Navigation -->
-    <div class="flex items-center justify-between mb-3 px-1">
-      <span class="text-xs font-black tracking-wider text-[#FF453A] uppercase font-sans">
-        ${monthName}
+    <!-- Header with Khmer Month Title and Navigation -->
+    <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-white/10">
+      <button type="button" onclick="changeMiniCalMonth(-1, event)" class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 active:scale-90 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition">‹</button>
+      <span class="text-xs font-bold tracking-wide text-orange-400 font-kantumruy">
+        ${monthTitle}
       </span>
-      <div class="flex items-center gap-1.5">
-        <button type="button" onclick="changeMiniCalMonth(-1, event)" class="w-6 h-6 rounded-full hover:bg-white/10 active:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition">‹</button>
-        <span class="text-[10px] text-slate-400 font-mono">${miniCalYear}</span>
-        <button type="button" onclick="changeMiniCalMonth(1, event)" class="w-6 h-6 rounded-full hover:bg-white/10 active:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition">›</button>
-      </div>
+      <button type="button" onclick="changeMiniCalMonth(1, event)" class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 active:scale-90 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition">›</button>
     </div>
 
-    <!-- Day Headers: S M T W T F S -->
-    <div class="grid grid-cols-7 text-center mb-1 text-[11px] font-bold text-slate-400 font-sans">
-      <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+    <!-- Quick Shortcuts (Today / Yesterday) -->
+    <div class="grid grid-cols-2 gap-1.5 mb-2.5 pb-2 border-b border-white/10">
+      <button type="button" onclick="selectMiniCalToday(event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold font-kantumruy transition active:scale-95 ${isTodaySelected ? 'bg-orange-500 text-white font-bold shadow-sm' : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10'}">
+        ☀️ ថ្ងៃនេះ
+      </button>
+      <button type="button" onclick="selectMiniCalYesterday(event)" 
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold font-kantumruy transition active:scale-95 ${isYesterdaySelected ? 'bg-orange-500 text-white font-bold shadow-sm' : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10'}">
+        ⏮️ ម្សិលមិញ
+      </button>
+    </div>
+
+    <!-- Day Headers: អា ច អ ពុ ព្រ សុ ស -->
+    <div class="grid grid-cols-7 text-center mb-1 text-[11px] font-bold text-slate-400 font-kantumruy">
+      <span>អា</span><span>ច</span><span>អ</span><span>ពុ</span><span>ព្រ</span><span>សុ</span><span>ស</span>
     </div>
 
     <!-- Days Grid -->
@@ -28848,31 +28887,31 @@ function renderOrderMiniCalendar() {
 
   // Empty leading slots
   for (let i = 0; i < firstDay; i++) {
-    html += `<div></div>`;
+    html += `<div class="h-8"></div>`;
   }
 
   // Days in month
   for (let d = 1; d <= daysInMonth; d++) {
     const isSelected = (d === miniCalSelectedDay);
+    const isToday = isCurrentYearMonth && (d === realTodayDate);
+
+    let cellClasses = 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold cursor-pointer active:scale-90 transition ';
     if (isSelected) {
-      html += `
-        <div class="flex items-center justify-center py-0.5">
-          <button type="button" onclick="selectMiniCalDay(${d}, event)" 
-                  class="w-7 h-7 rounded-full bg-[#FF453A] text-white font-black flex items-center justify-center shadow-lg shadow-red-500/40 active:scale-90 transition">
-            ${d}
-          </button>
-        </div>
-      `;
+      cellClasses += 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30';
+    } else if (isToday) {
+      cellClasses += 'border border-orange-500/60 text-orange-400 hover:bg-orange-500/20';
     } else {
-      html += `
-        <div class="flex items-center justify-center py-0.5">
-          <button type="button" onclick="selectMiniCalDay(${d}, event)" 
-                  class="w-7 h-7 rounded-full text-white font-bold hover:bg-white/15 active:bg-white/25 active:scale-90 flex items-center justify-center transition">
-            ${d}
-          </button>
-        </div>
-      `;
+      cellClasses += 'text-slate-200 hover:bg-white/10';
     }
+
+    html += `
+      <div class="flex items-center justify-center py-0.5">
+        <button type="button" onclick="selectMiniCalDay(${d}, event)" 
+                class="${cellClasses}">
+          ${d}
+        </button>
+      </div>
+    `;
   }
 
   html += `</div>`;
@@ -31633,6 +31672,11 @@ window.closeTeamMembersModal = closeTeamMembersModal;
 window.closeProfileDrawer = closeProfileDrawer;
 window.handleBackNavigation = handleBackNavigation;
 window.manualReload = manualReload;
+window.selectMiniCalToday = selectMiniCalToday;
+window.selectMiniCalYesterday = selectMiniCalYesterday;
+window.selectMiniCalDay = selectMiniCalDay;
+window.changeMiniCalMonth = changeMiniCalMonth;
+window.toggleOrderMiniCalendar = toggleOrderMiniCalendar;
 
 // Universal DOM Loading Safeguard:
 // Placed at the very end of app.js so all 31,000+ lines are fully parsed before initApp runs!

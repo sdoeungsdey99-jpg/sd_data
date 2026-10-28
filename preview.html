@@ -1745,7 +1745,8 @@
     .light-theme #expenses-year-dropdown-menu,
     .light-theme #team-day-dropdown-menu,
     .light-theme #team-month-dropdown-menu,
-    .light-theme #team-year-dropdown-menu {
+    .light-theme #team-year-dropdown-menu,
+    .light-theme #order-mini-calendar-popup {
       background: rgba(255, 255, 255, 0.98) !important;
       border-color: #CBD5E1 !important;
       box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.16) !important;
@@ -1758,7 +1759,9 @@
     .light-theme #team-day-dropdown-menu span,
     .light-theme #team-day-dropdown-menu button,
     .light-theme #team-month-dropdown-menu button,
-    .light-theme #team-year-dropdown-menu button {
+    .light-theme #team-year-dropdown-menu button,
+    .light-theme #order-mini-calendar-popup span,
+    .light-theme #order-mini-calendar-popup button:not([class*="bg-orange"]) {
       color: #1E293B !important;
     }
     .light-theme #day-dropdown-menu button:hover,
@@ -1766,7 +1769,8 @@
     .light-theme #year-dropdown-menu button:hover,
     .light-theme #team-day-dropdown-menu button:hover,
     .light-theme #team-month-dropdown-menu button:hover,
-    .light-theme #team-year-dropdown-menu button:hover {
+    .light-theme #team-year-dropdown-menu button:hover,
+    .light-theme #order-mini-calendar-popup button:not([class*="bg-orange"]):hover {
       background-color: #F1F5F9 !important;
     }
     .light-theme .liquid-ambient-orange,
@@ -6116,9 +6120,9 @@
               </button>
               <input type="hidden" id="order-field-date" value="2026-10-20">
 
-              <!-- iOS Style Mini Calendar Widget Popup -->
+              <!-- BostarGroup Mini Calendar Widget Popup -->
               <div id="order-mini-calendar-popup" 
-                   class="hidden absolute z-50 top-full mt-2 left-0 w-[240px] bg-[#1C1C1E] border border-white/15 rounded-3xl p-3.5 shadow-2xl animate-fade-in font-sans select-none">
+                   class="hidden absolute z-50 top-full mt-2 left-0 w-72 max-w-[calc(100vw-2.5rem)] bg-[#0C1425]/95 backdrop-blur-2xl border border-white/15 rounded-3xl p-3.5 shadow-2xl animate-fade-in font-kantumruy select-none">
               </div>
             </div>
 
@@ -6891,6 +6895,6 @@
   </div>
 
   <script src="dataService.js?v=8.3"></script>
-  <script src="app.js?v=50.6"></script>
+  <script src="app.js?v=50.7"></script>
 </body>
 </html>
