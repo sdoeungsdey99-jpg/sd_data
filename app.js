@@ -1568,6 +1568,11 @@ function handleBackNavigation() {
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
+  if (!document.getElementById('master-customer-auth-modal')?.classList?.contains('hidden')) {
+    closeMasterCustomerAuthModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
   if (!document.getElementById('all-customers-modal')?.classList?.contains('hidden')) {
     closeAllCustomersModal();
     if (navigator.vibrate) navigator.vibrate(15);
@@ -1629,7 +1634,7 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'edit-order-modal', 'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'master-customer-auth-modal', 'edit-order-modal', 'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'edit-bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
   ];
   for (const id of openModals) {
@@ -1680,7 +1685,7 @@ function handleBackNavigation() {
 
 function isAnyDrilldownModalOpen() {
   const modalIds = [
-    'edit-order-modal', 'team-members-modal', 'new-order-modal', 'new-expense-modal',
+    'master-customer-auth-modal', 'edit-order-modal', 'team-members-modal', 'new-order-modal', 'new-expense-modal',
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
     'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
     'executive-hierarchy-modal', 'member-daily-breakdown-modal', 'daily-report-modal', 'honors-modal', 'tutorial-modal',
@@ -19400,9 +19405,18 @@ function syncHeaderProfileUI() {
   }
 }
 
+let allCustomersScopeMode = 'personal'; // 'personal' (default) or 'all' (Master Data)
+let masterFilteredCustomersSales = [];
+let pendingMasterAuthSeller = null;
+
 function getAllUniqueCustomers() {
   const d = DataService.data;
-  const sales = (d && d.personalSales) ? d.personalSales : [];
+  let sales = [];
+  if (allCustomersScopeMode === 'all') {
+    sales = Array.isArray(masterFilteredCustomersSales) ? masterFilteredCustomersSales : [];
+  } else {
+    sales = (d && d.personalSales) ? d.personalSales : [];
+  }
   const map = new Map();
 
   sales.forEach(s => {
@@ -23820,6 +23834,8 @@ function setupAllCustomersScroll() {
 }
 
 function openAllCustomersModal() {
+  allCustomersScopeMode = 'personal';
+  updateCustomersScopeUI();
   expandedCustomerKey = null;
   const searchInput = document.getElementById('all-customers-search-input');
   const normalNav = document.getElementById('all-customers-normal-nav');
@@ -23954,6 +23970,185 @@ function setAllCustomersSort(mode) {
   renderAllCustomersList();
 }
 
+function updateCustomersScopeUI() {
+  const checkPersonal = document.getElementById('cust-check-scope-personal');
+  const checkAll = document.getElementById('cust-check-scope-all');
+  const btnPersonal = document.getElementById('btn-cust-scope-personal');
+  const lockIcon = document.getElementById('cust-lock-icon-all');
+
+  const isAll = (allCustomersScopeMode === 'all');
+
+  if (checkPersonal) checkPersonal.classList.toggle('hidden', isAll);
+  if (checkAll) checkAll.classList.toggle('hidden', !isAll);
+  if (btnPersonal) btnPersonal.classList.toggle('hidden', !isAll);
+  if (lockIcon) lockIcon.classList.toggle('hidden', isAll);
+}
+
+async function setCustomersScope(mode) {
+  if (mode === 'personal') {
+    allCustomersScopeMode = 'personal';
+    updateCustomersScopeUI();
+    renderAllCustomersList();
+    if (typeof showToast === 'function') {
+      showToast('ត្រឡប់មកកាន់អតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួន');
+    }
+    return;
+  }
+
+  if (mode === 'all') {
+    // 1. Get current Profile Name
+    const prof = (typeof getProfileData === 'function') ? getProfileData() : null;
+    const currentName = (prof && prof.name) ? prof.name.trim() : '';
+
+    if (!currentName || currentName === 'BostarGroup' || currentName === 'សមាជិក Bostar' || currentName === 'ឈ្មោះ​អ្នកប្រើ') {
+      alert('សូមចូលទៅកាន់ Profile Settings រួចកំណត់ "ឈ្មោះរបស់អ្នក" ឱ្យត្រូវនឹងឈ្មោះអ្នកលក់ជាមុនសិន!');
+      return;
+    }
+
+    // 2. Fetch Team Name list with Special Codes (Tab Team Name)
+    let teamCodes = [];
+    try {
+      teamCodes = await DataService.getTeamNameCodes();
+    } catch (e) {
+      console.warn('Failed to fetch team codes:', e);
+    }
+
+    const normCurrent = normalizeSellerName(currentName);
+    const matchedSeller = teamCodes.find(t => 
+      normalizeSellerName(t.km) === normCurrent || 
+      normalizeSellerName(t.en) === normCurrent
+    );
+
+    if (!matchedSeller) {
+      alert(`ឈ្មោះ Profile "${currentName}" មិនត្រូវគ្នានឹងឈ្មោះអ្នកលក់ផ្លូវការក្នុង Tab Team Name ឡើយ!\n\nសូមពិនិត្យឈ្មោះក្នុង Profile ឬទាក់ទង Admin។`);
+      return;
+    }
+
+    // 3. Check if already verified
+    const authKey = 'sd_master_cust_auth_' + normCurrent;
+    const isAuthed = localStorage.getItem(authKey) === 'true';
+
+    if (isAuthed) {
+      await loadAndActivateMasterCustomers(matchedSeller);
+    } else {
+      openMasterCustomerAuthModal(matchedSeller);
+    }
+  }
+}
+
+function openMasterCustomerAuthModal(seller) {
+  pendingMasterAuthSeller = seller;
+  const modal = document.getElementById('master-customer-auth-modal');
+  const nameEl = document.getElementById('master-auth-seller-name');
+  const input = document.getElementById('master-cust-auth-code-input');
+  const errEl = document.getElementById('master-cust-auth-error');
+
+  if (nameEl) nameEl.textContent = seller.km || seller.en;
+  if (input) {
+    input.value = '';
+    input.classList.remove('border-rose-500');
+  }
+  if (errEl) errEl.classList.add('hidden');
+
+  if (modal) {
+    modal.classList.remove('hidden');
+    setTimeout(() => input?.focus(), 150);
+  }
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+}
+
+function closeMasterCustomerAuthModal() {
+  const modal = document.getElementById('master-customer-auth-modal');
+  if (modal) modal.classList.add('hidden');
+  pendingMasterAuthSeller = null;
+}
+
+async function submitMasterCustomerAuthCode() {
+  if (!pendingMasterAuthSeller) return;
+  const input = document.getElementById('master-cust-auth-code-input');
+  const errEl = document.getElementById('master-cust-auth-error');
+  const errText = document.getElementById('master-cust-auth-error-text');
+  const enteredCode = (input?.value || '').trim().toUpperCase();
+
+  const expectedCode = String(pendingMasterAuthSeller.code || '').trim().toUpperCase();
+
+  if (!enteredCode) {
+    if (errEl && errText) {
+      errText.textContent = 'សូមបញ្ចូលលេខកូដពិសេស!';
+      errEl.classList.remove('hidden');
+    }
+    input?.focus();
+    return;
+  }
+
+  if (enteredCode === expectedCode) {
+    // Success!
+    const normCurrent = normalizeSellerName(pendingMasterAuthSeller.km);
+    localStorage.setItem('sd_master_cust_auth_' + normCurrent, 'true');
+    closeMasterCustomerAuthModal();
+    if (navigator.vibrate) navigator.vibrate([15, 30, 15]);
+    await loadAndActivateMasterCustomers(pendingMasterAuthSeller);
+  } else {
+    // Mismatch
+    if (navigator.vibrate) navigator.vibrate(40);
+    if (input) {
+      input.classList.add('border-rose-500');
+      input.animate([
+        { transform: 'translateX(-6px)' },
+        { transform: 'translateX(6px)' },
+        { transform: 'translateX(-4px)' },
+        { transform: 'translateX(4px)' },
+        { transform: 'translateX(0)' }
+      ], { duration: 250 });
+    }
+    if (errEl && errText) {
+      errText.textContent = 'លេខកូដពិសេសមិនត្រឹមត្រូវ! សូមពិនិត្យកូដក្នុង Tab Team Name ជួរ D';
+      errEl.classList.remove('hidden');
+    }
+  }
+}
+
+async function loadAndActivateMasterCustomers(seller) {
+  const listEl = document.getElementById('all-customers-list');
+  if (listEl) {
+    listEl.innerHTML = `
+      <div class="p-8 text-center flex flex-col items-center justify-center gap-2.5">
+        <div class="w-8 h-8 rounded-full border-2 border-amber-500/30 border-t-amber-400 animate-spin"></div>
+        <p class="text-xs text-amber-300 font-medium">កំពុងទាញយកទិន្នន័យអតិថិជនទាំងអស់ពី Master Data...</p>
+        <span class="text-[10px] text-slate-400">សម្រាប់អ្នកលក់៖ ${escapeHtml(seller.km)}</span>
+      </div>
+    `;
+  }
+
+  try {
+    const allMasterSales = await DataService.getMasterDataSales();
+    const normSeller = normalizeSellerName(seller.km);
+    const normEn = normalizeSellerName(seller.en);
+
+    masterFilteredCustomersSales = allMasterSales.filter(o => {
+      const oSeller = normalizeSellerName(o.seller);
+      return oSeller && (oSeller === normSeller || oSeller === normEn);
+    });
+
+    allCustomersScopeMode = 'all';
+    updateCustomersScopeUI();
+    renderAllCustomersList();
+
+    const uniqueCount = getAllUniqueCustomers().length;
+    if (typeof showToast === 'function') {
+      showToast(`បានបើកមើលអតិថិជនទាំងអស់ (${uniqueCount} នាក់) ពី Master Data! 🌟`);
+    }
+  } catch (err) {
+    console.error('Failed to load master customers:', err);
+    alert('មិនអាចទាញយកទិន្នន័យពី Master Data បានទេ! សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត។');
+    allCustomersScopeMode = 'personal';
+    updateCustomersScopeUI();
+    renderAllCustomersList();
+  }
+}
+
 function toggleCustomerOrderHistory(encodedKey) {
   const key = decodeURIComponent(encodedKey);
   expandedCustomerKey = (expandedCustomerKey === key) ? null : key;
@@ -24005,9 +24200,19 @@ function renderAllCustomersList() {
   }
 
   const isEn = appState.language === 'en';
+  const heading = document.getElementById('all-customers-title-heading');
   const countText = document.getElementById('all-customers-count-text');
   const countDisplay = isEn ? `(${customers.length} Cust)` : `(${customers.length} នាក់)`;
-  if (countText) countText.textContent = countDisplay;
+  
+  if (heading) {
+    if (allCustomersScopeMode === 'all') {
+      heading.innerHTML = `អតិថិជនទាំងអស់ <span class="px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30">Master</span> <span id="all-customers-count-text" class="text-amber-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+    } else {
+      heading.innerHTML = `បញ្ជីអតិថិជនទាំងអស់ <span id="all-customers-count-text" class="text-orange-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+    }
+  } else if (countText) {
+    countText.textContent = countDisplay;
+  }
   if (countBadge) countBadge.textContent = `${customers.length} នាក់`;
 
   const totalOrdersSum = customers.reduce((acc, c) => acc + c.totalOrders, 0);

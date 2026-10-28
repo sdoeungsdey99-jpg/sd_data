@@ -284,6 +284,73 @@ async function fetchMonthlyTargetsCSV() {
   return [];
 }
 
+const TEAM_NAME_TAB_GID = '1003915514';
+const MASTER_DATA_TAB_GID = '0';
+
+// Fetch Team Name tab (Sellers & Special Codes in Col D)
+async function fetchTeamNameCodesCSV() {
+  const sId = TEAM_HIERARCHY_SHEET_ID;
+  try {
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${TEAM_NAME_TAB_GID}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+    const resp = await fetch(gvizUrl, { signal: controller.signal });
+    clearTimeout(timer);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 1) return rows;
+      }
+    }
+  } catch (_) {}
+
+  try {
+    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Team Name')}`;
+    const resp = await fetch(gvizFallback);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 1) return rows;
+      }
+    }
+  } catch (_) {}
+  return [];
+}
+
+// Fetch Master Data tab (Full customer & order archive with GID 0)
+async function fetchMasterDataSalesCSV() {
+  const sId = TEAM_HIERARCHY_SHEET_ID;
+  try {
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${MASTER_DATA_TAB_GID}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 14000);
+    const resp = await fetch(gvizUrl, { signal: controller.signal });
+    clearTimeout(timer);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 1) return rows;
+      }
+    }
+  } catch (_) {}
+
+  try {
+    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Master Data')}`;
+    const resp = await fetch(gvizFallback);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 1) return rows;
+      }
+    }
+  } catch (_) {}
+  return [];
+}
+
 window.DataService = {
   data: loadCachedData(),
   isLoading: false,
@@ -1180,5 +1247,114 @@ window.DataService = {
     const parsed = JSON.parse(match[1]);
     const rowCount = parsed?.table?.rows?.length || 0;
     return { ok: true, sheetId: cleanId, rows: rowCount };
+  },
+
+  masterDataSalesCache: null,
+  teamNameCodesCache: null,
+
+  async getTeamNameCodes() {
+    if (this.teamNameCodesCache && Array.isArray(this.teamNameCodesCache) && this.teamNameCodesCache.length > 0) {
+      return this.teamNameCodesCache;
+    }
+    const rows = await fetchTeamNameCodesCSV();
+    const codes = [];
+    if (Array.isArray(rows) && rows.length > 1) {
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || r.length < 4) continue;
+        const km = String(r[1] || '').trim();
+        const en = String(r[2] || '').trim();
+        const code = String(r[3] || '').trim().toUpperCase();
+        if (km && code) {
+          codes.push({ km, en, code });
+        }
+      }
+    }
+    this.teamNameCodesCache = codes;
+    return codes;
+  },
+
+  async getMasterDataSales() {
+    if (this.masterDataSalesCache && Array.isArray(this.masterDataSalesCache) && this.masterDataSalesCache.length > 0) {
+      return this.masterDataSalesCache;
+    }
+    const rows = await fetchMasterDataSalesCSV();
+    const sales = [];
+    if (Array.isArray(rows) && rows.length > 1) {
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || r.length < 7) continue;
+        const dateRaw = String(r[0] || '').trim();
+        if (!dateRaw || dateRaw.toLowerCase() === 'order date') continue;
+        const ddmmyyyy = formatToDDMMYYYY(dateRaw);
+        const isoDate = ddmmyyyyToIso(ddmmyyyy);
+        if (!ddmmyyyy) continue;
+
+        const customer = String(r[2] || 'អតិថិជនទូទៅ').trim();
+        const seller = String(r[3] || '').trim();
+        const orderId = String(r[4] || `#${i}`).trim();
+        const location = String(r[5] || '').trim();
+        const phone = String(r[6] || '').trim();
+
+        const qtyYL = cleanNumber(r[7]);
+        const qtyYLP = cleanNumber(r[8]);
+        const qtyKN = cleanNumber(r[9]);
+        const qtyPDO = cleanNumber(r[10]);
+        const freeQty = cleanNumber(r[11]);
+        const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
+
+        const price = cleanNumber(r[12]);
+        const totalAmount = cleanNumber(r[13]);
+        const shipFee = cleanNumber(r[14]);
+        const delivery = String(r[15] || '').trim();
+        const codStatus = String(r[16] || '').trim();
+        const stockCost = cleanNumber(r[17]);
+        const paymentDate = String(r[18] || '').trim();
+        const profit = cleanNumber(r[19]);
+        const note = String(r[20] || '').trim();
+        const recordId = String(r[23] || `REC-${i}`).trim();
+
+        const prodParts = [];
+        if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
+        if (qtyPDO > 0) prodParts.push(qtyPDO > 1 ? `PDO (${qtyPDO})` : `PDO`);
+        if (qtyYL > 0) prodParts.push(qtyYL > 1 ? `YL (${qtyYL})` : `YL`);
+        if (qtyYLP > 0) prodParts.push(qtyYLP > 1 ? `YLP (${qtyYLP})` : `YLP`);
+        if (freeQty > 0) prodParts.push(`Free (${freeQty})`);
+        const product = prodParts.join(', ') || 'ទំនិញ';
+
+        sales.push({
+          date: ddmmyyyy,
+          isoDate,
+          no: String(r[1] || i),
+          customer,
+          seller,
+          orderId,
+          location,
+          phone,
+          qtyYL,
+          qtyYLP,
+          qtyKN,
+          qtyPDO,
+          qtySG: 0,
+          freeQty,
+          totalBoxQty,
+          product,
+          price,
+          thaiBaht: price > 500 ? price : 0,
+          totalAmount,
+          shipFee,
+          delivery,
+          codStatus,
+          stockCost,
+          paymentDate,
+          profit,
+          note,
+          recordId,
+          isMasterData: true
+        });
+      }
+    }
+    this.masterDataSalesCache = sales;
+    return sales;
   }
 };
