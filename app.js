@@ -1375,20 +1375,17 @@ function updateReloadBadge(service) {
   }
 }
 
-// 🌐 Live Status & In-App Quick Refresh UX
+// 🌐 Option B: Zero-Noise UI (Hidden Always, Show ONLY on Loading / No Internet / Connection Error)
 function checkOnlineOfflineStatus() {
   const btnReload = document.getElementById('btn-reload');
   const icon = document.getElementById('reload-icon');
   const timeText = document.getElementById('reload-time-text');
   if (!btnReload) return;
 
-  // Keep accessible so users can tap to sync anytime without browser reload
-  btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-
   if (DataService.isLoading) {
     if (icon) icon.classList.add('animate-spin');
     if (timeText) timeText.textContent = '...';
-    btnReload.classList.remove('border-amber-500/40', 'bg-amber-500/10', 'text-amber-400');
+    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none', 'border-amber-500/40', 'bg-amber-500/10', 'text-amber-400');
     return;
   }
 
@@ -1396,17 +1393,15 @@ function checkOnlineOfflineStatus() {
   const hasError = Boolean(DataService.error);
 
   if (isOffline || hasError) {
-    btnReload.classList.remove('border-white/10', 'bg-white/5');
+    btnReload.classList.remove('hidden', 'opacity-0', 'pointer-events-none', 'border-white/10', 'bg-white/5');
     btnReload.classList.add('border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
     if (timeText) timeText.textContent = isOffline ? 'Offline' : 'Error';
     if (icon) icon.classList.remove('animate-spin');
   } else {
+    // Zero-Noise Principle: Normal connection -> Auto-hide 100% to keep header clean and pristine!
+    btnReload.classList.add('hidden', 'opacity-0', 'pointer-events-none');
     btnReload.classList.remove('border-amber-500/40', 'bg-amber-500/15', 'text-amber-400');
-    btnReload.classList.add('border-white/10', 'bg-white/5', 'text-slate-300');
     if (icon) icon.classList.remove('animate-spin');
-    if (DataService.lastFetched && timeText && timeText.textContent === '...') {
-      timeText.textContent = DataService.lastFetched.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    }
   }
 }
 
@@ -12615,7 +12610,9 @@ function openPersonalSalesModal() {
 }
 
 function closeSalesModal() {
-  document.getElementById('sales-modal').classList.add('hidden');
+  const modal = document.getElementById('sales-modal');
+  if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
 }
 
 // ==========================================
@@ -14157,6 +14154,7 @@ function openBankModal() {
 function closeBankModal() {
   const modal = document.getElementById('bank-modal');
   if (modal) modal.classList.add('hidden');
+  setDockVisible(true);
 }
 
 function openEditBankAccountModal(no) {
@@ -16595,9 +16593,7 @@ function closeExpensesModal() {
   }
   const modal = document.getElementById('expenses-modal');
   if (modal) modal.classList.add('hidden');
-
-  // ចុច Back ពីបញ្ជីចំណាយពេញ ត្រឡប់មកមុខងារចម្បង (Profile Drawer) ដូចបញ្ជីអតិថិជន
-  openProfileDrawer();
+  setDockVisible(true);
 }
 
 // Close expenses dropdowns if clicked outside
@@ -17500,7 +17496,7 @@ function closeHonorsModal() {
   if (gate && !gate.classList.contains('hidden')) {
     setDockVisible(false);
   } else {
-    openProfileDrawer();
+    setDockVisible(true);
   }
 }
 
@@ -17899,7 +17895,6 @@ function closeTutorialModal() {
     setDockVisible(false);
   } else {
     setDockVisible(true);
-    openProfileDrawer();
   }
 }
 
@@ -23988,7 +23983,7 @@ function toggleProfileViewMemberInfo() {
 
 function closeAllCustomersModal() {
   document.getElementById('all-customers-modal')?.classList?.add('hidden');
-  openProfileDrawer();
+  setDockVisible(true);
 }
 
 function toggleCustomersSortMenu(event) {
@@ -26133,16 +26128,13 @@ function openTeamMembersModal(memberNameToOpen = null) {
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
 }
 
-function closeTeamMembersModal(skipDrawer = false) {
+function closeTeamMembersModal(skipDrawer = true) {
   closeAllTeamDropdowns();
   const teamHeader = document.getElementById('team-members-header');
   if (teamHeader) teamHeader.classList.remove('hidden');
   const modal = document.getElementById('team-members-modal');
   if (modal) modal.classList.add('hidden');
   setDockVisible(true);
-  if (!skipDrawer && typeof openProfileDrawer === 'function') {
-    openProfileDrawer();
-  }
 }
 
 function backToTeamMembersList() {
