@@ -27482,7 +27482,6 @@ function generateDailyReportText() {
   const buyFollowB = document.getElementById('rep-buy-follow-b')?.value || '0';
 
   const totalBoxes = (Number(buyNewB) || 0) + (Number(buyOldB) || 0) + (Number(buyFollowB) || 0);
-  const challenges = (document.getElementById('rep-field-challenges')?.value || '').trim();
 
   if (page) {
     try { localStorage.setItem('sd_report_page', page); } catch (_) {}
@@ -27522,9 +27521,8 @@ function getDailyReportData() {
   const chatTarget = Number(document.getElementById('rep-field-chat-target')?.value) || 0;
   const callDirect = Number(document.getElementById('rep-field-call-direct')?.value) || 0;
 
-  const followOld = Number(document.getElementById('rep-field-follow-old')?.value) || 0;
-  const followPending = Number(document.getElementById('rep-field-follow-pending')?.value) || 0;
-  const followLeads = followOld + followPending;
+  // Blank for columns no longer captured from user, leaving Google Sheet Tab Report cells blank
+  const followLeads = '';
 
   const buyNewP = Number(document.getElementById('rep-buy-new-p')?.value) || 0;
   const buyNewB = Number(document.getElementById('rep-buy-new-b')?.value) || 0;
@@ -27535,7 +27533,7 @@ function getDailyReportData() {
 
   const totalOrders = buyNewP + buyOldP + buyFollowP;
   const totalBoxes = buyNewB + buyOldB + buyFollowB;
-  const challenges = (document.getElementById('rep-field-challenges')?.value || '').trim() || 'គ្មាន (None)';
+  const challenges = '';
 
   return {
     date: date,
@@ -28090,26 +28088,12 @@ function renderDailyReportModal() {
         </div>
       </div>
 
-      <!-- Card 3: Section 2 - 🔄 សកម្មភាពតាមដាន (Follow Up) -->
-      <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <span class="text-xs sm:text-sm text-purple-400 font-bold uppercase tracking-wider flex items-center gap-2">
-            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-            <span>២. សកម្មភាពតាមដាន (Follow Up)</span>
-          </span>
-        </div>
-        <div class="grid grid-cols-2 gap-2.5">
-          ${renderRulerNumberControl('rep-field-follow-old', 'ភ្ញៀវចាស់សួរសុខទុក្ខ', 0, 'នាក់', 0, 200, 'ភ្ញៀវចាស់សួរសុខទុក្ខ')}
-          ${renderRulerNumberControl('rep-field-follow-pending', 'ភ្ញៀវរង់ចាំចម្លើយ', 0, 'នាក់', 0, 200, 'ភ្ញៀវរង់ចាំចម្លើយ')}
-        </div>
-      </div>
-
-      <!-- Card 4: Section 3 - 📦 លទ្ធផលនៃការលក់ជាក់ស្តែង -->
+      <!-- Card 3: Section 2 - 📦 លទ្ធផលនៃការលក់ជាក់ស្តែង -->
       <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
         <div class="flex items-center justify-between">
           <span class="text-xs sm:text-sm text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-2">
             <i data-lucide="package" class="w-4 h-4"></i>
-            <span>៣. លទ្ធផលលក់ជាក់ស្តែង (Sales)</span>
+            <span>២. លទ្ធផលលក់ជាក់ស្តែង (Sales)</span>
           </span>
         </div>
         
@@ -28163,17 +28147,7 @@ function renderDailyReportModal() {
         </div>
       </div>
 
-      <!-- Card 5: បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ -->
-      <div class="p-3.5 sm:p-4 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
-        <label class="block text-xs sm:text-sm text-amber-400 font-bold uppercase tracking-wider flex items-center gap-2">
-          <i data-lucide="alert-circle" class="w-4 h-4"></i>
-          <span>បញ្ហាប្រឈម ឬចំណាំសំខាន់ៗ៖</span>
-        </label>
-        <textarea id="rep-field-challenges" rows="2" placeholder="ឧទាហរណ៍៖ អតិថិជនត្អូញត្អែរតម្លៃ, សេវាដឹកយឺត, អស់ទំនិញក្នុងស្តុក..." 
-                  class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white text-xs sm:text-sm focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
-      </div>
-
-      <!-- Card 6: សារលើកទឹកចិត្ត និងអបអរសាទរ (App-Only Motivational Morale Card) -->
+      <!-- Card 4: សារលើកទឹកចិត្ត និងអបអរសាទរ (App-Only Motivational Morale Card) -->
       <div id="rep-morale-card" class="transition-all duration-300">
         <!-- Rendered dynamically by renderDailyReportMoraleCard() -->
       </div>
@@ -28246,7 +28220,6 @@ function closeDailyReportModal() {
 function resetDailyReportFields() {
   const ids = [
     'rep-field-chat-total', 'rep-field-chat-mistake', 'rep-field-chat-target', 'rep-field-call-direct',
-    'rep-field-follow-old', 'rep-field-follow-pending',
     'rep-buy-new-p', 'rep-buy-new-b', 'rep-buy-old-p', 'rep-buy-old-b', 'rep-buy-follow-p', 'rep-buy-follow-b'
   ];
   ids.forEach(id => {
@@ -28255,8 +28228,6 @@ function resetDailyReportFields() {
     const disp = document.getElementById(`${id}-disp`);
     if (disp) disp.innerText = '0';
   });
-  const chalEl = document.getElementById('rep-field-challenges');
-  if (chalEl) chalEl.value = '';
   calculateDailyReportMetrics();
   
   // Reset ruler display
