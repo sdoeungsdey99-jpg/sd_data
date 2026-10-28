@@ -16590,6 +16590,7 @@ function closeAboutModal(e) {
 // FULL-SCREEN BOSTAR HONORS & MC PRESENTATION MODAL
 // ========================================================
 window._currentHonorsTab = 'honors';
+window._currentBenefitsSubFilter = 'all';
 
 function switchHonorsTab(tab) {
   window._currentHonorsTab = tab;
@@ -16599,6 +16600,35 @@ function switchHonorsTab(tab) {
   if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
 }
 window.switchHonorsTab = switchHonorsTab;
+
+function setBenefitsSubFilter(filter) {
+  window._currentBenefitsSubFilter = filter;
+  renderHonorsModalContent();
+  const honorsBody = document.getElementById('honors-modal-body');
+  if (honorsBody) honorsBody.scrollTop = 0;
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+window.setBenefitsSubFilter = setBenefitsSubFilter;
+
+function openBenefitsLightbox(src, caption) {
+  const lb = document.getElementById('benefits-image-lightbox');
+  const img = document.getElementById('benefits-lightbox-img');
+  const cap = document.getElementById('benefits-lightbox-caption');
+  if (lb && img) {
+    img.src = src;
+    if (cap) cap.textContent = caption || '';
+    lb.classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
+    if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+  }
+}
+window.openBenefitsLightbox = openBenefitsLightbox;
+
+function closeBenefitsLightbox() {
+  const lb = document.getElementById('benefits-image-lightbox');
+  if (lb) lb.classList.add('hidden');
+}
+window.closeBenefitsLightbox = closeBenefitsLightbox;
 
 function renderHonorsModalContent() {
   const isKm = appState.language === 'km';
@@ -16648,7 +16678,11 @@ function renderHonorsModalContent() {
       headerIcon.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i>`;
     }
     if (headerTitle) headerTitle.textContent = isKm ? 'អត្ថប្រយោជន៍ & ស្លាយ MC' : 'App Benefits & MC Slides';
-    if (headerSubtitle) headerSubtitle.textContent = isKm ? '៣ ក្រុមគោលដៅ • ស្លាយបទបង្ហាញ' : '3 Target Pillars • MC Presentation';
+    if (headerSubtitle) headerSubtitle.textContent = isKm ? 'ដំណោះស្រាយងាយស្រួល រហ័ស & ឯកជនភាព' : 'Quick, Standardized & 100% Private';
+
+    const subFilter = window._currentBenefitsSubFilter || 'all';
+    const showUsers = subFilter === 'all' || subFilter === 'users';
+    const showLeaders = subFilter === 'all' || subFilter === 'leaders';
 
     // RENDER APP BENEFITS FOR MC & VISITORS
     container.innerHTML = `
@@ -16656,267 +16690,438 @@ function renderHonorsModalContent() {
       <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-transparent border border-blue-500/30 text-center relative overflow-hidden shadow-xl">
         <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-blue-500/20 blur-3xl pointer-events-none"></div>
         <div class="relative z-10 flex flex-col items-center">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20 mb-2">
-            <i data-lucide="presentation" class="w-7 h-7 text-white"></i>
+          <div class="relative w-16 h-16 flex items-center justify-center mb-1.5">
+            <div class="absolute inset-0 rounded-full bg-blue-500/20 blur-md pointer-events-none"></div>
+            <img src="bostar-gold-crest.png" alt="BostarGroup" class="relative z-10 w-14 h-14 object-contain filter drop-shadow-[0_4px_16px_rgba(59,130,246,0.5)]">
           </div>
-          <span class="px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/35 text-blue-300 font-black text-[10.5px] tracking-wider uppercase mb-1.5 shadow-sm">
-            ★ MC PRESENTATION SLIDES ★
+          <span class="px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/35 text-blue-300 font-black text-[10px] tracking-wider uppercase mb-1.5 shadow-sm">
+            ★ BOSTARGROUP DIGITAL ERP ★
           </span>
-          <h2 class="text-lg font-black text-white brand-title tracking-wide leading-snug">
-            ${isKm ? 'អត្ថប្រយោជន៍ & ភាពងាយស្រួលនៃប្រព័ន្ធ' : 'App Benefits & Key Values'}
+          <h2 class="text-base sm:text-lg font-black text-white brand-title tracking-wide leading-snug">
+            អត្ថប្រយោជន៍ និងភាពងាយស្រួល របស់កម្មវិធី BostarGroup
           </h2>
           <p class="text-[11px] text-slate-300 max-w-sm mt-1 leading-relaxed">
-            ${isKm ? 'ដំណោះស្រាយគ្រប់គ្រងការលក់ស្តង់ដារឌីជីថល ឆ្លើយតបគ្រប់តម្រូវការជាក់ស្តែងទាំង ៣ កម្រិត' : 'Standardized digital sales management system covering 3 key pillars'}
+            កម្មវិធីនេះ គឺធ្វើឡើងដើម្បីបង្កើតភាពងាយស្រួល រហ័ស ដូចជា៖ <strong>ធ្វើរបាយការណ៍លក់, ចំណាយ, និងតាមដានទិន្នន័យ</strong>
           </p>
+
+          <!-- Privacy Guarantee Badge -->
+          <div class="mt-2.5 p-2 px-3 rounded-2xl bg-cyan-500/15 border border-cyan-400/30 flex items-center gap-2 text-left">
+            <i data-lucide="shield-check" class="w-4 h-4 text-cyan-300 shrink-0"></i>
+            <p class="text-[10px] text-cyan-200 leading-tight">
+              <strong>ឯកជនភាព ១០០% (Personal Profile & Privacy)៖</strong> អ្នកប្រើប្រាស់ទូទៅ ឬក្រុមការងារលក់ គឺប្រើដោយ Google Sheet ផ្ទាល់ខ្លួន មិនមានការចែករំលែកទិន្នន័យឯកជនឡើយ។
+            </p>
+          </div>
         </div>
       </div>
 
-      <!-- Quick Pill Index for MC -->
-      <div class="grid grid-cols-3 gap-2">
-        <div class="p-2 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 text-center">
-          <div class="text-[12px] font-black text-cyan-400">១. ទូទៅ</div>
-          <div class="text-[9px] text-slate-400 truncate">General Users</div>
-        </div>
-        <div class="p-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-center">
-          <div class="text-[12px] font-black text-emerald-400">២. ក្រុមលក់</div>
-          <div class="text-[9px] text-slate-400 truncate">Sales Team</div>
-        </div>
-        <div class="p-2 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-center">
-          <div class="text-[12px] font-black text-amber-400">៣. ថ្នាក់ដឹកនាំ</div>
-          <div class="text-[9px] text-slate-400 truncate">Leaders</div>
-        </div>
+      <!-- Quick Category Sub-Filter Switcher -->
+      <div class="flex items-center p-1 rounded-2xl bg-white/[0.04] border border-white/10 gap-1 select-none">
+        <button type="button" onclick="setBenefitsSubFilter('all')" 
+                class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 ${subFilter === 'all' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}">
+          <span>🌟 ទាំងអស់</span>
+        </button>
+        <button type="button" onclick="setBenefitsSubFilter('users')" 
+                class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 ${subFilter === 'users' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}">
+          <span>👥 ក្រុមលក់ (១៣)</span>
+        </button>
+        <button type="button" onclick="setBenefitsSubFilter('leaders')" 
+                class="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 ${subFilter === 'leaders' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'}">
+          <span>👑 ដឹកនាំ (៤)</span>
+        </button>
       </div>
 
-      <!-- ============================================== -->
-      <!-- SLIDE 1: 👥 ១. អ្នកប្រើប្រាស់ទូទៅ (General Users) -->
-      <!-- ============================================== -->
-      <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-cyan-500/15 via-white/[0.03] to-transparent border border-cyan-500/35 relative overflow-hidden shadow-xl text-left">
-        <div class="flex items-center justify-between mb-3">
+      ${showUsers ? `
+      <!-- ======================================================== -->
+      <!-- SECTION ក: អ្នកប្រើប្រាស់ទូទៅ ឬ ក្រុមការងារលក់ (១៣ ចំណុច) -->
+      <!-- ======================================================== -->
+      <div class="space-y-3 pt-1">
+        <div class="flex items-center justify-between px-1">
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
-              <i data-lucide="users" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <span class="text-[10px] font-mono font-bold text-cyan-300 uppercase tracking-wider">PILLAR 01</span>
-              <h3 class="text-sm font-black text-white leading-tight">អ្នកប្រើប្រាស់ទូទៅ (General Users)</h3>
-            </div>
+            <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-black text-xs flex items-center justify-center border border-emerald-500/30">ក</span>
+            <h3 class="text-xs sm:text-sm font-black text-white">អ្នកប្រើប្រាស់ទូទៅ ឬ ក្រុមការងារលក់</h3>
           </div>
-          <span class="px-2.5 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/35 text-cyan-300 font-bold text-[10px]">
-            ✨ ងាយស្រួលបំផុត
-          </span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono">១៣ មុខងារ</span>
         </div>
 
-        <div class="space-y-2.5 text-xs text-slate-200">
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="zap" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">តភ្ជាប់រហ័សក្នុង ៣ វិនាទី (Instant Setup)</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                មិនបាច់ដំឡើង ឬចាំ Password ស្មុគស្មាញ គ្រាន់តែ Copy link Google Sheet គំរូ យកមក Paste គឺចូលប្រើប្រាស់បានភ្លាម។
-              </p>
+        <!-- 1. កត់ត្រាចំណាយទូទៅ -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-emerald-500/15 via-white/[0.03] to-transparent border border-emerald-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-emerald-500/25 text-emerald-300 text-[10px] font-black flex items-center justify-center">1</span>
+            <h4 class="text-xs font-bold text-white">កត់ត្រាចំណាយទូទៅ & ផ្ទាំងវិភាគ Diagram/Chart</h4>
+          </div>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-emerald-400 font-bold shrink-0">✓</span>
+              <span>ដឹងចំណាយច្បាស់លាស់ប្រចាំ <strong>ថ្ងៃ, ជាខែ, និងឆ្នាំ</strong> មិនបាត់បង់តួលេខ។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-emerald-400 font-bold shrink-0">✓</span>
+              <span><strong>ផ្ទាំងវិភាគ Diagram, Chart របស់ចំណាយ</strong> ស្វ័យប្រវត្ត ងាយស្រួលមើលឃើញទិដ្ឋភាពរួម។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-emerald-400 font-bold shrink-0">✓</span>
+              <span>បែងចែកលម្អិតប្រភេទចំណាយ (<strong>ចំណាយលើចំណង់</strong>, <strong>តម្រូវការចាំបាច់</strong>,...)។</span>
+            </li>
+          </ul>
+          <!-- Screenshot Preview with Tap to Zoom -->
+          <div class="mt-3 relative rounded-2xl overflow-hidden border border-white/15 bg-black/40 group cursor-pointer active:scale-[0.99] transition shadow-lg"
+               onclick="openBenefitsLightbox('slides_assets/08_daily_expenses_modal.png', '១. កត់ត្រាចំណាយទូទៅ & វិភាគ Diagram/Chart (ចំណង់ vs តម្រូវការចាំបាច់)')">
+            <img src="slides_assets/08_daily_expenses_modal.png" alt="កត់ត្រាចំណាយ" class="w-full h-44 sm:h-52 object-cover object-top filter brightness-95 group-hover:brightness-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5 justify-between pointer-events-none">
+              <span class="text-[10px] text-white font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <i data-lucide="zoom-in" class="w-3 h-3 text-emerald-400"></i>
+                <span>ចុចដើម្បីពង្រីក (Tap to Zoom)</span>
+              </span>
+              <span class="text-[9.5px] text-emerald-300 font-bold bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">ចំណាយទូទៅ</span>
             </div>
           </div>
+        </div>
 
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="copy" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">ចម្លងគំរូ Sheet ស្តង់ដារដោយ ១ ឃ្លីក (One-Tap Template)</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                មានប៊ូតុង «ចម្លងគំរូ Sheet ថ្មី» រៀបចំរូបមន្តគណនា និងទម្រង់ស្រេច ១០០% មិនបាច់ចេះបច្ចេកទេសស្មុគស្មាញ។
-              </p>
+        <!-- 2. បញ្ជីអតិថិជនស្វ័យប្រវត្ត -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-cyan-500/15 via-white/[0.03] to-transparent border border-cyan-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-cyan-500/25 text-cyan-300 text-[10px] font-black flex items-center justify-center">2</span>
+            <h4 class="text-xs font-bold text-white">បញ្ជីអតិថិជនស្វ័យប្រវត្ត (ស្តង់ដារ & ពេញលេញ)</h4>
+          </div>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-cyan-400 font-bold shrink-0">✓</span>
+              <span>កត់ត្រាស្វ័យប្រវត្តរាល់ពេលមាន Order ដោយមានទម្រង់ពេញលេញ និងស្តង់ដារខ្ពស់។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-cyan-400 font-bold shrink-0">✓</span>
+              <span>ព័ត៌មានគ្រប់ជ្រុងជ្រោយ៖ <strong>ថ្ងៃទី, លេខរៀង, ទីតាំង, លេខទូរសព្ទ, ប្រភេទផលិតផល, ចំនួនឯកតា</strong>។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-cyan-400 font-bold shrink-0">✓</span>
+              <span>ចំនួនលុយដែលលក់ជា ៣ រូបិយប័ណ្ណ៖ <strong>ខ្មែរ (៛), ដុល្លារ ($), បាត (฿)</strong>។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-cyan-400 font-bold shrink-0">✓</span>
+              <span>បង្ហាញ <strong>ចំនួនប្រអប់</strong> និង <strong>ចំនួនដងដែលអតិថិជនបានទិញ</strong> (ដឹងភ្ញៀវចាស់/ថ្មី)។</span>
+            </li>
+          </ul>
+          <!-- Screenshot Preview with Tap to Zoom -->
+          <div class="mt-3 relative rounded-2xl overflow-hidden border border-white/15 bg-black/40 group cursor-pointer active:scale-[0.99] transition shadow-lg"
+               onclick="openBenefitsLightbox('slides_assets/04_all_customers_modal.png', '២. បញ្ជីអតិថិជនស្វ័យប្រវត្ត ស្តង់ដារពេញលេញ & ប្រវត្តិទិញ')">
+            <img src="slides_assets/04_all_customers_modal.png" alt="បញ្ជីអតិថិជន" class="w-full h-44 sm:h-52 object-cover object-top filter brightness-95 group-hover:brightness-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5 justify-between pointer-events-none">
+              <span class="text-[10px] text-white font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <i data-lucide="zoom-in" class="w-3 h-3 text-cyan-400"></i>
+                <span>ចុចដើម្បីពង្រីក (Tap to Zoom)</span>
+              </span>
+              <span class="text-[9.5px] text-cyan-300 font-bold bg-cyan-500/20 px-2 py-0.5 rounded-full border border-cyan-500/30">បញ្ជីអតិថិជន</span>
             </div>
           </div>
+        </div>
 
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="smartphone" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">ប្រើប្រាស់បានគ្រប់ឧបករណ៍ (Cross-Platform)</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                គាំទ្រយ៉ាងពេញលេញលើ iPhone (iOS), Android និងកុំព្យូទ័រ ដោយមិនស៊ីទំហំទូរស័ព្ទ (PWA Web App)។
-              </p>
+        <!-- 3, 4, 5. មើលការលក់ជាឈុត, ស្វែងរក, ចំនួនលក់សរុប & ចំណេញខាត -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-indigo-500/15 via-white/[0.03] to-transparent border border-indigo-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-indigo-500/25 text-indigo-300 text-[10px] font-black flex items-center justify-center">3-5</span>
+            <h4 class="text-xs font-bold text-white">លក់ជាឈុត, ស្វែងរករហ័ស & គណនាចំណេញខាតស្វ័យប្រវត្ត</h4>
+          </div>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-indigo-400 font-bold shrink-0">✓</span>
+              <span><strong>៣. មើលការលក់ជាឈុត</strong> របស់ខ្លួនឯង និងសមាជិកផ្សេង ដើម្បីដឹងមូលហេតុអ្នកលក់បានច្រើន ឬតិច។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-indigo-400 font-bold shrink-0">✓</span>
+              <span><strong>៤. មុខងារស្វែងរករហ័ស (Universal Search)៖</strong> ស្វែងរកលេខអតិថិជន, មុខចំណាយ, Order ភ្លាមៗក្នុង ១ វិនាទី។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-indigo-400 font-bold shrink-0">✓</span>
+              <span><strong>៥. ដឹងចំនួនលក់សរុប</strong> ប្រចាំថ្ងៃ ខែ ឆ្នាំ និងគណនាលទ្ធផល (ចំណេញ/ខាត) ដោយស្វ័យប្រវត្ត។</span>
+            </li>
+          </ul>
+          <!-- Screenshot Preview with Tap to Zoom -->
+          <div class="mt-3 relative rounded-2xl overflow-hidden border border-white/15 bg-black/40 group cursor-pointer active:scale-[0.99] transition shadow-lg"
+               onclick="openBenefitsLightbox('slides_assets/03_quick_order_modal.png', '៣-៥. កត់ត្រាការលក់ជាឈុត, ស្វែងរក & គណនាចំណេញខាតស្វ័យប្រវត្ត')">
+            <img src="slides_assets/03_quick_order_modal.png" alt="កត់ត្រាការលក់" class="w-full h-44 sm:h-52 object-cover object-top filter brightness-95 group-hover:brightness-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5 justify-between pointer-events-none">
+              <span class="text-[10px] text-white font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <i data-lucide="zoom-in" class="w-3 h-3 text-indigo-400"></i>
+                <span>ចុចដើម្បីពង្រីក (Tap to Zoom)</span>
+              </span>
+              <span class="text-[9.5px] text-indigo-300 font-bold bg-indigo-500/20 px-2 py-0.5 rounded-full border border-indigo-500/30">Order & ចំណេញខាត</span>
             </div>
           </div>
+        </div>
 
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="shield" class="w-3 h-3"></i>
+        <!-- 10. ស្រង់ទិន្នន័យដើម្បីគិតលុយ COD ថៃ & ក្នុងស្រុក -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-orange-500/15 via-white/[0.03] to-transparent border border-orange-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-orange-500/25 text-orange-300 text-[10px] font-black flex items-center justify-center">10</span>
+            <h4 class="text-xs font-bold text-white">ស្រង់ទិន្នន័យដើម្បីគិតលុយ COD (ថៃ & ក្នុងស្រុក)</h4>
+          </div>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-orange-400 font-bold shrink-0">✓</span>
+              <span><strong>ស្រង់លេខកូដ ៤ ខ្ទង់</strong> ដោយស្វ័យប្រវត្ត គ្មានការច្រឡំ ឬបាត់បង់លេខកញ្ចប់ទំនិញ។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-orange-400 font-bold shrink-0">✓</span>
+              <span>សរុបចំនួនកញ្ចប់, ចំនួនប្រអប់, និងចំនួនលុយសរុបត្រូវទូទាត់ជាក់ស្តែង។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-orange-400 font-bold shrink-0">✓</span>
+              <span>ប៊ូតុង <strong>One-Tap Copy</strong> ចម្លងបញ្ជី COD ផ្ញើទារប្រាក់ពីក្រុមហ៊ុនដឹកជញ្ជូនបានត្រឹមត្រូវ ១០០%។</span>
+            </li>
+          </ul>
+          <!-- Screenshot Preview with Tap to Zoom -->
+          <div class="mt-3 relative rounded-2xl overflow-hidden border border-white/15 bg-black/40 group cursor-pointer active:scale-[0.99] transition shadow-lg"
+               onclick="openBenefitsLightbox('slides_assets/05_cod_thai_modal.png', '១០. ស្រង់ទិន្នន័យគិតលុយ COD ថៃ (លេខ ៤ ខ្ទង់, ចំនួនកញ្ចប់, លុយសរុប)')">
+            <img src="slides_assets/05_cod_thai_modal.png" alt="ស្រង់ទិន្នន័យ COD" class="w-full h-44 sm:h-52 object-cover object-top filter brightness-95 group-hover:brightness-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5 justify-between pointer-events-none">
+              <span class="text-[10px] text-white font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <i data-lucide="zoom-in" class="w-3 h-3 text-orange-400"></i>
+                <span>ចុចដើម្បីពង្រីក (Tap to Zoom)</span>
+              </span>
+              <span class="text-[9.5px] text-orange-300 font-bold bg-orange-500/20 px-2 py-0.5 rounded-full border border-orange-500/30">COD ថៃ & ខ្មែរ</span>
             </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">សុវត្ថិភាពទិន្នន័យផ្ទាល់ខ្លួន ១០០% (Data Privacy)</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                ទិន្នន័យស្ថិតនៅលើ Google Drive ផ្ទាល់ខ្លួនរបស់អ្នក គ្មាននរណាម្នាក់អាចមើលឃើញ ឬលួចយកបានឡើយ។
-              </p>
+          </div>
+        </div>
+
+        <!-- 12, 7, 8, 9. ហិរញ្ញវត្ថុផ្ទាល់ខ្លួន, របាយការណ៍ Pages/Result, ដំណឹង, ជំពាក់ -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-blue-500/15 via-white/[0.03] to-transparent border border-blue-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-blue-500/25 text-blue-300 text-[10px] font-black flex items-center justify-center">7-9, 12</span>
+            <h4 class="text-xs font-bold text-white">ហិរញ្ញវត្ថុផ្ទាល់ខ្លួន, របាយការណ៍ & តាមដានប្រាក់ជំពាក់</h4>
+          </div>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-blue-400 font-bold shrink-0">✓</span>
+              <span><strong>១២. តាមដានហិរញ្ញវត្ថុផ្ទាល់ខ្លួន៖</strong> គ្រប់គ្រងសមតុល្យសាច់ប្រាក់ធនាគារ (ABA, Acleda) និងលុយសុទ្ធក្នុងដៃ។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-blue-400 font-bold shrink-0">✓</span>
+              <span><strong>៧. របាយការណ៍ប្រចាំថ្ងៃ (Pages & Result)៖</strong> កត់ត្រារហ័ស រួចចម្លង Statement ផ្ញើ Telegram។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-blue-400 font-bold shrink-0">✓</span>
+              <span><strong>៨. ផ្ទាំងដំណឹងក្រុមហ៊ុន៖</strong> ទទួលបានបច្ចុប្បន្នភាពព័ត៌មាន ឧទាហរណ៍៖ ប្រកាសប្រម៉ូសិនពិសេស ៤ ថែម ១។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-blue-400 font-bold shrink-0">✓</span>
+              <span><strong>៩. តាមដានបញ្ជីអតិថិជនមិនទាន់ទូទាត់៖</strong> ដឹងចំនួនប្រអប់ និងចំនួនលុយដែលត្រូវទារទាន់ពេល។</span>
+            </li>
+          </ul>
+          <!-- Screenshot Preview with Tap to Zoom -->
+          <div class="mt-3 relative rounded-2xl overflow-hidden border border-white/15 bg-black/40 group cursor-pointer active:scale-[0.99] transition shadow-lg"
+               onclick="openBenefitsLightbox('slides_assets/01_dashboard_hero.png', '៧-៩, ១២. តាមដានហិរញ្ញវត្ថុផ្ទាល់ខ្លួន, សមតុល្យធនាគារ & លទ្ធផលលក់')">
+            <img src="slides_assets/01_dashboard_hero.png" alt="ហិរញ្ញវត្ថុ" class="w-full h-44 sm:h-52 object-cover object-top filter brightness-95 group-hover:brightness-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5 justify-between pointer-events-none">
+              <span class="text-[10px] text-white font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <i data-lucide="zoom-in" class="w-3 h-3 text-blue-400"></i>
+                <span>ចុចដើម្បីពង្រីក (Tap to Zoom)</span>
+              </span>
+              <span class="text-[9.5px] text-blue-300 font-bold bg-blue-500/20 px-2 py-0.5 rounded-full border border-blue-500/30">Hero Balance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 11, 6. ដឹងចំនួនលក់សមាជិកក្រុម & កត់ត្រាវត្តមាន -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-purple-500/15 via-white/[0.03] to-transparent border border-purple-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-purple-500/25 text-purple-300 text-[10px] font-black flex items-center justify-center">6, 11</span>
+            <h4 class="text-xs font-bold text-white">ដឹងចំនួនលក់សមាជិកក្រុម & កត់ត្រាវត្តមាន</h4>
+          </div>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-purple-400 font-bold shrink-0">✓</span>
+              <span><strong>១១. ដឹងចំនួនលក់សមាជិកក្រុម៖</strong> មើលឃើញកម្លាំងលក់របស់សមាជិក ជួយជំរុញទឹកចិត្តគ្នាទៅវិញទៅមក។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-purple-400 font-bold shrink-0">✓</span>
+              <span><strong>៦. កត់ត្រាវត្តមាន (កំពុងអភិវឌ្ឍ)៖</strong> ប្រព័ន្ធកត់ត្រាវត្តមានចូលរួមធ្វើការងារ និងប្រជុំ។</span>
+            </li>
+          </ul>
+          <!-- Screenshot Preview with Tap to Zoom -->
+          <div class="mt-3 relative rounded-2xl overflow-hidden border border-white/15 bg-black/40 group cursor-pointer active:scale-[0.99] transition shadow-lg"
+               onclick="openBenefitsLightbox('slides_assets/07_team_members_modal.png', '៦, ១១. ដឹងចំនួនលក់សមាជិកក្រុម & ការតាមដានវត្តមាន')">
+            <img src="slides_assets/07_team_members_modal.png" alt="សមាជិកក្រុម" class="w-full h-44 sm:h-52 object-cover object-top filter brightness-95 group-hover:brightness-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5 justify-between pointer-events-none">
+              <span class="text-[10px] text-white font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <i data-lucide="zoom-in" class="w-3 h-3 text-purple-400"></i>
+                <span>ចុចដើម្បីពង្រីក (Tap to Zoom)</span>
+              </span>
+              <span class="text-[9.5px] text-purple-300 font-bold bg-purple-500/20 px-2 py-0.5 rounded-full border border-purple-500/30">សមាជិកក្រុម</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 13. មជ្ឈមណ្ឌលមេរៀន អាជីវកម្ម & ការបណ្តុះបណ្តាល -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-amber-500/25 text-amber-300 text-[10px] font-black flex items-center justify-center">13</span>
+            <h4 class="text-xs font-bold text-white">មជ្ឈមណ្ឌលមេរៀន អាជីវកម្ម & ភាពជាអ្នកដឹកនាំ</h4>
+          </div>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-amber-400 font-bold shrink-0">✓</span>
+              <span><strong>មេរៀនពីការបិទការលក់ (Closing Sales)៖</strong> យុទ្ធសាស្ត្រ និងក្បួនដោះស្រាយការជំទាស់របស់អតិថិជន។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-amber-400 font-bold shrink-0">✓</span>
+              <span><strong>ចំណេះដឹងសុខភាព និងផលិតផល៖</strong> យល់ដឹងស៊ីជម្រៅលើអត្ថប្រយោជន៍ និងរបៀបប្រើប្រាស់ផលិតផល។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-amber-400 font-bold shrink-0">✓</span>
+              <span><strong>ភាពជាអ្នកដឹកនាំ (Leadership)៖</strong> វិធីសាស្ត្រដឹកនាំក្រុមការងារ និងកសាងភាពរីកចម្រើនក្នុងអាជីវកម្ម។</span>
+            </li>
+          </ul>
+          <!-- Screenshot Preview with Tap to Zoom -->
+          <div class="mt-3 relative rounded-2xl overflow-hidden border border-white/15 bg-black/40 group cursor-pointer active:scale-[0.99] transition shadow-lg"
+               onclick="openBenefitsLightbox('slides_assets/10_certificates_modal.png', '១៣. មជ្ឈមណ្ឌលមេរៀន បិទការលក់ សុខភាព & ភាពជាអ្នកដឹកនាំ')">
+            <img src="slides_assets/10_certificates_modal.png" alt="មេរៀន & ការបណ្តុះបណ្តាល" class="w-full h-44 sm:h-52 object-cover object-top filter brightness-95 group-hover:brightness-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5 justify-between pointer-events-none">
+              <span class="text-[10px] text-white font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <i data-lucide="zoom-in" class="w-3 h-3 text-amber-400"></i>
+                <span>ចុចដើម្បីពង្រីក (Tap to Zoom)</span>
+              </span>
+              <span class="text-[9.5px] text-amber-300 font-bold bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">មេរៀន & សិក្សា</span>
             </div>
           </div>
         </div>
       </div>
+      ` : ''}
 
-      <!-- ============================================== -->
-      <!-- SLIDE 2: 💼 ២. ក្រុមការងារលក់ (Sales Team)     -->
-      <!-- ============================================== -->
-      <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-emerald-500/15 via-white/[0.03] to-transparent border border-emerald-500/35 relative overflow-hidden shadow-xl text-left">
-        <div class="flex items-center justify-between mb-3">
+      ${showLeaders ? `
+      <!-- ======================================================== -->
+      <!-- SECTION ខ: ថ្នាក់ដឹកនាំ (LEADERS / MANAGEMENT) (៤ ចំណុច) -->
+      <!-- ======================================================== -->
+      <div class="space-y-3 pt-3">
+        <div class="flex items-center justify-between px-1">
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-              <i data-lucide="trending-up" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <span class="text-[10px] font-mono font-bold text-emerald-300 uppercase tracking-wider">PILLAR 02</span>
-              <h3 class="text-sm font-black text-white leading-tight">ក្រុមការងារលក់ (Sales Team)</h3>
-            </div>
+            <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-black text-xs flex items-center justify-center border border-amber-500/30">ខ</span>
+            <h3 class="text-xs sm:text-sm font-black text-white">ថ្នាក់ដឹកនាំ (Leaders / Management)</h3>
           </div>
-          <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/35 text-emerald-300 font-bold text-[10px]">
-            🚀 បង្កើនល្បឿនលក់
-          </span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono">៤ មុខងារស្នូល</span>
         </div>
 
-        <div class="space-y-2.5 text-xs text-slate-200">
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="bar-chart-2" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">តាមដានការលក់ & ប្រាក់ចំណូលជាក់ស្តែង (Real-Time)</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                ដឹងចំនួនកញ្ចប់លក់ប្រចាំថ្ងៃ សប្តាហ៍ និងខែភ្លាមៗ ទាំងការលក់ក្នុងស្រុក និង COD ក្រៅប្រទេស (ថៃ)។
-              </p>
-            </div>
+        <!-- 1. ដឹងចំនួនលក់ & ស្ថានភាពក្រុម (% MoM & % Goal) -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-amber-500/25 text-amber-300 text-[10px] font-black flex items-center justify-center">1</span>
+            <h4 class="text-xs font-bold text-white">ដឹងចំនួនលក់ & ស្ថានភាពរីកចម្រើនក្រុមទាំងមូល</h4>
           </div>
-
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="badge-dollar-sign" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">គណនាកម្រៃជើងសារ (Commission & Profit) ស្វ័យប្រវត្ត</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                គណនាប្រាក់ចំណេញសុទ្ធ និងប្រាក់កម្រៃជើងសារដោយស្វ័យប្រវត្ត មិនបាច់ចំណាយពេលចុចម៉ាស៊ីនគិតលេខ។
-              </p>
-            </div>
-          </div>
-
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="send" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">ចម្លង Statement ផ្ញើ Telegram ដោយ ១ ឃ្លីក</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                មានប៊ូតុង One-Tap Copy រៀបចំរបាយការណ៍លក់ជាអក្សរស្អាតបាត ផ្ញើចូលគ្រុប Telegram ក្រុមការងារបានលឿន។
-              </p>
-            </div>
-          </div>
-
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="truck" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">គ្រប់គ្រងការដឹកជញ្ជូន & COD ថៃ រលូន</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                តាមដានស្ថានភាពទំនិញដឹកជញ្ជូន ជួយកាត់បន្ថយបញ្ហាទំនិញកកស្ទះ និងទារប្រាក់ COD បានគ្រប់ចំនួន។
-              </p>
-            </div>
-          </div>
-
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="arrow-left-right" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">បម្លែងរូបិយប័ណ្ណ ($, ៛, ฿) តាមហាងឆេងទិញចូល</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                គណនា និងបម្លែងតម្លៃស្វ័យប្រវត្ត ជាមួយការកំណត់ហាងឆេងទិញចូលត្រឹមត្រូវ និងច្បាស់លាស់។
-              </p>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-amber-400 font-bold shrink-0">✓</span>
+              <span>ដឹងចំនួនលក់ជាក់ស្តែងរបស់សមាជិកក្រុមទាំងមូលគ្រប់ពេលវេលា។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-amber-400 font-bold shrink-0">✓</span>
+              <span><strong>ភាគរយប្រៀបធៀបនឹងខែមុន (% MoM Growth)៖</strong> តាមដានសន្ទុះកំណើនការលក់បានជាក់លាក់។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-amber-400 font-bold shrink-0">✓</span>
+              <span><strong>ភាគរយនៃគោលដៅដែលសម្រេចបាន (% Goal Target)៖</strong> ជួយជំរុញ និងផ្តល់រង្វាន់ Bonus បានចំគោលដៅ។</span>
+            </li>
+          </ul>
+          <!-- Screenshot Preview with Tap to Zoom -->
+          <div class="mt-3 relative rounded-2xl overflow-hidden border border-white/15 bg-black/40 group cursor-pointer active:scale-[0.99] transition shadow-lg"
+               onclick="openBenefitsLightbox('slides_assets/02_team_targets_card.png', '១. ថ្នាក់ដឹកនាំ៖ តាមដានគោលដៅ % MoM និង % Target ក្រុមទាំងមូល')">
+            <img src="slides_assets/02_team_targets_card.png" alt="គោលដៅក្រុម" class="w-full h-44 sm:h-52 object-cover object-top filter brightness-95 group-hover:brightness-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5 justify-between pointer-events-none">
+              <span class="text-[10px] text-white font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <i data-lucide="zoom-in" class="w-3 h-3 text-amber-400"></i>
+                <span>ចុចដើម្បីពង្រីក (Tap to Zoom)</span>
+              </span>
+              <span class="text-[9.5px] text-amber-300 font-bold bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">% MoM & គោលដៅ</span>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ============================================== -->
-      <!-- SLIDE 3: 👑 ៣. អ្នកដឹកនាំ (Leaders / Management) -->
-      <!-- ============================================== -->
-      <div class="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-500/15 via-white/[0.03] to-transparent border border-amber-500/35 relative overflow-hidden shadow-xl text-left">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
-              <i data-lucide="crown" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <span class="text-[10px] font-mono font-bold text-amber-300 uppercase tracking-wider">PILLAR 03</span>
-              <h3 class="text-sm font-black text-white leading-tight">អ្នកដឹកនាំ (Leaders / Management)</h3>
+        <!-- 2. ទទួលរបាយការណ៍ Pages ឬចំនួនលក់របស់ក្រុមការងារ -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-orange-500/15 via-white/[0.03] to-transparent border border-orange-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-orange-500/25 text-orange-300 text-[10px] font-black flex items-center justify-center">2</span>
+            <h4 class="text-xs font-bold text-white">ទទួលរបាយការណ៍ Pages & ចំនួនលក់ក្រុមការងារ</h4>
+          </div>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-orange-400 font-bold shrink-0">✓</span>
+              <span>ទទួល និងត្រួតពិនិត្យរបាយការណ៍ Pages ឬចំនួនលក់របស់ក្រុមការងារ (ប្រចាំថ្ងៃ, ខែ, ឆ្នាំ)។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-orange-400 font-bold shrink-0">✓</span>
+              <span>ក្រាហ្វវិភាគទិន្នន័យច្បាស់លាស់ ជួយវាយតម្លៃកម្លាំងលក់របស់ក្រុម និងដោះស្រាយបញ្ហាបានទាន់ពេល។</span>
+            </li>
+          </ul>
+          <!-- Screenshot Preview with Tap to Zoom -->
+          <div class="mt-3 relative rounded-2xl overflow-hidden border border-white/15 bg-black/40 group cursor-pointer active:scale-[0.99] transition shadow-lg"
+               onclick="openBenefitsLightbox('slides_assets/09_analytics_view.png', '២. ថ្នាក់ដឹកនាំ៖ វិភាគរបាយការណ៍ Pages & ចំនួនលក់ក្រុម (ថ្ងៃ ខែ ឆ្នាំ)')">
+            <img src="slides_assets/09_analytics_view.png" alt="វិភាគ Pages" class="w-full h-44 sm:h-52 object-cover object-top filter brightness-95 group-hover:brightness-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5 justify-between pointer-events-none">
+              <span class="text-[10px] text-white font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <i data-lucide="zoom-in" class="w-3 h-3 text-orange-400"></i>
+                <span>ចុចដើម្បីពង្រីក (Tap to Zoom)</span>
+              </span>
+              <span class="text-[9.5px] text-orange-300 font-bold bg-orange-500/20 px-2 py-0.5 rounded-full border border-orange-500/30">Analytics Pages</span>
             </div>
           </div>
-          <span class="px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/35 text-amber-300 font-bold text-[10px]">
-            👑 ការគ្រប់គ្រងជាន់ខ្ពស់
-          </span>
         </div>
 
-        <div class="space-y-2.5 text-xs text-slate-200">
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="pie-chart" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">ផ្ទាំងវិភាគទូទៅកម្រិតកំពូល (Executive Analytics Hero)</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                មើលឃើញសុខភាពអាជីវកម្មទាំងមូលក្នុងមួយភ្លែត រួមមានចំណូលសរុប ប្រាក់ចំណេញ និងកំណើនប្រចាំខែ/ឆ្នាំ។
-              </p>
-            </div>
+        <!-- 3. វត្តមានរបស់ក្រុមការងារ (មានសិទ្ធ Approve ជួយជំនួស Director) -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-emerald-500/15 via-white/[0.03] to-transparent border border-emerald-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-emerald-500/25 text-emerald-300 text-[10px] font-black flex items-center justify-center">3</span>
+            <h4 class="text-xs font-bold text-white">វត្តមានក្រុមការងារ (មានសិទ្ធិ Approve ជំនួស Director)</h4>
           </div>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-emerald-400 font-bold shrink-0">✓</span>
+              <span>តាមដាន និងគ្រប់គ្រងវត្តមានរបស់ក្រុមការងារក្នុងការបំពេញការងារ និងប្រជុំ។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-emerald-400 font-bold shrink-0">✓</span>
+              <span><strong>មានសិទ្ធិ Approve ជួយសម្រួលជំនួស Director</strong> ជួយពន្លឿនការងារឱ្យកាន់តែរលូន។</span>
+            </li>
+          </ul>
+        </div>
 
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="award" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">តាមដានកម្លាំងលក់ & សមិទ្ធផលក្រុម (Team Performance)</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                ពិនិត្យទិន្នន័យរួមនៃក្រុមការងារ ដើម្បីលើកទឹកចិត្ត និងផ្តល់រង្វាន់ដល់បុគ្គលិកឆ្នើមបានច្បាស់លាស់ និងយុត្តិធម៌។
-              </p>
-            </div>
+        <!-- 4. អាចដាក់មេរៀនថ្មីៗ ចូលកម្មវិធី -->
+        <div class="w-full p-3.5 rounded-3xl bg-gradient-to-br from-blue-500/15 via-white/[0.03] to-transparent border border-blue-500/30 text-left shadow-lg">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-md bg-blue-500/25 text-blue-300 text-[10px] font-black flex items-center justify-center">4</span>
+            <h4 class="text-xs font-bold text-white">អាចដាក់មេរៀនថ្មីៗ ចូលក្នុងកម្មវិធី</h4>
           </div>
-
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="wallet" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">ត្រួតពិនិត្យសមតុល្យធនាគារជាក់ស្តែង (Cash Flow Control)</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                ផ្ទៀងផ្ទាត់សមតុល្យសាច់ប្រាក់ជាក់ស្តែងក្នុងធនាគារ (ABA, Wing, TrueMoney) ការពារការបាត់បង់លុយកាក់ និងចន្លោះប្រហោង។
-              </p>
-            </div>
-          </div>
-
-          <div class="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-start gap-2.5">
-            <div class="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-              <i data-lucide="shield-check" class="w-3 h-3"></i>
-            </div>
-            <div class="min-w-0">
-              <h4 class="font-bold text-white text-[11.5px] leading-snug">ប្រព័ន្ធ Master Admin ឯកសិទ្ធិពិសេស (Central Admin)</h4>
-              <p class="text-[10.5px] text-slate-300 mt-0.5 leading-relaxed">
-                មានប្រព័ន្ធគ្រប់គ្រងកណ្តាលការពារដោយលេខកូដសម្ងាត់ស្តង់ដារសុវត្ថិភាពខ្ពស់ សម្រាប់តែថ្នាក់ដឹកនាំជាន់ខ្ពស់។
-              </p>
+          <ul class="text-[11px] text-slate-200 space-y-1.5 pl-2 leading-relaxed">
+            <li class="flex items-start gap-1.5">
+              <span class="text-blue-400 font-bold shrink-0">✓</span>
+              <span>ថ្នាក់ដឹកនាំអាចបន្ថែមមេរៀនថ្មីៗ វីដេអូបណ្តុះបណ្តាល និងឯកសារយុទ្ធសាស្ត្រលក់ចូលក្នុងកម្មវិធី។</span>
+            </li>
+            <li class="flex items-start gap-1.5">
+              <span class="text-blue-400 font-bold shrink-0">✓</span>
+              <span>កសាងជាប្រព័ន្ធបណ្តុះបណ្តាលកណ្តាលដ៏រឹងមាំសម្រាប់ចែករំលែកដល់សមាជិកក្រុមទាំងអស់រៀនសូត្រ។</span>
+            </li>
+          </ul>
+          <!-- Screenshot Preview with Tap to Zoom -->
+          <div class="mt-3 relative rounded-2xl overflow-hidden border border-white/15 bg-black/40 group cursor-pointer active:scale-[0.99] transition shadow-lg"
+               onclick="openBenefitsLightbox('slides_assets/10_certificates_modal.png', '៤. ថ្នាក់ដឹកនាំ៖ បញ្ចូលមេរៀនថ្មីៗ & ប្រព័ន្ធបណ្តុះបណ្តាលផ្ទៃក្នុង')">
+            <img src="slides_assets/10_certificates_modal.png" alt="មេរៀនថ្មីៗ" class="w-full h-44 sm:h-52 object-cover object-top filter brightness-95 group-hover:brightness-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5 justify-between pointer-events-none">
+              <span class="text-[10px] text-white font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <i data-lucide="zoom-in" class="w-3 h-3 text-blue-400"></i>
+                <span>ចុចដើម្បីពង្រីក (Tap to Zoom)</span>
+              </span>
+              <span class="text-[9.5px] text-blue-300 font-bold bg-blue-500/20 px-2 py-0.5 rounded-full border border-blue-500/30">បណ្ណាល័យមេរៀន</span>
             </div>
           </div>
         </div>
       </div>
+      ` : ''}
 
       <!-- MC Script Speaking Cue -->
-      <div class="w-full p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-left">
+      <div class="w-full p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-left mt-3">
         <div class="flex items-center gap-2 mb-1.5 text-indigo-300 font-bold text-xs">
           <i data-lucide="mic" class="w-4 h-4 text-indigo-400"></i>
           <span>🎙️ គន្លឹះសម្រាប់ MC ធ្វើបទបង្ហាញ (MC Script Cue)</span>
         </div>
         <p class="text-[11px] text-slate-300 leading-relaxed italic">
-          «សួស្តីបងប្អូនទាំងអស់គ្នា! BostarGroup SD Dashboard ត្រូវបានបង្កើតឡើងដើម្បីដោះស្រាយការងារជាក់ស្តែងទាំង ៣ កម្រិត៖ អ្នកប្រើប្រាស់ទូទៅងាយស្រួលភ្ជាប់ភ្លាមៗក្នុង ៣ វិនាទី, ក្រុមការងារលក់មានឧបករណ៍គណនា Commission និង Copy Statement រហ័ស, ហើយថ្នាក់ដឹកនាំមាន Dashboard តាមដានលំហូរសាច់ប្រាក់ និងសុខភាពអាជីវកម្មយ៉ាងពេញលេញ!»
+          «សួស្តីបងប្អូនទាំងអស់គ្នា! BostarGroup SD Dashboard ត្រូវបានបង្កើតឡើងដើម្បីផ្តល់នូវភាពងាយស្រួល និងរហ័សបំផុតក្នុងការងារជាក់ស្តែង៖ សម្រាប់អ្នកប្រើប្រាស់ទូទៅ និងក្រុមលក់ គឺមានសុវត្ថិភាពឯកជនភាព ១០០% តាម Google Sheet ផ្ទាល់ខ្លួន ជួយកត់ត្រាចំណាយ គ្រប់គ្រងបញ្ជីអតិថិជនស្វ័យប្រវត្ត គណនា COD ថៃរហ័ស និងដឹងចំណេញខាតភ្លាមៗ។ ចំណែកថ្នាក់ដឹកនាំ អាចតាមដានកំណើន % MoM និង % Target ក្រុម ព្រមទាំងគ្រប់គ្រងវត្តមាន និងដាក់មេរៀនថ្មីៗបានយ៉ាងរលូន!»
         </p>
       </div>
 
