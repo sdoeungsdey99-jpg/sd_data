@@ -31579,13 +31579,23 @@ function openNewExpenseModal() {
 
   setExpenseCurrency('USD');
 
+  // Initialize Multi-Item Expense State
+  expenseItemsState = [
+    { desc: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ', amount: '' }
+  ];
+  activeExpenseItemIndex = 0;
+  renderExpenseItemRows();
+
   if (typeof updateModalLanguage === 'function') updateModalLanguage();
 
   modal.classList.remove('hidden');
   setDockVisible(false);
 
   if (window.lucide) window.lucide.createIcons();
-  if (descInput) setTimeout(() => descInput.focus(), 150);
+  setTimeout(() => {
+    const firstInput = document.querySelector('#expense-items-rows-container input[type="text"]');
+    if (firstInput) firstInput.focus();
+  }, 150);
 }
 
 function openEditExpenseModal(expOrIdx) {
@@ -31630,10 +31640,20 @@ function openEditExpenseModal(expOrIdx) {
 
   setExpenseCurrency('USD');
 
+  // Single Item in Edit Mode
+  expenseItemsState = [
+    { desc: exp.description || '', category: exp.category || 'ហូបចុក & ប្រចាំថ្ងៃ', amount: Number(exp.amount || 0).toFixed(2) }
+  ];
+  activeExpenseItemIndex = 0;
+  renderExpenseItemRows();
+
   modal.classList.remove('hidden');
   setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
-  if (descInput) setTimeout(() => descInput.focus(), 150);
+  setTimeout(() => {
+    const firstInput = document.querySelector('#expense-items-rows-container input[type="text"]');
+    if (firstInput) firstInput.focus();
+  }, 150);
 }
 
 function closeNewExpenseModal() {
@@ -31644,64 +31664,186 @@ function closeNewExpenseModal() {
   }
 }
 
+// ========================================================
+// Multi-Item Expense State & Row Rendering
+// ========================================================
+let expenseItemsState = [{ desc: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ', amount: '' }];
+let activeExpenseItemIndex = 0;
+
+function addNewExpenseItemRow(desc = '', category = 'ហូបចុក & ប្រចាំថ្ងៃ', amount = '') {
+  expenseItemsState.push({
+    desc: desc || '',
+    category: category || 'ហូបចុក & ប្រចាំថ្ងៃ',
+    amount: amount ? Number(amount).toFixed(2) : ''
+  });
+  activeExpenseItemIndex = expenseItemsState.length - 1;
+  renderExpenseItemRows();
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('#expense-items-rows-container input[type="text"]');
+    if (inputs && inputs[activeExpenseItemIndex]) {
+      inputs[activeExpenseItemIndex].focus();
+    }
+  }, 50);
+}
+
+function removeExpenseItemRow(idx) {
+  if (expenseItemsState.length <= 1) {
+    expenseItemsState = [{ desc: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ', amount: '' }];
+  } else {
+    expenseItemsState.splice(idx, 1);
+  }
+  activeExpenseItemIndex = Math.max(0, expenseItemsState.length - 1);
+  renderExpenseItemRows();
+}
+
+function updateExpenseItemField(idx, field, value) {
+  if (!expenseItemsState[idx]) return;
+  expenseItemsState[idx][field] = value;
+  activeExpenseItemIndex = idx;
+  updateExpenseTotalSummary();
+}
+
+function updateExpenseTotalSummary() {
+  const countLabel = document.getElementById('expense-items-count-label');
+  const totalAmtEl = document.getElementById('expense-items-total-amount');
+  const btnSubmitText = document.querySelector('#btn-submit-expense span');
+  const isEditMode = document.getElementById('expense-edit-mode')?.value === 'true';
+
+  let totalSum = 0;
+  expenseItemsState.forEach(item => {
+    const amt = parseFloat(item.amount || '0');
+    if (!isNaN(amt) && amt > 0) {
+      totalSum += amt;
+    }
+  });
+
+  const count = expenseItemsState.length;
+  if (countLabel) {
+    countLabel.textContent = `សរុប (${count} មុខ):`;
+  }
+  if (totalAmtEl) {
+    totalAmtEl.textContent = `$${totalSum.toFixed(2)}`;
+  }
+
+  // Keep hidden inputs synchronized for backward compatibility
+  const first = expenseItemsState[0] || { desc: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ', amount: '' };
+  const descHidden = document.getElementById('expense-field-desc');
+  const catHidden = document.getElementById('expense-field-category');
+  const amtHidden = document.getElementById('expense-field-amount');
+  if (descHidden) descHidden.value = first.desc || '';
+  if (catHidden) catHidden.value = first.category || 'ហូបចុក & ប្រចាំថ្ងៃ';
+  if (amtHidden) amtHidden.value = first.amount || '';
+
+  if (btnSubmitText) {
+    if (isEditMode) {
+      btnSubmitText.textContent = `កែប្រែ & រក្សាទុក ($${totalSum.toFixed(2)}) ✏️`;
+    } else if (count > 1) {
+      btnSubmitText.textContent = `រក្សាទុកចំណាយ (${count} មុខ - $${totalSum.toFixed(2)}) 💸`;
+    } else {
+      btnSubmitText.textContent = totalSum > 0 ? `រក្សាទុកចំណាយ ($${totalSum.toFixed(2)}) 💸` : `រក្សាទុកចំណាយ 💸`;
+    }
+  }
+}
+
+function renderExpenseItemRows() {
+  const container = document.getElementById('expense-items-rows-container');
+  if (!container) return;
+
+  const categories = [
+    { value: 'ហូបចុក & ប្រចាំថ្ងៃ', label: 'ហូបចុក' },
+    { value: 'កម្សាន្ត & ចំណង់', label: 'កម្សាន្ត' },
+    { value: 'ចំណាយថេរ', label: 'ចំណាយថេរ' },
+    { value: 'សុខភាព & ថែទាំ', label: 'សុខភាព' },
+    { value: 'សង្គ្រោះបន្ទាន់ & ធម៌ទាន', label: 'ធម៌ទាន' },
+    { value: 'វិនិយោគ & អភិវឌ្ឍន៍', label: 'វិនិយោគ' },
+    { value: 'ផ្សេងៗ', label: 'ផ្សេងៗ' }
+  ];
+
+  container.innerHTML = expenseItemsState.map((item, idx) => `
+    <div class="grid grid-cols-12 gap-1.5 items-center p-1.5 rounded-xl bg-white/[0.04] border border-white/5 hover:border-white/10 transition">
+      <!-- Col 1: ខាងឆ្វេង (មុខចំណាយ) -->
+      <div class="col-span-5 min-w-0">
+        <input type="text" value="${(item.desc || '').replace(/"/g, '&quot;')}" 
+               onfocus="activeExpenseItemIndex = ${idx}"
+               oninput="updateExpenseItemField(${idx}, 'desc', this.value)"
+               placeholder="មុខចំណាយ..." 
+               class="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs font-medium focus:outline-none focus:border-rose-500">
+      </div>
+
+      <!-- Col 2: កណ្តាល (ប្រភេទចំណាយ) -->
+      <div class="col-span-4 min-w-0">
+        <select onchange="updateExpenseItemField(${idx}, 'category', this.value)"
+                class="w-full bg-black/40 border border-white/10 rounded-lg px-1.5 py-1.5 text-[11px] text-slate-200 focus:outline-none focus:border-rose-500 truncate font-sans">
+          ${categories.map(c => `
+            <option value="${c.value}" ${item.category === c.value ? 'selected' : ''}>${c.label}</option>
+          `).join('')}
+        </select>
+      </div>
+
+      <!-- Col 3: ខាងស្តាំ (ចំនួនទឹកប្រាក់ + ប៊ូតុងលុប) -->
+      <div class="col-span-3 flex items-center gap-1 justify-end min-w-0">
+        <div class="relative flex-1 min-w-0">
+          <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-rose-400 font-mono text-[10px] font-bold">$</span>
+          <input type="number" step="0.05" min="0" value="${item.amount || ''}" placeholder="0.00"
+                 onfocus="activeExpenseItemIndex = ${idx}"
+                 oninput="updateExpenseItemField(${idx}, 'amount', this.value)"
+                 class="w-full bg-black/40 border border-white/10 rounded-lg py-1.5 pl-4 pr-1 text-right text-rose-400 font-mono font-bold text-xs focus:outline-none focus:border-rose-500">
+        </div>
+        ${expenseItemsState.length > 1 ? `
+          <button type="button" onclick="removeExpenseItemRow(${idx})" class="w-6 h-6 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 active:scale-90 transition" title="លុបមុខនេះ">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+  updateExpenseTotalSummary();
+}
+
 function applyExpensePreset(desc, category, amount) {
-  const descInput = document.getElementById('expense-field-desc');
-  const catInput = document.getElementById('expense-field-category');
-  const amtInput = document.getElementById('expense-field-amount');
-
-  if (descInput) descInput.value = desc;
-  if (catInput) catInput.value = category;
-  if (amtInput) amtInput.value = Number(amount).toFixed(2);
-
+  // If only 1 item and it's empty, replace it
+  if (expenseItemsState.length === 1 && !expenseItemsState[0].desc && !expenseItemsState[0].amount) {
+    expenseItemsState[0] = { desc, category, amount: Number(amount).toFixed(2) };
+    activeExpenseItemIndex = 0;
+  } else {
+    // Append as a new row
+    expenseItemsState.push({ desc, category, amount: Number(amount).toFixed(2) });
+    activeExpenseItemIndex = expenseItemsState.length - 1;
+  }
+  renderExpenseItemRows();
   if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
 }
 
 function setExpenseAmount(amount) {
-  const amtInput = document.getElementById('expense-field-amount');
-  if (amtInput) {
-    amtInput.value = Number(amount).toFixed(2);
-    amtInput.focus();
+  if (expenseItemsState.length === 0) {
+    expenseItemsState = [{ desc: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ', amount: Number(amount).toFixed(2) }];
+    activeExpenseItemIndex = 0;
+  } else {
+    const idx = (activeExpenseItemIndex >= 0 && activeExpenseItemIndex < expenseItemsState.length)
+      ? activeExpenseItemIndex
+      : expenseItemsState.length - 1;
+    expenseItemsState[idx].amount = Number(amount).toFixed(2);
   }
+  renderExpenseItemRows();
   if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
 }
 
 async function submitNewExpense() {
+  const isEditMode = document.getElementById('expense-edit-mode')?.value === 'true';
+  const editRowIndex = parseInt(document.getElementById('expense-edit-row-index')?.value || '0', 10);
+  const origDesc = (document.getElementById('expense-edit-orig-desc')?.value || '').trim();
+  const origAmt = parseFloat(document.getElementById('expense-edit-orig-amt')?.value || '0');
+
   const dateInput = document.getElementById('expense-field-date');
   const timeInput = document.getElementById('expense-field-time');
-  const descInput = document.getElementById('expense-field-desc');
-  const catInput = document.getElementById('expense-field-category');
-  const amtInput = document.getElementById('expense-field-amount');
-  const noteInput = document.getElementById('expense-field-note');
-  const btn = document.getElementById('btn-submit-expense');
-
-  const desc = (descInput?.value || '').trim();
-  const rawAmt = parseFloat(amtInput?.value || '0');
-  const cat = (catInput?.value || 'ហូបចុក & ប្រចាំថ្ងៃ').trim();
   const dateTextInput = document.getElementById('expense-field-date-text');
   const dateStr = (dateTextInput?.value || dateInput?.value || '').trim();
   const timeStr = (timeInput?.value || '').trim();
+  const noteInput = document.getElementById('expense-field-note');
   const note = (noteInput?.value || '').trim();
-
-  if (!desc) {
-    showToastNotification('សូមបញ្ចូលបរិយាយ ឬមុខចំណាយ! ✍️');
-    if (descInput) descInput.focus();
-    return;
-  }
-
-  if (isNaN(rawAmt) || rawAmt <= 0) {
-    showToastNotification('សូមបញ្ចូលចំនួនទឹកប្រាក់ឲ្យបានត្រឹមត្រូវ! 💰');
-    if (amtInput) amtInput.focus();
-    return;
-  }
-
-  // Handle KHR to USD conversion
-  let finalUsd = rawAmt;
-  let finalNote = note;
-  if (currentExpenseCurrency === 'KHR') {
-    finalUsd = parseFloat((rawAmt / 4000).toFixed(2));
-    const khrFormatted = Math.round(rawAmt).toLocaleString();
-    finalNote = finalNote ? `${finalNote} (${khrFormatted}៛)` : `(${khrFormatted}៛)`;
-  }
+  const btn = document.getElementById('btn-submit-expense');
 
   // Format date correctly
   let ddmmyyyy = dateStr;
@@ -31718,19 +31860,27 @@ async function submitNewExpense() {
     ddmmyyyy = typeof formatToDDMMYYYY === 'function' ? formatToDDMMYYYY(isoDate) : dateStr;
   }
 
-  const isEditMode = document.getElementById('expense-edit-mode')?.value === 'true';
-  const editRowIndex = parseInt(document.getElementById('expense-edit-row-index')?.value || '0', 10);
-  const origDesc = (document.getElementById('expense-edit-orig-desc')?.value || '').trim();
-  const origAmt = parseFloat(document.getElementById('expense-edit-orig-amt')?.value || '0');
+  // Filter valid items
+  const validItems = expenseItemsState.filter(item => (item.desc || '').trim() && parseFloat(item.amount || '0') > 0);
+  if (validItems.length === 0) {
+    showToastNotification('សូមបញ្ចូលបរិយាយ និងចំនួនទឹកប្រាក់ឲ្យបានត្រឹមត្រូវ! ✍️');
+    return;
+  }
 
   if (isEditMode) {
+    const item = validItems[0];
+    const desc = item.desc.trim();
+    const cat = item.category;
+    const finalUsd = parseFloat(item.amount);
+    const finalNote = note;
+
     if (btn) {
       btn.disabled = true;
       btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>កំពុងកែប្រែ...</span>`;
       if (window.lucide) window.lucide.createIcons();
     }
 
-    // 1. Immediately update in-memory DataService
+    // 1. In-memory update
     if (DataService.data && Array.isArray(DataService.data.expenses)) {
       const targetExp = DataService.data.expenses.find(e => 
         (editRowIndex > 0 && e.rowIndex === editRowIndex) ||
@@ -31785,13 +31935,8 @@ async function submitNewExpense() {
 
     const expModal = document.getElementById('expenses-modal');
     if (expModal && !expModal.classList.contains('hidden')) {
-      if (typeof filterExpensesModalList === 'function') {
-        const searchInput = document.getElementById('expenses-modal-search-input');
-        if (searchInput && searchInput.value.trim()) {
-          filterExpensesModalList();
-        } else {
-          renderExpensesModalRows(currentLoadedExpenses);
-        }
+      if (typeof applyExpensesFilterAndRender === 'function') {
+        applyExpensesFilterAndRender();
       }
     }
 
@@ -31802,96 +31947,96 @@ async function submitNewExpense() {
     return;
   }
 
+  // ==========================================
+  // NEW EXPENSE MODE (1 or multiple items)
+  // ==========================================
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>កំពុងរក្សាទុក...</span>`;
     if (window.lucide) window.lucide.createIcons();
   }
 
-  const newExpense = {
-    date: ddmmyyyy,
-    isoDate: isoDate,
-    time: timeStr,
-    description: desc,
-    category: cat,
-    amount: finalUsd,
-    note: finalNote,
-    rowIndex: (DataService.data && Array.isArray(DataService.data.expenses)) ? DataService.data.expenses.length + 1 : 1
-  };
+  const webhookUrl = getAppsScriptWebhookUrl();
+  const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
+  const existingLocal = JSON.parse(localStorage.getItem('sd_local_expenses') || '[]');
 
-  // 1. Immediately inject into live DataService in-memory
-  if (DataService.data && Array.isArray(DataService.data.expenses)) {
-    DataService.data.expenses.unshift(newExpense);
-    if (DataService.data.meta) DataService.data.meta.totalExpensesCount++;
+  let totalSum = 0;
+
+  for (let i = 0; i < validItems.length; i++) {
+    const item = validItems[i];
+    const desc = item.desc.trim();
+    const cat = item.category;
+    const finalUsd = parseFloat(item.amount);
+    totalSum += finalUsd;
+
+    const newExpense = {
+      date: ddmmyyyy,
+      isoDate: isoDate,
+      time: timeStr,
+      description: desc,
+      category: cat,
+      amount: finalUsd,
+      note: note,
+      rowIndex: (DataService.data && Array.isArray(DataService.data.expenses)) ? DataService.data.expenses.length + 1 : 1
+    };
+
+    // 1. Immediately inject into live DataService in-memory
+    if (DataService.data && Array.isArray(DataService.data.expenses)) {
+      DataService.data.expenses.unshift(newExpense);
+      if (DataService.data.meta) DataService.data.meta.totalExpensesCount++;
+    }
+
+    // 2. Persist to localStorage pending expenses
+    existingLocal.unshift(newExpense);
+
+    // 3. Send to Google Apps Script Webhook
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'add_expense',
+            sheetId: activeSheetId,
+            data: newExpense
+          })
+        });
+      } catch (e) {
+        console.warn('Expense Webhook POST error:', e);
+      }
+    }
   }
 
-  // 2. Persist to localStorage pending expenses
   try {
-    const existing = JSON.parse(localStorage.getItem('sd_local_expenses') || '[]');
-    existing.unshift(newExpense);
-    localStorage.setItem('sd_local_expenses', JSON.stringify(existing));
+    localStorage.setItem('sd_local_expenses', JSON.stringify(existingLocal));
   } catch (_) {}
 
-  // 3. Send to Google Apps Script Webhook or Queue Offline
-  const webhookUrl = getAppsScriptWebhookUrl();
-  let expSyncSuccess = false;
-
-  if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
-    try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'add_expense',
-          sheetId: (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '',
-          data: newExpense
-        })
-      });
-      expSyncSuccess = true;
-    } catch (e) {
-      console.warn('Expense Webhook POST error (fallback to local & offline queue):', e);
-      expSyncSuccess = false;
-    }
+  if (typeof addAppNotification === 'function') {
+    addAppNotification({
+      type: 'expense',
+      title: validItems.length > 1 ? `កត់ត្រាចំណាយ ${validItems.length} មុខ` : `កត់ត្រាចំណាយ: ${validItems[0].desc}`,
+      content: `សរុប: $${totalSum.toFixed(2)} ${timeStr ? '(' + timeStr + ')' : ''}`,
+      tag: 'Google Sheet ✓',
+      color: 'rose',
+      icon: 'receipt'
+    });
   }
 
-  if (expSyncSuccess) {
-    if (typeof addAppNotification === 'function') {
-      addAppNotification({
-        type: 'expense',
-        title: `កត់ត្រាចំណាយ: ${desc}`,
-        content: `${cat} | ចំនួន: $${finalUsd.toFixed(2)} ${timeStr ? '(' + timeStr + ')' : ''}`,
-        tag: 'Google Sheet ✓',
-        color: 'rose',
-        icon: 'receipt'
-      });
-    }
-    showToastNotification(`កត់ត្រាចំណាយ "${desc}" ($${finalUsd.toFixed(2)}) ជោគជ័យ! 💸`);
+  if (validItems.length > 1) {
+    showToastNotification(`បានកត់ត្រាចំណាយ ${validItems.length} មុខ (សរុប $${totalSum.toFixed(2)}) ជោគជ័យ! 💸`);
   } else {
-    if (typeof queueOfflineExpense === 'function') {
-      queueOfflineExpense(newExpense);
-    }
-    if (typeof addAppNotification === 'function') {
-      addAppNotification({
-        type: 'expense',
-        title: `[Offline] ចំណាយក្នុងម៉ាស៊ីន: ${desc}`,
-        content: `${cat} | ចំនួន: $${finalUsd.toFixed(2)} (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)`,
-        tag: 'Offline Queued ⏳',
-        color: 'amber',
-        icon: 'cloud-off'
-      });
-    }
-    showToastNotification(`📡 បានរក្សាទុកក្នុងទូរសព្ទ (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)!`);
+    showToastNotification(`បានកត់ត្រាចំណាយ "${validItems[0].desc}" ($${totalSum.toFixed(2)}) ជោគជ័យ! 💸`);
   }
 
-  // 4. Update UI live
   closeNewExpenseModal();
   renderCurrentView();
 
-  // If expenses drill-down modal is open, re-render it
   const expModal = document.getElementById('expenses-modal');
   if (expModal && !expModal.classList.contains('hidden')) {
-    openExpensesModal();
+    if (typeof applyExpensesFilterAndRender === 'function') {
+      applyExpensesFilterAndRender();
+    }
   }
 
   if (btn) {
@@ -31925,6 +32070,12 @@ window.selectExpenseMiniCalDay = selectExpenseMiniCalDay;
 window.onExpenseDateTextInput = onExpenseDateTextInput;
 window.setExpenseCurrency = setExpenseCurrency;
 window.onExpenseAmountInput = onExpenseAmountInput;
+window.addNewExpenseItemRow = addNewExpenseItemRow;
+window.removeExpenseItemRow = removeExpenseItemRow;
+window.updateExpenseItemField = updateExpenseItemField;
+window.updateExpenseTotalSummary = updateExpenseTotalSummary;
+window.renderExpenseItemRows = renderExpenseItemRows;
+window.expenseItemsState = expenseItemsState;
 
 // ==========================================
 // Delivery Shipping Auto-Defaults (Customizable)
