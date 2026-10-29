@@ -30498,7 +30498,7 @@ async function submitNewOrder() {
     codStatus: codStatus, // ស្ថានភាពដែលបានជ្រើសរើស (បានដាក់ការកុម្ម៉ង់, មិនទាន់ទូទាត់, បានទូទាត់)
     profit: profit,
     note: note,
-    syncToBostarTrack: true,
+    syncToBostarTrack: (currentOrderEntryMode === 'dock'), // Master Data ទទួលតែពីការកុម្ម៉ង់ថ្មី (Dock Order) ប៉ុណ្ណោះ
     createdAt: Date.now()
   };
 
@@ -30516,14 +30516,15 @@ async function submitNewOrder() {
   } catch (_) {}
 
   // 3. យុទ្ធសាស្ត្រ 3 in 1: បញ្ជូនចូល Google Sheet ផ្ទាល់ខ្លួន & BostarTrack Master Data & Google Form ក្រុមហ៊ុន
-  const syncToCompany = (currentOrderEntryMode !== 'telegram') && (document.getElementById('order-field-sync-company-form')?.checked !== false);
+  const isDockOrder = (currentOrderEntryMode === 'dock');
+  const syncToCompany = isDockOrder && (document.getElementById('order-field-sync-company-form')?.checked !== false);
   const webhookUrl = getAppsScriptWebhookUrl();
   let syncSuccess = false;
   let companyFormSuccess = false;
 
   const syncTasks = [];
 
-  // 3A. Personal Apps Script Webhook (Auto dual-syncs to BostarTrack Master Data)
+  // 3A. Personal Apps Script Webhook (Auto dual-syncs to BostarTrack Master Data ONLY when isDockOrder is true)
   if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
     syncTasks.push(
       fetch(webhookUrl, {
@@ -30533,7 +30534,7 @@ async function submitNewOrder() {
         body: JSON.stringify({
           action: 'add_order',
           sheetId: (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '',
-          syncToBostarTrack: true,
+          syncToBostarTrack: isDockOrder, // Strictly true សម្រាប់តែកុម្ម៉ង់ថ្មី (Dock) ប៉ុណ្ណោះ ហាម Telegram Mode
           data: newRecord
         })
       }).then(() => {

@@ -65,8 +65,9 @@ function doPost(e) {
       var result = insertPersonalSalesOrder(ss, data);
 
       // 2. Dual-Sync: បញ្ចូលទៅកាន់ Master Data នៃ BostarTrack (1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4) ស្វ័យប្រវត្តិ
+      // បញ្ជាដាច់ខាត៖ Master Data ទទួលតែពីការកុម្ម៉ង់ថ្មី (isDockOrder / syncToBostarTrack === true) ប៉ុណ្ណោះ ហាម Telegram Mode
       var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
-      var syncToBostarTrack = (payload.syncToBostarTrack !== false) && (data.syncToBostarTrack !== false);
+      var syncToBostarTrack = (payload.syncToBostarTrack === true) || (data.syncToBostarTrack === true);
       if (syncToBostarTrack && targetSheetId !== bostarTrackId) {
         try {
           var bostarSs = SpreadsheetApp.openById(bostarTrackId);
@@ -158,6 +159,12 @@ function parseToDateObj(dateStr) {
   return new Date();
 }
 
+function formatToYmdString(dateVal) {
+  if (!dateVal) return '';
+  var dateObj = parseToDateObj(dateVal);
+  return Utilities.formatDate(dateObj, 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+}
+
 /**
  * បញ្ចូលការកុម្ម៉ង់ចូលផ្ទាំង Personal Sales ឬ Master Data ដោយសុវត្ថិភាព ១០០%
  * បំពេញតម្លៃលេខផ្ទាល់ (Direct Value) ជួរ N, R, T និងកត់ត្រា Reward QTY ជួរ V
@@ -198,6 +205,33 @@ function insertPersonalSalesOrder(ss, order) {
       return { 
         status: 'duplicate', 
         message: 'Order ID ' + newOrderId + ' មានរួចហើយក្នុងជួរទី ' + (r + 1),
+        row: r + 1 
+      };
+    }
+
+    // ពិនិត្យភាពស្ទួនតាម Phone + Seller + Date (ការពារករណីអ្នកលក់ចុច Submit ២ ដង ឬបញ្ចូលជាន់គ្នា)
+    var cleanNewPhone = String(order.phone || '').replace(/[\s\-\(\)]/g, '');
+    var cleanRowPhone = String(values[r][6] || '').replace(/[\s\-\(\)]/g, '');
+    var cleanNewSeller = String(order.seller || '').trim().toLowerCase();
+    var cleanRowSeller = String(values[r][3] || '').trim().toLowerCase();
+    var orderDateYmd = formatToYmdString(order.date);
+    var rowDateYmd = formatToYmdString(rowDate);
+
+    if (cleanNewPhone && cleanRowPhone && cleanNewPhone.length >= 8 && cleanNewPhone === cleanRowPhone &&
+        cleanNewSeller && cleanRowSeller && cleanNewSeller === cleanRowSeller &&
+        orderDateYmd && rowDateYmd && orderDateYmd === rowDateYmd) {
+      // ប្រសិនបើជួរចាស់គ្មានលេខ Order ID តែជួរថ្មីមានលេខ Order ID ➔ Update បំពេញលេខ Order ID លើជួរចាស់ដដែល
+      if (!existingOrderId && newOrderId) {
+        sheet.getRange(r + 1, 5).setValue(newOrderId);
+        return { 
+          status: 'updated', 
+          message: 'បាន Update លេខ Order ID ' + newOrderId + ' លើជួរទី ' + (r + 1),
+          row: r + 1 
+        };
+      }
+      return { 
+        status: 'duplicate', 
+        message: 'Order របស់អ្នកលក់ ' + values[r][3] + ' (ទូរស័ព្ទ ' + cleanNewPhone + ') មានរួចហើយក្នុងជួរទី ' + (r + 1),
         row: r + 1 
       };
     }
