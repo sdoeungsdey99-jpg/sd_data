@@ -25157,17 +25157,204 @@ function enterTestMode() {
 }
 window.enterTestMode = enterTestMode;
 
-async function submitOnboardingConnection() {
-  const nameInput = document.getElementById('onboard-member-name');
-  const urlInput = document.getElementById('onboard-sheet-url');
-  const statusBox = document.getElementById('onboard-status-box');
+function switchAuthTab(tab) {
+  const signinBtn = document.getElementById('tab-btn-signin');
+  const signupBtn = document.getElementById('tab-btn-signup');
+  const signinPane = document.getElementById('auth-signin-pane');
+  const signupPane = document.getElementById('auth-signup-pane');
+
+  if (tab === 'signup') {
+    if (signinBtn) {
+      signinBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white';
+    }
+    if (signupBtn) {
+      signupBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-orange-500 text-white shadow-md shadow-orange-500/25';
+    }
+    if (signinPane) signinPane.classList.add('hidden');
+    if (signupPane) signupPane.classList.remove('hidden');
+  } else {
+    if (signinBtn) {
+      signinBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-orange-500 text-white shadow-md shadow-orange-500/25';
+    }
+    if (signupBtn) {
+      signupBtn.className = 'flex-1 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white';
+    }
+    if (signinPane) signinPane.classList.remove('hidden');
+    if (signupPane) signupPane.classList.add('hidden');
+  }
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+}
+window.switchAuthTab = switchAuthTab;
+
+async function submitMemberLogin() {
+  const nameInput = document.getElementById('signin-member-name');
+  const codeInput = document.getElementById('signin-member-code');
+  const urlInput = document.getElementById('signin-sheet-url');
+  const statusBox = document.getElementById('signin-status-box');
+
+  const name = nameInput ? nameInput.value.trim() : '';
+  const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
+  const url = urlInput ? urlInput.value.trim() : '';
+
+  if (!name) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលឈ្មោះអ្នកលក់របស់អ្នក</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    nameInput?.focus();
+    return;
+  }
+
+  if (!code) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលលេខសម្គាល់សមាជិករបស់អ្នក</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    codeInput?.focus();
+    return;
+  }
+
+  if (!url) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលតំណភ្ជាប់ Google Sheet របស់អ្នក</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    urlInput?.focus();
+    return;
+  }
+
+  if (statusBox) {
+    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងផ្ទៀងផ្ទាត់ឈ្មោះ និងលេខសម្គាល់សមាជិក...</span>';
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // 1. Verify Name & Special Code against Tab Team Name
+  let teamCodes = [];
+  try {
+    teamCodes = await DataService.getTeamNameCodes();
+  } catch (e) {
+    console.warn('Error fetching team codes:', e);
+  }
+
+  const normCurrent = (typeof normalizeSellerName === 'function') ? normalizeSellerName(name) : name.toLowerCase().trim();
+  const matchedSeller = teamCodes.find(t => 
+    ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.km) : t.km.toLowerCase().trim()) === normCurrent || 
+    ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.en) : t.en.toLowerCase().trim()) === normCurrent
+  );
+
+  if (!matchedSeller) {
+    if (statusBox) {
+      statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>ឈ្មោះ "${escapeHtml(name)}" មិនមានក្នុងបញ្ជីសមាជិកឡើយ!</span></span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+    nameInput?.focus();
+    return;
+  }
+
+  const expectedCode = String(matchedSeller.code || '').trim().toUpperCase();
+  if (code !== expectedCode) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>លេខសម្គាល់សមាជិកមិនត្រឹមត្រូវឡើយ! សូមពិនិត្យឡើងវិញ</span></span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    codeInput?.focus();
+    return;
+  }
+
+  // 2. Verify Google Sheet Connection
+  const cleanId = (typeof extractSheetId === 'function') ? extractSheetId(url) : (url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/) ? url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)[1] : url);
+  if (!cleanId || cleanId.length < 15) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> តំណភ្ជាប់ Google Sheet មិនត្រឹមត្រូវឡើយ</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    urlInput?.focus();
+    return;
+  }
+
+  if (statusBox) {
+    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> ផ្ទៀងផ្ទាត់ជោគជ័យ! កំពុងភ្ជាប់ទៅកាន់ Google Sheet...</span>';
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  try {
+    const res = await DataService.testSheetConnection(cleanId);
+    try {
+      localStorage.removeItem('sd_local_orders');
+      localStorage.removeItem('sd_local_expenses');
+      localStorage.removeItem('sd_offline_master_data');
+      localStorage.removeItem('sd_offline_custom_data');
+      localStorage.removeItem('sd_demo_mode');
+      localStorage.removeItem('sd_master_admin_authenticated');
+    } catch (_) {}
+
+    localStorage.setItem('sd_custom_sheet_id', cleanId);
+    
+    // Auto-authorize Master Customer Database for this seller
+    const verifiedSellerKm = matchedSeller.km || name;
+    localStorage.setItem('sd_verified_seller_km', verifiedSellerKm);
+    localStorage.setItem('sd_user_name', verifiedSellerKm);
+    localStorage.setItem('sd_member_special_code', code);
+    localStorage.setItem('sd_master_cust_auth_' + normalizeSellerName(verifiedSellerKm), 'true');
+
+    const memberProfile = {
+      name: verifiedSellerKm,
+      memberId: code,
+      subtitle: `${verifiedSellerKm} • BostarGroup`,
+      avatar: 'bostar-logo.png',
+      work: 'សមាជិកក្រុម BostarGroup',
+      study: 'BostarGroup',
+      live: 'រាជធានីភ្នំពេញ',
+      from: 'ព្រះរាជាណាចក្រកម្ពុជា',
+      status: 'សកម្មក្នុងការងារ',
+      sheetId: cleanId,
+      customSheetUrl: url,
+      birthday: '',
+      phone: '',
+      privacy: {
+        showWork: true,
+        showStudy: true,
+        showLive: true,
+        showFrom: true,
+        showStatus: true,
+        showBirth: false,
+        showPhone: false
+      }
+    };
+    localStorage.setItem('sd_profile_data', JSON.stringify(memberProfile));
+    localStorage.setItem('sd_onboarding_completed', 'true');
+
+    syncHeaderProfileUI();
+    checkOnboardingGate();
+
+    showToastNotification(`🎉 ស្វាគមន៍ការចូលប្រើប្រាស់ ${verifiedSellerKm}!`);
+    await DataService.fetchData(false);
+    if (typeof DataService.startAutoReload === 'function') {
+      DataService.startAutoReload(2);
+    }
+    renderCurrentView();
+  } catch (err) {
+    if (statusBox) {
+      statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>${err.message || 'មិនអាចភ្ជាប់បានទេ សូមពិនិត្យសិទ្ធិចែករំលែក Google Sheet'}</span></span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+  }
+}
+window.submitMemberLogin = submitMemberLogin;
+
+async function submitNewAccount() {
+  const nameInput = document.getElementById('signup-member-name');
+  const urlInput = document.getElementById('signup-sheet-url');
+  const statusBox = document.getElementById('signup-status-box');
 
   const name = nameInput ? nameInput.value.trim() : '';
   const url = urlInput ? urlInput.value.trim() : '';
 
   if (!name) {
     if (statusBox) {
-      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលឈ្មោះរបស់អ្នក</span>';
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលឈ្មោះអ្នកលក់របស់អ្នក</span>';
       if (window.lucide) window.lucide.createIcons();
     }
     nameInput?.focus();
@@ -25176,7 +25363,7 @@ async function submitOnboardingConnection() {
 
   if (!url) {
     if (statusBox) {
-      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូល Link Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នក</span>';
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលតំណភ្ជាប់ Google Sheet របស់អ្នក</span>';
       if (window.lucide) window.lucide.createIcons();
     }
     urlInput?.focus();
@@ -25186,7 +25373,7 @@ async function submitOnboardingConnection() {
   const cleanId = (typeof extractSheetId === 'function') ? extractSheetId(url) : (url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/) ? url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)[1] : url);
   if (!cleanId || cleanId.length < 15) {
     if (statusBox) {
-      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Link ឬ Sheet ID មិនត្រឹមត្រូវឡើយ</span>';
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> តំណភ្ជាប់ Google Sheet មិនត្រឹមត្រូវឡើយ</span>';
       if (window.lucide) window.lucide.createIcons();
     }
     urlInput?.focus();
@@ -25194,7 +25381,7 @@ async function submitOnboardingConnection() {
   }
 
   if (statusBox) {
-    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងពិនិត្យការតភ្ជាប់ Google Sheet ផ្ទាល់ខ្លួន...</span>';
+    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងពិនិត្យតំណភ្ជាប់ Google Sheet...</span>';
     if (window.lucide) window.lucide.createIcons();
   }
 
@@ -25243,7 +25430,7 @@ async function submitOnboardingConnection() {
     syncHeaderProfileUI();
     checkOnboardingGate();
 
-    showToastNotification(`🎉 ភ្ជាប់ជោគជ័យ! សូមស្វាគមន៍ ${name}`);
+    showToastNotification(`🎉 បង្កើតគណនីជោគជ័យ! សូមស្វាគមន៍ ${name}`);
     await DataService.fetchData(false);
     if (typeof DataService.startAutoReload === 'function') {
       DataService.startAutoReload(2);
@@ -25251,11 +25438,13 @@ async function submitOnboardingConnection() {
     renderCurrentView();
   } catch (err) {
     if (statusBox) {
-      statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>${err.message || 'មិនអាចភ្ជាប់បានទេ សូមពិនិត្យសិទ្ធិ Share (Anyone with link can view)'}</span></span>`;
+      statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>${err.message || 'មិនអាចភ្ជាប់បានទេ សូមពិនិត្យសិទ្ធិចែករំលែក Google Sheet'}</span></span>`;
       if (window.lucide) window.lucide.createIcons();
     }
   }
 }
+window.submitNewAccount = submitNewAccount;
+window.submitOnboardingConnection = submitMemberLogin;
 
 function openMasterAdminPinModal() {
   const m = document.getElementById('master-pin-modal');
