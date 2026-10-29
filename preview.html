@@ -1746,11 +1746,18 @@
     .light-theme #team-day-dropdown-menu,
     .light-theme #team-month-dropdown-menu,
     .light-theme #team-year-dropdown-menu,
+    .light-theme #exec-day-dropdown-menu,
+    .light-theme #exec-month-dropdown-menu,
+    .light-theme #exec-year-dropdown-menu,
     .light-theme #order-mini-calendar-popup {
-      background: rgba(255, 255, 255, 0.98) !important;
-      border-color: #CBD5E1 !important;
-      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.16) !important;
+      background-color: #FFFFFF !important;
+      background: #FFFFFF !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border: 1px solid #E2E8F0 !important;
+      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.18), 0 0 0 1px #E2E8F0 !important;
       color: #0F172A !important;
+      z-index: 70 !important;
     }
     .light-theme #day-dropdown-menu span,
     .light-theme #day-dropdown-menu button,
@@ -1760,6 +1767,14 @@
     .light-theme #team-day-dropdown-menu button,
     .light-theme #team-month-dropdown-menu button,
     .light-theme #team-year-dropdown-menu button,
+    .light-theme #expenses-day-dropdown-menu span,
+    .light-theme #expenses-day-dropdown-menu button,
+    .light-theme #expenses-month-dropdown-menu button,
+    .light-theme #expenses-year-dropdown-menu button,
+    .light-theme #exec-day-dropdown-menu span,
+    .light-theme #exec-day-dropdown-menu button,
+    .light-theme #exec-month-dropdown-menu button,
+    .light-theme #exec-year-dropdown-menu button,
     .light-theme #order-mini-calendar-popup span,
     .light-theme #order-mini-calendar-popup button:not([class*="bg-orange"]) {
       color: #1E293B !important;
@@ -1770,8 +1785,104 @@
     .light-theme #team-day-dropdown-menu button:hover,
     .light-theme #team-month-dropdown-menu button:hover,
     .light-theme #team-year-dropdown-menu button:hover,
+    .light-theme #expenses-day-dropdown-menu button:hover,
+    .light-theme #expenses-month-dropdown-menu button:hover,
+    .light-theme #expenses-year-dropdown-menu button:hover,
+    .light-theme #exec-day-dropdown-menu button:hover,
+    .light-theme #exec-month-dropdown-menu button:hover,
+    .light-theme #exec-year-dropdown-menu button:hover,
     .light-theme #order-mini-calendar-popup button:not([class*="bg-orange"]):hover {
       background-color: #F1F5F9 !important;
+    }
+
+    /* Datepicker Month Title & Header Nav */
+    .light-theme #day-dropdown-menu .border-b,
+    .light-theme #expenses-day-dropdown-menu .border-b,
+    .light-theme #team-day-dropdown-menu .border-b,
+    .light-theme #exec-day-dropdown-menu .border-b,
+    .light-theme #order-mini-calendar-popup .border-b {
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #day-dropdown-menu .border-b span,
+    .light-theme #expenses-day-dropdown-menu .border-b span,
+    .light-theme #team-day-dropdown-menu .border-b span,
+    .light-theme #exec-day-dropdown-menu .border-b span {
+      color: #0F172A !important;
+      font-weight: 700 !important;
+    }
+    .light-theme #day-dropdown-menu .border-b button,
+    .light-theme #expenses-day-dropdown-menu .border-b button,
+    .light-theme #team-day-dropdown-menu .border-b button,
+    .light-theme #exec-day-dropdown-menu .border-b button {
+      background-color: #F1F5F9 !important;
+      border: 1px solid #E2E8F0 !important;
+      color: #475569 !important;
+    }
+    .light-theme #day-dropdown-menu .border-b button:hover,
+    .light-theme #expenses-day-dropdown-menu .border-b button:hover,
+    .light-theme #team-day-dropdown-menu .border-b button:hover,
+    .light-theme #exec-day-dropdown-menu .border-b button:hover {
+      background-color: #E2E8F0 !important;
+      color: #0F172A !important;
+    }
+
+    /* Quick Shortcut Pills (Today / Yesterday) */
+    .light-theme #day-dropdown-menu .bg-white\/5,
+    .light-theme #expenses-day-dropdown-menu .bg-white\/5,
+    .light-theme #team-day-dropdown-menu .bg-white\/5,
+    .light-theme #exec-day-dropdown-menu .bg-white\/5 {
+      background-color: #F1F5F9 !important;
+      border: 1px solid #E2E8F0 !important;
+      color: #475569 !important;
+      font-weight: 600 !important;
+    }
+    .light-theme #day-dropdown-menu .bg-white\/5:hover,
+    .light-theme #expenses-day-dropdown-menu .bg-white\/5:hover,
+    .light-theme #team-day-dropdown-menu .bg-white\/5:hover,
+    .light-theme #exec-day-dropdown-menu .bg-white\/5:hover {
+      background-color: #E2E8F0 !important;
+      color: #0F172A !important;
+    }
+
+    /* Calendar Weekday Names (អា, ច, អ...) */
+    .light-theme #day-dropdown-menu .text-slate-400,
+    .light-theme #expenses-day-dropdown-menu .text-slate-400,
+    .light-theme #team-day-dropdown-menu .text-slate-400,
+    .light-theme #exec-day-dropdown-menu .text-slate-400 {
+      color: #64748B !important;
+      font-weight: 700 !important;
+    }
+
+    /* Calendar Grid Days */
+    .light-theme #day-dropdown-menu .text-slate-200,
+    .light-theme #expenses-day-dropdown-menu .text-slate-200,
+    .light-theme #team-day-dropdown-menu .text-slate-200,
+    .light-theme #exec-day-dropdown-menu .text-slate-200 {
+      color: #1E293B !important;
+      font-weight: 600 !important;
+    }
+    .light-theme #day-dropdown-menu .border-orange-500\/60,
+    .light-theme #expenses-day-dropdown-menu .border-orange-500\/60,
+    .light-theme #team-day-dropdown-menu .border-orange-500\/60,
+    .light-theme #exec-day-dropdown-menu .border-orange-500\/60 {
+      border: 1.5px solid #EA580C !important;
+      color: #EA580C !important;
+      font-weight: 700 !important;
+    }
+    .light-theme #day-dropdown-menu .border-orange-500\/60:hover,
+    .light-theme #expenses-day-dropdown-menu .border-orange-500\/60:hover,
+    .light-theme #team-day-dropdown-menu .border-orange-500\/60:hover,
+    .light-theme #exec-day-dropdown-menu .border-orange-500\/60:hover {
+      background-color: #FFF7ED !important;
+    }
+    .light-theme #day-dropdown-menu .bg-orange-500,
+    .light-theme #expenses-day-dropdown-menu .bg-orange-500,
+    .light-theme #team-day-dropdown-menu .bg-orange-500,
+    .light-theme #exec-day-dropdown-menu .bg-orange-500 {
+      background-color: #EA580C !important;
+      color: #FFFFFF !important;
+      font-weight: 700 !important;
+      box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35) !important;
     }
     .light-theme .liquid-ambient-orange,
     .light-theme .liquid-ambient-blue {
@@ -3113,6 +3224,96 @@
       background-color: #FFF1F2 !important;
       border-color: #FECDD3 !important;
       color: #E11D48 !important;
+    }
+
+    /* 13.12. ផ្ទាំងបញ្ចូលការកុម្ម៉ង់ថ្មី (New Order Modal: Submit Slider & Copy Capsule Light Mode) */
+    .light-theme #order-submit-container {
+      background: transparent !important;
+    }
+    .light-theme #order-submit-slider {
+      background: #F1F5F9 !important;
+      border: 2px solid #E2E8F0 !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+    }
+    .light-theme #order-submit-slider.border-orange-500\/40 {
+      background: #FFF7ED !important;
+      border-color: #FED7AA !important;
+      box-shadow: 0 4px 16px rgba(249, 115, 22, 0.12) !important;
+    }
+    .light-theme #order-submit-slider.opacity-40 {
+      opacity: 1 !important;
+      filter: none !important;
+      background: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #order-submit-slider.grayscale {
+      filter: none !important;
+    }
+    .light-theme #order-slider-fill {
+      background: linear-gradient(to right, #FED7AA, #FB923C) !important;
+    }
+    .light-theme #order-slider-text {
+      color: #9A3412 !important;
+      text-shadow: none !important;
+    }
+    .light-theme #order-slider-text span {
+      color: #9A3412 !important;
+      font-weight: 700 !important;
+    }
+    .light-theme #order-slider-text .text-orange-400 {
+      color: #EA580C !important;
+    }
+    .light-theme #order-submit-slider.opacity-40 #order-slider-text span {
+      color: #64748B !important;
+      font-weight: 600 !important;
+    }
+    .light-theme #order-submit-slider.opacity-40 #order-slider-text .text-orange-400 {
+      color: #94A3B8 !important;
+    }
+    .light-theme #order-slider-thumb {
+      background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
+      border: 2px solid #FFFFFF !important;
+      box-shadow: 0 3px 12px rgba(249, 115, 22, 0.4) !important;
+      color: #FFFFFF !important;
+    }
+    .light-theme #order-submit-slider.opacity-40 #order-slider-thumb {
+      background: #E2E8F0 !important;
+      border: 2px solid #CBD5E1 !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+      color: #94A3B8 !important;
+    }
+    .light-theme #order-submit-slider.opacity-40 #order-slider-thumb i {
+      color: #94A3B8 !important;
+    }
+    .light-theme #order-slider-hint {
+      color: #64748B !important;
+    }
+    .light-theme #order-slider-hint span.text-emerald-300 {
+      color: #047857 !important;
+      font-weight: 600 !important;
+    }
+
+    /* Copy Telegram Button Capsule (#btn-order-copy-tg-capsule) */
+    .light-theme #btn-order-copy-tg-capsule {
+      background: #FFFFFF !important;
+      border: 1.5px solid #E2E8F0 !important;
+      color: #0F172A !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06) !important;
+    }
+    .light-theme #btn-order-copy-tg-capsule:hover {
+      background: #FFF7ED !important;
+      border-color: #FED7AA !important;
+      color: #EA580C !important;
+    }
+    .light-theme #btn-order-copy-tg-capsule span {
+      color: #0F172A !important;
+      font-weight: 700 !important;
+    }
+    .light-theme #btn-order-copy-tg-capsule:hover span {
+      color: #EA580C !important;
+    }
+    .light-theme #btn-order-copy-tg-capsule i {
+      color: #EA580C !important;
     }
     /* Auto-hide Sticky Filter Bar (Zero-Height Collapse: eliminates any blank gap completely) */
     #sticky-filter-bar,
