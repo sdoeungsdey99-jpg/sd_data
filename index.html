@@ -6617,7 +6617,7 @@
               <!-- Shimmer Text & Chevron Guide (Centered) -->
               <div id="order-slider-label-wrap" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 pl-8 pr-2 transition-opacity duration-200">
                 <span id="order-slider-text" class="text-[11.5px] font-bold text-orange-200 tracking-wide flex items-center gap-1 drop-shadow-md truncate">
-                  <span>អូសដើម្បីបញ្ជូន</span>
+                  <span>អូសដើម្បីដាក់ការកុម្ម៉ង់</span>
                   <span class="animate-pulse text-orange-400 font-mono text-xs tracking-tighter">❯❯</span>
                 </span>
               </div>
@@ -6630,11 +6630,12 @@
               </div>
             </div>
 
-            <!-- LEFT CAPSULE ALTERNATIVE: Direct Button (Telegram Mode) -->
+            <!-- LEFT CAPSULE ALTERNATIVE: Direct Button (Telegram Mode Only) -->
             <button type="button" id="btn-submit-order" onclick="submitNewOrder()" 
-                    class="flex-1 min-w-0 h-12 rounded-full accent-solid-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg shadow-orange-500/30 hidden">
+                    class="flex-1 min-w-0 h-12 rounded-full accent-solid-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg shadow-orange-500/30 hidden"
+                    style="display: none !important;">
               <i data-lucide="check" class="w-4 h-4 stroke-[2.5]"></i>
-              <span id="order-submit-btn-text">បញ្ជូនចូលការលក់ 🚀</span>
+              <span id="order-submit-btn-text">បញ្ចូលបញ្ជីអតិថិជន</span>
             </button>
 
             <!-- RIGHT CAPSULE: Copy Telegram Message Button -->
@@ -6650,7 +6651,7 @@
           <!-- Safety Status & Validation Hint -->
           <p id="order-slider-hint" class="text-[10px] text-slate-400 text-center mt-2 flex items-center justify-center gap-1 transition-colors">
             <i data-lucide="shield-check" class="w-3 h-3 text-orange-400/80"></i>
-            <span>អូសដល់ចុងស្តាំ ដើម្បីរក្សាទុក</span>
+            <span>អូសដល់ចុងស្តាំ ដើម្បីដាក់ការកុម្ម៉ង់</span>
           </p>
 
         </div>
@@ -6918,6 +6919,6 @@
   </div>
 
   <script src="dataService.js?v=8.3"></script>
-  <script src="app.js?v=52.5"></script>
+  <script src="app.js?v=52.6"></script>
 </body>
 </html>

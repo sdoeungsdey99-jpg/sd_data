@@ -29745,16 +29745,24 @@ function openNewOrderModal(mode = 'dock') {
     }
     const btnOriginalForm = document.getElementById('btn-order-original-form');
     if (btnOriginalForm) btnOriginalForm.classList.add('hidden');
-    // Telegram Mode: Restore Original Button!
-    if (submitSlider) submitSlider.classList.add('hidden');
-    if (sliderHint) sliderHint.classList.add('hidden');
+    // Telegram Mode: Show Button ONLY, Hide Slide completely!
+    if (submitSlider) {
+      submitSlider.classList.add('hidden');
+      submitSlider.style.setProperty('display', 'none', 'important');
+    }
+    if (sliderHint) {
+      sliderHint.classList.add('hidden');
+      sliderHint.style.setProperty('display', 'none', 'important');
+    }
     if (btnSubmitOrder) {
       btnSubmitOrder.classList.remove('hidden');
-      btnSubmitOrder.style.display = 'flex';
+      btnSubmitOrder.style.setProperty('display', 'flex', 'important');
       btnSubmitOrder.style.maxWidth = '';
       btnSubmitOrder.style.width = '';
       btnSubmitOrder.style.height = '48px';
       btnSubmitOrder.style.margin = '';
+      const submitBtnText = document.getElementById('order-submit-btn-text');
+      if (submitBtnText) submitBtnText.textContent = 'បញ្ចូលបញ្ជីអតិថិជន';
     }
   } else {
     // Dock Mode (បញ្ចូលការកុម្ម៉ង់ថ្មី): Slide to Submit
@@ -29783,18 +29791,18 @@ function openNewOrderModal(mode = 'dock') {
     }
     const btnOriginalForm = document.getElementById('btn-order-original-form');
     if (btnOriginalForm) btnOriginalForm.classList.remove('hidden');
-    // Dock Mode: Slide to Submit
+    // Dock Mode: Show Slide ONLY, Hide Button completely!
+    if (btnSubmitOrder) {
+      btnSubmitOrder.classList.add('hidden');
+      btnSubmitOrder.style.setProperty('display', 'none', 'important');
+    }
     if (submitSlider) {
       submitSlider.classList.remove('hidden');
-      submitSlider.style.display = 'flex';
+      submitSlider.style.setProperty('display', 'flex', 'important');
     }
     if (sliderHint) {
       sliderHint.classList.remove('hidden');
-      sliderHint.style.display = '';
-    }
-    if (btnSubmitOrder) {
-      btnSubmitOrder.classList.add('hidden');
-      btnSubmitOrder.style.display = 'none';
+      sliderHint.style.setProperty('display', 'flex', 'important');
     }
     if (typeof initOrderSubmitSlider === 'function') initOrderSubmitSlider();
     if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
@@ -29866,10 +29874,10 @@ function openNewOrderModal(mode = 'dock') {
     updateOrderDateDisplay(todayIso);
   }
 
-  // Order ID: Leave empty by default with placeholder '#' (no auto-increment, as instructed by Brother Sdoeung)
+  // Order ID: Leave empty by default
   if (orderIdInput) {
     orderIdInput.value = '';
-    orderIdInput.placeholder = '#';
+    orderIdInput.placeholder = (currentOrderEntryMode === 'dock') ? '# (B0001)' : '#';
   }
 
   // Attach phone formatting listeners
@@ -29996,8 +30004,8 @@ function resetOrderSubmitSlider() {
   if (text) {
     const isKm = (appState.language !== 'en');
     text.innerHTML = isKm 
-      ? '<span>អូសដើម្បីបញ្ជូន</span><span class="animate-pulse text-orange-400 font-mono text-xs tracking-tighter">❯❯</span>'
-      : '<span>Slide to Submit</span><span class="animate-pulse text-orange-400 font-mono text-xs tracking-tighter">❯❯</span>';
+      ? '<span>អូសដើម្បីដាក់ការកុម្ម៉ង់</span><span class="animate-pulse text-orange-400 font-mono text-xs tracking-tighter">❯❯</span>'
+      : '<span>Slide to Place Order</span><span class="animate-pulse text-orange-400 font-mono text-xs tracking-tighter">❯❯</span>';
   }
   if (window.lucide) window.lucide.createIcons();
 }
@@ -30154,13 +30162,13 @@ function checkOrderSubmitValidation() {
       slider.classList.remove('opacity-40', 'cursor-not-allowed', 'grayscale');
       slider.classList.add('border-orange-500/40');
       if (hint) {
-        hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i><span class="text-emerald-300 font-medium">ទិន្នន័យគ្រប់គ្រាន់ - អូសទៅស្តាំដើម្បីបញ្ជូន ✓</span>';
+        hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i><span class="text-emerald-300 font-medium">ទិន្នន័យគ្រប់គ្រាន់ - អូសទៅស្តាំដើម្បីដាក់ការកុម្ម៉ង់ ✓</span>';
       }
     } else {
       slider.classList.add('opacity-40', 'cursor-not-allowed', 'grayscale');
       slider.classList.remove('border-orange-500/40');
       if (hint) {
-        hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-orange-400/80"></i><span>អូសដល់ចុងស្តាំ ដើម្បីរក្សាទុកចូលការលក់</span>';
+        hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-orange-400/80"></i><span>អូសដល់ចុងស្តាំ ដើម្បីដាក់ការកុម្ម៉ង់</span>';
       }
     }
     if (window.lucide) window.lucide.createIcons();
