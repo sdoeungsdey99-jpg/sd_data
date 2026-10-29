@@ -1193,6 +1193,10 @@
       border-color: #CBD5E1 !important;
       color: #0F172A !important;
     }
+    select option {
+      background-color: #0B1528;
+      color: #FFFFFF;
+    }
     .light-theme #all-customers-list select.cod-status-select option {
       background-color: #FFFFFF !important;
       color: #0F172A !important;
@@ -1749,7 +1753,8 @@
     .light-theme #exec-day-dropdown-menu,
     .light-theme #exec-month-dropdown-menu,
     .light-theme #exec-year-dropdown-menu,
-    .light-theme #order-mini-calendar-popup {
+    .light-theme #order-mini-calendar-popup,
+    .light-theme #expense-mini-calendar-popup {
       background-color: #FFFFFF !important;
       background: #FFFFFF !important;
       backdrop-filter: none !important;
@@ -1776,7 +1781,9 @@
     .light-theme #exec-month-dropdown-menu button,
     .light-theme #exec-year-dropdown-menu button,
     .light-theme #order-mini-calendar-popup span,
-    .light-theme #order-mini-calendar-popup button:not([class*="bg-orange"]) {
+    .light-theme #order-mini-calendar-popup button:not([class*="bg-orange"]),
+    .light-theme #expense-mini-calendar-popup span,
+    .light-theme #expense-mini-calendar-popup button:not([class*="bg-rose"]) {
       color: #1E293B !important;
     }
     .light-theme #day-dropdown-menu button:hover,
@@ -1791,7 +1798,8 @@
     .light-theme #exec-day-dropdown-menu button:hover,
     .light-theme #exec-month-dropdown-menu button:hover,
     .light-theme #exec-year-dropdown-menu button:hover,
-    .light-theme #order-mini-calendar-popup button:not([class*="bg-orange"]):hover {
+    .light-theme #order-mini-calendar-popup button:not([class*="bg-orange"]):hover,
+    .light-theme #expense-mini-calendar-popup button:not([class*="bg-rose"]):hover {
       background-color: #F1F5F9 !important;
     }
 
@@ -1800,7 +1808,8 @@
     .light-theme #expenses-day-dropdown-menu .border-b,
     .light-theme #team-day-dropdown-menu .border-b,
     .light-theme #exec-day-dropdown-menu .border-b,
-    .light-theme #order-mini-calendar-popup .border-b {
+    .light-theme #order-mini-calendar-popup .border-b,
+    .light-theme #expense-mini-calendar-popup .border-b {
       border-color: #E2E8F0 !important;
     }
     .light-theme #day-dropdown-menu .border-b span,
@@ -1976,6 +1985,10 @@
     .light-theme select {
       background-color: #FFFFFF !important;
       border-color: #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    .light-theme select option {
+      background-color: #FFFFFF !important;
       color: #0F172A !important;
     }
     .light-theme input::placeholder,
@@ -7397,9 +7410,9 @@
             <label id="expense-label-category" class="block text-[11px] text-slate-400 mb-1.5 font-semibold">
               ប្រភេទចំណាយ:
             </label>
-            <div class="relative">
+            <div class="relative inline-flex max-w-full">
               <select id="expense-field-category" 
-                      class="w-full h-11 bg-black/50 border border-white/10 rounded-xl pl-3.5 pr-10 text-white focus:outline-none focus:border-rose-500 font-medium text-xs sm:text-sm transition appearance-none cursor-pointer">
+                      class="w-auto min-w-[185px] max-w-full h-11 bg-black/50 border border-white/10 rounded-xl pl-3.5 pr-9 text-white focus:outline-none focus:border-rose-500 font-medium text-xs sm:text-sm transition appearance-none cursor-pointer">
                 <option value="ហូបចុក & ប្រចាំថ្ងៃ">ហូបចុក & ប្រចាំថ្ងៃ</option>
                 <option value="កម្សាន្ត & ចំណង់">កម្សាន្ត & ចំណង់</option>
                 <option value="ផ្សេងៗ">ផ្សេងៗ</option>
@@ -7408,7 +7421,7 @@
                 <option value="សង្គ្រោះបន្ទាន់ & ធម៌ទាន">សង្គ្រោះបន្ទាន់ & ធម៌ទាន</option>
                 <option value="វិនិយោគ & អភិវឌ្ឍន៍">វិនិយោគ & អភិវឌ្ឍន៍</option>
               </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400">
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
                 <i data-lucide="chevron-down" class="w-4 h-4"></i>
               </div>
             </div>
@@ -7429,7 +7442,7 @@
             <div class="relative">
               <span id="expense-currency-symbol" class="absolute left-3 top-1/2 -translate-y-1/2 text-rose-400 font-bold font-mono text-base">$</span>
               <input type="number" id="expense-field-amount" step="0.05" min="0" placeholder="0.00" oninput="onExpenseAmountInput()" 
-                     class="w-full h-11 bg-black/50 border border-white/10 rounded-xl pl-8 pr-3 text-white font-mono font-bold text-lg focus:outline-none focus:border-rose-500 transition">
+                     class="w-full h-11 bg-black/50 border border-white/10 rounded-xl pl-8 pr-3 text-white font-mono font-bold text-lg focus:outline-none focus:border-rose-500 transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
             </div>
 
             <!-- KHR to USD Live Auto-Convert Info -->
