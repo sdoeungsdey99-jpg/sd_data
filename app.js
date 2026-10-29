@@ -29171,6 +29171,7 @@ function onPriceRawInput(isTyping = false) {
 // ==========================================
 const DEFAULT_ACCOUNTING_TG_GROUP_URL = 'https://t.me/+IhCzhEiGN80zMWY1';
 const DEFAULT_ACCOUNTING_TG_BOT_TOKEN = '8921566544:AAG1a5o46V9-SLe8JRYDlDCFWilIfOtzVVE';
+const DEFAULT_ACCOUNTING_TG_CHAT_ID = '-1588825127';
 
 function getAccountingTelegramGroupUrl() {
   try {
@@ -29188,12 +29189,58 @@ function getAccountingTelegramBotToken() {
   return DEFAULT_ACCOUNTING_TG_BOT_TOKEN;
 }
 
-function isAccountingTelegramAutoShare() {
-  // Brother Sdey instruction: "បងចង់បើក Bot ផ្ញើអូតូ តែមិនអនុវត្តពេលនេះប៉ុណ្ណោះ រងចាំ Member អនុវត្តផ្ទាល់"
-  // Default is strictly false (manual direct execution by members)
+function getAccountingTelegramChatId() {
   try {
-    return localStorage.getItem('sd_accounting_tg_autoshare') === 'true';
+    const saved = localStorage.getItem('sd_accounting_tg_chat_id');
+    if (saved) return saved;
   } catch (_) {}
+  return DEFAULT_ACCOUNTING_TG_CHAT_ID;
+}
+
+function isAccountingTelegramAutoShare() {
+  // Enabled for members on submission (Chat ID: -1588825127)
+  try {
+    const saved = localStorage.getItem('sd_accounting_tg_autoshare');
+    if (saved !== null) return saved === 'true';
+  } catch (_) {}
+  return true; // Default ON for members to execute directly
+}
+
+async function sendOrderViaTelegramBot(text) {
+  const token = getAccountingTelegramBotToken();
+  const rawChatId = getAccountingTelegramChatId();
+  if (!token || !rawChatId || !text) return false;
+
+  const trySend = async (cid) => {
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: cid,
+          text: text
+        })
+      });
+      return await res.json();
+    } catch (e) {
+      return { ok: false, error: e };
+    }
+  };
+
+  let res = await trySend(rawChatId);
+  if (res && res.ok) return true;
+
+  // Smart fallback between basic group (-1588825127) and supergroup (-1001588825127)
+  if (!rawChatId.startsWith('-100')) {
+    const supergroupId = '-100' + rawChatId.replace(/^-/, '');
+    const res2 = await trySend(supergroupId);
+    if (res2 && res2.ok) {
+      try { localStorage.setItem('sd_accounting_tg_chat_id', supergroupId); } catch (_) {}
+      return true;
+    }
+  }
+
+  console.warn('sendOrderViaTelegramBot failed:', res);
   return false;
 }
 
@@ -29504,10 +29551,10 @@ function showOrderSuccessTelegramAction(record, tgText) {
       </div>
       <div class="min-w-0 pr-1">
         <p class="text-xs font-bold text-white truncate flex items-center gap-1.5">
-          <span>បានចម្លងសារកុម្ម៉ង់រួចរាល់ 📋</span>
+          <span>${isAccountingTelegramAutoShare() ? 'បានកត់ត្រា & ផ្ញើចូល Telegram 🚀' : 'បានចម្លងសារកុម្ម៉ង់រួចរាល់ 📋'}</span>
         </p>
         <p class="text-[10.5px] text-slate-300 truncate mt-0.5">
-          <span class="text-orange-400 font-mono font-bold">${managerCode}</span> • <span>${escapeHtml(seller)}</span>
+          <span class="text-orange-400 font-mono font-bold">${managerCode}</span> • <span>${escapeHtml(seller)}</span> ${isAccountingTelegramAutoShare() ? '(ផ្ញើអូតូ ✓)' : '(ចម្លងរួចរាល់ 📋)'}
         </p>
       </div>
     </div>
@@ -29515,7 +29562,7 @@ function showOrderSuccessTelegramAction(record, tgText) {
       <button type="button" onclick="openAccountingTelegramGroup()" 
               class="px-3 py-2 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-orange-500/30 active:scale-95 transition">
         <i data-lucide="send" class="w-3.5 h-3.5"></i>
-        <span>បើក Telegram</span>
+        <span>${isAccountingTelegramAutoShare() ? 'មើលក្នុង Telegram' : 'បើក Telegram'}</span>
       </button>
       <button type="button" onclick="dismissOrderTelegramToast()" 
               class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center text-xs active:scale-95 transition" title="បិទ">
@@ -31009,12 +31056,13 @@ async function submitNewOrder() {
     const tgOrderText = generateBilingualTelegramOrderText(newRecord);
     copyOrderTelegramText(newRecord, true);
 
-    // Future-ready Auto-Send (currently disabled by default, waiting for members)
+    // Auto-Send to Accounting Telegram Group (-1588825127) when member submits
     if (isAccountingTelegramAutoShare()) {
-      const accountingChatId = localStorage.getItem('sd_accounting_tg_chat_id');
-      if (accountingChatId) {
-        sendTelegramMessage(tgOrderText, accountingChatId);
-      }
+      sendOrderViaTelegramBot(tgOrderText).then(sent => {
+        if (sent) {
+          showToastNotification('✅ បានផ្ញើសារចូលគ្រុបគណនេយ្យអូតូជោគជ័យ! 🚀');
+        }
+      });
     }
 
     showOrderSuccessTelegramAction(newRecord, tgOrderText);
