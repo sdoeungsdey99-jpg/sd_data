@@ -20227,7 +20227,7 @@ Manager: ${manager}
 Reason: ${reasonText}`;
     }
 
-    return `${staffName} checked out 🟢
+    return `${staffName} checked out 🔵 Good
 Date Time: ${dateTimeStr}
 Position: ${position}
 Branch: ${branch}
@@ -20259,6 +20259,17 @@ Position: ${position}
 Branch: ${branch}
 Manager: ${manager}
 Reason: ${reasonText}`;
+  }
+
+  // Early checkin
+  if (data.earlyMinutes && data.earlyMinutes > 0) {
+    const earlyM = data.earlyMinutes;
+    const earlyDuration = earlyM >= 60 ? `${Math.floor(earlyM / 60)}h ${earlyM % 60}m` : `${earlyM}m`;
+    return `${staffName} checked in 🟢 Early ${earlyDuration}
+Date Time: ${dateTimeStr}
+Position: ${position}
+Branch: ${branch}
+Manager: ${manager}`;
   }
 
   // On time
@@ -21022,6 +21033,95 @@ function selectLeaveReasonChip(text) {
   if (input) input.value = text;
 }
 
+function getEnglishStaffName(p) {
+  p = p || (typeof getProfileData === 'function' ? getProfileData() : {});
+  if (p.nameEn && p.nameEn.trim()) return p.nameEn.trim();
+  if (p.subtitle && /[A-Za-z]{3,}/.test(p.subtitle) && !p.subtitle.toLowerCase().includes('member')) return p.subtitle.trim();
+  if (p.name && /^[A-Za-z\s]+$/.test(p.name.trim())) return p.name.trim();
+  if (p.name && typeof BOSTAR_TEAM_SELLERS !== 'undefined' && Array.isArray(BOSTAR_TEAM_SELLERS)) {
+    const match = BOSTAR_TEAM_SELLERS.find(s => s && s.km && (s.km === p.name || p.name.includes(s.km)));
+    if (match && match.en) return match.en;
+  }
+  return p.name || 'Sab Leakhena';
+}
+window.getEnglishStaffName = getEnglishStaffName;
+
+function getEnglishLeaderName(leaderKeyOrName) {
+  if (!leaderKeyOrName) return 'Bech Nora';
+  const raw = String(leaderKeyOrName);
+  if (raw.includes('Nora') || raw.includes('នោរ៉ា')) return 'Bech Nora';
+  if (raw.includes('Sdey') || raw.includes('Sdoeung') || raw.includes('ស្ដី')) return 'Sdey Sdoeung';
+  if (raw.includes('Udom') || raw.includes('ឧត្តម')) return 'Bech Udom';
+  if (raw.includes('Leanghak') || raw.includes('លាងហាក់')) return 'Sroeun Leanghak';
+  if (raw.includes('Chanthy') || raw.includes('ចន្ធី')) return 'Hem Chanthy';
+  if (raw.includes('Yaith') || raw.includes('យ៉ារិទ្ធ')) return 'Hour Yaith';
+  return raw.replace(/^លោក\s+/, '').replace(/_/g, ' ');
+}
+window.getEnglishLeaderName = getEnglishLeaderName;
+
+function generateLeaveTelegramText(req, statusOverride = null) {
+  const status = statusOverride || req.status || 'pending';
+  const staffName = getEnglishStaffName({ name: req.staffName, memberId: req.staffId });
+  const managerName = getEnglishLeaderName(req.approvedBy || req.leaderName || req.leaderKey || 'Bech Nora');
+
+  // Request Date formatting: e.g. "Mon 26 Oct 2026 | Full Day"
+  const sDate = req.startDate ? new Date(req.startDate) : new Date();
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  let dateFormatted = `${dayNames[sDate.getDay()]} ${sDate.getDate()} ${monthNames[sDate.getMonth()]} ${sDate.getFullYear()}`;
+  if (req.endDate && req.endDate !== req.startDate) {
+    const eDate = new Date(req.endDate);
+    dateFormatted = `${dayNames[sDate.getDay()]} ${sDate.getDate()} ${monthNames[sDate.getMonth()]} - ${dayNames[eDate.getDay()]} ${eDate.getDate()} ${monthNames[eDate.getMonth()]} ${eDate.getFullYear()}`;
+  }
+
+  // Duration & Amount
+  let shiftLabel = 'Full Day';
+  let amountText = '1 day';
+  const durRaw = (req.duration || '').toLowerCase();
+  if (durRaw.includes('morning') || durRaw.includes('ព្រឹក')) {
+    shiftLabel = 'Morning';
+    amountText = '0.5 day';
+  } else if (durRaw.includes('afternoon') || durRaw.includes('រសៀល')) {
+    shiftLabel = 'Afternoon';
+    amountText = '0.5 day';
+  } else if (durRaw.includes('multi') || (req.endDate && req.endDate !== req.startDate)) {
+    shiftLabel = 'Multiple Days';
+    const sTime = new Date(req.startDate).getTime();
+    const eTime = new Date(req.endDate).getTime();
+    const days = Math.max(1, Math.round((eTime - sTime) / (1000 * 60 * 60 * 24)) + 1);
+    amountText = `${days} days`;
+  }
+
+  const reason = req.reason || '';
+
+  if (status === 'approved') {
+    return `✉️ ${staffName}Leave Request🟢Approved
+Request Date: ${dateFormatted} | ${shiftLabel}
+Amount: ${amountText}
+Approval By: ${managerName}
+Reason: ${reason}
+${managerName} 🟢Approved`;
+  }
+
+  if (status === 'rejected') {
+    return `✉️ ${staffName}Leave Request🔴Rejected
+Request Date: ${dateFormatted} | ${shiftLabel}
+Amount: ${amountText}
+Rejected By: ${managerName}
+Reason: ${reason}
+${managerName} 🔴Rejected`;
+  }
+
+  // Pending
+  return `✉️ ${staffName}Leave Request🟡Pending
+Request Date: ${dateFormatted} | ${shiftLabel}
+Amount: ${amountText}
+Approval By: ${managerName}
+Reason: ${reason}`;
+}
+window.generateLeaveTelegramText = generateLeaveTelegramText;
+
 async function submitAttendanceLeaveRequest() {
   const p = (typeof getProfileData === 'function') ? getProfileData() : {};
   const applicantName = p.name || 'ក្រុមការងារ';
@@ -21078,20 +21178,7 @@ async function submitAttendanceLeaveRequest() {
   saveLeaveRequests(list);
 
   // Send Telegram Notification via bot
-  const tgText = [
-    `📩 <b>ពាក្យសុំច្បាប់ឈប់សម្រាក (Leave Request)</b>`,
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `👤 <b>ក្រុមការងារ៖</b> ${applicantName} (${applicantId})`,
-    `👑 <b>តួនាទី៖</b> ${coreRole}`,
-    `📋 <b>ប្រភេទច្បាប់៖</b> ${leaveType}`,
-    `⏱ <b>ថិរវេលា៖</b> ${durationText}`,
-    `📅 <b>កាលបរិច្ឆេទ៖</b> ${dateRangeText}`,
-    `👔 <b>ដាក់ជូន Manager/Leader៖</b> ${leaderName}`,
-    `📝 <b>មូលហេតុ៖</b> ${reason}`,
-    `⏳ <b>ស្ថានភាព៖</b> រង់ចាំការអនុម័ត (Pending Approval)`,
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `⚡ <i>Bostar HR & Operations Architecture</i>`
-  ].join('\n');
+  const tgText = generateLeaveTelegramText(newReq, 'pending');
 
   try {
     await sendAttendanceViaTelegramBot(tgText);
@@ -21456,18 +21543,7 @@ async function handleApproveLeave(reqId) {
   }
 
   // Telegram notification
-  const tgText = [
-    `✅ <b>បានអនុម័តច្បាប់ឈប់សម្រាក (Leave Approved)</b>`,
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `👤 <b>ក្រុមការងារ៖</b> ${req.staffName} (${req.staffId || 'BG-001'})`,
-    `📋 <b>ប្រភេទច្បាប់៖</b> ${req.leaveType}`,
-    `📅 <b>កាលបរិច្ឆេទ៖</b> ${req.startDate === req.endDate ? req.startDate : (req.startDate + ' ដល់ ' + req.endDate)}`,
-    `⏱ <b>ថិរវេលា៖</b> ${req.duration}`,
-    `👔 <b>អនុម័តដោយ៖</b> ${approverName} (Manager/Leader)`,
-    `📌 <b>ស្ថានភាព៖</b> ត្រូវបានយល់ព្រមជាផ្លូវការ ✅`,
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `⚡ <i>Bostar HR & Operations Architecture</i>`
-  ].join('\n');
+  const tgText = generateLeaveTelegramText(req, 'approved');
 
   try {
     await sendAttendanceViaTelegramBot(tgText);
@@ -21493,16 +21569,7 @@ async function handleRejectLeave(reqId) {
   saveLeaveRequests(list);
 
   // Telegram notification
-  const tgText = [
-    `❌ <b>មិនបានអនុម័តច្បាប់ឈប់សម្រាក (Leave Rejected)</b>`,
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `👤 <b>ក្រុមការងារ៖</b> ${req.staffName} (${req.staffId || 'BG-001'})`,
-    `📋 <b>ប្រភេទច្បាប់៖</b> ${req.leaveType}`,
-    `👔 <b>ដោយ៖</b> ${approverName} (Manager/Leader)`,
-    `📌 <b>ស្ថានភាព៖</b> មិនត្រូវបានយល់ព្រម ❌`,
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `⚡ <i>Bostar HR & Operations Architecture</i>`
-  ].join('\n');
+  const tgText = generateLeaveTelegramText(req, 'rejected');
 
   try {
     await sendAttendanceViaTelegramBot(tgText);
