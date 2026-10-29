@@ -1808,8 +1808,8 @@ function setupSwipeToBack() {
       // Swiping inside Daily Report Modal -> Dismiss/Back
       isPotentialSwipe = true;
       swipeOrigin = 'daily-report-modal';
-    } else if (isHonorsOpen && e.target && e.target.closest('#honors-modal')) {
-      // 0. Touching anywhere on Honors Modal (Swipe Left/Right to return)
+    } else if (isHonorsOpen && touchStartX <= 80) {
+      // Edge-swipe Left-to-Right from screen left edge (<= 80px) on Honors Modal
       isPotentialSwipe = true;
       swipeOrigin = 'honors-modal';
     } else if (isSubModalOpen) {
@@ -1891,9 +1891,9 @@ function setupSwipeToBack() {
       }
     }
 
-    // Case 0: Swiping Left OR Right anywhere on Honors Modal -> Return
+    // Case 0: Edge-swipe Left-to-Right on Honors Modal -> Return
     if (swipeOrigin === 'honors-modal') {
-      if (Math.abs(deltaX) >= 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.0) {
+      if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
         closeHonorsModal();
         if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
         isPotentialSwipe = false;
@@ -1968,23 +1968,31 @@ function setupSwipeToBack() {
     const teamModalEl = document.getElementById('team-members-modal');
     const isTeamModalOpen = teamModalEl && !teamModalEl.classList.contains('hidden');
 
-    if (isDailyBreakdownOpen && touchStartX <= 80) {
-      isPotentialSwipe = true;
-      swipeOrigin = 'member-daily-breakdown-modal';
-    } else if (isTeamModalOpen && touchStartX <= 80) {
-      isPotentialSwipe = true;
-      swipeOrigin = 'team-members-modal';
-    } else if (isExecModalOpen && touchStartX <= 80) {
-      isPotentialSwipe = true;
-      swipeOrigin = 'executive-hierarchy-modal';
+    if (isDailyBreakdownOpen && e.clientX <= 80) {
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      isMouseDown = true;
+      mouseOrigin = 'member-daily-breakdown-modal';
+    } else if (isTeamModalOpen && e.clientX <= 80) {
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      isMouseDown = true;
+      mouseOrigin = 'team-members-modal';
+    } else if (isExecModalOpen && e.clientX <= 80) {
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      isMouseDown = true;
+      mouseOrigin = 'executive-hierarchy-modal';
     } else if (isReportOpen && e.target && e.target.closest('#daily-report-modal')) {
-      // Swiping inside Daily Report Modal -> Dismiss/Back
-      isPotentialSwipe = true;
-      swipeOrigin = 'daily-report-modal';
-    } else if (isHonorsOpen && e.target && e.target.closest('#honors-modal')) {
-      // 0. Touching anywhere on Honors Modal (Swipe Left/Right to return)
-      isPotentialSwipe = true;
-      swipeOrigin = 'honors-modal';
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      isMouseDown = true;
+      mouseOrigin = 'daily-report-modal';
+    } else if (isHonorsOpen && e.clientX <= 80) {
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      isMouseDown = true;
+      mouseOrigin = 'honors-modal';
     } else if (isSubModalOpen) {
       mouseStartX = e.clientX;
       mouseStartY = e.clientY;
@@ -2025,7 +2033,7 @@ function setupSwipeToBack() {
     }
 
     if (mouseOrigin === 'honors-modal') {
-      if (Math.abs(deltaX) >= 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.0) {
+      if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
         closeHonorsModal();
         if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
         isMouseDown = false;
@@ -2068,7 +2076,6 @@ function isDialogModalOpen() {
     'about-modal',
     'global-search-modal',
     'profile-settings-search-modal',
-    'honors-modal',
     'expense-action-sheet',
     'expense-delete-modal'
   ];
@@ -2667,6 +2674,11 @@ function closeAllModals() {
   }
   const dock = document.getElementById('bottom-dock');
   if (dock) dock.classList.remove('dock-profile-active');
+  if (window.navOpenedFromDrawer) {
+    Object.keys(window.navOpenedFromDrawer).forEach(k => {
+      window.navOpenedFromDrawer[k] = false;
+    });
+  }
 }
 
 function switchView(viewName, shouldReload = false) {
@@ -17481,41 +17493,8 @@ function renderHonorsModalContent() {
 }
 
 function hookHonorsModalGestures() {
-  const modal = document.getElementById('honors-modal');
-  if (!modal || modal._gestureHooked) return;
-  modal._gestureHooked = true;
-
-  let sX = 0;
-  let sY = 0;
-  let active = false;
-
-  modal.addEventListener('touchstart', (e) => {
-    if (!e.touches || e.touches.length !== 1) return;
-    sX = e.touches[0].clientX;
-    sY = e.touches[0].clientY;
-    active = true;
-  }, { passive: true });
-
-  modal.addEventListener('touchmove', (e) => {
-    if (!active || !e.touches || e.touches.length !== 1) return;
-    const dx = e.touches[0].clientX - sX;
-    const dy = e.touches[0].clientY - sY;
-    if (Math.abs(dy) > 50 && Math.abs(dy) > Math.abs(dx) * 1.5) {
-      active = false;
-    }
-  }, { passive: true });
-
-  modal.addEventListener('touchend', (e) => {
-    if (!active || !e.changedTouches || e.changedTouches.length !== 1) return;
-    const dx = e.changedTouches[0].clientX - sX;
-    const dy = e.changedTouches[0].clientY - sY;
-    active = false;
-    // Both Left-to-Right (dx >= 45) AND Right-to-Left (dx <= -45) trigger close/back
-    if (Math.abs(dx) >= 45 && Math.abs(dx) > Math.abs(dy) * 1.0) {
-      closeHonorsModal();
-      if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
-    }
-  }, { passive: true });
+  // Edge-swipe navigation is cleanly managed by setupSwipeToBack (setupGlobalSwipeNavigation)
+  return;
 }
 
 function openHonorsModal(tab = 'honors', fromDrawer = false) {
@@ -17543,18 +17522,25 @@ function openHonorsModal(tab = 'honors', fromDrawer = false) {
   }
 }
 
-function closeHonorsModal() {
+function closeHonorsModal(skipDrawer = false) {
   const modal = document.getElementById('honors-modal');
   if (modal) modal.classList.add('hidden');
   const gate = document.getElementById('onboarding-gate');
-  if (gate && !gate.classList.contains('hidden')) {
+  const isGateOpen = gate && !gate.classList.contains('hidden');
+  if (isGateOpen) {
     setDockVisible(false);
   } else {
     setDockVisible(true);
   }
-  if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.honors) {
+  const honorsBody = document.getElementById('honors-modal-body');
+  if (honorsBody) {
+    honorsBody.scrollTop = 0;
+  }
+  if (!skipDrawer && window.navOpenedFromDrawer && window.navOpenedFromDrawer.honors) {
     window.navOpenedFromDrawer.honors = false;
     if (typeof openProfileDrawer === 'function') openProfileDrawer();
+  } else {
+    if (window.navOpenedFromDrawer) window.navOpenedFromDrawer.honors = false;
   }
 }
 
