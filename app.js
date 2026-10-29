@@ -24239,9 +24239,9 @@ function renderAllCustomersList() {
   
   if (heading) {
     if (allCustomersScopeMode === 'all') {
-      heading.innerHTML = `អតិថិជនទាំងអស់ <span class="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30">Master</span> <span id="all-customers-count-text" class="text-amber-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+      heading.innerHTML = `<span>អតិថិជនទាំងអស់</span> <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-amber-500/20 text-amber-300 text-[10.5px] font-medium leading-normal border border-amber-500/30">Master</span> <span id="all-customers-count-text" class="text-amber-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
     } else {
-      heading.innerHTML = `បញ្ជីអតិថិជន <span class="px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-mono text-[9px] font-bold border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span> <span id="all-customers-count-text" class="text-blue-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+      heading.innerHTML = `<span>បញ្ជីអតិថិជន</span> <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-blue-500/20 text-blue-300 text-[10.5px] font-medium leading-normal border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span> <span id="all-customers-count-text" class="text-blue-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
     }
   } else if (countText) {
     countText.textContent = countDisplay;

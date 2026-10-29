@@ -4560,8 +4560,10 @@
           <div id="all-customers-normal-nav" class="flex items-center justify-between gap-2 flex-1 min-w-0 transition-all duration-200">
             <!-- Title with Count merged in single line -->
             <div class="min-w-0 flex-1 truncate">
-              <h3 id="all-customers-title-heading" class="font-bold text-xs sm:text-sm text-white truncate leading-tight">
-                បញ្ជីអតិថិជនទាំងអស់ <span id="all-customers-count-text" class="text-orange-400 font-mono text-[11px] font-semibold">(0 នាក់)</span>
+              <h3 id="all-customers-title-heading" class="font-bold text-xs sm:text-sm text-white truncate flex items-center gap-1.5 leading-normal">
+                <span>បញ្ជីអតិថិជន</span>
+                <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-blue-500/20 text-blue-300 text-[10.5px] font-medium leading-normal border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span>
+                <span id="all-customers-count-text" class="text-blue-400 font-mono text-[11px] font-semibold">(0 នាក់)</span>
               </h3>
             </div>
 
@@ -4574,12 +4576,12 @@
                 <i data-lucide="search" class="w-3.5 h-3.5 text-orange-400"></i>
               </button>
 
-              <!-- Sort Option Dropdown Trigger (3 dots / lines with Sort by) -->
+              <!-- Sort Option Dropdown Trigger (3 lines / Menu icon) -->
               <div class="relative">
                 <button id="btn-cust-sort-trigger" onclick="toggleCustomersSortMenu(event)" 
-                        class="h-8 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1 transition shadow-sm shrink-0"
-                        title="ជម្រើសតម្រៀប (Sort by)">
-                  <i data-lucide="arrow-down-up" class="w-3.5 h-3.5 text-orange-400"></i>
+                        class="h-8 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-bold text-slate-200 flex items-center gap-1.5 transition shadow-sm shrink-0"
+                        title="ជម្រើស និងការតម្រៀប">
+                  <i data-lucide="menu" class="w-3.5 h-3.5 text-orange-400"></i>
                   <span id="cust-sort-current-label" class="text-[11px] font-medium text-slate-300">ថ្មីបំផុត</span>
                   <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
                 </button>
@@ -6903,6 +6905,6 @@
   </div>
 
   <script src="dataService.js?v=8.3"></script>
-  <script src="app.js?v=51.0"></script>
+  <script src="app.js?v=51.1"></script>
 </body>
 </html>
