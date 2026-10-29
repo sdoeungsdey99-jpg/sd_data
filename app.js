@@ -29766,12 +29766,6 @@ function clearOrderInput() {
   if (dateInput) dateInput.value = todayIso;
   updateOrderDateDisplay(todayIso);
 
-  const sellerInput = document.getElementById('order-field-seller');
-  if (sellerInput) {
-    sellerInput.value = '';
-    onSellerNameChange('');
-  }
-
   const custInput = document.getElementById('order-field-customer');
   if (custInput) custInput.value = '';
 
@@ -29791,16 +29785,28 @@ function clearOrderInput() {
     if (sellerInput) {
       sellerInput.value = prof.name || '';
       sellerInput.readOnly = true;
+      sellerInput.classList.add('opacity-80', 'bg-white/5', 'cursor-not-allowed');
+      sellerInput.removeAttribute('list');
+      onSellerNameChange(prof.name || '');
     }
     if (sellerPhoneInput) {
       sellerPhoneInput.value = prof.phone ? formatKhmerPhone(prof.phone) : '';
       sellerPhoneInput.placeholder = '0** *** ***';
       sellerPhoneInput.readOnly = true;
+      sellerPhoneInput.classList.add('opacity-80', 'bg-white/5', 'cursor-not-allowed');
     }
   } else {
+    if (sellerInput) {
+      sellerInput.value = '';
+      sellerInput.readOnly = false;
+      sellerInput.classList.remove('opacity-80', 'bg-white/5', 'cursor-not-allowed');
+      onSellerNameChange('');
+    }
     if (sellerPhoneInput) {
       sellerPhoneInput.value = '';
       sellerPhoneInput.placeholder = '0** *** ***';
+      sellerPhoneInput.readOnly = false;
+      sellerPhoneInput.classList.remove('opacity-80', 'bg-white/5', 'cursor-not-allowed');
     }
   }
 
