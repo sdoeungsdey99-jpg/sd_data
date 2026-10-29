@@ -29388,15 +29388,39 @@ function openNewOrderModal(mode = 'dock') {
   const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   
-  const savedSeller = localStorage.getItem('sd_last_seller') || '';
-  if (sellerInput) {
-    sellerInput.value = savedSeller;
-    onSellerNameChange(savedSeller);
-  }
-  
-  const savedSellerPhone = localStorage.getItem('sd_last_seller_phone');
-  if (sellerPhoneInput) {
-    sellerPhoneInput.value = formatKhmerPhone(savedSellerPhone || (profile.phone || ''));
+  if (currentOrderEntryMode === 'dock') {
+    // សម្រាប់ការកុម្ម៉ង់ថ្មី (Dock Mode): មិនអាចប្តូរឈ្មោះ និងលេខអ្នកលក់បានឡើយ គឺយកពី Profile ផ្ទាល់
+    const profName = profile.name || '';
+    if (sellerInput) {
+      sellerInput.value = profName;
+      sellerInput.readOnly = true;
+      sellerInput.classList.add('opacity-80', 'bg-white/5', 'cursor-not-allowed');
+      sellerInput.removeAttribute('list');
+      onSellerNameChange(profName);
+    }
+    if (sellerPhoneInput) {
+      sellerPhoneInput.value = profile.phone ? formatKhmerPhone(profile.phone) : '';
+      sellerPhoneInput.placeholder = '0** *** ***';
+      sellerPhoneInput.readOnly = true;
+      sellerPhoneInput.classList.add('opacity-80', 'bg-white/5', 'cursor-not-allowed');
+    }
+  } else {
+    // Telegram Mode
+    const savedSeller = localStorage.getItem('sd_last_seller') || profile.name || '';
+    if (sellerInput) {
+      sellerInput.value = savedSeller;
+      sellerInput.readOnly = false;
+      sellerInput.classList.remove('opacity-80', 'bg-white/5', 'cursor-not-allowed');
+      sellerInput.setAttribute('list', 'order-seller-datalist');
+      onSellerNameChange(savedSeller);
+    }
+    const savedSellerPhone = localStorage.getItem('sd_last_seller_phone') || profile.phone || '';
+    if (sellerPhoneInput) {
+      sellerPhoneInput.value = savedSellerPhone ? formatKhmerPhone(savedSellerPhone) : '';
+      sellerPhoneInput.placeholder = '0** *** ***';
+      sellerPhoneInput.readOnly = false;
+      sellerPhoneInput.classList.remove('opacity-80', 'bg-white/5', 'cursor-not-allowed');
+    }
   }
 
   // Initialize Team Leader: Bech_Nora by default or from localStorage
@@ -29437,8 +29461,8 @@ function openNewOrderModal(mode = 'dock') {
     });
   }
 
-  // Reset products: Yong Liang: 1, Yong Liang Plus: 1, others: 0
-  currentOrderProducts = { yl: 1, ylp: 1, kn: 0, pdo: 0, emmi: 0, sgp: 0, free: 0 };
+  // Reset products: 0 by default (គ្មានទិន្នន័យស្រាប់ឡើយ)
+  currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, emmi: 0, sgp: 0, free: 0 };
   updateProductQtyDisplay();
   setOrderType('standard');
   
@@ -29760,9 +29784,24 @@ function clearOrderInput() {
   const noteInput = document.getElementById('order-field-note');
   if (noteInput) noteInput.value = '';
 
+  const prof = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const sellerInput = document.getElementById('order-field-seller');
   const sellerPhoneInput = document.getElementById('order-field-seller-phone');
-  if (sellerPhoneInput) {
-    sellerPhoneInput.value = '';
+  if (currentOrderEntryMode === 'dock') {
+    if (sellerInput) {
+      sellerInput.value = prof.name || '';
+      sellerInput.readOnly = true;
+    }
+    if (sellerPhoneInput) {
+      sellerPhoneInput.value = prof.phone ? formatKhmerPhone(prof.phone) : '';
+      sellerPhoneInput.placeholder = '0** *** ***';
+      sellerPhoneInput.readOnly = true;
+    }
+  } else {
+    if (sellerPhoneInput) {
+      sellerPhoneInput.value = '';
+      sellerPhoneInput.placeholder = '0** *** ***';
+    }
   }
 
   const deliveryInput = document.getElementById('order-field-delivery');
@@ -29885,7 +29924,6 @@ function setOrderType(type) {
     if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
     const idInput = document.getElementById('order-field-id');
     if (idInput) idInput.placeholder = '# (មិនដាក់ក៏បាន)';
-    if (sellerPhoneInput && isMaster) sellerPhoneInput.value = '097 859 5526';
   } else if (type === 'return') {
     if (btnRet) btnRet.className = 'py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-sky-500/20 border-sky-500 text-sky-400 shadow-sm';
     if (capsuleBtn) {
@@ -31279,10 +31317,6 @@ function updateDeliveryShippingDefault() {
   } else if (val === 'VET (COD)') {
     shipInput.value = '3.00';
     setOrderCurrency('KHR');
-    const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
-    if (isMaster && sellerPhoneInput && !sellerPhoneInput.value) {
-      sellerPhoneInput.value = '097 859 5526';
-    }
   } else if (val === 'J&T (COD)') {
     shipInput.value = '3.00';
     setOrderCurrency('KHR');
