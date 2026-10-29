@@ -5160,6 +5160,7 @@
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1.5">ជ្រើសរើសមូលហេតុរហ័ស៖</label>
           <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="selectLateReasonChip('Sorry I am late')" class="late-chip px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-xs text-amber-200 transition active:scale-95">🙏 Sorry I am late</button>
             <button type="button" onclick="selectLateReasonChip('ស្ទះចរាចរណ៍តាមផ្លូវ')" class="late-chip px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-200 transition active:scale-95">🚦 ស្ទះចរាចរណ៍</button>
             <button type="button" onclick="selectLateReasonChip('ភ្លៀងធ្លាក់ខ្លាំង')" class="late-chip px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-200 transition active:scale-95">🌧️ ភ្លៀងធ្លាក់ខ្លាំង</button>
             <button type="button" onclick="selectLateReasonChip('ចុះជួបភ្ញៀវ/ទីផ្សារក្រៅ')" class="late-chip px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-200 transition active:scale-95">🤝 ចុះជួបភ្ញៀវ</button>
@@ -5170,7 +5171,7 @@
 
         <div class="space-y-1">
           <label class="block text-xs font-bold text-slate-300">បញ្ជាក់បន្ថែម (ប្រសិនបើមាន)៖</label>
-          <input type="text" id="att-late-reason-input" placeholder="ឧ. ស្ទះផ្លូវជាតិលេខ ៦..." 
+          <input type="text" id="att-late-reason-input" placeholder="ឧ. Sorry I am late / ស្ទះផ្លូវ..." 
                  class="w-full text-xs bg-black/40 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-amber-400">
         </div>
 
@@ -6903,6 +6904,6 @@
   </div>
 
   <script src="dataService.js?v=8.3"></script>
-  <script src="app.js?v=51.4"></script>
+  <script src="app.js?v=51.5"></script>
 </body>
 </html>

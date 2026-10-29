@@ -20136,80 +20136,137 @@ function generateAttendanceTelegramText(actionType = null, extraNote = null) {
   const p = (typeof getProfileData === 'function') ? getProfileData() : {};
   const now = new Date();
 
-  const kmDays = ['អាទិត្យ', 'ចន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
-  const kmMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
-  
-  const dayName = kmDays[now.getDay()];
-  const dateNum = now.getDate();
-  const monthName = kmMonths[now.getMonth()];
-  const yearNum = now.getFullYear();
-  const fullDateKm = `ថ្ងៃ${dayName} ទី${dateNum} ខែ${monthName} ឆ្នាំ${yearNum}`;
-  
-  const staffName = p.name || 'ស្តី ស្តើង';
-  const cleanId = String(p.memberId || 'BG-001').replace(/^(ID:\s*)+/i, '').trim();
-  const staffId = cleanId || 'BG-001';
-  const role = p.work || 'Bostar Sales Consultant';
-  const loc = data.location || 'ការិយាល័យកណ្តាល (At Office Verified)';
+  // English month names
+  const enMonths = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const day = now.getDate();
+  const monthName = enMonths[now.getMonth()];
+  const year = now.getFullYear();
 
-  const inTime = data.checkInTime || (data.todayStatus !== 'not_checked' ? '08:00 AM' : '—');
-  const outTime = data.checkOutTime || (data.todayStatus === 'checked_out' ? now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'កំពុងបំពេញការងារ ⏳');
-  const dur = data.duration || (data.todayStatus === 'checked_out' ? '៨ ម៉ោង ២៥ នាទី' : (data.todayStatus === 'checked_in' ? 'កំពុងបំពេញការងារ' : '—'));
+  // Helper to format time into "hh:mm AM/PM" (e.g. 09:04 AM)
+  const formatTime12 = (timeVal) => {
+    if (!timeVal) return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const m = String(timeVal).match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?/i);
+    if (m) {
+      const hh = m[1].padStart(2, '0');
+      const mm = m[2];
+      const ampm = (m[3] || 'AM').toUpperCase();
+      return `${hh}:${mm} ${ampm}`;
+    }
+    return timeVal;
+  };
+
+  // Determine English staff name
+  let staffName = 'Chun Chanvicheka';
+  if (p.nameEn && p.nameEn.trim()) {
+    staffName = p.nameEn.trim();
+  } else if (p.subtitle && /[A-Za-z]{3,}/.test(p.subtitle) && !p.subtitle.toLowerCase().includes('member')) {
+    staffName = p.subtitle.trim();
+  } else if (p.name && /^[A-Za-z\s]+$/.test(p.name.trim())) {
+    staffName = p.name.trim();
+  } else if (p.name) {
+    if (typeof BOSTAR_TEAM_SELLERS !== 'undefined' && Array.isArray(BOSTAR_TEAM_SELLERS)) {
+      const matchSeller = BOSTAR_TEAM_SELLERS.find(s => s && s.km && (s.km === p.name || p.name.includes(s.km)));
+      if (matchSeller && matchSeller.en) {
+        staffName = matchSeller.en;
+      } else {
+        staffName = p.name;
+      }
+    } else {
+      staffName = p.name;
+    }
+  }
+
+  // Determine Position
+  let position = 'Sale Officer';
+  if (p.position && p.position.trim()) {
+    position = p.position.trim();
+  } else if (p.work && /[A-Za-z]{3,}/.test(p.work) && !p.work.toLowerCase().includes('bostargroup')) {
+    position = p.work.trim();
+  } else {
+    const core = (typeof getUserCoreRole === 'function') ? getUserCoreRole(p) : 'Member';
+    if (core === 'Manager') position = 'Manager';
+    else if (core === 'Leader') position = 'Team Leader';
+    else position = 'Sale Officer';
+  }
+
+  // Determine Branch
+  const branch = p.branch || 'BOSTAR GROUP';
+
+  // Determine Manager
+  let manager = p.manager || 'Bech Nora';
+  if (!p.manager && typeof BOSTAR_MEMBERS_TEAM_MAP !== 'undefined' && Array.isArray(BOSTAR_MEMBERS_TEAM_MAP)) {
+    const match = BOSTAR_MEMBERS_TEAM_MAP.find(m => m && (m.km === p.name || m.en === staffName));
+    if (match && match.leader) {
+      const lMatch = BOSTAR_MEMBERS_TEAM_MAP.find(m => m.km === match.leader || match.leader.includes(m.km));
+      manager = (lMatch && lMatch.en) ? lMatch.en : match.leader.replace(/^លោក\s+/, '');
+    }
+  }
+  if (!manager || manager === 'មិនទាន់បញ្ជាក់') manager = 'Bech Nora';
+
   const note = extraNote || data.note || '';
-
-  const ontimeQuote = getDailyMotivationQuote('ontime');
-  const lateQuote = getDailyMotivationQuote('late');
-  const checkoutQuote = getDailyMotivationQuote('checkout');
-
   const isCheckout = actionType === 'out' || (actionType === null && data.todayStatus === 'checked_out');
   const isLate = data.todayLate;
 
+  // Checkout Format
   if (isCheckout) {
-    return `🔴 របាយការណ៍ចេញពីធ្វើការ (CHECK-OUT)
-━━━━━━━━━━━━━━━━━━
-👤 ក្រុមការងារ៖ ${staffName} (ID: ${staffId})
-💼 តួនាទី៖ ${role}
-📅 កាលបរិច្ឆេទ៖ ${fullDateKm}
-⏰ ម៉ោងចេញ៖ ${outTime}
-⏳ ថិរវេលាការងារសរុប៖ ${dur} (ពេញលេញ ✅)
-📌 ស្ថានភាព៖ បានបញ្ចប់ភារកិច្ចថ្ងៃនេះ
-📍 ទីតាំង៖ ${loc}
-━━━━━━━━━━━━━━━━━━
-💬 ${checkoutQuote}
-━━━━━━━━━━━━━━━━━━
-✨ Bostar Group - កត់ត្រាវត្តមាន (HR Attendance)`;
+    const timeFormatted = formatTime12(data.checkOutTime || now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }));
+    const dateTimeStr = `${day} ${monthName} ${year} ${timeFormatted}`;
+
+    if (data.earlyCheckoutMinutes && data.earlyCheckoutMinutes > 0) {
+      const earlyM = data.earlyCheckoutMinutes;
+      const earlyDuration = earlyM >= 60 ? `${Math.floor(earlyM / 60)}h ${earlyM % 60}m` : `${earlyM}m`;
+      const reasonText = note || 'Personal emergency';
+      return `${staffName} checked out 🔴 Early ${earlyDuration}
+Date Time: ${dateTimeStr}
+Position: ${position}
+Branch: ${branch}
+Manager: ${manager}
+Reason: ${reasonText}`;
+    }
+
+    return `${staffName} checked out 🟢
+Date Time: ${dateTimeStr}
+Position: ${position}
+Branch: ${branch}
+Manager: ${manager}`;
   }
+
+  // Checkin Format
+  const inTimeStr = data.checkInTime || (data.todayStatus !== 'not_checked' ? '08:00 AM' : now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }));
+  const timeFormatted = formatTime12(inTimeStr);
+  const dateTimeStr = `${day} ${monthName} ${year} ${timeFormatted}`;
 
   if (isLate) {
-    const lateNoteLine = note ? `\n📝 មូលហេតុ៖ «${note}»` : '';
-    const lateDetail = data.lateMinutes ? ` (យឺត ${data.lateMinutes} នាទី)` : '';
-    return `🟡 របាយការណ៍ចូលធ្វើការ (CHECK-IN LATE)
-━━━━━━━━━━━━━━━━━━
-👤 ក្រុមការងារ៖ ${staffName} (ID: ${staffId})
-💼 តួនាទី៖ ${role}
-📅 កាលបរិច្ឆេទ៖ ${fullDateKm}
-⏰ ម៉ោងចូល៖ ${inTime}${lateDetail}
-📌 ស្ថានភាព៖ ⚠️ ចូលយឺត (Late)
-📍 ទីតាំង៖ ${loc}${lateNoteLine}
-━━━━━━━━━━━━━━━━━━
-💬 ${lateQuote}
-━━━━━━━━━━━━━━━━━━
-✨ Bostar Group - កត់ត្រាវត្តមាន (HR Attendance)`;
+    let lateDuration = '';
+    const lateM = data.lateMinutes || 0;
+    if (lateM >= 60) {
+      const h = Math.floor(lateM / 60);
+      const m = lateM % 60;
+      lateDuration = m > 0 ? `${h}h ${m}m` : `${h}h`;
+    } else if (lateM > 0) {
+      lateDuration = `${lateM}m`;
+    } else {
+      lateDuration = '1h 4m';
+    }
+
+    const reasonText = note || 'Sorry I am late';
+    return `${staffName} checked in 🔴 Late ${lateDuration}
+Date Time: ${dateTimeStr}
+Position: ${position}
+Branch: ${branch}
+Manager: ${manager}
+Reason: ${reasonText}`;
   }
 
-  // On time / Early
-  const earlyDetail = data.earlyMinutes ? ` (មកដល់មុនម៉ោង ${data.earlyMinutes} នាទី! 👏)` : '';
-  return `🟢 របាយការណ៍ចូលធ្វើការ (CHECK-IN)
-━━━━━━━━━━━━━━━━━━
-👤 ក្រុមការងារ៖ ${staffName} (ID: ${staffId})
-💼 តួនាទី៖ ${role}
-📅 កាលបរិច្ឆេទ៖ ${fullDateKm}
-⏰ ម៉ោងចូល៖ ${inTime}${earlyDetail}
-📌 ស្ថានភាព៖ 🌟 គំរូល្អទាន់ពេល (On Time)
-📍 ទីតាំង៖ ${loc}
-━━━━━━━━━━━━━━━━━━
-💬 ${ontimeQuote}
-━━━━━━━━━━━━━━━━━━
-✨ Bostar Group - កត់ត្រាវត្តមាន (HR Attendance)`;
+  // On time
+  return `${staffName} checked in 🟢 On time
+Date Time: ${dateTimeStr}
+Position: ${position}
+Branch: ${branch}
+Manager: ${manager}`;
 }
 
 async function copyAttendanceReportText(actionType = null) {
@@ -20674,7 +20731,7 @@ function selectLateReasonChip(reasonText) {
 
 function confirmLateCheckIn() {
   const input = document.getElementById('att-late-reason-input');
-  const reason = input ? input.value.trim() : 'ស្ទះចរាចរណ៍តាមផ្លូវ';
+  const reason = (input && input.value.trim()) ? input.value.trim() : 'Sorry I am late';
   closeAttendanceLateModal();
 
   const data = getAttendanceData();
@@ -20692,11 +20749,11 @@ function confirmLateCheckIn() {
     date: `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`,
     time: data.checkInTime,
     lateMinutes: data.lateMinutes || 15,
-    reason: reason || 'ស្ទះចរាចរណ៍តាមផ្លូវ',
+    reason: reason,
     leader: 'Sdey_Sdoeung'
   });
 
-  finalizeCheckIn(data, reason || 'ស្ទះចរាចរណ៍តាមផ្លូវ');
+  finalizeCheckIn(data, reason);
 }
 
 function checkAttendanceAdminAccess(action) {
