@@ -2069,6 +2069,18 @@ function setupSwipeToBack() {
 function isDialogModalOpen() {
   const ids = [
     'daily-report-modal',
+    'honors-modal',
+    'executive-hierarchy-modal',
+    'team-members-modal',
+    'team-sets-modal',
+    'tutorial-modal',
+    'attendance-certificate-modal',
+    'attendance-documents-modal',
+    'new-expense-modal',
+    'new-order-modal',
+    'edit-order-modal',
+    'edit-profile-modal',
+    'executive-passcode-modal',
     'profile-sub-modal',
     'change-pin-modal',
     'edit-bank-modal',
@@ -4848,7 +4860,7 @@ function openExecutiveHierarchyModal() {
   renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
   setupExecutiveHierarchyScroll();
-  setDockVisible(true);
+  setDockVisible(false);
 
   if (window.lucide) window.lucide.createIcons();
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
@@ -4858,12 +4870,15 @@ function closeExecutiveHierarchyModal() {
   closeAllExecDropdowns();
   const modal = document.getElementById('executive-hierarchy-modal');
   if (modal) modal.classList.add('hidden');
-  setDockVisible(true);
 
   if (window.execHierarchyOpenedFromDrawer) {
     window.execHierarchyOpenedFromDrawer = false;
     if (typeof openProfileDrawer === 'function') {
-      openProfileDrawer();
+      openProfileDrawer(false);
+    }
+  } else {
+    if (!isDialogModalOpen()) {
+      setDockVisible(true);
     }
   }
 }
@@ -4886,10 +4901,6 @@ function setupExecutiveHierarchyScroll() {
   const filterBar = document.getElementById('exec-modal-date-filter-bar');
   if (!scrollEl || execHierarchyScrollInitialized) return;
   execHierarchyScrollInitialized = true;
-
-  if (typeof hookScrollableForDock === 'function') {
-    hookScrollableForDock(scrollEl, false);
-  }
 
   let lastScrollTop = scrollEl.scrollTop || 0;
   scrollEl.addEventListener('scroll', () => {
@@ -17508,15 +17519,7 @@ function openHonorsModal(tab = 'honors', fromDrawer = false) {
     window._currentHonorsTab = isGateOpen ? (tab || 'honors') : 'honors';
     renderHonorsModalContent();
     modal.classList.remove('hidden');
-    if (!isGateOpen) {
-      setDockVisible(true);
-      const honorsBody = document.getElementById('honors-modal-body');
-      if (honorsBody && typeof hookScrollableForDock === 'function') {
-        hookScrollableForDock(honorsBody, false);
-      }
-    } else {
-      setDockVisible(false);
-    }
+    setDockVisible(false);
     hookHonorsModalGestures();
     if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
   }
@@ -17527,20 +17530,18 @@ function closeHonorsModal(skipDrawer = false) {
   if (modal) modal.classList.add('hidden');
   const gate = document.getElementById('onboarding-gate');
   const isGateOpen = gate && !gate.classList.contains('hidden');
-  if (isGateOpen) {
-    setDockVisible(false);
-  } else {
-    setDockVisible(true);
-  }
   const honorsBody = document.getElementById('honors-modal-body');
   if (honorsBody) {
     honorsBody.scrollTop = 0;
   }
   if (!skipDrawer && window.navOpenedFromDrawer && window.navOpenedFromDrawer.honors) {
     window.navOpenedFromDrawer.honors = false;
-    if (typeof openProfileDrawer === 'function') openProfileDrawer();
+    if (typeof openProfileDrawer === 'function') openProfileDrawer(false);
   } else {
     if (window.navOpenedFromDrawer) window.navOpenedFromDrawer.honors = false;
+    if (!isGateOpen && !isDialogModalOpen()) {
+      setDockVisible(true);
+    }
   }
 }
 
@@ -23048,12 +23049,23 @@ function renderAttendanceContent() {
 // ==========================================
 // Profile Dashboard Drawer (82% Width - Facebook Style)
 // ==========================================
-function openProfileDrawer() {
+function openProfileDrawer(forceRender = true) {
   const modal = document.getElementById('profile-drawer-modal');
   const panel = document.getElementById('profile-drawer-panel');
   if (!modal || !panel) return;
 
-  renderProfileDrawerContent();
+  // 1. Immediately cancel any pending drawer close animation timer
+  if (window._drawerCloseTimer) {
+    clearTimeout(window._drawerCloseTimer);
+    window._drawerCloseTimer = null;
+  }
+
+  // 2. Only re-render full DOM if forced or not yet populated
+  const bodyEl = document.getElementById('profile-drawer-body');
+  if (forceRender || !bodyEl || !bodyEl.innerHTML.trim()) {
+    renderProfileDrawerContent();
+  }
+
   modal.classList.remove('hidden');
 
   // Dim the active dock tab so user clearly sees Profile Drawer (Screen 2) is open
@@ -23084,11 +23096,6 @@ function openProfileDrawer() {
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();
   }
-  setTimeout(() => {
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-      window.lucide.createIcons();
-    }
-  }, 120);
   if (navigator.vibrate) navigator.vibrate(15);
 }
 
@@ -23121,10 +23128,19 @@ function closeProfileDrawer() {
     greetingEl.classList.add('translate-y-4', 'opacity-0');
   }
 
-  setTimeout(() => {
+  // Cancel any existing close timer before setting a new one
+  if (window._drawerCloseTimer) {
+    clearTimeout(window._drawerCloseTimer);
+    window._drawerCloseTimer = null;
+  }
+
+  window._drawerCloseTimer = setTimeout(() => {
     modal.classList.add('hidden');
-    // Auto-restore bottom dock
-    setDockVisible(true);
+    // Auto-restore bottom dock only if no full-screen dialog modal is open
+    if (!isDialogModalOpen()) {
+      setDockVisible(true);
+    }
+    window._drawerCloseTimer = null;
   }, 260);
 
   if (navigator.vibrate) navigator.vibrate(12);
