@@ -19509,6 +19509,16 @@ function syncHeaderProfileUI() {
       badgeEl.classList.add('hidden');
     }
   }
+
+  const demoBar = document.getElementById('demo-mode-indicator-bar');
+  if (demoBar) {
+    const isDemo = (typeof DataService !== 'undefined' && DataService.isDemoMode && DataService.isDemoMode()) || (localStorage.getItem('sd_demo_mode') === 'true');
+    if (isDemo) {
+      demoBar.classList.remove('hidden');
+    } else {
+      demoBar.classList.add('hidden');
+    }
+  }
 }
 
 let allCustomersScopeMode = 'personal'; // 'personal' (default) or 'all' (Master Data)
@@ -19518,7 +19528,8 @@ let pendingMasterAuthSeller = null;
 function getAllUniqueCustomers() {
   const d = DataService.data;
   let sales = [];
-  if (allCustomersScopeMode === 'all') {
+  const isMasterAuth = (typeof localStorage !== 'undefined') && localStorage.getItem('sd_master_admin_authenticated') === 'true';
+  if (allCustomersScopeMode === 'all' && isMasterAuth) {
     sales = Array.isArray(masterFilteredCustomersSales) ? masterFilteredCustomersSales : [];
   } else {
     sales = (d && d.personalSales) ? d.personalSales : [];
@@ -25089,8 +25100,9 @@ function checkOnboardingGate() {
   const hasCustomSheet = Boolean(localStorage.getItem('sd_custom_sheet_id'));
   const hasOnboardingDone = localStorage.getItem('sd_onboarding_completed') === 'true';
   const isMasterAdminAuth = localStorage.getItem('sd_master_admin_authenticated') === 'true';
+  const isDemo = localStorage.getItem('sd_demo_mode') === 'true';
 
-  if (!skipGate && !isMasterAdminAuth && (!hasCustomSheet || !hasOnboardingDone)) {
+  if (!skipGate && !isMasterAdminAuth && !isDemo && (!hasCustomSheet || !hasOnboardingDone)) {
     gate.classList.remove('hidden');
     if (dock) dock.classList.add('hidden');
     setDockVisible(false);
@@ -25103,48 +25115,62 @@ function checkOnboardingGate() {
 
 function enterTestMode() {
   localStorage.setItem('sd_onboarding_completed', 'true');
-  localStorage.setItem('sd_custom_sheet_id', '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg');
+  localStorage.setItem('sd_demo_mode', 'true');
+  localStorage.removeItem('sd_custom_sheet_id');
+  localStorage.removeItem('sd_master_admin_authenticated');
+  localStorage.removeItem('sd_offline_master_data');
+  localStorage.removeItem('sd_offline_custom_data');
+
+  const demoProfile = {
+    name: 'អ្នកសាកល្បង (Demo)',
+    memberId: 'DEMO-001',
+    subtitle: 'របៀបសាកល្បង (Demo Mode)',
+    avatar: 'bostar-logo.png',
+    work: 'សមាជិកសាកល្បង',
+    study: 'BostarGroup Demo',
+    live: 'រាជធានីភ្នំពេញ',
+    from: 'ព្រះរាជាណាចក្រកម្ពុជា',
+    status: 'សាកល្បងប្រើប្រាស់',
+    birthday: '',
+    phone: '012 345 ***',
+    privacy: {
+      showSales: true,
+      showExpenses: true,
+      showProfit: true,
+      showPhone: true
+    }
+  };
+  localStorage.setItem('sd_profile_data', JSON.stringify(demoProfile));
+
   const gate = document.getElementById('onboarding-gate');
   if (gate) gate.classList.add('hidden');
   const dock = document.getElementById('bottom-dock');
   if (dock) dock.classList.remove('hidden');
   setDockVisible(true);
+
   if (window.DataService) {
     window.DataService.fetchData(false);
-    if (typeof window.DataService.startAutoReload === 'function') {
-      window.DataService.startAutoReload(2);
-    }
   }
+  syncHeaderProfileUI();
   renderCurrentView();
-  showToastNotification('🎉 ស្វាគមន៍មកកាន់ Test Mode! ជាមួយ Google Sheet ថ្មី');
+  showToastNotification('✨ ស្វាគមន៍មកកាន់របៀបសាកល្បង (បង្ហាញទិន្នន័យគំរូ ២-៣ ជួរ)!');
 }
 window.enterTestMode = enterTestMode;
 
 async function submitOnboardingConnection() {
   const nameInput = document.getElementById('onboard-member-name');
-  const codeInput = document.getElementById('onboard-member-code');
   const urlInput = document.getElementById('onboard-sheet-url');
   const statusBox = document.getElementById('onboard-status-box');
 
   const name = nameInput ? nameInput.value.trim() : '';
-  const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
   const url = urlInput ? urlInput.value.trim() : '';
 
   if (!name) {
     if (statusBox) {
-      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលឈ្មោះអ្នកលក់របស់អ្នក</span>';
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលឈ្មោះរបស់អ្នក</span>';
       if (window.lucide) window.lucide.createIcons();
     }
     nameInput?.focus();
-    return;
-  }
-
-  if (!code) {
-    if (statusBox) {
-      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> សូមបញ្ចូលលេខកូដពិសេសរបស់អ្នក</span>';
-      if (window.lucide) window.lucide.createIcons();
-    }
-    codeInput?.focus();
     return;
   }
 
@@ -25157,45 +25183,6 @@ async function submitOnboardingConnection() {
     return;
   }
 
-  if (statusBox) {
-    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងផ្ទៀងផ្ទាត់ឈ្មោះ និងលេខកូដពិសេស...</span>';
-    if (window.lucide) window.lucide.createIcons();
-  }
-
-  // 1. Verify Name & Special Code against Tab Team Name
-  let teamCodes = [];
-  try {
-    teamCodes = await DataService.getTeamNameCodes();
-  } catch (e) {
-    console.warn('Error fetching team codes:', e);
-  }
-
-  const normCurrent = (typeof normalizeSellerName === 'function') ? normalizeSellerName(name) : name.toLowerCase().trim();
-  const matchedSeller = teamCodes.find(t => 
-    ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.km) : t.km.toLowerCase().trim()) === normCurrent || 
-    ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.en) : t.en.toLowerCase().trim()) === normCurrent
-  );
-
-  if (!matchedSeller) {
-    if (statusBox) {
-      statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>ឈ្មោះ "${escapeHtml(name)}" មិនត្រូវគ្នានឹងឈ្មោះអ្នកលក់ផ្លូវការឡើយ!</span></span>`;
-      if (window.lucide) window.lucide.createIcons();
-    }
-    nameInput?.focus();
-    return;
-  }
-
-  const expectedCode = String(matchedSeller.code || '').trim().toUpperCase();
-  if (code !== expectedCode) {
-    if (statusBox) {
-      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>លេខកូដពិសេសមិនត្រឹមត្រូវ! សូមពិនិត្យលេខកូដឡើងវិញ</span></span>';
-      if (window.lucide) window.lucide.createIcons();
-    }
-    codeInput?.focus();
-    return;
-  }
-
-  // 2. Verify Google Sheet Connection
   const cleanId = (typeof extractSheetId === 'function') ? extractSheetId(url) : (url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/) ? url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)[1] : url);
   if (!cleanId || cleanId.length < 15) {
     if (statusBox) {
@@ -25207,7 +25194,7 @@ async function submitOnboardingConnection() {
   }
 
   if (statusBox) {
-    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កូដត្រឹមត្រូវ! កំពុងភ្ជាប់ទៅកាន់ Google Sheet ផ្ទាល់ខ្លួន...</span>';
+    statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> កំពុងពិនិត្យការតភ្ជាប់ Google Sheet ផ្ទាល់ខ្លួន...</span>';
     if (window.lucide) window.lucide.createIcons();
   }
 
@@ -25216,26 +25203,28 @@ async function submitOnboardingConnection() {
     try {
       localStorage.removeItem('sd_local_orders');
       localStorage.removeItem('sd_local_expenses');
+      localStorage.removeItem('sd_offline_master_data');
+      localStorage.removeItem('sd_offline_custom_data');
+      localStorage.removeItem('sd_demo_mode');
+      localStorage.removeItem('sd_master_admin_authenticated');
     } catch (_) {}
+
     localStorage.setItem('sd_custom_sheet_id', cleanId);
-    
-    // Auto-authorize Master Data for this seller
-    const verifiedSellerKm = matchedSeller.km || name;
-    localStorage.setItem('sd_verified_seller_km', verifiedSellerKm);
-    localStorage.setItem('sd_user_name', verifiedSellerKm);
-    localStorage.setItem('sd_member_special_code', code);
-    localStorage.setItem('sd_master_cust_auth_' + normalizeSellerName(verifiedSellerKm), 'true');
+    localStorage.setItem('sd_user_name', name);
+    localStorage.setItem('sd_verified_seller_km', name);
 
     const memberProfile = {
-      name: verifiedSellerKm,
+      name: name,
       memberId: 'BG-' + Math.floor(100 + Math.random() * 900),
-      subtitle: `${verifiedSellerKm} • BostarGroup`,
+      subtitle: `${name} • BostarGroup`,
       avatar: 'bostar-logo.png',
       work: 'សមាជិកក្រុម BostarGroup',
       study: 'BostarGroup',
       live: 'រាជធានីភ្នំពេញ',
       from: 'ព្រះរាជាណាចក្រកម្ពុជា',
       status: 'សកម្មក្នុងការងារ',
+      sheetId: cleanId,
+      customSheetUrl: url,
       birthday: '',
       phone: '',
       privacy: {
@@ -25250,11 +25239,11 @@ async function submitOnboardingConnection() {
     };
     localStorage.setItem('sd_profile_data', JSON.stringify(memberProfile));
     localStorage.setItem('sd_onboarding_completed', 'true');
-    
+
     syncHeaderProfileUI();
     checkOnboardingGate();
-    
-    showToastNotification(`🎉 ភ្ជាប់ជោគជ័យ! សូមស្វាគមន៍ ${verifiedSellerKm}`);
+
+    showToastNotification(`🎉 ភ្ជាប់ជោគជ័យ! សូមស្វាគមន៍ ${name}`);
     await DataService.fetchData(false);
     if (typeof DataService.startAutoReload === 'function') {
       DataService.startAutoReload(2);
@@ -25307,10 +25296,31 @@ async function submitMasterPin() {
   if (validPasswords.includes(pin)) {
     closeMasterPinModal();
     const masterId = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+    localStorage.removeItem('sd_demo_mode');
     localStorage.setItem('sd_custom_sheet_id', masterId);
     localStorage.setItem('sd_onboarding_completed', 'true');
     localStorage.setItem('sd_master_admin_authenticated', 'true');
-    localStorage.setItem('sd_profile_data', JSON.stringify(DEFAULT_PROFILE_DATA));
+    localStorage.setItem('sd_profile_data', JSON.stringify({
+      name: 'ស្តី ស្តើង',
+      memberId: 'MASTER-01',
+      subtitle: 'SDEY SDOEUNG',
+      avatar: 'profile.png',
+      work: 'CEO & Founder BostarGroup',
+      study: 'Bostar Leadership',
+      live: 'រាជធានីភ្នំពេញ',
+      from: 'ព្រះរាជាណាចក្រកម្ពុជា',
+      status: 'សកម្មក្នុងការងារ',
+      birthday: '',
+      phone: '096 852 5136',
+      email: 'sdeysdoeung@bostargroup.com',
+      bio: 'ប្រព័ន្ធគ្រប់គ្រងការលក់ និងហិរញ្ញវត្ថុ BostarGroup',
+      privacy: {
+        showSales: true,
+        showExpenses: true,
+        showProfit: true,
+        showPhone: true
+      }
+    }));
     
     // Explicitly hide onboarding gate and show dock immediately
     const gate = document.getElementById('onboarding-gate');
@@ -25321,7 +25331,7 @@ async function submitMasterPin() {
 
     syncHeaderProfileUI();
     checkOnboardingGate();
-    showToastNotification('🔓 ស្វាគមន៍ការចូលប្រើប្រាស់ជា Master Admin (ស្ដី ស្នើង)');
+    showToastNotification('🔓 ស្វាគមន៍ការចូលប្រើប្រាស់ជា Master Admin (ស្ដី ស្តើង)');
     await DataService.fetchData(false);
     renderCurrentView();
   } else {
@@ -25333,23 +25343,29 @@ async function submitMasterPin() {
 }
 
 function disconnectCustomSheet() {
+  try {
+    localStorage.removeItem('sd_custom_sheet_id');
+    localStorage.removeItem('sd_profile_data');
+    localStorage.removeItem('sd_local_orders');
+    localStorage.removeItem('sd_local_expenses');
+    localStorage.removeItem('sd_offline_master_data');
+    localStorage.removeItem('sd_offline_custom_data');
+    localStorage.removeItem('sd_demo_mode');
+    localStorage.removeItem('sd_master_admin_authenticated');
+    localStorage.removeItem('sd_onboarding_completed');
+    localStorage.removeItem('sd_user_name');
+    localStorage.removeItem('sd_verified_seller_km');
+  } catch (_) {}
+
   if (window.DataService && typeof window.DataService.disconnectSheet === 'function') {
     window.DataService.disconnectSheet();
-  } else {
-    try {
-      localStorage.removeItem('sd_custom_sheet_id');
-      localStorage.removeItem('sd_profile_data');
-    } catch (_) {}
   }
-  try {
-    localStorage.removeItem('sd_onboarding_completed');
-    localStorage.removeItem('sd_master_admin_authenticated');
-  } catch (_) {}
+
   document.getElementById('profile-sub-modal')?.classList?.add('hidden');
   document.getElementById('profile-dashboard-drawer')?.classList?.add('translate-x-full');
   syncHeaderProfileUI();
   checkOnboardingGate();
-  showToastNotification('បានផ្តាច់ការតភ្ជាប់ Sheet រួចរាល់');
+  showToastNotification('បានចាកចេញ និងផ្តាច់ការតភ្ជាប់ជោគជ័យ');
 }
 
 window.saveCustomGoogleSheetId = saveCustomGoogleSheetId;
@@ -25513,27 +25529,43 @@ function openProfileSubModal(type, fromDrawer = true) {
     openDailyReportModal(fromDrawer);
     return;
   } else if (type === 'custom_sheet') {
-    const isCustom = (typeof DataService !== 'undefined' && DataService.hasActiveSheet && !DataService.isMasterSheet());
+    const isDemo = (typeof DataService !== 'undefined' && DataService.isDemoMode && DataService.isDemoMode()) || (localStorage.getItem('sd_demo_mode') === 'true');
     const isMaster = (typeof DataService !== 'undefined' && DataService.isMasterSheet && DataService.isMasterSheet());
-    const currentId = (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '';
-    const savedCustomId = (typeof DataService !== 'undefined' && DataService.getCustomSheetId) ? DataService.getCustomSheetId() : '';
+    const isCustom = !isDemo && !isMaster && Boolean(localStorage.getItem('sd_custom_sheet_id'));
+    const currentId = isDemo ? '' : ((typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '');
+    const savedCustomId = isDemo ? '' : (localStorage.getItem('sd_custom_sheet_id') || '');
     title = 'Google Sheet ផ្ទាល់ខ្លួន (Sheet Sync)';
-    sub = 'ដំណើរការ Dashboard ដោយប្រើប្រាស់ទិន្នន័យរបស់កូនក្រុម';
+    sub = 'ដំណើរការ Dashboard ដោយប្រើប្រាស់ទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នក';
     icon = 'file-spreadsheet';
 
     contentHTML = `
       <div class="space-y-3 select-none">
         <!-- Status Card -->
-        <div class="p-3.5 rounded-2xl ${isCustom ? 'bg-indigo-500/10 border border-indigo-500/25' : (isMaster ? 'bg-blue-500/10 border border-blue-500/25' : 'bg-slate-500/10 border border-slate-500/25')} space-y-1.5">
+        <div class="p-3.5 rounded-2xl ${isCustom ? 'bg-indigo-500/10 border border-indigo-500/25' : (isMaster ? 'bg-blue-500/10 border border-blue-500/25' : (isDemo ? 'bg-amber-500/10 border border-amber-500/25' : 'bg-slate-500/10 border border-slate-500/25'))} space-y-1.5">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">ស្ថានភាពទិន្នន័យបច្ចុប្បន្ន</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${isCustom ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (isMaster ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-slate-500/20 text-slate-400 border border-slate-500/30')}">
-              ${isMaster ? '🏢 Master Sheet (ស្តី ស្តើង)' : (isCustom ? '✅ Sheet ផ្ទាល់ខ្លួន (Custom)' : '⚠️ មិនទាន់ភ្ជាប់')}
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${isCustom ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (isMaster ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : (isDemo ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-slate-500/20 text-slate-400 border border-slate-500/30'))}">
+              ${isMaster ? '🏢 Master Sheet (ស្តី ស្តើង)' : (isDemo ? '✨ របៀបសាកល្បង (Demo Mode)' : (isCustom ? '✅ Sheet ផ្ទាល់ខ្លួន (Custom)' : '⚠️ មិនទាន់ភ្ជាប់'))}
             </span>
           </div>
-          <p class="text-xs font-mono text-slate-200 truncate pt-0.5" title="${currentId}">
-            ID: <span class="text-amber-300 font-bold">${currentId || 'គ្មាន'}</span>
-          </p>
+          ${isDemo ? `
+            <p class="text-xs text-amber-300 font-semibold pt-0.5 flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>បច្ចុប្បន្នស្ថិតក្នុងរបៀបសាកល្បង (បង្ហាញទិន្នន័យគំរូ ២-៣ ជួរ)</span>
+            </p>
+          ` : (isCustom ? `
+            <p class="text-xs font-mono text-slate-200 truncate pt-0.5" title="${currentId}">
+              ID: <span class="text-amber-300 font-bold">${currentId}</span>
+            </p>
+          ` : (isMaster ? `
+            <p class="text-xs font-mono text-slate-200 truncate pt-0.5" title="${currentId}">
+              ID: <span class="text-amber-300 font-bold">${currentId}</span>
+            </p>
+          ` : `
+            <p class="text-xs text-slate-400 pt-0.5">
+              ស្ថានភាព៖ មិនទាន់ភ្ជាប់ Sheet ផ្ទាល់ខ្លួនឡើយ
+            </p>
+          `))}
         </div>
 
         <!-- Input Box -->
@@ -25564,11 +25596,11 @@ function openProfileSubModal(type, fromDrawer = true) {
             </button>
           </div>
 
-          ${isCustom ? `
+          ${(isCustom || isDemo) ? `
             <button onclick="disconnectCustomSheet()" 
                     class="w-full mt-2 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5">
               <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-              <span>ផ្តាច់ការតភ្ជាប់ Sheet (Disconnect)</span>
+              <span>${isDemo ? 'ចាកចេញពីរបៀបសាកល្បង (Exit Demo)' : 'ផ្តាច់ការតភ្ជាប់ Sheet (Disconnect)'}</span>
             </button>
           ` : (isMaster ? `
             <button onclick="disconnectCustomSheet()" 
@@ -25586,8 +25618,7 @@ function openProfileSubModal(type, fromDrawer = true) {
             <span>របៀបបង្កើត Google Sheet ផ្ទាល់ខ្លួនសម្រាប់កូនក្រុម៖</span>
           </h4>
           <ol class="space-y-1.5 text-slate-300 text-[11px] list-decimal list-inside leading-relaxed pl-1">
-            <li>បើក <strong>Master Google Sheet</strong> របស់ក្រុមការងារ។</li>
-            <li>ចុច Menu <strong>File (ឯកសារ)</strong> ➔ ជ្រើសរើស <strong>Make a copy (បង្កើតច្បាប់ចម្លង)</strong> ទៅកាន់ Google Drive ផ្ទាល់ខ្លួនរបស់អ្នក។</li>
+            <li>ចុចបង្កើតច្បាប់ចម្លង <strong>Make a copy</strong> ពី Sheet គំរូ (Template) ទៅកាន់ Google Drive ផ្ទាល់ខ្លួនរបស់អ្នក។</li>
             <li>ចុចប៊ូតុង <strong>Share (ចែករំលែក)</strong> ខាងលើស្តាំ ➔ ប្តូរទៅជា <strong>«Anyone with the link can view (អ្នកមានតំណភ្ជាប់អាចមើលបាន)»</strong>។</li>
             <li>ចម្លងយក Link នៃ Sheet នោះ មកបិទភ្ជាប់ក្នុងប្រអប់ខាងលើ រួចចុច <strong>«រក្សាទុក & ភ្ជាប់»</strong> ជាការស្រេច!</li>
           </ol>

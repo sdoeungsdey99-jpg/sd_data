@@ -20,6 +20,9 @@ function extractSheetId(input) {
 
 function getActiveSheetId() {
   try {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_demo_mode') === 'true') {
+      return 'DEMO_MODE';
+    }
     if (typeof window !== 'undefined' && window.location && window.location.search) {
       const urlParams = new URLSearchParams(window.location.search);
       const urlSheet = urlParams.get('sheet') || urlParams.get('sheet_id');
@@ -31,14 +34,18 @@ function getActiveSheetId() {
         }
       }
     }
-    const custom = localStorage.getItem('sd_custom_sheet_id');
+    const custom = (typeof localStorage !== 'undefined') ? localStorage.getItem('sd_custom_sheet_id') : null;
     if (custom && custom.trim() === TEAM_HIERARCHY_SHEET_ID) {
       localStorage.removeItem('sd_custom_sheet_id');
     } else if (custom && custom.trim().length > 15) {
       return custom.trim();
     }
+    // Only return MASTER_SDOEUNG_SHEET_ID if master admin is authenticated!
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_master_admin_authenticated') === 'true') {
+      return MASTER_SDOEUNG_SHEET_ID;
+    }
   } catch (_) {}
-  return DEFAULT_MASTER_SHEET_ID;
+  return '';
 }
 
 function cleanNumber(val) {
@@ -94,12 +101,237 @@ function ddmmyyyyToIso(ddmmyyyy) {
   return ddmmyyyy;
 }
 
+function getDemoMockData() {
+  const sampleSales = [
+    {
+      date: '29/10/2026',
+      isoDate: '2026-10-29',
+      customer: 'សុខ វិសាល',
+      seller: 'អ្នកសាកល្បង',
+      orderId: '#REC-101',
+      location: 'រាជធានីភ្នំពេញ',
+      phone: '012 345 ***',
+      qtyYL: 1,
+      qtyYLP: 1,
+      qtyKN: 0,
+      qtyPDO: 0,
+      qtySG: 0,
+      freeQty: 0,
+      totalBoxQty: 2,
+      product: 'ឈុត 1 (YL 1, YLP 1)',
+      price: 15,
+      thaiBaht: 15,
+      totalAmount: 15,
+      shipFee: 1.5,
+      deliveryMethod: 'J&T Express',
+      codStatus: 'ទូទាត់រួច',
+      stock: 1,
+      profit: 5,
+      note: 'ឈុត 1 (Bech_Nora)',
+      isReward: false,
+      isReturn: false,
+      rowIndex: 1,
+      recordId: 'REC-101'
+    },
+    {
+      date: '28/10/2026',
+      isoDate: '2026-10-28',
+      customer: 'ចាន់ សុភ័ក្រ',
+      seller: 'អ្នកសាកល្បង',
+      orderId: '#REC-102',
+      location: 'ខេត្តសៀមរាប',
+      phone: '098 765 ***',
+      qtyYL: 0,
+      qtyYLP: 0,
+      qtyKN: 0,
+      qtyPDO: 0,
+      qtySG: 1,
+      freeQty: 0,
+      totalBoxQty: 1,
+      product: 'ឈុត 2 (SG Pro 1)',
+      price: 28,
+      thaiBaht: 28,
+      totalAmount: 28,
+      shipFee: 2,
+      deliveryMethod: 'Virak Buntham',
+      codStatus: 'មិនទាន់ទូទាត់',
+      stock: 1,
+      profit: 10,
+      note: 'ឈុត 2',
+      isReward: false,
+      isReturn: false,
+      rowIndex: 2,
+      recordId: 'REC-102'
+    },
+    {
+      date: '27/10/2026',
+      isoDate: '2026-10-27',
+      customer: 'លី គឹមសួរ',
+      seller: 'អ្នកសាកល្បង',
+      orderId: '#REC-103',
+      location: 'ខេត្តបាត់ដំបង',
+      phone: '077 888 ***',
+      qtyYL: 0,
+      qtyYLP: 0,
+      qtyKN: 1,
+      qtyPDO: 0,
+      qtySG: 0,
+      freeQty: 0,
+      totalBoxQty: 1,
+      product: 'ឈុត 1 (KN 1)',
+      price: 15,
+      thaiBaht: 15,
+      totalAmount: 15,
+      shipFee: 1.5,
+      deliveryMethod: 'Capitol',
+      codStatus: 'ទូទាត់រួច',
+      stock: 1,
+      profit: 5,
+      note: 'ឈុត 1',
+      isReward: false,
+      isReturn: false,
+      rowIndex: 3,
+      recordId: 'REC-103'
+    }
+  ];
+
+  const sampleExpenses = [
+    {
+      date: '29/10/2026',
+      isoDate: '2026-10-29',
+      time: '09:30 AM',
+      description: 'ថ្លៃដឹកជញ្ជូនទំនិញទៅអតិថិជន',
+      category: 'ការដឹកជញ្ជូន',
+      amount: 3.5,
+      note: 'គំរូសាកល្បង',
+      rowIndex: 1
+    },
+    {
+      date: '28/10/2026',
+      isoDate: '2026-10-28',
+      time: '12:00 PM',
+      description: 'សម្ភារៈវេចខ្ចប់ប្រអប់ឥវ៉ាន់',
+      category: 'សម្ភារៈ',
+      amount: 5.0,
+      note: 'គំរូសាកល្បង',
+      rowIndex: 2
+    }
+  ];
+
+  const samplePendingCod = [
+    {
+      date: '28/10/2026',
+      isoDate: '2026-10-28',
+      customer: 'ចាន់ សុភ័ក្រ',
+      phone: '098 765 ***',
+      delivery: 'Virak Buntham',
+      amount: 28,
+      boxes: 1,
+      status: 'មិនទាន់ទូទាត់',
+      orderId: '#REC-102'
+    }
+  ];
+
+  const sampleBank = {
+    pureUsdTotal: 50.0,
+    pureKhrTotal: 0,
+    accounts: [
+      { name: 'ABA Bank (Demo)', number: '000 123 456 (គំរូ)', balance: 50.0, currency: 'USD' }
+    ],
+    netCashPosition: {
+      totalNetCash: 50.0,
+      totalActualCash: 50.0,
+      pendingCodReceivables: 28.0,
+      totalLiquidAssets: 78.0,
+      totalAccountsPayable: 0,
+      netCashPositionFinal: 78.0,
+      healthStatus: '✅ សុវត្ថិភាពខ្ពស់'
+    },
+    payables: []
+  };
+
+  return {
+    personalSales: sampleSales,
+    bostarTrackSales: [],
+    expenses: sampleExpenses,
+    monthlyTargets: { 'អ្នកសាកល្បង': 100 },
+    pendingCodReceivables: samplePendingCod,
+    bank: sampleBank,
+    teamLeaders: [
+      { name: 'អ្នកសាកល្បង', target: 100, actual: 4, sets: [2, 1, 1, 0, 0, 0] }
+    ],
+    teamLeadersByMonth: {},
+    teamMembers: [],
+    teamHierarchy: { members: [], leaders: [], managers: [], directors: [] },
+    targetsByMonth: {},
+    boostByMonth: {},
+    recentBoostEntries: [],
+    announcements: [],
+    meta: {
+      isDemoMode: true,
+      totalSalesCount: sampleSales.length,
+      totalExpensesCount: sampleExpenses.length,
+      totalTeamMembersCount: 0
+    }
+  };
+}
+
+function getEmptyCustomData() {
+  return {
+    personalSales: [],
+    bostarTrackSales: [],
+    expenses: [],
+    monthlyTargets: {},
+    pendingCodReceivables: [],
+    bank: {
+      pureUsdTotal: 0,
+      pureKhrTotal: 0,
+      accounts: [],
+      netCashPosition: {
+        totalNetCash: 0,
+        totalActualCash: 0,
+        pendingCodReceivables: 0,
+        totalLiquidAssets: 0,
+        totalAccountsPayable: 0,
+        netCashPositionFinal: 0,
+        healthStatus: '⚪ មិនទាន់មានទិន្នន័យ'
+      },
+      payables: []
+    },
+    teamLeaders: [],
+    teamLeadersByMonth: {},
+    teamMembers: [],
+    teamHierarchy: { members: [], leaders: [], managers: [], directors: [] },
+    targetsByMonth: {},
+    boostByMonth: {},
+    recentBoostEntries: [],
+    announcements: [],
+    meta: {
+      totalSalesCount: 0,
+      totalExpensesCount: 0,
+      totalTeamMembersCount: 0
+    }
+  };
+}
+
 function loadCachedData() {
   try {
-    const raw = localStorage.getItem('sd_offline_master_data');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.personalSales)) return parsed;
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_demo_mode') === 'true') {
+      return getDemoMockData();
+    }
+    const isMasterAuth = (typeof localStorage !== 'undefined') && localStorage.getItem('sd_master_admin_authenticated') === 'true';
+    if (isMasterAuth) {
+      const raw = localStorage.getItem('sd_offline_master_data');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.personalSales)) return parsed;
+      }
+    } else {
+      const customRaw = (typeof localStorage !== 'undefined') ? localStorage.getItem('sd_offline_custom_data') : null;
+      if (customRaw) {
+        const parsed = JSON.parse(customRaw);
+        if (parsed && Array.isArray(parsed.personalSales)) return parsed;
+      }
     }
   } catch (_) {}
   return null;
@@ -440,13 +672,22 @@ window.DataService = {
   },
 
   async fetchData(silent = false) {
+    if (this.isDemoMode()) {
+      this.isLoading = false;
+      this.data = getDemoMockData();
+      this.error = null;
+      this.lastFetched = new Date();
+      this.notify();
+      return this.data;
+    }
+
     const sheetId = getActiveSheetId();
     if (!sheetId) {
       this.isLoading = false;
-      this.data = null;
+      this.data = getEmptyCustomData();
       this.error = null;
       this.notify();
-      return null;
+      return this.data;
     }
 
     if (!silent) {
@@ -581,9 +822,9 @@ window.DataService = {
         });
       }
 
-      // Preserve cached data if fetch timed out or returned empty
-      if (personalSales.length === 0 && this.data && Array.isArray(this.data.personalSales) && this.data.personalSales.length > 0) {
-        console.warn('⚠️ Personal sales fetch returned 0 rows (retaining previous cached sales)');
+      // Preserve cached data if fetch timed out or returned empty (Master Sheet only)
+      if (this.isMasterSheet() && personalSales.length === 0 && this.data && Array.isArray(this.data.personalSales) && this.data.personalSales.length > 0) {
+        console.warn('⚠️ Personal sales fetch returned 0 rows (retaining previous cached sales for master)');
         personalSales.push(...this.data.personalSales);
       }
 
@@ -625,9 +866,9 @@ window.DataService = {
         });
       }
 
-      // Preserve cached expenses if fetch timed out or returned empty
-      if (expenses.length === 0 && this.data && Array.isArray(this.data.expenses) && this.data.expenses.length > 0) {
-        console.warn('⚠️ Expenses fetch returned 0 rows (retaining previous cached expenses)');
+      // Preserve cached expenses if fetch timed out or returned empty (Master Sheet only)
+      if (this.isMasterSheet() && expenses.length === 0 && this.data && Array.isArray(this.data.expenses) && this.data.expenses.length > 0) {
+        console.warn('⚠️ Expenses fetch returned 0 rows (retaining previous cached expenses for master)');
         expenses.push(...this.data.expenses);
       }
 
@@ -755,9 +996,9 @@ window.DataService = {
         netCashPosition.totalNetCash = netCashPosition.netCashPositionFinal || (netCashPosition.totalLiquidAssets - netCashPosition.totalAccountsPayable);
       }
 
-      // Preserve cached bank accounts if fetch timed out or returned empty
-      if (accounts.length === 0 && this.data && this.data.bank && Array.isArray(this.data.bank.accounts) && this.data.bank.accounts.length > 0) {
-        console.warn('⚠️ Bank accounts fetch returned 0 rows (retaining previous cached bank data)');
+      // Preserve cached bank accounts if fetch timed out or returned empty (Master Sheet only)
+      if (this.isMasterSheet() && accounts.length === 0 && this.data && this.data.bank && Array.isArray(this.data.bank.accounts) && this.data.bank.accounts.length > 0) {
+        console.warn('⚠️ Bank accounts fetch returned 0 rows (retaining previous cached bank data for master)');
         accounts.push(...this.data.bank.accounts);
         pureUsdTotal = this.data.bank.pureUsdTotal || pureUsdTotal;
         pureKhrTotal = this.data.bank.pureKhrTotal || pureKhrTotal;
@@ -1245,7 +1486,11 @@ window.DataService = {
       };
 
       try {
-        localStorage.setItem('sd_offline_master_data', JSON.stringify(this.data));
+        if (this.isMasterSheet()) {
+          localStorage.setItem('sd_offline_master_data', JSON.stringify(this.data));
+        } else if (this.isUsingCustomSheet()) {
+          localStorage.setItem('sd_offline_custom_data', JSON.stringify(this.data));
+        }
       } catch (_) {}
 
       this.lastFetched = new Date();
@@ -1311,7 +1556,12 @@ window.DataService = {
   },
 
   isUsingCustomSheet() {
-    return getActiveSheetId() !== DEFAULT_MASTER_SHEET_ID;
+    const custom = (typeof localStorage !== 'undefined') ? localStorage.getItem('sd_custom_sheet_id') : null;
+    return Boolean(custom && custom.trim().length > 15 && custom.trim() !== MASTER_SDOEUNG_SHEET_ID);
+  },
+
+  isDemoMode() {
+    return (typeof localStorage !== 'undefined') && localStorage.getItem('sd_demo_mode') === 'true';
   },
 
   getActiveSheetId() {
@@ -1320,6 +1570,7 @@ window.DataService = {
 
   getCustomSheetId() {
     try {
+      if (this.isDemoMode()) return '';
       return localStorage.getItem('sd_custom_sheet_id') || '';
     } catch (_) {
       return '';
@@ -1334,18 +1585,22 @@ window.DataService = {
     try {
       localStorage.removeItem('sd_local_orders');
       localStorage.removeItem('sd_local_expenses');
+      localStorage.removeItem('sd_offline_master_data');
+      localStorage.removeItem('sd_offline_custom_data');
+      localStorage.removeItem('sd_demo_mode');
     } catch (_) {}
     localStorage.setItem('sd_custom_sheet_id', cleanId);
     return await this.fetchData(false);
   },
 
   hasActiveSheet() {
+    if (this.isDemoMode()) return true;
     const id = getActiveSheetId();
     return Boolean(id && id.length > 15);
   },
 
   isMasterSheet() {
-    return getActiveSheetId() === MASTER_SDOEUNG_SHEET_ID;
+    return (typeof localStorage !== 'undefined') && localStorage.getItem('sd_master_admin_authenticated') === 'true' && getActiveSheetId() === MASTER_SDOEUNG_SHEET_ID;
   },
 
   getMasterSheetId() {
@@ -1358,6 +1613,13 @@ window.DataService = {
       localStorage.removeItem('sd_profile_data');
       localStorage.removeItem('sd_local_orders');
       localStorage.removeItem('sd_local_expenses');
+      localStorage.removeItem('sd_offline_master_data');
+      localStorage.removeItem('sd_offline_custom_data');
+      localStorage.removeItem('sd_demo_mode');
+      localStorage.removeItem('sd_master_admin_authenticated');
+      localStorage.removeItem('sd_onboarding_completed');
+      localStorage.removeItem('sd_user_name');
+      localStorage.removeItem('sd_verified_seller_km');
     } catch (_) {}
     this.data = null;
     this.isLoading = false;
@@ -1366,12 +1628,19 @@ window.DataService = {
   },
 
   async resetToMasterSheet() {
-    localStorage.setItem('sd_custom_sheet_id', DEFAULT_MASTER_SHEET_ID);
-    return await this.fetchData(false);
+    if (localStorage.getItem('sd_master_admin_authenticated') === 'true') {
+      localStorage.setItem('sd_custom_sheet_id', MASTER_SDOEUNG_SHEET_ID);
+      return await this.fetchData(false);
+    }
+    this.disconnectSheet();
+    return null;
   },
 
   async testSheetConnection(input) {
-    const cleanId = extractSheetId(input) || DEFAULT_MASTER_SHEET_ID;
+    const cleanId = extractSheetId(input);
+    if (!cleanId || cleanId.length < 15) {
+      throw new Error('សូមបញ្ចូល Link Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នក');
+    }
     const url = `https://docs.google.com/spreadsheets/d/${cleanId}/gviz/tq?tqx=out:json&headers=0&sheet=Personal%20Sales&_t=${Date.now()}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 12000);
@@ -1395,7 +1664,7 @@ window.DataService = {
     }
     const parsed = JSON.parse(match[1]);
     const rowCount = parsed?.table?.rows?.length || 0;
-    return { ok: true, sheetId: cleanId, rows: rowCount };
+    return { ok: true, sheetId: cleanId, rows: rowCount, isClean: rowCount <= 1 };
   },
 
   masterDataSalesCache: null,

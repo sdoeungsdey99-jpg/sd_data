@@ -3658,31 +3658,42 @@
       <h1 class="text-xl font-black text-white text-center brand-title tracking-wide mb-1">BostarGroup Dashboard</h1>
       <p class="text-xs text-slate-400 text-center mb-6">ប្រព័ន្ធគ្រប់គ្រងការលក់ និងចំណាយ BostarGroup</p>
 
-      <!-- Step 1 Card: Make a Copy -->
+      <!-- Card 1: សម្រាប់អ្នកថ្មី (New User Onboarding Flow) -->
       <div class="w-full p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl mb-3 shadow-lg">
         <div class="flex items-center gap-2 mb-2">
-          <span class="w-5 h-5 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-400 text-[11px] font-bold flex items-center justify-center">1</span>
-          <span class="text-xs font-bold text-white">ចម្លងឯកសារ Google Sheet គំរូ</span>
+          <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-orange-500/30 to-amber-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold text-white">សម្រាប់អ្នកថ្មី (ភ្ជាប់ Google Sheet ផ្ទាល់ខ្លួន)</h3>
+            <p class="text-[10px] text-slate-400">ចាប់ផ្តើមជាមួយទំព័រទទេស្អាត និងសុវត្ថិភាពខ្ពស់</p>
+          </div>
         </div>
-        <p class="text-[11px] text-slate-400 mb-3 leading-relaxed">
-          ចុចប៊ូតុងខាងក្រោមដើម្បីបង្កើតច្បាប់ចម្លង (Make a copy) នៃ Sheet គំរូថ្មី ទៅក្នុង Google Drive ផ្ទាល់ខ្លួនរបស់អ្នក។
-        </p>
-        <a href="https://docs.google.com/spreadsheets/d/1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg/copy" target="_blank" rel="noopener noreferrer" 
-           class="w-full py-2.5 px-3 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 active:scale-95 border border-orange-500/30 text-orange-400 text-xs font-bold flex items-center justify-center gap-2 transition">
-          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-          <span>ចុច Make a copy Google Sheet 🚀</span>
-          <i data-lucide="external-link" class="w-3 h-3 text-orange-400/70"></i>
-        </a>
-      </div>
 
-      <!-- Step 2 Card: Paste Link & Name -->
-      <div class="w-full p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl mb-3 shadow-lg">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="w-5 h-5 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-400 text-[11px] font-bold flex items-center justify-center">2</span>
-          <span class="text-xs font-bold text-white">ភ្ជាប់ទិន្នន័យរបស់អ្នក</span>
+        <!-- Step 1: Make a Copy -->
+        <div class="p-3 rounded-xl bg-white/[0.03] border border-white/5 mb-3">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="w-4 h-4 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-400 text-[10px] font-bold flex items-center justify-center">1</span>
+            <span class="text-[11px] font-bold text-slate-200">ចម្លងឯកសារ Google Sheet គំរូ</span>
+          </div>
+          <p class="text-[10.5px] text-slate-400 mb-2 leading-relaxed">
+            ចុចប៊ូតុងខាងក្រោមដើម្បីបង្កើតច្បាប់ចម្លង (Make a copy) នៃ Sheet គំរូថ្មី ទៅក្នុង Google Drive ផ្ទាល់ខ្លួនរបស់អ្នក។
+          </p>
+          <a href="https://docs.google.com/spreadsheets/d/1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg/copy" target="_blank" rel="noopener noreferrer" 
+             class="w-full py-2 px-3 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 active:scale-95 border border-orange-500/30 text-orange-400 text-xs font-bold flex items-center justify-center gap-2 transition">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>ចុច Make a copy Google Sheet 🚀</span>
+            <i data-lucide="external-link" class="w-3 h-3 text-orange-400/70"></i>
+          </a>
         </div>
-        
-        <div class="space-y-3">
+
+        <!-- Step 2: Form Inputs -->
+        <div class="space-y-2.5">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-4 h-4 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-400 text-[10px] font-bold flex items-center justify-center">2</span>
+            <span class="text-[11px] font-bold text-slate-200">បំពេញព័ត៌មានរបស់អ្នក</span>
+          </div>
+
           <div>
             <label class="block text-[11px] font-medium text-slate-300 mb-1">ឈ្មោះអ្នកលក់ (Seller / Member Name) <span class="text-rose-400">*</span></label>
             <input id="onboard-member-name" type="text" placeholder="ឧ. វន ស្រីនិច / ជាន ស្រីនិច / ..." 
@@ -3690,18 +3701,12 @@
           </div>
 
           <div>
-            <label class="block text-[11px] font-medium text-slate-300 mb-1">លេខកូដពិសេស (Special Code) <span class="text-rose-400">*</span></label>
-            <input id="onboard-member-code" type="text" placeholder="បញ្ចូលលេខកូដពិសេស (ឧ. B****)" 
-                   class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white font-mono uppercase tracking-wider placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition">
-          </div>
-
-          <div>
             <label class="block text-[11px] font-medium text-slate-300 mb-1">Link Google Sheet ផ្ទាល់ខ្លួន <span class="text-rose-400">*</span></label>
-            <input id="onboard-sheet-url" type="text" placeholder="Paste Link Google Sheet នៅទីនេះ..." 
+            <input id="onboard-sheet-url" type="text" placeholder="Paste Link Google Sheet ផ្ទាល់ខ្លួននៅទីនេះ..." 
                    class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition">
           </div>
 
-          <div id="onboard-status-box" class="min-h-[20px]"></div>
+          <div id="onboard-status-box" class="min-h-[16px]"></div>
 
           <button onclick="submitOnboardingConnection()" 
                   class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-bold text-xs shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 transition">
@@ -3709,17 +3714,32 @@
             <span>ភ្ជាប់ និងចាប់ផ្តើមប្រើប្រាស់ (Connect & Start) 🚀</span>
           </button>
 
-          <!-- Direct Test Button for Team Leaders -->
-          <button onclick="enterTestMode()" 
-                  class="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
-            <span>✨ ចូលសាកល្បងមើល App (Test Clean Sheet)</span>
-          </button>
+          <!-- Safe Zero Data Notice -->
+          <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[10.5px] leading-relaxed flex items-start gap-1.5 mt-2">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-emerald-400"></i>
+            <span><strong>បញ្ជាក់សុវត្ថិភាព៖</strong> គណនីរបស់អ្នកនឹងចាប់ផ្តើមពីទំព័រទទេស្អាត (0$ គ្មានទិន្នន័យចាស់ឡើយ)។ ទិន្នន័យនឹងកើនឡើងនៅពេលអ្នកកត់ត្រាការលក់ ឬចំណាយដោយខ្លួនឯងផ្ទាល់។</span>
+          </div>
         </div>
       </div>
 
+      <!-- Card 2: ផ្ទាំងសាកល្បង (ចូលមើល App សាកល្បង) -->
+      <div class="w-full p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl mb-3 shadow-lg">
+        <div class="flex items-center gap-2 mb-1.5">
+          <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+          <h3 class="text-xs font-bold text-white">ចូលសាកល្បងមើល App (Demo Mode)</h3>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-3 leading-relaxed">
+          បង្ហាញទិន្នន័យគំរូ ២ ទៅ ៣ ជួរ ដើម្បីស្វែងយល់ពីរបៀបដំណើរការ Card ក្រាហ្វិក និងតារាង (គ្មានទិន្នន័យពិតប្រាកដ ឬ Link របស់នរណាម្នាក់ឡើយ)។
+        </p>
+        <button onclick="enterTestMode()" 
+                class="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+          <i data-lucide="play" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>✨ ចូលសាកល្បងមើល App ឥឡូវនេះ (បង្ហាញ ២-៣ ជួរ)</span>
+        </button>
+      </div>
+
       <!-- Instructions on Share Permission -->
-      <div class="w-full p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-slate-300 text-[11px] leading-relaxed space-y-1.5 mb-4 shadow-sm">
+      <div class="w-full p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-slate-300 text-[11px] leading-relaxed space-y-1.5 mb-3 shadow-sm">
         <div class="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
           <i data-lucide="info" class="w-3.5 h-3.5 shrink-0"></i>
           <span>របៀបបើក Share សិទ្ធិ Google Sheet</span>
@@ -3763,21 +3783,12 @@
         <i data-lucide="chevron-right" class="w-4 h-4 text-amber-400/70 group-hover:translate-x-0.5 transition shrink-0"></i>
       </button>
 
-      <!-- Master Admin Executive Card for Brother Sdoeung (Hidden from default onboarding view) -->
-      <button id="onboard-master-admin-btn" onclick="openMasterAdminPinModal()" 
-              class="hidden w-full p-3.5 rounded-2xl bg-gradient-to-r from-orange-500/15 via-amber-500/15 to-yellow-500/10 border border-orange-500/35 hover:border-orange-500/55 text-left active:scale-[0.98] transition mb-3 shadow-lg shadow-orange-500/10 group flex items-center justify-between">
-        <div class="flex items-center gap-3 min-w-0">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500/25 to-amber-500/20 border border-orange-500/40 flex items-center justify-center shrink-0 shadow-inner">
-            <i data-lucide="shield-check" class="w-5 h-5 text-orange-400"></i>
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5 mb-0.5">
-              <h4 class="text-xs font-bold text-white group-hover:text-orange-300 transition truncate">ចូលប្រើប្រាស់ជា Master Admin</h4>
-              <span class="px-1.5 py-0.5 rounded-full bg-orange-500/25 border border-orange-500/40 text-[9px] font-bold text-orange-300 whitespace-nowrap">ស្ដី ស្នើង</span>
-            </div>
-            <p class="text-[10.5px] text-slate-400 truncate">គណនីគ្រប់គ្រងកណ្តាល • ប្រព័ន្ធ BostarGroup</p>
-          </div>
-        </div>
+      <!-- Master Admin Entry for Brother Sdoeung -->
+      <button onclick="openMasterAdminPinModal()" 
+              class="w-full py-2.5 px-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 text-slate-400 hover:text-slate-200 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 mb-4">
+        <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span>🔐 ចូលជា Master Admin (ស្តី ស្តើង)</span>
+      </button>
         <div class="w-8 h-8 rounded-xl bg-white/5 group-hover:bg-orange-500/20 flex items-center justify-center transition shrink-0 ml-1">
           <i data-lucide="key-round" class="w-4 h-4 text-orange-400/80 group-hover:text-orange-300"></i>
         </div>
@@ -3821,6 +3832,17 @@
   <!-- ======================================================== -->
   <div id="app-container" class="relative z-10 flex flex-col h-full w-full max-w-md mx-auto overflow-hidden">
     
+    <!-- Demo Mode Notice Capsule Bar (Shown only in Demo Mode) -->
+    <div id="demo-mode-indicator-bar" class="hidden w-full bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-500/10 border-b border-amber-500/25 px-3.5 py-1.5 flex items-center justify-between text-[11px] text-amber-300 z-30 shrink-0">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+        <span class="truncate font-semibold">របៀបសាកល្បង (ទិន្នន័យគំរូ ២-៣ ជួរ)</span>
+      </div>
+      <button type="button" onclick="disconnectCustomSheet()" class="px-2.5 py-0.5 rounded-full bg-amber-500/25 hover:bg-amber-500/35 border border-amber-500/40 text-amber-200 font-bold text-[10px] active:scale-95 transition shrink-0 ml-2">
+        ភ្ជាប់ Sheet ផ្ទាល់ខ្លួន ➔
+      </button>
+    </div>
+
     <!-- Top Header Navigation (Tap empty area/Status Bar to Scroll to Top like Native iOS) -->
     <header id="top-header" onclick="handleHeaderScrollToTop(event)" class="h-16 px-4 flex items-center justify-between shrink-0 border-b border-white/5 backdrop-blur-md z-30 relative cursor-pointer">
       
