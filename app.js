@@ -5314,13 +5314,13 @@ function getMemberBostarTrackSetsAndDaily(memberName, d, monthOverride = null) {
   const monthAbbr = monthAbbrs[monthNum - 1] || 'Aug';
   const monthLabel = `${String(monthNum).padStart(2, '0')}/${yearNum}`;
 
-  // BostarTrack product sets: Set 1, Set 2, Set 3, Set 5, Set 6 (NO Set 4!)
-  const setCounts = { 1: 0, 2: 0, 3: 0, 5: 0, 6: 0 };
+  // BostarTrack product sets: Set 1, Set 2, Set 3, Set 4, Set 5, Set 6
+  const setCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
   let totalBoxes = 0;
 
   const dailyMap = {};
   for (let day = 1; day <= daysInMonth; day++) {
-    dailyMap[day] = { sets: { 1: 0, 2: 0, 3: 0, 5: 0, 6: 0 }, totalBoxes: 0, orders: 0 };
+    dailyMap[day] = { sets: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }, totalBoxes: 0, orders: 0 };
   }
 
   memberOrders.forEach(o => {
@@ -5333,10 +5333,11 @@ function getMemberBostarTrackSetsAndDaily(memberName, d, monthOverride = null) {
     if (b <= 0) b = yl + ylp + kn + pdo + free;
     b = Math.max(0, Math.round(b));
 
-    // Bostar sets: Set 1 (1 box), Set 2 (2 boxes), Set 3 (3 boxes, or 3+1 promo 4-box), Set 5 (5 boxes), Set 6 (>=6 boxes)
+    // Bostar sets: Set 1 (1 box), Set 2 (2 boxes), Set 3 (3 boxes), Set 4 (4 boxes), Set 5 (5 boxes), Set 6 (>=6 boxes)
     if (b === 1) setCounts[1]++;
     else if (b === 2) setCounts[2]++;
-    else if (b === 3 || b === 4) setCounts[3]++;
+    else if (b === 3) setCounts[3]++;
+    else if (b === 4) setCounts[4]++;
     else if (b === 5) setCounts[5]++;
     else if (b >= 6) setCounts[6]++;
 
@@ -5351,7 +5352,8 @@ function getMemberBostarTrackSetsAndDaily(memberName, d, monthOverride = null) {
           dailyMap[dayNum].totalBoxes += b;
           if (b === 1) dailyMap[dayNum].sets[1]++;
           else if (b === 2) dailyMap[dayNum].sets[2]++;
-          else if (b === 3 || b === 4) dailyMap[dayNum].sets[3]++;
+          else if (b === 3) dailyMap[dayNum].sets[3]++;
+          else if (b === 4) dailyMap[dayNum].sets[4]++;
           else if (b === 5) dailyMap[dayNum].sets[5]++;
           else if (b >= 6) dailyMap[dayNum].sets[6]++;
         }
@@ -5695,31 +5697,37 @@ function openMemberDailyBreakdownModal(memberName) {
                 <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
                     <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[1] || 0}</span>
-                    <span class="text-[9px] text-slate-400">ឈុត ១</span>
+                    <span class="text-[9px] text-slate-400">ឈុត 1</span>
                   </div>
                 </th>
                 <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
                     <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[2] || 0}</span>
-                    <span class="text-[9px] text-slate-400">ឈុត ២</span>
+                    <span class="text-[9px] text-slate-400">ឈុត 2</span>
                   </div>
                 </th>
                 <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
                     <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[3] || 0}</span>
-                    <span class="text-[9px] text-slate-400">ឈុត ៣</span>
+                    <span class="text-[9px] text-slate-400">ឈុត 3</span>
+                  </div>
+                </th>
+                <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="w-5 h-5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[4] || 0}</span>
+                    <span class="text-[9px] text-slate-400">ឈុត 4</span>
                   </div>
                 </th>
                 <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
                     <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[5] || 0}</span>
-                    <span class="text-[9px] text-slate-400">ឈុត ៥</span>
+                    <span class="text-[9px] text-slate-400">ឈុត 5</span>
                   </div>
                 </th>
                 <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-1.5 font-bold">
                   <div class="flex flex-col items-center gap-0.5">
                     <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9.5px]">${data.setCounts[6] || 0}</span>
-                    <span class="text-[9px] text-slate-400">ឈុត ៦</span>
+                    <span class="text-[9px] text-slate-400">ឈុត 6</span>
                   </div>
                 </th>
                 <th class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 font-bold rounded-tr-2xl">
@@ -5731,12 +5739,13 @@ function openMemberDailyBreakdownModal(memberName) {
               </tr>
             </thead>
 
-          <!-- Table Body Rows (7 Columns: Day, Set 1, Set 2, Set 3, Set 5, Set 6, Total) -->
+          <!-- Table Body Rows (8 Columns: Day, Set 1, Set 2, Set 3, Set 4, Set 5, Set 6, Total) -->
           <tbody class="divide-y divide-white/5 font-mono text-[11px]">
             ${rowsToDisplay.length > 0 ? rowsToDisplay.map(r => {
               const s1 = (r.sets[1] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">${r.sets[1]}</span>` : '<span class="text-slate-600">—</span>';
               const s2 = (r.sets[2] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">${r.sets[2]}</span>` : '<span class="text-slate-600">—</span>';
               const s3 = (r.sets[3] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">${r.sets[3]}</span>` : '<span class="text-slate-600">—</span>';
+              const s4 = (r.sets[4] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 font-bold border border-orange-500/30">${r.sets[4]}</span>` : '<span class="text-slate-600">—</span>';
               const s5 = (r.sets[5] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">${r.sets[5]}</span>` : '<span class="text-slate-600">—</span>';
               const s6 = (r.sets[6] > 0) ? `<span class="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">${r.sets[6]}</span>` : '<span class="text-slate-600">—</span>';
               const tot = (r.totalBoxes > 0) ? `<span class="text-emerald-400 font-bold text-xs">${r.totalBoxes}</span>` : '<span class="text-slate-600">—</span>';
@@ -5747,6 +5756,7 @@ function openMemberDailyBreakdownModal(memberName) {
                   <td class="py-2 px-1.5">${s1}</td>
                   <td class="py-2 px-1.5">${s2}</td>
                   <td class="py-2 px-1.5">${s3}</td>
+                  <td class="py-2 px-1.5">${s4}</td>
                   <td class="py-2 px-1.5">${s5}</td>
                   <td class="py-2 px-1.5">${s6}</td>
                   <td class="py-2 px-2">${tot}</td>
@@ -5754,7 +5764,7 @@ function openMemberDailyBreakdownModal(memberName) {
               `;
             }).join('') : `
               <tr>
-                <td colspan="7" class="py-6 text-center text-xs text-slate-500 italic">មិនមានការលក់ក្នុងខែនេះទេ</td>
+                <td colspan="8" class="py-6 text-center text-xs text-slate-500 italic">មិនមានការលក់ក្នុងខែនេះទេ</td>
               </tr>
             `}
           </tbody>
@@ -5821,6 +5831,7 @@ function buildMemberReportText(memberName) {
          `  • Set 1: ${data.setCounts[1] || 0}\n` +
          `  • Set 2: ${data.setCounts[2] || 0}\n` +
          `  • Set 3: ${data.setCounts[3] || 0}\n` +
+         `  • Set 4: ${data.setCounts[4] || 0}\n` +
          `  • Set 5: ${data.setCounts[5] || 0}\n` +
          `  • Set 6: ${data.setCounts[6] || 0}\n` +
          `📈 Boost: ${data.boostDisplay}\n` +
@@ -31068,15 +31079,15 @@ async function submitNewOrder() {
 
   if (syncSuccess || companyFormSuccess) {
     const successMsg = (syncToCompany && companyFormSuccess) 
-      ? '✅ បានកត់ត្រាការលក់ និង Sync 4-in-1 (BostarTrack, Form ក្រុមហ៊ុន & Telegram) ជោគជ័យ! 🚀'
+      ? '✅ បានកត់ត្រាការលក់ និង Sync ចូល BostarTrack / Form ក្រុមហ៊ុនជោគជ័យ! 🚀'
       : '✅ បានកត់ត្រាការលក់ចូល Google Sheet ជោគជ័យ! 🚀';
 
     if (typeof addAppNotification === 'function') {
       addAppNotification({
         type: 'order',
-        title: (syncToCompany ? 'កុម្ម៉ង់ 4-in-1: ' : 'កត់ត្រាការលក់: ') + `${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
+        title: (syncToCompany ? 'កុម្ម៉ង់ 3-in-1: ' : 'កត់ត្រាការលក់: ') + `${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
         content: `${newRecord.product} | ${totalBoxes} ប្រអប់ | $${formatUSD(totalUsd).replace('$', '')} | Team: ${team} | ដឹក: ${delivery}`,
-        tag: syncToCompany ? '4-in-1 Sync ✓' : 'Google Sheet ✓',
+        tag: syncToCompany ? 'BostarTrack & Sheet ✓' : 'Google Sheet ✓',
         color: isReward ? 'amber' : (isReturn ? 'sky' : 'orange'),
         icon: isReward ? 'gift' : (isReturn ? 'rotate-ccw' : 'package')
       });
