@@ -2165,29 +2165,35 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // 1. Scrolling content down (finger moving up) -> Smoothly hide Dock & Filter Bar (Home & Analytics)
+    // 1. Scrolling content down (finger moving up) -> Smoothly hide Dock & Filter Bar (except on Home Page)
     if (diff > 8 && currentScrollTop > 30) {
-      setDockVisible(false);
-      if (isMain && filterBar) filterBar.classList.add('filter-hidden');
-      if (isMain && appState.currentView === 'analytics') {
-        const analyticsHeader = document.getElementById('analytics-sticky-header');
-        if (analyticsHeader && !analyticsHeader.classList.contains('filter-hidden')) {
-          const analyticsMenu = document.getElementById('analytics-view-dropdown-menu');
-          if (analyticsMenu) analyticsMenu.classList.add('hidden');
-          analyticsHeader.classList.add('filter-hidden');
+      // Home Page (dashboard): Dock & Filter Bar remain STATIC (pinned / no auto-hide)
+      if (isMain && appState.currentView === 'dashboard') {
+        setDockVisible(true);
+        if (filterBar) filterBar.classList.remove('filter-hidden');
+      } else {
+        setDockVisible(false);
+        if (isMain && filterBar) filterBar.classList.add('filter-hidden');
+        if (isMain && appState.currentView === 'analytics') {
+          const analyticsHeader = document.getElementById('analytics-sticky-header');
+          if (analyticsHeader && !analyticsHeader.classList.contains('filter-hidden')) {
+            const analyticsMenu = document.getElementById('analytics-view-dropdown-menu');
+            if (analyticsMenu) analyticsMenu.classList.add('hidden');
+            analyticsHeader.classList.add('filter-hidden');
+          }
         }
-      }
-      if (isMain && appState.currentView === 'learning') {
-        const studyHeader = document.getElementById('study-sticky-header');
-        if (studyHeader && !studyHeader.classList.contains('filter-hidden')) {
-          studyHeader.classList.add('filter-hidden');
+        if (isMain && appState.currentView === 'learning') {
+          const studyHeader = document.getElementById('study-sticky-header');
+          if (studyHeader && !studyHeader.classList.contains('filter-hidden')) {
+            studyHeader.classList.add('filter-hidden');
+          }
         }
-      }
-      if (el.id === 'expenses-modal-list') {
-        const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
-        if (expFilterBar && !expFilterBar.classList.contains('filter-hidden')) {
-          closeAllExpensesDropdowns();
-          expFilterBar.classList.add('filter-hidden');
+        if (el.id === 'expenses-modal-list') {
+          const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
+          if (expFilterBar && !expFilterBar.classList.contains('filter-hidden')) {
+            closeAllExpensesDropdowns();
+            expFilterBar.classList.add('filter-hidden');
+          }
         }
       }
     }
@@ -2232,6 +2238,7 @@ function hookScrollableForDock(el, isMain = false) {
     // 4. When scrolling stops / screen is still -> Smoothly restore Dock (except when deep inside profile drawer or in dialog modal)
     clearTimeout(scrollIdleTimer);
     scrollIdleTimer = setTimeout(() => {
+      if (isMain && appState.currentView === 'dashboard') return; // Home Page stays static; no idle timer needed
       if (el.id === 'profile-drawer-content' && el.scrollTop > 25) return;
       if (isDialogModalOpen()) return;
       setDockVisible(true);
