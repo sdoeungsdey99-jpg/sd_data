@@ -3818,6 +3818,15 @@ function instantLockExecutiveCard() {
   }
 }
 
+function hasAuthenticatedAccount() {
+  const isDemo = (typeof DataService !== 'undefined' && DataService.isDemoMode && DataService.isDemoMode()) || (localStorage.getItem('sd_demo_mode') === 'true');
+  if (isDemo) return false;
+  const customId = localStorage.getItem('sd_custom_sheet_id');
+  const isMasterAuth = (localStorage.getItem('sd_master_admin_authenticated') === 'true');
+  return Boolean(customId && customId.trim()) || isMasterAuth;
+}
+window.hasAuthenticatedAccount = hasAuthenticatedAccount;
+
 function openAppWideSecurityModal() {
   let modal = document.getElementById('app-wide-security-modal');
   if (!modal) {
@@ -3913,6 +3922,7 @@ function openAppWideSecurityModal() {
           </button>
         </div>
 
+        ${hasAuthenticatedAccount() ? `
         <!-- 4. Global App Log Out -->
         <button type="button" onclick="closeAppWideSecurityModal(); openProfileSubModal('logout');" 
                 class="w-full p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 flex items-center justify-between group active:scale-[0.99] transition text-left">
@@ -3927,6 +3937,7 @@ function openAppWideSecurityModal() {
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-rose-400/60 group-hover:text-rose-400 transition"></i>
         </button>
+        ` : ''}
       </div>
 
       <!-- Close Button -->
@@ -23568,6 +23579,7 @@ function renderProfileDrawerContent() {
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
       </div>
 
+      ${hasAuthenticatedAccount() ? `
       <!-- 5. ចាកចេញ (Log Out) -->
       <div onclick="closeProfileDrawer(); openProfileSubModal('logout', true);" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-rose-500/10 active:scale-[0.99] transition select-none">
@@ -23582,6 +23594,7 @@ function renderProfileDrawerContent() {
         </div>
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-rose-400/60 shrink-0"></i>
       </div>
+      ` : ''}
 
     </div>
   `;
@@ -23847,8 +23860,9 @@ function getProfileViewHTML() {
       </div>
 
       <!-- ======================================================== -->
-      <!-- ZONE 4: LOG OUT BUTTON (Log out ដើម្បីប្រើ Mail ផ្សេង Beta) -->
+      <!-- ZONE 4: LOG OUT BUTTON (បង្ហាញតែចំពោះអ្នកដែលមានគណនីចូលប្រើប៉ុណ្ណោះ) -->
       <!-- ======================================================== -->
+      ${hasAuthenticatedAccount() ? `
       <button onclick="openProfileSubModal('logout')" 
               class="w-full p-3.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 flex items-center justify-between transition active:scale-[0.99]">
         <div class="flex items-center gap-3">
@@ -23865,6 +23879,7 @@ function getProfileViewHTML() {
         </div>
         <i data-lucide="chevron-right" class="w-4 h-4 text-rose-400"></i>
       </button>
+      ` : ''}
 
     </div>
   `;
@@ -25690,6 +25705,10 @@ function closeProfileSubModal() {
 function openProfileSubModal(type, fromDrawer = true) {
   if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
   window.navOpenedFromDrawer.profileSubModal = !!fromDrawer;
+  if (type === 'logout' && typeof hasAuthenticatedAccount === 'function' && !hasAuthenticatedAccount()) {
+    showToastNotification('⚠️ លោកអ្នកមិនទាន់បានចូលប្រើប្រាស់គណនីនៅឡើយទេ');
+    return;
+  }
   if (type === 'members') {
     openTeamMembersModal(null, fromDrawer);
     return;
@@ -25785,11 +25804,11 @@ function openProfileSubModal(type, fromDrawer = true) {
             </button>
           </div>
 
-          ${(isCustom || isDemo) ? `
+          ${isCustom ? `
             <button onclick="disconnectCustomSheet()" 
                     class="w-full mt-2 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5">
               <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-              <span>${isDemo ? 'ចាកចេញពីរបៀបសាកល្បង (Exit Demo)' : 'ផ្តាច់ការតភ្ជាប់ Sheet (Disconnect)'}</span>
+              <span>ផ្តាច់ការតភ្ជាប់ Sheet (Disconnect)</span>
             </button>
           ` : (isMaster ? `
             <button onclick="disconnectCustomSheet()" 
