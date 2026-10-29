@@ -24003,15 +24003,10 @@ function setAllCustomersSort(mode) {
 function updateCustomersScopeUI() {
   const checkPersonal = document.getElementById('cust-check-scope-personal');
   const checkAll = document.getElementById('cust-check-scope-all');
-  const btnPersonal = document.getElementById('btn-cust-scope-personal');
-  const lockIcon = document.getElementById('cust-lock-icon-all');
-
   const isAll = (allCustomersScopeMode === 'all');
 
   if (checkPersonal) checkPersonal.classList.toggle('hidden', isAll);
   if (checkAll) checkAll.classList.toggle('hidden', !isAll);
-  if (btnPersonal) btnPersonal.classList.toggle('hidden', !isAll);
-  if (lockIcon) lockIcon.classList.toggle('hidden', isAll);
 }
 
 async function setCustomersScope(mode) {
@@ -24019,16 +24014,21 @@ async function setCustomersScope(mode) {
     allCustomersScopeMode = 'personal';
     updateCustomersScopeUI();
     renderAllCustomersList();
-    if (typeof showToast === 'function') {
-      showToast('ត្រឡប់មកកាន់អតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួន');
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('ត្រឡប់មកកាន់អតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួន 📄');
     }
     return;
   }
 
   if (mode === 'all') {
-    // 1. Get current Profile Name
+    // 1. Get current Profile Name or verified seller name from onboarding
     const prof = (typeof getProfileData === 'function') ? getProfileData() : null;
-    const currentName = (prof && prof.name) ? prof.name.trim() : '';
+    let currentName = (prof && prof.name) ? prof.name.trim() : '';
+
+    if (!currentName || currentName === 'BostarGroup' || currentName === 'សមាជិក Bostar' || currentName === 'ឈ្មោះ​អ្នកប្រើ') {
+      const verifiedKm = localStorage.getItem('sd_verified_seller_km') || localStorage.getItem('sd_user_name');
+      if (verifiedKm) currentName = verifiedKm.trim();
+    }
 
     if (!currentName || currentName === 'BostarGroup' || currentName === 'សមាជិក Bostar' || currentName === 'ឈ្មោះ​អ្នកប្រើ') {
       alert('សូមចូលទៅកាន់ Profile Settings រួចកំណត់ "ឈ្មោះរបស់អ្នក" ឱ្យត្រូវនឹងឈ្មោះអ្នកលក់ជាមុនសិន!');
@@ -24043,26 +24043,29 @@ async function setCustomersScope(mode) {
       console.warn('Failed to fetch team codes:', e);
     }
 
-    const normCurrent = normalizeSellerName(currentName);
-    const matchedSeller = teamCodes.find(t => 
-      normalizeSellerName(t.km) === normCurrent || 
-      normalizeSellerName(t.en) === normCurrent
+    const normCurrent = (typeof normalizeSellerName === 'function') ? normalizeSellerName(currentName) : currentName.toLowerCase().trim();
+    let matchedSeller = teamCodes.find(t => 
+      ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.km) : t.km.toLowerCase().trim()) === normCurrent || 
+      ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.en) : t.en.toLowerCase().trim()) === normCurrent
     );
 
+    // If still not matched, check if sd_verified_seller_km matches
     if (!matchedSeller) {
-      alert(`ឈ្មោះ Profile "${currentName}" មិនត្រូវគ្នានឹងឈ្មោះអ្នកលក់ផ្លូវការឡើយ!\n\nសូមពិនិត្យឈ្មោះក្នុង Profile ឬទាក់ទង Admin។`);
-      return;
+      const savedSeller = localStorage.getItem('sd_verified_seller_km');
+      if (savedSeller) {
+        const normSaved = (typeof normalizeSellerName === 'function') ? normalizeSellerName(savedSeller) : savedSeller.toLowerCase().trim();
+        matchedSeller = teamCodes.find(t => 
+          ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.km) : t.km.toLowerCase().trim()) === normSaved || 
+          ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.en) : t.en.toLowerCase().trim()) === normSaved
+        );
+      }
     }
 
-    // 3. Check if already verified
-    const authKey = 'sd_master_cust_auth_' + normCurrent;
-    const isAuthed = localStorage.getItem(authKey) === 'true';
+    // Fallback: if not found in list, use currentName directly
+    const sellerToUse = matchedSeller || { km: currentName, en: currentName, code: '' };
 
-    if (isAuthed) {
-      await loadAndActivateMasterCustomers(matchedSeller);
-    } else {
-      openMasterCustomerAuthModal(matchedSeller);
-    }
+    // 3. Seamlessly activate Master Data without demanding code again!
+    await loadAndActivateMasterCustomers(sellerToUse);
   }
 }
 
@@ -24236,9 +24239,9 @@ function renderAllCustomersList() {
   
   if (heading) {
     if (allCustomersScopeMode === 'all') {
-      heading.innerHTML = `អតិថិជនទាំងអស់ <span class="px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30">Master</span> <span id="all-customers-count-text" class="text-amber-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+      heading.innerHTML = `អតិថិជនទាំងអស់ <span class="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30">Master</span> <span id="all-customers-count-text" class="text-amber-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
     } else {
-      heading.innerHTML = `បញ្ជីអតិថិជនទាំងអស់ <span id="all-customers-count-text" class="text-orange-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+      heading.innerHTML = `បញ្ជីអតិថិជន <span class="px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-mono text-[9px] font-bold border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span> <span id="all-customers-count-text" class="text-blue-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
     }
   } else if (countText) {
     countText.textContent = countDisplay;
@@ -24356,7 +24359,21 @@ function renderAllCustomersList() {
         ` : ''}
       </div>
     `;
-  }).join('') || `<p class="text-xs text-slate-400 text-center py-10">មិនមានទិន្នន័យអតិថិជនទេ</p>`;
+  }).join('') || (allCustomersScopeMode === 'all'
+    ? `<div class="text-center py-12 px-4 space-y-2">
+         <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center mx-auto text-amber-400">
+           <i data-lucide="database" class="w-5 h-5"></i>
+         </div>
+         <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនចាស់ក្នុង Master Data នៅឡើយទេ</p>
+         <p class="text-[11px] text-slate-500">អ្នកអាចប្តូរទៅកាន់ "Sheet ផ្ទាល់ខ្លួន" ដើម្បីពិនិត្យមើលទិន្នន័យបច្ចុប្បន្ន</p>
+       </div>`
+    : `<div class="text-center py-12 px-4 space-y-2">
+         <div class="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center mx-auto text-blue-400">
+           <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+         </div>
+         <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួននៅឡើយទេ</p>
+         <p class="text-[11px] text-slate-500">រាល់ការកត់ត្រាការលក់ថ្មី អតិថិជននឹងបង្ហាញនៅទីនេះដោយស្វ័យប្រវត្តិ</p>
+       </div>`);
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -24917,6 +24934,9 @@ async function submitOnboardingConnection() {
     
     // Auto-authorize Master Data for this seller
     const verifiedSellerKm = matchedSeller.km || name;
+    localStorage.setItem('sd_verified_seller_km', verifiedSellerKm);
+    localStorage.setItem('sd_user_name', verifiedSellerKm);
+    localStorage.setItem('sd_member_special_code', code);
     localStorage.setItem('sd_master_cust_auth_' + normalizeSellerName(verifiedSellerKm), 'true');
 
     const memberProfile = {

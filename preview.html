@@ -4612,25 +4612,31 @@
                     </button>
                   </div>
 
-                  <div class="pt-1 space-y-0.5">
-                    <button onclick="setCustomersScope('all'); toggleCustomersSortMenu();" 
+                  <!-- Data Scope Section -->
+                  <div class="pt-1.5 mt-1 border-t border-white/10 space-y-0.5">
+                    <div class="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                      <span>ប្រភពទិន្នន័យ</span>
+                      <span class="text-[9px] text-slate-500 font-mono">Scope</span>
+                    </div>
+
+                    <!-- Personal Sheet Option -->
+                    <button id="btn-cust-scope-personal" onclick="setCustomersScope('personal'); toggleCustomersSortMenu();" 
+                            class="w-full text-left px-3 py-2 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition group">
+                      <span class="flex items-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition"></i>
+                        <span class="font-medium text-slate-200">Sheet ផ្ទាល់ខ្លួន</span>
+                      </span>
+                      <span id="cust-check-scope-personal" class="text-blue-400 text-xs font-bold">✓</span>
+                    </button>
+
+                    <!-- Master Data Option (Auto-verified without code prompt) -->
+                    <button id="btn-cust-scope-all" onclick="setCustomersScope('all'); toggleCustomersSortMenu();" 
                             class="w-full text-left px-3 py-2 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition group">
                       <span class="flex items-center gap-2">
                         <i data-lucide="database" class="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition"></i>
                         <span class="font-bold text-amber-300">អតិថិជនទាំងអស់</span>
                       </span>
-                      <div class="flex items-center gap-1">
-                        <i id="cust-lock-icon-all" data-lucide="lock" class="w-3 h-3 text-amber-400/70"></i>
-                        <span id="cust-check-scope-all" class="text-amber-400 text-xs font-bold hidden">✓</span>
-                      </div>
-                    </button>
-                    <button id="btn-cust-scope-personal" onclick="setCustomersScope('personal'); toggleCustomersSortMenu();" 
-                            class="w-full text-left px-3 py-1.5 text-[11px] text-slate-300 hover:bg-white/10 rounded-xl flex items-center justify-between transition hidden">
-                      <span class="flex items-center gap-2">
-                        <i data-lucide="user" class="w-3 h-3 text-blue-400"></i>
-                        <span>Sheet ផ្ទាល់ខ្លួន</span>
-                      </span>
-                      <span id="cust-check-scope-personal" class="text-blue-400 text-xs font-bold">✓</span>
+                      <span id="cust-check-scope-all" class="text-amber-400 text-xs font-bold hidden">✓</span>
                     </button>
                   </div>
                 </div>
@@ -6895,6 +6901,6 @@
   </div>
 
   <script src="dataService.js?v=8.3"></script>
-  <script src="app.js?v=50.9"></script>
+  <script src="app.js?v=51.0"></script>
 </body>
 </html>
