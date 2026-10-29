@@ -31733,12 +31733,42 @@ function setExpenseCurrency(curr) {
 
   if (currentExpenseCurrency === 'KHR') {
     if (symEl) symEl.textContent = '៛';
-    if (amtInput) amtInput.placeholder = '10000';
+    if (amtInput) {
+      amtInput.placeholder = '10000';
+      amtInput.step = '500';
+      const currentVal = parseFloat(amtInput.value || '0');
+      if (currentVal > 0 && currentVal < 500) {
+        amtInput.value = Math.round(currentVal * 4000);
+      }
+    }
     if (hintEl) hintEl.classList.remove('hidden');
   } else {
     if (symEl) symEl.textContent = '$';
-    if (amtInput) amtInput.placeholder = '0.00';
+    if (amtInput) {
+      amtInput.placeholder = '0.00';
+      amtInput.step = '0.05';
+      const currentVal = parseFloat(amtInput.value || '0');
+      if (currentVal >= 500) {
+        amtInput.value = (currentVal / 4000).toFixed(2);
+      }
+    }
     if (hintEl) hintEl.classList.add('hidden');
+  }
+
+  // Update quick amount chips labels based on currency
+  const grid = document.getElementById('expense-quick-chips-grid');
+  if (grid) {
+    if (currentExpenseCurrency === 'KHR') {
+      const khrChips = [3000, 4000, 5000, 6000, 8000, 10000, 12000, 20000];
+      grid.innerHTML = khrChips.map(amt => `
+        <button type="button" onclick="setExpenseAmount(${amt})" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">${amt.toLocaleString()}៛</button>
+      `).join('');
+    } else {
+      const usdChips = [0.75, 1.00, 1.25, 1.50, 2.00, 2.50, 3.00, 5.00];
+      grid.innerHTML = usdChips.map(amt => `
+        <button type="button" onclick="setExpenseAmount(${amt})" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$${amt.toFixed(2)}</button>
+      `).join('');
+    }
   }
 
   onExpenseAmountInput();
@@ -31898,8 +31928,13 @@ function applyExpensePreset(desc, category, amount) {
 function setExpenseAmount(amount) {
   const amtInput = document.getElementById('expense-field-amount');
   if (amtInput) {
-    amtInput.value = Number(amount).toFixed(2);
+    if (currentExpenseCurrency === 'KHR') {
+      amtInput.value = (amount >= 500) ? Math.round(amount) : Math.round(Number(amount) * 4000);
+    } else {
+      amtInput.value = (amount >= 500) ? (amount / 4000).toFixed(2) : Number(amount).toFixed(2);
+    }
     amtInput.focus();
+    onExpenseAmountInput();
   }
   if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
 }
