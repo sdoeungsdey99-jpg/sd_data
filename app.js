@@ -15158,6 +15158,7 @@ function renderTeamSetsModalContent() {
     const sumSet3 = rows.reduce((s, r) => s + (r.set3 || 0), 0);
     const sumSet4 = rows.reduce((s, r) => s + (r.set4 || 0), 0);
     const sumSet5 = rows.reduce((s, r) => s + (r.set5 || 0), 0);
+    const sumSet6 = rows.reduce((s, r) => s + (r.set6 || 0), 0);
     const sumBoxes = rows.reduce((s, r) => s + (r.totalBoxes || 0), 0);
     const sumBoost = rows.reduce((s, r) => s + (r.boost || 0), 0);
 
@@ -15177,6 +15178,7 @@ function renderTeamSetsModalContent() {
     const displaySet3 = hasActiveDateFilter ? sumSet3 : (leader.set3 || sumSet3 || 0);
     const displaySet4 = hasActiveDateFilter ? sumSet4 : (leader.set4 || sumSet4 || 0);
     const displaySet5 = hasActiveDateFilter ? sumSet5 : (leader.set5 || sumSet5 || 0);
+    const displaySet6 = hasActiveDateFilter ? sumSet6 : (leader.set6 || sumSet6 || 0);
     const displayBoxes = hasActiveDateFilter ? sumBoxes : (leader.totalBoxes || sumBoxes || 0);
     const displayBoost = hasActiveDateFilter ? sumBoost : (leader.boost || sumBoost || 0);
 
@@ -15203,7 +15205,7 @@ function renderTeamSetsModalContent() {
                 <span class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
                   ${displaySet1}
                 </span>
-                <span class="font-bold text-[10.5px] text-amber-300/90 whitespace-nowrap">${isKm ? 'ឈុត ១' : 'Set 1'}</span>
+                <span class="font-bold text-[10.5px] text-amber-300/90 whitespace-nowrap">${isKm ? 'ឈុត 1' : 'Set 1'}</span>
               </div>
             </th>
             <th class="py-2 px-1 text-center">
@@ -15211,7 +15213,7 @@ function renderTeamSetsModalContent() {
                 <span class="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
                   ${displaySet2}
                 </span>
-                <span class="font-bold text-[10.5px] text-emerald-300/90 whitespace-nowrap">${isKm ? 'ឈុត ២' : 'Set 2'}</span>
+                <span class="font-bold text-[10.5px] text-emerald-300/90 whitespace-nowrap">${isKm ? 'ឈុត 2' : 'Set 2'}</span>
               </div>
             </th>
             <th class="py-2 px-1 text-center">
@@ -15219,7 +15221,15 @@ function renderTeamSetsModalContent() {
                 <span class="w-6 h-6 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
                   ${displaySet3}
                 </span>
-                <span class="font-bold text-[10.5px] text-blue-300/90 whitespace-nowrap">${isKm ? 'ឈុត ៣' : 'Set 3'}</span>
+                <span class="font-bold text-[10.5px] text-blue-300/90 whitespace-nowrap">${isKm ? 'ឈុត 3' : 'Set 3'}</span>
+              </div>
+            </th>
+            <th class="py-2 px-1 text-center">
+              <div class="flex flex-col items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
+                  ${displaySet4}
+                </span>
+                <span class="font-bold text-[10.5px] text-orange-300/90 whitespace-nowrap">${isKm ? 'ឈុត 4' : 'Set 4'}</span>
               </div>
             </th>
             <th class="py-2 px-1 text-center">
@@ -15227,7 +15237,15 @@ function renderTeamSetsModalContent() {
                 <span class="w-6 h-6 rounded-full bg-pink-500/20 border border-pink-500/40 text-pink-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
                   ${displaySet5}
                 </span>
-                <span class="font-bold text-[10.5px] text-pink-300/90 whitespace-nowrap">${isKm ? 'ឈុត ៥' : 'Set 5'}</span>
+                <span class="font-bold text-[10.5px] text-pink-300/90 whitespace-nowrap">${isKm ? 'ឈុត 5' : 'Set 5'}</span>
+              </div>
+            </th>
+            <th class="py-2 px-1 text-center">
+              <div class="flex flex-col items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-mono font-bold text-[11px] flex items-center justify-center shadow-sm">
+                  ${displaySet6}
+                </span>
+                <span class="font-bold text-[10.5px] text-purple-300/90 whitespace-nowrap">${isKm ? 'ឈុត 6' : 'Set 6'}</span>
               </div>
             </th>
             <th class="py-2 px-1 text-center">
@@ -15266,7 +15284,13 @@ function renderTeamSetsModalContent() {
                   ${(r.set3 || 0) > 0 ? `<span class="inline-block px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold text-[10.5px]">${r.set3}</span>` : '<span class="text-slate-600">—</span>'}
                 </td>
                 <td class="py-2 px-1 text-center">
+                  ${(r.set4 || 0) > 0 ? `<span class="inline-block px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 font-bold text-[10.5px]">${r.set4}</span>` : '<span class="text-slate-600">—</span>'}
+                </td>
+                <td class="py-2 px-1 text-center">
                   ${(r.set5 || 0) > 0 ? `<span class="inline-block px-1.5 py-0.5 rounded bg-pink-500/20 text-pink-300 font-bold text-[10.5px]">${r.set5}</span>` : '<span class="text-slate-600">—</span>'}
+                </td>
+                <td class="py-2 px-1 text-center">
+                  ${(r.set6 || 0) > 0 ? `<span class="inline-block px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold text-[10.5px]">${r.set6}</span>` : '<span class="text-slate-600">—</span>'}
                 </td>
                 <td class="py-2 px-1 text-center font-bold text-xs ${hasSales ? 'text-emerald-400' : 'text-slate-500'}">
                   ${hasSales ? `${r.totalBoxes}` : '—'}
@@ -15284,7 +15308,9 @@ function renderTeamSetsModalContent() {
             <td class="py-2 px-1 text-center text-amber-300 text-[11px]">${sumSet1}</td>
             <td class="py-2 px-1 text-center text-emerald-300 text-[11px]">${sumSet2}</td>
             <td class="py-2 px-1 text-center text-blue-300 text-[11px]">${sumSet3}</td>
+            <td class="py-2 px-1 text-center text-orange-300 text-[11px]">${sumSet4}</td>
             <td class="py-2 px-1 text-center text-pink-300 text-[11px]">${sumSet5}</td>
+            <td class="py-2 px-1 text-center text-purple-300 text-[11px]">${sumSet6}</td>
             <td class="py-2 px-1 text-center text-emerald-400 font-bold text-[11px]">${sumBoxes} ${isKm ? 'ប្រអប់' : 'boxes'}</td>
             <td class="py-2 px-1 text-center text-purple-300 text-[11px]">${sumBoost > 0 ? '$' + sumBoost.toFixed(2) : '—'}</td>
           </tr>
@@ -19268,12 +19294,12 @@ function getModalShareText(modalType) {
     let txt = `👥 គោលដៅ និងការលក់តាមឈុត: ${l.name} (${moStr}/2026)\n`;
     txt += `------------------------------------\n`;
     txt += `🎯 គោលដៅ: ${l.targetGoal || 100} ប្រអប់ | 📦 លក់បាន: ${l.totalBoxes} (${l.targetPercent}%)\n`;
-    txt += `ឈុត ១: ${l.set1 || 0} | ឈុត ២: ${l.set2 || 0} | ឈុត ៣: ${l.set3 || 0} | ឈុត ៤: ${l.set4 || 0}${(l.set5 || 0) > 0 ? ` | ឈុត ៥: ${l.set5}` : ''}\n`;
+    txt += `ឈុត 1: ${l.set1 || 0} | ឈុត 2: ${l.set2 || 0} | ឈុត 3: ${l.set3 || 0} | ឈុត 4: ${l.set4 || 0} | ឈុត 5: ${l.set5 || 0}${(l.set6 || 0) > 0 ? ` | ឈុត 6: ${l.set6}` : ''}\n`;
     if ((l.boost || 0) > 0) txt += `Boost: $${l.boost.toFixed(2)}\n`;
     txt += `------------------------------------\n`;
     const daysWithSales = (l.dailySales || []).filter(r => (r.totalBoxes || 0) > 0);
     daysWithSales.forEach(r => {
-      txt += `${r.date}: ${r.totalBoxes} ប្រអប់ (Set1:${r.set1}, Set2:${r.set2}, Set3:${r.set3}, Set4:${r.set4}${(r.set5 || 0) > 0 ? `, Set5:${r.set5}` : ''})\n`;
+      txt += `${r.date}: ${r.totalBoxes} ប្រអប់ (Set1:${r.set1}, Set2:${r.set2}, Set3:${r.set3}, Set4:${r.set4}, Set5:${r.set5}${(r.set6 || 0) > 0 ? `, Set6:${r.set6}` : ''})\n`;
     });
     return txt;
   }
@@ -31042,15 +31068,15 @@ async function submitNewOrder() {
 
   if (syncSuccess || companyFormSuccess) {
     const successMsg = (syncToCompany && companyFormSuccess) 
-      ? '✅ បានកត់ត្រាការលក់ និង Sync ចូល BostarTrack / Form ក្រុមហ៊ុនជោគជ័យ! 🚀'
+      ? '✅ បានកត់ត្រាការលក់ និង Sync 4-in-1 (BostarTrack, Form ក្រុមហ៊ុន & Telegram) ជោគជ័យ! 🚀'
       : '✅ បានកត់ត្រាការលក់ចូល Google Sheet ជោគជ័យ! 🚀';
 
     if (typeof addAppNotification === 'function') {
       addAppNotification({
         type: 'order',
-        title: (syncToCompany ? 'កុម្ម៉ង់ 3-in-1: ' : 'កត់ត្រាការលក់: ') + `${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
+        title: (syncToCompany ? 'កុម្ម៉ង់ 4-in-1: ' : 'កត់ត្រាការលក់: ') + `${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
         content: `${newRecord.product} | ${totalBoxes} ប្រអប់ | $${formatUSD(totalUsd).replace('$', '')} | Team: ${team} | ដឹក: ${delivery}`,
-        tag: syncToCompany ? 'BostarTrack & Sheet ✓' : 'Google Sheet ✓',
+        tag: syncToCompany ? '4-in-1 Sync ✓' : 'Google Sheet ✓',
         color: isReward ? 'amber' : (isReturn ? 'sky' : 'orange'),
         icon: isReward ? 'gift' : (isReturn ? 'rotate-ccw' : 'package')
       });
@@ -31103,6 +31129,49 @@ async function submitNewOrder() {
 
   if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
 }
+
+async function handleOriginalFormClick(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  const companyFormUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSd_hP30dqB-F5gCV44AuxcftgmoDjo5zzkN-NSMiK-1rDEqPQ/viewform?usp=header';
+
+  // Check if member has entered order details in the form
+  const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                     (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
+                     (currentOrderProducts.free || 0);
+  const phone = (document.getElementById('order-field-phone')?.value || '').trim().replace(/[\s\-\.]/g, '');
+
+  if (totalBoxes > 0 || phone.length >= 8) {
+    if (phone.length < 8) {
+      showToastNotification('⚠️ សូមបញ្ចូលលេខទូរសព្ទអ្នកទទួលជាមុនសិន!');
+      const phoneInput = document.getElementById('order-field-phone');
+      if (phoneInput) phoneInput.focus();
+      return;
+    }
+
+    showToastNotification('🚀 កំពុងអនុវត្ត 4 in 1 និងបើកទម្រង់ដើមក្រុមហ៊ុន...');
+
+    // Execute 4-in-1 pipeline (Personal Sheet, BostarTrack, Company Form, Telegram)
+    try {
+      await submitNewOrder();
+    } catch (err) {
+      console.warn('Error during 4 in 1 execution from original form button:', err);
+    }
+  }
+
+  // Open the original Google Form in a new tab
+  try {
+    window.open(companyFormUrl, '_blank', 'noopener,noreferrer');
+  } catch (_) {
+    window.location.href = companyFormUrl;
+  }
+}
+
+window.handleOriginalFormClick = handleOriginalFormClick;
 
 window.openNewOrderModal = openNewOrderModal;
 window.closeNewOrderModal = closeNewOrderModal;

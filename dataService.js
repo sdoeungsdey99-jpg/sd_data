@@ -868,6 +868,7 @@ window.DataService = {
               set3: cleanNumber(dayRow[4]) || 0,
               set4: cleanNumber(dayRow[5]) || 0,
               set5: cleanNumber(dayRow[6]) || 0,
+              set6: 0,
               totalBoxes: cleanNumber(dayRow[7]) || 0,
               orders: cleanNumber(dayRow[8]) || 0
             });
@@ -882,6 +883,7 @@ window.DataService = {
               set3: cleanNumber(dayRow[12]) || 0,
               set4: cleanNumber(dayRow[13]) || 0,
               set5: cleanNumber(dayRow[14]) || 0,
+              set6: 0,
               totalBoxes: cleanNumber(dayRow[15]) || 0,
               orders: cleanNumber(dayRow[16]) || 0
             });
@@ -896,6 +898,7 @@ window.DataService = {
               set3: cleanNumber(dayRow[20]) || 0,
               set4: cleanNumber(dayRow[21]) || 0,
               set5: cleanNumber(dayRow[22]) || 0,
+              set6: 0,
               totalBoxes: cleanNumber(dayRow[23]) || 0,
               orders: cleanNumber(dayRow[24]) || 0
             });
@@ -913,6 +916,7 @@ window.DataService = {
               set3: sdeySets[2],
               set4: sdeySets[3],
               set5: sdeySets[4],
+              set6: 0,
               totalBoxes: sdeyBoxes,
               targetGoal: sdeyTarget,
               targetPercent: sdeyTarget > 0 ? Math.min(100, (sdeyBoxes / sdeyTarget) * 100).toFixed(1) : '0.0',
@@ -926,6 +930,7 @@ window.DataService = {
               set3: sotheySets[2],
               set4: sotheySets[3],
               set5: sotheySets[4],
+              set6: 0,
               totalBoxes: sotheyBoxes,
               targetGoal: sotheyTarget,
               targetPercent: sotheyTarget > 0 ? Math.min(100, (sotheyBoxes / sotheyTarget) * 100).toFixed(1) : '0.0',
@@ -939,6 +944,7 @@ window.DataService = {
               set3: rasungSets[2],
               set4: rasungSets[3],
               set5: rasungSets[4],
+              set6: 0,
               totalBoxes: rasungBoxes,
               targetGoal: rasungTarget,
               targetPercent: rasungTarget > 0 ? Math.min(100, (rasungBoxes / rasungTarget) * 100).toFixed(1) : '0.0',
