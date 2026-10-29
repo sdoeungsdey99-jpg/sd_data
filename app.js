@@ -26823,31 +26823,37 @@ function openTeamMemberDetail(sellerKmName) {
               <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[1] || 0}</span>
-                  <span class="text-[8.5px] text-slate-400">ឈុត ១</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត 1</span>
                 </div>
               </th>
               <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[2] || 0}</span>
-                  <span class="text-[8.5px] text-slate-400">ឈុត ២</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត 2</span>
                 </div>
               </th>
               <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[3] || 0}</span>
-                  <span class="text-[8.5px] text-slate-400">ឈុត ៣</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត 3</span>
+                </div>
+              </th>
+              <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span class="w-5 h-5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[4] || 0}</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត 4</span>
                 </div>
               </th>
               <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[5] || 0}</span>
-                  <span class="text-[8.5px] text-slate-400">ឈុត ៥</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត 5</span>
                 </div>
               </th>
               <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1 font-bold">
                 <div class="flex flex-col items-center gap-0.5">
                   <span class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-mono text-[9px]">${dailyData.setCounts[6] || 0}</span>
-                  <span class="text-[8.5px] text-slate-400">ឈុត ៦</span>
+                  <span class="text-[8.5px] text-slate-400">ឈុត 6</span>
                 </div>
               </th>
               <th class="sticky top-[96px] z-30 bg-[#0B1528] py-2 px-1.5 font-bold rounded-tr-2xl">
@@ -26865,6 +26871,7 @@ function openTeamMemberDetail(sellerKmName) {
               const s1 = (r.sets[1] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">${r.sets[1]}</span>` : '<span class="text-slate-600">—</span>';
               const s2 = (r.sets[2] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">${r.sets[2]}</span>` : '<span class="text-slate-600">—</span>';
               const s3 = (r.sets[3] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">${r.sets[3]}</span>` : '<span class="text-slate-600">—</span>';
+              const s4 = (r.sets[4] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-orange-500/20 text-orange-300 font-bold border border-orange-500/30">${r.sets[4]}</span>` : '<span class="text-slate-600">—</span>';
               const s5 = (r.sets[5] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">${r.sets[5]}</span>` : '<span class="text-slate-600">—</span>';
               const s6 = (r.sets[6] > 0) ? `<span class="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">${r.sets[6]}</span>` : '<span class="text-slate-600">—</span>';
               const tot = (r.totalBoxes > 0) ? `<span class="text-emerald-400 font-bold text-xs">${r.totalBoxes}</span>` : '<span class="text-slate-600">—</span>';
@@ -26875,6 +26882,7 @@ function openTeamMemberDetail(sellerKmName) {
                   <td class="py-2 px-1">${s1}</td>
                   <td class="py-2 px-1">${s2}</td>
                   <td class="py-2 px-1">${s3}</td>
+                  <td class="py-2 px-1">${s4}</td>
                   <td class="py-2 px-1">${s5}</td>
                   <td class="py-2 px-1">${s6}</td>
                   <td class="py-2 px-1.5">${tot}</td>
@@ -26882,7 +26890,7 @@ function openTeamMemberDetail(sellerKmName) {
               `;
             }).join('') : `
               <tr>
-                <td colspan="7" class="py-6 text-center text-xs text-slate-500 italic">មិនមានការលក់ក្នុងកាលបរិច្ឆេទនេះទេ</td>
+                <td colspan="8" class="py-6 text-center text-xs text-slate-500 italic">មិនមានការលក់ក្នុងកាលបរិច្ឆេទនេះទេ</td>
               </tr>
             `}
           </tbody>
@@ -29770,7 +29778,10 @@ function openNewOrderModal(mode = 'dock') {
     if (modalSubtitle) modalSubtitle.textContent = 'ចូល Google Sheet ផ្ទាល់ខ្លួន';
     if (pasteBox) pasteBox.classList.remove('hidden');
     if (btnHeaderPass) btnHeaderPass.classList.remove('hidden');
-    if (card3in1) card3in1.classList.add('hidden'); // Removed from Telegram mode
+    if (card3in1) {
+      card3in1.classList.add('hidden');
+      card3in1.style.setProperty('display', 'none', 'important');
+    }
     if (syncToggle) syncToggle.checked = false; // Strictly OFF for telegram mode by default!
     if (orderTypeCard) {
       orderTypeCard.classList.remove('hidden');
@@ -29807,7 +29818,10 @@ function openNewOrderModal(mode = 'dock') {
     if (modalSubtitle) modalSubtitle.textContent = 'Sync ផ្ទាល់ខ្លួន & ក្រុមហ៊ុន';
     if (pasteBox) pasteBox.classList.add('hidden');
     if (btnHeaderPass) btnHeaderPass.classList.add('hidden');
-    if (card3in1) card3in1.classList.add('hidden'); // Removed from New Order mode
+    if (card3in1) {
+      card3in1.classList.add('hidden');
+      card3in1.style.setProperty('display', 'none', 'important');
+    }
     if (syncToggle) syncToggle.checked = true; // Auto-sync active for 3-in-1 in background
     if (orderTypeCard) {
       orderTypeCard.classList.add('hidden');
