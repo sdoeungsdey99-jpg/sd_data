@@ -6048,10 +6048,6 @@
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
             <span id="order-btn-clear-text">សម្អាត</span>
           </button>
-          <button type="button" id="btn-order-copy-tg" onclick="copyOrderTelegramText()" class="px-2.5 py-1.5 rounded-full text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-semibold active:scale-95 transition flex items-center gap-1.5 shadow-sm" title="ចម្លងសារសម្រាប់ Telegram គណនេយ្យ">
-            <i data-lucide="copy" class="w-3.5 h-3.5 text-orange-400"></i>
-            <span>ចម្លងសារ</span>
-          </button>
           <button type="button" id="btn-header-pass" onclick="pasteClipboardToOrderInput()" class="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-90 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-orange-500/25" title="Pass ភ្លាម">
             <i data-lucide="clipboard-paste" class="w-3.5 h-3.5"></i>
             <span>Pass</span>
@@ -6643,6 +6639,16 @@
             <i data-lucide="check" class="w-4 h-4 stroke-[2.5]"></i>
             <span id="order-submit-btn-text">បញ្ជូនចូលការលក់ 🚀</span>
           </button>
+
+          <!-- Bottom Action: Copy Telegram Message -->
+          <div class="pt-3 flex items-center justify-center">
+            <button type="button" id="btn-order-copy-tg-bottom" onclick="copyOrderTelegramText()" 
+                    class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-2 transition shadow-sm"
+                    title="ចម្លងសារកុម្ម៉ង់សម្រាប់ផ្ញើចូល Telegram គណនេយ្យ">
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-orange-400"></i>
+              <span>ចម្លងសារ Telegram គណនេយ្យ</span>
+            </button>
+          </div>
         </div>
 
       </div>
@@ -6908,6 +6914,6 @@
   </div>
 
   <script src="dataService.js?v=8.3"></script>
-  <script src="app.js?v=52.2"></script>
+  <script src="app.js?v=52.3"></script>
 </body>
 </html>
