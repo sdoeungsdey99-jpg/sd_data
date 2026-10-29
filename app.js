@@ -19590,16 +19590,55 @@ function triggerDrawerGreetingAnimation(e) {
   }, 3200);
 }
 
-const DEFAULT_TELEGRAM_GROUP_URL = 'https://t.me/+wxFdXyeRLcY5ZDRl';
+// ==========================================
+// TELEGRAM DUAL-CHANNEL ARCHITECTURE
+// 1. HR Attendance & Leave Group: "Test App" (-811940176)
+// 2. Daily Sales & Page Report Group: "BOSTAR របាយការណ៍ ប្រចាំថ្ងៃ" (-967358085)
+// ==========================================
 const DEFAULT_TELEGRAM_BOT_TOKEN = '8606222639:AAHizZMN6HOHDZqf9FlRjAI40jeerJxQnSM';
-const DEFAULT_TELEGRAM_CHAT_ID = '-967358085';
+
+// Channel 1: HR Attendance Group (កត់ត្រាវត្តមាន & សុំច្បាប់ - Test App)
+const DEFAULT_ATTENDANCE_CHAT_ID = '-811940176';
+const DEFAULT_ATTENDANCE_GROUP_URL = 'https://t.me/+j-M2q84kQJ1hYzY1';
+
+// Channel 2: Daily Sales / Page Report Group (BOSTAR របាយការណ៍ ប្រចាំថ្ងៃ)
+const DEFAULT_REPORT_CHAT_ID = '-967358085';
+const DEFAULT_REPORT_GROUP_URL = 'https://t.me/+wxFdXyeRLcY5ZDRl';
+
+// Backward-compatible defaults (Always defaults to Attendance Group for Attendance scope)
+const DEFAULT_TELEGRAM_CHAT_ID = DEFAULT_ATTENDANCE_CHAT_ID;
+const DEFAULT_TELEGRAM_GROUP_URL = DEFAULT_ATTENDANCE_GROUP_URL;
+
+// Auto-cleanup any old conflicting localStorage items that accidentally routed attendance to page report group
+try {
+  const oldChat = (localStorage.getItem('sd_telegram_chat_id') || '').trim();
+  if (oldChat === '-967358085') {
+    localStorage.removeItem('sd_telegram_chat_id');
+  }
+  const oldGroup = (localStorage.getItem('sd_telegram_group_url') || '').trim();
+  if (oldGroup === 'https://t.me/+wxFdXyeRLcY5ZDRl') {
+    localStorage.removeItem('sd_telegram_group_url');
+  }
+} catch (_) {}
+
+function getAttendanceTelegramGroupUrl() {
+  try {
+    const saved = (localStorage.getItem('sd_attendance_tg_group_url') || localStorage.getItem('sd_telegram_group_url') || '').trim();
+    if (saved && saved.startsWith('http') && saved !== 'https://t.me/sdey_sdoeung' && saved !== DEFAULT_REPORT_GROUP_URL) return saved;
+  } catch (e) {}
+  return DEFAULT_ATTENDANCE_GROUP_URL;
+}
+
+function getAttendanceTelegramChatId() {
+  try {
+    const saved = (localStorage.getItem('sd_attendance_tg_chat_id') || localStorage.getItem('sd_telegram_chat_id') || '').trim();
+    if (saved && saved !== DEFAULT_REPORT_CHAT_ID) return saved;
+  } catch (e) {}
+  return DEFAULT_ATTENDANCE_CHAT_ID;
+}
 
 function getTelegramGroupUrl() {
-  try {
-    const saved = (localStorage.getItem('sd_telegram_group_url') || '').trim();
-    if (saved && saved.startsWith('http') && saved !== 'https://t.me/sdey_sdoeung' && saved !== 'https://t.me/+j-M2q84kQJ1hYzY1') return saved;
-  } catch (e) {}
-  return DEFAULT_TELEGRAM_GROUP_URL;
+  return getAttendanceTelegramGroupUrl();
 }
 
 function getTelegramBotToken() {
@@ -19611,16 +19650,30 @@ function getTelegramBotToken() {
 }
 
 function getTelegramChatId() {
-  try {
-    const saved = (localStorage.getItem('sd_telegram_chat_id') || '').trim();
-    if (saved && saved !== '-811940176') return saved;
-  } catch (e) {}
-  return DEFAULT_TELEGRAM_CHAT_ID;
+  return getAttendanceTelegramChatId();
 }
 
-async function sendAttendanceViaTelegramBot(text) {
+// Channel 2: Daily Page Report Telegram Getters
+function getReportTelegramGroupUrl() {
+  try {
+    const saved = (localStorage.getItem('sd_report_tg_group_url') || '').trim();
+    if (saved && saved.startsWith('http')) return saved;
+  } catch (e) {}
+  return DEFAULT_REPORT_GROUP_URL;
+}
+
+function getReportTelegramChatId() {
+  try {
+    const saved = (localStorage.getItem('sd_report_tg_chat_id') || '').trim();
+    if (saved) return saved;
+  } catch (e) {}
+  return DEFAULT_REPORT_CHAT_ID;
+}
+
+// Generic Telegram message sender
+async function sendTelegramMessage(text, targetChatId = null) {
   const token = getTelegramBotToken();
-  const chatId = getTelegramChatId();
+  const chatId = targetChatId || getAttendanceTelegramChatId();
 
   if (!token || !chatId) return false;
 
@@ -19639,6 +19692,16 @@ async function sendAttendanceViaTelegramBot(text) {
     console.warn('Telegram Bot send failed, falling back:', err);
     return false;
   }
+}
+
+// Attendance Sender -> ALWAYS sends to Attendance Group (-811940176)
+async function sendAttendanceViaTelegramBot(text) {
+  return await sendTelegramMessage(text, getAttendanceTelegramChatId());
+}
+
+// Daily Page Report Sender -> ALWAYS sends to Page Report Group (-967358085)
+async function sendDailyReportViaTelegramBot(text) {
+  return await sendTelegramMessage(text, getReportTelegramChatId());
 }
 
 // ==========================================
@@ -20469,12 +20532,20 @@ function saveAttendanceEditForm(andShare = false) {
     data.records.push(newRecord);
   }
 
-  // Save TG bot token, chat id, and group if changed
+  // Save TG bot token, chat id, and group if changed (Attendance scope)
   const tgTokenInput = document.getElementById('att-edit-tg-token');
   const tgChatIdInput = document.getElementById('att-edit-tg-chat-id');
   if (tgTokenInput) localStorage.setItem('sd_telegram_bot_token', tgTokenInput.value.trim());
-  if (tgChatIdInput) localStorage.setItem('sd_telegram_chat_id', tgChatIdInput.value.trim());
-  if (tgGroupInput) localStorage.setItem('sd_telegram_group_url', tgGroupInput.value.trim());
+  if (tgChatIdInput) {
+    const val = tgChatIdInput.value.trim();
+    localStorage.setItem('sd_attendance_tg_chat_id', val);
+    localStorage.setItem('sd_telegram_chat_id', val);
+  }
+  if (tgGroupInput) {
+    const val = tgGroupInput.value.trim();
+    localStorage.setItem('sd_attendance_tg_group_url', val);
+    localStorage.setItem('sd_telegram_group_url', val);
+  }
 
   // Save Office Verification Config
   const cfgEnabled = document.getElementById('att-cfg-enabled');
@@ -27702,12 +27773,12 @@ async function shareDailyReportToTelegram() {
   syncDailyReportToGoogleSheet({ source: 'telegram' });
 
   showToastNotification('កំពុងផ្ញើទៅ Telegram & Google Sheet... ⏳');
-  const botSuccess = await sendAttendanceViaTelegramBot(text);
+  const botSuccess = await sendDailyReportViaTelegramBot(text);
   if (botSuccess) {
     showToastNotification('បានផ្ញើ & រក្សាទុកក្នុង Google Sheet ជោគជ័យ! 🚀✅');
     if (navigator.vibrate) try { navigator.vibrate([40, 60, 40]); } catch(_) {}
   } else {
-    const savedGroup = getTelegramGroupUrl();
+    const savedGroup = getReportTelegramGroupUrl();
     window.open(savedGroup, '_blank');
   }
 }
@@ -31551,8 +31622,15 @@ window.DEFAULT_TELEGRAM_GROUP_URL = DEFAULT_TELEGRAM_GROUP_URL;
 window.getTelegramGroupUrl = getTelegramGroupUrl;
 
 window.sendAttendanceViaTelegramBot = sendAttendanceViaTelegramBot;
+window.sendDailyReportViaTelegramBot = sendDailyReportViaTelegramBot;
 window.getTelegramBotToken = getTelegramBotToken;
 window.getTelegramChatId = getTelegramChatId;
+window.getAttendanceTelegramChatId = getAttendanceTelegramChatId;
+window.getAttendanceTelegramGroupUrl = getAttendanceTelegramGroupUrl;
+window.getReportTelegramChatId = getReportTelegramChatId;
+window.getReportTelegramGroupUrl = getReportTelegramGroupUrl;
+window.DEFAULT_ATTENDANCE_CHAT_ID = DEFAULT_ATTENDANCE_CHAT_ID;
+window.DEFAULT_REPORT_CHAT_ID = DEFAULT_REPORT_CHAT_ID;
 
 
 // Export Enterprise Attendance & Governance
