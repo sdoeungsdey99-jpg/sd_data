@@ -29162,17 +29162,49 @@ function onPriceRawInput(isTyping = false) {
 }
 
 // ==========================================
-// Bostar Team Leaders (Cleaned & Streamlined)
-// - ការកុម្ម៉ង់ថ្មី (Dock Mode): ទុកតែ Bech_Nora តែមួយគត់
-// - ការបញ្ចូលពី Telegram (Telegram Mode): ទុកតែ ៦ នាក់ស្នូល Bostar Group
 // ==========================================
+// BOSTAR ACCOUNTING TELEGRAM & TEAM ARCHITECTURE
+// Default Group: BOSTAR GROUP CO.,LTD (https://t.me/+IhCzhEiGN80zMWY1)
+// Default Bot Token: Sddailystory_bot (8921566544:AAG1a5o46V9-SLe8JRYDlDCFWilIfOtzVVE)
+// - ការកុម្ម៉ង់ថ្មី (Dock Mode): Form ក្រុមហ៊ុន = Bech_Nora តែមួយគត់
+// - ក្រុមគណនេយ្យ Telegram: Auto Mapping ទៅកាន់ Manager Latin ធំទាំង ៧ នាក់
+// ==========================================
+const DEFAULT_ACCOUNTING_TG_GROUP_URL = 'https://t.me/+IhCzhEiGN80zMWY1';
+const DEFAULT_ACCOUNTING_TG_BOT_TOKEN = '8921566544:AAG1a5o46V9-SLe8JRYDlDCFWilIfOtzVVE';
+
+function getAccountingTelegramGroupUrl() {
+  try {
+    const saved = localStorage.getItem('sd_accounting_tg_group_url');
+    if (saved && saved.startsWith('http')) return saved;
+  } catch (_) {}
+  return DEFAULT_ACCOUNTING_TG_GROUP_URL;
+}
+
+function getAccountingTelegramBotToken() {
+  try {
+    const saved = localStorage.getItem('sd_accounting_tg_bot_token');
+    if (saved) return saved;
+  } catch (_) {}
+  return DEFAULT_ACCOUNTING_TG_BOT_TOKEN;
+}
+
+function isAccountingTelegramAutoShare() {
+  // Brother Sdey instruction: "បងចង់បើក Bot ផ្ញើអូតូ តែមិនអនុវត្តពេលនេះប៉ុណ្ណោះ រងចាំ Member អនុវត្តផ្ទាល់"
+  // Default is strictly false (manual direct execution by members)
+  try {
+    return localStorage.getItem('sd_accounting_tg_autoshare') === 'true';
+  } catch (_) {}
+  return false;
+}
+
 const BOSTAR_TELEGRAM_LEADERS = [
   'Bech_Nora',
-  'Hour_Yaith',
+  'Hou_Yarith',
   'Hem_Chanthy',
   'Bech_Udom',
   'Sroeun_Leanghak',
-  'Sdey_Sdoeung'
+  'Sdey_Sdoeung',
+  'Puth_Theara'
 ];
 
 const DOCK_ORDER_LEADERS = [
@@ -29181,6 +29213,335 @@ const DOCK_ORDER_LEADERS = [
 
 // Retain COMPANY_TEAM_LEADERS for backward compatibility
 const COMPANY_TEAM_LEADERS = BOSTAR_TELEGRAM_LEADERS;
+
+// Universal Clipboard Helper
+async function copyTextToSystemClipboard(text) {
+  if (!text) return false;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (err) {
+    console.warn('navigator.clipboard write failed, trying fallback:', err);
+  }
+  try {
+    const ta = document.createElement('textarea');
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    ta.style.left = '-9999px';
+    ta.style.opacity = '0';
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (err2) {
+    console.warn('document.execCommand copy failed:', err2);
+    return false;
+  }
+}
+
+// 7 Main Managers Dynamic Latin Code Resolver
+function getManagerLatinCode(sellerName, fallbackTeam = 'Bech_Nora') {
+  if (!sellerName) return fallbackTeam || 'Bech_Nora';
+  const norm = typeof normalizeSellerName === 'function' ? normalizeSellerName(sellerName) : sellerName.toString().trim().toLowerCase();
+
+  // 1. Hou_Yarith
+  const houYarithMembers = [
+    'ហ៊ួរ យ៉ារិទ្ធ', 'វន ស្រីនិច', 'ជន់ ច័ន្ទវិច្ឆិកា', 'ផាន សោភា', 'ងេន សុខា', 'អយ ស្រីនី', 'ផាត់ ណាវី', 'ជុន ថាវី'
+  ];
+  if (houYarithMembers.some(m => (typeof normalizeSellerName === 'function' ? normalizeSellerName(m) : m) === norm)) return 'Hou_Yarith';
+
+  // 2. Hem_Chanthy
+  const hemChanthyMembers = [
+    'ហែម ចន្ធី', 'សូត្រ ម៉ាស់យ៉ា', 'យឹម សីហា', 'ងី សុខណា', 'វួច ផាន់នី', 'ប្រាក់ ស្រីភា', 'អៀម សុភី', 'ជា វឌ្ឍនា', 'សុមុន្នី ស្រីណុច', 'ម៉ន សីហាក់', 'ភឿន សុផា'
+  ];
+  if (hemChanthyMembers.some(m => (typeof normalizeSellerName === 'function' ? normalizeSellerName(m) : m) === norm)) return 'Hem_Chanthy';
+
+  // 3. Bech_Udom
+  const bechUdomMembers = [
+    'ប៊ិច ឧត្តម', 'និន ណែត', 'ប៊ិច ស្រីមុំ', 'មុំចាន់នី', 'សុស ស្រីពេជ្រ', 'ស្រី ឡាត់'
+  ];
+  if (bechUdomMembers.some(m => (typeof normalizeSellerName === 'function' ? normalizeSellerName(m) : m) === norm)) return 'Bech_Udom';
+
+  // 4. Sroeun_Leanghak
+  const sroeunLeanghakMembers = [
+    'ស្រឿន លាងហាក់', 'ជា ស្រីណាត់', 'ប៊ុន ស្រីភាព', 'ម៉ាន់ សុគន្ធលីហ្សា', 'សារិ ច័ន្ទរា', 'ភឿន កញ្ញា', 'ទូច ស្រីណែត'
+  ];
+  if (sroeunLeanghakMembers.some(m => (typeof normalizeSellerName === 'function' ? normalizeSellerName(m) : m) === norm)) return 'Sroeun_Leanghak';
+
+  // 5. Sdey_Sdoeung
+  const sdeySdoeungMembers = [
+    'ស្ដី ស្ដើង', 'ស្តី ស្តើង', 'ឆេង សុធី', 'ឆេង រ៉ាស៊ុង'
+  ];
+  if (sdeySdoeungMembers.some(m => (typeof normalizeSellerName === 'function' ? normalizeSellerName(m) : m) === norm)) return 'Sdey_Sdoeung';
+
+  // 6. Puth_Theara
+  const puthThearaMembers = [
+    'ពុធ ធារ៉ា', 'ជុំ ចាន់ រិទ្ធ', 'ជុំ ចាន់រិទ្ធ', 'សឹម សិត', 'សុង ស្រីឡែន', 'សុីម វត្តី', 'ស៊ីម វត្តី'
+  ];
+  if (puthThearaMembers.some(m => (typeof normalizeSellerName === 'function' ? normalizeSellerName(m) : m) === norm)) return 'Puth_Theara';
+
+  // 7. Bech_Nora
+  const bechNoraMembers = [
+    'ប៊ិច នោរ៉ា', 'ម៉ិច ច័ន្ទសុជាតា', 'ជាន ស្រីនិច', 'ញែក សុគន្ធ', 'សាប់ លក្ខិណា'
+  ];
+  if (bechNoraMembers.some(m => (typeof normalizeSellerName === 'function' ? normalizeSellerName(m) : m) === norm)) return 'Bech_Nora';
+
+  // Check English name / latin
+  const latin = (typeof getSellerLatinName === 'function' ? getSellerLatinName(sellerName) : sellerName).toLowerCase();
+  if (latin.includes('yarith') || latin.includes('yaith') || latin.includes('thavy') || latin.includes('sreynich') || latin.includes('sreyni') || latin.includes('sophea') || latin.includes('sokha') || latin.includes('chanvichika') || latin.includes('navy')) return 'Hou_Yarith';
+  if (latin.includes('chanthy') || latin.includes('masya') || latin.includes('sokhna') || latin.includes('phanny') || latin.includes('sreyphea') || latin.includes('sophy') || latin.includes('vathana') || latin.includes('seyha') || latin.includes('seyhak') || latin.includes('sopha')) return 'Hem_Chanthy';
+  if (latin.includes('udom') || latin.includes('sreymom') || latin.includes('channy') || latin.includes('sreypech') || latin.includes('srey lat') || latin.includes('nin net')) return 'Bech_Udom';
+  if (latin.includes('leanghak') || latin.includes('sreynat') || latin.includes('sreypheap') || latin.includes('sokunlyza') || latin.includes('chanrea') || latin.includes('kanya') || latin.includes('sreynet')) return 'Sroeun_Leanghak';
+  if (latin.includes('sdoeung') || latin.includes('sothy') || latin.includes('rasung')) return 'Sdey_Sdoeung';
+  if (latin.includes('theara') || latin.includes('chanrith') || latin.includes('seth') || latin.includes('sreylen') || latin.includes('vottey')) return 'Puth_Theara';
+  if (latin.includes('nora') || latin.includes('socheata') || latin.includes('sokun') || latin.includes('leakhena')) return 'Bech_Nora';
+
+  if (fallbackTeam) {
+    const cleanTeam = fallbackTeam.replace(/^[@#]/, '').trim();
+    if (/yarith|yaith/i.test(cleanTeam)) return 'Hou_Yarith';
+    if (/chanthy/i.test(cleanTeam)) return 'Hem_Chanthy';
+    if (/udom/i.test(cleanTeam)) return 'Bech_Udom';
+    if (/leanghak/i.test(cleanTeam)) return 'Sroeun_Leanghak';
+    if (/sdoeung|sdey/i.test(cleanTeam)) return 'Sdey_Sdoeung';
+    if (/theara/i.test(cleanTeam)) return 'Puth_Theara';
+    if (/nora/i.test(cleanTeam)) return 'Bech_Nora';
+  }
+
+  return 'Bech_Nora';
+}
+
+function formatTelegramDate(dateStr) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  if (!dateStr) {
+    const now = new Date();
+    return `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  }
+  const ddmmyyyy = dateStr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+  if (ddmmyyyy) {
+    const day = parseInt(ddmmyyyy[1], 10);
+    const mIdx = parseInt(ddmmyyyy[2], 10) - 1;
+    const year = ddmmyyyy[3];
+    return `${day} ${months[mIdx] || 'Oct'} ${year}`;
+  }
+  const yyyymmdd = dateStr.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/);
+  if (yyyymmdd) {
+    const year = yyyymmdd[1];
+    const mIdx = parseInt(yyyymmdd[2], 10) - 1;
+    const day = parseInt(yyyymmdd[3], 10);
+    return `${day} ${months[mIdx] || 'Oct'} ${year}`;
+  }
+  return dateStr;
+}
+
+function generateBilingualTelegramOrderText(recordOrForm = null) {
+  let orderId = '';
+  let dateRaw = '';
+  let seller = '';
+  let sellerPhone = '';
+  let customer = '';
+  let phone = '';
+  let location = '';
+  let delivery = '';
+  let priceRaw = 0;
+  let totalUsd = 0;
+  let note = '';
+  let team = '';
+  let yl = 0, ylp = 0, kn = 0, pdo = 0, emmi = 0, sgp = 0, free = 0;
+  let isReward = false, isReturn = false;
+
+  if (recordOrForm && typeof recordOrForm === 'object' && (recordOrForm.recordId || recordOrForm.seller)) {
+    orderId = recordOrForm.orderId || '';
+    dateRaw = recordOrForm.date || '';
+    seller = recordOrForm.seller || '';
+    sellerPhone = recordOrForm.sellerPhone || '';
+    customer = recordOrForm.customer || '';
+    phone = recordOrForm.phone || '';
+    location = recordOrForm.location || '';
+    delivery = recordOrForm.deliveryMethod || '';
+    priceRaw = recordOrForm.price || 0;
+    totalUsd = recordOrForm.totalAmount || 0;
+    note = recordOrForm.note || '';
+    team = recordOrForm.team || '';
+    yl = recordOrForm.qtyYL || 0;
+    ylp = recordOrForm.qtyYLP || 0;
+    kn = recordOrForm.qtyKN || 0;
+    pdo = recordOrForm.qtyPDO || 0;
+    emmi = recordOrForm.qtyEmmi || 0;
+    sgp = recordOrForm.qtySGP || 0;
+    free = recordOrForm.freeQty || 0;
+    isReward = !!recordOrForm.isReward;
+    isReturn = !!recordOrForm.isReturn;
+  } else {
+    const getVal = (id) => (document.getElementById(id)?.value || '').trim();
+    orderId = getVal('order-field-id');
+    dateRaw = getVal('order-field-date-text') || getVal('order-field-date');
+    seller = getVal('order-field-seller');
+    sellerPhone = getVal('order-field-seller-phone');
+    customer = getVal('order-field-customer');
+    phone = getVal('order-field-phone');
+    location = getVal('order-field-location');
+    delivery = getVal('order-field-delivery') || 'VET (COD)';
+    priceRaw = cleanNumber(getVal('order-field-price-raw')) || 0;
+    totalUsd = cleanNumber(getVal('order-field-total-usd')) || 0;
+    note = getVal('order-field-note');
+    team = getVal('order-field-team') || 'Bech_Nora';
+    yl = currentOrderProducts.yl || 0;
+    ylp = currentOrderProducts.ylp || 0;
+    kn = currentOrderProducts.kn || 0;
+    pdo = currentOrderProducts.pdo || 0;
+    emmi = currentOrderProducts.emmi || 0;
+    sgp = currentOrderProducts.sgp || 0;
+    free = currentOrderProducts.free || 0;
+    isReward = (currentOrderType === 'reward');
+    isReturn = (currentOrderType === 'return');
+  }
+
+  const formattedDate = formatTelegramDate(dateRaw);
+  const managerCode = getManagerLatinCode(seller, team);
+  const sellerLatin = (typeof getSellerLatinName === 'function' ? getSellerLatinName(seller) : seller) || seller;
+
+  let orderRowText = '';
+  if (orderId && orderId.trim()) {
+    const cleanId = orderId.trim();
+    orderRowText = cleanId.startsWith('#') ? cleanId : `#${cleanId}`;
+  } else {
+    orderRowText = `#${Date.now().toString().slice(-4)}`;
+  }
+
+  const prodLines = [];
+  if (kn > 0) prodLines.push(`▪️ ផលិតផល(Product) [Kidney Pro]: ${kn}`);
+  if (pdo > 0) prodLines.push(`▪️ ផលិតផល(Product) [Pro D.O]: ${pdo}`);
+  if (yl > 0) prodLines.push(`▪️ ផលិតផល(Product) [Yong Liang]: ${yl}`);
+  if (ylp > 0) prodLines.push(`▪️ ផលិតផល(Product) [Yong Liang Plus]: ${ylp}`);
+  if (emmi > 0) prodLines.push(`▪️ ផលិតផល(Product) [Emmi]: ${emmi}`);
+  if (sgp > 0) prodLines.push(`▪️ ផលិតផល(Product) [SG Pro]: ${sgp}`);
+  if (free > 0) prodLines.push(`▪️ ផលិតផល(Product) [Free]: ${free}`);
+
+  if (prodLines.length === 0) {
+    if (isReward) prodLines.push(`▪️ ផលិតផល(Product) [លក់រង្វាន់]: 1`);
+    else if (isReturn) prodLines.push(`▪️ ផលិតផល(Product) [លក់អីវ៉ាន់ត្រឡប់]: 1`);
+    else prodLines.push(`▪️ ផលិតផល(Product): 1`);
+  }
+
+  let priceDisplay = '0';
+  if (priceRaw > 0) {
+    priceDisplay = `${priceRaw}`;
+  } else if (totalUsd > 0) {
+    priceDisplay = `${totalUsd}`;
+  }
+
+  const formattedPhone = phone ? (typeof formatKhmerPhone === 'function' ? formatKhmerPhone(phone) : phone) : '';
+  const cleanDelivery = delivery || 'VET (COD)';
+
+  const lines = [
+    '🔔 មានការកុម្មង់ទំនិញថ្មីចូល 🔔',
+    '',
+    `🆔 Order Row: ${orderRowText}`,
+    `▪️ កាលបរិច្ឆេទ(Date): ${formattedDate}`,
+    `▪️ ថ្នាក់ដឹកនាំ(Team): ${managerCode}`,
+    `▪️ ឈ្មោះអ្នកលក់: ${seller}`
+  ];
+
+  if (sellerPhone && !cleanDelivery.toLowerCase().includes('thai')) {
+    lines.push(`▪️ លេខអ្នកលក់(Seller No): ${sellerPhone}`);
+  }
+
+  prodLines.forEach(pl => lines.push(pl));
+  lines.push(`▪️ តម្លៃ(Price): ${priceDisplay}`);
+  lines.push(`▪️ លេខអ្នកទទួល(Receiver No): ${formattedPhone || phone}`);
+
+  if (customer && customer.trim()) {
+    lines.push(`▪️ ឈ្មោះអ្នកទទួល(Recipient): ${customer.trim()}`);
+  }
+
+  lines.push(`▪️ អាសយដ្ឋាន(Address): ${location || 'ភ្នំពេញ'}`);
+  lines.push(`▪️ ដឹកជញ្ជូនតាម(Delivery): ${cleanDelivery}`);
+
+  if (note && note.trim()) {
+    lines.push(`▪️ ចំណាំ(Note): ${note.trim()}`);
+  }
+
+  if (sellerLatin) {
+    lines.push(`▪️ Seller’s Name: ${sellerLatin}`);
+  }
+
+  return lines.join('\n');
+}
+
+async function copyOrderTelegramText(recordOrForm = null, silent = false) {
+  const text = generateBilingualTelegramOrderText(recordOrForm);
+  const ok = await copyTextToSystemClipboard(text);
+  if (ok && !silent) {
+    showToastNotification('✅ បានចម្លងសារកុម្ម៉ង់ Bilingual ចូល Clipboard រួចរាល់! 📋');
+    if (navigator.vibrate) try { navigator.vibrate([20, 40]); } catch (_) {}
+  }
+  return ok;
+}
+
+function openAccountingTelegramGroup() {
+  const url = getAccountingTelegramGroupUrl();
+  window.open(url, '_blank');
+  showToastNotification('🚀 បើក Telegram គ្រុបគណនេយ្យ... សូមចុច Paste!');
+}
+
+function showOrderSuccessTelegramAction(record, tgText) {
+  dismissOrderTelegramToast();
+  const managerCode = getManagerLatinCode(record?.seller, record?.team);
+  const seller = record?.seller || 'អ្នកលក់';
+
+  const container = document.createElement('div');
+  container.id = 'order-telegram-action-toast';
+  container.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[100] w-[94%] max-w-md bg-[#0D1829]/95 backdrop-blur-2xl border border-orange-500/40 rounded-2xl p-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.7)] flex items-center justify-between gap-2.5 animate-fade-in font-kantumruy select-none';
+  container.innerHTML = `
+    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+      <div class="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/40 shadow-sm">
+        <i data-lucide="check-check" class="w-4 h-4"></i>
+      </div>
+      <div class="min-w-0 pr-1">
+        <p class="text-xs font-bold text-white truncate flex items-center gap-1.5">
+          <span>បានចម្លងសារកុម្ម៉ង់រួចរាល់ 📋</span>
+        </p>
+        <p class="text-[10.5px] text-slate-300 truncate mt-0.5">
+          <span class="text-orange-400 font-mono font-bold">${managerCode}</span> • <span>${escapeHtml(seller)}</span>
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button type="button" onclick="openAccountingTelegramGroup()" 
+              class="px-3 py-2 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-orange-500/30 active:scale-95 transition">
+        <i data-lucide="send" class="w-3.5 h-3.5"></i>
+        <span>បើក Telegram</span>
+      </button>
+      <button type="button" onclick="dismissOrderTelegramToast()" 
+              class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center text-xs active:scale-95 transition" title="បិទ">
+        ✕
+      </button>
+    </div>
+  `;
+  document.body.appendChild(container);
+  if (window.lucide) window.lucide.createIcons();
+
+  if (window._orderTgToastTimer) clearTimeout(window._orderTgToastTimer);
+  window._orderTgToastTimer = setTimeout(() => {
+    dismissOrderTelegramToast();
+  }, 12000);
+}
+
+function dismissOrderTelegramToast() {
+  if (window._orderTgToastTimer) clearTimeout(window._orderTgToastTimer);
+  const el = document.getElementById('order-telegram-action-toast');
+  if (el) {
+    el.classList.add('opacity-0', 'transition-opacity', 'duration-200');
+    setTimeout(() => {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 200);
+  }
+}
 
 function getActiveTeamLeadersList() {
   return (currentOrderEntryMode === 'telegram') ? BOSTAR_TELEGRAM_LEADERS : DOCK_ORDER_LEADERS;
@@ -29433,6 +29794,10 @@ function openNewOrderModal(mode = 'dock') {
 
   if (customerPhoneInput && customerPhoneInput.value) {
     customerPhoneInput.value = formatKhmerPhone(customerPhoneInput.value);
+  }
+
+  if (orderIdInput) {
+    orderIdInput.placeholder = (currentOrderEntryMode === 'dock') ? '# (B0001)' : '#';
   }
 
   if (dateInput) {
@@ -29758,7 +30123,7 @@ function clearOrderInput() {
   const idInput = document.getElementById('order-field-id');
   if (idInput) {
     idInput.value = '';
-    idInput.placeholder = '#';
+    idInput.placeholder = (currentOrderEntryMode === 'dock') ? '# (B0001)' : '#';
   }
 
   const dateInput = document.getElementById('order-field-date');
@@ -30248,7 +30613,7 @@ function parsePastedOrderText(silent = false) {
                   BOSTAR_TELEGRAM_LEADERS.find(t => cleanTeam.includes(t.toLowerCase()) || t.toLowerCase().includes(cleanTeam));
     if (!matched) {
       if (cleanTeam.includes('yaith') || cleanTeam.includes('yarith') || cleanTeam.includes('hour') || cleanTeam.includes('hou')) {
-        matched = 'Hour_Yaith';
+        matched = 'Hou_Yarith';
       } else if (cleanTeam.includes('sdoeung') || cleanTeam.includes('sdey') || cleanTeam.includes('ស្ដើង') || cleanTeam.includes('ស្ដី')) {
         matched = 'Sdey_Sdoeung';
       } else if (cleanTeam.includes('nora') || cleanTeam.includes('ណូរ៉ា') || cleanTeam.includes('bech_nora')) {
@@ -30259,6 +30624,8 @@ function parsePastedOrderText(silent = false) {
         matched = 'Bech_Udom';
       } else if (cleanTeam.includes('leanghak') || cleanTeam.includes('លាងហាក់') || cleanTeam.includes('sroeun')) {
         matched = 'Sroeun_Leanghak';
+      } else if (cleanTeam.includes('theara') || cleanTeam.includes('ធារ៉ា') || cleanTeam.includes('puth')) {
+        matched = 'Puth_Theara';
       }
     }
     const teamField = document.getElementById('order-field-team');
@@ -30637,7 +31004,23 @@ async function submitNewOrder() {
     showToastNotification('📡 បានរក្សាទុកក្នុងទូរសព្ទ (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)!');
   }
 
-  // 4. Update UI live and clear input
+  // 4. Generate Bilingual Telegram Order Text & Trigger Copy / 1-Tap Action
+  if (isDockOrder) {
+    const tgOrderText = generateBilingualTelegramOrderText(newRecord);
+    copyOrderTelegramText(newRecord, true);
+
+    // Future-ready Auto-Send (currently disabled by default, waiting for members)
+    if (isAccountingTelegramAutoShare()) {
+      const accountingChatId = localStorage.getItem('sd_accounting_tg_chat_id');
+      if (accountingChatId) {
+        sendTelegramMessage(tgOrderText, accountingChatId);
+      }
+    }
+
+    showOrderSuccessTelegramAction(newRecord, tgOrderText);
+  }
+
+  // 5. Update UI live and clear input
   clearOrderInput();
   closeNewOrderModal();
   renderCurrentView();
@@ -30679,6 +31062,15 @@ window.toggleOrderMiniCalendar = toggleOrderMiniCalendar;
 window.changeMiniCalMonth = changeMiniCalMonth;
 window.selectMiniCalDay = selectMiniCalDay;
 window.onOrderDateTextInput = onOrderDateTextInput;
+window.generateBilingualTelegramOrderText = generateBilingualTelegramOrderText;
+window.copyOrderTelegramText = copyOrderTelegramText;
+window.openAccountingTelegramGroup = openAccountingTelegramGroup;
+window.showOrderSuccessTelegramAction = showOrderSuccessTelegramAction;
+window.dismissOrderTelegramToast = dismissOrderTelegramToast;
+window.getManagerLatinCode = getManagerLatinCode;
+window.getAccountingTelegramGroupUrl = getAccountingTelegramGroupUrl;
+window.getAccountingTelegramBotToken = getAccountingTelegramBotToken;
+window.isAccountingTelegramAutoShare = isAccountingTelegramAutoShare;
 
 // ==========================================
 // Quick Expense Modal Logic (In-App Entry) & Mini Calendar
