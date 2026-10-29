@@ -18875,6 +18875,11 @@ function setLanguage(lang) {
   appState.language = lang;
   localStorage.setItem('sd_lang', lang);
   renderCurrentView();
+  const calPopup = document.getElementById('expense-mini-calendar-popup');
+  if (calPopup) calPopup.classList.add('hidden');
+  document.removeEventListener('pointerdown', closeExpenseMiniCalendarOnClickOutside, { capture: true });
+  document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside, { capture: true });
+
   if (typeof updateModalLanguage === 'function') updateModalLanguage();
 }
 
@@ -30279,6 +30284,11 @@ function openNewOrderModal(mode = 'dock') {
   setTimeout(initProductSwipeGestures, 50);
 
   if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
+  const calPopup = document.getElementById('expense-mini-calendar-popup');
+  if (calPopup) calPopup.classList.add('hidden');
+  document.removeEventListener('pointerdown', closeExpenseMiniCalendarOnClickOutside, { capture: true });
+  document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside, { capture: true });
+
   if (typeof updateModalLanguage === 'function') updateModalLanguage();
   checkOrderSubmitValidation();
 
@@ -31573,11 +31583,13 @@ function toggleExpenseMiniCalendar(e) {
     renderExpenseMiniCalendar();
     popup.classList.remove('hidden');
     setTimeout(() => {
-      document.addEventListener('click', closeExpenseMiniCalendarOnClickOutside);
+      document.addEventListener('pointerdown', closeExpenseMiniCalendarOnClickOutside, { capture: true });
+      document.addEventListener('click', closeExpenseMiniCalendarOnClickOutside, { capture: true });
     }, 10);
   } else {
     popup.classList.add('hidden');
-    document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside);
+    document.removeEventListener('pointerdown', closeExpenseMiniCalendarOnClickOutside, { capture: true });
+    document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside, { capture: true });
   }
 }
 
@@ -31586,7 +31598,8 @@ function closeExpenseMiniCalendarOnClickOutside(e) {
   const btn = document.getElementById('btn-toggle-expense-mini-calendar');
   if (popup && !popup.contains(e.target) && btn && !btn.contains(e.target)) {
     popup.classList.add('hidden');
-    document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside);
+    document.removeEventListener('pointerdown', closeExpenseMiniCalendarOnClickOutside, { capture: true });
+    document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside, { capture: true });
   }
 }
 
@@ -31640,11 +31653,10 @@ function selectExpenseMiniCalDay(day, e) {
 
   renderExpenseMiniCalendar();
 
-  setTimeout(() => {
-    const popup = document.getElementById('expense-mini-calendar-popup');
-    if (popup) popup.classList.add('hidden');
-    document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside);
-  }, 120);
+  const popup = document.getElementById('expense-mini-calendar-popup');
+  if (popup) popup.classList.add('hidden');
+  document.removeEventListener('pointerdown', closeExpenseMiniCalendarOnClickOutside, { capture: true });
+  document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside, { capture: true });
 
   if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
 }
@@ -31859,6 +31871,11 @@ function openNewExpenseModal() {
   expenseMiniCalYear = yr;
 
   setExpenseCurrency('USD');
+
+  const calPopup = document.getElementById('expense-mini-calendar-popup');
+  if (calPopup) calPopup.classList.add('hidden');
+  document.removeEventListener('pointerdown', closeExpenseMiniCalendarOnClickOutside, { capture: true });
+  document.removeEventListener('click', closeExpenseMiniCalendarOnClickOutside, { capture: true });
 
   if (typeof updateModalLanguage === 'function') updateModalLanguage();
 
