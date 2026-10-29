@@ -29523,6 +29523,20 @@ function generateBilingualTelegramOrderText(recordOrForm = null) {
 async function copyOrderTelegramText(recordOrForm = null, silent = false) {
   const text = generateBilingualTelegramOrderText(recordOrForm);
   const ok = await copyTextToSystemClipboard(text);
+
+  const btn = document.getElementById('btn-order-copy-tg-capsule');
+  if (btn) {
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span class="text-emerald-400 font-bold">បានចម្លង</span>`;
+    btn.classList.add('border-emerald-500/50', 'bg-emerald-950/40');
+    if (window.lucide) window.lucide.createIcons();
+    setTimeout(() => {
+      btn.innerHTML = origHtml;
+      btn.classList.remove('border-emerald-500/50', 'bg-emerald-950/40');
+      if (window.lucide) window.lucide.createIcons();
+    }, 1500);
+  }
+
   if (ok && !silent) {
     showToastNotification('✅ បានចម្លងសារកុម្ម៉ង់ Bilingual ចូល Clipboard រួចរាល់! 📋');
     if (navigator.vibrate) try { navigator.vibrate([20, 40]); } catch (_) {}
@@ -29737,10 +29751,10 @@ function openNewOrderModal(mode = 'dock') {
     if (btnSubmitOrder) {
       btnSubmitOrder.classList.remove('hidden');
       btnSubmitOrder.style.display = 'flex';
-      btnSubmitOrder.style.maxWidth = '260px';
-      btnSubmitOrder.style.width = '100%';
+      btnSubmitOrder.style.maxWidth = '';
+      btnSubmitOrder.style.width = '';
       btnSubmitOrder.style.height = '48px';
-      btnSubmitOrder.style.margin = '0 auto';
+      btnSubmitOrder.style.margin = '';
     }
   } else {
     // Dock Mode (បញ្ចូលការកុម្ម៉ង់ថ្មី): Slide to Submit
@@ -29772,7 +29786,7 @@ function openNewOrderModal(mode = 'dock') {
     // Dock Mode: Slide to Submit
     if (submitSlider) {
       submitSlider.classList.remove('hidden');
-      submitSlider.style.display = '';
+      submitSlider.style.display = 'flex';
     }
     if (sliderHint) {
       sliderHint.classList.remove('hidden');
