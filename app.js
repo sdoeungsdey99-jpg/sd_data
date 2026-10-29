@@ -31840,34 +31840,30 @@ function renderExpenseItemRows() {
                class="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-xs font-medium focus:outline-none focus:border-rose-500 placeholder-slate-500">
       </div>
 
-      <!-- Col 2: កណ្តាល (ប្រភេទចំណាយ សមាមាត្រស្អាត) -->
-      <div class="w-[84px] shrink-0">
+      <!-- Col 2: កណ្តាល (ប្រភេទចំណាយ ស្តង់ដារទូលាយ) -->
+      <div class="w-[110px] shrink-0">
         <select onchange="updateExpenseItemField(${idx}, 'category', this.value)"
-                class="w-full bg-black/40 border border-white/10 rounded-lg px-1 py-1.5 text-[11px] text-slate-200 focus:outline-none focus:border-rose-500 truncate font-sans text-center cursor-pointer">
+                class="w-full bg-black/40 border border-white/10 rounded-lg px-1.5 py-1.5 text-[11px] text-slate-200 focus:outline-none focus:border-rose-500 truncate font-sans text-center cursor-pointer">
           ${categories.map(c => `
             <option value="${c.value}" ${item.category === c.value ? 'selected' : ''}>${c.label}</option>
           `).join('')}
         </select>
       </div>
 
-      <!-- Col 3: ខាងស្តាំ (ចំនួនទឹកប្រាក់ ធំទូលាយពេញលេញ មិនដាច់លេខកន្ទុយ) -->
-      <div class="relative w-[92px] shrink-0">
-        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-rose-400 font-mono text-[11px] font-bold">${currSymbol}</span>
+      <!-- Col 3: ខាងស្តាំ (ចំនួនទឹកប្រាក់ ល្មមសមរម្យ មិនវែងពេក) -->
+      <div class="relative w-[72px] shrink-0">
+        <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-rose-400 font-mono text-[10px] font-bold">${currSymbol}</span>
         <input type="number" step="${stepVal}" min="0" value="${item.amount || ''}" placeholder="${placeholderVal}"
                onfocus="activeExpenseItemIndex = ${idx}"
                oninput="updateExpenseItemField(${idx}, 'amount', this.value)"
-               class="w-full bg-black/40 border border-white/10 rounded-lg py-1.5 pl-5 pr-2 text-right text-rose-400 font-mono font-bold text-xs focus:outline-none focus:border-rose-500">
+               class="w-full bg-black/40 border border-white/10 rounded-lg py-1.5 pl-4 pr-1.5 text-right text-rose-400 font-mono font-bold text-xs focus:outline-none focus:border-rose-500">
       </div>
 
-      <!-- Delete Button Slot (w-6): ប៊ូតុងលុប ឬ Spacer ការពាររត់ខ្ទាតលេខ -->
+      <!-- Delete Button Slot (w-6): មានគ្រប់ជួរ ទោះមានតែ ១ ក៏ដោយ -->
       <div class="w-6 shrink-0 flex items-center justify-center">
-        ${expenseItemsState.length > 1 ? `
-          <button type="button" onclick="removeExpenseItemRow(${idx})" class="w-6 h-6 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 flex items-center justify-center active:scale-90 transition" title="លុបមុខនេះ">
-            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-          </button>
-        ` : `
-          <span class="w-6 h-6 block"></span>
-        `}
+        <button type="button" onclick="removeExpenseItemRow(${idx})" class="w-6 h-6 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 flex items-center justify-center active:scale-90 transition" title="${expenseItemsState.length > 1 ? 'លុបមុខនេះ' : 'សម្អាតទិន្នន័យ'}">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
       </div>
     </div>
   `).join('');
