@@ -23406,7 +23406,8 @@ function renderProfileDrawerContent() {
           </div>
         </div>
 
-        <!-- 5. សមាជិកក្រុម (Team Members) -->
+        ${hasAuthenticatedAccount() ? `
+        <!-- 5. សមាជិកក្រុម (Team Members - បង្ហាញតែចំពោះអ្នកមានគណនី) -->
         <div onclick="closeProfileDrawer(); openTeamMembersModal(null, true);" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
           <div class="flex items-center justify-between mb-1.5">
@@ -23422,6 +23423,7 @@ function renderProfileDrawerContent() {
             <p class="text-[9.5px] text-slate-400 mt-0.5 card-subtitle">${isEn ? 'Structure & active roles' : 'រចនាសម្ព័ន្ធ និងតួនាទីសរុប'}</p>
           </div>
         </div>
+        ` : ''}
 
         <!-- 6. តារាងចំណាយមេ (Master Expenses Shortcut) -->
         <div onclick="closeProfileDrawer(); openExpensesModal('all', true);" 
@@ -23753,7 +23755,8 @@ function getProfileViewHTML() {
             </div>
           </div>
 
-          <!-- 4. សមាជិក (Member) -->
+          ${hasAuthenticatedAccount() ? `
+          <!-- 4. សមាជិក (Member - បង្ហាញតែចំពោះអ្នកមានគណនី) -->
           <div onclick="openTeamMembersModal()" 
                class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
             <div class="flex items-center justify-between mb-2">
@@ -23769,6 +23772,7 @@ function getProfileViewHTML() {
               <p class="text-[10px] text-slate-400 mt-0.5 card-subtitle">${appState.language === 'en' ? 'Team Members' : 'បញ្ជីសមាជិកក្រុម'}</p>
             </div>
           </div>
+          ` : ''}
 
           <!-- 5. របាយការណ៍ប្រចាំថ្ងៃ (Daily Sales Report) -->
           <div onclick="openDailyReportModal()" 
@@ -25710,6 +25714,10 @@ function openProfileSubModal(type, fromDrawer = true) {
     return;
   }
   if (type === 'members') {
+    if (typeof hasAuthenticatedAccount === 'function' && !hasAuthenticatedAccount()) {
+      showToastNotification('⚠️ សម្រាប់តែសមាជិកដែលមានគណនីប៉ុណ្ណោះ');
+      return;
+    }
     openTeamMembersModal(null, fromDrawer);
     return;
   }
@@ -26592,6 +26600,10 @@ function clearTeamMembersSearch() {
 }
 
 function openTeamMembersModal(memberNameToOpen = null, fromDrawer = false) {
+  if (typeof hasAuthenticatedAccount === 'function' && !hasAuthenticatedAccount()) {
+    showToastNotification('⚠️ សម្រាប់តែសមាជិកដែលមានគណនីប៉ុណ្ណោះ');
+    return;
+  }
   if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
   window.navOpenedFromDrawer.teamMembers = !!fromDrawer;
   closeProfileDrawer();
