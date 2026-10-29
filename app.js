@@ -4781,8 +4781,22 @@ function getManagerRankBadge(rank) {
   }
 }
 
+window.navOpenedFromDrawer = {
+  customers: false,
+  attendance: false,
+  dailyReport: false,
+  teamMembers: false,
+  expenses: false,
+  honors: false,
+  editProfile: false,
+  profileSubModal: false,
+  tutorial: false,
+  execHierarchy: false
+};
+
 function openExecutiveHierarchyFromDrawer() {
   window.execHierarchyOpenedFromDrawer = true;
+  if (window.navOpenedFromDrawer) window.navOpenedFromDrawer.execHierarchy = true;
   const isUnlocked = (sessionStorage.getItem('sd_exec_unlocked') === 'true');
   if (isUnlocked) {
     if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
@@ -15796,7 +15810,9 @@ function applyExpensesFilterAndRender() {
   if (window.lucide) window.lucide.createIcons();
 }
 
-function openExpensesModal(mode = false) {
+function openExpensesModal(mode = false, fromDrawer = false) {
+  if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
+  window.navOpenedFromDrawer.expenses = !!fromDrawer;
   const d = DataService.data;
   if (!d) return;
 
@@ -16615,6 +16631,10 @@ function closeExpensesModal() {
   const modal = document.getElementById('expenses-modal');
   if (modal) modal.classList.add('hidden');
   setDockVisible(true);
+  if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.expenses) {
+    window.navOpenedFromDrawer.expenses = false;
+    if (typeof openProfileDrawer === 'function') openProfileDrawer();
+  }
 }
 
 // Close expenses dropdowns if clicked outside
@@ -17487,7 +17507,9 @@ function hookHonorsModalGestures() {
   }, { passive: true });
 }
 
-function openHonorsModal(tab = 'honors') {
+function openHonorsModal(tab = 'honors', fromDrawer = false) {
+  if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
+  window.navOpenedFromDrawer.honors = !!fromDrawer;
   const modal = document.getElementById('honors-modal');
   if (modal) {
     const gate = document.getElementById('onboarding-gate');
@@ -17518,6 +17540,10 @@ function closeHonorsModal() {
     setDockVisible(false);
   } else {
     setDockVisible(true);
+  }
+  if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.honors) {
+    window.navOpenedFromDrawer.honors = false;
+    if (typeof openProfileDrawer === 'function') openProfileDrawer();
   }
 }
 
@@ -17894,7 +17920,9 @@ const TUTORIAL_CHAPTERS = [
   }
 ];
 
-function openTutorialModal(chapterIndex = 0, stepIndex = 0) {
+function openTutorialModal(chapterIndex = 0, stepIndex = 0, fromDrawer = false) {
+  if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
+  window.navOpenedFromDrawer.tutorial = !!fromDrawer;
   const modal = document.getElementById('tutorial-modal');
   if (!modal) return;
 
@@ -17916,6 +17944,10 @@ function closeTutorialModal() {
     setDockVisible(false);
   } else {
     setDockVisible(true);
+  }
+  if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.tutorial) {
+    window.navOpenedFromDrawer.tutorial = false;
+    if (typeof openProfileDrawer === 'function') openProfileDrawer();
   }
 }
 
@@ -20715,7 +20747,9 @@ function setupAttendanceScroll() {
   }, { passive: true });
 }
 
-function openAttendanceModal() {
+function openAttendanceModal(fromDrawer = false) {
+  if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
+  window.navOpenedFromDrawer.attendance = !!fromDrawer;
   const modal = document.getElementById('attendance-modal');
   if (!modal) return;
   renderAttendanceContent();
@@ -20745,7 +20779,10 @@ function closeAttendanceModal() {
     window._attendanceClockInterval = null;
   }
   setDockVisible(true);
-  openProfileDrawer();
+  if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.attendance) {
+    window.navOpenedFromDrawer.attendance = false;
+    if (typeof openProfileDrawer === 'function') openProfileDrawer();
+  }
   if (navigator.vibrate) try { navigator.vibrate(12); } catch(_) {}
 }
 
@@ -23278,7 +23315,7 @@ function renderProfileDrawerContent() {
       <div class="grid grid-cols-2 gap-2.5">
         
         <!-- 1. បញ្ជីអតិថិជន (Customer Directory) -->
-        <div onclick="closeProfileDrawer(); openAllCustomersModal();" 
+        <div onclick="closeProfileDrawer(); openAllCustomersModal(true);" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-orange-500/40">
           <div class="flex items-center justify-between mb-1.5">
             <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center">
@@ -23295,7 +23332,7 @@ function renderProfileDrawerContent() {
         </div>
 
         <!-- 2. កត់ត្រាវត្តមាន (HR Attendance Module - CheckinMe Enterprise) ⭐ -->
-        <div onclick="closeProfileDrawer(); openAttendanceModal();" 
+        <div onclick="closeProfileDrawer(); openAttendanceModal(true);" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-emerald-500/40">
           <div class="flex items-center justify-between mb-1.5">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
@@ -23331,7 +23368,7 @@ function renderProfileDrawerContent() {
         </div>
 
         <!-- 4. របាយការណ៍ប្រចាំថ្ងៃ (Daily Sales Report) -->
-        <div onclick="closeProfileDrawer(); openDailyReportModal();" 
+        <div onclick="closeProfileDrawer(); openDailyReportModal(true);" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-emerald-500/40">
           <div class="flex items-center justify-between mb-1.5">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
@@ -23348,7 +23385,7 @@ function renderProfileDrawerContent() {
         </div>
 
         <!-- 5. សមាជិកក្រុម (Team Members) -->
-        <div onclick="closeProfileDrawer(); openTeamMembersModal();" 
+        <div onclick="closeProfileDrawer(); openTeamMembersModal(null, true);" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-blue-500/40">
           <div class="flex items-center justify-between mb-1.5">
             <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
@@ -23365,7 +23402,7 @@ function renderProfileDrawerContent() {
         </div>
 
         <!-- 6. តារាងចំណាយមេ (Master Expenses Shortcut) -->
-        <div onclick="closeProfileDrawer(); openExpensesModal('all');" 
+        <div onclick="closeProfileDrawer(); openExpensesModal('all', true);" 
              class="ios-glass-card rounded-2xl p-3 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-rose-500/40">
           <div class="flex items-center justify-between mb-1.5">
             <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
@@ -23397,7 +23434,7 @@ function renderProfileDrawerContent() {
         </div>
         <div class="flex items-center gap-2">
           <button id="drawer-member-edit-btn" 
-                  onclick="event.stopPropagation(); closeProfileDrawer(); openEditProfileModal();" 
+                  onclick="event.stopPropagation(); closeProfileDrawer(); openEditProfileModal(true);" 
                   class="hidden text-[11px] font-bold text-orange-400 hover:underline flex items-center gap-1 px-2 py-0.5 rounded-lg bg-orange-500/10 border border-orange-500/20 active:scale-95 transition">
             <i data-lucide="pencil" class="w-3 h-3"></i>
             <span>${isEn ? 'Edit' : 'កែប្រែ'}</span>
@@ -23458,7 +23495,7 @@ function renderProfileDrawerContent() {
       </div>
 
       <!-- 2. ឯកជនភាព (Privacy) -->
-      <div onclick="closeProfileDrawer(); openProfileSubModal('privacy');" 
+      <div onclick="closeProfileDrawer(); openProfileSubModal('privacy', true);" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
           <div class="settings-icon-box w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
@@ -23473,7 +23510,7 @@ function renderProfileDrawerContent() {
       </div>
 
       <!-- 1.5. ភ្ជាប់ Google Sheet ផ្ទាល់ខ្លួន (Custom Sheet Sync) -->
-      <div onclick="closeProfileDrawer(); openProfileSubModal('custom_sheet');" 
+      <div onclick="closeProfileDrawer(); openProfileSubModal('custom_sheet', true);" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
           <div class="settings-icon-box w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
@@ -23491,7 +23528,7 @@ function renderProfileDrawerContent() {
       </div>
 
       <!-- 3. ជំនួយ & មតិកែលម្អ (Help & Feedback) -->
-      <div onclick="closeProfileDrawer(); openProfileSubModal('feedback_support');" 
+      <div onclick="closeProfileDrawer(); openProfileSubModal('feedback_support', true);" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
           <div class="settings-icon-box w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0">
@@ -23506,7 +23543,7 @@ function renderProfileDrawerContent() {
       </div>
 
       <!-- 4. អំពីគម្រោង & កិត្តិយស និងការដឹងគុណ (Honors & Dedication) -->
-      <div onclick="closeProfileDrawer(); openHonorsModal();" 
+      <div onclick="closeProfileDrawer(); openHonorsModal('honors', true);" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
           <div class="settings-icon-box w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
@@ -23521,7 +23558,7 @@ function renderProfileDrawerContent() {
       </div>
 
       <!-- 5. ចាកចេញ (Log Out) -->
-      <div onclick="closeProfileDrawer(); openProfileSubModal('logout');" 
+      <div onclick="closeProfileDrawer(); openProfileSubModal('logout', true);" 
            class="settings-row p-3 flex items-center justify-between cursor-pointer hover:bg-rose-500/10 active:scale-[0.99] transition select-none">
         <div class="settings-row-left flex items-center gap-2.5 min-w-0">
           <div class="settings-icon-box w-7 h-7 rounded-lg bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shrink-0">
@@ -23827,7 +23864,9 @@ function getProfileViewHTML() {
 // =========================================================
 let tempAvatarDataUrl = null;
 
-function openEditProfileModal() {
+function openEditProfileModal(fromDrawer = false) {
+  if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
+  window.navOpenedFromDrawer.editProfile = !!fromDrawer;
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   const p = getProfileData();
   tempAvatarDataUrl = p.avatar || (isMaster ? 'profile.png' : 'bostar-logo.png');
@@ -23906,7 +23945,10 @@ function openEditProfileModal() {
 
 function closeEditProfileModal() {
   document.getElementById('edit-profile-modal')?.classList?.add('hidden');
-  openProfileDrawer();
+  if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.editProfile) {
+    window.navOpenedFromDrawer.editProfile = false;
+    if (typeof openProfileDrawer === 'function') openProfileDrawer();
+  }
 }
 
 function onBirthdayInput(e) {
@@ -24102,7 +24144,9 @@ function setupAllCustomersScroll() {
   }, { passive: true });
 }
 
-function openAllCustomersModal() {
+function openAllCustomersModal(fromDrawer = false) {
+  if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
+  window.navOpenedFromDrawer.customers = !!fromDrawer;
   allCustomersScopeMode = 'personal';
   updateCustomersScopeUI();
   expandedCustomerKey = null;
@@ -24200,6 +24244,10 @@ function toggleProfileViewMemberInfo() {
 function closeAllCustomersModal() {
   document.getElementById('all-customers-modal')?.classList?.add('hidden');
   setDockVisible(true);
+  if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.customers) {
+    window.navOpenedFromDrawer.customers = false;
+    if (typeof openProfileDrawer === 'function') openProfileDrawer();
+  }
 }
 
 function toggleCustomersSortMenu(event) {
@@ -25428,22 +25476,27 @@ window.handleResetSupportTelegram = handleResetSupportTelegram;
 function closeProfileSubModal() {
   window._supportAdminEditing = false;
   document.getElementById('profile-sub-modal')?.classList?.add('hidden');
-  openProfileDrawer();
+  if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.profileSubModal) {
+    window.navOpenedFromDrawer.profileSubModal = false;
+    if (typeof openProfileDrawer === 'function') openProfileDrawer();
+  }
 }
 
-function openProfileSubModal(type) {
+function openProfileSubModal(type, fromDrawer = true) {
+  if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
+  window.navOpenedFromDrawer.profileSubModal = !!fromDrawer;
   if (type === 'members') {
-    openTeamMembersModal();
+    openTeamMembersModal(null, fromDrawer);
     return;
   }
   if (type === 'honors' || type === 'dedication') {
     closeProfileSubModal();
-    openHonorsModal();
+    openHonorsModal('honors', fromDrawer);
     return;
   }
   if (type === 'tutorial' || type === 'guide' || type === 'help_center') {
     closeProfileSubModal();
-    openTutorialModal();
+    openTutorialModal(0, 0, fromDrawer);
     return;
   }
   const header = document.getElementById('profile-sub-modal-header');
@@ -25457,7 +25510,7 @@ function openProfileSubModal(type) {
 
   if (type === 'daily_report') {
     closeProfileSubModal();
-    openDailyReportModal();
+    openDailyReportModal(fromDrawer);
     return;
   } else if (type === 'custom_sheet') {
     const isCustom = (typeof DataService !== 'undefined' && DataService.hasActiveSheet && !DataService.isMasterSheet());
@@ -26299,7 +26352,9 @@ function clearTeamMembersSearch() {
   }
 }
 
-function openTeamMembersModal(memberNameToOpen = null) {
+function openTeamMembersModal(memberNameToOpen = null, fromDrawer = false) {
+  if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
+  window.navOpenedFromDrawer.teamMembers = !!fromDrawer;
   closeProfileDrawer();
   const subModal = document.getElementById('profile-sub-modal');
   if (subModal) subModal.classList.add('hidden');
@@ -26364,13 +26419,17 @@ function openTeamMembersModal(memberNameToOpen = null) {
   if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
 }
 
-function closeTeamMembersModal(skipDrawer = true) {
+function closeTeamMembersModal(skipDrawer = false) {
   closeAllTeamDropdowns();
   const teamHeader = document.getElementById('team-members-header');
   if (teamHeader) teamHeader.classList.remove('hidden');
   const modal = document.getElementById('team-members-modal');
   if (modal) modal.classList.add('hidden');
   setDockVisible(true);
+  if (!skipDrawer && window.navOpenedFromDrawer && window.navOpenedFromDrawer.teamMembers) {
+    window.navOpenedFromDrawer.teamMembers = false;
+    if (typeof openProfileDrawer === 'function') openProfileDrawer();
+  }
 }
 
 function backToTeamMembersList() {
@@ -28438,7 +28497,9 @@ function renderDailyReportModal() {
   if (window.lucide) window.lucide.createIcons();
 }
 
-function openDailyReportModal() {
+function openDailyReportModal(fromDrawer = false) {
+  if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
+  window.navOpenedFromDrawer.dailyReport = !!fromDrawer;
   const modal = document.getElementById('daily-report-modal');
   if (!modal) return;
   closeAllModals();
@@ -28481,6 +28542,10 @@ function closeDailyReportModal() {
   if (dockBlur) {
     dockBlur.classList.remove('opacity-0', '!hidden', 'dock-hidden');
     dockBlur.style.display = '';
+  }
+  if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.dailyReport) {
+    window.navOpenedFromDrawer.dailyReport = false;
+    if (typeof openProfileDrawer === 'function') openProfileDrawer();
   }
 }
 
