@@ -9561,7 +9561,7 @@ window.setStudyTab = setStudyTab;
 // ------------------------------------------
 // Sub-view 1: LEADERSHIP & TRAINERS (Founder, CEO, Closing Coach, Technical Managers, Health Specialist, Software Dev Manager)
 // ------------------------------------------
-const TRAINERS_LIST = ['promo', 'founder', 'ceo', 'yaith', 'chanthy', 'udom', 'leanghak', 'masya', 'sdoeung'];
+const TRAINERS_LIST = ['founder', 'ceo', 'yaith', 'chanthy', 'udom', 'leanghak', 'masya', 'sdoeung'];
 
 const BECH_NORA_FOUNDER_TOPICS = [
   {
@@ -9862,7 +9862,6 @@ const SDEY_SDOEUNG_TOPICS = [
 
 function renderTrainerSelectorBarHTML(activeTrainer) {
   const trainers = [
-    { id: 'promo', name: 'ប្រូម៉ូសិន', title: 'ប្រូម៉ូសិន & តម្លៃ', icon: '🔥' },
     { id: 'founder', name: 'នោរ៉ា', title: 'ស្ថាបនិក', icon: '👑' },
     { id: 'ceo', name: 'ស៊ីថា', title: 'អគ្គនាយក', icon: '🎓' },
     { id: 'yaith', name: 'យ៉ារិទ្ធ', title: 'បិទការលក់', icon: '🎯' },
@@ -9908,7 +9907,7 @@ function renderTrainerSelectorBarHTML(activeTrainer) {
 window.renderTrainerSelectorBarHTML = renderTrainerSelectorBarHTML;
 
 function updateTrainerNavIndicators(trainer) {
-  const trainers = ['promo', 'founder', 'ceo', 'yaith', 'chanthy', 'udom', 'leanghak', 'masya', 'sdoeung'];
+  const trainers = ['founder', 'ceo', 'yaith', 'chanthy', 'udom', 'leanghak', 'masya', 'sdoeung'];
   const activeIdx = trainers.indexOf(trainer);
   if (activeIdx === -1) return;
 
@@ -9946,7 +9945,7 @@ function handleTrainerCarouselScroll(el) {
     const slideWidth = el.clientWidth || 360;
     const index = Math.round(el.scrollLeft / slideWidth);
     const clampedIndex = Math.max(0, Math.min(TRAINERS_LIST.length - 1, index));
-    const newTrainer = TRAINERS_LIST[clampedIndex] || 'promo';
+    const newTrainer = TRAINERS_LIST[clampedIndex] || 'founder';
     if (appState.activeTrainer !== newTrainer) {
       appState.activeTrainer = newTrainer;
       if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
@@ -10007,7 +10006,7 @@ function setupTrainerCarouselGesture() {
 
     // Minimum horizontal swipe distance: 28px, and horizontal dominance
     if (Math.abs(deltaX) >= 28 && Math.abs(deltaX) > Math.abs(deltaY) * 0.7) {
-      const curIndex = TRAINERS_LIST.indexOf(appState.activeTrainer || 'promo');
+      const curIndex = TRAINERS_LIST.indexOf(appState.activeTrainer || 'founder');
       if (deltaX < 0) {
         // Swiped Left -> Next trainer
         const nextIdx = Math.min(TRAINERS_LIST.length - 1, (curIndex === -1 ? 0 : curIndex) + 1);
@@ -10037,7 +10036,7 @@ function setupTrainerCarouselGesture() {
     const deltaX = e.clientX - mouseStartX;
     const deltaY = e.clientY - mouseStartY;
     if (Math.abs(deltaX) >= 35 && Math.abs(deltaX) > Math.abs(deltaY)) {
-      const curIndex = TRAINERS_LIST.indexOf(appState.activeTrainer || 'promo');
+      const curIndex = TRAINERS_LIST.indexOf(appState.activeTrainer || 'founder');
       if (deltaX < 0) {
         const nextIdx = Math.min(TRAINERS_LIST.length - 1, (curIndex === -1 ? 0 : curIndex) + 1);
         switchTrainer(TRAINERS_LIST[nextIdx]);
@@ -10053,10 +10052,8 @@ window.setupTrainerCarouselGesture = setupTrainerCarouselGesture;
 function updateTrainerContentArea() {
   const container = document.getElementById('trainer-content-area');
   if (!container) return;
-  const trainer = appState.activeTrainer || 'promo';
-  if (trainer === 'promo') {
-    container.innerHTML = renderPromotionAnnouncementContentHTML();
-  } else if (trainer === 'founder') {
+  const trainer = appState.activeTrainer || 'founder';
+  if (trainer === 'founder') {
     container.innerHTML = renderFounderLessonsContentHTML();
   } else if (trainer === 'ceo') {
     container.innerHTML = renderCeoLessonsContentHTML();
@@ -10073,7 +10070,7 @@ function updateTrainerContentArea() {
   } else if (trainer === 'sdoeung') {
     container.innerHTML = renderSdoeungLessonsContentHTML();
   } else {
-    container.innerHTML = renderPromotionAnnouncementContentHTML();
+    container.innerHTML = renderFounderLessonsContentHTML();
   }
   if (window.lucide) window.lucide.createIcons();
 }
@@ -10597,33 +10594,46 @@ function renderSdoeungLessonsContentHTML() {
   `;
 }
 
-function renderPromotionAnnouncementContentHTML() {
+function renderPromotionAnnouncementBannerHTML() {
   return `
-    <div class="space-y-4 animate-fade-in text-left">
+    <div class="space-y-3.5 animate-fade-in text-left">
       
-      <!-- Top Hero Header Badge -->
-      <div class="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-orange-500/20 via-amber-500/15 to-transparent border border-orange-500/35 relative overflow-hidden shadow-xl">
-        <div class="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/15 rounded-full blur-2xl pointer-events-none"></div>
-        <div class="flex items-start gap-3.5 relative z-10">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/30 border border-orange-400/40">
-            <span class="text-2xl animate-pulse">🔥</span>
-          </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2 flex-wrap mb-1">
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500/25 text-amber-300 border border-orange-500/40">
-                សេចក្តីជូនដំណឹងផ្លូវការ
-              </span>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/10 text-slate-300 border border-white/10">
-                ០១ វិច្ឆិកា - ៣១ ធ្នូ ២០២៦
-              </span>
-            </div>
-            <h3 class="text-base sm:text-lg font-black text-white brand-title leading-tight">
-              ការកែប្រែតម្លៃលក់ & កម្មវិធីប្រូម៉ូសិន ៥ មុខ
+      <!-- Top Promotion Hero Header (Centered, No Logo, No Avatar Frame, No Tick) -->
+      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-orange-500/35 relative overflow-hidden bg-gradient-to-br from-orange-500/20 via-[#1E120A] to-[#070D18] shadow-2xl text-center">
+        <div class="absolute -top-16 -right-16 w-48 h-48 bg-orange-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="select-none text-center relative z-10">
+          <div class="inline-flex items-center justify-center gap-2 mb-1.5">
+            <span class="text-2xl animate-pulse">🎁</span>
+            <h3 class="text-lg sm:text-xl font-black text-white brand-title tracking-wide leading-tight">
+              កម្មវិធីប្រូម៉ូសិន & តម្លៃថ្មី
             </h3>
-            <p class="text-xs text-amber-200/90 font-medium mt-1">
-              ក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង (VANN SITHA TRADING CO.,LTD.)
-            </p>
           </div>
+          <p class="text-xs sm:text-sm font-bold text-amber-400 tracking-wide">
+            ក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង (VANN SITHA TRADING CO.,LTD.)
+          </p>
+          <p class="text-[11px] text-slate-300 font-medium mt-0.5">
+            សេចក្តីជូនដំណឹងផ្លូវការ • អនុវត្តពី ០១ វិច្ឆិកា ដល់ ៣១ ធ្នូ ២០២៦
+          </p>
+          <div class="mt-2.5 flex items-center justify-center gap-1.5 overflow-hidden">
+            <span class="px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 font-bold text-[9.5px] sm:text-[10px] border border-orange-500/40 whitespace-nowrap shadow-sm">
+              BUY 4 GET 1 FREE • BONUS $50 - $100
+            </span>
+          </div>
+        </div>
+
+        <!-- Key Announcement Quote -->
+        <div class="p-3.5 rounded-2xl bg-orange-500/10 border border-orange-500/25 backdrop-blur-md mt-3 text-left relative z-10">
+          <div class="flex items-center gap-1.5 text-orange-400 text-xs font-bold mb-1">
+            <span>📢</span>
+            <span>ឱកាសបង្កើនការលក់ចុងឆ្នាំ ២០២៦ ៖</span>
+          </div>
+          <h4 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+            «ទិញ ៤ ថែម ១ ឥតគិតថ្លៃ • រង្វាន់លើកទឹកចិត្តរហូតដល់ $100»
+          </h4>
+          <p class="text-[11px] text-amber-200/90 font-kantumruy leading-relaxed mt-1">
+            “អនុវត្តលើផលិតផល 05 មុខ (Kidney Pro, Pro D.O, Yong Liang, Yong Liang Plus, S.G Pro) ចាប់ពីថ្ងៃទី ០១ វិច្ឆិកា ដល់ ៣១ ធ្នូ ២០២៦។”
+          </p>
         </div>
       </div>
 
@@ -10661,7 +10671,7 @@ function renderPromotionAnnouncementContentHTML() {
           </div>
         </div>
 
-        <!-- Official Price Comparison Table -->
+        <!-- Official Price Comparison Table (Optimized for iPhone 17 Pro - whitespace-nowrap, zero line breaks) -->
         <div class="relative z-10">
           <div class="flex items-center justify-between mb-2">
             <p class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
@@ -10672,58 +10682,55 @@ function renderPromotionAnnouncementContentHTML() {
           <div class="overflow-x-auto no-scrollbar rounded-2xl border border-white/10 bg-black/40">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="bg-white/5 border-b border-white/10 text-[10.5px] text-slate-400 font-semibold">
-                  <th class="py-2.5 px-3">ចំនួន</th>
-                  <th class="py-2.5 px-2 text-center">តម្លៃចាស់ ($)</th>
-                  <th class="py-2.5 px-2 text-center text-emerald-400 font-bold">តម្លៃថ្មី ($)</th>
-                  <th class="py-2.5 px-2 text-center">តម្លៃចាស់ (฿)</th>
-                  <th class="py-2.5 px-2 text-center text-emerald-400 font-bold">តម្លៃថ្មី (฿)</th>
-                  <th class="py-2.5 px-3 text-right">ការចំណេញ</th>
+                <tr class="bg-white/5 border-b border-white/10 text-[10px] sm:text-[10.5px] text-slate-400 font-semibold">
+                  <th class="py-2.5 px-2 sm:px-3 whitespace-nowrap">ចំនួន</th>
+                  <th class="py-2.5 px-1 sm:px-2 text-center whitespace-nowrap">ចាស់ ($)</th>
+                  <th class="py-2.5 px-1 sm:px-2 text-center text-emerald-400 font-bold whitespace-nowrap">ថ្មី ($)</th>
+                  <th class="py-2.5 px-1 sm:px-2 text-center whitespace-nowrap">ចាស់ (฿)</th>
+                  <th class="py-2.5 px-1 sm:px-2 text-center text-emerald-400 font-bold whitespace-nowrap">ថ្មី (฿)</th>
+                  <th class="py-2.5 px-2 sm:px-3 text-right whitespace-nowrap">ការចំណេញ</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-white/5 text-[11px]">
                 <tr class="hover:bg-white/[0.02] transition">
-                  <td class="py-2.5 px-3 font-bold text-white">01 ប្រអប់</td>
-                  <td class="py-2.5 px-2 text-center text-slate-400 line-through">50$</td>
-                  <td class="py-2.5 px-2 text-center font-black text-emerald-400 text-xs">45$</td>
-                  <td class="py-2.5 px-2 text-center text-slate-400 line-through">2,000฿</td>
-                  <td class="py-2.5 px-2 text-center font-black text-emerald-400 text-xs">1,800฿</td>
-                  <td class="py-2.5 px-3 text-right text-emerald-300 font-medium">ចុះ 5$ (200฿)</td>
+                  <td class="py-2 px-2 sm:px-3 font-bold text-white whitespace-nowrap">01 ប្រអប់</td>
+                  <td class="py-2 px-1 sm:px-2 text-center text-slate-400 line-through whitespace-nowrap">50$</td>
+                  <td class="py-2 px-1 sm:px-2 text-center font-black text-emerald-400 text-xs whitespace-nowrap">45$</td>
+                  <td class="py-2 px-1 sm:px-2 text-center text-slate-400 line-through whitespace-nowrap">2,000฿</td>
+                  <td class="py-2 px-1 sm:px-2 text-center font-black text-emerald-400 text-xs whitespace-nowrap">1,800฿</td>
+                  <td class="py-2 px-2 sm:px-3 text-right text-emerald-300 font-medium whitespace-nowrap">ចុះ 5$ (200฿)</td>
                 </tr>
                 <tr class="hover:bg-white/[0.02] transition">
-                  <td class="py-2.5 px-3 font-bold text-white">02 ប្រអប់</td>
-                  <td class="py-2.5 px-2 text-center text-slate-400 line-through">90$</td>
-                  <td class="py-2.5 px-2 text-center font-black text-emerald-400 text-xs">80$</td>
-                  <td class="py-2.5 px-2 text-center text-slate-400 line-through">3,400฿</td>
-                  <td class="py-2.5 px-2 text-center font-black text-emerald-400 text-xs">3,000฿</td>
-                  <td class="py-2.5 px-3 text-right text-emerald-300 font-medium">ចុះ 10$ (400฿)</td>
+                  <td class="py-2 px-2 sm:px-3 font-bold text-white whitespace-nowrap">02 ប្រអប់</td>
+                  <td class="py-2 px-1 sm:px-2 text-center text-slate-400 line-through whitespace-nowrap">90$</td>
+                  <td class="py-2 px-1 sm:px-2 text-center font-black text-emerald-400 text-xs whitespace-nowrap">80$</td>
+                  <td class="py-2 px-1 sm:px-2 text-center text-slate-400 line-through whitespace-nowrap">3,400฿</td>
+                  <td class="py-2 px-1 sm:px-2 text-center font-black text-emerald-400 text-xs whitespace-nowrap">3,000฿</td>
+                  <td class="py-2 px-2 sm:px-3 text-right text-emerald-300 font-medium whitespace-nowrap">ចុះ 10$ (400฿)</td>
                 </tr>
                 <tr class="hover:bg-white/[0.02] transition">
-                  <td class="py-2.5 px-3 font-bold text-white">03 ប្រអប់</td>
-                  <td class="py-2.5 px-2 text-center text-slate-400 line-through">135$</td>
-                  <td class="py-2.5 px-2 text-center font-black text-emerald-400 text-xs">120$</td>
-                  <td class="py-2.5 px-2 text-center text-slate-400 line-through">4,700฿</td>
-                  <td class="py-2.5 px-2 text-center font-black text-emerald-400 text-xs">4,500฿</td>
-                  <td class="py-2.5 px-3 text-right text-emerald-300 font-medium">ចុះ 15$ (200฿)</td>
+                  <td class="py-2 px-2 sm:px-3 font-bold text-white whitespace-nowrap">03 ប្រអប់</td>
+                  <td class="py-2 px-1 sm:px-2 text-center text-slate-400 line-through whitespace-nowrap">135$</td>
+                  <td class="py-2 px-1 sm:px-2 text-center font-black text-emerald-400 text-xs whitespace-nowrap">120$</td>
+                  <td class="py-2 px-1 sm:px-2 text-center text-slate-400 line-through whitespace-nowrap">4,700฿</td>
+                  <td class="py-2 px-1 sm:px-2 text-center font-black text-emerald-400 text-xs whitespace-nowrap">4,500฿</td>
+                  <td class="py-2 px-2 sm:px-3 text-right text-emerald-300 font-medium whitespace-nowrap">ចុះ 15$ (200฿)</td>
                 </tr>
                 <tr class="bg-amber-500/15 border-y border-amber-500/30">
-                  <td class="py-2.5 px-3 font-black text-amber-300 flex items-center gap-1.5">
-                    <span>04 ប្រអប់</span>
-                    <span class="px-1.5 py-0.2 rounded bg-amber-500/30 text-amber-200 text-[9px] font-bold">HOT</span>
-                  </td>
-                  <td class="py-2.5 px-2 text-center text-slate-500">—</td>
-                  <td class="py-2.5 px-2 text-center font-black text-amber-300 text-sm">150$</td>
-                  <td class="py-2.5 px-2 text-center text-slate-500">—</td>
-                  <td class="py-2.5 px-2 text-center font-black text-amber-300 text-sm">5,700฿</td>
-                  <td class="py-2.5 px-3 text-right font-black text-amber-300">🔥 ថែម 1 ប្រអប់ Free</td>
+                  <td class="py-2 px-2 sm:px-3 font-black text-amber-300 whitespace-nowrap">04 ប្រអប់</td>
+                  <td class="py-2 px-1 sm:px-2 text-center text-slate-500 whitespace-nowrap">—</td>
+                  <td class="py-2 px-1 sm:px-2 text-center font-black text-amber-300 text-xs sm:text-sm whitespace-nowrap">150$</td>
+                  <td class="py-2 px-1 sm:px-2 text-center text-slate-500 whitespace-nowrap">—</td>
+                  <td class="py-2 px-1 sm:px-2 text-center font-black text-amber-300 text-xs sm:text-sm whitespace-nowrap">5,700฿</td>
+                  <td class="py-2 px-2 sm:px-3 text-right font-black text-amber-300 whitespace-nowrap">🔥 ថែម 1 Free</td>
                 </tr>
                 <tr class="hover:bg-white/[0.02] transition">
-                  <td class="py-2.5 px-3 font-bold text-white">05 ប្រអប់</td>
-                  <td class="py-2.5 px-2 text-center text-slate-400">180$</td>
-                  <td class="py-2.5 px-2 text-center font-black text-emerald-400 text-xs">180$</td>
-                  <td class="py-2.5 px-2 text-center text-slate-400">6,400฿</td>
-                  <td class="py-2.5 px-2 text-center font-black text-emerald-400 text-xs">6,400฿</td>
-                  <td class="py-2.5 px-3 text-right text-slate-400 text-[10px]">36$/ប្រអប់</td>
+                  <td class="py-2 px-2 sm:px-3 font-bold text-white whitespace-nowrap">05 ប្រអប់</td>
+                  <td class="py-2 px-1 sm:px-2 text-center text-slate-400 whitespace-nowrap">180$</td>
+                  <td class="py-2 px-1 sm:px-2 text-center font-black text-emerald-400 text-xs whitespace-nowrap">180$</td>
+                  <td class="py-2 px-1 sm:px-2 text-center text-slate-400 whitespace-nowrap">6,400฿</td>
+                  <td class="py-2 px-1 sm:px-2 text-center font-black text-emerald-400 text-xs whitespace-nowrap">6,400฿</td>
+                  <td class="py-2 px-2 sm:px-3 text-right text-slate-400 text-[10px] whitespace-nowrap">36$/ប្រអប់</td>
                 </tr>
               </tbody>
             </table>
@@ -10837,7 +10844,7 @@ function renderPromotionAnnouncementContentHTML() {
         </div>
       </div>
 
-      <!-- 4. ORIGINAL DOCUMENT CARD (ឯកសារដើម) -->
+      <!-- 4. ORIGINAL DOCUMENT CARD (ឯកសារដើម - Clean Card with Modal PDF Viewer) -->
       <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/15 bg-gradient-to-r from-slate-900/90 via-[#0B1526] to-[#070D18] shadow-2xl relative overflow-hidden text-left">
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
@@ -10879,7 +10886,8 @@ function renderPromotionAnnouncementContentHTML() {
     </div>
   `;
 }
-window.renderPromotionAnnouncementContentHTML = renderPromotionAnnouncementContentHTML;
+window.renderPromotionAnnouncementBannerHTML = renderPromotionAnnouncementBannerHTML;
+window.renderPromotionAnnouncementContentHTML = renderPromotionAnnouncementBannerHTML;
 
 function openVstPromoPdfModal() {
   if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
@@ -10960,13 +10968,13 @@ function closeVstPromoPdfModal() {
 window.closeVstPromoPdfModal = closeVstPromoPdfModal;
 
 function renderSalesResetContent() {
-  const activeTrainer = appState.activeTrainer || 'promo';
+  const activeTrainer = appState.activeTrainer || 'founder';
 
   // Schedule gesture attachment and scroll alignment
   setTimeout(() => {
     if (typeof setupTrainerCarouselGesture === 'function') setupTrainerCarouselGesture();
     const carousel = document.getElementById('trainer-carousel');
-    const targetTrainer = appState.activeTrainer || 'promo';
+    const targetTrainer = appState.activeTrainer || 'founder';
     const slide = document.getElementById('trainer-slide-' + targetTrainer);
     if (carousel && slide) {
       carousel.scrollTo({ left: slide.offsetLeft, behavior: 'instant' });
@@ -10974,9 +10982,8 @@ function renderSalesResetContent() {
     if (typeof updateTrainerNavIndicators === 'function') updateTrainerNavIndicators(targetTrainer);
   }, 40);
 
-  let initialContent = renderPromotionAnnouncementContentHTML();
-  if (activeTrainer === 'founder') initialContent = renderFounderLessonsContentHTML();
-  else if (activeTrainer === 'ceo') initialContent = renderCeoLessonsContentHTML();
+  let initialContent = renderFounderLessonsContentHTML();
+  if (activeTrainer === 'ceo') initialContent = renderCeoLessonsContentHTML();
   else if (activeTrainer === 'yaith') initialContent = renderYaithLessonsContentHTML();
   else if (activeTrainer === 'chanthy') initialContent = renderChanthyLessonsContentHTML();
   else if (activeTrainer === 'udom') initialContent = renderUdomLessonsContentHTML();
@@ -10985,121 +10992,18 @@ function renderSalesResetContent() {
   else if (activeTrainer === 'sdoeung') initialContent = renderSdoeungLessonsContentHTML();
 
   return `
-    <div class="space-y-3.5 animate-fade-in">
+    <div class="space-y-4 animate-fade-in text-left">
       
-      <!-- Swipeable Trainer Carousel (VIP Leaders / Trainers - Ultra Smooth 120Hz Snapping) -->
+      <!-- 1. Hero Promotion Announcement (នៅមុខគេបង្អស់ ក្នុងផ្ទាំងសិក្សា) -->
+      ${renderPromotionAnnouncementBannerHTML()}
+
+      <!-- 2. Swipeable Trainer Carousel (8 VIP Leaders - Ultra Smooth 120Hz Snapping) -->
       <div id="trainer-carousel" 
            class="flex w-full max-w-full overflow-x-auto snap-x snap-mandatory no-scrollbar rounded-3xl" 
            style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-behavior: smooth;"
            onscroll="handleTrainerCarouselScroll(this)">
         
-        <!-- Slide 1: សេចក្តីជូនដំណឹងប្រូម៉ូសិន & តម្លៃថ្មី (VST Trading) -->
-        <div id="trainer-slide-promo" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
-          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-orange-500/40 relative overflow-hidden bg-gradient-to-br from-orange-500/20 via-[#1F100B] to-[#070D18] shadow-2xl text-center">
-            <div class="absolute -top-16 -right-16 w-48 h-48 bg-orange-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
-            <!-- Top Header Tags -->
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-3 py-1 rounded-full bg-orange-500/25 border border-orange-500/50 text-amber-300 font-black text-[10px] sm:text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 truncate">
-                <span class="animate-pulse">🔥</span>
-                <span class="truncate">ប្រូម៉ូសិន • វិច្ឆិកា & ធ្នូ ២០២៦</span>
-              </span>
-              <span class="text-[10px] text-orange-400 font-mono font-bold bg-orange-500/10 px-2.5 py-0.5 rounded-full border border-orange-500/30 shrink-0">OFFICIAL</span>
-            </div>
-
-            <!-- Centered Promotion Title & Badges (No Logo, No Avatar Frame) -->
-            <div class="py-2.5 select-none text-center">
-              <div class="inline-flex items-center justify-center gap-2 mb-1">
-                <span class="text-2xl animate-pulse">🎁</span>
-                <h3 class="text-lg sm:text-xl font-black text-white brand-title tracking-wide leading-tight">
-                  កម្មវិធីប្រូម៉ូសិន & តម្លៃថ្មី
-                </h3>
-                <img src="gold-tick.png?v=39.6" alt="Official Verified" class="w-4 h-4 object-contain shrink-0" title="Official Verified 🌟">
-              </div>
-              <p class="text-xs sm:text-sm font-bold text-amber-400 tracking-wide mt-0.5">
-                VANN SITHA TRADING CO.,LTD.
-              </p>
-              <p class="text-[11px] text-slate-300 font-medium mt-0.5">
-                សេចក្តីជូនដំណឹងផ្លូវការ (Internal Document)
-              </p>
-              <div class="mt-2.5 flex items-center justify-center gap-1.5 overflow-hidden">
-                <span class="px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 font-bold text-[9.5px] sm:text-[10px] border border-orange-500/40 whitespace-nowrap shadow-sm">
-                  BUY 4 GET 1 FREE • BONUS $50 - $100
-                </span>
-              </div>
-            </div>
-
-            <!-- Key Banner Quote -->
-            <div class="p-3.5 rounded-2xl bg-orange-500/10 border border-orange-500/25 backdrop-blur-md mt-2 text-left">
-              <div class="flex items-center gap-1.5 text-orange-400 text-xs font-bold mb-1">
-                <span>📢</span>
-                <span>ឱកាសបង្កើនការលក់ចុងឆ្នាំ ២០២៦ ៖</span>
-              </div>
-              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
-                «ទិញ ៤ ថែម ១ ឥតគិតថ្លៃ • រង្វាន់លើកទឹកចិត្តរហូតដល់ $100»
-              </h3>
-              <p class="text-[11px] text-amber-200/90 font-kantumruy leading-relaxed mt-1">
-                “អនុវត្តលើផលិតផល 05 មុខ (Kidney Pro, Pro D.O, Yong Liang, Yong Liang Plus, S.G Pro) ចាប់ពីថ្ងៃទី ០១ វិច្ឆិកា ដល់ ៣១ ធ្នូ ២០២៦។”
-              </p>
-            </div>
-
-            <!-- 3 Quick Pillars Pills -->
-            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
-              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">🎁</span>
-                <p class="text-[10px] font-bold text-emerald-400 mt-0.5">អតិថិជន</p>
-                <span class="text-[8.5px] text-slate-300 block">ទិញ ៤ ថែម ១</span>
-              </div>
-              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">🚀</span>
-                <p class="text-[10px] font-bold text-amber-400 mt-0.5">អ្នកលក់</p>
-                <span class="text-[8.5px] text-slate-300 block">Bonus $50-$100</span>
-              </div>
-              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">🏷️</span>
-                <p class="text-[10px] font-bold text-orange-400 mt-0.5">តម្លៃថ្មី ៥មុខ</p>
-                <span class="text-[8.5px] text-slate-300 block">ចុះ $5 - $15</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-            <!-- Key Banner Quote -->
-            <div class="p-3.5 rounded-2xl bg-orange-500/10 border border-orange-500/25 backdrop-blur-md mt-3">
-              <div class="flex items-center gap-1.5 text-orange-400 text-xs font-bold mb-1">
-                <span>📢</span>
-                <span>ឱកាសបង្កើនការលក់ចុងឆ្នាំ ២០២៦ ៖</span>
-              </div>
-              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
-                «ទិញ ៤ ថែម ១ ឥតគិតថ្លៃ • រង្វាន់លើកទឹកចិត្តរហូតដល់ $100»
-              </h3>
-              <p class="text-[11px] text-amber-200/90 font-kantumruy leading-relaxed mt-1">
-                “អនុវត្តលើផលិតផល 05 មុខ (Kidney Pro, Pro D.O, Yong Liang, Yong Liang Plus, S.G Pro) ចាប់ពីថ្ងៃទី ០១ វិច្ឆិកា ដល់ ៣១ ធ្នូ ២០២៦។”
-              </p>
-            </div>
-
-            <!-- 3 Quick Pillars Pills -->
-            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
-              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">🎁</span>
-                <p class="text-[10px] font-bold text-emerald-400 mt-0.5">អតិថិជន</p>
-                <span class="text-[8.5px] text-slate-300 block">ទិញ ៤ ថែម ១</span>
-              </div>
-              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">🚀</span>
-                <p class="text-[10px] font-bold text-amber-400 mt-0.5">អ្នកលក់</p>
-                <span class="text-[8.5px] text-slate-300 block">Bonus $50-$100</span>
-              </div>
-              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-xs">🏷️</span>
-                <p class="text-[10px] font-bold text-orange-400 mt-0.5">តម្លៃថ្មី ៥មុខ</p>
-                <span class="text-[8.5px] text-slate-300 block">ចុះ $5 - $15</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Slide 2: ស្ថាបនិក បូស្តារ គ្រុប លោក ប៊ិច នោរ៉ា -->
+        <!-- Slide 1: ស្ថាបនិក បូស្តារ គ្រុប លោក ប៊ិច នោរ៉ា -->
         <div id="trainer-slide-founder" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
           <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-br from-amber-500/20 via-[#181528] to-[#070D18] shadow-2xl text-left">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -11196,7 +11100,10 @@ function renderSalesResetContent() {
 
               <div class="min-w-0 flex-1">
                 <!-- ជួរទី ១ ៖ ឈ្មោះខ្មែរនៅលើ ធំ និងច្បាស់ -->
-                <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">លោកអគ្គនាយក វណ្ណ ស៊ីថា</h3>
+                  <img src="gold-tick.png?v=39.6" alt="CEO Verified" class="w-4 h-4 object-contain shrink-0" title="CEO Verified 🌟">
+                </div>
                 <!-- ជួរទី ២ ៖ ឈ្មោះឡាតាំងនៅក្រោម -->
                 <p class="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 tracking-wide">CEO Vann Sitha</p>
                 <!-- ជួរទី ៣ ៖ តួនាទី -->
@@ -11621,10 +11528,10 @@ function renderSalesResetContent() {
                 <!-- ជួរទី ២ ៖ ឈ្មោះឡាតាំងនៅក្រោម -->
                 <p class="text-xs sm:text-sm font-bold text-sky-400 mt-0.5 tracking-wide">Sdey Sdoeung</p>
                 <!-- ជួរទី ៣ ៖ តួនាទី -->
-                <p class="text-xs text-slate-300 font-medium mt-0.5">Manager • បច្ចេកវិទ្យា & ប្រព័ន្ធកម្មវិធី</p>
+                <p class="text-xs text-slate-300 font-medium mt-0.5 whitespace-nowrap truncate">Manager • បច្ចេកទេសផេក កាត់ត & Dev</p>
                 <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
                   <span class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 font-bold text-[9px] sm:text-[9.5px] border border-sky-500/40 whitespace-nowrap shrink-0">
-                    PAGE TECH • VIDEO • APP DEV
+                    អ្នកបច្ចេកទេសផេក • កាត់តវីដេអូ • App Dev
                   </span>
                 </div>
               </div>
