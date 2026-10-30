@@ -1438,6 +1438,12 @@ async function manualReload() {
   if (typeof renderCurrentView === 'function') {
     renderCurrentView();
   }
+  if (appState.currentView === 'learning') {
+    const main = document.getElementById('main-content');
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+    const promoCard = document.getElementById('study-promo-banner-card');
+    if (promoCard) promoCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function attachUniversalPullToRefresh(target) {
@@ -2718,6 +2724,11 @@ function switchView(viewName, shouldReload = false) {
       main.classList.add('analytics-view-active');
     } else {
       main.classList.remove('analytics-view-active');
+    }
+    if (viewName === 'learning') {
+      setTimeout(() => {
+        if (main) main.scrollTo({ top: 0, behavior: 'instant' });
+      }, 30);
     }
   }
 
@@ -9525,6 +9536,8 @@ function getLearningViewHTML() {
 function setStudyTab(tab) {
   appState.studyTab = tab;
   if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+  const main = document.getElementById('main-content');
+  if (main) main.scrollTo({ top: 0, behavior: 'instant' });
   const container = document.getElementById('study-container');
   if (container) {
     container.innerHTML = `
@@ -10599,7 +10612,7 @@ function renderPromotionAnnouncementBannerHTML() {
     <div class="space-y-3.5 animate-fade-in text-left">
       
       <!-- Top Promotion Hero Header (Centered, No Logo, No Avatar Frame, No Tick) -->
-      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-orange-500/35 relative overflow-hidden bg-gradient-to-br from-orange-500/20 via-[#1E120A] to-[#070D18] shadow-2xl text-center">
+      <div id="study-promo-banner-card" class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-orange-500/35 relative overflow-hidden bg-gradient-to-br from-orange-500/20 via-[#1E120A] to-[#070D18] shadow-2xl text-center">
         <div class="absolute -top-16 -right-16 w-48 h-48 bg-orange-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="select-none text-center relative z-10">
@@ -10609,10 +10622,13 @@ function renderPromotionAnnouncementBannerHTML() {
               កម្មវិធីប្រូម៉ូសិន & តម្លៃថ្មី
             </h3>
           </div>
-          <p class="text-xs sm:text-sm font-bold text-amber-400 tracking-wide">
-            ក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង (VANN SITHA TRADING CO.,LTD.)
+          <p class="text-xs sm:text-sm font-bold text-amber-300 tracking-wide mt-1">
+            ក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង
           </p>
-          <p class="text-[11px] text-slate-300 font-medium mt-0.5">
+          <p class="text-[11px] sm:text-xs font-semibold text-amber-400/90 font-mono tracking-wider mt-0.5">
+            VANN SITHA TRADING CO., LTD.
+          </p>
+          <p class="text-[11px] text-slate-300 font-medium mt-1">
             សេចក្តីជូនដំណឹងផ្លូវការ • អនុវត្តពី ០១ វិច្ឆិកា ដល់ ៣១ ធ្នូ ២០២៦
           </p>
           <div class="mt-2.5 flex items-center justify-center gap-1.5 overflow-hidden">
@@ -10980,6 +10996,12 @@ function renderSalesResetContent() {
       carousel.scrollTo({ left: slide.offsetLeft, behavior: 'instant' });
     }
     if (typeof updateTrainerNavIndicators === 'function') updateTrainerNavIndicators(targetTrainer);
+
+    // Refresh & scroll directly to top promo hero card (កាតខាងលើបង្អស់)
+    const main = document.getElementById('main-content');
+    if (main && appState.currentView === 'learning') {
+      main.scrollTo({ top: 0, behavior: 'instant' });
+    }
   }, 40);
 
   let initialContent = renderFounderLessonsContentHTML();
