@@ -19928,8 +19928,7 @@ let pendingMasterAuthSeller = null;
 function getAllUniqueCustomers() {
   const d = DataService.data;
   let sales = [];
-  const isMasterAuth = (typeof localStorage !== 'undefined') && localStorage.getItem('sd_master_admin_authenticated') === 'true';
-  if (allCustomersScopeMode === 'all' && isMasterAuth) {
+  if (allCustomersScopeMode === 'all') {
     sales = Array.isArray(masterFilteredCustomersSales) ? masterFilteredCustomersSales : [];
   } else {
     sales = (d && d.personalSales) ? d.personalSales : [];
@@ -24765,10 +24764,15 @@ async function setCustomersScope(mode) {
     }
 
     const normCurrent = (typeof normalizeSellerName === 'function') ? normalizeSellerName(currentName) : currentName.toLowerCase().trim();
-    let matchedSeller = teamCodes.find(t => 
-      ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.km) : t.km.toLowerCase().trim()) === normCurrent || 
-      ((typeof normalizeSellerName === 'function') ? normalizeSellerName(t.en) : t.en.toLowerCase().trim()) === normCurrent
-    );
+    const currentMemberId = (prof && prof.memberId) ? String(prof.memberId).trim().toUpperCase() : (localStorage.getItem('sd_member_special_code') || '').trim().toUpperCase();
+
+    let matchedSeller = teamCodes.find(t => {
+      const tCode = String(t.code || '').trim().toUpperCase();
+      if (currentMemberId && tCode && tCode === currentMemberId) return true;
+      const tKmNorm = (typeof normalizeSellerName === 'function') ? normalizeSellerName(t.km) : t.km.toLowerCase().trim();
+      const tEnNorm = (typeof normalizeSellerName === 'function') ? normalizeSellerName(t.en) : t.en.toLowerCase().trim();
+      return tKmNorm === normCurrent || tEnNorm === normCurrent;
+    });
 
     // If still not matched, check if sd_verified_seller_km matches
     if (!matchedSeller) {
@@ -24782,8 +24786,14 @@ async function setCustomersScope(mode) {
       }
     }
 
+    // Fallback: search in BOSTAR_TEAM_SELLERS
+    if (!matchedSeller && typeof findBostarSeller === 'function') {
+      const bFound = findBostarSeller(currentName);
+      if (bFound) matchedSeller = { km: bFound.km, en: bFound.en, code: currentMemberId };
+    }
+
     // Fallback: if not found in list, use currentName directly
-    const sellerToUse = matchedSeller || { km: currentName, en: currentName, code: '' };
+    const sellerToUse = matchedSeller || { km: currentName, en: currentName, code: currentMemberId };
 
     // 3. Seamlessly activate Master Data without demanding code again!
     await loadAndActivateMasterCustomers(sellerToUse);
@@ -24871,7 +24881,7 @@ async function loadAndActivateMasterCustomers(seller) {
       <div class="p-8 text-center flex flex-col items-center justify-center gap-2.5">
         <div class="w-8 h-8 rounded-full border-2 border-amber-500/30 border-t-amber-400 animate-spin"></div>
         <p class="text-xs text-amber-300 font-medium">កំពុងទាញយកទិន្នន័យអតិថិជនទាំងអស់ពី Master Data...</p>
-        <span class="text-[10px] text-slate-400">សម្រាប់អ្នកលក់៖ ${escapeHtml(seller.km)}</span>
+        <span class="text-[10px] text-slate-400">សម្រាប់អ្នកលក់៖ ${escapeHtml(seller.km || seller.en || '')}</span>
       </div>
     `;
   }
@@ -24881,9 +24891,44 @@ async function loadAndActivateMasterCustomers(seller) {
     const normSeller = normalizeSellerName(seller.km);
     const normEn = normalizeSellerName(seller.en);
 
+    // Build Set of all allowed seller names (including subordinates for Leader / Manager / Director)
+    const allowedSellerNorms = new Set();
+    if (normSeller) allowedSellerNorms.add(normSeller);
+    if (normEn) allowedSellerNorms.add(normEn);
+
+    // Check if user is Director Bech Nora
+    const isDirector = (normSeller.includes('នោរ៉ា') || normSeller.includes('ប៊ិច នោរ៉ា') || (normEn && normEn.includes('nora')));
+
+    const hierarchy = DataService.data?.teamHierarchy;
+    const allMembers = (hierarchy && Array.isArray(hierarchy.members) && hierarchy.members.length > 0) 
+      ? hierarchy.members 
+      : (window.BOSTAR_TEAM_SELLERS || []);
+
+    if (isDirector) {
+      // Director can see all members' customer database
+      allMembers.forEach(m => {
+        if (m.km) allowedSellerNorms.add(normalizeSellerName(m.km));
+        if (m.en) allowedSellerNorms.add(normalizeSellerName(m.en));
+      });
+    } else {
+      // Find all subordinates whose leader matches this seller
+      allMembers.forEach(m => {
+        const memLeaderNorm = normalizeSellerName(m.leader || '');
+        if (memLeaderNorm && normSeller && (memLeaderNorm === normSeller || memLeaderNorm.includes(normSeller) || normSeller.includes(memLeaderNorm))) {
+          if (m.km) allowedSellerNorms.add(normalizeSellerName(m.km));
+          if (m.en) allowedSellerNorms.add(normalizeSellerName(m.en));
+        }
+      });
+    }
+
     masterFilteredCustomersSales = allMasterSales.filter(o => {
       const oSeller = normalizeSellerName(o.seller);
-      return oSeller && (oSeller === normSeller || oSeller === normEn);
+      if (!oSeller) return false;
+      if (allowedSellerNorms.has(oSeller)) return true;
+      for (const allowed of allowedSellerNorms) {
+        if (oSeller === allowed || oSeller.includes(allowed) || allowed.includes(oSeller)) return true;
+      }
+      return false;
     });
 
     allCustomersScopeMode = 'all';
