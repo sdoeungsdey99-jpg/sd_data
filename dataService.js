@@ -79,12 +79,23 @@ function formatToDDMMYYYY(dateStr) {
     return `${dy}/${mo}/${yr}`;
   }
 
-  // Already DD/MM/YYYY
+  // Slash format handling (supports both DD/MM/YYYY and MM/DD/YYYY)
   const slashMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (slashMatch) {
-    const dy = slashMatch[1].padStart(2, '0');
-    const mo = slashMatch[2].padStart(2, '0');
+    let p1 = parseInt(slashMatch[1], 10);
+    let p2 = parseInt(slashMatch[2], 10);
     const yr = slashMatch[3];
+
+    // If p1 > 12, it MUST be day (DD/MM/YYYY)
+    // If p2 > 12, p2 MUST be day (MM/DD/YYYY)
+    let dy, mo;
+    if (p2 > 12) {
+      dy = String(p2).padStart(2, '0');
+      mo = String(p1).padStart(2, '0');
+    } else {
+      dy = String(p1).padStart(2, '0');
+      mo = String(p2).padStart(2, '0');
+    }
     return `${dy}/${mo}/${yr}`;
   }
 

@@ -29008,10 +29008,11 @@ window.renderDailyReportPagePills = renderDailyReportPagePills;
 const pagesReportState = {
   currentTab: 'view', // 'view' (របាយការណ៍ Pages) | 'entry' (ចុះរបាយការណ៍)
   timeFilter: 'day',  // 'day' | 'week' | 'month'
-  selectedDate: '',   // YYYY-MM-DD
-  selectedMember: 'all', // 'all' or specific seller name
+  selectedDate: '2026-10-30',   // YYYY-MM-DD (defaults to latest recorded date or today)
+  selectedMember: 'self', // 'self' | 'all' | specific seller name
   subView: 'pages',   // 'pages' | 'members' (for week & month)
-  searchQuery: ''
+  searchQuery: '',
+  hasInitializedMember: false
 };
 
 function getPagesReportCurrentIsoDate() {
@@ -29057,7 +29058,7 @@ function getPagesReportUserRole() {
     }
   }
 
-  return { role: 'member', name: myName, isExecutive: false };
+  return { role: 'member', name: myName || 'សមាជិក', isExecutive: false };
 }
 
 function getManagedMembersForCurrentUser() {
@@ -29069,8 +29070,9 @@ function getManagedMembersForCurrentUser() {
 
   if (userRole.role === 'director') {
     const set = new Set();
-    members.forEach(m => { if (m.km) set.add(m.km.trim()); });
+    if (userRole.name) set.add(userRole.name.trim());
     leaders.forEach(l => { if (l.km) set.add(l.km.trim()); });
+    members.forEach(m => { if (m.km) set.add(m.km.trim()); });
     return Array.from(set);
   }
 
@@ -29104,21 +29106,35 @@ function getManagedMembersForCurrentUser() {
   return [userRole.name];
 }
 
+function initPagesReportMemberState() {
+  const userRole = getPagesReportUserRole();
+  if (!pagesReportState.hasInitializedMember) {
+    pagesReportState.selectedMember = 'self';
+    pagesReportState.hasInitializedMember = true;
+  }
+}
+
 function filterDailyReportEntriesForCurrentUser(entries = []) {
   if (!Array.isArray(entries)) return [];
   const userRole = getPagesReportUserRole();
   const managedMembers = getManagedMembersForCurrentUser();
   const managedNorms = managedMembers.map(m => normalizeSellerName(m));
+  const myNorm = normalizeSellerName(userRole.name);
 
-  // 1. Role-based Member Filter
+  // 1. Role-based Security Scope
   let filtered = entries.filter(e => {
     if (userRole.role === 'director') return true;
     const rNorm = normalizeSellerName(e.reporter);
     return managedNorms.some(mNorm => mNorm && (mNorm === rNorm || mNorm.includes(rNorm) || rNorm.includes(mNorm)));
   });
 
-  // 2. Specific Member Filter (Dropdown)
-  if (pagesReportState.selectedMember && pagesReportState.selectedMember !== 'all') {
+  // 2. Specific Member / Self Filter
+  if (pagesReportState.selectedMember === 'self' || userRole.role === 'member') {
+    filtered = filtered.filter(e => {
+      const rNorm = normalizeSellerName(e.reporter);
+      return !myNorm || rNorm === myNorm || rNorm.includes(myNorm) || myNorm.includes(rNorm);
+    });
+  } else if (pagesReportState.selectedMember && pagesReportState.selectedMember !== 'all') {
     const selNorm = normalizeSellerName(pagesReportState.selectedMember);
     filtered = filtered.filter(e => {
       const rNorm = normalizeSellerName(e.reporter);
@@ -29219,12 +29235,12 @@ function renderDailyReportHeaderTabs() {
   return `
     <div class="flex items-center gap-1.5 w-full">
       <button type="button" onclick="setPagesReportTab('view')" 
-              class="flex-1 py-1.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${tab === 'view' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+              class="flex-1 py-1.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${tab === 'view' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white/5 text-slate-300 hover:bg-white/10 theme-light-tab'}">
         <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
         <span>${isEn ? 'Pages Report' : 'របាយការណ៍ Pages'}</span>
       </button>
       <button type="button" onclick="setPagesReportTab('entry')" 
-              class="flex-1 py-1.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${tab === 'entry' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+              class="flex-1 py-1.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${tab === 'entry' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white/5 text-slate-300 hover:bg-white/10 theme-light-tab'}">
         <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
         <span>${isEn ? 'Daily Entry' : 'ចុះរបាយការណ៍'}</span>
       </button>
@@ -29233,6 +29249,7 @@ function renderDailyReportHeaderTabs() {
 }
 
 function renderPagesReportViewContent() {
+  initPagesReportMemberState();
   const isEn = appState.language === 'en';
   const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
   const allEntries = Array.isArray(d.dailyReportEntries) ? d.dailyReportEntries : [];
@@ -29272,25 +29289,32 @@ function renderPagesReportViewContent() {
     timeDisplayLabel = isEn ? `Month ${mm}/${yyyy}` : `ខែ ${mm}/${yyyy}`;
   }
 
+  // Label for Group All vs Self
+  const allTeamLabel = userRole.role === 'manager' 
+    ? (isEn ? '👥 All Team (Manager)' : '👥 ក្រុមការងារទាំងអស់ (Manager)')
+    : (userRole.role === 'leader' 
+        ? (isEn ? '👥 All Team (Leader)' : '👥 ក្រុមការងារទាំងអស់ (Leader)')
+        : (isEn ? '👥 All Team' : '👥 ក្រុមការងារទាំងអស់'));
+
   return `
     <div class="space-y-3 select-none">
       
       <!-- Top Time Filter Pills (Day | Week | Month) -->
-      <div class="p-2.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+      <div class="p-2.5 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 theme-light-card space-y-2">
         <div class="flex items-center justify-between gap-1.5">
-          <div class="flex items-center p-1 rounded-xl bg-white/5 border border-white/5 flex-1">
+          <div class="flex items-center p-1 rounded-xl bg-white/5 dark:bg-white/5 border border-white/5 flex-1">
             <button type="button" onclick="setPagesReportTimeFilter('day')" 
-                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'day' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 hover:text-white'}">
+                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'day' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
               <i data-lucide="calendar" class="w-3 h-3"></i>
               <span>${isEn ? 'Day' : 'ថ្ងៃ'}</span>
             </button>
             <button type="button" onclick="setPagesReportTimeFilter('week')" 
-                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'week' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 hover:text-white'}">
+                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'week' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
               <i data-lucide="calendar-range" class="w-3 h-3"></i>
               <span>${isEn ? 'Week' : 'សប្តាហ៍'}</span>
             </button>
             <button type="button" onclick="setPagesReportTimeFilter('month')" 
-                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'month' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 hover:text-white'}">
+                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'month' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
               <i data-lucide="pie-chart" class="w-3 h-3"></i>
               <span>${isEn ? 'Month' : 'ខែ'}</span>
             </button>
@@ -29298,13 +29322,13 @@ function renderPagesReportViewContent() {
 
           <!-- Date Stepper (Prev / Next) -->
           <div class="flex items-center gap-1 shrink-0">
-            <button type="button" onclick="stepPagesReportDate(-1)" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center active:scale-95 transition" title="ថយក្រោយ">
+            <button type="button" onclick="stepPagesReportDate(-1)" class="w-8 h-8 rounded-xl bg-white/5 dark:bg-white/5 hover:bg-white/10 text-slate-300 dark:text-slate-300 border border-white/10 flex items-center justify-center active:scale-95 transition" title="ថយក្រោយ">
               <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
             </button>
-            <button type="button" onclick="resetPagesReportDateToToday()" class="px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-400 font-mono font-bold text-[10px] border border-white/10 active:scale-95 transition" title="ថ្ងៃនេះ">
+            <button type="button" onclick="resetPagesReportDateToToday()" class="px-2 py-1.5 rounded-xl bg-white/5 dark:bg-white/5 hover:bg-white/10 text-emerald-400 font-mono font-bold text-[10px] border border-white/10 active:scale-95 transition" title="ថ្ងៃនេះ">
               <span>${isEn ? 'Today' : 'ថ្ងៃនេះ'}</span>
             </button>
-            <button type="button" onclick="stepPagesReportDate(1)" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center active:scale-95 transition" title="ទៅមុខ">
+            <button type="button" onclick="stepPagesReportDate(1)" class="w-8 h-8 rounded-xl bg-white/5 dark:bg-white/5 hover:bg-white/10 text-slate-300 dark:text-slate-300 border border-white/10 flex items-center justify-center active:scale-95 transition" title="ទៅមុខ">
               <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
             </button>
           </div>
@@ -29312,34 +29336,35 @@ function renderPagesReportViewContent() {
 
         <!-- Date Range Indicator & Member Dropdown for Leaders/Managers -->
         <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/5 text-xs">
-          <div class="flex items-center gap-1.5 text-slate-300 font-semibold">
+          <div class="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 font-semibold theme-light-text">
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="font-mono text-emerald-300">${timeDisplayLabel}</span>
+            <span class="font-mono text-emerald-400 dark:text-emerald-300 font-bold">${timeDisplayLabel}</span>
             <span class="text-[10px] text-slate-400">(${entries.length} ${isEn ? 'Reports' : 'របាយការណ៍'})</span>
           </div>
 
           ${userRole.isExecutive && managedMembers.length > 1 ? `
           <div class="flex items-center gap-1.5">
-            <label class="text-[11px] text-slate-400">${isEn ? 'Filter:' : 'កូនក្រុម៖'}</label>
+            <label class="text-[11px] text-slate-400">${isEn ? 'Filter:' : 'សមាជិក៖'}</label>
             <select onchange="setPagesReportMember(this.value)" 
-                    class="bg-black/60 border border-white/15 rounded-xl px-2.5 py-1 text-white font-semibold text-xs focus:outline-none focus:border-emerald-500">
-              <option value="all" ${pagesReportState.selectedMember === 'all' ? 'selected' : ''}>${isEn ? '👥 All Team' : '👥 ទាំងអស់ (All)'}</option>
-              ${managedMembers.map(m => `<option value="${escapeHtml(m)}" ${pagesReportState.selectedMember === m ? 'selected' : ''}>👤 ${escapeHtml(m)}</option>`).join('')}
+                    class="bg-black/60 dark:bg-black/60 border border-white/15 rounded-xl px-2.5 py-1 text-white font-semibold text-xs focus:outline-none focus:border-emerald-500 theme-light-input">
+              <option value="self" ${pagesReportState.selectedMember === 'self' ? 'selected' : ''}>👤 ${escapeHtml(userRole.name || 'ខ្លួនឯង')} (ផ្ទាល់ខ្លួន)</option>
+              <option value="all" ${pagesReportState.selectedMember === 'all' ? 'selected' : ''}>${allTeamLabel}</option>
+              ${managedMembers.filter(m => normalizeSellerName(m) !== normalizeSellerName(userRole.name)).map(m => `<option value="${escapeHtml(m)}" ${pagesReportState.selectedMember === m ? 'selected' : ''}>👤 ${escapeHtml(m)}</option>`).join('')}
             </select>
           </div>
           ` : `
-          <div class="text-[11px] text-slate-400 flex items-center gap-1">
+          <div class="text-[11px] text-slate-300 dark:text-slate-300 flex items-center gap-1 font-semibold theme-light-text">
             <i data-lucide="user" class="w-3 h-3 text-sky-400"></i>
-            <span>${escapeHtml(userRole.name || 'កូនក្រុម')}</span>
+            <span>${escapeHtml(userRole.name || 'សមាជិក')}</span>
           </div>
           `}
         </div>
       </div>
 
       <!-- Macro Summary Badge (Boxes, Chat, Calls) -->
-      <div class="p-3 rounded-2xl bg-gradient-to-br from-[#0E1C38] to-[#0A1325] border border-emerald-500/30 space-y-2 shadow-lg">
+      <div class="p-3 rounded-2xl bg-gradient-to-br from-[#0E1C38] to-[#0A1325] border border-emerald-500/30 space-y-2 shadow-lg theme-light-card">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-white flex items-center gap-1.5">
+          <span class="text-xs font-bold text-white dark:text-white flex items-center gap-1.5 theme-light-text">
             <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
             <span>${isEn ? 'Total Boxes Sold' : 'សរុបលក់បានទាំងអស់'}</span>
           </span>
@@ -29350,17 +29375,17 @@ function renderPagesReportViewContent() {
 
         <div class="grid grid-cols-2 gap-2 pt-1 text-[11px] border-t border-white/5">
           <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-            <span class="text-slate-300">💬 ${isEn ? 'Total Chat' : 'ឆាតសរុប'}៖</span>
-            <span class="font-mono font-bold text-white">${totalChat} <span class="text-[9.5px] text-slate-400">(${totalChatTarget}|${totalChatMistake})</span></span>
+            <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">💬 ${isEn ? 'Total Chat' : 'ឆាតសរុប'}៖</span>
+            <span class="font-mono font-bold text-white dark:text-white theme-light-text">${totalChat} <span class="text-[9.5px] text-slate-400">(${totalChatTarget}|${totalChatMistake})</span></span>
           </div>
           <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-            <span class="text-slate-300">📞 ${isEn ? 'Direct Calls' : 'ខលផ្ទាល់'}៖</span>
-            <span class="font-mono font-bold text-white">${totalCalls} ${isEn ? 'Calls' : 'នាក់'}</span>
+            <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📞 ${isEn ? 'Direct Calls' : 'ខលផ្ទាល់'}៖</span>
+            <span class="font-mono font-bold text-white dark:text-white theme-light-text">${totalCalls} ${isEn ? 'Calls' : 'នាក់'}</span>
           </div>
         </div>
 
         <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-[11px]">
-          <span class="text-slate-300">📦 ${isEn ? 'Sales Breakdown' : 'លក់ជាក់ស្តែង'}៖</span>
+          <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📦 ${isEn ? 'Sales Breakdown' : 'លក់ជាក់ស្តែង'}៖</span>
           <span class="font-mono text-emerald-300 font-semibold">
             ${isEn ? 'New' : 'ថ្មី'} ${buyNewB} | ${isEn ? 'Repeat' : 'ចាស់'} ${buyOldB} | Follow ${buyFollowB}
           </span>
@@ -29371,14 +29396,14 @@ function renderPagesReportViewContent() {
       ${pagesReportState.timeFilter !== 'day' ? `
       <div class="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 border border-white/5">
         <button type="button" onclick="setPagesReportSubView('pages')" 
-                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'pages' ? 'bg-sky-500 text-white shadow' : 'text-slate-300 hover:text-white'}">
+                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'pages' ? 'bg-sky-500 text-white shadow' : 'text-slate-300 hover:text-white theme-light-text-sub'}">
           <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
           <span>${isEn ? 'By Pages' : 'តាមផេក (By Pages)'}</span>
         </button>
         <button type="button" onclick="setPagesReportSubView('members')" 
-                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'members' ? 'bg-sky-500 text-white shadow' : 'text-slate-300 hover:text-white'}">
+                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'members' ? 'bg-sky-500 text-white shadow' : 'text-slate-300 hover:text-white theme-light-text-sub'}">
           <i data-lucide="users" class="w-3.5 h-3.5"></i>
-          <span>${isEn ? 'By Members' : 'តាមកូនក្រុម (By Members)'}</span>
+          <span>${isEn ? 'By Members' : 'តាមសមាជិក (By Members)'}</span>
         </button>
       </div>
       ` : ''}
@@ -29395,12 +29420,12 @@ function renderPagesReportDetailSection(entries = []) {
 
   if (!entries || entries.length === 0) {
     return `
-      <div class="py-12 px-4 text-center rounded-2xl bg-black/30 border border-white/5 space-y-2">
+      <div class="py-12 px-4 text-center rounded-2xl bg-black/30 dark:bg-black/30 border border-white/5 theme-light-card space-y-2">
         <div class="w-12 h-12 rounded-2xl bg-white/5 text-slate-400 mx-auto flex items-center justify-center border border-white/10">
           <i data-lucide="file-question" class="w-6 h-6"></i>
         </div>
-        <p class="text-xs font-bold text-slate-300">${isEn ? 'No report data found' : 'មិនទាន់មានទិន្នន័យរបាយការណ៍នៅឡើយទេ'}</p>
-        <p class="text-[10px] text-slate-500">${isEn ? 'Try selecting a different date or member filter.' : 'សូមសាកល្បងជ្រើសរើសកាលបរិច្ឆេទ ឬកូនក្រុមផ្សេង។'}</p>
+        <p class="text-xs font-bold text-slate-300 dark:text-slate-300 theme-light-text">${isEn ? 'No report data found' : 'មិនទាន់មានទិន្នន័យរបាយការណ៍នៅឡើយទេ'}</p>
+        <p class="text-[10px] text-slate-500">${isEn ? 'Try selecting a different date or member filter.' : 'សូមសាកល្បងជ្រើសរើសកាលបរិច្ឆេទ ឬសមាជិកផ្សេង។'}</p>
       </div>
     `;
   }
@@ -29438,13 +29463,13 @@ function renderPagesReportDetailSection(entries = []) {
     return `
       <div class="space-y-2.5">
         ${sortedPages.map((g, idx) => `
-          <div class="p-3 rounded-2xl bg-black/40 border border-white/10 hover:border-emerald-500/40 transition space-y-2">
+          <div class="p-3 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-emerald-500/40 transition space-y-2 theme-light-card">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
                   ${idx + 1}
                 </span>
-                <span class="font-bold text-xs sm:text-sm text-white truncate">${escapeHtml(g.page)}</span>
+                <span class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">${escapeHtml(g.page)}</span>
               </div>
               <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs shrink-0">
                 ${g.boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
@@ -29452,13 +29477,13 @@ function renderPagesReportDetailSection(entries = []) {
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/5">
-              <div class="text-slate-300">💬 ឆាត៖ <span class="text-white font-mono font-bold">${g.chat}</span> <span class="text-[9.5px] text-slate-400">(${g.chatTarget}|${g.chatMistake})</span></div>
-              <div class="text-slate-300">📞 ខល៖ <span class="text-white font-mono font-bold">${g.calls}</span> នាក់</div>
+              <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">💬 ឆាត៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.chat}</span> <span class="text-[9.5px] text-slate-400">(${g.chatTarget}|${g.chatMistake})</span></div>
+              <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📞 ខល៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.calls}</span> នាក់</div>
             </div>
 
             <div class="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 text-slate-400">
               <span>👥 អ្នកលក់៖ ${Array.from(g.reporters).join(', ') || '—'}</span>
-              <span class="text-emerald-400/90 font-mono">ថ្មី ${g.newB} | ចាស់ ${g.oldB} | Follow ${g.followB}</span>
+              <span class="text-emerald-400 font-mono font-semibold">ថ្មី ${g.newB} | ចាស់ ${g.oldB} | Follow ${g.followB}</span>
             </div>
           </div>
         `).join('')}
@@ -29469,7 +29494,7 @@ function renderPagesReportDetailSection(entries = []) {
   // 3. Week / Month Mode: SubView Members
   const memberGroups = {};
   entries.forEach(e => {
-    const mName = e.reporter || (isEn ? 'Unknown Member' : 'កូនក្រុម');
+    const mName = e.reporter || (isEn ? 'Unknown Member' : 'សមាជិក');
     if (!memberGroups[mName]) {
       memberGroups[mName] = { reporter: mName, boxes: 0, chat: 0, chatTarget: 0, chatMistake: 0, calls: 0, newB: 0, oldB: 0, followB: 0, pages: new Set() };
     }
@@ -29489,13 +29514,13 @@ function renderPagesReportDetailSection(entries = []) {
   return `
     <div class="space-y-2.5">
       ${sortedMembers.map((g, idx) => `
-        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 hover:border-sky-500/40 transition space-y-2">
+        <div class="p-3 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-sky-500/40 transition space-y-2 theme-light-card">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 min-w-0">
               <span class="w-5 h-5 rounded-lg bg-sky-500/20 text-sky-300 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
                 ${idx + 1}
               </span>
-              <span class="font-bold text-xs sm:text-sm text-white truncate">👤 ${escapeHtml(g.reporter)}</span>
+              <span class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">👤 ${escapeHtml(g.reporter)}</span>
             </div>
             <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs shrink-0">
               ${g.boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
@@ -29503,13 +29528,13 @@ function renderPagesReportDetailSection(entries = []) {
           </div>
 
           <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/5">
-            <div class="text-slate-300">💬 ឆាត៖ <span class="text-white font-mono font-bold">${g.chat}</span> <span class="text-[9.5px] text-slate-400">(${g.chatTarget}|${g.chatMistake})</span></div>
-            <div class="text-slate-300">📞 ខល៖ <span class="text-white font-mono font-bold">${g.calls}</span> នាក់</div>
+            <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">💬 ឆាត៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.chat}</span> <span class="text-[9.5px] text-slate-400">(${g.chatTarget}|${g.chatMistake})</span></div>
+            <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📞 ខល៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.calls}</span> នាក់</div>
           </div>
 
           <div class="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 text-slate-400">
             <span class="truncate max-w-[200px]">📄 ផេក៖ ${Array.from(g.pages).join(', ') || '—'}</span>
-            <span class="text-emerald-400/90 font-mono">ថ្មី ${g.newB} | ចាស់ ${g.oldB} | Follow ${g.followB}</span>
+            <span class="text-emerald-400 font-mono font-semibold">ថ្មី ${g.newB} | ចាស់ ${g.oldB} | Follow ${g.followB}</span>
           </div>
         </div>
       `).join('')}
@@ -29520,7 +29545,7 @@ function renderPagesReportDetailSection(entries = []) {
 function renderSingleCompactPageReportCard(e) {
   const isEn = appState.language === 'en';
   return `
-    <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 hover:border-emerald-500/30 transition space-y-2.5">
+    <div class="p-3.5 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-emerald-500/30 transition space-y-2.5 theme-light-card">
       <!-- Card Top: Page Name & Reporter -->
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 min-w-0">
@@ -29528,9 +29553,9 @@ function renderSingleCompactPageReportCard(e) {
             <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="font-bold text-xs sm:text-sm text-white truncate">${escapeHtml(e.page || 'ផេកទូទៅ')}</h4>
+            <h4 class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">${escapeHtml(e.page || 'ផេកទូទៅ')}</h4>
             <p class="text-[10px] text-slate-400 truncate flex items-center gap-1">
-              <span>👤 ${escapeHtml(e.reporter || 'កូនក្រុម')}</span>
+              <span>👤 ${escapeHtml(e.reporter || 'សមាជិក')}</span>
               <span>•</span>
               <span class="font-mono">${e.ddmmyyyy || ''}</span>
             </p>
@@ -29547,21 +29572,21 @@ function renderSingleCompactPageReportCard(e) {
       <!-- Traffic Line (Chat & Call) -->
       <div class="grid grid-cols-2 gap-2 text-[11px] pt-1.5 border-t border-white/5">
         <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-          <span class="text-slate-300">💬 ឆាតសរុប៖</span>
-          <span class="font-mono font-bold text-white">
+          <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">💬 ឆាតសរុប៖</span>
+          <span class="font-mono font-bold text-white dark:text-white theme-light-text">
             ${e.chatTotal || 0} 
             <span class="text-[9.5px] text-slate-400 font-normal">(🎯${e.chatTarget || 0} | 🖐️${e.chatMistake || 0})</span>
           </span>
         </div>
         <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-          <span class="text-slate-300">📞 ខលផ្ទាល់៖</span>
-          <span class="font-mono font-bold text-white">${e.callDirect || 0} នាក់</span>
+          <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📞 ខលផ្ទាល់៖</span>
+          <span class="font-mono font-bold text-white dark:text-white theme-light-text">${e.callDirect || 0} នាក់</span>
         </div>
       </div>
 
       <!-- Sales Breakdown Line -->
       <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-[11px]">
-        <span class="text-slate-300">📦 លទ្ធផលលក់៖</span>
+        <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📦 លទ្ធផលលក់៖</span>
         <span class="font-mono text-emerald-300 font-semibold text-[10.5px]">
           ថ្មី ${e.buyNewB || 0} | ចាស់ ${e.buyOldB || 0} | Follow ${e.buyFollowB || 0}
         </span>
@@ -29588,7 +29613,7 @@ function renderDailyReportModal() {
 
   if (pagesReportState.currentTab === 'view') {
     if (headerTitle) headerTitle.textContent = isEn ? 'Pages Report' : 'របាយការណ៍ Pages';
-    if (headerSubtitle) headerSubtitle.textContent = isEn ? 'Real-time sync from Tab Report' : 'ស្រង់ទិន្នន័យជាក់ស្តែងតាមផេក និងកូនក្រុម';
+    if (headerSubtitle) headerSubtitle.textContent = isEn ? 'Real-time sync from Tab Report' : 'ស្រង់ទិន្នន័យជាក់ស្តែងតាមផេក និងសមាជិក';
     if (headerIcon) headerIcon.setAttribute('data-lucide', 'layout-grid');
     if (refreshBtn) refreshBtn.classList.remove('hidden');
     if (resetBtn) resetBtn.classList.add('hidden');
@@ -29797,7 +29822,6 @@ function renderDailyReportModal() {
   calculateDailyReportMetrics();
   if (window.lucide) window.lucide.createIcons();
 }
-
 function openDailyReportModal(fromDrawer = false) {
   if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
   window.navOpenedFromDrawer.dailyReport = !!fromDrawer;
