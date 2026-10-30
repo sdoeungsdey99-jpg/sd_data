@@ -2184,12 +2184,14 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // 1. Scrolling content down (finger moving up) -> Smoothly hide Dock & Filter Bar (except on Home Page)
+    // 1. Scrolling content down (finger moving up) -> Smoothly hide Dock & Filter Bar (except on Home Page & Study Page)
     if (diff > 8 && currentScrollTop > 30) {
-      // Home Page (dashboard): Dock & Filter Bar remain STATIC (pinned / no auto-hide)
-      if (isMain && appState.currentView === 'dashboard') {
+      // Home Page (dashboard) & Study Page (learning): Dock remains STATIC (pinned / no auto-hide / no jittering)
+      if (isMain && (appState.currentView === 'dashboard' || appState.currentView === 'learning')) {
         setDockVisible(true);
-        if (filterBar) filterBar.classList.remove('filter-hidden');
+        if (filterBar && appState.currentView === 'dashboard') filterBar.classList.remove('filter-hidden');
+        const studyHeader = document.getElementById('study-sticky-header');
+        if (studyHeader) studyHeader.classList.remove('filter-hidden');
       } else {
         setDockVisible(false);
         if (isMain && filterBar) filterBar.classList.add('filter-hidden');
@@ -2199,12 +2201,6 @@ function hookScrollableForDock(el, isMain = false) {
             const analyticsMenu = document.getElementById('analytics-view-dropdown-menu');
             if (analyticsMenu) analyticsMenu.classList.add('hidden');
             analyticsHeader.classList.add('filter-hidden');
-          }
-        }
-        if (isMain && appState.currentView === 'learning') {
-          const studyHeader = document.getElementById('study-sticky-header');
-          if (studyHeader && !studyHeader.classList.contains('filter-hidden')) {
-            studyHeader.classList.add('filter-hidden');
           }
         }
         if (el.id === 'expenses-modal-list') {
@@ -2247,7 +2243,7 @@ function hookScrollableForDock(el, isMain = false) {
     lastScrollTop = currentScrollTop;
 
     // 3. Auto-load 5 more words when near bottom in Study / Learning view
-    if (isMain && appState.currentView === 'learning') {
+    if (isMain && appState.currentView === 'learning' && appState.studyTab === 'english') {
       const scrollBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
       if (scrollBottom < 260) {
         loadMoreStudyWords();
@@ -2257,7 +2253,7 @@ function hookScrollableForDock(el, isMain = false) {
     // 4. When scrolling stops / screen is still -> Smoothly restore Dock (except when deep inside profile drawer or in dialog modal)
     clearTimeout(scrollIdleTimer);
     scrollIdleTimer = setTimeout(() => {
-      if (isMain && appState.currentView === 'dashboard') return; // Home Page stays static; no idle timer needed
+      if (isMain && (appState.currentView === 'dashboard' || appState.currentView === 'learning')) return; // Home & Study Pages stay static; no idle timer needed
       if (el.id === 'profile-drawer-content' && el.scrollTop > 25) return;
       if (isDialogModalOpen()) return;
       setDockVisible(true);
@@ -10841,189 +10837,42 @@ function renderPromotionAnnouncementContentHTML() {
         </div>
       </div>
 
-      <!-- 4. OFFICIAL DOCUMENT (អត្ថបទដើមផ្លូវការទាំងស្រុង - Verbatim 100%) -->
-      <div class="ios-glass-card rounded-3xl p-4 sm:p-6 border border-white/15 bg-gradient-to-b from-[#101826] to-[#070D18] shadow-2xl relative overflow-hidden text-slate-200 font-kantumruy">
-        
-        <!-- Official Document Letterhead Header -->
-        <div class="border-b border-white/10 pb-4 mb-4">
-          <div class="flex items-center justify-between gap-3 flex-wrap">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-2xl bg-black/60 border border-orange-500/40 p-1 shrink-0 flex items-center justify-center shadow-md">
-                <img src="vst-logo.png" alt="VST Logo" class="w-full h-full object-contain">
-              </div>
-              <div>
-                <h3 class="text-sm sm:text-base font-black text-amber-400 brand-title leading-tight">ក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង</h3>
-                <p class="text-[11px] font-bold text-slate-300 font-mono tracking-wider">VANN SITHA TRADING CO.,LTD.</p>
-              </div>
+      <!-- 4. ORIGINAL DOCUMENT CARD (ឯកសារដើម) -->
+      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/15 bg-gradient-to-r from-slate-900/90 via-[#0B1526] to-[#070D18] shadow-2xl relative overflow-hidden text-left">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-md">
+              <span class="text-2xl">📜</span>
             </div>
-            <div class="text-right">
-              <span class="px-2.5 py-1 rounded-md bg-white/10 border border-white/15 text-[9.5px] font-mono text-slate-300 uppercase tracking-wider inline-block">
-                ឯកសារផ្ទៃក្នុង • INTERNAL DOCUMENT
-              </span>
-              <span class="text-[10px] text-slate-400 mt-0.5 block">ទំព័រ 1 / 1</span>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <h4 class="text-sm sm:text-base font-black text-white brand-title">ឯកសារដើម</h4>
+                <span class="px-2 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase">
+                  PDF ផ្លូវការ
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-0.5 truncate">
+                លិខិតសេចក្តីជូនដំណឹងផ្ទៃក្នុង ក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង
+              </p>
             </div>
           </div>
 
-          <div class="text-center mt-5">
-            <h2 class="text-base sm:text-lg font-black text-white brand-title">សេចក្តីជូនដំណឹង</h2>
-            <p class="text-xs sm:text-sm font-bold text-amber-300 mt-1">
-              ស្តីពី៖ ការកែប្រែតម្លៃលក់ និងកម្មវិធីប្រូម៉ូសិន សម្រាប់ផលិតផលចំនួន 05 (ប្រាំ) មុខ
-            </p>
-            <div class="flex items-center justify-center gap-2 text-slate-500 mt-1.5 text-xs select-none">
-              <span>────────</span>
-              <span>◆</span>
-              <span>────────</span>
-            </div>
-          </div>
+          <button type="button" 
+                  onclick="openVstPromoPdfModal()" 
+                  class="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95 transition flex items-center gap-1.5 shrink-0">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            <span>បើកមើល</span>
+          </button>
         </div>
 
-        <!-- Official Body Content (Original Document Verbatim) -->
-        <div class="space-y-4 text-xs sm:text-[13px] leading-relaxed text-slate-300">
-          <p class="indent-6 text-justify">
-            ក្រុមហ៊ុន វណ្ណ ស៊ីថា ត្រេឌីង សូមជូនដំណឹងដល់ថ្នាក់ដឹកនាំ និងអ្នកលក់ទាំងអស់ ឱ្យបានជ្រាបថា ក្រុមហ៊ុនបានសម្រេចកែប្រែតម្លៃលក់ និងដាក់ឱ្យដំណើរការកម្មវិធីប្រូម៉ូសិន សម្រាប់ផលិតផលចំនួន 05 (ប្រាំ) មុខ ដូចមានខ្លឹមសារលម្អិតខាងក្រោម៖
-          </p>
-
-          <!-- ១. ផលិតផលដែលពាក់ព័ន្ធ -->
-          <div>
-            <h4 class="font-black text-white text-xs sm:text-sm flex items-center gap-2 mb-1">
-              <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-300 flex items-center justify-center text-[11px] font-bold border border-amber-500/30">១</span>
-              <span>ផលិតផលដែលពាក់ព័ន្ធ</span>
-            </h4>
-            <p class="pl-7 text-slate-300">
-              ផលិតផលទាំង 05 (ប្រាំ) មុខ រួមមាន៖ <strong class="text-white">Kidney Pro, Pro D.O, Yong Liang, Yong Liang Plus និង S.G Pro</strong>។
-            </p>
-          </div>
-
-          <!-- ២. តម្លៃលក់ថ្មី -->
-          <div>
-            <h4 class="font-black text-white text-xs sm:text-sm flex items-center gap-2 mb-1">
-              <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-300 flex items-center justify-center text-[11px] font-bold border border-amber-500/30">២</span>
-              <span>តម្លៃលក់ថ្មី</span>
-            </h4>
-            <p class="pl-7 text-slate-300 mb-2">
-              តម្លៃខាងក្រោមអនុវត្តដូចគ្នាសម្រាប់ផលិតផលទាំង 05 មុខ៖
-            </p>
-            <div class="pl-0 sm:pl-7">
-              <div class="overflow-x-auto no-scrollbar rounded-xl border border-white/10 bg-black/30">
-                <table class="w-full text-center text-xs border-collapse">
-                  <thead>
-                    <tr class="bg-white/5 border-b border-white/10 text-[11px] text-slate-300 font-bold">
-                      <th class="py-2 px-3 text-left">ចំនួន</th>
-                      <th class="py-2 px-2">តម្លៃចាស់ (ដុល្លារ)</th>
-                      <th class="py-2 px-2 text-amber-300">តម្លៃថ្មី (ដុល្លារ)</th>
-                      <th class="py-2 px-2">តម្លៃចាស់ (បាត)</th>
-                      <th class="py-2 px-2 text-amber-300">តម្លៃថ្មី (បាត)</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-white/5 text-[11px]">
-                    <tr>
-                      <td class="py-2 px-3 text-left font-bold text-white">01 ប្រអប់</td>
-                      <td class="py-2 px-2 text-slate-400">50$</td>
-                      <td class="py-2 px-2 font-bold text-amber-300">45$</td>
-                      <td class="py-2 px-2 text-slate-400">2,000฿</td>
-                      <td class="py-2 px-2 font-bold text-amber-300">1,800฿</td>
-                    </tr>
-                    <tr>
-                      <td class="py-2 px-3 text-left font-bold text-white">02 ប្រអប់</td>
-                      <td class="py-2 px-2 text-slate-400">90$</td>
-                      <td class="py-2 px-2 font-bold text-amber-300">80$</td>
-                      <td class="py-2 px-2 text-slate-400">3,400฿</td>
-                      <td class="py-2 px-2 font-bold text-amber-300">3,000฿</td>
-                    </tr>
-                    <tr>
-                      <td class="py-2 px-3 text-left font-bold text-white">03 ប្រអប់</td>
-                      <td class="py-2 px-2 text-slate-400">135$</td>
-                      <td class="py-2 px-2 font-bold text-amber-300">120$</td>
-                      <td class="py-2 px-2 text-slate-400">4,700฿</td>
-                      <td class="py-2 px-2 font-bold text-amber-300">4,500฿</td>
-                    </tr>
-                    <tr class="bg-amber-500/10">
-                      <td class="py-2 px-3 text-left font-bold text-amber-300">04 ប្រអប់</td>
-                      <td class="py-2 px-2 text-slate-500">—</td>
-                      <td class="py-2 px-2 font-black text-amber-300">150$</td>
-                      <td class="py-2 px-2 text-slate-500">—</td>
-                      <td class="py-2 px-2 font-black text-amber-300">5,700฿</td>
-                    </tr>
-                    <tr>
-                      <td class="py-2 px-3 text-left font-bold text-white">05 ប្រអប់</td>
-                      <td class="py-2 px-2 text-slate-400">180$</td>
-                      <td class="py-2 px-2 font-bold text-amber-300">180$</td>
-                      <td class="py-2 px-2 text-slate-400">6,400฿</td>
-                      <td class="py-2 px-2 font-bold text-amber-300">6,400฿</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- ៣. កម្មវិធីប្រូម៉ូសិន (ខែវិច្ឆិកា និងខែធ្នូ ឆ្នាំ២០២៦) -->
-          <div>
-            <h4 class="font-black text-white text-xs sm:text-sm flex items-center gap-2 mb-1.5">
-              <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-300 flex items-center justify-center text-[11px] font-bold border border-amber-500/30">៣</span>
-              <span>កម្មវិធីប្រូម៉ូសិន (ខែវិច្ឆិកា និងខែធ្នូ ឆ្នាំ២០២៦)</span>
-            </h4>
-            <div class="pl-7 space-y-2 text-slate-300">
-              <p>
-                <strong class="text-white">ក. សម្រាប់អតិថិជន៖</strong> ទិញ 04 (បួន) ប្រអប់ ក្រុមហ៊ុនថែមជូន 01 (មួយ) ប្រអប់ ដោយឥតគិតថ្លៃ។
-              </p>
-              <p>
-                <strong class="text-white">ខ. ការទូទាត់ និងការរាប់ចំនួនលក់៖</strong> អ្នកលក់ទូទាត់ថ្លៃដើមឱ្យក្រុមហ៊ុនតែ 04 (បួន) ប្រអប់ ប៉ុណ្ណោះ ចំណែកប្រអប់ថែមជូនអតិថិជន 01 (មួយ) ប្រអប់ ជាការទទួលខុសត្រូវរបស់ក្រុមហ៊ុន។ ចំនួនលក់របស់អ្នកលក់ក៏រាប់តែ 04 (បួន) ប្រអប់ដែរ។
-              </p>
-              <p>
-                <strong class="text-white">គ. សម្រាប់អ្នកលក់៖</strong> លក់បាន 100 ប្រអប់ ក្រុមហ៊ុនជូនរង្វាន់លើកទឹកចិត្ត 50 ដុល្លារ និងលក់បាន 150 ប្រអប់ ក្រុមហ៊ុនជូនរង្វាន់លើកទឹកចិត្ត 100 ដុល្លារ។
-              </p>
-            </div>
-          </div>
-
-          <!-- ៤. រយៈពេលអនុវត្ត -->
-          <div>
-            <h4 class="font-black text-white text-xs sm:text-sm flex items-center gap-2 mb-1.5">
-              <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-300 flex items-center justify-center text-[11px] font-bold border border-amber-500/30">៤</span>
-              <span>រយៈពេលអនុវត្ត</span>
-            </h4>
-            <div class="pl-7 space-y-1.5 text-slate-300">
-              <p>
-                <strong class="text-white">ក. តម្លៃលក់ថ្មី៖</strong> ចាប់អនុវត្តពីថ្ងៃទី០១ ខែវិច្ឆិកា ឆ្នាំ២០២៦ រហូតដល់មានការជូនដំណឹងថ្មីពីក្រុមហ៊ុន។
-              </p>
-              <p>
-                <strong class="text-white">ខ. កម្មវិធីប្រូម៉ូសិន៖</strong> ចាប់ពីថ្ងៃទី០១ ខែវិច្ឆិកា ដល់ ថ្ងៃទី៣១ ខែធ្នូ ឆ្នាំ២០២៦។
-              </p>
-            </div>
-          </div>
-
-          <!-- កថាខណ្ឌបញ្ចប់ -->
-          <p class="indent-6 text-justify pt-1">
-            អាស្រ័យហេតុនេះ សូមថ្នាក់ដឹកនាំ អ្នកលក់ និងអ្នកកាន់ស្តុក/បញ្ជី ជ្រាបជាព័ត៌មាន និងអនុវត្តតាមដោយខ្ជាប់ខ្ជួន ចាប់ពីថ្ងៃទី០១ ខែវិច្ឆិកា ឆ្នាំ២០២៦ តទៅ។
-          </p>
-
-          <!-- ហត្ថលេខា និងកន្លែងទទួល -->
-          <div class="pt-4 border-t border-white/10 grid grid-cols-2 gap-4 items-start select-none">
-            <!-- ខាងឆ្វេង: កន្លែងទទួល -->
-            <div class="text-[11px] text-slate-400">
-              <p class="font-bold text-white mb-1 underline">កន្លែងទទួល៖</p>
-              <ul class="space-y-0.5 list-disc list-inside">
-                <li>ថ្នាក់ដឹកនាំក្រុមហ៊ុន</li>
-                <li>អ្នកលក់ផលិតផលខាងលើ</li>
-                <li>អ្នកគ្រប់គ្រងស្តុក និងបញ្ជី</li>
-                <li>ឯកសារ-កាលប្បវត្តិ</li>
-              </ul>
-            </div>
-
-            <!-- ខាងស្តាំ: កាលបរិច្ឆេទ & អគ្គនាយក -->
-            <div class="text-right text-[11px]">
-              <p class="text-slate-400 text-[10px] leading-tight">ថ្ងៃសុក្រ ៤រោច ខែអស្សុជ ឆ្នាំមមី អដ្ឋស័ក ព.ស. ២៥៧០</p>
-              <p class="text-slate-300 font-bold mt-0.5">រាជធានីភ្នំពេញ ថ្ងៃទី៣០ ខែតុលា ឆ្នាំ២០២៦</p>
-              <p class="font-black text-white text-xs mt-2">អគ្គនាយក</p>
-              <div class="my-1.5 flex justify-end">
-                <div class="px-3 py-1 rounded-lg bg-white/5 border border-amber-500/30 text-amber-300 font-cursive text-sm font-bold shadow-sm">
-                  ✍️ វណ្ណ ស៊ីថា
-                </div>
-              </div>
-              <p class="font-black text-amber-400 text-xs tracking-wide">វណ្ណ ស៊ីថា</p>
-            </div>
-          </div>
-
+        <!-- Quick Tap Bar -->
+        <div onclick="openVstPromoPdfModal()" 
+             class="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-amber-400/90 cursor-pointer hover:text-amber-300 transition select-none">
+          <span class="flex items-center gap-1.5 font-medium truncate">
+            <span>🔍</span>
+            <span class="truncate">ចុចទីនេះដើម្បីបង្ហាញច្បាប់ដើមទាំងស្រុង (Full Document PDF)</span>
+          </span>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 shrink-0"></i>
         </div>
       </div>
 
@@ -11031,6 +10880,84 @@ function renderPromotionAnnouncementContentHTML() {
   `;
 }
 window.renderPromotionAnnouncementContentHTML = renderPromotionAnnouncementContentHTML;
+
+function openVstPromoPdfModal() {
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+  let modal = document.getElementById('vst-promo-pdf-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'vst-promo-pdf-modal';
+    modal.className = 'fixed inset-0 z-[100] bg-black/90 backdrop-blur-2xl flex flex-col overflow-hidden animate-fade-in text-left';
+    modal.innerHTML = `
+      <!-- Modal Header -->
+      <div class="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-white/10 bg-[#070D18]/90 backdrop-blur-md flex items-center justify-between gap-3 shrink-0 select-none">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 text-sm font-bold shrink-0">
+            📜
+          </div>
+          <div class="min-w-0">
+            <h3 class="text-xs sm:text-sm font-black text-white brand-title truncate leading-tight">
+              ឯកសារដើម • សេចក្តីជូនដំណឹងផ្លូវការ
+            </h3>
+            <p class="text-[10px] text-amber-300 font-mono truncate">
+              VANN SITHA TRADING CO.,LTD.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <a href="vst-promo-announcement-nov2026.pdf" target="_blank" download="VST_Promotion_Announcement_Nov2026.pdf"
+             class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-[11px] font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span class="hidden sm:inline">ទាញយក PDF</span>
+            <span class="sm:hidden">PDF</span>
+          </a>
+          <button type="button" onclick="closeVstPromoPdfModal()" 
+                  class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition active:scale-90">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Crisp Document View + Zoom/Scroll) -->
+      <div class="flex-1 overflow-y-auto p-3 sm:p-5 flex flex-col items-center justify-start no-scrollbar" style="-webkit-overflow-scrolling: touch;">
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/20 my-auto">
+          <img src="vst-promo-announcement-nov2026.png?v=53.0" 
+               alt="សេចក្តីជូនដំណឹងផ្លូវការ វណ្ណ ស៊ីថា ត្រេឌីង" 
+               class="w-full h-auto object-contain block select-none">
+        </div>
+      </div>
+
+      <!-- Modal Footer Action Bar -->
+      <div class="px-4 py-2.5 border-t border-white/10 bg-[#070D18]/90 backdrop-blur-md flex items-center justify-between gap-3 text-xs shrink-0 select-none">
+        <span class="text-[10px] text-slate-400 flex items-center gap-1">
+          <span>🔒</span>
+          <span>ឯកសារផ្ទៃក្នុងផ្លូវការ • វណ្ណ ស៊ីថា ត្រេឌីង</span>
+        </span>
+        <a href="vst-promo-announcement-nov2026.pdf" target="_blank"
+           class="text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 transition">
+          <span>បើកមើលក្នុងផ្ទាំងថ្មី</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+window.openVstPromoPdfModal = openVstPromoPdfModal;
+
+function closeVstPromoPdfModal() {
+  const modal = document.getElementById('vst-promo-pdf-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+  document.body.style.overflow = '';
+}
+window.closeVstPromoPdfModal = closeVstPromoPdfModal;
 
 function renderSalesResetContent() {
   const activeTrainer = appState.activeTrainer || 'promo';
@@ -11068,11 +10995,11 @@ function renderSalesResetContent() {
         
         <!-- Slide 1: សេចក្តីជូនដំណឹងប្រូម៉ូសិន & តម្លៃថ្មី (VST Trading) -->
         <div id="trainer-slide-promo" class="w-full min-w-full shrink-0 snap-center" style="scroll-snap-align: center; scroll-snap-stop: always;">
-          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-orange-500/40 relative overflow-hidden bg-gradient-to-br from-orange-500/20 via-[#1F100B] to-[#070D18] shadow-2xl text-left">
+          <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-orange-500/40 relative overflow-hidden bg-gradient-to-br from-orange-500/20 via-[#1F100B] to-[#070D18] shadow-2xl text-center">
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-orange-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
             <!-- Top Header Tags -->
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center justify-between mb-2">
               <span class="px-3 py-1 rounded-full bg-orange-500/25 border border-orange-500/50 text-amber-300 font-black text-[10px] sm:text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 truncate">
                 <span class="animate-pulse">🔥</span>
                 <span class="truncate">ប្រូម៉ូសិន • វិច្ឆិកា & ធ្នូ ២០២៦</span>
@@ -11080,28 +11007,62 @@ function renderSalesResetContent() {
               <span class="text-[10px] text-orange-400 font-mono font-bold bg-orange-500/10 px-2.5 py-0.5 rounded-full border border-orange-500/30 shrink-0">OFFICIAL</span>
             </div>
 
-            <!-- Horizontal Profile Row (ឡូហ្គោក្រុមហ៊ុន ឈ្មោះខ្មែរនៅលើ ឈ្មោះឡាតាំងនៅក្រោម តួនាទី) -->
-            <div class="flex items-center gap-3.5 sm:gap-4">
-              <div class="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-orange-400 shadow-xl bg-black/60 p-1 flex items-center justify-center">
-                <img src="vst-logo.png" alt="VANN SITHA TRADING" 
-                     class="w-full h-full object-contain filter drop-shadow-[0_2px_10px_rgba(249,115,22,0.4)]">
-                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 border-2 border-[#09111D] flex items-center justify-center text-[10px] text-white font-black shadow">★</span>
+            <!-- Centered Promotion Title & Badges (No Logo, No Avatar Frame) -->
+            <div class="py-2.5 select-none text-center">
+              <div class="inline-flex items-center justify-center gap-2 mb-1">
+                <span class="text-2xl animate-pulse">🎁</span>
+                <h3 class="text-lg sm:text-xl font-black text-white brand-title tracking-wide leading-tight">
+                  កម្មវិធីប្រូម៉ូសិន & តម្លៃថ្មី
+                </h3>
+                <img src="gold-tick.png?v=39.6" alt="Official Verified" class="w-4 h-4 object-contain shrink-0" title="Official Verified 🌟">
               </div>
-
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <h3 class="text-base sm:text-lg font-black text-white truncate brand-title leading-tight">កែប្រែតម្លៃថ្មី & ប្រូម៉ូសិន</h3>
-                  <img src="gold-tick.png?v=39.6" alt="Official Verified" class="w-4 h-4 object-contain shrink-0" title="Official Verified 🌟">
-                </div>
-                <p class="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 tracking-wide">VANN SITHA TRADING</p>
-                <p class="text-xs text-slate-300 font-medium mt-0.5">សេចក្តីជូនដំណឹងផ្លូវការ (Internal)</p>
-                <div class="mt-2 flex items-center gap-1.5 overflow-hidden">
-                  <span class="px-2.5 py-0.5 rounded-lg bg-orange-500/20 text-orange-300 font-bold text-[9px] sm:text-[9.5px] border border-orange-500/40 whitespace-nowrap shrink-0">
-                    BUY 4 GET 1 • BONUS $50-$100
-                  </span>
-                </div>
+              <p class="text-xs sm:text-sm font-bold text-amber-400 tracking-wide mt-0.5">
+                VANN SITHA TRADING CO.,LTD.
+              </p>
+              <p class="text-[11px] text-slate-300 font-medium mt-0.5">
+                សេចក្តីជូនដំណឹងផ្លូវការ (Internal Document)
+              </p>
+              <div class="mt-2.5 flex items-center justify-center gap-1.5 overflow-hidden">
+                <span class="px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 font-bold text-[9.5px] sm:text-[10px] border border-orange-500/40 whitespace-nowrap shadow-sm">
+                  BUY 4 GET 1 FREE • BONUS $50 - $100
+                </span>
               </div>
             </div>
+
+            <!-- Key Banner Quote -->
+            <div class="p-3.5 rounded-2xl bg-orange-500/10 border border-orange-500/25 backdrop-blur-md mt-2 text-left">
+              <div class="flex items-center gap-1.5 text-orange-400 text-xs font-bold mb-1">
+                <span>📢</span>
+                <span>ឱកាសបង្កើនការលក់ចុងឆ្នាំ ២០២៦ ៖</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-white leading-relaxed">
+                «ទិញ ៤ ថែម ១ ឥតគិតថ្លៃ • រង្វាន់លើកទឹកចិត្តរហូតដល់ $100»
+              </h3>
+              <p class="text-[11px] text-amber-200/90 font-kantumruy leading-relaxed mt-1">
+                “អនុវត្តលើផលិតផល 05 មុខ (Kidney Pro, Pro D.O, Yong Liang, Yong Liang Plus, S.G Pro) ចាប់ពីថ្ងៃទី ០១ វិច្ឆិកា ដល់ ៣១ ធ្នូ ២០២៦។”
+              </p>
+            </div>
+
+            <!-- 3 Quick Pillars Pills -->
+            <div class="grid grid-cols-3 gap-2.5 text-center select-none mt-3">
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🎁</span>
+                <p class="text-[10px] font-bold text-emerald-400 mt-0.5">អតិថិជន</p>
+                <span class="text-[8.5px] text-slate-300 block">ទិញ ៤ ថែម ១</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🚀</span>
+                <p class="text-[10px] font-bold text-amber-400 mt-0.5">អ្នកលក់</p>
+                <span class="text-[8.5px] text-slate-300 block">Bonus $50-$100</span>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-xs">🏷️</span>
+                <p class="text-[10px] font-bold text-orange-400 mt-0.5">តម្លៃថ្មី ៥មុខ</p>
+                <span class="text-[8.5px] text-slate-300 block">ចុះ $5 - $15</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
             <!-- Key Banner Quote -->
             <div class="p-3.5 rounded-2xl bg-orange-500/10 border border-orange-500/25 backdrop-blur-md mt-3">
