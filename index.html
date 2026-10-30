@@ -931,6 +931,24 @@
         transform: translate(-50%, 0) scale(1);
       }
     }
+    @keyframes expenseRowHighlight {
+      0% {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+        background-color: rgba(244, 63, 94, 0.25);
+      }
+      50% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        background-color: rgba(244, 63, 94, 0.12);
+      }
+      100% {
+        background-color: transparent;
+      }
+    }
+    .expense-row-flash {
+      animation: expenseRowHighlight 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
 
     /* Light Mode Overrides (Crisp, High-Contrast iOS Style - Specially Refined for Settings & Dashboard) */
     .light-theme {
@@ -7394,88 +7412,68 @@
           </div>
         </div>
 
-        <!-- Expense Details Card (កាតបរិយាយ ឬមុខចំណាយ) -->
+        <!-- Expense Details Card (កាតបរិយាយ ឬមុខចំណាយច្រើនមុខ) -->
         <div class="p-3.5 rounded-2xl bg-black/30 border border-white/10 space-y-3 text-xs">
-          <!-- របាទី ១: បរិយាយ ឬមុខចំណាយ -->
-          <div>
-            <label id="expense-label-desc" class="block text-[11px] text-slate-400 mb-1.5 font-semibold">
-              បរិយាយ ឬមុខចំណាយ: <span class="text-rose-400">*</span>
-            </label>
-            <input type="text" id="expense-field-desc" placeholder="ឧ. កាហ្វេ, បាយថ្ងៃត្រង់, ចាក់សាំង..." 
-                   class="w-full h-11 bg-black/50 border border-white/10 rounded-xl px-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 font-medium text-xs sm:text-sm transition">
-          </div>
-
-          <!-- របាទី ២: ប្រភេទចំណាយ -->
-          <div>
-            <label id="expense-label-category" class="block text-[11px] text-slate-400 mb-1.5 font-semibold">
-              ប្រភេទចំណាយ:
-            </label>
-            <div class="relative w-full">
-              <select id="expense-field-category" 
-                      class="w-full h-11 bg-black/50 border border-white/10 rounded-xl pl-3.5 pr-10 text-white focus:outline-none focus:border-rose-500 font-medium text-xs sm:text-sm transition appearance-none cursor-pointer">
-                <option value="ហូបចុក & ប្រចាំថ្ងៃ">ហូបចុក & ប្រចាំថ្ងៃ</option>
-                <option value="កម្សាន្ត & ចំណង់">កម្សាន្ត & ចំណង់</option>
-                <option value="ផ្សេងៗ">ផ្សេងៗ</option>
-                <option value="សុខភាព & ថែទាំ">សុខភាព & ថែទាំ</option>
-                <option value="ចំណាយថេរ">ចំណាយថេរ</option>
-                <option value="សង្គ្រោះបន្ទាន់ & ធម៌ទាន">សង្គ្រោះបន្ទាន់ & ធម៌ទាន</option>
-                <option value="វិនិយោគ & អភិវឌ្ឍន៍">វិនិយោគ & អភិវឌ្ឍន៍</option>
-              </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400">
-                <i data-lucide="chevron-down" class="w-4 h-4"></i>
-              </div>
-            </div>
-          </div>
-
-          <!-- របាទី ៣: ចំនួនទឹកប្រាក់ + [ $ | ៛ ] -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label id="expense-label-amount" class="text-[11px] text-slate-400 font-semibold">
-                ចំនួនទឹកប្រាក់: <span class="text-rose-400">*</span>
+          <!-- Card Header: Title + Items Count + Currency Switcher -->
+          <div class="flex items-center justify-between pb-1 border-b border-white/5">
+            <div class="flex items-center gap-1.5">
+              <label id="expense-label-desc" class="text-xs text-slate-300 font-bold flex items-center gap-1.5">
+                <i data-lucide="receipt" class="w-3.5 h-3.5 text-rose-400"></i>
+                <span>មុខចំណាយ:</span>
               </label>
-              <!-- Currency Switcher: [ $ | ៛ ] (28px touch size) -->
-              <div class="flex items-center gap-1 p-0.5 rounded-xl bg-black/60 border border-white/10" id="expense-currency-switch">
-                <button type="button" onclick="setExpenseCurrency('USD')" id="exp-curr-btn-usd" class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition bg-rose-500 text-white shadow-sm flex items-center justify-center">$</button>
-                <button type="button" onclick="setExpenseCurrency('KHR')" id="exp-curr-btn-khr" class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center">៛</button>
-              </div>
+              <span id="expense-items-count-badge" class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-mono font-bold">1 មុខ</span>
             </div>
-            <div class="relative">
-              <span id="expense-currency-symbol" class="absolute left-3 top-1/2 -translate-y-1/2 text-rose-400 font-bold font-mono text-base">$</span>
-              <input type="number" id="expense-field-amount" step="0.05" min="0" placeholder="0.00" oninput="onExpenseAmountInput()" 
-                     class="w-full h-11 bg-black/50 border border-white/10 rounded-xl pl-8 pr-3 text-white font-mono font-bold text-lg focus:outline-none focus:border-rose-500 transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-            </div>
-
-            <!-- KHR to USD Live Auto-Convert Info -->
-            <div id="expense-khr-convert-hint" class="hidden mt-2 px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-400 font-mono font-bold flex items-center justify-between">
-              <div class="flex items-center gap-1.5">
-                <span>≈</span>
-                <span id="expense-khr-converted-usd">$0.00</span>
-              </div>
-              <span class="text-slate-400 text-[10px] font-normal">(អត្រាប្តូរប្រាក់ 4000៛/$1)</span>
+            <!-- Currency Switcher: [ $ | ៛ ] (28px touch size) -->
+            <div class="flex items-center gap-1 p-0.5 rounded-xl bg-black/60 border border-white/10" id="expense-currency-switch">
+              <button type="button" onclick="setExpenseCurrency('USD')" id="exp-curr-btn-usd" class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition bg-rose-500 text-white shadow-sm flex items-center justify-center">$</button>
+              <button type="button" onclick="setExpenseCurrency('KHR')" id="exp-curr-btn-khr" class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center">៛</button>
             </div>
           </div>
 
-          <!-- របាទី ៤: រៀបលេខក្នុង រហ័ស ឲស្មើគ្នា (4 Cols x 2 Rows ស្មើគ្នាលើ iPhone 17 Pro) -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label id="expense-quick-amount-label" class="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+          <!-- Dynamic Multi-item Rows Container -->
+          <div id="expense-items-list" class="space-y-2">
+            <!-- Populated dynamically via JS renderExpenseItemRows() -->
+          </div>
+
+          <!-- Add Item Button & Live Total Display -->
+          <div class="flex items-center justify-between gap-2 pt-0.5">
+            <button type="button" id="btn-add-expense-row" onclick="addExpenseItemRow()" 
+                    class="px-3 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 active:scale-95 border border-rose-500/30 text-rose-400 font-semibold text-xs flex items-center gap-1.5 transition shadow-sm">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>ថែមមុខចំណាយ</span>
+            </button>
+
+            <!-- Live Total Display -->
+            <div class="flex items-center gap-1.5 text-right font-mono">
+              <span class="text-[11px] text-slate-400 font-sans font-medium">សរុប:</span>
+              <span id="expense-total-display" class="text-base font-bold text-rose-400 font-mono">$0.00</span>
+            </div>
+          </div>
+
+          <!-- KHR to USD Live Auto-Convert Info -->
+          <div id="expense-khr-convert-hint" class="hidden px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-400 font-mono font-bold flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span>≈</span>
+              <span id="expense-khr-converted-usd">$0.00</span>
+            </div>
+            <span class="text-slate-400 text-[10px] font-normal">(អត្រាប្តូរប្រាក់ 4000៛/$1)</span>
+          </div>
+
+          <!-- Quick Amount Chips Section (Hidden by default, shown on focus of amount input) -->
+          <div id="expense-quick-amount-section" class="hidden p-2.5 rounded-2xl bg-black/40 border border-white/10 space-y-2 animate-fade-in">
+            <div class="flex items-center justify-between">
+              <span id="expense-quick-amount-label" class="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
                 <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
                 <span>កម្រិតទឹកប្រាក់រហ័ស:</span>
-              </label>
+              </span>
+              <button type="button" onclick="hideExpenseQuickAmount()" class="text-slate-400 hover:text-white px-2 py-0.5 rounded-lg text-[10px] bg-white/5 hover:bg-white/10 border border-white/10 transition" title="បិទ">✕ បិទ</button>
             </div>
             <div id="expense-quick-chips-grid" class="grid grid-cols-4 gap-1.5">
-              <button type="button" onclick="setExpenseAmount(0.75)" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$0.75</button>
-              <button type="button" onclick="setExpenseAmount(1.00)" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$1.00</button>
-              <button type="button" onclick="setExpenseAmount(1.25)" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$1.25</button>
-              <button type="button" onclick="setExpenseAmount(1.50)" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$1.50</button>
-              <button type="button" onclick="setExpenseAmount(2.00)" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$2.00</button>
-              <button type="button" onclick="setExpenseAmount(2.50)" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$2.50</button>
-              <button type="button" onclick="setExpenseAmount(3.00)" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$3.00</button>
-              <button type="button" onclick="setExpenseAmount(5.00)" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$5.00</button>
+              <!-- Dynamically populated via JS -->
             </div>
           </div>
 
-          <!-- របាទី ៥: សម្គាល់បន្ថែម -->
+          <!-- Note input -->
           <div>
             <label id="expense-label-note" class="block text-[11px] text-slate-400 mb-1.5 font-semibold">សម្គាល់បន្ថែម (ស្រេចចិត្ត):</label>
             <input type="text" id="expense-field-note" placeholder="ឧ. ទីតាំង ឬហាង..." 

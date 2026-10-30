@@ -31743,13 +31743,275 @@ function onExpenseDateTextInput(val) {
   }
 }
 
+let expenseItems = [
+  { id: 1, desc: '', amount: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ' }
+];
+let activeExpenseRowFocusIdx = 0;
+
+function detectExpenseCategory(text) {
+  if (!text) return 'ហូបចុក & ប្រចាំថ្ងៃ';
+  const t = text.toLowerCase();
+  if (/បាយ|កាហ្វេ|ទឹក|នំ|ម្ហូប|ផ្សារ|ផ្លែឈើ|សាច់|តែ|អាហារ|គុយទាវ|បបរ|coffee|food|drink|rice|lunch|dinner|breakfast|cafe|snack|bread/.test(t)) {
+    return 'ហូបចុក & ប្រចាំថ្ងៃ';
+  }
+  if (/កុន|ភាពយន្ត|ដើរលេង|កម្សាន្ត|ច្រៀង|ខារ៉ាអូខេ|game|movie|cinema|party|chill|karaoke|travel|trip/.test(t)) {
+    return 'កម្សាន្ត & ចំណង់';
+  }
+  if (/ផ្ទះ|ជួល|ថ្លៃជួល|ទឹកភ្លើង|ភ្លើង|ទឹកស្អាត|wifi|វ៉ាយហ្វាយ|អ៊ីនធឺណិត|internet|rent|bill|room/.test(t)) {
+    return 'ចំណាយថេរ';
+  }
+  if (/ថ្នាំ|ពេទ្យ|គ្លីនិក|មន្ទីរពេទ្យ|កាត់សក់|ម៉ាស្សា|ហាត់ប្រាណ|gym|spa|doctor|medicine|clinic|pharmacy|fitness|massage/.test(t)) {
+    return 'សុខភាព & ថែទាំ';
+  }
+  if (/បុណ្យ|ការ|អាពាហ៍ពិពាហ៍|ចងដៃ|វត្ត|សង្ឃ|ទាន|ជួយ|បរិច្ចាគ|charity|wedding|funeral|donation/.test(t)) {
+    return 'សង្គ្រោះបន្ទាន់ & ធម៌ទាន';
+  }
+  if (/រៀន|សៀវភៅ|វគ្គសិក្សា|សាលា|course|book|invest|stock|crypto|study|training|school/.test(t)) {
+    return 'វិនិយោគ & អភិវឌ្ឍន៍';
+  }
+  if (/សាំង|passapp|grab|តាក់ស៊ី|កង់បី|ជួសជុល|ឡាន|ម៉ូតូ|gas|taxi|parking|wash|repair/.test(t)) {
+    return 'ផ្សេងៗ';
+  }
+  return 'ហូបចុក & ប្រចាំថ្ងៃ';
+}
+
+function renderExpenseItemRows(highlightIdx = -1) {
+  const container = document.getElementById('expense-items-list');
+  if (!container) return;
+
+  if (!Array.isArray(expenseItems) || expenseItems.length === 0) {
+    expenseItems = [{ id: Date.now(), desc: '', amount: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ' }];
+  }
+
+  const isKhr = currentExpenseCurrency === 'KHR';
+  const sym = isKhr ? '៛' : '$';
+  const placeholderAmt = isKhr ? '10000' : '0.00';
+  const stepAmt = isKhr ? '500' : '0.05';
+
+  const rowsHtml = expenseItems.map((item, idx) => {
+    const isHighlight = (idx === highlightIdx);
+    const safeDesc = typeof escapeHtml === 'function' ? escapeHtml(item.desc || '') : (item.desc || '');
+    const safeCat = typeof escapeHtml === 'function' ? escapeHtml(item.category || 'ហូបចុក & ប្រចាំថ្ងៃ') : (item.category || 'ហូបចុក & ប្រចាំថ្ងៃ');
+    return `
+      <div class="expense-item-row flex items-center gap-2 group p-0.5 rounded-xl transition ${isHighlight ? 'expense-row-flash' : ''}" data-idx="${idx}">
+        <!-- Description input (flex-1) -->
+        <div class="flex-1 relative">
+          <input type="text" 
+                 value="${safeDesc}" 
+                 placeholder="ឧ. កាហ្វេ, បាយ, សាំង..." 
+                 oninput="onExpenseItemRowChange(${idx}, 'desc', this.value)"
+                 class="expense-row-desc-input w-full h-11 bg-black/50 border border-white/10 rounded-xl px-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 font-medium text-xs sm:text-sm transition">
+          <input type="hidden" class="expense-row-cat-input" value="${safeCat}">
+        </div>
+
+        <!-- Amount input with currency symbol (w-28 sm:w-32) -->
+        <div class="relative w-28 sm:w-32 shrink-0">
+          <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-rose-400 font-bold font-mono text-sm pointer-events-none">${sym}</span>
+          <input type="number" 
+                 step="${stepAmt}" 
+                 min="0" 
+                 placeholder="${placeholderAmt}" 
+                 value="${item.amount !== '' && item.amount !== undefined ? item.amount : ''}"
+                 onfocus="showExpenseQuickAmount(${idx})"
+                 onclick="showExpenseQuickAmount(${idx})"
+                 oninput="onExpenseItemRowChange(${idx}, 'amount', this.value)"
+                 class="expense-row-amt-input w-full h-11 bg-black/50 border border-white/10 rounded-xl pl-6 pr-2 text-white font-mono font-bold text-sm sm:text-base focus:outline-none focus:border-rose-500 transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+        </div>
+
+        <!-- Delete / Clear Button (X) -->
+        <button type="button" 
+                onclick="removeExpenseItemRow(${idx})" 
+                class="w-8 h-11 rounded-xl bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 flex items-center justify-center shrink-0 active:scale-95 transition" 
+                title="${expenseItems.length > 1 ? 'លុបមុខនេះ' : 'សម្អាតទិន្នន័យ'}">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = rowsHtml;
+
+  // Update badge count
+  const badge = document.getElementById('expense-items-count-badge');
+  if (badge) {
+    badge.textContent = `${expenseItems.length} មុខ`;
+  }
+
+  updateExpenseTotalDisplay();
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function addExpenseItemRow(desc = '', amount = '', category = '') {
+  const cat = category || (desc ? detectExpenseCategory(desc) : 'ហូបចុក & ប្រចាំថ្ងៃ');
+  expenseItems.push({
+    id: Date.now() + Math.random(),
+    desc: desc,
+    amount: amount,
+    category: cat
+  });
+
+  const newIdx = expenseItems.length - 1;
+  activeExpenseRowFocusIdx = newIdx;
+  renderExpenseItemRows(newIdx);
+
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+
+  // Auto focus description on the new row
+  setTimeout(() => {
+    const rows = document.querySelectorAll('.expense-item-row');
+    if (rows && rows[newIdx]) {
+      const descInp = rows[newIdx].querySelector('.expense-row-desc-input');
+      if (descInp) descInp.focus();
+    }
+  }, 100);
+}
+
+function removeExpenseItemRow(idx) {
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  if (expenseItems.length > 1) {
+    expenseItems.splice(idx, 1);
+    if (activeExpenseRowFocusIdx >= expenseItems.length) {
+      activeExpenseRowFocusIdx = Math.max(0, expenseItems.length - 1);
+    }
+    renderExpenseItemRows();
+  } else {
+    // Only 1 row: clear it instead of removing
+    expenseItems[0] = {
+      id: Date.now(),
+      desc: '',
+      amount: '',
+      category: 'ហូបចុក & ប្រចាំថ្ងៃ'
+    };
+    renderExpenseItemRows();
+  }
+}
+
+function onExpenseItemRowChange(idx, field, value) {
+  if (!expenseItems[idx]) return;
+
+  if (field === 'desc') {
+    expenseItems[idx].desc = value;
+    expenseItems[idx].category = detectExpenseCategory(value);
+    const rowEl = document.querySelector(`.expense-item-row[data-idx="${idx}"]`);
+    if (rowEl) {
+      const catInp = rowEl.querySelector('.expense-row-cat-input');
+      if (catInp) catInp.value = expenseItems[idx].category;
+    }
+  } else if (field === 'amount') {
+    const rawVal = parseFloat(value || '0');
+    if (currentExpenseCurrency === 'USD' && rawVal >= 10000) {
+      expenseItems[idx].amount = value;
+      setExpenseCurrency('KHR');
+      return;
+    }
+    expenseItems[idx].amount = value;
+    activeExpenseRowFocusIdx = idx;
+    updateExpenseTotalDisplay();
+  }
+}
+
+function showExpenseQuickAmount(idx) {
+  activeExpenseRowFocusIdx = (typeof idx === 'number' && idx >= 0) ? idx : 0;
+  const section = document.getElementById('expense-quick-amount-section');
+  if (section) {
+    section.classList.remove('hidden');
+    renderExpenseQuickChips();
+  }
+}
+
+function hideExpenseQuickAmount() {
+  const section = document.getElementById('expense-quick-amount-section');
+  if (section) section.classList.add('hidden');
+}
+
+function renderExpenseQuickChips() {
+  const grid = document.getElementById('expense-quick-chips-grid');
+  if (!grid) return;
+
+  if (currentExpenseCurrency === 'KHR') {
+    const khrChips = [3000, 4000, 5000, 6000, 8000, 10000, 12000, 20000];
+    grid.innerHTML = khrChips.map(amt => `
+      <button type="button" onclick="setExpenseAmount(${amt})" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">${amt.toLocaleString()}៛</button>
+    `).join('');
+  } else {
+    const usdChips = [0.75, 1.00, 1.25, 1.50, 2.00, 2.50, 3.00, 5.00];
+    grid.innerHTML = usdChips.map(amt => `
+      <button type="button" onclick="setExpenseAmount(${amt})" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$${amt.toFixed(2)}</button>
+    `).join('');
+  }
+}
+
+function setExpenseAmount(amount) {
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  const targetIdx = (activeExpenseRowFocusIdx >= 0 && activeExpenseRowFocusIdx < expenseItems.length)
+    ? activeExpenseRowFocusIdx
+    : 0;
+
+  if (expenseItems[targetIdx]) {
+    let finalVal = amount;
+    if (currentExpenseCurrency === 'KHR') {
+      finalVal = (amount >= 500) ? Math.round(amount) : Math.round(Number(amount) * 4000);
+    } else {
+      finalVal = (amount >= 500) ? (amount / 4000).toFixed(2) : Number(amount).toFixed(2);
+    }
+    expenseItems[targetIdx].amount = finalVal;
+
+    const rows = document.querySelectorAll('.expense-item-row');
+    if (rows && rows[targetIdx]) {
+      const amtInput = rows[targetIdx].querySelector('.expense-row-amt-input');
+      if (amtInput) amtInput.value = finalVal;
+    }
+    updateExpenseTotalDisplay();
+  }
+
+  hideExpenseQuickAmount();
+}
+
+function updateExpenseTotalDisplay() {
+  let totalUsd = 0;
+  let totalKhr = 0;
+
+  expenseItems.forEach(item => {
+    const val = parseFloat(item.amount || '0');
+    if (!isNaN(val) && val > 0) {
+      if (currentExpenseCurrency === 'KHR') {
+        totalKhr += val;
+        totalUsd += (val / 4000);
+      } else {
+        totalUsd += val;
+        totalKhr += (val * 4000);
+      }
+    }
+  });
+
+  const totalEl = document.getElementById('expense-total-display');
+  const hintEl = document.getElementById('expense-khr-convert-hint');
+  const hintVal = document.getElementById('expense-khr-converted-usd');
+
+  if (totalEl) {
+    if (currentExpenseCurrency === 'KHR') {
+      totalEl.textContent = `${Math.round(totalKhr).toLocaleString()}៛`;
+    } else {
+      totalEl.textContent = `$${totalUsd.toFixed(2)}`;
+    }
+  }
+
+  if (currentExpenseCurrency === 'KHR') {
+    if (hintEl) hintEl.classList.remove('hidden');
+    if (hintVal) hintVal.textContent = `$${totalUsd.toFixed(2)}`;
+  } else {
+    if (hintEl) hintEl.classList.add('hidden');
+  }
+}
+
 function setExpenseCurrency(curr) {
+  const prevCurr = currentExpenseCurrency;
   currentExpenseCurrency = curr || 'USD';
   const btnUsd = document.getElementById('exp-curr-btn-usd');
   const btnKhr = document.getElementById('exp-curr-btn-khr');
-  const symEl = document.getElementById('expense-currency-symbol');
-  const amtInput = document.getElementById('expense-field-amount');
-  const hintEl = document.getElementById('expense-khr-convert-hint');
 
   const activeCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition bg-rose-500 text-white shadow-sm flex items-center justify-center';
   const inactiveCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center';
@@ -31757,68 +32019,26 @@ function setExpenseCurrency(curr) {
   if (btnUsd) btnUsd.className = (currentExpenseCurrency === 'USD' ? activeCls : inactiveCls);
   if (btnKhr) btnKhr.className = (currentExpenseCurrency === 'KHR' ? activeCls : inactiveCls);
 
-  if (currentExpenseCurrency === 'KHR') {
-    if (symEl) symEl.textContent = '៛';
-    if (amtInput) {
-      amtInput.placeholder = '10000';
-      amtInput.step = '500';
-      const currentVal = parseFloat(amtInput.value || '0');
-      if (currentVal > 0 && currentVal < 500) {
-        amtInput.value = Math.round(currentVal * 4000);
+  // If currency actually changed, convert item amounts
+  if (prevCurr !== currentExpenseCurrency) {
+    expenseItems.forEach(item => {
+      const val = parseFloat(item.amount || '0');
+      if (!isNaN(val) && val > 0) {
+        if (currentExpenseCurrency === 'KHR') {
+          item.amount = Math.round(val * 4000);
+        } else {
+          item.amount = (val / 4000).toFixed(2);
+        }
       }
-    }
-    if (hintEl) hintEl.classList.remove('hidden');
-  } else {
-    if (symEl) symEl.textContent = '$';
-    if (amtInput) {
-      amtInput.placeholder = '0.00';
-      amtInput.step = '0.05';
-      const currentVal = parseFloat(amtInput.value || '0');
-      if (currentVal >= 500) {
-        amtInput.value = (currentVal / 4000).toFixed(2);
-      }
-    }
-    if (hintEl) hintEl.classList.add('hidden');
+    });
   }
 
-  // Update quick amount chips labels based on currency
-  const grid = document.getElementById('expense-quick-chips-grid');
-  if (grid) {
-    if (currentExpenseCurrency === 'KHR') {
-      const khrChips = [3000, 4000, 5000, 6000, 8000, 10000, 12000, 20000];
-      grid.innerHTML = khrChips.map(amt => `
-        <button type="button" onclick="setExpenseAmount(${amt})" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">${amt.toLocaleString()}៛</button>
-      `).join('');
-    } else {
-      const usdChips = [0.75, 1.00, 1.25, 1.50, 2.00, 2.50, 3.00, 5.00];
-      grid.innerHTML = usdChips.map(amt => `
-        <button type="button" onclick="setExpenseAmount(${amt})" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">$${amt.toFixed(2)}</button>
-      `).join('');
-    }
-  }
-
-  onExpenseAmountInput();
+  renderExpenseItemRows();
+  renderExpenseQuickChips();
 }
 
 function onExpenseAmountInput() {
-  const amtInput = document.getElementById('expense-field-amount');
-  const hintVal = document.getElementById('expense-khr-converted-usd');
-  const hintEl = document.getElementById('expense-khr-convert-hint');
-  const val = parseFloat(amtInput?.value || '0');
-
-  // Auto detect if user pasted huge riel into USD
-  if (currentExpenseCurrency === 'USD' && val >= 10000) {
-    setExpenseCurrency('KHR');
-    return;
-  }
-
-  if (currentExpenseCurrency === 'KHR') {
-    if (hintEl) hintEl.classList.remove('hidden');
-    const usdVal = (val / 4000).toFixed(2);
-    if (hintVal) hintVal.textContent = `$${usdVal}`;
-  } else {
-    if (hintEl) hintEl.classList.add('hidden');
-  }
+  updateExpenseTotalDisplay();
 }
 
 function openNewExpenseModal() {
@@ -31832,6 +32052,7 @@ function openNewExpenseModal() {
   const rowIndexInput = document.getElementById('expense-edit-row-index');
   const origDescInput = document.getElementById('expense-edit-orig-desc');
   const origAmtInput = document.getElementById('expense-edit-orig-amt');
+  const btnAddRow = document.getElementById('btn-add-expense-row');
 
   if (titleEl) titleEl.textContent = 'កត់ត្រាចំណាយថ្មី';
   if (subEl) subEl.textContent = 'បញ្ចូលចំណាយប្រចាំថ្ងៃដោយផ្ទាល់';
@@ -31840,6 +32061,7 @@ function openNewExpenseModal() {
   if (rowIndexInput) rowIndexInput.value = '';
   if (origDescInput) origDescInput.value = '';
   if (origAmtInput) origAmtInput.value = '';
+  if (btnAddRow) btnAddRow.classList.remove('hidden');
 
   const now = new Date();
   const dy = String(now.getDate()).padStart(2, '0');
@@ -31855,24 +32077,25 @@ function openNewExpenseModal() {
   const dateTextInput = document.getElementById('expense-field-date-text');
   const hiddenDateInput = document.getElementById('expense-field-date');
   const timeInput = document.getElementById('expense-field-time');
-  const descInput = document.getElementById('expense-field-desc');
-  const catInput = document.getElementById('expense-field-category');
-  const amtInput = document.getElementById('expense-field-amount');
   const noteInput = document.getElementById('expense-field-note');
 
   if (dateTextInput) dateTextInput.value = ddmmyyyy;
   if (hiddenDateInput) hiddenDateInput.value = iso;
   if (timeInput) timeInput.value = timeStr;
-  if (descInput) descInput.value = '';
-  if (catInput) catInput.value = 'ហូបចុក & ប្រចាំថ្ងៃ';
-  if (amtInput) amtInput.value = '';
   if (noteInput) noteInput.value = '';
 
   expenseMiniCalSelectedDay = parseInt(dy, 10);
   expenseMiniCalMonth = parseInt(mo, 10) - 1;
   expenseMiniCalYear = yr;
 
+  expenseItems = [
+    { id: Date.now(), desc: '', amount: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ' }
+  ];
+  activeExpenseRowFocusIdx = 0;
+
   setExpenseCurrency('USD');
+  hideExpenseQuickAmount();
+  renderExpenseItemRows();
 
   const calPopup = document.getElementById('expense-mini-calendar-popup');
   if (calPopup) calPopup.classList.add('hidden');
@@ -31885,7 +32108,10 @@ function openNewExpenseModal() {
   setDockVisible(false);
 
   if (window.lucide) window.lucide.createIcons();
-  if (descInput) setTimeout(() => descInput.focus(), 150);
+  setTimeout(() => {
+    const firstDesc = document.querySelector('.expense-row-desc-input');
+    if (firstDesc) firstDesc.focus();
+  }, 150);
 }
 
 function openEditExpenseModal(expOrIdx) {
@@ -31902,6 +32128,7 @@ function openEditExpenseModal(expOrIdx) {
   const rowIndexInput = document.getElementById('expense-edit-row-index');
   const origDescInput = document.getElementById('expense-edit-orig-desc');
   const origAmtInput = document.getElementById('expense-edit-orig-amt');
+  const btnAddRow = document.getElementById('btn-add-expense-row');
 
   if (titleEl) titleEl.textContent = 'កែប្រែចំណាយ';
   if (subEl) subEl.textContent = `កែប្រែទិន្នន័យចំណាយ #${exp.rowIndex || ''} • Sync ទៅ Sheet`;
@@ -31911,29 +32138,37 @@ function openEditExpenseModal(expOrIdx) {
   if (rowIndexInput) rowIndexInput.value = exp.rowIndex || '';
   if (origDescInput) origDescInput.value = exp.description || '';
   if (origAmtInput) origAmtInput.value = exp.amount || '';
+  if (btnAddRow) btnAddRow.classList.add('hidden');
 
   const dateTextInput = document.getElementById('expense-field-date-text');
   const hiddenDateInput = document.getElementById('expense-field-date');
   const timeInput = document.getElementById('expense-field-time');
-  const descInput = document.getElementById('expense-field-desc');
-  const catInput = document.getElementById('expense-field-category');
-  const amtInput = document.getElementById('expense-field-amount');
   const noteInput = document.getElementById('expense-field-note');
 
   if (dateTextInput) dateTextInput.value = exp.date || '';
   if (hiddenDateInput) hiddenDateInput.value = exp.isoDate || '';
   if (timeInput) timeInput.value = exp.time || '';
-  if (descInput) descInput.value = exp.description || '';
-  if (catInput) catInput.value = exp.category || 'ហូបចុក & ប្រចាំថ្ងៃ';
-  if (amtInput) amtInput.value = Number(exp.amount || 0).toFixed(2);
   if (noteInput) noteInput.value = exp.note || '';
 
+  expenseItems = [{
+    id: Date.now(),
+    desc: exp.description || '',
+    amount: exp.amount ? Number(exp.amount).toFixed(2) : '',
+    category: exp.category || 'ហូបចុក & ប្រចាំថ្ងៃ'
+  }];
+  activeExpenseRowFocusIdx = 0;
+
   setExpenseCurrency('USD');
+  hideExpenseQuickAmount();
+  renderExpenseItemRows();
 
   modal.classList.remove('hidden');
   setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
-  if (descInput) setTimeout(() => descInput.focus(), 150);
+  setTimeout(() => {
+    const firstDesc = document.querySelector('.expense-row-desc-input');
+    if (firstDesc) firstDesc.focus();
+  }, 150);
 }
 
 function closeNewExpenseModal() {
@@ -31945,68 +32180,47 @@ function closeNewExpenseModal() {
 }
 
 function applyExpensePreset(desc, category, amount) {
-  const descInput = document.getElementById('expense-field-desc');
-  const catInput = document.getElementById('expense-field-category');
-  const amtInput = document.getElementById('expense-field-amount');
-
-  if (descInput) descInput.value = desc;
-  if (catInput) catInput.value = category;
-  if (amtInput) amtInput.value = Number(amount).toFixed(2);
-
   if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
-}
 
-function setExpenseAmount(amount) {
-  const amtInput = document.getElementById('expense-field-amount');
-  if (amtInput) {
-    if (currentExpenseCurrency === 'KHR') {
-      amtInput.value = (amount >= 500) ? Math.round(amount) : Math.round(Number(amount) * 4000);
-    } else {
-      amtInput.value = (amount >= 500) ? (amount / 4000).toFixed(2) : Number(amount).toFixed(2);
-    }
-    amtInput.focus();
-    onExpenseAmountInput();
+  let finalAmount = amount;
+  if (currentExpenseCurrency === 'KHR') {
+    finalAmount = Math.round(Number(amount) * 4000);
+  } else {
+    finalAmount = Number(amount).toFixed(2);
   }
-  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+
+  let targetIdx = 0;
+  // If row 0 is completely empty, populate row 0
+  if (expenseItems.length === 1 && !expenseItems[0].desc && !expenseItems[0].amount) {
+    expenseItems[0].desc = desc;
+    expenseItems[0].amount = finalAmount;
+    expenseItems[0].category = category || detectExpenseCategory(desc);
+    targetIdx = 0;
+  } else {
+    // Append new row with iOS micro-interaction animation
+    expenseItems.push({
+      id: Date.now() + Math.random(),
+      desc: desc,
+      amount: finalAmount,
+      category: category || detectExpenseCategory(desc)
+    });
+    targetIdx = expenseItems.length - 1;
+  }
+
+  activeExpenseRowFocusIdx = targetIdx;
+  renderExpenseItemRows(targetIdx);
 }
 
 async function submitNewExpense() {
+  const dateTextInput = document.getElementById('expense-field-date-text');
   const dateInput = document.getElementById('expense-field-date');
   const timeInput = document.getElementById('expense-field-time');
-  const descInput = document.getElementById('expense-field-desc');
-  const catInput = document.getElementById('expense-field-category');
-  const amtInput = document.getElementById('expense-field-amount');
   const noteInput = document.getElementById('expense-field-note');
   const btn = document.getElementById('btn-submit-expense');
 
-  const desc = (descInput?.value || '').trim();
-  const rawAmt = parseFloat(amtInput?.value || '0');
-  const cat = (catInput?.value || 'ហូបចុក & ប្រចាំថ្ងៃ').trim();
-  const dateTextInput = document.getElementById('expense-field-date-text');
   const dateStr = (dateTextInput?.value || dateInput?.value || '').trim();
   const timeStr = (timeInput?.value || '').trim();
   const note = (noteInput?.value || '').trim();
-
-  if (!desc) {
-    showToastNotification('សូមបញ្ចូលបរិយាយ ឬមុខចំណាយ! ✍️');
-    if (descInput) descInput.focus();
-    return;
-  }
-
-  if (isNaN(rawAmt) || rawAmt <= 0) {
-    showToastNotification('សូមបញ្ចូលចំនួនទឹកប្រាក់ឲ្យបានត្រឹមត្រូវ! 💰');
-    if (amtInput) amtInput.focus();
-    return;
-  }
-
-  // Handle KHR to USD conversion
-  let finalUsd = rawAmt;
-  let finalNote = note;
-  if (currentExpenseCurrency === 'KHR') {
-    finalUsd = parseFloat((rawAmt / 4000).toFixed(2));
-    const khrFormatted = Math.round(rawAmt).toLocaleString();
-    finalNote = finalNote ? `${finalNote} (${khrFormatted}៛)` : `(${khrFormatted}៛)`;
-  }
 
   // Format date correctly
   let ddmmyyyy = dateStr;
@@ -32028,7 +32242,30 @@ async function submitNewExpense() {
   const origDesc = (document.getElementById('expense-edit-orig-desc')?.value || '').trim();
   const origAmt = parseFloat(document.getElementById('expense-edit-orig-amt')?.value || '0');
 
+  // Handle Edit Mode
   if (isEditMode) {
+    const item = expenseItems[0] || {};
+    const desc = (item.desc || '').trim();
+    const rawAmt = parseFloat(item.amount || '0');
+    const cat = (item.category || 'ហូបចុក & ប្រចាំថ្ងៃ').trim();
+
+    if (!desc) {
+      showToastNotification('សូមបញ្ចូលបរិយាយ ឬមុខចំណាយ! ✍️');
+      return;
+    }
+    if (isNaN(rawAmt) || rawAmt <= 0) {
+      showToastNotification('សូមបញ្ចូលចំនួនទឹកប្រាក់ឲ្យបានត្រឹមត្រូវ! 💰');
+      return;
+    }
+
+    let finalUsd = rawAmt;
+    let finalNote = note;
+    if (currentExpenseCurrency === 'KHR') {
+      finalUsd = parseFloat((rawAmt / 4000).toFixed(2));
+      const khrFormatted = Math.round(rawAmt).toLocaleString();
+      finalNote = finalNote ? `${finalNote} (${khrFormatted}៛)` : `(${khrFormatted}៛)`;
+    }
+
     if (btn) {
       btn.disabled = true;
       btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>កំពុងកែប្រែ...</span>`;
@@ -32107,52 +32344,88 @@ async function submitNewExpense() {
     return;
   }
 
+  // Handle Multi-Item New Expenses Mode
+  const validRows = expenseItems.filter(item => {
+    const d = (item.desc || '').trim();
+    const a = parseFloat(item.amount || '0');
+    return d.length > 0 && !isNaN(a) && a > 0;
+  });
+
+  if (validRows.length === 0) {
+    showToastNotification('សូមបញ្ចូលយ៉ាងហោចណាស់ ១ មុខចំណាយ និងចំនួនទឹកប្រាក់! ✍️');
+    return;
+  }
+
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>កំពុងរក្សាទុក...</span>`;
     if (window.lucide) window.lucide.createIcons();
   }
 
-  const newExpense = {
-    date: ddmmyyyy,
-    isoDate: isoDate,
-    time: timeStr,
-    description: desc,
-    category: cat,
-    amount: finalUsd,
-    note: finalNote,
-    rowIndex: (DataService.data && Array.isArray(DataService.data.expenses)) ? DataService.data.expenses.length + 1 : 1
-  };
+  const createdExpenses = [];
+  const webhookUrl = getAppsScriptWebhookUrl();
+  const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
 
-  // 1. Immediately inject into live DataService in-memory
-  if (DataService.data && Array.isArray(DataService.data.expenses)) {
-    DataService.data.expenses.unshift(newExpense);
-    if (DataService.data.meta) DataService.data.meta.totalExpensesCount++;
+  let totalAmountUsd = 0;
+
+  for (let i = 0; i < validRows.length; i++) {
+    const row = validRows[i];
+    const desc = (row.desc || '').trim();
+    const rawAmt = parseFloat(row.amount || '0');
+    const cat = (row.category || detectExpenseCategory(desc) || 'ហូបចុក & ប្រចាំថ្ងៃ').trim();
+
+    let finalUsd = rawAmt;
+    let finalNote = note;
+    if (currentExpenseCurrency === 'KHR') {
+      finalUsd = parseFloat((rawAmt / 4000).toFixed(2));
+      const khrFormatted = Math.round(rawAmt).toLocaleString();
+      finalNote = finalNote ? `${finalNote} (${khrFormatted}៛)` : `(${khrFormatted}៛)`;
+    }
+    totalAmountUsd += finalUsd;
+
+    const newExpense = {
+      date: ddmmyyyy,
+      isoDate: isoDate,
+      time: timeStr,
+      description: desc,
+      category: cat,
+      amount: finalUsd,
+      note: finalNote,
+      rowIndex: (DataService.data && Array.isArray(DataService.data.expenses)) ? DataService.data.expenses.length + 1 : 1
+    };
+
+    createdExpenses.push(newExpense);
+
+    // 1. Inject into live DataService in-memory
+    if (DataService.data && Array.isArray(DataService.data.expenses)) {
+      DataService.data.expenses.unshift(newExpense);
+      if (DataService.data.meta) DataService.data.meta.totalExpensesCount++;
+    }
+
+    // 2. Persist to localStorage pending expenses
+    try {
+      const existing = JSON.parse(localStorage.getItem('sd_local_expenses') || '[]');
+      existing.unshift(newExpense);
+      localStorage.setItem('sd_local_expenses', JSON.stringify(existing));
+    } catch (_) {}
   }
 
-  // 2. Persist to localStorage pending expenses
-  try {
-    const existing = JSON.parse(localStorage.getItem('sd_local_expenses') || '[]');
-    existing.unshift(newExpense);
-    localStorage.setItem('sd_local_expenses', JSON.stringify(existing));
-  } catch (_) {}
-
-  // 3. Send to Google Apps Script Webhook or Queue Offline
-  const webhookUrl = getAppsScriptWebhookUrl();
+  // 3. Send to Google Apps Script Webhook
   let expSyncSuccess = false;
-
   if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
     try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'add_expense',
-          sheetId: (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '',
-          data: newExpense
-        })
-      });
+      for (const exp of createdExpenses) {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'add_expense',
+            sheetId: activeSheetId,
+            data: exp
+          })
+        });
+      }
       expSyncSuccess = true;
     } catch (e) {
       console.warn('Expense Webhook POST error (fallback to local & offline queue):', e);
@@ -32164,29 +32437,35 @@ async function submitNewExpense() {
     if (typeof addAppNotification === 'function') {
       addAppNotification({
         type: 'expense',
-        title: `កត់ត្រាចំណាយ: ${desc}`,
-        content: `${cat} | ចំនួន: $${finalUsd.toFixed(2)} ${timeStr ? '(' + timeStr + ')' : ''}`,
+        title: `កត់ត្រាចំណាយ ${createdExpenses.length} មុខ`,
+        content: `សរុប: $${totalAmountUsd.toFixed(2)} ${timeStr ? '(' + timeStr + ')' : ''}`,
         tag: 'Google Sheet ✓',
         color: 'rose',
         icon: 'receipt'
       });
     }
-    showToastNotification(`កត់ត្រាចំណាយ "${desc}" ($${finalUsd.toFixed(2)}) ជោគជ័យ! 💸`);
+    if (createdExpenses.length === 1) {
+      showToastNotification(`កត់ត្រាចំណាយ "${createdExpenses[0].description}" ($${createdExpenses[0].amount.toFixed(2)}) ជោគជ័យ! 💸`);
+    } else {
+      showToastNotification(`កត់ត្រាចំណាយ ${createdExpenses.length} មុខ (សរុប $${totalAmountUsd.toFixed(2)}) ជោគជ័យ! 💸`);
+    }
   } else {
-    if (typeof queueOfflineExpense === 'function') {
-      queueOfflineExpense(newExpense);
+    for (const exp of createdExpenses) {
+      if (typeof queueOfflineExpense === 'function') {
+        queueOfflineExpense(exp);
+      }
     }
     if (typeof addAppNotification === 'function') {
       addAppNotification({
         type: 'expense',
-        title: `[Offline] ចំណាយក្នុងម៉ាស៊ីន: ${desc}`,
-        content: `${cat} | ចំនួន: $${finalUsd.toFixed(2)} (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)`,
+        title: `[Offline] ចំណាយ ${createdExpenses.length} មុខ ក្នុងម៉ាស៊ីន`,
+        content: `សរុប: $${totalAmountUsd.toFixed(2)} (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)`,
         tag: 'Offline Queued ⏳',
         color: 'amber',
         icon: 'cloud-off'
       });
     }
-    showToastNotification(`📡 បានរក្សាទុកក្នុងទូរសព្ទ (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)!`);
+    showToastNotification(`📡 បានរក្សាទុក ${createdExpenses.length} មុខក្នុងទូរសព្ទ (នឹង Sync ពេលមានអ៊ីនធឺណិត)!`);
   }
 
   // 4. Update UI live
@@ -32230,6 +32509,14 @@ window.selectExpenseMiniCalDay = selectExpenseMiniCalDay;
 window.onExpenseDateTextInput = onExpenseDateTextInput;
 window.setExpenseCurrency = setExpenseCurrency;
 window.onExpenseAmountInput = onExpenseAmountInput;
+window.addExpenseItemRow = addExpenseItemRow;
+window.removeExpenseItemRow = removeExpenseItemRow;
+window.onExpenseItemRowChange = onExpenseItemRowChange;
+window.showExpenseQuickAmount = showExpenseQuickAmount;
+window.hideExpenseQuickAmount = hideExpenseQuickAmount;
+window.renderExpenseQuickChips = renderExpenseQuickChips;
+window.renderExpenseItemRows = renderExpenseItemRows;
+window.detectExpenseCategory = detectExpenseCategory;
 
 // ==========================================
 // Delivery Shipping Auto-Defaults (Customizable)
@@ -32467,11 +32754,11 @@ function updateModalLanguage() {
   if (expPresetsHint) expPresetsHint.textContent = isKm ? 'ចុច ១ដើម្បីបំពេញ' : 'Tap to auto-fill';
   if (expLabelDate) expLabelDate.textContent = isKm ? 'កាលបរិច្ឆេទ (dd/mm/yyyy):' : 'Date (dd/mm/yyyy):';
   if (expLabelTime) expLabelTime.textContent = isKm ? 'ម៉ោង:' : 'Time:';
-  if (expLabelDesc) expLabelDesc.innerHTML = `${isKm ? 'បរិយាយ ឬមុខចំណាយ:' : 'Description:'} <span class="text-rose-400">*</span>`;
-  if (expFieldDesc) expFieldDesc.placeholder = isKm ? 'ឧ. កាហ្វេ, បាយថ្ងៃត្រង់, ចាក់សាំង...' : 'e.g. Coffee, Lunch, Gas...';
+  if (expLabelDesc) expLabelDesc.innerHTML = `<i data-lucide="receipt" class="w-3.5 h-3.5 text-rose-400"></i><span>${isKm ? 'មុខចំណាយ:' : 'Expenses:'}</span>`;
+  if (expFieldDesc) expFieldDesc.placeholder = isKm ? 'ឧ. កាហ្វេ, បាយ, សាំង...' : 'e.g. Coffee, Lunch, Gas...';
   if (expLabelCategory) expLabelCategory.textContent = isKm ? 'ប្រភេទចំណាយ:' : 'Category:';
   if (expLabelAmount) expLabelAmount.innerHTML = `${isKm ? 'ចំនួនទឹកប្រាក់ ($):' : 'Amount ($):'} <span class="text-rose-400">*</span>`;
-  if (expQuickAmt) expQuickAmt.textContent = isKm ? 'រហ័ស:' : 'Quick:';
+  if (expQuickAmt) expQuickAmt.innerHTML = `<i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i><span>${isKm ? 'កម្រិតទឹកប្រាក់រហ័ស:' : 'Quick Amounts:'}</span>`;
   if (expLabelNote) expLabelNote.textContent = isKm ? 'សម្គាល់បន្ថែម (ស្រេចចិត្ត):' : 'Note (Optional):';
   if (expFieldNote) expFieldNote.placeholder = isKm ? 'ឧ. ទីតាំង ឬហាង...' : 'e.g. Location or store...';
   if (btnSubmitExp) btnSubmitExp.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>${isKm ? 'រក្សាទុកចំណាយ 💸' : 'Save Expense 💸'}</span>`;
