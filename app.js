@@ -32251,7 +32251,7 @@ function onExpenseDateTextInput(val) {
 }
 
 let expenseItems = [
-  { id: 1, desc: '', amount: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ' }
+  { id: 1, desc: '', amount: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ', currency: 'USD' }
 ];
 let activeExpenseRowFocusIdx = 0;
 
@@ -32282,23 +32282,55 @@ function detectExpenseCategory(text) {
   return 'ហូបចុក & ប្រចាំថ្ងៃ';
 }
 
+function updateActiveCurrencyButtons() {
+  const targetIdx = (activeExpenseRowFocusIdx >= 0 && activeExpenseRowFocusIdx < expenseItems.length)
+    ? activeExpenseRowFocusIdx
+    : 0;
+  const currentCurr = expenseItems[targetIdx]?.currency || 'USD';
+
+  const btnUsd = document.getElementById('exp-curr-btn-usd');
+  const btnKhr = document.getElementById('exp-curr-btn-khr');
+
+  const activeCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition bg-rose-500 text-white shadow-sm flex items-center justify-center';
+  const inactiveCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center';
+
+  if (btnUsd) btnUsd.className = (currentCurr === 'USD' ? activeCls : inactiveCls);
+  if (btnKhr) btnKhr.className = (currentCurr === 'KHR' ? activeCls : inactiveCls);
+}
+
+function toggleRowCurrency(idx) {
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+  activeExpenseRowFocusIdx = (typeof idx === 'number' && idx >= 0 && idx < expenseItems.length) ? idx : 0;
+  const item = expenseItems[activeExpenseRowFocusIdx];
+  if (!item) return;
+
+  const currentCurr = item.currency || 'USD';
+  const newCurr = (currentCurr === 'KHR') ? 'USD' : 'KHR';
+  setExpenseCurrency(newCurr);
+}
+
 function renderExpenseItemRows(highlightIdx = -1) {
   const container = document.getElementById('expense-items-list');
   if (!container) return;
 
   if (!Array.isArray(expenseItems) || expenseItems.length === 0) {
-    expenseItems = [{ id: Date.now(), desc: '', amount: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ' }];
+    expenseItems = [{ id: Date.now(), desc: '', amount: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ', currency: 'USD' }];
   }
 
-  const isKhr = currentExpenseCurrency === 'KHR';
-  const sym = isKhr ? '៛' : '$';
-  const placeholderAmt = isKhr ? '10000' : '0.00';
-  const stepAmt = isKhr ? '500' : '0.05';
+  if (activeExpenseRowFocusIdx >= expenseItems.length) {
+    activeExpenseRowFocusIdx = Math.max(0, expenseItems.length - 1);
+  }
 
   const rowsHtml = expenseItems.map((item, idx) => {
     const isHighlight = (idx === highlightIdx);
+    const itemCurr = item.currency || 'USD';
+    const isKhr = (itemCurr === 'KHR');
+    const sym = isKhr ? '៛' : '$';
+    const placeholderAmt = isKhr ? '10000' : '0.00';
+    const stepAmt = isKhr ? '500' : '0.05';
     const safeDesc = typeof escapeHtml === 'function' ? escapeHtml(item.desc || '') : (item.desc || '');
     const safeCat = typeof escapeHtml === 'function' ? escapeHtml(item.category || 'ហូបចុក & ប្រចាំថ្ងៃ') : (item.category || 'ហូបចុក & ប្រចាំថ្ងៃ');
+
     return `
       <div class="expense-item-row flex items-center gap-2 group p-0.5 rounded-xl transition ${isHighlight ? 'expense-row-flash' : ''}" data-idx="${idx}">
         <!-- Description input (flex-1) -->
@@ -32306,14 +32338,20 @@ function renderExpenseItemRows(highlightIdx = -1) {
           <input type="text" 
                  value="${safeDesc}" 
                  placeholder="ឧ. កាហ្វេ, បាយ, សាំង..." 
+                 onfocus="activeExpenseRowFocusIdx = ${idx}; updateActiveCurrencyButtons();"
                  oninput="onExpenseItemRowChange(${idx}, 'desc', this.value)"
                  class="expense-row-desc-input w-full h-11 bg-black/50 border border-white/10 rounded-xl px-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 font-medium text-xs sm:text-sm transition">
           <input type="hidden" class="expense-row-cat-input" value="${safeCat}">
         </div>
 
-        <!-- Amount input with currency symbol (w-28 sm:w-32) -->
-        <div class="relative w-28 sm:w-32 shrink-0">
-          <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-rose-400 font-bold font-mono text-sm pointer-events-none">${sym}</span>
+        <!-- Amount input with clickable currency switcher symbol (w-32 sm:w-36) -->
+        <div class="relative w-32 sm:w-36 shrink-0">
+          <button type="button" 
+                  onclick="toggleRowCurrency(${idx})" 
+                  title="ចុចដើម្បីប្តូរ ($ ឬ ៛)"
+                  class="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg text-rose-400 hover:text-white hover:bg-rose-500/20 active:scale-90 font-bold font-mono text-sm transition flex items-center justify-center border border-transparent hover:border-rose-500/30">
+            ${sym}
+          </button>
           <input type="number" 
                  step="${stepAmt}" 
                  min="0" 
@@ -32322,7 +32360,7 @@ function renderExpenseItemRows(highlightIdx = -1) {
                  onfocus="showExpenseQuickAmount(${idx})"
                  onclick="showExpenseQuickAmount(${idx})"
                  oninput="onExpenseItemRowChange(${idx}, 'amount', this.value)"
-                 class="expense-row-amt-input w-full h-11 bg-black/50 border border-white/10 rounded-xl pl-6 pr-2 text-white font-mono font-bold text-sm sm:text-base focus:outline-none focus:border-rose-500 transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                 class="expense-row-amt-input w-full h-11 bg-black/50 border border-white/10 rounded-xl pl-9 pr-2 text-white font-mono font-bold text-sm sm:text-base focus:outline-none focus:border-rose-500 transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
         </div>
 
         <!-- Delete / Clear Button (X) -->
@@ -32344,18 +32382,20 @@ function renderExpenseItemRows(highlightIdx = -1) {
     badge.textContent = `${expenseItems.length} មុខ`;
   }
 
+  updateActiveCurrencyButtons();
   updateExpenseTotalDisplay();
 
   if (window.lucide) window.lucide.createIcons();
 }
 
-function addExpenseItemRow(desc = '', amount = '', category = '') {
+function addExpenseItemRow(desc = '', amount = '', category = '', currency = 'USD') {
   const cat = category || (desc ? detectExpenseCategory(desc) : 'ហូបចុក & ប្រចាំថ្ងៃ');
   expenseItems.push({
     id: Date.now() + Math.random(),
     desc: desc,
     amount: amount,
-    category: cat
+    category: cat,
+    currency: currency || 'USD'
   });
 
   const newIdx = expenseItems.length - 1;
@@ -32389,7 +32429,8 @@ function removeExpenseItemRow(idx) {
       id: Date.now(),
       desc: '',
       amount: '',
-      category: 'ហូបចុក & ប្រចាំថ្ងៃ'
+      category: 'ហូបចុក & ប្រចាំថ្ងៃ',
+      currency: 'USD'
     };
     renderExpenseItemRows();
   }
@@ -32408,9 +32449,13 @@ function onExpenseItemRowChange(idx, field, value) {
     }
   } else if (field === 'amount') {
     const rawVal = parseFloat(value || '0');
-    if (currentExpenseCurrency === 'USD' && rawVal >= 10000) {
+    // If user enters 10000+ while in USD, auto-switch THIS ROW only to KHR
+    if ((expenseItems[idx].currency || 'USD') === 'USD' && rawVal >= 10000) {
+      expenseItems[idx].currency = 'KHR';
       expenseItems[idx].amount = value;
-      setExpenseCurrency('KHR');
+      activeExpenseRowFocusIdx = idx;
+      renderExpenseItemRows();
+      renderExpenseQuickChips();
       return;
     }
     expenseItems[idx].amount = value;
@@ -32420,7 +32465,8 @@ function onExpenseItemRowChange(idx, field, value) {
 }
 
 function showExpenseQuickAmount(idx) {
-  activeExpenseRowFocusIdx = (typeof idx === 'number' && idx >= 0) ? idx : 0;
+  activeExpenseRowFocusIdx = (typeof idx === 'number' && idx >= 0 && idx < expenseItems.length) ? idx : 0;
+  updateActiveCurrencyButtons();
   const section = document.getElementById('expense-quick-amount-section');
   if (section) {
     section.classList.remove('hidden');
@@ -32437,7 +32483,12 @@ function renderExpenseQuickChips() {
   const grid = document.getElementById('expense-quick-chips-grid');
   if (!grid) return;
 
-  if (currentExpenseCurrency === 'KHR') {
+  const targetIdx = (activeExpenseRowFocusIdx >= 0 && activeExpenseRowFocusIdx < expenseItems.length)
+    ? activeExpenseRowFocusIdx
+    : 0;
+  const activeCurr = expenseItems[targetIdx]?.currency || 'USD';
+
+  if (activeCurr === 'KHR') {
     const khrChips = [3000, 4000, 5000, 6000, 8000, 10000, 12000, 20000];
     grid.innerHTML = khrChips.map(amt => `
       <button type="button" onclick="setExpenseAmount(${amt})" class="py-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-mono font-semibold text-slate-200 transition text-center">${amt.toLocaleString()}៛</button>
@@ -32458,8 +32509,9 @@ function setExpenseAmount(amount) {
     : 0;
 
   if (expenseItems[targetIdx]) {
+    const activeCurr = expenseItems[targetIdx].currency || 'USD';
     let finalVal = amount;
-    if (currentExpenseCurrency === 'KHR') {
+    if (activeCurr === 'KHR') {
       finalVal = (amount >= 500) ? Math.round(amount) : Math.round(Number(amount) * 4000);
     } else {
       finalVal = (amount >= 500) ? (amount / 4000).toFixed(2) : Number(amount).toFixed(2);
@@ -32478,66 +32530,53 @@ function setExpenseAmount(amount) {
 }
 
 function updateExpenseTotalDisplay() {
+  // Option 3: Total is calculated purely in USD for clean Dashboard & Google Sheets consistency
   let totalUsd = 0;
-  let totalKhr = 0;
 
   expenseItems.forEach(item => {
     const val = parseFloat(item.amount || '0');
     if (!isNaN(val) && val > 0) {
-      if (currentExpenseCurrency === 'KHR') {
-        totalKhr += val;
+      if (item.currency === 'KHR') {
         totalUsd += (val / 4000);
       } else {
         totalUsd += val;
-        totalKhr += (val * 4000);
       }
     }
   });
 
   const totalEl = document.getElementById('expense-total-display');
-  const hintEl = document.getElementById('expense-khr-convert-hint');
-  const hintVal = document.getElementById('expense-khr-converted-usd');
-
   if (totalEl) {
-    if (currentExpenseCurrency === 'KHR') {
-      totalEl.textContent = `${Math.round(totalKhr).toLocaleString()}៛`;
-    } else {
-      totalEl.textContent = `$${totalUsd.toFixed(2)}`;
-    }
+    totalEl.textContent = `$${totalUsd.toFixed(2)}`;
   }
 
-  if (currentExpenseCurrency === 'KHR') {
-    if (hintEl) hintEl.classList.remove('hidden');
-    if (hintVal) hintVal.textContent = `$${totalUsd.toFixed(2)}`;
-  } else {
-    if (hintEl) hintEl.classList.add('hidden');
-  }
+  const hintEl = document.getElementById('expense-khr-convert-hint');
+  if (hintEl) hintEl.classList.add('hidden');
 }
 
 function setExpenseCurrency(curr) {
-  const prevCurr = currentExpenseCurrency;
-  currentExpenseCurrency = curr || 'USD';
-  const btnUsd = document.getElementById('exp-curr-btn-usd');
-  const btnKhr = document.getElementById('exp-curr-btn-khr');
+  // Applies ONLY to the active/focused row (កន្លែងដែលប៉ះ)
+  const targetIdx = (activeExpenseRowFocusIdx >= 0 && activeExpenseRowFocusIdx < expenseItems.length)
+    ? activeExpenseRowFocusIdx
+    : 0;
 
-  const activeCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition bg-rose-500 text-white shadow-sm flex items-center justify-center';
-  const inactiveCls = 'w-7 h-7 rounded-lg text-xs font-mono font-bold transition text-slate-400 hover:text-white flex items-center justify-center';
+  const targetItem = expenseItems[targetIdx];
+  if (!targetItem) return;
 
-  if (btnUsd) btnUsd.className = (currentExpenseCurrency === 'USD' ? activeCls : inactiveCls);
-  if (btnKhr) btnKhr.className = (currentExpenseCurrency === 'KHR' ? activeCls : inactiveCls);
+  const prevCurr = targetItem.currency || 'USD';
+  const newCurr = curr || 'USD';
 
-  // If currency actually changed, convert item amounts
-  if (prevCurr !== currentExpenseCurrency) {
-    expenseItems.forEach(item => {
-      const val = parseFloat(item.amount || '0');
-      if (!isNaN(val) && val > 0) {
-        if (currentExpenseCurrency === 'KHR') {
-          item.amount = Math.round(val * 4000);
-        } else {
-          item.amount = (val / 4000).toFixed(2);
-        }
+  targetItem.currency = newCurr;
+
+  // Convert ONLY this targeted row's amount if currency toggled
+  if (prevCurr !== newCurr) {
+    const val = parseFloat(targetItem.amount || '0');
+    if (!isNaN(val) && val > 0) {
+      if (newCurr === 'KHR') {
+        targetItem.amount = Math.round(val * 4000);
+      } else {
+        targetItem.amount = (val / 4000).toFixed(2);
       }
-    });
+    }
   }
 
   renderExpenseItemRows();
@@ -32596,11 +32635,10 @@ function openNewExpenseModal() {
   expenseMiniCalYear = yr;
 
   expenseItems = [
-    { id: Date.now(), desc: '', amount: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ' }
+    { id: Date.now(), desc: '', amount: '', category: 'ហូបចុក & ប្រចាំថ្ងៃ', currency: 'USD' }
   ];
   activeExpenseRowFocusIdx = 0;
 
-  setExpenseCurrency('USD');
   hideExpenseQuickAmount();
   renderExpenseItemRows();
 
@@ -32661,11 +32699,11 @@ function openEditExpenseModal(expOrIdx) {
     id: Date.now(),
     desc: exp.description || '',
     amount: exp.amount ? Number(exp.amount).toFixed(2) : '',
-    category: exp.category || 'ហូបចុក & ប្រចាំថ្ងៃ'
+    category: exp.category || 'ហូបចុក & ប្រចាំថ្ងៃ',
+    currency: 'USD'
   }];
   activeExpenseRowFocusIdx = 0;
 
-  setExpenseCurrency('USD');
   hideExpenseQuickAmount();
   renderExpenseItemRows();
 
@@ -32689,27 +32727,23 @@ function closeNewExpenseModal() {
 function applyExpensePreset(desc, category, amount) {
   if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
 
-  let finalAmount = amount;
-  if (currentExpenseCurrency === 'KHR') {
-    finalAmount = Math.round(Number(amount) * 4000);
-  } else {
-    finalAmount = Number(amount).toFixed(2);
-  }
-
   let targetIdx = 0;
   // If row 0 is completely empty, populate row 0
   if (expenseItems.length === 1 && !expenseItems[0].desc && !expenseItems[0].amount) {
+    const activeCurr = expenseItems[0].currency || 'USD';
+    const finalAmount = (activeCurr === 'KHR') ? Math.round(Number(amount) * 4000) : Number(amount).toFixed(2);
     expenseItems[0].desc = desc;
     expenseItems[0].amount = finalAmount;
     expenseItems[0].category = category || detectExpenseCategory(desc);
     targetIdx = 0;
   } else {
-    // Append new row with iOS micro-interaction animation
+    // Append new row with USD currency by default
     expenseItems.push({
       id: Date.now() + Math.random(),
       desc: desc,
-      amount: finalAmount,
-      category: category || detectExpenseCategory(desc)
+      amount: Number(amount).toFixed(2),
+      category: category || detectExpenseCategory(desc),
+      currency: 'USD'
     });
     targetIdx = expenseItems.length - 1;
   }
@@ -32755,6 +32789,7 @@ async function submitNewExpense() {
     const desc = (item.desc || '').trim();
     const rawAmt = parseFloat(item.amount || '0');
     const cat = (item.category || 'ហូបចុក & ប្រចាំថ្ងៃ').trim();
+    const itemCurr = item.currency || 'USD';
 
     if (!desc) {
       showToastNotification('សូមបញ្ចូលបរិយាយ ឬមុខចំណាយ! ✍️');
@@ -32767,7 +32802,7 @@ async function submitNewExpense() {
 
     let finalUsd = rawAmt;
     let finalNote = note;
-    if (currentExpenseCurrency === 'KHR') {
+    if (itemCurr === 'KHR') {
       finalUsd = parseFloat((rawAmt / 4000).toFixed(2));
       const khrFormatted = Math.round(rawAmt).toLocaleString();
       finalNote = finalNote ? `${finalNote} (${khrFormatted}៛)` : `(${khrFormatted}៛)`;
@@ -32880,10 +32915,11 @@ async function submitNewExpense() {
     const desc = (row.desc || '').trim();
     const rawAmt = parseFloat(row.amount || '0');
     const cat = (row.category || detectExpenseCategory(desc) || 'ហូបចុក & ប្រចាំថ្ងៃ').trim();
+    const rowCurr = row.currency || 'USD';
 
     let finalUsd = rawAmt;
     let finalNote = note;
-    if (currentExpenseCurrency === 'KHR') {
+    if (rowCurr === 'KHR') {
       finalUsd = parseFloat((rawAmt / 4000).toFixed(2));
       const khrFormatted = Math.round(rawAmt).toLocaleString();
       finalNote = finalNote ? `${finalNote} (${khrFormatted}៛)` : `(${khrFormatted}៛)`;
@@ -33015,6 +33051,8 @@ window.changeExpenseMiniCalMonth = changeExpenseMiniCalMonth;
 window.selectExpenseMiniCalDay = selectExpenseMiniCalDay;
 window.onExpenseDateTextInput = onExpenseDateTextInput;
 window.setExpenseCurrency = setExpenseCurrency;
+window.toggleRowCurrency = toggleRowCurrency;
+window.updateActiveCurrencyButtons = updateActiveCurrencyButtons;
 window.onExpenseAmountInput = onExpenseAmountInput;
 window.addExpenseItemRow = addExpenseItemRow;
 window.removeExpenseItemRow = removeExpenseItemRow;
