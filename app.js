@@ -29002,9 +29002,607 @@ window.addDailyReportPage = addDailyReportPage;
 window.removeDailyReportPage = removeDailyReportPage;
 window.renderDailyReportPagePills = renderDailyReportPagePills;
 
+// ========================================================
+// PAGES REPORT & DAILY ENTRY STATE
+// ========================================================
+const pagesReportState = {
+  currentTab: 'view', // 'view' (របាយការណ៍ Pages) | 'entry' (ចុះរបាយការណ៍)
+  timeFilter: 'day',  // 'day' | 'week' | 'month'
+  selectedDate: '',   // YYYY-MM-DD
+  selectedMember: 'all', // 'all' or specific seller name
+  subView: 'pages',   // 'pages' | 'members' (for week & month)
+  searchQuery: ''
+};
+
+function getPagesReportCurrentIsoDate() {
+  if (pagesReportState.selectedDate) return pagesReportState.selectedDate;
+  return getLocalIsoDate(new Date());
+}
+
+function getPagesReportUserRole() {
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+  if (isMaster) return { role: 'director', name: 'លោក ប៊ិច នោរ៉ា', isExecutive: true };
+
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const myName = (p.name || '').trim();
+  const myNorm = normalizeSellerName(myName);
+
+  // Check Director / Founder
+  if (myNorm.includes('នោរ៉ា') || myNorm.includes('ប៊ិច') || myNorm.includes('nora')) {
+    return { role: 'director', name: myName || 'លោក ប៊ិច នោរ៉ា', isExecutive: true };
+  }
+  // Check Creator / Admin Sdey Sdoeung
+  if (myNorm.includes('ស្ដី') || myNorm.includes('ស្តី') || myNorm.includes('sdey') || myNorm.includes('sdoeung')) {
+    return { role: 'director', name: myName || 'លោក ស្ដី ស្ដើង', isExecutive: true };
+  }
+
+  const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
+  const hierarchy = d.teamHierarchy || {};
+  const managers = Array.isArray(hierarchy.managers) ? hierarchy.managers : [];
+  const leaders = Array.isArray(hierarchy.leaders) ? hierarchy.leaders : [];
+
+  // Check Manager
+  for (const m of managers) {
+    const mNorm = normalizeSellerName(m.km);
+    if (mNorm && (mNorm === myNorm || mNorm.includes(myNorm) || myNorm.includes(mNorm))) {
+      return { role: 'manager', name: m.km, isExecutive: true, obj: m };
+    }
+  }
+
+  // Check Leader
+  for (const l of leaders) {
+    const lNorm = normalizeSellerName(l.km);
+    if (lNorm && (lNorm === myNorm || lNorm.includes(myNorm) || myNorm.includes(lNorm))) {
+      return { role: 'leader', name: l.km, isExecutive: true, obj: l };
+    }
+  }
+
+  return { role: 'member', name: myName, isExecutive: false };
+}
+
+function getManagedMembersForCurrentUser() {
+  const userRole = getPagesReportUserRole();
+  const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
+  const hierarchy = d.teamHierarchy || {};
+  const members = Array.isArray(hierarchy.members) ? hierarchy.members : [];
+  const leaders = Array.isArray(hierarchy.leaders) ? hierarchy.leaders : [];
+
+  if (userRole.role === 'director') {
+    const set = new Set();
+    members.forEach(m => { if (m.km) set.add(m.km.trim()); });
+    leaders.forEach(l => { if (l.km) set.add(l.km.trim()); });
+    return Array.from(set);
+  }
+
+  if (userRole.role === 'manager') {
+    const mgrClean = (userRole.name || '').replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+    const myLeaders = leaders.filter(l => {
+      const lMgr = (l.manager || '').replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+      return lMgr === mgrClean || (l.km && l.km.includes(mgrClean));
+    });
+    const leaderNames = myLeaders.map(l => l.km.trim());
+    const memberNames = members.filter(m => {
+      const mLead = (m.leader || '').replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+      return myLeaders.some(l => l.km.includes(mLead) || mLead.includes(l.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim()));
+    }).map(m => m.km.trim());
+
+    const combined = new Set([userRole.name, ...leaderNames, ...memberNames]);
+    return Array.from(combined);
+  }
+
+  if (userRole.role === 'leader') {
+    const ldrClean = (userRole.name || '').replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+    const memberNames = members.filter(m => {
+      const mLead = (m.leader || '').replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
+      return mLead === ldrClean || (mLead && ldrClean.includes(mLead));
+    }).map(m => m.km.trim());
+
+    const combined = new Set([userRole.name, ...memberNames]);
+    return Array.from(combined);
+  }
+
+  return [userRole.name];
+}
+
+function filterDailyReportEntriesForCurrentUser(entries = []) {
+  if (!Array.isArray(entries)) return [];
+  const userRole = getPagesReportUserRole();
+  const managedMembers = getManagedMembersForCurrentUser();
+  const managedNorms = managedMembers.map(m => normalizeSellerName(m));
+
+  // 1. Role-based Member Filter
+  let filtered = entries.filter(e => {
+    if (userRole.role === 'director') return true;
+    const rNorm = normalizeSellerName(e.reporter);
+    return managedNorms.some(mNorm => mNorm && (mNorm === rNorm || mNorm.includes(rNorm) || rNorm.includes(mNorm)));
+  });
+
+  // 2. Specific Member Filter (Dropdown)
+  if (pagesReportState.selectedMember && pagesReportState.selectedMember !== 'all') {
+    const selNorm = normalizeSellerName(pagesReportState.selectedMember);
+    filtered = filtered.filter(e => {
+      const rNorm = normalizeSellerName(e.reporter);
+      return rNorm === selNorm || rNorm.includes(selNorm) || selNorm.includes(rNorm);
+    });
+  }
+
+  // 3. Time Filter
+  const targetIso = getPagesReportCurrentIsoDate();
+  if (pagesReportState.timeFilter === 'day') {
+    filtered = filtered.filter(e => e.isoDate === targetIso);
+  } else if (pagesReportState.timeFilter === 'week') {
+    const targetDate = new Date(targetIso);
+    const dayOfWeek = targetDate.getDay();
+    const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+    const monday = new Date(targetDate);
+    monday.setDate(targetDate.getDate() + diffToMonday);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    const monIso = getLocalIsoDate(monday);
+    const sunIso = getLocalIsoDate(sunday);
+
+    filtered = filtered.filter(e => e.isoDate >= monIso && e.isoDate <= sunIso);
+  } else if (pagesReportState.timeFilter === 'month') {
+    const targetMonth = targetIso.slice(0, 7);
+    filtered = filtered.filter(e => e.isoDate && e.isoDate.startsWith(targetMonth));
+  }
+
+  // 4. Search Filter
+  if (pagesReportState.searchQuery && pagesReportState.searchQuery.trim()) {
+    const q = pagesReportState.searchQuery.trim().toLowerCase();
+    filtered = filtered.filter(e => 
+      (e.page && e.page.toLowerCase().includes(q)) || 
+      (e.reporter && e.reporter.toLowerCase().includes(q))
+    );
+  }
+
+  return filtered;
+}
+
+function setPagesReportTab(tab) {
+  pagesReportState.currentTab = tab;
+  renderDailyReportModal();
+}
+
+function setPagesReportTimeFilter(filter) {
+  pagesReportState.timeFilter = filter;
+  renderDailyReportModal();
+}
+
+function setPagesReportSubView(view) {
+  pagesReportState.subView = view;
+  renderDailyReportModal();
+}
+
+function setPagesReportMember(member) {
+  pagesReportState.selectedMember = member;
+  renderDailyReportModal();
+}
+
+function stepPagesReportDate(delta) {
+  const current = new Date(getPagesReportCurrentIsoDate());
+  if (pagesReportState.timeFilter === 'day') {
+    current.setDate(current.getDate() + delta);
+  } else if (pagesReportState.timeFilter === 'week') {
+    current.setDate(current.getDate() + (delta * 7));
+  } else if (pagesReportState.timeFilter === 'month') {
+    current.setMonth(current.getMonth() + delta);
+  }
+  pagesReportState.selectedDate = getLocalIsoDate(current);
+  renderDailyReportModal();
+}
+
+function resetPagesReportDateToToday() {
+  pagesReportState.selectedDate = getLocalIsoDate(new Date());
+  renderDailyReportModal();
+}
+
+async function refreshDailyReportData() {
+  const btn = document.getElementById('btn-daily-report-refresh');
+  if (btn) {
+    btn.classList.add('animate-spin');
+    setTimeout(() => { if (btn) btn.classList.remove('animate-spin'); }, 1200);
+  }
+  showToastNotification('កំពុងទាញយកទិន្នន័យ Tab Report ផ្ទាល់... ⏳');
+  if (window.DataService && typeof window.DataService.fetchData === 'function') {
+    await window.DataService.fetchData(false);
+  }
+  renderDailyReportModal();
+  showToastNotification('ទិន្នន័យរបាយការណ៍ Pages ត្រូវបាន Update រួចរាល់! ✅');
+}
+
+function renderDailyReportHeaderTabs() {
+  const isEn = appState.language === 'en';
+  const tab = pagesReportState.currentTab;
+
+  return `
+    <div class="flex items-center gap-1.5 w-full">
+      <button type="button" onclick="setPagesReportTab('view')" 
+              class="flex-1 py-1.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${tab === 'view' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+        <span>${isEn ? 'Pages Report' : 'របាយការណ៍ Pages'}</span>
+      </button>
+      <button type="button" onclick="setPagesReportTab('entry')" 
+              class="flex-1 py-1.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${tab === 'entry' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+        <span>${isEn ? 'Daily Entry' : 'ចុះរបាយការណ៍'}</span>
+      </button>
+    </div>
+  `;
+}
+
+function renderPagesReportViewContent() {
+  const isEn = appState.language === 'en';
+  const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
+  const allEntries = Array.isArray(d.dailyReportEntries) ? d.dailyReportEntries : [];
+  const entries = filterDailyReportEntriesForCurrentUser(allEntries);
+
+  const userRole = getPagesReportUserRole();
+  const managedMembers = getManagedMembersForCurrentUser();
+
+  // Aggregate Totals
+  const totalBoxes = entries.reduce((sum, e) => sum + (e.totalBoxes || 0), 0);
+  const totalChat = entries.reduce((sum, e) => sum + (e.chatTotal || 0), 0);
+  const totalChatTarget = entries.reduce((sum, e) => sum + (e.chatTarget || 0), 0);
+  const totalChatMistake = entries.reduce((sum, e) => sum + (e.chatMistake || 0), 0);
+  const totalCalls = entries.reduce((sum, e) => sum + (e.callDirect || 0), 0);
+
+  const buyNewB = entries.reduce((sum, e) => sum + (e.buyNewB || 0), 0);
+  const buyOldB = entries.reduce((sum, e) => sum + (e.buyOldB || 0), 0);
+  const buyFollowB = entries.reduce((sum, e) => sum + (e.buyFollowB || 0), 0);
+
+  // Time Label
+  const targetIso = getPagesReportCurrentIsoDate();
+  const targetDate = new Date(targetIso);
+  const dd = String(targetDate.getDate()).padStart(2, '0');
+  const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const yyyy = targetDate.getFullYear();
+
+  let timeDisplayLabel = `${dd}/${mm}/${yyyy}`;
+  if (pagesReportState.timeFilter === 'week') {
+    const dayOfWeek = targetDate.getDay();
+    const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+    const mon = new Date(targetDate);
+    mon.setDate(targetDate.getDate() + diffToMonday);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    timeDisplayLabel = `${String(mon.getDate()).padStart(2, '0')}/${String(mon.getMonth()+1).padStart(2, '0')} - ${String(sun.getDate()).padStart(2, '0')}/${String(sun.getMonth()+1).padStart(2, '0')}/${sun.getFullYear()}`;
+  } else if (pagesReportState.timeFilter === 'month') {
+    timeDisplayLabel = isEn ? `Month ${mm}/${yyyy}` : `ខែ ${mm}/${yyyy}`;
+  }
+
+  return `
+    <div class="space-y-3 select-none">
+      
+      <!-- Top Time Filter Pills (Day | Week | Month) -->
+      <div class="p-2.5 rounded-2xl bg-black/40 border border-white/10 space-y-2">
+        <div class="flex items-center justify-between gap-1.5">
+          <div class="flex items-center p-1 rounded-xl bg-white/5 border border-white/5 flex-1">
+            <button type="button" onclick="setPagesReportTimeFilter('day')" 
+                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'day' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 hover:text-white'}">
+              <i data-lucide="calendar" class="w-3 h-3"></i>
+              <span>${isEn ? 'Day' : 'ថ្ងៃ'}</span>
+            </button>
+            <button type="button" onclick="setPagesReportTimeFilter('week')" 
+                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'week' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 hover:text-white'}">
+              <i data-lucide="calendar-range" class="w-3 h-3"></i>
+              <span>${isEn ? 'Week' : 'សប្តាហ៍'}</span>
+            </button>
+            <button type="button" onclick="setPagesReportTimeFilter('month')" 
+                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'month' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 hover:text-white'}">
+              <i data-lucide="pie-chart" class="w-3 h-3"></i>
+              <span>${isEn ? 'Month' : 'ខែ'}</span>
+            </button>
+          </div>
+
+          <!-- Date Stepper (Prev / Next) -->
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" onclick="stepPagesReportDate(-1)" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center active:scale-95 transition" title="ថយក្រោយ">
+              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+            </button>
+            <button type="button" onclick="resetPagesReportDateToToday()" class="px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-400 font-mono font-bold text-[10px] border border-white/10 active:scale-95 transition" title="ថ្ងៃនេះ">
+              <span>${isEn ? 'Today' : 'ថ្ងៃនេះ'}</span>
+            </button>
+            <button type="button" onclick="stepPagesReportDate(1)" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center justify-center active:scale-95 transition" title="ទៅមុខ">
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Date Range Indicator & Member Dropdown for Leaders/Managers -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/5 text-xs">
+          <div class="flex items-center gap-1.5 text-slate-300 font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span class="font-mono text-emerald-300">${timeDisplayLabel}</span>
+            <span class="text-[10px] text-slate-400">(${entries.length} ${isEn ? 'Reports' : 'របាយការណ៍'})</span>
+          </div>
+
+          ${userRole.isExecutive && managedMembers.length > 1 ? `
+          <div class="flex items-center gap-1.5">
+            <label class="text-[11px] text-slate-400">${isEn ? 'Filter:' : 'កូនក្រុម៖'}</label>
+            <select onchange="setPagesReportMember(this.value)" 
+                    class="bg-black/60 border border-white/15 rounded-xl px-2.5 py-1 text-white font-semibold text-xs focus:outline-none focus:border-emerald-500">
+              <option value="all" ${pagesReportState.selectedMember === 'all' ? 'selected' : ''}>${isEn ? '👥 All Team' : '👥 ទាំងអស់ (All)'}</option>
+              ${managedMembers.map(m => `<option value="${escapeHtml(m)}" ${pagesReportState.selectedMember === m ? 'selected' : ''}>👤 ${escapeHtml(m)}</option>`).join('')}
+            </select>
+          </div>
+          ` : `
+          <div class="text-[11px] text-slate-400 flex items-center gap-1">
+            <i data-lucide="user" class="w-3 h-3 text-sky-400"></i>
+            <span>${escapeHtml(userRole.name || 'កូនក្រុម')}</span>
+          </div>
+          `}
+        </div>
+      </div>
+
+      <!-- Macro Summary Badge (Boxes, Chat, Calls) -->
+      <div class="p-3 rounded-2xl bg-gradient-to-br from-[#0E1C38] to-[#0A1325] border border-emerald-500/30 space-y-2 shadow-lg">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-white flex items-center gap-1.5">
+            <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
+            <span>${isEn ? 'Total Boxes Sold' : 'សរុបលក់បានទាំងអស់'}</span>
+          </span>
+          <span class="px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 font-mono font-black text-sm sm:text-base border border-emerald-500/40">
+            ${totalBoxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1 text-[11px] border-t border-white/5">
+          <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
+            <span class="text-slate-300">💬 ${isEn ? 'Total Chat' : 'ឆាតសរុប'}៖</span>
+            <span class="font-mono font-bold text-white">${totalChat} <span class="text-[9.5px] text-slate-400">(${totalChatTarget}|${totalChatMistake})</span></span>
+          </div>
+          <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
+            <span class="text-slate-300">📞 ${isEn ? 'Direct Calls' : 'ខលផ្ទាល់'}៖</span>
+            <span class="font-mono font-bold text-white">${totalCalls} ${isEn ? 'Calls' : 'នាក់'}</span>
+          </div>
+        </div>
+
+        <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-[11px]">
+          <span class="text-slate-300">📦 ${isEn ? 'Sales Breakdown' : 'លក់ជាក់ស្តែង'}៖</span>
+          <span class="font-mono text-emerald-300 font-semibold">
+            ${isEn ? 'New' : 'ថ្មី'} ${buyNewB} | ${isEn ? 'Repeat' : 'ចាស់'} ${buyOldB} | Follow ${buyFollowB}
+          </span>
+        </div>
+      </div>
+
+      <!-- Sub-view Switcher for Week & Month (By Pages vs By Members) -->
+      ${pagesReportState.timeFilter !== 'day' ? `
+      <div class="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 border border-white/5">
+        <button type="button" onclick="setPagesReportSubView('pages')" 
+                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'pages' ? 'bg-sky-500 text-white shadow' : 'text-slate-300 hover:text-white'}">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+          <span>${isEn ? 'By Pages' : 'តាមផេក (By Pages)'}</span>
+        </button>
+        <button type="button" onclick="setPagesReportSubView('members')" 
+                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'members' ? 'bg-sky-500 text-white shadow' : 'text-slate-300 hover:text-white'}">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>${isEn ? 'By Members' : 'តាមកូនក្រុម (By Members)'}</span>
+        </button>
+      </div>
+      ` : ''}
+
+      <!-- Detailed Content Section -->
+      ${renderPagesReportDetailSection(entries)}
+
+    </div>
+  `;
+}
+
+function renderPagesReportDetailSection(entries = []) {
+  const isEn = appState.language === 'en';
+
+  if (!entries || entries.length === 0) {
+    return `
+      <div class="py-12 px-4 text-center rounded-2xl bg-black/30 border border-white/5 space-y-2">
+        <div class="w-12 h-12 rounded-2xl bg-white/5 text-slate-400 mx-auto flex items-center justify-center border border-white/10">
+          <i data-lucide="file-question" class="w-6 h-6"></i>
+        </div>
+        <p class="text-xs font-bold text-slate-300">${isEn ? 'No report data found' : 'មិនទាន់មានទិន្នន័យរបាយការណ៍នៅឡើយទេ'}</p>
+        <p class="text-[10px] text-slate-500">${isEn ? 'Try selecting a different date or member filter.' : 'សូមសាកល្បងជ្រើសរើសកាលបរិច្ឆេទ ឬកូនក្រុមផ្សេង។'}</p>
+      </div>
+    `;
+  }
+
+  // 1. Day Mode: Always list Detailed Compact Page Cards
+  if (pagesReportState.timeFilter === 'day') {
+    return `
+      <div class="space-y-2.5">
+        ${entries.map(e => renderSingleCompactPageReportCard(e)).join('')}
+      </div>
+    `;
+  }
+
+  // 2. Week / Month Mode: SubView Pages
+  if (pagesReportState.subView === 'pages') {
+    const pageGroups = {};
+    entries.forEach(e => {
+      const pName = e.page || (isEn ? 'Unknown Page' : 'ផេកទូទៅ');
+      if (!pageGroups[pName]) {
+        pageGroups[pName] = { page: pName, boxes: 0, chat: 0, chatTarget: 0, chatMistake: 0, calls: 0, newB: 0, oldB: 0, followB: 0, reporters: new Set() };
+      }
+      pageGroups[pName].boxes += (e.totalBoxes || 0);
+      pageGroups[pName].chat += (e.chatTotal || 0);
+      pageGroups[pName].chatTarget += (e.chatTarget || 0);
+      pageGroups[pName].chatMistake += (e.chatMistake || 0);
+      pageGroups[pName].calls += (e.callDirect || 0);
+      pageGroups[pName].newB += (e.buyNewB || 0);
+      pageGroups[pName].oldB += (e.buyOldB || 0);
+      pageGroups[pName].followB += (e.buyFollowB || 0);
+      if (e.reporter) pageGroups[pName].reporters.add(e.reporter);
+    });
+
+    const sortedPages = Object.values(pageGroups).sort((a, b) => b.boxes - a.boxes);
+
+    return `
+      <div class="space-y-2.5">
+        ${sortedPages.map((g, idx) => `
+          <div class="p-3 rounded-2xl bg-black/40 border border-white/10 hover:border-emerald-500/40 transition space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
+                  ${idx + 1}
+                </span>
+                <span class="font-bold text-xs sm:text-sm text-white truncate">${escapeHtml(g.page)}</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs shrink-0">
+                ${g.boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/5">
+              <div class="text-slate-300">💬 ឆាត៖ <span class="text-white font-mono font-bold">${g.chat}</span> <span class="text-[9.5px] text-slate-400">(${g.chatTarget}|${g.chatMistake})</span></div>
+              <div class="text-slate-300">📞 ខល៖ <span class="text-white font-mono font-bold">${g.calls}</span> នាក់</div>
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 text-slate-400">
+              <span>👥 អ្នកលក់៖ ${Array.from(g.reporters).join(', ') || '—'}</span>
+              <span class="text-emerald-400/90 font-mono">ថ្មី ${g.newB} | ចាស់ ${g.oldB} | Follow ${g.followB}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // 3. Week / Month Mode: SubView Members
+  const memberGroups = {};
+  entries.forEach(e => {
+    const mName = e.reporter || (isEn ? 'Unknown Member' : 'កូនក្រុម');
+    if (!memberGroups[mName]) {
+      memberGroups[mName] = { reporter: mName, boxes: 0, chat: 0, chatTarget: 0, chatMistake: 0, calls: 0, newB: 0, oldB: 0, followB: 0, pages: new Set() };
+    }
+    memberGroups[mName].boxes += (e.totalBoxes || 0);
+    memberGroups[mName].chat += (e.chatTotal || 0);
+    memberGroups[mName].chatTarget += (e.chatTarget || 0);
+    memberGroups[mName].chatMistake += (e.chatMistake || 0);
+    memberGroups[mName].calls += (e.callDirect || 0);
+    memberGroups[mName].newB += (e.buyNewB || 0);
+    memberGroups[mName].oldB += (e.buyOldB || 0);
+    memberGroups[mName].followB += (e.buyFollowB || 0);
+    if (e.page) memberGroups[mName].pages.add(e.page);
+  });
+
+  const sortedMembers = Object.values(memberGroups).sort((a, b) => b.boxes - a.boxes);
+
+  return `
+    <div class="space-y-2.5">
+      ${sortedMembers.map((g, idx) => `
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 hover:border-sky-500/40 transition space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-5 h-5 rounded-lg bg-sky-500/20 text-sky-300 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
+                ${idx + 1}
+              </span>
+              <span class="font-bold text-xs sm:text-sm text-white truncate">👤 ${escapeHtml(g.reporter)}</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs shrink-0">
+              ${g.boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/5">
+            <div class="text-slate-300">💬 ឆាត៖ <span class="text-white font-mono font-bold">${g.chat}</span> <span class="text-[9.5px] text-slate-400">(${g.chatTarget}|${g.chatMistake})</span></div>
+            <div class="text-slate-300">📞 ខល៖ <span class="text-white font-mono font-bold">${g.calls}</span> នាក់</div>
+          </div>
+
+          <div class="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 text-slate-400">
+            <span class="truncate max-w-[200px]">📄 ផេក៖ ${Array.from(g.pages).join(', ') || '—'}</span>
+            <span class="text-emerald-400/90 font-mono">ថ្មី ${g.newB} | ចាស់ ${g.oldB} | Follow ${g.followB}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderSingleCompactPageReportCard(e) {
+  const isEn = appState.language === 'en';
+  return `
+    <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 hover:border-emerald-500/30 transition space-y-2.5">
+      <!-- Card Top: Page Name & Reporter -->
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="min-w-0">
+            <h4 class="font-bold text-xs sm:text-sm text-white truncate">${escapeHtml(e.page || 'ផេកទូទៅ')}</h4>
+            <p class="text-[10px] text-slate-400 truncate flex items-center gap-1">
+              <span>👤 ${escapeHtml(e.reporter || 'កូនក្រុម')}</span>
+              <span>•</span>
+              <span class="font-mono">${e.ddmmyyyy || ''}</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="text-right shrink-0">
+          <span class="px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs border border-emerald-500/30">
+            ${e.totalBoxes || 0} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
+          </span>
+        </div>
+      </div>
+
+      <!-- Traffic Line (Chat & Call) -->
+      <div class="grid grid-cols-2 gap-2 text-[11px] pt-1.5 border-t border-white/5">
+        <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
+          <span class="text-slate-300">💬 ឆាតសរុប៖</span>
+          <span class="font-mono font-bold text-white">
+            ${e.chatTotal || 0} 
+            <span class="text-[9.5px] text-slate-400 font-normal">(🎯${e.chatTarget || 0} | 🖐️${e.chatMistake || 0})</span>
+          </span>
+        </div>
+        <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
+          <span class="text-slate-300">📞 ខលផ្ទាល់៖</span>
+          <span class="font-mono font-bold text-white">${e.callDirect || 0} នាក់</span>
+        </div>
+      </div>
+
+      <!-- Sales Breakdown Line -->
+      <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-[11px]">
+        <span class="text-slate-300">📦 លទ្ធផលលក់៖</span>
+        <span class="font-mono text-emerald-300 font-semibold text-[10.5px]">
+          ថ្មី ${e.buyNewB || 0} | ចាស់ ${e.buyOldB || 0} | Follow ${e.buyFollowB || 0}
+        </span>
+      </div>
+    </div>
+  `;
+}
+
 function renderDailyReportModal() {
   const container = document.getElementById('daily-report-body-content');
   if (!container) return;
+
+  const isEn = appState.language === 'en';
+  const headerTabsContainer = document.getElementById('daily-report-top-tabs');
+  if (headerTabsContainer) {
+    headerTabsContainer.innerHTML = renderDailyReportHeaderTabs();
+  }
+
+  const headerTitle = document.getElementById('daily-report-header-title');
+  const headerSubtitle = document.getElementById('daily-report-header-subtitle');
+  const headerIcon = document.getElementById('daily-report-header-icon');
+  const refreshBtn = document.getElementById('btn-daily-report-refresh');
+  const resetBtn = document.getElementById('btn-daily-report-reset');
+
+  if (pagesReportState.currentTab === 'view') {
+    if (headerTitle) headerTitle.textContent = isEn ? 'Pages Report' : 'របាយការណ៍ Pages';
+    if (headerSubtitle) headerSubtitle.textContent = isEn ? 'Real-time sync from Tab Report' : 'ស្រង់ទិន្នន័យជាក់ស្តែងតាមផេក និងកូនក្រុម';
+    if (headerIcon) headerIcon.setAttribute('data-lucide', 'layout-grid');
+    if (refreshBtn) refreshBtn.classList.remove('hidden');
+    if (resetBtn) resetBtn.classList.add('hidden');
+    container.innerHTML = renderPagesReportViewContent();
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  // Otherwise, render Entry Form
+  if (headerTitle) headerTitle.textContent = isEn ? 'Daily Sales Report' : 'របាយការណ៍លក់ប្រចាំថ្ងៃ';
+  if (headerSubtitle) headerSubtitle.textContent = isEn ? 'Quick [+] or [-] input' : 'បំពេញទិន្នន័យរហ័សដោយចុច [+] ឬ [-]';
+  if (headerIcon) headerIcon.setAttribute('data-lucide', 'clipboard-check');
+  if (refreshBtn) refreshBtn.classList.add('hidden');
+  if (resetBtn) resetBtn.classList.remove('hidden');
 
   const p = (typeof getProfileData === 'function') ? getProfileData() : {};
   const today = new Date();
@@ -29071,14 +29669,17 @@ function renderDailyReportModal() {
                 <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
                 <span>កាលបរិច្ឆេទ៖</span>
               </label>
-              <div class="relative flex items-center cursor-pointer" onclick="toggleReportMiniCalendar(event)">
-                <input type="text" id="rep-field-date" value="${defaultDate}" readonly
-                       class="w-full bg-black/50 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-white font-mono text-xs sm:text-sm font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer select-none">
-                <span class="absolute right-2.5 pointer-events-none text-emerald-400 flex items-center justify-center">
+              <div class="relative">
+                <input type="text" id="rep-field-date" value="${defaultDate}" readonly 
+                       onclick="toggleReportMiniCalendar()"
+                       class="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-white text-xs sm:text-sm font-semibold font-mono focus:outline-none focus:border-emerald-500 cursor-pointer text-left pr-8">
+                <button type="button" onclick="toggleReportMiniCalendar()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-400 transition">
                   <i data-lucide="calendar-days" class="w-4 h-4"></i>
-                </span>
+                </button>
               </div>
             </div>
+
+            <!-- Staff Field -->
             <div>
               <label class="block text-xs text-slate-300 mb-1 font-bold flex items-center gap-1.5">
                 <i data-lucide="user" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
@@ -29279,6 +29880,14 @@ window.shareDailyReportToTelegram = shareDailyReportToTelegram;
 window.setActiveReportField = setActiveReportField;
 window.stepCurrentRuler = stepCurrentRuler;
 window.setRulerValue = setRulerValue;
+window.pagesReportState = pagesReportState;
+window.setPagesReportTab = setPagesReportTab;
+window.setPagesReportTimeFilter = setPagesReportTimeFilter;
+window.setPagesReportSubView = setPagesReportSubView;
+window.setPagesReportMember = setPagesReportMember;
+window.stepPagesReportDate = stepPagesReportDate;
+window.resetPagesReportDateToToday = resetPagesReportDateToToday;
+window.refreshDailyReportData = refreshDailyReportData;
 
 function openProfileSettingsSearch() {
   const modal = document.getElementById('profile-settings-search-modal');

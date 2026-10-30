@@ -253,6 +253,7 @@ function getDemoMockData() {
   return {
     personalSales: sampleSales,
     bostarTrackSales: [],
+    dailyReportEntries: [],
     expenses: sampleExpenses,
     monthlyTargets: { 'អ្នកសាកល្បង': 100 },
     pendingCodReceivables: samplePendingCod,
@@ -301,6 +302,7 @@ function getEmptyCustomData() {
     teamLeaders: [],
     teamLeadersByMonth: {},
     teamMembers: [],
+    dailyReportEntries: [],
     teamHierarchy: { members: [], leaders: [], managers: [], directors: [] },
     targetsByMonth: {},
     boostByMonth: {},
@@ -536,6 +538,49 @@ async function fetchBostarTrackSalesCSV() {
   return [];
 }
 
+// Fetch Official Pages Daily Report tab (Tab "Report")
+async function fetchDailyReportTabCSV() {
+  const sId = TEAM_HIERARCHY_SHEET_ID;
+  try {
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${REPORT_TAB_GID}&_t=${Date.now()}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(gvizUrl, { 
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
+    clearTimeout(timer);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 1) return rows;
+      }
+    }
+  } catch (_) {}
+
+  try {
+    const gvizFallback = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent('Report')}&_t=${Date.now()}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(gvizFallback, {
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
+    clearTimeout(timer);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 1) return rows;
+      }
+    }
+  } catch (_) {}
+  return [];
+}
+
 // Fetch Monthly Targets tab (From BostarGroup Official Sheet with native CORS)
 async function fetchMonthlyTargetsCSV() {
   const sId = TEAM_HIERARCHY_SHEET_ID;
@@ -697,7 +742,7 @@ window.DataService = {
     }
 
     try {
-      const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows, bostarTrackCsvRows, monthlyTargetsCsvRows] = await Promise.all([
+      const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows, bostarTrackCsvRows, monthlyTargetsCsvRows, dailyReportTabCsvRows] = await Promise.all([
         fetchGoogleSheetGViz('1802751802', 'Personal Sales').catch(e => { console.warn('PS fetch warning:', e); return null; }),
         fetchGoogleSheetCSV('1413782774', 'Daily Expenses').catch(e => { console.warn('Expenses fetch warning:', e); return []; }),
         fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance').catch(e => { console.warn('Bank fetch warning:', e); return []; }),
@@ -705,7 +750,8 @@ window.DataService = {
         fetchGoogleSheetCSV('608899183', 'Team Sales').catch(e => { console.warn('Team Sales fetch warning:', e); return []; }),
         fetchTeamHierarchyCSV().catch(e => { console.warn('Team Hierarchy fetch warning:', e); return []; }),
         fetchBostarTrackSalesCSV().catch(e => { console.warn('BostarTrack fetch warning:', e); return []; }),
-        fetchMonthlyTargetsCSV().catch(e => { console.warn('Monthly Targets fetch warning:', e); return []; })
+        fetchMonthlyTargetsCSV().catch(e => { console.warn('Monthly Targets fetch warning:', e); return []; }),
+        fetchDailyReportTabCSV().catch(e => { console.warn('Daily Report Tab fetch warning:', e); return []; })
       ]);
 
       // ==========================================
@@ -1452,9 +1498,78 @@ window.DataService = {
         }
       }
 
+      // ==========================================
+      // 7. Process Official Pages Daily Report Tab ("Report")
+      // ==========================================
+      const dailyReportEntries = [];
+      if (Array.isArray(dailyReportTabCsvRows) && dailyReportTabCsvRows.length > 1) {
+        for (let i = 1; i < dailyReportTabCsvRows.length; i++) {
+          const r = dailyReportTabCsvRows[i];
+          if (!r || r.length < 5) continue;
+
+          const dateRaw = String(r[0] || '').trim();
+          if (!dateRaw || dateRaw.toLowerCase().includes('date') || dateRaw.toLowerCase().includes('កាលបរិច្ឆេទ')) continue;
+
+          const ddmmyyyy = formatToDDMMYYYY(dateRaw);
+          const isoDate = ddmmyyyyToIso(ddmmyyyy);
+          if (!ddmmyyyy) continue;
+
+          const time = String(r[1] || '9:00 PM').trim();
+          const page = String(r[2] || '').trim();
+          const team = String(r[3] || 'BostarGroup').trim();
+          const reporter = String(r[4] || '').trim();
+          const status = String(r[5] || 'បញ្ចប់').trim();
+
+          const chatTotal = cleanNumber(r[6]);
+          const chatMistake = cleanNumber(r[7]);
+          const chatTarget = cleanNumber(r[8]);
+          const callDirect = cleanNumber(r[9]);
+          const followLeads = cleanNumber(r[10]);
+
+          const totalOrders = cleanNumber(r[11]);
+          const totalBoxes = cleanNumber(r[12]);
+
+          const buyNewP = cleanNumber(r[13]);
+          const buyNewB = cleanNumber(r[14]);
+          const buyOldP = cleanNumber(r[15]);
+          const buyOldB = cleanNumber(r[16]);
+          const buyFollowP = cleanNumber(r[17]);
+          const buyFollowB = cleanNumber(r[18]);
+          const challenges = String(r[19] || '').trim();
+
+          if (page || reporter) {
+            dailyReportEntries.push({
+              rawDate: dateRaw,
+              ddmmyyyy,
+              isoDate,
+              time,
+              page,
+              team,
+              reporter,
+              status,
+              chatTotal,
+              chatMistake,
+              chatTarget,
+              callDirect,
+              followLeads,
+              totalOrders,
+              totalBoxes,
+              buyNewP,
+              buyNewB,
+              buyOldP,
+              buyOldB,
+              buyFollowP,
+              buyFollowB,
+              challenges
+            });
+          }
+        }
+      }
+
       this.data = {
         personalSales,
         bostarTrackSales,
+        dailyReportEntries,
         expenses,
         monthlyTargets,
         pendingCodReceivables, // Exact live Accounts Receivable table from Bank & Cash Balance
