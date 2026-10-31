@@ -30315,7 +30315,7 @@ window.toggleTeamSetsFilterOnlySales = toggleTeamSetsFilterOnlySales;
 window.openTeamSetsModal = openTeamSetsModal;
 window.closeTeamSetsModal = closeTeamSetsModal;
 
-const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGLHc2-bPoKyfjo2jb2Rv2MymxXG7uqvDtgGiv2fQ6FD5Hqz4AbIAUTHrFwGLFqWT-/exec';
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyk9xwOPmje8H_qAI5abZ3dg5CWjxJ4aZ1YvwhDk8IUAXC1k8L6-_8B7_G6AIUGYQ/exec';
 
 function getAppsScriptWebhookUrl() {
   localStorage.setItem('sd_apps_script_url', DEFAULT_APPS_SCRIPT_URL);

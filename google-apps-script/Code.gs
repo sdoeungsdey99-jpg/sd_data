@@ -329,54 +329,82 @@ function insertPersonalSalesOrder(ss, order) {
   sheet.getRange(targetRow, 6).setValue(order.location || ''); // Col F: Location
   sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone
 
-  // ផលិតផល H, I, J, K, L៖
+  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)
+  var headerVals = sheet.getRange(1, 1, 1, Math.min(sheet.getLastColumn(), 30)).getValues()[0];
+  var col12Name = String(headerVals[11] || '').toLowerCase(); // Index 11 is Col L (12)
+  var col13Name = String(headerVals[12] || '').toLowerCase(); // Index 12 is Col M (13)
+  var isNew26Col = col12Name.includes('emmi') || col13Name.includes('s.g') || col13Name.includes('sg');
+
+  // ផលិតផល H, I, J, K, L, M, N (Qty)
   // - ពេលលក់រង្វាន់ ឬលក់អីវ៉ាន់ត្រឡប់ ទុកនៅទំនេរ ("") ដើម្បីកុំឱ្យច្រឡំជាមួយស្តុកធម្មតា
   // - ពេលស្តុកក្រុមហ៊ុន បំពេញតាមមុខទំនិញពិត
-  if (orderType === 'reward' || orderType === 'return') {
-    sheet.getRange(targetRow, 8).setValue('');  // Col H: YL
-    sheet.getRange(targetRow, 9).setValue('');  // Col I: YLP
-    sheet.getRange(targetRow, 10).setValue(''); // Col J: KN
-    sheet.getRange(targetRow, 11).setValue(''); // Col K: P D.O
-    sheet.getRange(targetRow, 12).setValue(''); // Col L: Free
+  if (isNew26Col) {
+    if (orderType === 'reward' || orderType === 'return') {
+      sheet.getRange(targetRow, 8).setValue('');  // Col H: YL
+      sheet.getRange(targetRow, 9).setValue('');  // Col I: YLP
+      sheet.getRange(targetRow, 10).setValue(''); // Col J: KN
+      sheet.getRange(targetRow, 11).setValue(''); // Col K: P D.O
+      sheet.getRange(targetRow, 12).setValue(''); // Col L: Emmi
+      sheet.getRange(targetRow, 13).setValue(''); // Col M: S.G
+      sheet.getRange(targetRow, 14).setValue(''); // Col N: Free
+    } else {
+      sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0));
+      sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));
+      sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));
+      sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));
+      sheet.getRange(targetRow, 12).setValue(Number(order.qtyEmmi || 0));
+      sheet.getRange(targetRow, 13).setValue(Number(order.qtySGP || order.qtySG || 0));
+      sheet.getRange(targetRow, 14).setValue(Number(order.freeQty || 0));
+    }
+
+    sheet.getRange(targetRow, 15).setValue(Number(order.thaiBaht || order.price || 0)); // Col O: Price (Baht)
+    sheet.getRange(targetRow, 16).setValue(totalAmountUSD).setNumberFormat('$#,##0.00'); // Col P: Total $
+    sheet.getRange(targetRow, 17).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col Q: Ship Fee
+    sheet.getRange(targetRow, 18).setValue(order.deliveryMethod || 'VET(COD)'); // Col R: Delivery
+    sheet.getRange(targetRow, 19).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col S: COD Status
+    sheet.getRange(targetRow, 20).setValue(stockCost).setNumberFormat('$#,##0.00'); // Col T: Stock Cost
+    sheet.getRange(targetRow, 22).setValue(profitVal).setNumberFormat('$#,##0.00'); // Col V: Profit
+    sheet.getRange(targetRow, 23).setValue(order.note || ''); // Col W: Note
+
+    if (orderType === 'reward') {
+      sheet.getRange(targetRow, 24).setValue(totalBoxes); // Col X: Reward QTY
+    } else {
+      sheet.getRange(targetRow, 24).setValue('');
+    }
+    sheet.getRange(targetRow, 25).setValue(''); // Col Y: ទំនេរ
+    sheet.getRange(targetRow, 26).setValue(formattedRecId); // Col Z: Record_ID
   } else {
-    sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0));
-    sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));
-    sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));
-    sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));
-    sheet.getRange(targetRow, 12).setValue(Number(order.freeQty || 0));
+    if (orderType === 'reward' || orderType === 'return') {
+      sheet.getRange(targetRow, 8).setValue('');  // Col H: YL
+      sheet.getRange(targetRow, 9).setValue('');  // Col I: YLP
+      sheet.getRange(targetRow, 10).setValue(''); // Col J: KN
+      sheet.getRange(targetRow, 11).setValue(''); // Col K: P D.O
+      sheet.getRange(targetRow, 12).setValue(''); // Col L: Free
+    } else {
+      sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0));
+      sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));
+      sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));
+      sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));
+      sheet.getRange(targetRow, 12).setValue(Number(order.freeQty || 0));
+    }
+
+    sheet.getRange(targetRow, 13).setValue(Number(order.thaiBaht || order.price || 0)); // Col M: Price (Baht)
+    sheet.getRange(targetRow, 14).setValue(totalAmountUSD).setNumberFormat('$#,##0.00'); // Col N: Total $
+    sheet.getRange(targetRow, 15).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col O: Ship Fee
+    sheet.getRange(targetRow, 16).setValue(order.deliveryMethod || 'VET(COD)'); // Col P: Delivery
+    sheet.getRange(targetRow, 17).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col Q: COD Status
+    sheet.getRange(targetRow, 18).setValue(stockCost).setNumberFormat('$#,##0.00'); // Col R: Stock Cost
+    sheet.getRange(targetRow, 20).setValue(profitVal).setNumberFormat('$#,##0.00'); // Col T: Profit
+    sheet.getRange(targetRow, 21).setValue(order.note || ''); // Col U: Note
+
+    if (orderType === 'reward') {
+      sheet.getRange(targetRow, 22).setValue(totalBoxes); // Col V: Reward QTY
+    } else {
+      sheet.getRange(targetRow, 22).setValue('');
+    }
+    sheet.getRange(targetRow, 23).setValue(''); // Col W: ទំនេរ
+    sheet.getRange(targetRow, 24).setValue(formattedRecId); // Col X: Record_ID
   }
-
-  sheet.getRange(targetRow, 13).setValue(Number(order.thaiBaht || order.price || 0)); // Col M: Price (Baht)
-  
-  // Col N: Total $ (បំពេញតម្លៃលេខផ្ទាល់ Direct Value)
-  sheet.getRange(targetRow, 14).setValue(totalAmountUSD).setNumberFormat('$#,##0.00');
-
-  sheet.getRange(targetRow, 15).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col O: Ship Fee
-  sheet.getRange(targetRow, 16).setValue(order.deliveryMethod || 'VET(COD)'); // Col P: Delivery
-  sheet.getRange(targetRow, 17).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col Q: COD Status
-
-  // Col R: Stock Cost (បំពេញតម្លៃលេខផ្ទាល់ Direct Value: ធម្មតា $24, រង្វាន់ $5, ត្រឡប់ $0)
-  sheet.getRange(targetRow, 18).setValue(stockCost).setNumberFormat('$#,##0.00');
-
-  // Col S (19): Payment Date ទុកឱ្យនៅទំនេរ រង់ចាំបំពេញពេលលុយចូលជាក់ស្តែង
-  // Col T: Profit (បំពេញតម្លៃលេខផ្ទាល់ Direct Value)
-  sheet.getRange(targetRow, 20).setValue(profitVal).setNumberFormat('$#,##0.00');
-
-  // Col U: Note (សម្គាល់ស្វ័យប្រវត្តិ ឬតាមការវាយ)
-  sheet.getRange(targetRow, 21).setValue(order.note || '');
-
-  // Col V (22): Reward QTY (ពេលលក់រង្វាន់ កត់ត្រាចំនួនប្រអប់សរុប; ក្រៅពីនេះ ទុកទំនេរ)
-  if (orderType === 'reward') {
-    sheet.getRange(targetRow, 22).setValue(totalBoxes);
-  } else {
-    sheet.getRange(targetRow, 22).setValue('');
-  }
-
-  // Col W (23): ទំនេរ
-  sheet.getRange(targetRow, 23).setValue('');
-
-  // Col X (24): Record_ID
-  sheet.getRange(targetRow, 24).setValue(formattedRecId);
 
   return {
     status: 'success',
@@ -478,22 +506,21 @@ function updatePersonalSalesOrder(ss, order) {
   if (order.location !== undefined) sheet.getRange(matchedRow, 6).setValue(order.location); // Col F: Location
   if (order.phone !== undefined) sheet.getRange(matchedRow, 7).setValue(order.phone); // Col G: Phone
 
-  // ផលិតផល H, I, J, K, L (Qty)
-  if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL > 0 ? Number(order.qtyYL) : '');
-  if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP > 0 ? Number(order.qtyYLP) : '');
-  if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN > 0 ? Number(order.qtyKN) : '');
-  if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO > 0 ? Number(order.qtyPDO) : '');
-  if (order.freeQty !== undefined) sheet.getRange(matchedRow, 12).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');
+  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)
+  var headerVals = sheet.getRange(1, 1, 1, Math.min(sheet.getLastColumn(), 30)).getValues()[0];
+  var col12Name = String(headerVals[11] || '').toLowerCase();
+  var col13Name = String(headerVals[12] || '').toLowerCase();
+  var isNew26Col = col12Name.includes('emmi') || col13Name.includes('s.g') || col13Name.includes('sg');
 
-  // គណនាប្រអប់សរុប
+  // ផលិតផល & ទិន្នន័យហិរញ្ញវត្ថុ
   var totalBoxes = Number(order.totalBoxQty || 0);
   if (!totalBoxes || totalBoxes === 0) {
     totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
                  Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
+                 Number(order.qtyEmmi || 0) + Number(order.qtySGP || order.qtySG || 0) +
                  Number(order.freeQty || 0);
   }
 
-  // គណនាតម្លៃដើម & ចំណេញ
   var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();
   var stockCost = 0;
   if (orderType === 'reward') {
@@ -504,50 +531,46 @@ function updatePersonalSalesOrder(ss, order) {
     stockCost = totalBoxes * 24.0;
   }
 
-  // Price (Col M)
-  if (order.price !== undefined && order.price !== null && order.price !== '') {
-    sheet.getRange(matchedRow, 13).setValue(order.price);
-  }
-
-  // Total USD (Col N)
-  if (order.totalAmount !== undefined && order.totalAmount !== null) {
-    sheet.getRange(matchedRow, 14).setValue(Number(order.totalAmount));
-  }
-
-  // Ship Fee (Col O)
-  if (order.shipFee !== undefined && order.shipFee !== null) {
-    sheet.getRange(matchedRow, 15).setValue(Number(order.shipFee));
-  }
-
-  // Delivery (Col P)
-  if (order.delivery !== undefined || order.deliveryMethod !== undefined) {
-    sheet.getRange(matchedRow, 16).setValue(order.delivery || order.deliveryMethod || '');
-  }
-
-  // COD Status (Col Q)
-  if (order.codStatus !== undefined && order.codStatus) {
-    sheet.getRange(matchedRow, 17).setValue(order.codStatus);
-  }
-
-  // Stock Cost (Col R)
-  sheet.getRange(matchedRow, 18).setValue(stockCost);
-
-  // Payment Date (Col S)
-  if (order.paymentDate !== undefined) {
-    sheet.getRange(matchedRow, 19).setValue(order.paymentDate);
-  }
-
-  // Profit (Col T)
   var totalAmountUSD = Number(order.totalAmount || 0);
   var shipFee = Number(order.shipFee || 0);
   var profitVal = (order.profit !== undefined && order.profit !== null && order.profit !== '') 
     ? Number(order.profit) 
     : Math.max(0, Math.round((totalAmountUSD - stockCost - shipFee) * 100) / 100);
-  sheet.getRange(matchedRow, 20).setValue(profitVal);
 
-  // Note (Col U)
-  if (order.note !== undefined) {
-    sheet.getRange(matchedRow, 21).setValue(order.note);
+  if (isNew26Col) {
+    if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL > 0 ? Number(order.qtyYL) : '');
+    if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP > 0 ? Number(order.qtyYLP) : '');
+    if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN > 0 ? Number(order.qtyKN) : '');
+    if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO > 0 ? Number(order.qtyPDO) : '');
+    if (order.qtyEmmi !== undefined) sheet.getRange(matchedRow, 12).setValue(order.qtyEmmi > 0 ? Number(order.qtyEmmi) : '');
+    if (order.qtySGP !== undefined || order.qtySG !== undefined) sheet.getRange(matchedRow, 13).setValue((Number(order.qtySGP || order.qtySG || 0) > 0) ? Number(order.qtySGP || order.qtySG) : '');
+    if (order.freeQty !== undefined) sheet.getRange(matchedRow, 14).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');
+
+    if (order.price !== undefined && order.price !== null && order.price !== '') sheet.getRange(matchedRow, 15).setValue(order.price);
+    if (order.totalAmount !== undefined && order.totalAmount !== null) sheet.getRange(matchedRow, 16).setValue(Number(order.totalAmount));
+    if (order.shipFee !== undefined && order.shipFee !== null) sheet.getRange(matchedRow, 17).setValue(Number(order.shipFee));
+    if (order.delivery !== undefined || order.deliveryMethod !== undefined) sheet.getRange(matchedRow, 18).setValue(order.delivery || order.deliveryMethod || '');
+    if (order.codStatus !== undefined && order.codStatus) sheet.getRange(matchedRow, 19).setValue(order.codStatus);
+    sheet.getRange(matchedRow, 20).setValue(stockCost);
+    if (order.paymentDate !== undefined) sheet.getRange(matchedRow, 21).setValue(order.paymentDate);
+    sheet.getRange(matchedRow, 22).setValue(profitVal);
+    if (order.note !== undefined) sheet.getRange(matchedRow, 23).setValue(order.note);
+  } else {
+    if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL > 0 ? Number(order.qtyYL) : '');
+    if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP > 0 ? Number(order.qtyYLP) : '');
+    if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN > 0 ? Number(order.qtyKN) : '');
+    if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO > 0 ? Number(order.qtyPDO) : '');
+    if (order.freeQty !== undefined) sheet.getRange(matchedRow, 12).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');
+
+    if (order.price !== undefined && order.price !== null && order.price !== '') sheet.getRange(matchedRow, 13).setValue(order.price);
+    if (order.totalAmount !== undefined && order.totalAmount !== null) sheet.getRange(matchedRow, 14).setValue(Number(order.totalAmount));
+    if (order.shipFee !== undefined && order.shipFee !== null) sheet.getRange(matchedRow, 15).setValue(Number(order.shipFee));
+    if (order.delivery !== undefined || order.deliveryMethod !== undefined) sheet.getRange(matchedRow, 16).setValue(order.delivery || order.deliveryMethod || '');
+    if (order.codStatus !== undefined && order.codStatus) sheet.getRange(matchedRow, 17).setValue(order.codStatus);
+    sheet.getRange(matchedRow, 18).setValue(stockCost);
+    if (order.paymentDate !== undefined) sheet.getRange(matchedRow, 19).setValue(order.paymentDate);
+    sheet.getRange(matchedRow, 20).setValue(profitVal);
+    if (order.note !== undefined) sheet.getRange(matchedRow, 21).setValue(order.note);
   }
 
   return {
