@@ -32544,16 +32544,32 @@ async function submitNewOrder() {
   const isStandard = (currentOrderType === 'standard');
   let orderId = getVal('order-field-id');
   if (currentOrderEntryMode === 'dock') {
-    if (!orderId || orderId === 'កំពុងទាញលេខ...') {
-      if (window.DataService && typeof window.DataService.getNextBostarOrderId === 'function') {
-        try {
-          orderId = await window.DataService.getNextBostarOrderId();
-        } catch (_) {
-          orderId = '#B001';
+    // Fresh Re-Check on Submit: ឆែកមើលលេខចុងក្រោយបង្អស់ភ្លាមៗពេលស្លាយបញ្ជូន
+    // ការពារករណីសមាជិក ២ នាក់ ឬច្រើននាក់ឈរលើផ្ទាំងស្របពេលគ្នា
+    if (window.DataService && typeof window.DataService.getNextBostarOrderId === 'function') {
+      try {
+        const freshOrderId = await window.DataService.getNextBostarOrderId(true);
+        if (freshOrderId) {
+          if (orderId && orderId !== 'កំពុងទាញលេខ...' && orderId !== freshOrderId) {
+            console.log(`[Order Dock] Order ID auto-bumped from ${orderId} to fresh ${freshOrderId} to avoid collision.`);
+            const idInput = document.getElementById('order-field-id');
+            if (idInput) idInput.value = freshOrderId;
+            if (typeof showToastNotification === 'function') {
+              showToastNotification(`🔄 លេខកុម្ម៉ង់ត្រូវបានប្តូរជា ${freshOrderId} ដោយស្វ័យប្រវត្តិ`);
+            }
+          }
+          orderId = freshOrderId;
         }
-      } else {
-        orderId = '#B001';
+      } catch (err) {
+        console.warn('Fresh Order ID lookup error on submit:', err);
+        if (!orderId || orderId === 'កំពុងទាញលេខ...') orderId = '#B001';
       }
+    } else if (!orderId || orderId === 'កំពុងទាញលេខ...') {
+      orderId = '#B001';
+    }
+    const idInput = document.getElementById('order-field-id');
+    if (idInput && (!idInput.value || idInput.value === 'កំពុងទាញលេខ...')) {
+      idInput.value = orderId;
     }
   }
   

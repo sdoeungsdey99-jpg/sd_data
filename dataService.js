@@ -1818,8 +1818,8 @@ window.DataService = {
     return codes;
   },
 
-  async getMasterDataSales() {
-    if (this.masterDataSalesCache && Array.isArray(this.masterDataSalesCache) && this.masterDataSalesCache.length > 0) {
+  async getMasterDataSales(forceRefresh = false) {
+    if (!forceRefresh && this.masterDataSalesCache && Array.isArray(this.masterDataSalesCache) && this.masterDataSalesCache.length > 0) {
       return this.masterDataSalesCache;
     }
     const rows = await fetchMasterDataSalesCSV();
@@ -1906,10 +1906,10 @@ window.DataService = {
    * ស្វែងរកលេខកុម្ម៉ង់ Bostar (#B001, #B002...) បន្ទាប់ដោយផ្ទៀងផ្ទាត់ចេញពី Master Data ផ្ទាល់
    * រាប់ចាប់ពី #B001 ឡើងទៅដោយស្វ័យប្រវត្តិ
    */
-  async getNextBostarOrderId() {
+  async getNextBostarOrderId(forceRefresh = false) {
     let maxNum = 0;
     try {
-      const sales = await this.getMasterDataSales();
+      const sales = await this.getMasterDataSales(forceRefresh);
       if (Array.isArray(sales)) {
         for (let i = 0; i < sales.length; i++) {
           const oid = String(sales[i].orderId || '').trim();

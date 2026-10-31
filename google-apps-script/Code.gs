@@ -71,6 +71,9 @@ function doPost(e) {
       if (syncToBostarTrack && targetSheetId !== bostarTrackId) {
         try {
           var bostarSs = SpreadsheetApp.openById(bostarTrackId);
+          if (result && result.orderId) {
+            data.orderId = result.orderId;
+          }
           insertPersonalSalesOrder(bostarSs, data);
         } catch (btErr) {
           Logger.log('BostarTrack Dual Sync Warn: ' + btErr);
@@ -187,6 +190,7 @@ function insertPersonalSalesOrder(ss, order) {
 
   var maxRecNum = 0;
   var maxBNum = 0; // តាមដានលេខ #B*** ខ្ពស់បំផុតក្នុង Sheet
+  var isBOrderClash = false; // ប្រសិនបើជា #B*** ជាន់លេខគ្នាដោយសារសមាជិក ២ នាក់ Submit ដំណាលគ្នា
   var targetRow = -1; // ជួរដេកដែលត្រូវបំពេញ
 
   for (var r = 1; r < numRows; r++) { // រាប់ពីជួរទី ២ (Index 1) ក្រោម Header
@@ -210,11 +214,17 @@ function insertPersonalSalesOrder(ss, order) {
 
     // ពិនិត្យភាពស្ទួនតាម Order ID (អនុវត្តត្រឹមតែការកុម្ម៉ង់ចេញពីក្រុមហ៊ុន 'standard' ប៉ុណ្ណោះ, លក់រង្វាន់ ឬអីវ៉ាន់ត្រឡប់អនុញ្ញាតលេខចាស់ ឬគ្មានលេខបាន)
     if (orderType === 'standard' && newOrderId && existingOrderId && newOrderId.toLowerCase() === existingOrderId.toLowerCase()) {
-      return { 
-        status: 'duplicate', 
-        message: 'Order ID ' + newOrderId + ' មានរួចហើយក្នុងជួរទី ' + (r + 1),
-        row: r + 1 
-      };
+      var isBOrder = /^#?B\d+$/i.test(newOrderId);
+      if (isBOrder) {
+        // ប្រសិនបើជា #B*** ជាន់លេខគ្នាដោយសារសមាជិក ២ នាក់ Submit ក្នុងវិនាទីតែមួយ កូដនឹង auto-bump មិនឱ្យខូចឡើយ
+        isBOrderClash = true;
+      } else {
+        return { 
+          status: 'duplicate', 
+          message: 'Order ID ' + newOrderId + ' មានរួចហើយក្នុងជួរទី ' + (r + 1),
+          row: r + 1 
+        };
+      }
     }
 
     // ពិនិត្យភាពស្ទួនតាម Phone + Seller + Date (ការពារករណីអ្នកលក់ចុច Submit ២ ដង ឬបញ្ចូលជាន់គ្នា)
@@ -306,11 +316,11 @@ function insertPersonalSalesOrder(ss, order) {
   sheet.getRange(targetRow, 4).setValue(order.seller || 'សមាជិក Bostar'); // Col D: Seller
   
   // Col E: Order ID (បើលក់រង្វាន់ ទុកទំនេរ; បើធម្មតា ឬត្រឡប់ ដាក់លេខ Order)
-  // ប្រសិនបើជាការកុម្ម៉ង់ថ្មី ហើយគ្មានលេខ Order ID ឬលេខទទេ ➔ Auto-Generate #B*** បន្តបន្ទាប់
+  // ប្រសិនបើជាការកុម្ម៉ង់ថ្មី ហើយគ្មានលេខ Order ID ឬលេខទទេ ឬមានជាន់លេខ #B*** ➔ Auto-Generate #B*** បន្តបន្ទាប់
   var finalOrderId = order.orderId || '';
   if (orderType === 'reward') {
     finalOrderId = '';
-  } else if (!finalOrderId || finalOrderId === '#' || finalOrderId === 'កំពុងទាញលេខ...') {
+  } else if (!finalOrderId || finalOrderId === '#' || finalOrderId === 'កំពុងទាញលេខ...' || isBOrderClash) {
     var nextBNum = maxBNum + 1;
     finalOrderId = '#B' + (nextBNum < 1000 ? ('00' + nextBNum).slice(-3) : nextBNum);
   }
