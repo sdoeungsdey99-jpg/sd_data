@@ -29008,7 +29008,7 @@ window.renderDailyReportPagePills = renderDailyReportPagePills;
 const pagesReportState = {
   currentTab: 'view', // 'view' (របាយការណ៍ Pages) | 'entry' (ចុះរបាយការណ៍)
   timeFilter: 'day',  // 'day' | 'week' | 'month'
-  selectedDate: '2026-10-30',   // YYYY-MM-DD (defaults to latest recorded date or today)
+  selectedDate: '2026-10-30',   // YYYY-MM-DD
   selectedMember: 'self', // 'self' | 'all' | specific seller name
   subView: 'pages',   // 'pages' | 'members' (for week & month)
   searchQuery: '',
@@ -29020,12 +29020,69 @@ function getPagesReportCurrentIsoDate() {
   return getLocalIsoDate(new Date());
 }
 
+// Convert Latin or alternative names to standardized Khmer seller name
+function mapSellerNameToKhmer(rawName) {
+  if (!rawName) return '';
+  const s = rawName.toString().trim();
+  if (typeof findBostarSeller === 'function') {
+    const found = findBostarSeller(s);
+    if (found && found.km) return found.km;
+  }
+  const norm = typeof normalizeSellerName === 'function' ? normalizeSellerName(s) : s.toLowerCase();
+  if (norm.includes('sothy')) {
+    return 'ឆេង សុធី';
+  }
+  if (norm.includes('rasung') || norm.includes('vansung') || (norm.includes('chheng') && (norm.includes('sung') || norm.includes('rasung')))) {
+    return 'ឆេង រ៉ាស៊ុង';
+  }
+  if (norm.includes('sdoeung') || norm.includes('snoeng') || norm.includes('sdey')) {
+    return 'ស្ដី ស្ដើង';
+  }
+  if (norm.includes('sophy') || norm.includes('eam sophy')) {
+    return 'អៀម សុភី';
+  }
+  if (norm.includes('chanthy') || norm.includes('hem chanthy')) {
+    return 'ហែម ចន្ធី';
+  }
+  if (norm.includes('sreylen') || norm.includes('song sreylen')) {
+    return 'សុង ស្រីឡែន';
+  }
+  if (norm.includes('vottey') || norm.includes('sim vottey')) {
+    return 'ស៊ីម វត្តី';
+  }
+  if (norm.includes('navy') || norm.includes('phat navy')) {
+    return 'ផាត់ ណាវី';
+  }
+  if (norm.includes('sreynich') || norm.includes('von sreynich')) {
+    return 'វន ស្រីនិច';
+  }
+  if (norm.includes('chanvichika') || norm.includes('chon chanvichika')) {
+    return 'ជន់ ច័ន្ទវិច្ឆិកា';
+  }
+  if (norm.includes('sreynoch') || norm.includes('somony sreynoch')) {
+    return 'សុមុន្នី ស្រីណុច';
+  }
+  if (norm.includes('sreypech') || norm.includes('sos sreypech')) {
+    return 'សុស ស្រីពេជ្រ';
+  }
+  if (norm.includes('sreyni') || norm.includes('ory sreyni')) {
+    return 'អយ ស្រីនី';
+  }
+  if (norm.includes('kanya') || norm.includes('phoeun kanya')) {
+    return 'ភឿន កញ្ញា';
+  }
+  if (norm.includes('seth') || norm.includes('sim seth')) {
+    return 'សឹម សិត';
+  }
+  return s;
+}
+
 function getPagesReportUserRole() {
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
   if (isMaster) return { role: 'director', name: 'លោក ប៊ិច នោរ៉ា', isExecutive: true };
 
   const p = (typeof getProfileData === 'function') ? getProfileData() : {};
-  const myName = (p.name || '').trim();
+  const myName = mapSellerNameToKhmer(p.name || '');
   const myNorm = normalizeSellerName(myName);
 
   // Check Director / Founder
@@ -29124,20 +29181,23 @@ function filterDailyReportEntriesForCurrentUser(entries = []) {
   // 1. Role-based Security Scope
   let filtered = entries.filter(e => {
     if (userRole.role === 'director') return true;
-    const rNorm = normalizeSellerName(e.reporter);
+    const rKm = mapSellerNameToKhmer(e.reporter);
+    const rNorm = normalizeSellerName(rKm);
     return managedNorms.some(mNorm => mNorm && (mNorm === rNorm || mNorm.includes(rNorm) || rNorm.includes(mNorm)));
   });
 
   // 2. Specific Member / Self Filter
   if (pagesReportState.selectedMember === 'self' || userRole.role === 'member') {
     filtered = filtered.filter(e => {
-      const rNorm = normalizeSellerName(e.reporter);
+      const rKm = mapSellerNameToKhmer(e.reporter);
+      const rNorm = normalizeSellerName(rKm);
       return !myNorm || rNorm === myNorm || rNorm.includes(myNorm) || myNorm.includes(rNorm);
     });
   } else if (pagesReportState.selectedMember && pagesReportState.selectedMember !== 'all') {
     const selNorm = normalizeSellerName(pagesReportState.selectedMember);
     filtered = filtered.filter(e => {
-      const rNorm = normalizeSellerName(e.reporter);
+      const rKm = mapSellerNameToKhmer(e.reporter);
+      const rNorm = normalizeSellerName(rKm);
       return rNorm === selNorm || rNorm.includes(selNorm) || selNorm.includes(rNorm);
     });
   }
@@ -29169,7 +29229,8 @@ function filterDailyReportEntriesForCurrentUser(entries = []) {
     const q = pagesReportState.searchQuery.trim().toLowerCase();
     filtered = filtered.filter(e => 
       (e.page && e.page.toLowerCase().includes(q)) || 
-      (e.reporter && e.reporter.toLowerCase().includes(q))
+      (e.reporter && e.reporter.toLowerCase().includes(q)) ||
+      (mapSellerNameToKhmer(e.reporter).toLowerCase().includes(q))
     );
   }
 
@@ -29296,6 +29357,14 @@ function renderPagesReportViewContent() {
         ? (isEn ? '👥 All Team (Leader)' : '👥 ក្រុមការងារទាំងអស់ (Leader)')
         : (isEn ? '👥 All Team' : '👥 ក្រុមការងារទាំងអស់'));
 
+  // Macro Boxes Badge Style
+  let macroBoxBadgeClass = 'text-slate-400 bg-white/5 border border-white/10';
+  if (totalBoxes >= 5) {
+    macroBoxBadgeClass = 'text-emerald-300 bg-emerald-500/25 border border-emerald-500/40 shadow-emerald-500/20';
+  } else if (totalBoxes > 0) {
+    macroBoxBadgeClass = 'text-sky-300 bg-sky-500/20 border border-sky-500/30';
+  }
+
   return `
     <div class="space-y-3 select-none">
       
@@ -29368,7 +29437,7 @@ function renderPagesReportViewContent() {
             <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
             <span>${isEn ? 'Total Boxes Sold' : 'សរុបលក់បានទាំងអស់'}</span>
           </span>
-          <span class="px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 font-mono font-black text-sm sm:text-base border border-emerald-500/40">
+          <span class="px-2.5 py-1 rounded-xl font-mono font-black text-sm sm:text-base ${macroBoxBadgeClass}">
             ${totalBoxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
           </span>
         </div>
@@ -29376,7 +29445,12 @@ function renderPagesReportViewContent() {
         <div class="grid grid-cols-2 gap-2 pt-1 text-[11px] border-t border-white/5">
           <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
             <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">💬 ${isEn ? 'Total Chat' : 'ឆាតសរុប'}៖</span>
-            <span class="font-mono font-bold text-white dark:text-white theme-light-text">${totalChat} <span class="text-[9.5px] text-slate-400">(${totalChatTarget}|${totalChatMistake})</span></span>
+            <span class="font-mono font-bold text-white dark:text-white theme-light-text">
+              ${totalChat} 
+              <span class="text-[9.5px]">
+                (<span class="text-emerald-400 font-bold">${totalChatTarget}</span>|<span class="${totalChatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${totalChatMistake}</span>)
+              </span>
+            </span>
           </div>
           <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
             <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📞 ${isEn ? 'Direct Calls' : 'ខលផ្ទាល់'}៖</span>
@@ -29386,8 +29460,10 @@ function renderPagesReportViewContent() {
 
         <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-[11px]">
           <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📦 ${isEn ? 'Sales Breakdown' : 'លក់ជាក់ស្តែង'}៖</span>
-          <span class="font-mono text-emerald-300 font-semibold">
-            ${isEn ? 'New' : 'ថ្មី'} ${buyNewB} | ${isEn ? 'Repeat' : 'ចាស់'} ${buyOldB} | Follow ${buyFollowB}
+          <span class="font-mono font-semibold text-[10.5px]">
+            <span class="text-slate-300">${isEn ? 'New' : 'ថ្មី'}</span> <span class="${buyNewB > 0 ? 'text-emerald-300 font-bold' : 'text-slate-400'}">${buyNewB}</span> | 
+            <span class="text-slate-300">${isEn ? 'Repeat' : 'ចាស់'}</span> <span class="${buyOldB > 0 ? 'text-teal-300 font-bold' : 'text-slate-400'}">${buyOldB}</span> | 
+            <span class="text-slate-300">Follow</span> <span class="${buyFollowB > 0 ? 'text-sky-300 font-bold' : 'text-slate-400'}">${buyFollowB}</span>
           </span>
         </div>
       </div>
@@ -29455,38 +29531,59 @@ function renderPagesReportDetailSection(entries = []) {
       pageGroups[pName].newB += (e.buyNewB || 0);
       pageGroups[pName].oldB += (e.buyOldB || 0);
       pageGroups[pName].followB += (e.buyFollowB || 0);
-      if (e.reporter) pageGroups[pName].reporters.add(e.reporter);
+      const kmName = mapSellerNameToKhmer(e.reporter);
+      if (kmName) pageGroups[pName].reporters.add(kmName);
     });
 
     const sortedPages = Object.values(pageGroups).sort((a, b) => b.boxes - a.boxes);
 
     return `
       <div class="space-y-2.5">
-        ${sortedPages.map((g, idx) => `
-          <div class="p-3 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-emerald-500/40 transition space-y-2 theme-light-card">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
-                  ${idx + 1}
+        ${sortedPages.map((g, idx) => {
+          let boxBadgeClass = 'text-slate-400 bg-white/5 border border-white/10';
+          if (g.boxes >= 5) {
+            boxBadgeClass = 'text-emerald-300 bg-emerald-500/20 border border-emerald-500/30';
+          } else if (g.boxes > 0) {
+            boxBadgeClass = 'text-sky-300 bg-sky-500/15 border border-sky-500/20';
+          }
+
+          return `
+            <div class="p-3 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-emerald-500/40 transition space-y-2 theme-light-card">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
+                    ${idx + 1}
+                  </span>
+                  <span class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">${escapeHtml(g.page)}</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-full font-mono font-bold text-xs shrink-0 ${boxBadgeClass}">
+                  ${g.boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
                 </span>
-                <span class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">${escapeHtml(g.page)}</span>
               </div>
-              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs shrink-0">
-                ${g.boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
-              </span>
-            </div>
 
-            <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/5">
-              <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">💬 ឆាត៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.chat}</span> <span class="text-[9.5px] text-slate-400">(${g.chatTarget}|${g.chatMistake})</span></div>
-              <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📞 ខល៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.calls}</span> នាក់</div>
-            </div>
+              <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/5">
+                <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">
+                  💬 ឆាត៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.chat}</span> 
+                  <span class="text-[9.5px]">
+                    (<span class="text-emerald-400 font-bold">${g.chatTarget}</span>|<span class="${g.chatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${g.chatMistake}</span>)
+                  </span>
+                </div>
+                <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">
+                  📞 ខល៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.calls}</span> នាក់
+                </div>
+              </div>
 
-            <div class="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 text-slate-400">
-              <span>👥 អ្នកលក់៖ ${Array.from(g.reporters).join(', ') || '—'}</span>
-              <span class="text-emerald-400 font-mono font-semibold">ថ្មី ${g.newB} | ចាស់ ${g.oldB} | Follow ${g.followB}</span>
+              <div class="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 text-slate-400">
+                <span class="truncate max-w-[200px]">👥 អ្នកលក់៖ ${Array.from(g.reporters).join(', ') || '—'}</span>
+                <span class="font-mono">
+                  ថ្មី <span class="${g.newB > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${g.newB}</span> | 
+                  ចាស់ <span class="${g.oldB > 0 ? 'text-teal-400 font-bold' : 'text-slate-400'}">${g.oldB}</span> | 
+                  Follow <span class="${g.followB > 0 ? 'text-sky-400 font-bold' : 'text-slate-400'}">${g.followB}</span>
+                </span>
+              </div>
             </div>
-          </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     `;
   }
@@ -29494,7 +29591,8 @@ function renderPagesReportDetailSection(entries = []) {
   // 3. Week / Month Mode: SubView Members
   const memberGroups = {};
   entries.forEach(e => {
-    const mName = e.reporter || (isEn ? 'Unknown Member' : 'សមាជិក');
+    const rawReporter = e.reporter || (isEn ? 'Unknown Member' : 'សមាជិក');
+    const mName = mapSellerNameToKhmer(rawReporter);
     if (!memberGroups[mName]) {
       memberGroups[mName] = { reporter: mName, boxes: 0, chat: 0, chatTarget: 0, chatMistake: 0, calls: 0, newB: 0, oldB: 0, followB: 0, pages: new Set() };
     }
@@ -29513,37 +29611,72 @@ function renderPagesReportDetailSection(entries = []) {
 
   return `
     <div class="space-y-2.5">
-      ${sortedMembers.map((g, idx) => `
-        <div class="p-3 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-sky-500/40 transition space-y-2 theme-light-card">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="w-5 h-5 rounded-lg bg-sky-500/20 text-sky-300 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
-                ${idx + 1}
+      ${sortedMembers.map((g, idx) => {
+        let boxBadgeClass = 'text-slate-400 bg-white/5 border border-white/10';
+        if (g.boxes >= 5) {
+          boxBadgeClass = 'text-emerald-300 bg-emerald-500/20 border border-emerald-500/30';
+        } else if (g.boxes > 0) {
+          boxBadgeClass = 'text-sky-300 bg-sky-500/15 border border-sky-500/20';
+        }
+
+        return `
+          <div class="p-3 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-sky-500/40 transition space-y-2 theme-light-card">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-5 h-5 rounded-lg bg-sky-500/20 text-sky-300 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
+                  ${idx + 1}
+                </span>
+                <span class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">👤 ${escapeHtml(g.reporter)}</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-full font-mono font-bold text-xs shrink-0 ${boxBadgeClass}">
+                ${g.boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
               </span>
-              <span class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">👤 ${escapeHtml(g.reporter)}</span>
             </div>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs shrink-0">
-              ${g.boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
-            </span>
-          </div>
 
-          <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/5">
-            <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">💬 ឆាត៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.chat}</span> <span class="text-[9.5px] text-slate-400">(${g.chatTarget}|${g.chatMistake})</span></div>
-            <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📞 ខល៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.calls}</span> នាក់</div>
-          </div>
+            <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/5">
+              <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">
+                💬 ឆាត៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.chat}</span> 
+                <span class="text-[9.5px]">
+                  (<span class="text-emerald-400 font-bold">${g.chatTarget}</span>|<span class="${g.chatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${g.chatMistake}</span>)
+                </span>
+              </div>
+              <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">
+                📞 ខល៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.calls}</span> នាក់
+              </div>
+            </div>
 
-          <div class="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 text-slate-400">
-            <span class="truncate max-w-[200px]">📄 ផេក៖ ${Array.from(g.pages).join(', ') || '—'}</span>
-            <span class="text-emerald-400 font-mono font-semibold">ថ្មី ${g.newB} | ចាស់ ${g.oldB} | Follow ${g.followB}</span>
+            <div class="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 text-slate-400">
+              <span class="truncate max-w-[200px]">📄 ផេក៖ ${Array.from(g.pages).join(', ') || '—'}</span>
+              <span class="font-mono">
+                ថ្មី <span class="${g.newB > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${g.newB}</span> | 
+                ចាស់ <span class="${g.oldB > 0 ? 'text-teal-400 font-bold' : 'text-slate-400'}">${g.oldB}</span> | 
+                Follow <span class="${g.followB > 0 ? 'text-sky-400 font-bold' : 'text-slate-400'}">${g.followB}</span>
+              </span>
+            </div>
           </div>
-        </div>
-      `).join('')}
+        `;
+      }).join('')}
     </div>
   `;
 }
 
 function renderSingleCompactPageReportCard(e) {
   const isEn = appState.language === 'en';
+  const reporterKm = mapSellerNameToKhmer(e.reporter);
+  const boxes = Number(e.totalBoxes) || 0;
+
+  // Dynamic Box Badge Coloring: 0 (slate), 1-4 (sky), 5+ (emerald gold)
+  let boxBadgeStyle = 'text-slate-400 bg-white/5 border border-white/10';
+  if (boxes >= 5) {
+    boxBadgeStyle = 'text-emerald-300 bg-emerald-500/25 border border-emerald-500/40 shadow-emerald-500/10 font-black';
+  } else if (boxes > 0) {
+    boxBadgeStyle = 'text-sky-300 bg-sky-500/20 border border-sky-500/30 font-bold';
+  }
+
+  // Mistake Badge Styling
+  const mistakeCount = Number(e.chatMistake) || 0;
+  const targetCount = Number(e.chatTarget) || 0;
+
   return `
     <div class="p-3.5 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-emerald-500/30 transition space-y-2.5 theme-light-card">
       <!-- Card Top: Page Name & Reporter -->
@@ -29555,7 +29688,7 @@ function renderSingleCompactPageReportCard(e) {
           <div class="min-w-0">
             <h4 class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">${escapeHtml(e.page || 'ផេកទូទៅ')}</h4>
             <p class="text-[10px] text-slate-400 truncate flex items-center gap-1">
-              <span>👤 ${escapeHtml(e.reporter || 'សមាជិក')}</span>
+              <span class="font-semibold text-slate-300 dark:text-slate-300 theme-light-text">👤 ${escapeHtml(reporterKm)}</span>
               <span>•</span>
               <span class="font-mono">${e.ddmmyyyy || ''}</span>
             </p>
@@ -29563,8 +29696,8 @@ function renderSingleCompactPageReportCard(e) {
         </div>
 
         <div class="text-right shrink-0">
-          <span class="px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs border border-emerald-500/30">
-            ${e.totalBoxes || 0} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
+          <span class="px-2.5 py-1 rounded-xl font-mono text-xs ${boxBadgeStyle}">
+            ${boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
           </span>
         </div>
       </div>
@@ -29575,7 +29708,9 @@ function renderSingleCompactPageReportCard(e) {
           <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">💬 ឆាតសរុប៖</span>
           <span class="font-mono font-bold text-white dark:text-white theme-light-text">
             ${e.chatTotal || 0} 
-            <span class="text-[9.5px] text-slate-400 font-normal">(🎯${e.chatTarget || 0} | 🖐️${e.chatMistake || 0})</span>
+            <span class="text-[9.5px] font-normal">
+              (<span class="text-emerald-400 font-bold">${targetCount}</span>|<span class="${mistakeCount > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${mistakeCount}</span>)
+            </span>
           </span>
         </div>
         <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
@@ -29587,8 +29722,10 @@ function renderSingleCompactPageReportCard(e) {
       <!-- Sales Breakdown Line -->
       <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-[11px]">
         <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📦 លទ្ធផលលក់៖</span>
-        <span class="font-mono text-emerald-300 font-semibold text-[10.5px]">
-          ថ្មី ${e.buyNewB || 0} | ចាស់ ${e.buyOldB || 0} | Follow ${e.buyFollowB || 0}
+        <span class="font-mono font-semibold text-[10.5px]">
+          <span class="text-slate-300">ថ្មី</span> <span class="${(e.buyNewB || 0) > 0 ? 'text-emerald-300 font-bold' : 'text-slate-400'}">${e.buyNewB || 0}</span> | 
+          <span class="text-slate-300">ចាស់</span> <span class="${(e.buyOldB || 0) > 0 ? 'text-teal-300 font-bold' : 'text-slate-400'}">${e.buyOldB || 0}</span> | 
+          <span class="text-slate-300">Follow</span> <span class="${(e.buyFollowB || 0) > 0 ? 'text-sky-300 font-bold' : 'text-slate-400'}">${e.buyFollowB || 0}</span>
         </span>
       </div>
     </div>
