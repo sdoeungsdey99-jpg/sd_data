@@ -748,10 +748,15 @@ window.DataService = {
     }
 
     try {
+      const currentActiveSheetId = getActiveSheetId();
+      const isMasterActive = (currentActiveSheetId === MASTER_SDOEUNG_SHEET_ID);
+      const psTabParam = isMasterActive ? '1802751802' : 'Personal Sales';
+      const expTabParam = isMasterActive ? '1413782774' : 'Daily Expenses';
+
       const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows, bostarTrackCsvRows, monthlyTargetsCsvRows, dailyReportTabCsvRows] = await Promise.all([
-        fetchGoogleSheetGViz('1802751802', 'Personal Sales', MASTER_SDOEUNG_SHEET_ID).catch(e => { console.warn('PS fetch warning:', e); return null; }),
-        fetchGoogleSheetCSV('1413782774', 'Daily Expenses', MASTER_SDOEUNG_SHEET_ID).catch(e => { console.warn('Expenses fetch warning:', e); return []; }),
-        fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance', MASTER_SDOEUNG_SHEET_ID).catch(e => { console.warn('Bank fetch warning:', e); return []; }),
+        fetchGoogleSheetGViz(psTabParam, 'Personal Sales').catch(e => { console.warn('PS fetch warning:', e); return null; }),
+        fetchGoogleSheetCSV(expTabParam, 'Daily Expenses').catch(e => { console.warn('Expenses fetch warning:', e); return []; }),
+        fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance', isMasterActive ? MASTER_SDOEUNG_SHEET_ID : currentActiveSheetId).catch(e => { console.warn('Bank fetch warning:', e); return []; }),
         fetchGoogleSheetGViz('30391871', 'Team Monthly View').catch(e => { console.warn('Team Monthly fetch warning:', e); return null; }),
         fetchGoogleSheetCSV('608899183', 'Team Sales').catch(e => { console.warn('Team Sales fetch warning:', e); return []; }),
         fetchTeamHierarchyCSV().catch(e => { console.warn('Team Hierarchy fetch warning:', e); return []; }),
