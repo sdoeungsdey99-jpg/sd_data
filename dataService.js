@@ -1900,6 +1900,31 @@ window.DataService = {
     }
     this.masterDataSalesCache = sales;
     return sales;
+  },
+
+  /**
+   * ស្វែងរកលេខកុម្ម៉ង់ Bostar (#B001, #B002...) បន្ទាប់ដោយផ្ទៀងផ្ទាត់ចេញពី Master Data ផ្ទាល់
+   * រាប់ចាប់ពី #B001 ឡើងទៅដោយស្វ័យប្រវត្តិ
+   */
+  async getNextBostarOrderId() {
+    let maxNum = 0;
+    try {
+      const sales = await this.getMasterDataSales();
+      if (Array.isArray(sales)) {
+        for (let i = 0; i < sales.length; i++) {
+          const oid = String(sales[i].orderId || '').trim();
+          const match = oid.match(/^#?B(\d+)$/i);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxNum) maxNum = num;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('getNextBostarOrderId error:', e);
+    }
+    const nextNum = maxNum + 1;
+    return `#B${String(nextNum).padStart(3, '0')}`;
   }
 };
 

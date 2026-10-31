@@ -186,6 +186,7 @@ function insertPersonalSalesOrder(ss, order) {
   var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();
 
   var maxRecNum = 0;
+  var maxBNum = 0; // តាមដានលេខ #B*** ខ្ពស់បំផុតក្នុង Sheet
   var targetRow = -1; // ជួរដេកដែលត្រូវបំពេញ
 
   for (var r = 1; r < numRows; r++) { // រាប់ពីជួរទី ២ (Index 1) ក្រោម Header
@@ -198,6 +199,13 @@ function insertPersonalSalesOrder(ss, order) {
     if (matchRec) {
       var recVal = parseInt(matchRec[1], 10);
       if (recVal > maxRecNum) maxRecNum = recVal;
+    }
+
+    // តាមដានលេខ #B*** ខ្ពស់បំផុតក្នុង Sheet
+    var matchB = existingOrderId.match(/^#?B(\d+)$/i);
+    if (matchB) {
+      var bVal = parseInt(matchB[1], 10);
+      if (bVal > maxBNum) maxBNum = bVal;
     }
 
     // ពិនិត្យភាពស្ទួនតាម Order ID (អនុវត្តត្រឹមតែការកុម្ម៉ង់ចេញពីក្រុមហ៊ុន 'standard' ប៉ុណ្ណោះ, លក់រង្វាន់ ឬអីវ៉ាន់ត្រឡប់អនុញ្ញាតលេខចាស់ ឬគ្មានលេខបាន)
@@ -298,7 +306,15 @@ function insertPersonalSalesOrder(ss, order) {
   sheet.getRange(targetRow, 4).setValue(order.seller || 'សមាជិក Bostar'); // Col D: Seller
   
   // Col E: Order ID (បើលក់រង្វាន់ ទុកទំនេរ; បើធម្មតា ឬត្រឡប់ ដាក់លេខ Order)
-  sheet.getRange(targetRow, 5).setValue(orderType === 'reward' ? '' : (order.orderId || ''));
+  // ប្រសិនបើជាការកុម្ម៉ង់ថ្មី ហើយគ្មានលេខ Order ID ឬលេខទទេ ➔ Auto-Generate #B*** បន្តបន្ទាប់
+  var finalOrderId = order.orderId || '';
+  if (orderType === 'reward') {
+    finalOrderId = '';
+  } else if (!finalOrderId || finalOrderId === '#' || finalOrderId === 'កំពុងទាញលេខ...') {
+    var nextBNum = maxBNum + 1;
+    finalOrderId = '#B' + (nextBNum < 1000 ? ('00' + nextBNum).slice(-3) : nextBNum);
+  }
+  sheet.getRange(targetRow, 5).setValue(finalOrderId);
 
   sheet.getRange(targetRow, 6).setValue(order.location || ''); // Col F: Location
   sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone
@@ -357,7 +373,7 @@ function insertPersonalSalesOrder(ss, order) {
     action: 'add_order',
     row: targetRow,
     recordId: formattedRecId,
-    orderId: order.orderId
+    orderId: finalOrderId
   };
 }
 

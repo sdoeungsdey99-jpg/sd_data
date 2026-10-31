@@ -31554,18 +31554,24 @@ function openNewOrderModal(mode = 'dock') {
   }
 
   if (orderIdInput) {
-    orderIdInput.placeholder = (currentOrderEntryMode === 'dock') ? '# (B0001)' : '#';
-  }
-
-  if (dateInput) {
-    dateInput.value = todayIso;
-    updateOrderDateDisplay(todayIso);
-  }
-
-  // Order ID: Leave empty by default
-  if (orderIdInput) {
-    orderIdInput.value = '';
-    orderIdInput.placeholder = (currentOrderEntryMode === 'dock') ? '# (B0001)' : '#';
+    if (currentOrderEntryMode === 'dock') {
+      orderIdInput.placeholder = '#B001';
+      orderIdInput.value = 'កំពុងទាញលេខ...';
+      if (window.DataService && typeof window.DataService.getNextBostarOrderId === 'function') {
+        window.DataService.getNextBostarOrderId().then(nextId => {
+          if (currentOrderEntryMode === 'dock' && orderIdInput && (!orderIdInput.value || orderIdInput.value === 'កំពុងទាញលេខ...')) {
+            orderIdInput.value = nextId;
+          }
+        }).catch(() => {
+          if (orderIdInput && orderIdInput.value === 'កំពុងទាញលេខ...') orderIdInput.value = '#B001';
+        });
+      } else {
+        orderIdInput.value = '#B001';
+      }
+    } else {
+      orderIdInput.value = '';
+      orderIdInput.placeholder = '#';
+    }
   }
 
   // Attach phone formatting listeners
@@ -31884,8 +31890,24 @@ function clearOrderInput() {
 
   const idInput = document.getElementById('order-field-id');
   if (idInput) {
-    idInput.value = '';
-    idInput.placeholder = (currentOrderEntryMode === 'dock') ? '# (B0001)' : '#';
+    if (currentOrderEntryMode === 'dock') {
+      idInput.placeholder = '#B001';
+      idInput.value = 'កំពុងទាញលេខ...';
+      if (window.DataService && typeof window.DataService.getNextBostarOrderId === 'function') {
+        window.DataService.getNextBostarOrderId().then(nextId => {
+          if (currentOrderEntryMode === 'dock' && idInput && (!idInput.value || idInput.value === 'កំពុងទាញលេខ...')) {
+            idInput.value = nextId;
+          }
+        }).catch(() => {
+          if (idInput && idInput.value === 'កំពុងទាញលេខ...') idInput.value = '#B001';
+        });
+      } else {
+        idInput.value = '#B001';
+      }
+    } else {
+      idInput.value = '';
+      idInput.placeholder = '#';
+    }
   }
 
   const dateInput = document.getElementById('order-field-date');
@@ -32507,7 +32529,20 @@ async function submitNewOrder() {
   const isReward = (currentOrderType === 'reward');
   const isReturn = (currentOrderType === 'return');
   const isStandard = (currentOrderType === 'standard');
-  const orderId = getVal('order-field-id');
+  let orderId = getVal('order-field-id');
+  if (currentOrderEntryMode === 'dock') {
+    if (!orderId || orderId === 'កំពុងទាញលេខ...') {
+      if (window.DataService && typeof window.DataService.getNextBostarOrderId === 'function') {
+        try {
+          orderId = await window.DataService.getNextBostarOrderId();
+        } catch (_) {
+          orderId = '#B001';
+        }
+      } else {
+        orderId = '#B001';
+      }
+    }
+  }
   
   // Format date to DD/MM/YYYY for Google Sheet
   const dateText = getVal('order-field-date-text');
