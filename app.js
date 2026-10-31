@@ -29493,21 +29493,19 @@ function renderPagesReportViewContent() {
         </div>
       </div>
 
-      <!-- Sub-view Switcher for Week & Month (By Pages vs By Members) -->
-      ${pagesReportState.timeFilter !== 'day' ? `
-      <div class="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 border border-white/5">
+      <!-- Sub-view Switcher (By Pages vs By Members) - Always Visible across Day, Week & Month -->
+      <div class="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 dark:bg-white/5 border border-white/10 theme-light-card">
         <button type="button" onclick="setPagesReportSubView('pages')" 
-                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'pages' ? 'bg-sky-500 text-white shadow' : 'text-slate-300 hover:text-white theme-light-text-sub'}">
-          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'pages' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
           <span>${isEn ? 'By Pages' : 'តាមផេក'}</span>
         </button>
         <button type="button" onclick="setPagesReportSubView('members')" 
-                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'members' ? 'bg-sky-500 text-white shadow' : 'text-slate-300 hover:text-white theme-light-text-sub'}">
+                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'members' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
           <i data-lucide="users" class="w-3.5 h-3.5"></i>
           <span>${isEn ? 'By Members' : 'តាមសមាជិក'}</span>
         </button>
       </div>
-      ` : ''}
 
       <!-- Detailed Content Section -->
       ${renderPagesReportDetailSection(entries)}
@@ -29531,8 +29529,8 @@ function renderPagesReportDetailSection(entries = []) {
     `;
   }
 
-  // 1. Day Mode: Always list Detailed Compact Page Cards
-  if (pagesReportState.timeFilter === 'day') {
+  // 1. Day Mode with SubView 'pages' -> Compact Page Cards
+  if (pagesReportState.timeFilter === 'day' && pagesReportState.subView === 'pages') {
     return `
       <div class="space-y-2.5">
         ${entries.map(e => renderSingleCompactPageReportCard(e)).join('')}
@@ -29985,21 +29983,24 @@ function renderDailyReportModal() {
   if (window.lucide) window.lucide.createIcons();
 }
 function openDailyReportModal(fromDrawer = false) {
+  const modal = document.getElementById('daily-report-modal');
+  if (!modal) return;
+  closeAllModals();
+
+  // Set persistent flags AFTER closeAllModals so closeAllModals does not wipe them
+  window._dailyReportFromDrawer = !!fromDrawer;
   if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
   window.navOpenedFromDrawer.dailyReport = !!fromDrawer;
 
-  // Set initial tab based on entry trigger:
-  // - from Drawer -> 'view' (របាយការណ៍ Pages)
-  // - from Outside Button -> 'entry' (ចុះរបាយការណ៍)
   if (fromDrawer) {
+    if (window._drawerCloseTimer) {
+      clearTimeout(window._drawerCloseTimer);
+      window._drawerCloseTimer = null;
+    }
     pagesReportState.currentTab = 'view';
   } else {
     pagesReportState.currentTab = 'entry';
   }
-
-  const modal = document.getElementById('daily-report-modal');
-  if (!modal) return;
-  closeAllModals();
 
   document.body.classList.add('report-modal-open');
 
@@ -30040,10 +30041,13 @@ function closeDailyReportModal() {
     dockBlur.classList.remove('opacity-0', '!hidden', 'dock-hidden');
     dockBlur.style.display = '';
   }
-  if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.dailyReport) {
-    window.navOpenedFromDrawer.dailyReport = false;
+  const wasFromDrawer = !!(window._dailyReportFromDrawer || (window.navOpenedFromDrawer && window.navOpenedFromDrawer.dailyReport));
+  window._dailyReportFromDrawer = false;
+  if (window.navOpenedFromDrawer) window.navOpenedFromDrawer.dailyReport = false;
+
+  if (wasFromDrawer) {
     if (typeof openProfileDrawer === 'function') {
-      setTimeout(() => openProfileDrawer(true), 50);
+      setTimeout(() => openProfileDrawer(true), 60);
     }
   }
 }
