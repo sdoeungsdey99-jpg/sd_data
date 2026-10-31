@@ -30107,15 +30107,11 @@ function closeDailyReportModal() {
     dockBlur.classList.remove('opacity-0', '!hidden', 'dock-hidden');
     dockBlur.style.display = '';
   }
-  const wasFromDrawer = !!(window._dailyReportFromDrawer || (window.navOpenedFromDrawer && window.navOpenedFromDrawer.dailyReport));
+  if (typeof setDockVisible === 'function') {
+    setDockVisible(true);
+  }
   window._dailyReportFromDrawer = false;
   if (window.navOpenedFromDrawer) window.navOpenedFromDrawer.dailyReport = false;
-
-  if (wasFromDrawer) {
-    if (typeof openProfileDrawer === 'function') {
-      setTimeout(() => openProfileDrawer(true), 60);
-    }
-  }
 }
 
 function resetDailyReportFields() {
