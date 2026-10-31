@@ -32471,12 +32471,21 @@ function parsePastedOrderText(silent = false) {
   const dateRaw = extract(/(?:កាលបរិច្ឆេទ\(Date\)|Date|កាលបរិច្ឆេទ)[:\s]*([^\n\r]+)/i);
   const seller = extract(/(?:ឈ្មោះអ្នកលក់|Seller(?:'s)? Name)[:\s]*([^\n\r]+)/i);
   const sellerNo = extract(/(?:លេខអ្នកលក់\(Seller No\)|Seller No|លេខអ្នកលក់)[:\s]*([^\n\r]+)/i);
-  const ylQty = extract(/\[Yong Liang\][:\s]*(\d+)/i) || extract(/Yong Liang[:\s]*(\d+)/i);
-  const ylpQty = extract(/\[Yong Liang Plus\][:\s]*(\d+)/i) || extract(/Yong Liang Plus[:\s]*(\d+)/i);
-  const knQty = extract(/\[KN\][:\s]*(\d+)/i) || extract(/KN[:\s]*(\d+)/i) || extract(/\[Kidney Pro\][:\s]*(\d+)/i) || extract(/Kidney Pro[:\s]*(\d+)/i);
-  const pdoQty = extract(/\[P D\.O\][:\s]*(\d+)/i) || extract(/P D\.O[:\s]*(\d+)/i) || extract(/\[Pro D\.O\][:\s]*(\d+)/i) || extract(/Pro D\.O[:\s]*(\d+)/i);
-  const emmiQty = extract(/\[Emmi\][:\s]*(\d+)/i) || extract(/Emmi[:\s]*(\d+)/i);
-  const sgpQty = extract(/\[SG\s*Pro\][:\s]*(\d+)/i) || extract(/SG\s*Pro[:\s]*(\d+)/i) || extract(/\[S\.G\s*Pro\][:\s]*(\d+)/i) || extract(/S\.G\s*Pro[:\s]*(\d+)/i);
+
+  // Extract bonus lines first (Company Bonus Question 6)
+  const bKnQty = extract(/(?:ប្រអប់ថែម|Bonus).*?\[(?:Kidney Pro|KN)\].*?[:\s]+(\d+)/i);
+  const bPdoQty = extract(/(?:ប្រអប់ថែម|Bonus).*?\[(?:Pro D\.O|P D\.O|PDO)\].*?[:\s]+(\d+)/i);
+  const bYlQty = extract(/(?:ប្រអប់ថែម|Bonus).*?\[(?:Yong Liang|YL)\].*?[:\s]+(\d+)/i);
+  const bYlpQty = extract(/(?:ប្រអប់ថែម|Bonus).*?\[(?:Yong Liang Plus|YLP)\].*?[:\s]+(\d+)/i);
+  const bSgpQty = extract(/(?:ប្រអប់ថែម|Bonus).*?\[(?:SG Pro|S\.G Pro|SGP)\].*?[:\s]+(\d+)/i);
+
+  // Extract sold product lines (preventing match with bonus lines)
+  const ylQty = extract(/ផលិតផល\(Product\).*?\[Yong Liang\][:\s]*(\d+)/i) || extract(/\[Yong Liang\][:\s]*(\d+)/i) || extract(/Yong Liang[:\s]*(\d+)/i);
+  const ylpQty = extract(/ផលិតផល\(Product\).*?\[Yong Liang Plus\][:\s]*(\d+)/i) || extract(/\[Yong Liang Plus\][:\s]*(\d+)/i) || extract(/Yong Liang Plus[:\s]*(\d+)/i);
+  const knQty = extract(/ផលិតផល\(Product\).*?\[(?:Kidney Pro|KN)\][:\s]*(\d+)/i) || extract(/\[KN\][:\s]*(\d+)/i) || extract(/\[Kidney Pro\][:\s]*(\d+)/i);
+  const pdoQty = extract(/ផលិតផល\(Product\).*?\[(?:Pro D\.O|P D\.O)\][:\s]*(\d+)/i) || extract(/\[P D\.O\][:\s]*(\d+)/i) || extract(/\[Pro D\.O\][:\s]*(\d+)/i);
+  const emmiQty = extract(/ផលិតផល\(Product\).*?\[Emmi\][:\s]*(\d+)/i) || extract(/\[Emmi\][:\s]*(\d+)/i);
+  const sgpQty = extract(/ផលិតផល\(Product\).*?\[(?:SG\s*Pro|S\.G\s*Pro)\][:\s]*(\d+)/i) || extract(/\[SG\s*Pro\][:\s]*(\d+)/i) || extract(/\[S\.G\s*Pro\][:\s]*(\d+)/i);
   const freeQty = extract(/\[Free\][:\s]*(\d+)/i) || extract(/Free[:\s]*(\d+)/i) || extract(/\[ថែម\][:\s]*(\d+)/i) || extract(/ថែម[:\s]*(\d+)/i);
   const priceRaw = extract(/(?:តម្លៃ\(Price\)|Price|តម្លៃ)[:\s]*(\d+[\d,\.]*)/i);
   const receiverNo = extract(/(?:លេខអ្នកទទួល\(Receiver No\)|Receiver No|លេខអ្នកទទួល)[:\s]*([^\n\r]+)/i);
@@ -32548,6 +32557,11 @@ function parsePastedOrderText(silent = false) {
   if (address) {
     const aField = document.getElementById('order-field-location');
     if (aField) aField.value = address;
+    const aLower = address.toLowerCase();
+    if ((aLower.includes('ថៃ') || aLower.includes('thai')) && !delivery) {
+      const delivField = document.getElementById('order-field-delivery');
+      if (delivField) delivField.value = 'Thai ✅COD';
+    }
   }
 
   // មុខទំនិញ
@@ -32558,6 +32572,13 @@ function parsePastedOrderText(silent = false) {
   currentOrderProducts.emmi = emmiQty ? parseInt(emmiQty) : 0;
   currentOrderProducts.sgp = sgpQty ? parseInt(sgpQty) : 0;
   currentOrderProducts.free = freeQty ? parseInt(freeQty) : 0;
+
+  // ប្រអប់ថែម (Bonus)
+  currentOrderBonusProducts.kn = bKnQty ? parseInt(bKnQty) : 0;
+  currentOrderBonusProducts.pdo = bPdoQty ? parseInt(bPdoQty) : 0;
+  currentOrderBonusProducts.yl = bYlQty ? parseInt(bYlQty) : 0;
+  currentOrderBonusProducts.ylp = bYlpQty ? parseInt(bYlpQty) : 0;
+  currentOrderBonusProducts.sgp = bSgpQty ? parseInt(bSgpQty) : 0;
 
   // Auto-expand extra products if Emmi or SGP has quantity
   if (currentOrderProducts.emmi > 0 || currentOrderProducts.sgp > 0) {
@@ -34035,6 +34056,21 @@ window.detectExpenseCategory = detectExpenseCategory;
 // ==========================================
 // Delivery Shipping Auto-Defaults (Customizable) & VET COD Seller Phone Rule
 // ==========================================
+function onOrderLocationInput(val) {
+  if (!val) return;
+  const str = val.trim().toLowerCase();
+  if (str.includes('ថៃ') || str.includes('thai')) {
+    const sel = document.getElementById('order-field-delivery');
+    if (sel && sel.value !== 'Thai ✅COD' && !sel.value.includes('Thai ❌COD')) {
+      sel.value = 'Thai ✅COD';
+      if (typeof updateDeliveryShippingDefault === 'function') {
+        updateDeliveryShippingDefault();
+      }
+    }
+  }
+}
+window.onOrderLocationInput = onOrderLocationInput;
+
 function updateDeliveryShippingDefault() {
   const sel = document.getElementById('order-field-delivery');
   const shipInput = document.getElementById('order-field-ship');

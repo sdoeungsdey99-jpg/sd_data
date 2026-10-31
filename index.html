@@ -6930,7 +6930,7 @@
           </div>
           <div>
             <label id="order-label-location" class="block text-[10px] text-slate-400 mb-1">អាសយដ្ឋានដឹកជញ្ជូន:</label>
-            <textarea id="order-field-location" rows="2" placeholder="" class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white focus:outline-none focus:border-orange-500"></textarea>
+            <textarea id="order-field-location" oninput="onOrderLocationInput(this.value)" rows="2" placeholder="" class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white focus:outline-none focus:border-orange-500"></textarea>
           </div>
         </div>
 
@@ -7664,6 +7664,6 @@
   </div>
 
   <script src="dataService.js?v=9.0"></script>
-  <script src="app.js?v=58.0"></script>
+  <script src="app.js?v=58.1"></script>
 </body>
 </html>
