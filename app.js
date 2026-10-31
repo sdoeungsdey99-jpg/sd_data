@@ -4277,7 +4277,12 @@ let execHierarchyFilterState = {
 let execHierarchyScrollInitialized = false;
 
 // Synchronize Executive Sales Hierarchy period filter with Home screen top filter bar
-function syncExecHierarchyWithHomeFilter() {
+function syncExecHierarchyWithHomeFilter(force = false) {
+  const modal = document.getElementById('executive-hierarchy-modal');
+  const isModalOpen = modal && !modal.classList.contains('hidden');
+  if (isModalOpen && !force) return;
+  if (execHierarchyFilterState.userInteracted && !force) return;
+
   const now = new Date();
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
@@ -4475,6 +4480,7 @@ function navigateExecCalendarMonth(delta, event) {
 function selectExecCalendarDay(isoDate, event) {
   if (event) event.stopPropagation();
   closeAllExecDropdowns();
+  execHierarchyFilterState.userInteracted = true;
   execHierarchyFilterState.mode = 'day';
   execHierarchyFilterState.selectedDate = isoDate;
   const parts = isoDate.split('-');
@@ -4483,12 +4489,12 @@ function selectExecCalendarDay(isoDate, event) {
   renderExecutiveHierarchyDateFilterBar();
   renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
-  renderCurrentView();
 }
 
 function selectExecQuickDay(type, event) {
   if (event) event.stopPropagation();
   closeAllExecDropdowns();
+  execHierarchyFilterState.userInteracted = true;
   execHierarchyFilterState.mode = 'day';
   if (type === 'today') {
     execHierarchyFilterState.selectedDate = getLocalIsoDate(new Date());
@@ -4501,7 +4507,6 @@ function selectExecQuickDay(type, event) {
   renderExecutiveHierarchyDateFilterBar();
   renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
-  renderCurrentView();
 }
 
 function toggleExecMonthDropdown(event) {
@@ -4581,13 +4586,13 @@ function navigateExecMonthYear(delta, event) {
 function selectExecMonth(mNum, event) {
   if (event) event.stopPropagation();
   closeAllExecDropdowns();
+  execHierarchyFilterState.userInteracted = true;
   const paddedMonth = String(mNum).padStart(2, '0');
   execHierarchyFilterState.mode = 'month';
   execHierarchyFilterState.selectedMonth = `${execHierarchyFilterState.calYear}-${paddedMonth}`;
   renderExecutiveHierarchyDateFilterBar();
   renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
-  renderCurrentView();
 }
 
 function toggleExecYearDropdown(event) {
@@ -4632,23 +4637,23 @@ function renderExecYearDropdown() {
 function selectExecYear(y, event) {
   if (event) event.stopPropagation();
   closeAllExecDropdowns();
+  execHierarchyFilterState.userInteracted = true;
   execHierarchyFilterState.mode = 'year';
   execHierarchyFilterState.selectedYear = String(y);
   execHierarchyFilterState.calYear = y;
   renderExecutiveHierarchyDateFilterBar();
   renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
-  renderCurrentView();
 }
 
 function setExecPeriodFilter(mode, val, event) {
   if (event) event.stopPropagation();
   closeAllExecDropdowns();
+  execHierarchyFilterState.userInteracted = true;
   execHierarchyFilterState.mode = mode;
   renderExecutiveHierarchyDateFilterBar();
   renderExecutiveRoleSwitcherHtml('modal');
   renderExecutiveHierarchyModalContent();
-  renderCurrentView();
 }
 
 function toggleExecDirectorExpanded() {
