@@ -31555,6 +31555,7 @@ function openNewOrderModal(mode = 'dock') {
 
   if (orderIdInput) {
     if (currentOrderEntryMode === 'dock') {
+      orderIdInput.readOnly = true;
       orderIdInput.placeholder = '#B001';
       orderIdInput.value = 'កំពុងទាញលេខ...';
       if (window.DataService && typeof window.DataService.getNextBostarOrderId === 'function') {
@@ -31569,6 +31570,7 @@ function openNewOrderModal(mode = 'dock') {
         orderIdInput.value = '#B001';
       }
     } else {
+      orderIdInput.readOnly = false;
       orderIdInput.value = '';
       orderIdInput.placeholder = '#';
     }
@@ -31891,6 +31893,7 @@ function clearOrderInput() {
   const idInput = document.getElementById('order-field-id');
   if (idInput) {
     if (currentOrderEntryMode === 'dock') {
+      idInput.readOnly = true;
       idInput.placeholder = '#B001';
       idInput.value = 'កំពុងទាញលេខ...';
       if (window.DataService && typeof window.DataService.getNextBostarOrderId === 'function') {
@@ -31905,6 +31908,7 @@ function clearOrderInput() {
         idInput.value = '#B001';
       }
     } else {
+      idInput.readOnly = false;
       idInput.value = '';
       idInput.placeholder = '#';
     }
@@ -32078,7 +32082,10 @@ function setOrderType(type) {
     if (desc) desc.innerText = 'លក់រង្វាន់: គិតថ្លៃដើម $5/ប្រអប់, បូកសរុបចូលជួរ V (Reward QTY) និងដកថ្លៃដឹក (មិនទាមទារលេខកុម្ម៉ង់)។';
     if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
     const idInput = document.getElementById('order-field-id');
-    if (idInput) idInput.placeholder = '# (មិនដាក់ក៏បាន)';
+    if (idInput) {
+      idInput.placeholder = '# (មិនដាក់ក៏បាន)';
+      idInput.readOnly = false;
+    }
   } else if (type === 'return') {
     if (btnRet) btnRet.className = 'py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-sky-500/20 border-sky-500 text-sky-400 shadow-sm';
     if (capsuleBtn) {
@@ -32089,7 +32096,10 @@ function setOrderType(type) {
     if (desc) desc.innerText = 'លក់អីវ៉ាន់ត្រឡប់: គិតថ្លៃដើម $0.00 (បានទូទាត់ថ្លៃដើមរួចហើយ) និងដកថ្លៃដឹក (អនុញ្ញាតលេខកុម្ម៉ង់ចាស់)។';
     if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
     const idInput = document.getElementById('order-field-id');
-    if (idInput) idInput.placeholder = '# (ប្រើលេខចាស់បាន)';
+    if (idInput) {
+      idInput.placeholder = '# (ប្រើលេខចាស់បាន)';
+      idInput.readOnly = false;
+    }
   } else {
     // standard
     if (btnStd) btnStd.className = 'py-2 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center justify-center gap-1 bg-orange-500/20 border-orange-500 text-orange-400 shadow-sm';
@@ -32101,7 +32111,10 @@ function setOrderType(type) {
     if (desc) desc.innerText = 'ស្តុកក្រុមហ៊ុន: គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ (មិនឱ្យស្ទួន)។';
     if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
     const idInput = document.getElementById('order-field-id');
-    if (idInput) idInput.placeholder = '#';
+    if (idInput) {
+      idInput.placeholder = (currentOrderEntryMode === 'dock') ? '#B001' : '#';
+      idInput.readOnly = (currentOrderEntryMode === 'dock');
+    }
     if (typeof updateDeliveryShippingDefault === 'function') updateDeliveryShippingDefault();
   }
 
