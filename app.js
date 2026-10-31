@@ -7612,16 +7612,15 @@ function getDashboardViewHTML() {
     let dynamicExecPeriodLabel = '';
     if (execHierarchyFilterState.mode === 'day') {
       const parts = (execHierarchyFilterState.selectedDate || '').split('-');
-      dynamicExecPeriodLabel = (parts.length === 3) ? `ថ្ងៃទី ${parts[2]}/${parts[1]}/${parts[0]}` : 'ថ្ងៃនេះ';
+      dynamicExecPeriodLabel = (parts.length === 3) ? `${parts[2]}/${parts[1]}/${parts[0]}` : 'ថ្ងៃនេះ';
     } else if (execHierarchyFilterState.mode === 'month') {
       const parts = (execHierarchyFilterState.selectedMonth || '').split('-');
-      dynamicExecPeriodLabel = (parts.length === 2) ? `ខែ ${parts[1]}/${parts[0]}` : 'ប្រចាំខែ';
+      dynamicExecPeriodLabel = (parts.length === 2) ? `${parts[1]}/${parts[0]}` : 'ប្រចាំខែ';
     } else if (execHierarchyFilterState.mode === 'year') {
-      dynamicExecPeriodLabel = `ឆ្នាំ ${execHierarchyFilterState.selectedYear || ''}`;
+      dynamicExecPeriodLabel = `${execHierarchyFilterState.selectedYear || ''}`;
     }
 
-    const cardRoleLabel = execRole === 'director' ? 'DIRECTOR OVERVIEW' : (execRole === 'leader' ? 'LEADERS' : (execRole === 'member' ? 'សមាជិកទាំងអស់' : 'MANAGERS'));
-    const cardSubtitleText = dynamicExecPeriodLabel ? `BOSTAR GROUP • ${cardRoleLabel} (${dynamicExecPeriodLabel})` : `BOSTAR GROUP • ${cardRoleLabel}`;
+    const cardSubtitleText = dynamicExecPeriodLabel ? `BOSTAR GROUP • ${dynamicExecPeriodLabel}` : `BOSTAR GROUP`;
 
     cardTeamSales = `
       <!-- CARD E: VIP EXECUTIVE COMMAND CENTER (UNLOCKED STATE) -->
