@@ -29029,6 +29029,9 @@ function mapSellerNameToKhmer(rawName) {
     if (found && found.km) return found.km;
   }
   const norm = typeof normalizeSellerName === 'function' ? normalizeSellerName(s) : s.toLowerCase();
+  if (norm.includes('yarith') || norm.includes('yaith')) {
+    return 'ហ៊ូ យ៉ារិទ្ធ';
+  }
   if (norm.includes('sothy')) {
     return 'ឆេង សុធី';
   }
@@ -29092,6 +29095,14 @@ function getPagesReportUserRole() {
   // Check Creator / Admin Sdey Sdoeung
   if (myNorm.includes('ស្ដី') || myNorm.includes('ស្តី') || myNorm.includes('sdey') || myNorm.includes('sdoeung')) {
     return { role: 'director', name: myName || 'លោក ស្ដី ស្ដើង', isExecutive: true };
+  }
+  // Check Trainer Hou Yarith
+  if (myNorm.includes('យ៉ារិទ្ធ') || myNorm.includes('yarith') || myNorm.includes('yaith')) {
+    return { role: 'director', name: myName || 'លោក ហ៊ូ យ៉ារិទ្ធ', isExecutive: true, isTrainer: true };
+  }
+  // Check Trainer Hem Chanthy
+  if (myNorm.includes('ចន្ធី') || myNorm.includes('chanthy')) {
+    return { role: 'director', name: myName || 'លោក ហែម ចន្ធី', isExecutive: true, isTrainer: true };
   }
 
   const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
@@ -29350,6 +29361,14 @@ function renderPagesReportViewContent() {
     timeDisplayLabel = isEn ? `Month ${mm}/${yyyy}` : `ខែ ${mm}/${yyyy}`;
   }
 
+  // Dynamic Stepper Button Label
+  let stepperLabel = isEn ? 'Today' : 'ថ្ងៃនេះ';
+  if (pagesReportState.timeFilter === 'week') {
+    stepperLabel = isEn ? 'This Week' : 'សប្តាហ៍នេះ';
+  } else if (pagesReportState.timeFilter === 'month') {
+    stepperLabel = isEn ? 'This Month' : 'ខែនេះ';
+  }
+
   // Label for Group All vs Self
   const allTeamLabel = userRole.role === 'manager' 
     ? (isEn ? '👥 All Team (Manager)' : '👥 ក្រុមការងារទាំងអស់ (Manager)')
@@ -29389,15 +29408,21 @@ function renderPagesReportViewContent() {
             </button>
           </div>
 
-          <!-- Date Stepper (Prev / Next) -->
-          <div class="flex items-center gap-1 shrink-0">
-            <button type="button" onclick="stepPagesReportDate(-1)" class="w-8 h-8 rounded-xl bg-white/5 dark:bg-white/5 hover:bg-white/10 text-slate-300 dark:text-slate-300 border border-white/10 flex items-center justify-center active:scale-95 transition" title="ថយក្រោយ">
+          <!-- Date Stepper (Prev / Current / Next) joined with equal height -->
+          <div class="inline-flex items-center rounded-xl bg-white/5 dark:bg-white/5 border border-white/10 p-0.5 shrink-0 shadow-sm theme-light-card">
+            <button type="button" onclick="stepPagesReportDate(-1)" 
+                    class="h-7 w-7 rounded-lg hover:bg-white/10 text-slate-300 dark:text-slate-300 flex items-center justify-center active:scale-95 transition" 
+                    title="${isEn ? 'Previous' : 'ថយក្រោយ'}">
               <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
             </button>
-            <button type="button" onclick="resetPagesReportDateToToday()" class="px-2 py-1.5 rounded-xl bg-white/5 dark:bg-white/5 hover:bg-white/10 text-emerald-400 font-mono font-bold text-[10px] border border-white/10 active:scale-95 transition" title="ថ្ងៃនេះ">
-              <span>${isEn ? 'Today' : 'ថ្ងៃនេះ'}</span>
+            <button type="button" onclick="resetPagesReportDateToToday()" 
+                    class="h-7 px-2.5 rounded-lg hover:bg-white/10 text-emerald-400 font-mono font-bold text-[10.5px] active:scale-95 transition flex items-center justify-center border-x border-white/5" 
+                    title="${stepperLabel}">
+              <span>${stepperLabel}</span>
             </button>
-            <button type="button" onclick="stepPagesReportDate(1)" class="w-8 h-8 rounded-xl bg-white/5 dark:bg-white/5 hover:bg-white/10 text-slate-300 dark:text-slate-300 border border-white/10 flex items-center justify-center active:scale-95 transition" title="ទៅមុខ">
+            <button type="button" onclick="stepPagesReportDate(1)" 
+                    class="h-7 w-7 rounded-lg hover:bg-white/10 text-slate-300 dark:text-slate-300 flex items-center justify-center active:scale-95 transition" 
+                    title="${isEn ? 'Next' : 'ទៅមុខ'}">
               <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
             </button>
           </div>
@@ -29474,12 +29499,12 @@ function renderPagesReportViewContent() {
         <button type="button" onclick="setPagesReportSubView('pages')" 
                 class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'pages' ? 'bg-sky-500 text-white shadow' : 'text-slate-300 hover:text-white theme-light-text-sub'}">
           <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
-          <span>${isEn ? 'By Pages' : 'តាមផេក (By Pages)'}</span>
+          <span>${isEn ? 'By Pages' : 'តាមផេក'}</span>
         </button>
         <button type="button" onclick="setPagesReportSubView('members')" 
                 class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'members' ? 'bg-sky-500 text-white shadow' : 'text-slate-300 hover:text-white theme-light-text-sub'}">
           <i data-lucide="users" class="w-3.5 h-3.5"></i>
-          <span>${isEn ? 'By Members' : 'តាមសមាជិក (By Members)'}</span>
+          <span>${isEn ? 'By Members' : 'តាមសមាជិក'}</span>
         </button>
       </div>
       ` : ''}
@@ -29962,6 +29987,16 @@ function renderDailyReportModal() {
 function openDailyReportModal(fromDrawer = false) {
   if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
   window.navOpenedFromDrawer.dailyReport = !!fromDrawer;
+
+  // Set initial tab based on entry trigger:
+  // - from Drawer -> 'view' (របាយការណ៍ Pages)
+  // - from Outside Button -> 'entry' (ចុះរបាយការណ៍)
+  if (fromDrawer) {
+    pagesReportState.currentTab = 'view';
+  } else {
+    pagesReportState.currentTab = 'entry';
+  }
+
   const modal = document.getElementById('daily-report-modal');
   if (!modal) return;
   closeAllModals();
@@ -30007,7 +30042,9 @@ function closeDailyReportModal() {
   }
   if (window.navOpenedFromDrawer && window.navOpenedFromDrawer.dailyReport) {
     window.navOpenedFromDrawer.dailyReport = false;
-    if (typeof openProfileDrawer === 'function') openProfileDrawer();
+    if (typeof openProfileDrawer === 'function') {
+      setTimeout(() => openProfileDrawer(true), 50);
+    }
   }
 }
 
