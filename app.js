@@ -30484,19 +30484,31 @@ async function submitToCompanyGoogleForm(orderData) {
     if (orderData.qtyEmmi > 0) params.append('entry.1958386252', String(orderData.qtyEmmi));
     if (orderData.qtySGP > 0) params.append('entry.629009419', String(orderData.qtySGP));
 
-    // 6. Price (clean number string)
+    // 6. Bonus Products (Question 6: 1 to 5)
+    const bKN = orderData.bonusKN || currentOrderBonusProducts?.kn || 0;
+    const bPDO = orderData.bonusPDO || currentOrderBonusProducts?.pdo || 0;
+    const bYL = orderData.bonusYL || currentOrderBonusProducts?.yl || 0;
+    const bYLP = orderData.bonusYLP || currentOrderBonusProducts?.ylp || 0;
+    const bSGP = orderData.bonusSGP || currentOrderBonusProducts?.sgp || 0;
+    if (bKN > 0) params.append('entry.1353799287', String(bKN));
+    if (bPDO > 0) params.append('entry.2029441742', String(bPDO));
+    if (bYL > 0) params.append('entry.1815013043', String(bYL));
+    if (bYLP > 0) params.append('entry.1526819650', String(bYLP));
+    if (bSGP > 0) params.append('entry.1318429125', String(bSGP));
+
+    // 7. Price (clean number string)
     params.append('entry.615821671', String(orderData.price || ''));
 
-    // 7. Receiver No (Phone)
+    // 8. Receiver No (Phone)
     params.append('entry.1618786820', orderData.phone || '');
 
-    // 8. Customer (Recipient Name)
+    // 9. Customer (Recipient Name)
     params.append('entry.485783433', orderData.customer || '');
 
-    // 9. Address
+    // 10. Address
     params.append('entry.1844490282', orderData.location || '');
 
-    // 10. Delivery (exact enum value)
+    // 11. Delivery (exact enum value)
     let delivVal = 'VET(COD)';
     const dStr = (orderData.deliveryMethod || '').toLowerCase();
     if (dStr.includes('thai') || dStr.includes('ថៃ')) {
@@ -30505,8 +30517,8 @@ async function submitToCompanyGoogleForm(orderData) {
       delivVal = 'J&T (COD)';
     } else if (dStr.includes('vet') && dStr.includes('cod')) {
       delivVal = 'VET(COD)';
-    } else if (dStr.includes('motor') || dStr.includes('ម៉ូតូ')) {
-      delivVal = 'Motor';
+    } else if (dStr.includes('motor') || dStr.includes('moto') || dStr.includes('ម៉ូតូ')) {
+      delivVal = 'Moto';
     } else if (dStr.includes('j&t') || dStr.includes('jt')) {
       delivVal = 'J&T';
     } else if (dStr.includes('vet')) {
@@ -30514,10 +30526,10 @@ async function submitToCompanyGoogleForm(orderData) {
     }
     params.append('entry.77621526', delivVal);
 
-    // 11. Note
+    // 12. Note
     params.append('entry.1529022117', orderData.note || '');
 
-    // 12. Seller's Latin Name
+    // 13. Seller's Latin Name
     const latinName = orderData.sellerLatin || getSellerLatinName(orderData.seller);
     params.append('entry.1608045144', latinName);
 
@@ -30541,13 +30553,20 @@ let currentOrderMode = 'paste';
 let currentOrderType = 'standard';
 let currentOrderCurrency = 'KHR';
 let currentOrderProducts = {
-  yl: 1,
-  ylp: 1,
+  yl: 0,
+  ylp: 0,
   kn: 0,
   pdo: 0,
   emmi: 0,
-  sgp: 0,
-  free: 0
+  sgp: 0
+};
+
+let currentOrderBonusProducts = {
+  kn: 0,
+  pdo: 0,
+  yl: 0,
+  ylp: 0,
+  sgp: 0
 };
 
 function cleanNumber(val) {
@@ -30888,49 +30907,12 @@ function getAccountingTelegramChatId() {
 }
 
 function isAccountingTelegramAutoShare() {
-  // Enabled for members on submission (Chat ID: -1588825127)
-  try {
-    const saved = localStorage.getItem('sd_accounting_tg_autoshare');
-    if (saved !== null) return saved === 'true';
-  } catch (_) {}
-  return true; // Default ON for members to execute directly
+  // Disabled: Auto-send to accounting Telegram group is paused per management decision
+  return false;
 }
 
 async function sendOrderViaTelegramBot(text) {
-  const token = getAccountingTelegramBotToken();
-  const rawChatId = getAccountingTelegramChatId();
-  if (!token || !rawChatId || !text) return false;
-
-  const trySend = async (cid) => {
-    try {
-      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: cid,
-          text: text
-        })
-      });
-      return await res.json();
-    } catch (e) {
-      return { ok: false, error: e };
-    }
-  };
-
-  let res = await trySend(rawChatId);
-  if (res && res.ok) return true;
-
-  // Smart fallback between basic group (-1588825127) and supergroup (-1001588825127)
-  if (!rawChatId.startsWith('-100')) {
-    const supergroupId = '-100' + rawChatId.replace(/^-/, '');
-    const res2 = await trySend(supergroupId);
-    if (res2 && res2.ok) {
-      try { localStorage.setItem('sd_accounting_tg_chat_id', supergroupId); } catch (_) {}
-      return true;
-    }
-  }
-
-  console.warn('sendOrderViaTelegramBot failed:', res);
+  // Temporarily paused: Auto-send to accounting Telegram group (https://t.me/+IhCzhEiGN80zMWY1) is disabled
   return false;
 }
 
@@ -31053,24 +31035,23 @@ function getManagerLatinCode(sellerName, fallbackTeam = 'Bech_Nora') {
 }
 
 function formatTelegramDate(dateStr) {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   if (!dateStr) {
     const now = new Date();
-    return `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+    return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
   }
   const ddmmyyyy = dateStr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
   if (ddmmyyyy) {
-    const day = parseInt(ddmmyyyy[1], 10);
-    const mIdx = parseInt(ddmmyyyy[2], 10) - 1;
+    const day = ddmmyyyy[1].padStart(2, '0');
+    const m = ddmmyyyy[2].padStart(2, '0');
     const year = ddmmyyyy[3];
-    return `${day} ${months[mIdx] || 'Oct'} ${year}`;
+    return `${day}/${m}/${year}`;
   }
   const yyyymmdd = dateStr.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/);
   if (yyyymmdd) {
     const year = yyyymmdd[1];
-    const mIdx = parseInt(yyyymmdd[2], 10) - 1;
-    const day = parseInt(yyyymmdd[3], 10);
-    return `${day} ${months[mIdx] || 'Oct'} ${year}`;
+    const m = yyyymmdd[2].padStart(2, '0');
+    const day = yyyymmdd[3].padStart(2, '0');
+    return `${day}/${m}/${year}`;
   }
   return dateStr;
 }
@@ -31157,12 +31138,27 @@ function generateBilingualTelegramOrderText(recordOrForm = null) {
   if (ylp > 0) prodLines.push(`▪️ ផលិតផល(Product) [Yong Liang Plus]: ${ylp}`);
   if (emmi > 0) prodLines.push(`▪️ ផលិតផល(Product) [Emmi]: ${emmi}`);
   if (sgp > 0) prodLines.push(`▪️ ផលិតផល(Product) [SG Pro]: ${sgp}`);
-  if (free > 0) prodLines.push(`▪️ ផលិតផល(Product) [Free]: ${free}`);
 
   if (prodLines.length === 0) {
     if (isReward) prodLines.push(`▪️ ផលិតផល(Product) [លក់រង្វាន់]: 1`);
     else if (isReturn) prodLines.push(`▪️ ផលិតផល(Product) [លក់អីវ៉ាន់ត្រឡប់]: 1`);
     else prodLines.push(`▪️ ផលិតផល(Product): 1`);
+  }
+
+  // Bonus Products (Question 6 standard)
+  const bKN = (recordOrForm && recordOrForm.bonusKN !== undefined) ? recordOrForm.bonusKN : (currentOrderBonusProducts?.kn || 0);
+  const bPDO = (recordOrForm && recordOrForm.bonusPDO !== undefined) ? recordOrForm.bonusPDO : (currentOrderBonusProducts?.pdo || 0);
+  const bYL = (recordOrForm && recordOrForm.bonusYL !== undefined) ? recordOrForm.bonusYL : (currentOrderBonusProducts?.yl || 0);
+  const bYLP = (recordOrForm && recordOrForm.bonusYLP !== undefined) ? recordOrForm.bonusYLP : (currentOrderBonusProducts?.ylp || 0);
+  const bSGP = (recordOrForm && recordOrForm.bonusSGP !== undefined) ? recordOrForm.bonusSGP : (currentOrderBonusProducts?.sgp || 0);
+
+  if (bKN > 0) prodLines.push(`▪️ ប្រអប់ថែមជូនអតិថិជន (Bonus) [Kidney Pro]: ${bKN}`);
+  if (bPDO > 0) prodLines.push(`▪️ ប្រអប់ថែមជូនអតិថិជន (Bonus) [Pro D.O]: ${bPDO}`);
+  if (bYL > 0) prodLines.push(`▪️ ប្រអប់ថែមជូនអតិថិជន (Bonus) [Yong Liang]: ${bYL}`);
+  if (bYLP > 0) prodLines.push(`▪️ ប្រអប់ថែមជូនអតិថិជន (Bonus) [Yong Liang Plus]: ${bYLP}`);
+  if (bSGP > 0) prodLines.push(`▪️ ប្រអប់ថែមជូនអតិថិជន (Bonus) [SG Pro]: ${bSGP}`);
+  if (bKN === 0 && bPDO === 0 && bYL === 0 && bYLP === 0 && bSGP === 0 && free > 0) {
+    prodLines.push(`▪️ ផលិតផល(Product) [Free]: ${free}`);
   }
 
   let priceDisplay = '0';
@@ -31175,12 +31171,20 @@ function generateBilingualTelegramOrderText(recordOrForm = null) {
   const formattedPhone = phone ? (typeof formatKhmerPhone === 'function' ? formatKhmerPhone(phone) : phone) : '';
   const cleanDelivery = delivery || 'VET (COD)';
 
+  const saleBoxes = yl + ylp + kn + pdo + emmi + sgp;
+  const totalBonusBoxes = bKN + bPDO + bYL + bYLP + bSGP + (bKN === 0 && bPDO === 0 && bYL === 0 && bYLP === 0 && bSGP === 0 && free > 0 ? free : 0);
+  const totalBoxesAll = saleBoxes + totalBonusBoxes;
+
   const lines = [
     '🔔 មានការកុម្មង់ទំនិញថ្មីចូល 🔔',
     '',
     `🆔 Order Row: ${orderRowText}`,
+    `📦 ចំនួនទិញ (Sale): ${saleBoxes} ប្រអប់`,
+    `🎁 ប្រអប់ថែម (Bonus): ${totalBonusBoxes} ប្រអប់`,
+    `🚚 សរុប(Total): ${totalBoxesAll} ប្រអប់`,
+    '',
     `▪️ កាលបរិច្ឆេទ(Date): ${formattedDate}`,
-    `▪️ ថ្នាក់ដឹកនាំ(Team): ${managerCode}`,
+    `▪️ ថ្នាក់ដឹកនាំ(Team): ${managerCode || 'Bech_Nora'}`,
     `▪️ ឈ្មោះអ្នកលក់: ${seller}`
   ];
 
@@ -31204,7 +31208,7 @@ function generateBilingualTelegramOrderText(recordOrForm = null) {
   }
 
   if (sellerLatin) {
-    lines.push(`▪️ Seller’s Name: ${sellerLatin}`);
+    lines.push(`▪️ Seller's Name: ${sellerLatin}`);
   }
 
   return lines.join('\n');
@@ -31606,8 +31610,10 @@ function openNewOrderModal(mode = 'dock') {
   }
 
   // Reset products: 0 by default (គ្មានទិន្នន័យស្រាប់ឡើយ)
-  currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, emmi: 0, sgp: 0, free: 0 };
+  currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, emmi: 0, sgp: 0 };
+  currentOrderBonusProducts = { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 };
   updateProductQtyDisplay();
+  updateBonusCardState();
   setOrderType('standard');
   
   // Default currency based on delivery carrier (THB strictly for Thai, KHR for Cambodian carriers)
@@ -31997,8 +32003,10 @@ function clearOrderInput() {
     setOrderCurrency('KHR');
   }
 
-  currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, emmi: 0, sgp: 0, free: 0 };
+  currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, emmi: 0, sgp: 0 };
+  currentOrderBonusProducts = { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 };
   updateProductQtyDisplay();
+  updateBonusCardState();
   setOrderType('standard');
   calculateOrderFinancials();
   checkOrderSubmitValidation();
@@ -32146,13 +32154,7 @@ function setOrderType(type) {
 
 function adjustProductQty(prod, delta) {
   if (currentOrderProducts[prod] !== undefined) {
-    if (prod === 'free') {
-      // Allow Free to go negative down to -6 for team promotion offsets (e.g. -1, -2, -3)
-      // Positive up to 10. Default starts at 0!
-      currentOrderProducts[prod] = Math.max(-6, Math.min(10, (currentOrderProducts[prod] || 0) + delta));
-    } else {
-      currentOrderProducts[prod] = Math.max(0, (currentOrderProducts[prod] || 0) + delta);
-    }
+    currentOrderProducts[prod] = Math.max(0, (currentOrderProducts[prod] || 0) + delta);
     updateProductQtyDisplay();
     updateAutoOrderNote();
     calculateOrderFinancials();
@@ -32161,29 +32163,143 @@ function adjustProductQty(prod, delta) {
   }
 }
 
-function handleFreeCardClick(e) {
-  if (e && e.target && e.target.closest('button')) return;
-  // Tap cycles: 0 -> -1 -> -2 -> -3 -> 0
-  const cur = currentOrderProducts.free || 0;
-  if (cur === 0) {
-    currentOrderProducts.free = -1;
-  } else if (cur === -1) {
-    currentOrderProducts.free = -2;
-  } else if (cur === -2) {
-    currentOrderProducts.free = -3;
-  } else {
-    currentOrderProducts.free = 0;
-  }
-  updateProductQtyDisplay();
-  updateAutoOrderNote();
-  calculateOrderFinancials();
-  checkOrderSubmitValidation();
-  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+// Bonus Management System (Company Promotion Standard 01/11 to 31/12/2026)
+function getEligibleBonusSoldBoxes() {
+  return (currentOrderProducts.yl || 0) + 
+         (currentOrderProducts.ylp || 0) + 
+         (currentOrderProducts.kn || 0) + 
+         (currentOrderProducts.pdo || 0) + 
+         (currentOrderProducts.sgp || 0);
 }
-window.handleFreeCardClick = handleFreeCardClick;
+
+function getMaxBonusAllowed() {
+  const eligible = getEligibleBonusSoldBoxes();
+  return Math.floor(eligible / 4);
+}
+
+function getTotalSelectedBonusBoxes() {
+  return (currentOrderBonusProducts.kn || 0) + 
+         (currentOrderBonusProducts.pdo || 0) + 
+         (currentOrderBonusProducts.yl || 0) + 
+         (currentOrderBonusProducts.ylp || 0) + 
+         (currentOrderBonusProducts.sgp || 0);
+}
+
+function selectBonusProductQty(prod, qty) {
+  const maxAllowed = getMaxBonusAllowed();
+  if (maxAllowed <= 0) {
+    clearAllBonusSelections();
+    return;
+  }
+
+  const currentVal = currentOrderBonusProducts[prod] || 0;
+  if (currentVal === qty) {
+    currentOrderBonusProducts[prod] = 0;
+  } else {
+    const otherBonus = getTotalSelectedBonusBoxes() - currentVal;
+    if (otherBonus + qty > maxAllowed) {
+      if (typeof showToastNotification === 'function') {
+        showToastNotification(`⚠️ សិទ្ធិថែមអតិបរមាត្រឹម ${maxAllowed} ប្រអប់ប៉ុណ្ណោះ!`);
+      }
+      if (navigator.vibrate) try { navigator.vibrate([20, 40]); } catch (_) {}
+      return;
+    }
+    currentOrderBonusProducts[prod] = qty;
+  }
+
+  updateBonusCardState();
+  updateAutoOrderNote();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function clearAllBonusSelections() {
+  currentOrderBonusProducts = { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 };
+  updateBonusCardState();
+  updateAutoOrderNote();
+}
+
+function renderAllBonusCircles(maxAllowed) {
+  const prods = ['kn', 'pdo', 'yl', 'ylp', 'sgp'];
+  prods.forEach(prod => {
+    const container = document.getElementById(`bonus-circles-${prod}`);
+    if (!container) return;
+
+    const currentVal = currentOrderBonusProducts[prod] || 0;
+    let html = '';
+
+    for (let num = 1; num <= 5; num++) {
+      const isSelected = (currentVal === num);
+      const isAllowed = (num <= maxAllowed);
+
+      let btnCls = '';
+      if (isSelected) {
+        btnCls = 'w-6 h-6 rounded-full border border-amber-400 bg-gradient-to-br from-amber-400 to-orange-500 text-black font-black flex items-center justify-center text-[11px] shadow-sm shadow-amber-500/50 scale-105 active:scale-95 transition';
+      } else if (!isAllowed) {
+        btnCls = 'w-6 h-6 rounded-full border border-white/5 bg-white/[0.02] text-slate-600 cursor-not-allowed flex items-center justify-center text-[10px] opacity-40 pointer-events-none select-none';
+      } else {
+        btnCls = 'w-6 h-6 rounded-full border border-white/15 bg-white/5 text-slate-400 hover:text-white hover:border-amber-400/40 hover:bg-white/10 active:scale-90 flex items-center justify-center text-[10px] font-bold transition select-none';
+      }
+
+      html += `<button type="button" onclick="selectBonusProductQty('${prod}', ${num})" class="${btnCls}" title="ថែម ${num} ប្រអប់">${num}</button>`;
+    }
+    container.innerHTML = html;
+  });
+}
+
+function updateBonusCardState() {
+  const eligible = getEligibleBonusSoldBoxes();
+  const maxAllowed = getMaxBonusAllowed();
+  let totalSelected = getTotalSelectedBonusBoxes();
+
+  if (maxAllowed <= 0) {
+    currentOrderBonusProducts = { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 };
+    totalSelected = 0;
+  } else if (totalSelected > maxAllowed) {
+    clearAllBonusSelections();
+    totalSelected = 0;
+  }
+
+  const hintBar = document.getElementById('order-bonus-hint-bar');
+  const hintText = document.getElementById('order-bonus-hint-text');
+  const grid = document.getElementById('order-bonus-selection-grid');
+  const badge = document.getElementById('order-bonus-badge');
+  const maxDisp = document.getElementById('order-bonus-max-disp');
+
+  if (maxAllowed <= 0) {
+    if (hintBar) hintBar.classList.remove('hidden');
+    if (grid) grid.classList.add('hidden');
+    const needed = 4 - (eligible % 4);
+    if (hintText) {
+      hintText.innerText = `ទិញគ្រប់ ៤ ប្រអប់នៃផលិតផលចូលរួម ថែមបាន ១ ប្រអប់ (ខ្វះ ${needed} ប្រអប់ទៀត)`;
+    }
+    if (badge) {
+      badge.className = 'px-2 py-0.5 rounded-lg bg-white/5 text-slate-400 border border-white/10 font-bold font-mono text-[10px] transition-all';
+      badge.innerText = `សិទ្ធិថែម: 0`;
+    }
+  } else {
+    if (hintBar) hintBar.classList.add('hidden');
+    if (grid) grid.classList.remove('hidden');
+    if (maxDisp) maxDisp.innerText = maxAllowed;
+    if (badge) {
+      if (totalSelected > 0) {
+        badge.className = 'px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold font-mono text-[10px] transition-all shadow-sm';
+        badge.innerText = `ថែម: ${totalSelected}/${maxAllowed} ប្រអប់ ✓`;
+      } else {
+        badge.className = 'px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold font-mono text-[10px] transition-all animate-pulse';
+        badge.innerText = `សិទ្ធិថែម: ${maxAllowed} ប្រអប់ 🎁`;
+      }
+    }
+  }
+
+  renderAllBonusCircles(maxAllowed);
+}
+
+window.selectBonusProductQty = selectBonusProductQty;
+window.clearAllBonusSelections = clearAllBonusSelections;
+window.updateBonusCardState = updateBonusCardState;
 
 function updateProductQtyDisplay() {
-  const prods = ['yl', 'ylp', 'kn', 'pdo', 'emmi', 'sgp', 'free'];
+  const prods = ['yl', 'ylp', 'kn', 'pdo', 'emmi', 'sgp'];
   // 6 កម្រិតស្មើគ្នាតាម iOS Volume Bar (0% -> 17% -> 34% -> 50% -> 68% -> 85% -> 100%)
   const steps = [0, 17, 34, 50, 68, 85, 100];
 
@@ -32194,74 +32310,30 @@ function updateProductQtyDisplay() {
 
     const fillBar = document.getElementById(`fill-bar-${p}`);
     if (fillBar) {
-      if (p === 'free' && qty < 0) {
-        // Negative Free QTY (Offset): Dual-color subtle amber/orange glow
-        const absQty = Math.abs(qty);
-        const pct = absQty >= 6 ? 100 : (steps[absQty] || 0);
-        fillBar.style.width = `${pct}%`;
-        fillBar.className = 'absolute inset-y-0 left-0 bg-gradient-to-r from-amber-500/25 to-orange-500/35 border-r border-orange-400/50 rounded-xl transition-all duration-300 pointer-events-none';
-      } else if (p === 'free') {
-        // Positive or zero Free QTY: Standard clean white glass
-        const pct = qty >= 6 ? 100 : (steps[qty] || 0);
-        fillBar.style.width = `${pct}%`;
-        fillBar.className = 'absolute inset-y-0 left-0 bg-gradient-to-r from-white/15 to-white/25 border-r border-white/40 rounded-xl transition-all duration-300 pointer-events-none';
-      } else {
-        const pct = qty >= 6 ? 100 : (steps[qty] || 0);
-        fillBar.style.width = `${pct}%`;
-      }
+      const pct = qty >= 6 ? 100 : (steps[qty] || 0);
+      fillBar.style.width = `${pct}%`;
     }
 
     const card = document.getElementById(`product-card-${p}`);
     if (card) {
-      if (p === 'free') {
-        const tag = document.getElementById('tag-free-offset');
-        const dot = document.getElementById('dot-free');
-        if (qty < 0) {
-          card.classList.add('border-orange-500/30', 'bg-orange-500/[0.04]');
-          card.classList.remove('border-white/10', 'border-white/25');
-          if (el) el.className = 'w-6 text-center font-bold font-mono text-xs text-orange-400';
-          if (tag) {
-            tag.classList.remove('hidden');
-            tag.textContent = `កាត់កង ${qty}`;
-          }
-          if (dot) {
-            dot.className = 'w-2 h-2 rounded-full bg-orange-400 shadow-sm shadow-orange-400/50 shrink-0 transition-colors';
-          }
-        } else {
-          card.classList.remove('border-orange-500/30', 'bg-orange-500/[0.04]');
-          if (el) el.className = 'w-6 text-center font-bold font-mono text-xs text-white';
-          if (tag) tag.classList.add('hidden');
-          if (dot) {
-            dot.className = 'w-2 h-2 rounded-full bg-white/80 shadow-sm shadow-white/50 shrink-0 transition-colors';
-          }
-          if (qty > 0) {
-            card.classList.add('border-white/25');
-            card.classList.remove('border-white/10');
-          } else {
-            card.classList.remove('border-white/25');
-            card.classList.add('border-white/10');
-          }
-        }
+      if (qty > 0) {
+        card.classList.add('border-white/25');
+        card.classList.remove('border-white/10');
       } else {
-        if (qty > 0) {
-          card.classList.add('border-white/25');
-          card.classList.remove('border-white/10');
-        } else {
-          card.classList.remove('border-white/25');
-          card.classList.add('border-white/10');
-        }
+        card.classList.remove('border-white/25');
+        card.classList.add('border-white/10');
       }
     }
   });
 
   const total = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
                 (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
-                (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
-                (currentOrderProducts.free || 0);
+                (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0);
 
   const badge = document.getElementById('order-total-boxes-badge');
   if (badge) badge.innerText = `សរុប: ${total} ប្រអប់`;
 
+  updateBonusCardState();
   checkOrderSubmitValidation();
 }
 
@@ -32277,7 +32349,7 @@ function toggleExtraProducts() {
     if (icon) icon.classList.add('rotate-180');
   } else {
     panel.classList.add('hidden');
-    if (btnText) btnText.innerText = '+ បង្ហាញមុខទំនិញបន្ថែម (KN, PDO, Free)';
+    if (btnText) btnText.innerText = '+ បង្ហាញមុខទំនិញបន្ថែម (KN, PDO, Emmi, SGP)';
     if (icon) icon.classList.remove('rotate-180');
   }
 }
@@ -32285,8 +32357,7 @@ function toggleExtraProducts() {
 function calculateOrderFinancials() {
   const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
                      (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
-                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
-                     (currentOrderProducts.free || 0);
+                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0);
 
   const totalUsdInput = document.getElementById('order-field-total-usd');
   const shipInput = document.getElementById('order-field-ship');
@@ -32636,8 +32707,7 @@ async function submitNewOrder() {
 
   const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
                      (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
-                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
-                     (currentOrderProducts.free || 0);
+                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0);
 
   if (totalBoxes === 0) {
     showToastNotification('សូមជ្រើសរើសចំនួនប្រអប់ទំនិញ!');
@@ -32701,6 +32771,10 @@ async function submitNewOrder() {
   const autoPrefix = isReward ? `លក់រង្វាន់ (${totalBoxes} ប្រអប់)` : (isReturn ? `លក់អីវ៉ាន់ត្រឡប់ (${totalBoxes} ប្រអប់)` : '');
   const note = rawNote || autoPrefix;
 
+  const totalBonusQty = (currentOrderBonusProducts.kn || 0) + (currentOrderBonusProducts.pdo || 0) + 
+                        (currentOrderBonusProducts.yl || 0) + (currentOrderBonusProducts.ylp || 0) + 
+                        (currentOrderBonusProducts.sgp || 0);
+
   const prodParts = [];
   if (currentOrderProducts.yl > 0) prodParts.push(currentOrderProducts.yl > 1 ? `YL (${currentOrderProducts.yl})` : `YL`);
   if (currentOrderProducts.ylp > 0) prodParts.push(currentOrderProducts.ylp > 1 ? `YLP (${currentOrderProducts.ylp})` : `YLP`);
@@ -32708,12 +32782,15 @@ async function submitNewOrder() {
   if (currentOrderProducts.pdo > 0) prodParts.push(`PDO (${currentOrderProducts.pdo})`);
   if (currentOrderProducts.emmi > 0) prodParts.push(`Emmi (${currentOrderProducts.emmi})`);
   if (currentOrderProducts.sgp > 0) prodParts.push(`SGP (${currentOrderProducts.sgp})`);
-  if (currentOrderProducts.free > 0) {
-    prodParts.push(`Free (${currentOrderProducts.free})`);
-  } else if (currentOrderProducts.free < 0) {
-    prodParts.push(`Free (${currentOrderProducts.free})`);
-  }
-  const productSummary = prodParts.join(', ') || 'ទំនិញ';
+
+  const bonusParts = [];
+  if (currentOrderBonusProducts.kn > 0) bonusParts.push(`ថែម KN (${currentOrderBonusProducts.kn})`);
+  if (currentOrderBonusProducts.pdo > 0) bonusParts.push(`ថែម PDO (${currentOrderBonusProducts.pdo})`);
+  if (currentOrderBonusProducts.yl > 0) bonusParts.push(`ថែម YL (${currentOrderBonusProducts.yl})`);
+  if (currentOrderBonusProducts.ylp > 0) bonusParts.push(`ថែម YLP (${currentOrderBonusProducts.ylp})`);
+  if (currentOrderBonusProducts.sgp > 0) bonusParts.push(`ថែម SGP (${currentOrderBonusProducts.sgp})`);
+
+  const productSummary = [...prodParts, ...bonusParts].join(', ') || 'ទំនិញ';
 
   const newRecord = {
     date: date,
@@ -32737,8 +32814,13 @@ async function submitNewOrder() {
     qtyPDO: (isReward || isReturn) ? 0 : (currentOrderProducts.pdo || 0),
     qtyEmmi: (isReward || isReturn) ? 0 : (currentOrderProducts.emmi || 0),
     qtySGP: (isReward || isReturn) ? 0 : (currentOrderProducts.sgp || 0),
-    freeQty: (isReward || isReturn) ? 0 : (currentOrderProducts.free || 0),
-    totalBoxQty: totalBoxes,
+    freeQty: (isReward || isReturn) ? 0 : totalBonusQty,
+    bonusKN: currentOrderBonusProducts.kn || 0,
+    bonusPDO: currentOrderBonusProducts.pdo || 0,
+    bonusYL: currentOrderBonusProducts.yl || 0,
+    bonusYLP: currentOrderBonusProducts.ylp || 0,
+    bonusSGP: currentOrderBonusProducts.sgp || 0,
+    totalBoxQty: totalBoxes + totalBonusQty,
     product: isReward ? `លក់រង្វាន់ (${totalBoxes})` : (isReturn ? `លក់អីវ៉ាន់ត្រឡប់ (${totalBoxes})` : productSummary),
     price: priceRaw,
     thaiBaht: thaiBaht,

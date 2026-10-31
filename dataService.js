@@ -771,6 +771,12 @@ window.DataService = {
       const psRows = (psGviz && psGviz.table && Array.isArray(psGviz.table.rows)) ? psGviz.table.rows : [];
       const personalSales = [];
 
+      // Smart Column Layout Detector: Checks if Col 11 (Index 11) is Emmi or Col 12 is S.G
+      const headerRowCells = psRows[0]?.c || [];
+      const col11Hdr = String(headerRowCells[11]?.v || '').toLowerCase();
+      const col12Hdr = String(headerRowCells[12]?.v || '').toLowerCase();
+      const isNewColumnLayout = col11Hdr.includes('emmi') || col12Hdr.includes('s.g') || col12Hdr.includes('sg');
+
       for (let i = 1; i < psRows.length; i++) {
         const cells = psRows[i].c;
         if (!cells) continue;
@@ -789,26 +795,55 @@ window.DataService = {
         const location = String(getCell(5) || '').trim();
         const phone = String(getCell(6) || '').trim();
 
-        const qtyYL = cleanNumber(getCell(7));
-        const qtyYLP = cleanNumber(getCell(8));
-        const qtyKN = cleanNumber(getCell(9));
-        const qtyPDO = cleanNumber(getCell(10));
-        const freeVal = cleanNumber(getCell(11));
-        const thaiBaht = cleanNumber(getCell(12));
-        const price = thaiBaht;
-        const totalAmount = cleanNumber(getCell(13));
-        const shipFee = cleanNumber(getCell(14));
-        const deliveryMethod = String(getCell(15) || 'មិនបញ្ជាក់').trim();
-        const codStatus = String(getCell(16) || 'មិនទាន់ទូទាត់').trim();
-        const profit = cleanNumber(getCell(19));
-        const note = String(getCell(20) || '').trim();
-        const rewardQty = cleanNumber(getCell(21)); // Col V (Reward QTY)
-        const isReward = rewardQty > 0 || note.includes('លក់រង្វាន់');
-        const isReturn = note.includes('លក់អីវ៉ាន់ត្រឡប់') || (note.includes('ត្រឡប់') && cleanNumber(getCell(17)) === 0 && profit > 0);
+        let qtyYL = 0, qtyYLP = 0, qtyKN = 0, qtyPDO = 0, qtyEmmi = 0, qtySG = 0, freeVal = 0;
+        let thaiBaht = 0, price = 0, totalAmount = 0, shipFee = 0, deliveryMethod = '', codStatus = '', profit = 0, note = '';
 
-        // Dynamic Record ID detection: checks Col 23, 22, 21 or fallback so deleting/keeping Col V never breaks
+        if (isNewColumnLayout) {
+          qtyYL = cleanNumber(getCell(7));
+          qtyYLP = cleanNumber(getCell(8));
+          qtyKN = cleanNumber(getCell(9));
+          qtyPDO = cleanNumber(getCell(10));
+          qtyEmmi = cleanNumber(getCell(11));
+          qtySG = cleanNumber(getCell(12));
+          freeVal = cleanNumber(getCell(13));
+          thaiBaht = cleanNumber(getCell(14));
+          price = thaiBaht;
+          totalAmount = cleanNumber(getCell(15));
+          shipFee = cleanNumber(getCell(16));
+          deliveryMethod = String(getCell(17) || 'មិនបញ្ជាក់').trim();
+          codStatus = String(getCell(18) || 'មិនទាន់ទូទាត់').trim();
+          profit = cleanNumber(getCell(21));
+          note = String(getCell(22) || '').trim();
+        } else {
+          qtyYL = cleanNumber(getCell(7));
+          qtyYLP = cleanNumber(getCell(8));
+          qtyKN = cleanNumber(getCell(9));
+          qtyPDO = cleanNumber(getCell(10));
+          freeVal = cleanNumber(getCell(11));
+          thaiBaht = cleanNumber(getCell(12));
+          price = thaiBaht;
+          totalAmount = cleanNumber(getCell(13));
+          shipFee = cleanNumber(getCell(14));
+          deliveryMethod = String(getCell(15) || 'មិនបញ្ជាក់').trim();
+          codStatus = String(getCell(16) || 'មិនទាន់ទូទាត់').trim();
+          profit = cleanNumber(getCell(19));
+          note = String(getCell(20) || '').trim();
+          const isLegacySGPro = note.includes('[SG Pro]');
+          if (isLegacySGPro) {
+            qtySG = freeVal;
+            freeVal = 0;
+          }
+        }
+
+        const rewardQty = cleanNumber(getCell(isNewColumnLayout ? 23 : 21)); // Reward QTY
+        const isReward = rewardQty > 0 || note.includes('លក់រង្វាន់');
+        const isReturn = note.includes('លក់អីវ៉ាន់ត្រឡប់') || (note.includes('ត្រឡប់') && cleanNumber(getCell(isNewColumnLayout ? 19 : 17)) === 0 && profit > 0);
+
+        // Dynamic Record ID detection: checks Col 25, 23, 22, 21 or fallback
         let recordId = '';
-        if (getCell(23) && String(getCell(23)).startsWith('REC-')) {
+        if (getCell(25) && String(getCell(25)).startsWith('REC-')) {
+          recordId = String(getCell(25)).trim();
+        } else if (getCell(23) && String(getCell(23)).startsWith('REC-')) {
           recordId = String(getCell(23)).trim();
         } else if (getCell(22) && String(getCell(22)).startsWith('REC-')) {
           recordId = String(getCell(22)).trim();
@@ -818,11 +853,12 @@ window.DataService = {
           recordId = String(getCell(23) || getCell(22) || `REC-${i}`).trim();
         }
 
-        // Smart Rule: If note has [SG Pro], Free column holds legacy SG Pro cans
-        const isSGPro = note.includes('[SG Pro]');
-        const qtySG = isSGPro ? freeVal : 0;
-        const freeQty = isSGPro ? 0 : freeVal;
-        let totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty + qtySG;
+        let freeQty = freeVal;
+        if (!isNewColumnLayout) {
+          const isLegacySGPro = note.includes('[SG Pro]');
+          if (isLegacySGPro) freeQty = 0;
+        }
+        let totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + (qtyEmmi || 0) + (qtySG || 0) + freeQty;
         if (rewardQty > 0) {
           totalBoxQty = rewardQty;
         } else if (totalBoxQty === 0 && (isReward || isReturn)) {
@@ -837,6 +873,7 @@ window.DataService = {
           prodParts.push(totalBoxQty > 0 ? `លក់អីវ៉ាន់ត្រឡប់ (${totalBoxQty})` : `លក់អីវ៉ាន់ត្រឡប់`);
         } else {
           if (qtySG > 0) prodParts.push(qtySG > 1 ? `SG Pro (${qtySG})` : `SG Pro`);
+          if (qtyEmmi > 0) prodParts.push(qtyEmmi > 1 ? `Emmi (${qtyEmmi})` : `Emmi`);
           if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
           if (qtyPDO > 0) prodParts.push(qtyPDO > 1 ? `PDO (${qtyPDO})` : `PDO`);
           if (qtyYL > 0) prodParts.push(qtyYL > 1 ? `YL (${qtyYL})` : `YL`);
@@ -863,7 +900,9 @@ window.DataService = {
           qtyYLP,
           qtyKN,
           qtyPDO,
+          qtyEmmi,
           qtySG,
+          qtySGP: qtySG,
           freeQty,
           totalBoxQty,
           product,
