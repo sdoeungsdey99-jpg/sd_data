@@ -30340,9 +30340,17 @@ function onSellerNameChange(val) {
   }
 }
 
+function convertKhmerDigitsToLatin(str) {
+  if (!str) return '';
+  const khmerMap = { '០': '0', '១': '1', '២': '2', '៣': '3', '៤': '4', '៥': '5', '៦': '6', '៧': '7', '៨': '8', '៩': '9' };
+  return String(str).replace(/[០-៩]/g, m => khmerMap[m] || m);
+}
+window.convertKhmerDigitsToLatin = convertKhmerDigitsToLatin;
+
 function formatKhmerPhone(raw) {
   if (!raw) return '';
-  let digits = raw.replace(/\D/g, '');
+  const normalized = convertKhmerDigitsToLatin(raw);
+  let digits = normalized.replace(/\D/g, '');
   if (!digits) return '';
   if (digits.startsWith('855')) {
     digits = '0' + digits.slice(3);
