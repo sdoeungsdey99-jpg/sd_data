@@ -6,6 +6,7 @@
 const MASTER_SDOEUNG_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
 const DEFAULT_MASTER_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
 const TEAM_HIERARCHY_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+const BOSTAR_TRACK_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
 const TEAM_HIERARCHY_GID = '1865868146';
 const BOSTAR_TRACK_GID = '1127553691';
 const REPORT_TAB_GID = '1381931511';
@@ -28,10 +29,8 @@ function getActiveSheetId() {
       const urlSheet = urlParams.get('sheet') || urlParams.get('sheet_id');
       if (urlSheet && urlSheet.trim().length > 15) {
         const cleanUrlSheet = extractSheetId(urlSheet.trim()) || urlSheet.trim();
-        if (cleanUrlSheet !== TEAM_HIERARCHY_SHEET_ID) {
-          localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
-          return cleanUrlSheet;
-        }
+        localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
+        return cleanUrlSheet;
       }
     }
     const custom = (typeof localStorage !== 'undefined') ? localStorage.getItem('sd_custom_sheet_id') : null;
@@ -40,12 +39,8 @@ function getActiveSheetId() {
     } else if (custom && custom.trim().length > 15) {
       return custom.trim();
     }
-    // Only return MASTER_SDOEUNG_SHEET_ID if master admin is authenticated!
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_master_admin_authenticated') === 'true') {
-      return MASTER_SDOEUNG_SHEET_ID;
-    }
   } catch (_) {}
-  return '';
+  return DEFAULT_MASTER_SHEET_ID;
 }
 
 function cleanNumber(val) {
@@ -350,8 +345,8 @@ function loadCachedData() {
   return null;
 }
 
-async function fetchGoogleSheetGViz(param, sheetNameFallback) {
-  const sheetId = getActiveSheetId();
+async function fetchGoogleSheetGViz(param, sheetNameFallback, overrideSheetId = null) {
+  const sheetId = overrideSheetId || getActiveSheetId();
   const queryParam = isNaN(param) ? `sheet=${encodeURIComponent(param)}` : `gid=${param}`;
   const timestamp = Date.now();
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&${queryParam}&_t=${timestamp}`;
@@ -394,8 +389,8 @@ async function fetchGoogleSheetGViz(param, sheetNameFallback) {
 }
 
 // Fetch Google Sheet tab as raw CSV with native CORS support (via GViz CSV)
-async function fetchGoogleSheetCSV(param, sheetNameFallback) {
-  const sheetId = getActiveSheetId();
+async function fetchGoogleSheetCSV(param, sheetNameFallback, overrideSheetId = null) {
+  const sheetId = overrideSheetId || getActiveSheetId();
   const queryParam = isNaN(param) ? `sheet=${encodeURIComponent(param)}` : `gid=${param}`;
   const timestamp = Date.now();
   const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&${queryParam}&_t=${timestamp}`;
@@ -754,9 +749,9 @@ window.DataService = {
 
     try {
       const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows, bostarTrackCsvRows, monthlyTargetsCsvRows, dailyReportTabCsvRows] = await Promise.all([
-        fetchGoogleSheetGViz('1802751802', 'Personal Sales').catch(e => { console.warn('PS fetch warning:', e); return null; }),
-        fetchGoogleSheetCSV('1413782774', 'Daily Expenses').catch(e => { console.warn('Expenses fetch warning:', e); return []; }),
-        fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance').catch(e => { console.warn('Bank fetch warning:', e); return []; }),
+        fetchGoogleSheetGViz('1802751802', 'Personal Sales', MASTER_SDOEUNG_SHEET_ID).catch(e => { console.warn('PS fetch warning:', e); return null; }),
+        fetchGoogleSheetCSV('1413782774', 'Daily Expenses', MASTER_SDOEUNG_SHEET_ID).catch(e => { console.warn('Expenses fetch warning:', e); return []; }),
+        fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance', MASTER_SDOEUNG_SHEET_ID).catch(e => { console.warn('Bank fetch warning:', e); return []; }),
         fetchGoogleSheetGViz('30391871', 'Team Monthly View').catch(e => { console.warn('Team Monthly fetch warning:', e); return null; }),
         fetchGoogleSheetCSV('608899183', 'Team Sales').catch(e => { console.warn('Team Sales fetch warning:', e); return []; }),
         fetchTeamHierarchyCSV().catch(e => { console.warn('Team Hierarchy fetch warning:', e); return []; }),
@@ -771,11 +766,12 @@ window.DataService = {
       const psRows = (psGviz && psGviz.table && Array.isArray(psGviz.table.rows)) ? psGviz.table.rows : [];
       const personalSales = [];
 
-      // Smart Column Layout Detector: Checks if Col 11 (Index 11) is Emmi or Col 12 is S.G
+      // Smart Column Layout Detector: Checks if Col 11 (Index 11) is S.G or Col 12 is Emmi, or if total cols >= 25
+      const colsCount = (psGviz && psGviz.table && Array.isArray(psGviz.table.cols)) ? psGviz.table.cols.length : 0;
       const headerRowCells = psRows[0]?.c || [];
-      const col11Hdr = String(headerRowCells[11]?.v || '').toLowerCase();
-      const col12Hdr = String(headerRowCells[12]?.v || '').toLowerCase();
-      const isNewColumnLayout = col11Hdr.includes('emmi') || col12Hdr.includes('s.g') || col12Hdr.includes('sg');
+      const col11Hdr = String(headerRowCells[11]?.v || psGviz.table?.cols?.[11]?.label || '').toLowerCase();
+      const col12Hdr = String(headerRowCells[12]?.v || psGviz.table?.cols?.[12]?.label || '').toLowerCase();
+      const isNewColumnLayout = colsCount >= 25 || col11Hdr.includes('s.g') || col11Hdr.includes('sg') || col12Hdr.includes('emmi') || col11Hdr.includes('emmi');
 
       for (let i = 1; i < psRows.length; i++) {
         const cells = psRows[i].c;
@@ -1482,18 +1478,40 @@ window.DataService = {
           const qtyYLP = cleanNumber(r[4]);
           const qtyKN = cleanNumber(r[5]);
           const qtyPDO = cleanNumber(r[6]);
-          const freeQty = cleanNumber(r[7]);
+          let qtyEmmi = 0;
+          let qtySG = 0;
+          let freeQty = 0;
+          let totalBoxQty = 0;
+          let stock = 0;
+          let note = '';
+          let recordId = '';
 
-          // In BostarTrack, Column 8 is ALWAYS the pre-calculated Total Boxes!
-          // Column 9 is Stock ($), Col 10 is Note, Col 11 is Record_ID
-          const col8Num = cleanNumber(r[8]);
-          const sumQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
-          const totalBoxQty = (freeQty < 0 && sumQty > 0) ? sumQty : (col8Num > 0 ? col8Num : sumQty);
-          const stock = cleanNumber(r[9]);
-          const note = String(r[10] || '').trim();
-          const recordId = String(r[11] || orderId || `REC-BT-${i}`).trim();
+          if (r.length >= 13) {
+            // Modern 14-column BostarTrack Layout:
+            // 0: Date, 1: Seller, 2: Order ID, 3: YL, 4: YLP, 5: KN, 6: P D.O, 7: Emmi, 8: S.G, 9: Free, 10: Total, 11: Stock, 12: Note, 13: Record_ID
+            qtyEmmi = cleanNumber(r[7]);
+            qtySG = cleanNumber(r[8]);
+            freeQty = cleanNumber(r[9]);
+            const colTotal = cleanNumber(r[10]);
+            const sumQty = qtyYL + qtyYLP + qtyKN + qtyPDO + qtyEmmi + qtySG + freeQty;
+            totalBoxQty = colTotal > 0 ? colTotal : sumQty;
+            stock = cleanNumber(r[11]);
+            note = String(r[12] || '').trim();
+            recordId = String(r[13] || orderId || `REC-BT-${i}`).trim();
+          } else {
+            // Legacy 11-column Layout:
+            freeQty = cleanNumber(r[7]);
+            const col8Num = cleanNumber(r[8]);
+            const sumQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
+            totalBoxQty = (freeQty < 0 && sumQty > 0) ? sumQty : (col8Num > 0 ? col8Num : sumQty);
+            stock = cleanNumber(r[9]);
+            note = String(r[10] || '').trim();
+            recordId = String(r[11] || orderId || `REC-BT-${i}`).trim();
+          }
 
           const prodParts = [];
+          if (qtySG > 0) prodParts.push(qtySG > 1 ? `SG (${qtySG})` : `SG`);
+          if (qtyEmmi > 0) prodParts.push(qtyEmmi > 1 ? `Emmi (${qtyEmmi})` : `Emmi`);
           if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
           if (qtyPDO > 0) prodParts.push(qtyPDO > 1 ? `PDO (${qtyPDO})` : `PDO`);
           if (qtyYL > 0) prodParts.push(qtyYL > 1 ? `YL (${qtyYL})` : `YL`);
@@ -1514,7 +1532,9 @@ window.DataService = {
             qtyYLP,
             qtyKN,
             qtyPDO,
-            qtySG: 0,
+            qtyEmmi,
+            qtySG,
+            qtySGP: qtySG,
             freeQty,
             totalBoxQty,
             product,

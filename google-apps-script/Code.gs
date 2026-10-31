@@ -331,9 +331,9 @@ function insertPersonalSalesOrder(ss, order) {
 
   // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)
   var headerVals = sheet.getRange(1, 1, 1, Math.min(sheet.getLastColumn(), 30)).getValues()[0];
-  var col12Name = String(headerVals[11] || '').toLowerCase(); // Index 11 is Col L (12)
-  var col13Name = String(headerVals[12] || '').toLowerCase(); // Index 12 is Col M (13)
-  var isNew26Col = col12Name.includes('emmi') || col13Name.includes('s.g') || col13Name.includes('sg');
+  var col12Name = String(headerVals[11] || '').toLowerCase(); // Index 11 is Col L (12): S.G
+  var col13Name = String(headerVals[12] || '').toLowerCase(); // Index 12 is Col M (13): Emmi
+  var isNew26Col = sheet.getLastColumn() >= 25 || col12Name.includes('s.g') || col12Name.includes('sg') || col13Name.includes('emmi') || col12Name.includes('emmi');
 
   // ផលិតផល H, I, J, K, L, M, N (Qty)
   // - ពេលលក់រង្វាន់ ឬលក់អីវ៉ាន់ត្រឡប់ ទុកនៅទំនេរ ("") ដើម្បីកុំឱ្យច្រឡំជាមួយស្តុកធម្មតា
@@ -352,9 +352,9 @@ function insertPersonalSalesOrder(ss, order) {
       sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));
       sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));
       sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));
-      sheet.getRange(targetRow, 12).setValue(Number(order.qtyEmmi || 0));
-      sheet.getRange(targetRow, 13).setValue(Number(order.qtySGP || order.qtySG || 0));
-      sheet.getRange(targetRow, 14).setValue(Number(order.freeQty || 0));
+      sheet.getRange(targetRow, 12).setValue(Number(order.qtyEmmi || 0));                // Col L: Emmi
+      sheet.getRange(targetRow, 13).setValue(Number(order.qtySGP || order.qtySG || 0)); // Col M: S.G
+      sheet.getRange(targetRow, 14).setValue(Number(order.freeQty || 0));               // Col N: Free
     }
 
     sheet.getRange(targetRow, 15).setValue(Number(order.thaiBaht || order.price || 0)); // Col O: Price (Baht)
@@ -542,8 +542,8 @@ function updatePersonalSalesOrder(ss, order) {
     if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP > 0 ? Number(order.qtyYLP) : '');
     if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN > 0 ? Number(order.qtyKN) : '');
     if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO > 0 ? Number(order.qtyPDO) : '');
-    if (order.qtyEmmi !== undefined) sheet.getRange(matchedRow, 12).setValue(order.qtyEmmi > 0 ? Number(order.qtyEmmi) : '');
-    if (order.qtySGP !== undefined || order.qtySG !== undefined) sheet.getRange(matchedRow, 13).setValue((Number(order.qtySGP || order.qtySG || 0) > 0) ? Number(order.qtySGP || order.qtySG) : '');
+    if (order.qtyEmmi !== undefined) sheet.getRange(matchedRow, 12).setValue(order.qtyEmmi > 0 ? Number(order.qtyEmmi) : ''); // Col L: Emmi
+    if (order.qtySGP !== undefined || order.qtySG !== undefined) sheet.getRange(matchedRow, 13).setValue((Number(order.qtySGP || order.qtySG || 0) > 0) ? Number(order.qtySGP || order.qtySG) : ''); // Col M: S.G
     if (order.freeQty !== undefined) sheet.getRange(matchedRow, 14).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');
 
     if (order.price !== undefined && order.price !== null && order.price !== '') sheet.getRange(matchedRow, 15).setValue(order.price);
