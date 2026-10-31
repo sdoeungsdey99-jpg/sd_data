@@ -4264,7 +4264,7 @@ const _initIsoMonth = `${_initYear}-${_initPaddedMonth}`;
 const _initIsoDay = `${_initIsoMonth}-${String(_initNow.getDate()).padStart(2, '0')}`;
 
 let execHierarchyFilterState = {
-  mode: 'month', // ALWAYS default to 'month' ("ខែ")!
+  mode: 'month', // Synchronized dynamically with appState.periodFilter
   selectedDate: _initIsoDay,
   selectedMonth: _initIsoMonth,
   selectedYear: String(_initYear),
@@ -4275,6 +4275,53 @@ let execHierarchyFilterState = {
   selectedLeader: null
 };
 let execHierarchyScrollInitialized = false;
+
+// Synchronize Executive Sales Hierarchy period filter with Home screen top filter bar
+function syncExecHierarchyWithHomeFilter() {
+  const now = new Date();
+  const currentIsoDay = getLocalIsoDate(now);
+  const currentIsoMonth = currentIsoDay.slice(0, 7);
+  const currentIsoYear = currentIsoDay.slice(0, 4);
+
+  if (appState.periodFilter === 'today') {
+    execHierarchyFilterState.mode = 'day';
+    if (appState.daySubFilter === 'specific' && appState.specificDate) {
+      execHierarchyFilterState.selectedDate = appState.specificDate;
+    } else if (appState.daySubFilter === 'yesterday') {
+      const yDate = new Date();
+      yDate.setDate(yDate.getDate() - 1);
+      execHierarchyFilterState.selectedDate = getLocalIsoDate(yDate);
+    } else {
+      execHierarchyFilterState.selectedDate = currentIsoDay;
+    }
+    const parts = execHierarchyFilterState.selectedDate.split('-');
+    execHierarchyFilterState.calYear = parseInt(parts[0], 10);
+    execHierarchyFilterState.calMonth = parseInt(parts[1], 10);
+    execHierarchyFilterState.selectedMonth = `${parts[0]}-${parts[1]}`;
+    execHierarchyFilterState.selectedYear = parts[0];
+  } else if (appState.periodFilter === 'month') {
+    execHierarchyFilterState.mode = 'month';
+    const targetMonth = appState.selectedMonthKey || currentIsoMonth;
+    execHierarchyFilterState.selectedMonth = targetMonth;
+    const parts = targetMonth.split('-');
+    execHierarchyFilterState.calYear = parseInt(parts[0], 10);
+    execHierarchyFilterState.calMonth = parseInt(parts[1], 10);
+    execHierarchyFilterState.selectedYear = parts[0];
+  } else if (appState.periodFilter === 'year') {
+    execHierarchyFilterState.mode = 'year';
+    const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
+    execHierarchyFilterState.selectedYear = targetYear;
+    execHierarchyFilterState.calYear = parseInt(targetYear, 10);
+  } else if (appState.periodFilter === 'custom' && appState.customStartDate) {
+    execHierarchyFilterState.mode = 'day';
+    execHierarchyFilterState.selectedDate = appState.customStartDate;
+    const parts = appState.customStartDate.split('-');
+    execHierarchyFilterState.calYear = parseInt(parts[0], 10);
+    execHierarchyFilterState.calMonth = parseInt(parts[1], 10);
+    execHierarchyFilterState.selectedMonth = `${parts[0]}-${parts[1]}`;
+    execHierarchyFilterState.selectedYear = parts[0];
+  }
+}
 
 function closeAllExecDropdowns(except = null) {
   const backdrop = document.getElementById('exec-dropdown-backdrop');
@@ -4853,15 +4900,19 @@ function openExecutiveHierarchyModal() {
   if (!modal) return;
   modal.classList.remove('hidden');
 
-  // ALWAYS default to current month ("ខែ") upon entering modal:
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  execHierarchyFilterState.mode = 'month';
-  execHierarchyFilterState.selectedMonth = `${y}-${m}`;
-  execHierarchyFilterState.selectedYear = String(y);
-  execHierarchyFilterState.calYear = y;
-  execHierarchyFilterState.calMonth = now.getMonth() + 1;
+  // Synchronize modal filter with currently selected Home filter (Day / Month / Year)
+  if (typeof syncExecHierarchyWithHomeFilter === 'function') {
+    syncExecHierarchyWithHomeFilter();
+  } else {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    execHierarchyFilterState.mode = 'month';
+    execHierarchyFilterState.selectedMonth = `${y}-${m}`;
+    execHierarchyFilterState.selectedYear = String(y);
+    execHierarchyFilterState.calYear = y;
+    execHierarchyFilterState.calMonth = now.getMonth() + 1;
+  }
 
   renderExecutiveHierarchyDateFilterBar();
   renderExecutiveRoleSwitcherHtml('modal');
@@ -7214,6 +7265,9 @@ function getDashboardViewHTML() {
     // ------------------------------------------
     // 2. UNLOCKED STATE: Full Executive Command Center
     // ------------------------------------------
+    if (typeof syncExecHierarchyWithHomeFilter === 'function') {
+      syncExecHierarchyWithHomeFilter();
+    }
     const statsMap = getExecFilteredStats(d);
     const execRole = sessionStorage.getItem('sd_exec_role') || 'manager';
 
@@ -7555,7 +7609,19 @@ function getDashboardViewHTML() {
       }
     }
 
-    const cardSubtitleText = execRole === 'director' ? 'BOSTAR GROUP • DIRECTOR OVERVIEW' : (execRole === 'leader' ? 'BOSTAR GROUP • LEADERS' : (execRole === 'member' ? 'BOSTAR GROUP • សមាជិកទាំងអស់' : 'BOSTAR GROUP • MANAGERS'));
+    let dynamicExecPeriodLabel = '';
+    if (execHierarchyFilterState.mode === 'day') {
+      const parts = (execHierarchyFilterState.selectedDate || '').split('-');
+      dynamicExecPeriodLabel = (parts.length === 3) ? `ថ្ងៃទី ${parts[2]}/${parts[1]}/${parts[0]}` : 'ថ្ងៃនេះ';
+    } else if (execHierarchyFilterState.mode === 'month') {
+      const parts = (execHierarchyFilterState.selectedMonth || '').split('-');
+      dynamicExecPeriodLabel = (parts.length === 2) ? `ខែ ${parts[1]}/${parts[0]}` : 'ប្រចាំខែ';
+    } else if (execHierarchyFilterState.mode === 'year') {
+      dynamicExecPeriodLabel = `ឆ្នាំ ${execHierarchyFilterState.selectedYear || ''}`;
+    }
+
+    const cardRoleLabel = execRole === 'director' ? 'DIRECTOR OVERVIEW' : (execRole === 'leader' ? 'LEADERS' : (execRole === 'member' ? 'សមាជិកទាំងអស់' : 'MANAGERS'));
+    const cardSubtitleText = dynamicExecPeriodLabel ? `BOSTAR GROUP • ${cardRoleLabel} (${dynamicExecPeriodLabel})` : `BOSTAR GROUP • ${cardRoleLabel}`;
 
     cardTeamSales = `
       <!-- CARD E: VIP EXECUTIVE COMMAND CENTER (UNLOCKED STATE) -->
