@@ -30563,7 +30563,7 @@ let miniCalMonth = 9; // 0-indexed (9 = October)
 let miniCalSelectedDay = 15;
 
 const MONTH_NAMES_EN = [
-  'OCTOBER', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+  'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
   'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
 ];
 
@@ -31583,6 +31583,12 @@ function openNewOrderModal(mode = 'dock') {
       orderIdInput.placeholder = '#';
     }
   }
+
+  // Reset date to today for both Dock Mode and Telegram Mode
+  if (dateInput) {
+    dateInput.value = todayIso;
+  }
+  updateOrderDateDisplay(todayIso);
 
   // Attach phone formatting listeners
   if (sellerPhoneInput && !sellerPhoneInput._phoneFormatBound) {

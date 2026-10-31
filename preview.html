@@ -6804,7 +6804,7 @@
           <label id="order-label-date" class="block text-[11px] text-slate-400 font-semibold">កាលបរិច្ឆេទ:</label>
           <div class="flex items-center justify-between gap-2">
             <div class="relative flex items-center w-36 max-w-full">
-              <input type="text" id="order-field-date-text" value="20/10/2026" placeholder="DD/MM/YYYY" 
+              <input type="text" id="order-field-date-text" value="" placeholder="DD/MM/YYYY" 
                      onfocus="openOrderDatePicker()" oninput="onOrderDateTextInput(this.value)" 
                      class="w-full bg-black/50 border border-white/10 rounded-xl py-2 pl-3 pr-9 text-white font-mono text-xs focus:outline-none focus:border-orange-500 transition cursor-pointer">
               <button type="button" onclick="toggleOrderMiniCalendar(event)" id="btn-toggle-mini-calendar" 
@@ -6812,7 +6812,7 @@
                       title="ជ្រើសរើសប្រតិទិន">
                 <i data-lucide="calendar" class="w-4 h-4 pointer-events-none"></i>
               </button>
-              <input type="hidden" id="order-field-date" value="2026-10-20">
+              <input type="hidden" id="order-field-date" value="">
 
               <!-- BostarGroup Mini Calendar Widget Popup -->
               <div id="order-mini-calendar-popup" 
