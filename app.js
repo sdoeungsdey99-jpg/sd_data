@@ -4264,7 +4264,7 @@ const _initIsoMonth = `${_initYear}-${_initPaddedMonth}`;
 const _initIsoDay = `${_initIsoMonth}-${String(_initNow.getDate()).padStart(2, '0')}`;
 
 let execHierarchyFilterState = {
-  mode: 'all', // Default to full 1-year view (17,065 boxes)
+  mode: 'month', // Synchronized dynamically with appState.periodFilter or user selection
   selectedDate: _initIsoDay,
   selectedMonth: _initIsoMonth,
   selectedYear: String(_initYear),
@@ -4598,7 +4598,41 @@ function selectExecMonth(mNum, event) {
 
 function toggleExecYearDropdown(event) {
   if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
-  setExecPeriodFilter('year', '2026', event);
+  const menu = document.getElementById('exec-year-dropdown-menu');
+  const backdrop = document.getElementById('exec-dropdown-backdrop');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  closeAllExecDropdowns('year');
+  if (isHidden) {
+    renderExecYearDropdown();
+    menu.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+function renderExecYearDropdown() {
+  const menu = document.getElementById('exec-year-dropdown-menu');
+  if (!menu) return;
+
+  const currentYear = (new Date()).getFullYear();
+  const years = [2026, 2025];
+  const activeYear = execHierarchyFilterState.selectedYear ? parseInt(execHierarchyFilterState.selectedYear, 10) : 2026;
+
+  menu.innerHTML = years.map(y => {
+    const isSelected = execHierarchyFilterState.mode === 'year' && y === activeYear;
+    return `
+      <button type="button" onclick="selectExecYear(${y}, event)" 
+              class="w-full px-2.5 py-1.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${isSelected ? 'text-white bg-amber-500/20 border border-amber-500/30' : 'text-slate-300 hover:bg-white/10'}">
+        <span>ឆ្នាំ ${y}</span>
+        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-amber-400"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function selectExecYear(y, event) {
@@ -5026,11 +5060,17 @@ function renderExecutiveHierarchyDateFilterBar() {
       </div>
 
       <!-- 3. Year Pill -->
-      <button onclick="setExecPeriodFilter('year', '2026', event)" id="exec-filter-btn-year" 
-              class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn flex items-center justify-center gap-1 ${mode === 'year' ? activeBtnClasses : inactiveBtnClasses}">
-        <span id="exec-year-pill-label">ឆ្នាំ 2026</span>
-        <i data-lucide="calendar" class="w-3 h-3 opacity-80"></i>
-      </button>
+      <div class="relative flex-1">
+        <button onclick="toggleExecYearDropdown(event)" id="exec-filter-btn-year" 
+                class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn flex items-center justify-center gap-1 ${mode === 'year' ? activeBtnClasses : inactiveBtnClasses}">
+          <span id="exec-year-pill-label">${yearLabel}</span>
+          <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
+        </button>
+
+        <div id="exec-year-dropdown-menu" 
+             class="hidden absolute top-full right-0 mt-2 w-36 bg-[#0C1425]/98 backdrop-blur-3xl border border-white/20 rounded-2xl shadow-2xl p-1.5 z-50 flex flex-col gap-0.5 font-sans ring-1 ring-white/10 animate-fade-in">
+        </div>
+      </div>
 
       <!-- 4. All Period Pill -->
       <button onclick="setExecPeriodFilter('all', null, event)" id="exec-filter-btn-all" 
@@ -5116,9 +5156,7 @@ function getExecMonthStatsMap(d, targetMonth) {
 }
 
 function getExecFilteredStats(d) {
-  const mode = execHierarchyFilterState.mode || 'all';
-  if (mode === 'all') return null;
-
+  const mode = execHierarchyFilterState.mode || 'month';
   const allOrders = (d && Array.isArray(d.bostarTrackSales)) ? d.bostarTrackSales : [];
   const now = new Date();
   const currentIsoDay = getLocalIsoDate(now);
@@ -5135,6 +5173,8 @@ function getExecFilteredStats(d) {
   } else if (mode === 'year') {
     const targetYear = execHierarchyFilterState.selectedYear || currentIsoYear;
     filtered = allOrders.filter(o => o.isoDate && o.isoDate.startsWith(targetYear));
+  } else if (mode === 'all') {
+    filtered = allOrders; // Full 1-Year All-Time view across all BostarTrack orders (17,408 boxes)
   }
 
   const statsMap = {};
@@ -6672,27 +6712,7 @@ window.canViewAndEditManagerTarget = canViewAndEditManagerTarget;
 window.canEditManagerTarget = canViewAndEditManagerTarget;
 window.editManagerTargetPrompt = editManagerTargetPrompt;
 window.getManagerRankBadge = getManagerRankBadge;
-window.toggleManagerRoster = toggleManagerRoster;
-window.openExecutiveHierarchyFromDrawer = openExecutiveHierarchyFromDrawer;
-window.openExecutiveHierarchyModal = openExecutiveHierarchyModal;
-window.closeExecutiveHierarchyModal = closeExecutiveHierarchyModal;
-window.relockExecutiveHierarchyModal = relockExecutiveHierarchyModal;
-window.closeAllExecDropdowns = closeAllExecDropdowns;
-window.toggleExecDayDropdown = toggleExecDayDropdown;
-window.renderExecMiniCalendar = renderExecMiniCalendar;
-window.navigateExecCalendarMonth = navigateExecCalendarMonth;
-window.selectExecCalendarDay = selectExecCalendarDay;
-window.selectExecQuickDay = selectExecQuickDay;
-window.toggleExecMonthDropdown = toggleExecMonthDropdown;
-window.renderExecMonthDropdown = renderExecMonthDropdown;
-window.navigateExecMonthYear = navigateExecMonthYear;
-window.selectExecMonth = selectExecMonth;
-window.toggleExecYearDropdown = toggleExecYearDropdown;
-window.renderExecYearDropdown = renderExecYearDropdown;
-window.selectExecYear = selectExecYear;
-window.setExecPeriodFilter = setExecPeriodFilter;
 window.toggleExecDirectorExpanded = toggleExecDirectorExpanded;
-window.selectExecutiveManager = selectExecutiveManager;
 
 // ==========================================
 // 4. View: Dashboard & Live Pending COD Calculation
@@ -7582,7 +7602,9 @@ function getDashboardViewHTML() {
       const parts = (execHierarchyFilterState.selectedMonth || '').split('-');
       dynamicExecPeriodLabel = (parts.length === 2) ? `${parts[1]}/${parts[0]}` : 'ប្រចាំខែ';
     } else if (execHierarchyFilterState.mode === 'year') {
-      dynamicExecPeriodLabel = `${execHierarchyFilterState.selectedYear || ''}`;
+      dynamicExecPeriodLabel = `${execHierarchyFilterState.selectedYear || '2026'}`;
+    } else if (execHierarchyFilterState.mode === 'all') {
+      dynamicExecPeriodLabel = 'ពេញ ១ឆ្នាំ (All-Time)';
     }
 
     const cardSubtitleText = dynamicExecPeriodLabel ? `BOSTAR GROUP • ${dynamicExecPeriodLabel}` : `BOSTAR GROUP`;
