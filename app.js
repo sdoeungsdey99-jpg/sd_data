@@ -12636,22 +12636,22 @@ function getSettingsViewHTML() {
             </div>
           </div>
 
-          <!-- 3. សមកាលកម្មទិន្នន័យស្រស់ (Force Refresh & Clear Cache) -->
-          <div onclick="manualReload(true)" 
+          <!-- 3. ធ្វើបច្ចុប្បន្នភាព (Update App & Changelog) -->
+          <div onclick="triggerAppUpdateWithChangelog()" 
                class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 active:scale-[0.99] transition-all duration-150 select-none">
             <div class="settings-row-left flex items-center gap-3 min-w-0">
               <div class="settings-icon-box w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
-                <i data-lucide="refresh-cw" class="w-4 h-4 text-cyan-400"></i>
+                <i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i>
               </div>
               <div class="min-w-0">
-                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isKm ? 'ធ្វើសមកាលកម្មទិន្នន័យស្រស់' : 'Force Refresh & Clear Cache'}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ជម្រះ Cache និងទាញទិន្នន័យផ្ទាល់ពី Google Sheet' : 'Clear cache & pull fresh data from Google Sheet'}</p>
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isKm ? 'ធ្វើបច្ចុប្បន្នភាព' : 'Update App'}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ទាញទិន្នន័យស្រស់ & មើលកំណែថ្មី' : 'Pull fresh data & view changelog'}</p>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <span class="text-[10px] text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 font-mono">
                 <i data-lucide="rotate-cw" class="w-2.5 h-2.5"></i>
-                <span>${isKm ? 'ធ្វើបច្ចុប្បន្នភាព' : 'Sync Now'}</span>
+                <span>${isKm ? 'Update ឥឡូវ' : 'Update'}</span>
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </div>
@@ -17322,6 +17322,110 @@ function closeAboutModal(e) {
 }
 
 // ========================================================
+// APP UPDATE & WHAT'S NEW CHANGELOG MODAL
+// ========================================================
+function renderAppUpdateModalContent() {
+  const card = document.getElementById('app-update-modal-card');
+  if (!card) return;
+  const isKm = (appState.language === 'km');
+
+  card.innerHTML = `
+    <!-- Top Header with Badge -->
+    <div class="flex items-center justify-between border-b border-white/10 pb-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shadow-lg">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-sm text-white leading-tight">${isKm ? 'ធ្វើបច្ចុប្បន្នភាពរួចរាល់' : 'Update Complete'}</h3>
+          <p class="text-[10px] text-cyan-400 font-mono mt-0.5">Version 61.0 (ផ្លូវការ)</p>
+        </div>
+      </div>
+      <button id="app-update-close-btn" onclick="closeAppUpdateModal(event)" 
+              class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition active:scale-95">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Highlights List -->
+    <div class="space-y-2.5 py-1">
+      <p class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+        <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+        <span>${isKm ? 'អ្វីដែលបានកែប្រែសម្រេច (What’s New)' : 'Finalized Changes'}</span>
+      </p>
+
+      <div class="bg-black/40 rounded-2xl p-3 border border-white/5 space-y-2 text-xs">
+        <div class="flex items-start gap-2 text-slate-200">
+          <span class="text-emerald-400 font-bold shrink-0">✓</span>
+          <div>
+            <span class="font-bold text-white">${isKm ? 'ទិន្នន័យស្រស់ (Live Sync):' : 'Live Sync:'}</span>
+            <span class="text-slate-300 ml-1">${isKm ? 'លុបទិន្នន័យក្នុង Google Sheet គឺបាត់ពី App ភ្លាមៗ មិនជាប់ Cache ចាស់។' : 'Deleted rows in Google Sheet disappear instantly from the app.'}</span>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-2 text-slate-200">
+          <span class="text-emerald-400 font-bold shrink-0">✓</span>
+          <div>
+            <span class="font-bold text-white">${isKm ? 'គាំទ្រផលិតផលថ្មី (Emmi & S.G):' : 'New Products:'}</span>
+            <span class="text-slate-300 ml-1">${isKm ? 'បន្ថែមការកត់ត្រា និងគណនា Emmi និង S.G ស្វ័យប្រវត្ត។' : 'Auto-records and calculates Emmi & S.G sales.'}</span>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-2 text-slate-200">
+          <span class="text-emerald-400 font-bold shrink-0">✓</span>
+          <div>
+            <span class="font-bold text-white">${isKm ? 'កត់ត្រាចំជួរដេកចុងក្រោយ:' : 'Safe Row Append:'}</span>
+            <span class="text-slate-300 ml-1">${isKm ? 'ទិន្នន័យរត់ទៅជួរក្រោមបង្អស់ ១០០% មិនជាន់លើជួរចាស់។' : 'Orders append strictly to the bottom without overwriting.'}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Guidance / Tip -->
+      <div class="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[10px] text-cyan-300 flex items-start gap-2 leading-relaxed">
+        <i data-lucide="info" class="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5"></i>
+        <span>${isKm ? 'ពេលក្រុមការងារកែសម្រួលមុខងារសម្រេច សូមចុច "Update" នេះ ដើម្បីដំណើរការមុខងារថ្មីចុងក្រោយបង្អស់។' : 'Tap Update whenever new features are finalized to get the latest app capabilities.'}</span>
+      </div>
+    </div>
+
+    <!-- Done Button -->
+    <div class="pt-1">
+      <button onclick="closeAppUpdateModal(event)" 
+              class="w-full py-2.5 rounded-2xl accent-solid-btn font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg">
+        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+        <span>${isKm ? 'យល់ព្រម (រួចរាល់)' : 'Got it (Done)'}</span>
+      </button>
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function openAppUpdateModal() {
+  const modal = document.getElementById('app-update-modal');
+  if (modal) {
+    renderAppUpdateModalContent();
+    modal.classList.remove('hidden');
+    setDockVisible(false);
+    if (navigator.vibrate) navigator.vibrate(15);
+  }
+}
+
+function closeAppUpdateModal(e) {
+  if (e && e.target && e.target !== e.currentTarget && !e.target.closest('#app-update-close-btn') && !e.target.closest('button')) return;
+  const modal = document.getElementById('app-update-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    setDockVisible(true);
+    if (navigator.vibrate) navigator.vibrate(10);
+  }
+}
+
+async function triggerAppUpdateWithChangelog() {
+  await manualReload(true);
+  openAppUpdateModal();
+}
+
+// ========================================================
 // FULL-SCREEN BOSTAR HONORS & MC PRESENTATION MODAL
 // ========================================================
 window._currentHonorsTab = 'honors';
@@ -18691,28 +18795,6 @@ window.prevTutorialStep = prevTutorialStep;
 window.replayTutorialStep = replayTutorialStep;
 window.toggleTutorialAutoPlay = toggleTutorialAutoPlay;
 window.renderTutorialModalContent = renderTutorialModalContent;
-
-
-function openAboutModal() {
-  const modal = document.getElementById('about-modal');
-  if (modal) {
-    renderAboutModalContent();
-    modal.classList.remove('hidden');
-    setDockVisible(false);
-    if (navigator.vibrate) navigator.vibrate(12);
-  }
-}
-
-function closeAboutModal(e) {
-  if (e && e.target && e.target.closest && e.target.closest('#about-modal-card')) {
-    return; // clicked inside card, don't close
-  }
-  const modal = document.getElementById('about-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    setDockVisible(true);
-  }
-}
 
 // ==========================================
 // iOS Notification Center System (Full Engine)

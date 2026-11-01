@@ -359,12 +359,7 @@ async function fetchGoogleSheetGViz(param, sheetNameFallback, overrideSheetId = 
     const timer = setTimeout(() => controller.abort(), 12000);
     response = await fetch(url, { 
       signal: controller.signal,
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
+      cache: 'no-store'
     });
     clearTimeout(timer);
   } catch (e) {
@@ -375,12 +370,7 @@ async function fetchGoogleSheetGViz(param, sheetNameFallback, overrideSheetId = 
       try {
         response = await fetch(retryUrl, { 
           signal: controller.signal,
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
+          cache: 'no-store'
         });
       } catch (_) {}
       clearTimeout(timer);
@@ -413,12 +403,7 @@ async function fetchGoogleSheetCSV(param, sheetNameFallback, overrideSheetId = n
     const timer = setTimeout(() => controller.abort(), 12000);
     response = await fetch(gvizUrl, { 
       signal: controller.signal,
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
+      cache: 'no-store'
     });
     clearTimeout(timer);
   } catch (e) {
@@ -429,12 +414,7 @@ async function fetchGoogleSheetCSV(param, sheetNameFallback, overrideSheetId = n
       try {
         response = await fetch(fallbackUrl, { 
           signal: controller.signal,
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
+          cache: 'no-store'
         });
       } catch (_) {}
       clearTimeout(timer);
@@ -764,8 +744,7 @@ window.DataService = {
     if (forceRefresh) {
       try {
         if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem('sd_offline_master_data');
-          localStorage.removeItem('sd_offline_custom_data');
+          // Clear local uncommitted queues so deleted orders are never revived
           localStorage.removeItem('sd_local_orders');
           localStorage.removeItem('sd_local_expenses');
         }
@@ -806,9 +785,9 @@ window.DataService = {
 
       // Smart Column Layout Detector: Checks if Col 11 (Index 11) is S.G or Col 12 is Emmi, or if total cols >= 25
       const colsCount = (psGviz && psGviz.table && Array.isArray(psGviz.table.cols)) ? psGviz.table.cols.length : 0;
-      const headerRowCells = psRows[0]?.c || [];
-      const col11Hdr = String(headerRowCells[11]?.v || psGviz.table?.cols?.[11]?.label || '').toLowerCase();
-      const col12Hdr = String(headerRowCells[12]?.v || psGviz.table?.cols?.[12]?.label || '').toLowerCase();
+      const headerRowCells = (psRows && psRows[0] && Array.isArray(psRows[0].c)) ? psRows[0].c : [];
+      const col11Hdr = String((headerRowCells[11] && headerRowCells[11].v) || (psGviz && psGviz.table && psGviz.table.cols && psGviz.table.cols[11] && psGviz.table.cols[11].label) || '').toLowerCase();
+      const col12Hdr = String((headerRowCells[12] && headerRowCells[12].v) || (psGviz && psGviz.table && psGviz.table.cols && psGviz.table.cols[12] && psGviz.table.cols[12].label) || '').toLowerCase();
       const isNewColumnLayout = colsCount >= 25 || col11Hdr.includes('s.g') || col11Hdr.includes('sg') || col12Hdr.includes('emmi') || col11Hdr.includes('emmi');
 
       for (let i = 1; i < psRows.length; i++) {
@@ -953,9 +932,9 @@ window.DataService = {
         });
       }
 
-      // Preserve cached data if fetch timed out or returned empty (Master Sheet only)
-      if (this.isMasterSheet() && personalSales.length === 0 && this.data && Array.isArray(this.data.personalSales) && this.data.personalSales.length > 0) {
-        console.warn('⚠️ Personal sales fetch returned 0 rows (retaining previous cached sales for master)');
+      // Preserve cached data if fetch timed out or returned empty
+      if (personalSales.length === 0 && this.data && Array.isArray(this.data.personalSales) && this.data.personalSales.length > 0) {
+        console.warn('⚠️ Personal sales fetch returned 0 rows (retaining previous cached sales)');
         personalSales.push(...this.data.personalSales);
       }
 
@@ -997,9 +976,9 @@ window.DataService = {
         });
       }
 
-      // Preserve cached expenses if fetch timed out or returned empty (Master Sheet only)
-      if (this.isMasterSheet() && expenses.length === 0 && this.data && Array.isArray(this.data.expenses) && this.data.expenses.length > 0) {
-        console.warn('⚠️ Expenses fetch returned 0 rows (retaining previous cached expenses for master)');
+      // Preserve cached expenses if fetch timed out or returned empty
+      if (expenses.length === 0 && this.data && Array.isArray(this.data.expenses) && this.data.expenses.length > 0) {
+        console.warn('⚠️ Expenses fetch returned 0 rows (retaining previous cached expenses)');
         expenses.push(...this.data.expenses);
       }
 
