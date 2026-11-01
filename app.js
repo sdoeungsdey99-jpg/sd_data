@@ -6743,7 +6743,7 @@ function getLivePendingCodTotal() {
                           appState.selectedMonthKey : 
                           getLocalIsoDate(new Date()).slice(0, 7);
 
-  // 1. Sales items matching the 6 pending statuses
+  // 1. Sales items matching the 6 pending statuses (all active uncollected receivables, not cut off by month shift)
   const salesItems = (d.personalSales || [])
     .filter(o => {
       const st = String(o.codStatus || '').trim();
@@ -6751,7 +6751,6 @@ function getLivePendingCodTotal() {
       if (!st && cleanNumber(o.totalAmount) <= 0) return false;
       const isPending = validPendingStatuses.some(v => st.includes(v));
       if (!isPending) return false;
-      if (o.isoDate && !o.isoDate.startsWith(currentMonthKey)) return false;
       return true;
     })
     .map(o => ({
@@ -13831,28 +13830,35 @@ function renderCodSummary() {
   };
 
   // 1. Bank sheet rows (pendingCodReceivables) excluding settled
+  // Also smart look up customer, seller, phone, and box count from personalSales if omitted
   const bankItems = (d.pendingCodReceivables || [])
     .filter(item => !isSettled(item.status))
-    .map(item => ({
-      no: item.no || '',
-      recordId: '',
-      orderId: item.no || '',
-      rowIndex: -1,
-      date: item.date || '',
-      customer: item.customer || 'អតិថិជន COD',
-      seller: item.carrier || 'អ្នកលក់',
-      phone: '',
-      qtyBoxes: item.qtyBoxes || '—',
-      status: item.status || 'រង់ចាំទូទាត់',
-      amount: cleanNumber(item.amount),
-      source: 'bank'
-    }));
+    .map(item => {
+      // Find matching order in personalSales to recover customer, phone, seller, etc.
+      const match = (d.personalSales || []).find(s => {
+        const dateMatch = s.date === item.date || (s.isoDate && item.date && formatToDDMMYYYY(item.date) === s.date);
+        const amtMatch = Math.abs(cleanNumber(s.totalAmount) - cleanNumber(item.amount)) < 0.05;
+        return dateMatch && amtMatch;
+      });
 
-  // 2. Pull in orders from Personal Sales (Column Q), specifically «បានដាក់ការកុម្ម៉ង់» and active pending
-  const currentMonthKey = (appState.periodFilter === 'month' && appState.selectedMonthKey) ? 
-                          appState.selectedMonthKey : 
-                          getLocalIsoDate(new Date()).slice(0, 7);
+      return {
+        no: item.no || (match ? (match.orderId || match.id || '') : ''),
+        recordId: match ? (match.recordId || '') : '',
+        orderId: item.no || (match ? (match.orderId || match.id || '') : ''),
+        rowIndex: match ? match.rowIndex : -1,
+        date: item.date || '',
+        customer: (match && match.customer) ? match.customer : (item.customer || 'អតិថិជន COD'),
+        seller: (match && match.seller) ? match.seller : (item.carrier || 'អ្នកលក់'),
+        phone: match ? (match.phone || '') : '',
+        qtyBoxes: (match && match.totalBoxQty) ? `${match.totalBoxQty} ប្រអប់` : (item.qtyBoxes || '—'),
+        status: item.status || (match ? match.codStatus : 'រង់ចាំទូទាត់'),
+        amount: cleanNumber(item.amount),
+        source: 'bank'
+      };
+    });
 
+  // 2. Pull in orders from Personal Sales (Column Q), specifically active pending COD statuses
+  // Active uncollected receivables must stay visible across month boundaries until settled
   const salesItems = (d.personalSales || [])
     .filter(o => {
       const st = String(o.codStatus || '').trim();
@@ -13860,8 +13866,8 @@ function renderCodSummary() {
       if (isSettled(st)) return false;
       // Must have valid status or amount
       if (!st && cleanNumber(o.totalAmount) <= 0) return false;
-      // Filter for active month
-      if (o.isoDate && !o.isoDate.startsWith(currentMonthKey)) return false;
+      const isPending = validPendingStatuses.some(v => st.includes(v));
+      if (!isPending) return false;
       return true;
     })
     .map(o => ({
@@ -13883,7 +13889,8 @@ function renderCodSummary() {
   const combined = [...salesItems];
   bankItems.forEach(bItem => {
     const match = combined.find(s => {
-      return (s.date === bItem.date && Math.abs(s.amount - bItem.amount) < 0.01) ||
+      return (s.date === bItem.date && Math.abs(s.amount - bItem.amount) < 0.05) ||
+             (bItem.phone && s.phone && bItem.phone === s.phone) ||
              (bItem.customer && bItem.customer !== 'អតិថិជន COD' && s.customer.toLowerCase().includes(bItem.customer.toLowerCase()));
     });
     if (!match) {
@@ -14045,9 +14052,11 @@ function getFilteredThaiCodOrders() {
     const isPending = validPendingStatuses.some(v => st.includes(v));
     if (!isPending) return false;
 
-    // Filter by active month (excludes historical months Jan-Aug with blank/untracked statuses)
-    if (o.isoDate && !o.isoDate.startsWith(currentMonthKey)) {
-      return false;
+    // Filter by period: if specific month is chosen via month dropdown, match it; otherwise show all active pending orders
+    if (appState.periodFilter === 'month' && appState.selectedMonthKey) {
+      if (o.isoDate && !o.isoDate.startsWith(appState.selectedMonthKey)) {
+        return false;
+      }
     }
 
     // If standing on 'tick' phase pill: filter specifically by ticked status!
