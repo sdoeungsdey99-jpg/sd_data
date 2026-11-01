@@ -31438,8 +31438,9 @@ async function copyOrderTelegramText(recordOrForm = null, silent = false, leader
     seller = document.getElementById('order-field-seller')?.value || '';
     team = document.getElementById('order-field-team')?.value || '';
   }
-  const myOwnLeader = leaderOverride || (typeof getManagerLatinCode === 'function' ? getManagerLatinCode(seller, team) : team) || 'Bech_Nora';
-  const text = generateBilingualTelegramOrderText(recordOrForm, myOwnLeader);
+  const isDock = (currentOrderEntryMode === 'dock');
+  const targetLeader = leaderOverride || (isDock ? ((typeof getManagerLatinCode === 'function' ? getManagerLatinCode(seller, team) : team) || 'Bech_Nora') : (team || 'Bech_Nora'));
+  const text = generateBilingualTelegramOrderText(recordOrForm, targetLeader);
   const ok = await copyTextToSystemClipboard(text);
 
   const btn = document.getElementById('btn-order-copy-tg-capsule');
@@ -31456,12 +31457,18 @@ async function copyOrderTelegramText(recordOrForm = null, silent = false, leader
   }
 
   if (ok && !silent) {
-    showToastNotification('🚀 បានចម្លង & បើក Telegram... សូមចុច Paste!');
+    if (isDock) {
+      showToastNotification('🚀 បានចម្លង & បើក Telegram... សូមចុច Paste!');
+    } else {
+      showToastNotification('✅ បានចម្លងសារកុម្ម៉ង់រួចរាល់! 📋');
+    }
     if (navigator.vibrate) try { navigator.vibrate([20, 40]); } catch (_) {}
   }
 
-  // Jump to Telegram Accounting Group directly
-  openAccountingTelegramGroup();
+  // Jump to Telegram Accounting Group directly ONLY when in Dock Order mode (បញ្ចូលការកុម្ម៉ង់ថ្មី)
+  if (isDock) {
+    openAccountingTelegramGroup();
+  }
 
   return ok;
 }
