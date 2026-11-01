@@ -30,7 +30,7 @@ function authorizeExternalSheets() {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'ok',
-    version: '3.2-ps-priority-26col',
+    version: '3.3-append-bottom-fix',
     message: 'SD Dashboard Webhook is live and ready! 🚀'
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -214,6 +214,7 @@ function insertPersonalSalesOrder(ss, order) {
   var maxRecNum = 0;
   var maxBNum = 0; // តាមដានលេខ #B*** ខ្ពស់បំផុតក្នុង Sheet
   var isBOrderClash = false; // ប្រសិនបើជា #B*** ជាន់លេខគ្នាដោយសារសមាជិក ២ នាក់ Submit ដំណាលគ្នា
+  var lastDataRow = 1; // តាមដានជួរចុងក្រោយបង្អស់ដែលមានទិន្នន័យ
   var targetRow = -1; // ជួរដេកដែលត្រូវបំពេញ
 
   // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)
@@ -285,16 +286,21 @@ function insertPersonalSalesOrder(ss, order) {
       };
     }
 
-    // ស្វែងរកជួរទំនេរដំបូង (Col A ទទេ ឬគ្មាន Date)
-    if (targetRow === -1 && (!rowDate || String(rowDate).trim() === '')) {
-      targetRow = r + 1; // 1-indexed row number
+    // តាមដានជួរចុងក្រោយបង្អស់ដែលមានទិន្នន័យពិតប្រាកដ (ទោះបី Col A គ្មាន Date ឬជាប់ Merge ក៏ស្គាល់)
+    var rCust = values[r][2];
+    var rPhone = values[r][6];
+    var hasRealContent = (existingOrderId && existingOrderId !== '') ||
+                         (rCust && String(rCust).trim() !== '') ||
+                         (rPhone && String(rPhone).trim() !== '') ||
+                         (rowDate && String(rowDate).trim() !== '');
+
+    if (hasRealContent) {
+      lastDataRow = r + 1; // 1-indexed row number
     }
   }
 
-  // បើរកមិនឃើញជួរទំនេរដែលមានស្រាប់ទេ ត្រូវបន្ថែមជួរថ្មីនៅខាងក្រោម
-  if (targetRow === -1) {
-    targetRow = numRows + 1;
-  }
+  // ជួរថ្មីដែលត្រូវបញ្ចូល គឺបន្ទាប់ពីជួរចុងក្រោយបង្អស់ដែលមានទិន្នន័យជានិច្ច (Strictly Append to Bottom)
+  targetRow = lastDataRow + 1;
 
   // បង្កើត Record_ID ថ្មីបន្តបន្ទាប់ (ឧ. REC-0503)
   var nextRecNum = maxRecNum + 1;
