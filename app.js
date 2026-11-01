@@ -17327,18 +17327,17 @@ function closeAboutModal(e) {
 function renderAppUpdateModalContent() {
   const card = document.getElementById('app-update-modal-card');
   if (!card) return;
-  const isKm = (appState.language === 'km');
 
   card.innerHTML = `
-    <!-- Top Header with Badge -->
+    <!-- Top Header -->
     <div class="flex items-center justify-between border-b border-white/10 pb-3">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shadow-lg">
+        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shadow-lg shrink-0">
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight">${isKm ? 'ធ្វើបច្ចុប្បន្នភាពរួចរាល់' : 'Update Complete'}</h3>
-          <p class="text-[10px] text-cyan-400 font-mono mt-0.5">Version 61.0 (ផ្លូវការ)</p>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v6.1)</h3>
+          <p class="text-[10px] text-cyan-400 font-mono mt-0.5">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
       <button id="app-update-close-btn" onclick="closeAppUpdateModal(event)" 
@@ -17347,52 +17346,66 @@ function renderAppUpdateModalContent() {
       </button>
     </div>
 
-    <!-- Highlights List -->
-    <div class="space-y-2.5 py-1">
-      <p class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-        <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
-        <span>${isKm ? 'អ្វីដែលបានកែប្រែសម្រេច (What’s New)' : 'Finalized Changes'}</span>
-      </p>
-
-      <div class="bg-black/40 rounded-2xl p-3 border border-white/5 space-y-2 text-xs">
-        <div class="flex items-start gap-2 text-slate-200">
-          <span class="text-emerald-400 font-bold shrink-0">✓</span>
-          <div>
-            <span class="font-bold text-white">${isKm ? 'ទិន្នន័យស្រស់ (Live Sync):' : 'Live Sync:'}</span>
-            <span class="text-slate-300 ml-1">${isKm ? 'លុបទិន្នន័យក្នុង Google Sheet គឺបាត់ពី App ភ្លាមៗ មិនជាប់ Cache ចាស់។' : 'Deleted rows in Google Sheet disappear instantly from the app.'}</span>
+    <!-- Content Sections (Pure Khmer / UI Identity) -->
+    <div class="space-y-3 py-1 font-kantumruy">
+      
+      <!-- 1. System Adjustment Info -->
+      <div class="bg-black/40 rounded-2xl p-3 border border-white/5 space-y-2">
+        <p class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+          <i data-lucide="bell-ring" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+          <span>📢 ដំណឹងពីការកែសម្រួលប្រព័ន្ធ៖</span>
+        </p>
+        <p class="text-[11px] text-slate-300 leading-relaxed font-semibold">
+          បានកែសម្រួលតាមការប្រកាសរបស់ក្រុមហ៊ុន៖
+        </p>
+        <div class="space-y-1.5 text-xs pl-1">
+          <div class="flex items-start gap-2 text-slate-200">
+            <span class="text-emerald-400 font-bold shrink-0">•</span>
+            <span class="text-[11px] leading-relaxed">បន្ថែមមុខងារ Promotion ថ្មី</span>
           </div>
-        </div>
-
-        <div class="flex items-start gap-2 text-slate-200">
-          <span class="text-emerald-400 font-bold shrink-0">✓</span>
-          <div>
-            <span class="font-bold text-white">${isKm ? 'គាំទ្រផលិតផលថ្មី (Emmi & S.G):' : 'New Products:'}</span>
-            <span class="text-slate-300 ml-1">${isKm ? 'បន្ថែមការកត់ត្រា និងគណនា Emmi និង S.G ស្វ័យប្រវត្ត។' : 'Auto-records and calculates Emmi & S.G sales.'}</span>
+          <div class="flex items-start gap-2 text-slate-200">
+            <span class="text-emerald-400 font-bold shrink-0">•</span>
+            <span class="text-[11px] leading-relaxed">បន្ថែមជួរឈរសម្រាប់ដាក់ចំនួន ដោយមិនគិតថ្លៃដើម</span>
           </div>
-        </div>
-
-        <div class="flex items-start gap-2 text-slate-200">
-          <span class="text-emerald-400 font-bold shrink-0">✓</span>
-          <div>
-            <span class="font-bold text-white">${isKm ? 'កត់ត្រាចំជួរដេកចុងក្រោយ:' : 'Safe Row Append:'}</span>
-            <span class="text-slate-300 ml-1">${isKm ? 'ទិន្នន័យរត់ទៅជួរក្រោមបង្អស់ ១០០% មិនជាន់លើជួរចាស់។' : 'Orders append strictly to the bottom without overwriting.'}</span>
+          <div class="flex items-start gap-2 text-slate-200">
+            <span class="text-emerald-400 font-bold shrink-0">•</span>
+            <span class="text-[11px] leading-relaxed">កែសម្រួលប្រព័ន្ធកត់ត្រាលក់ឱ្យស្របតាមក្រុមហ៊ុន</span>
           </div>
         </div>
       </div>
 
-      <!-- Quick Guidance / Tip -->
-      <div class="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-[10px] text-cyan-300 flex items-start gap-2 leading-relaxed">
-        <i data-lucide="info" class="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5"></i>
-        <span>${isKm ? 'ពេលក្រុមការងារកែសម្រួលមុខងារសម្រេច សូមចុច "Update" នេះ ដើម្បីដំណើរការមុខងារថ្មីចុងក្រោយបង្អស់។' : 'Tap Update whenever new features are finalized to get the latest app capabilities.'}</span>
+      <!-- 2. Appreciation Note -->
+      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+        <p class="text-xs font-bold text-orange-400 flex items-center gap-1.5">
+          <span>🙏</span>
+          <span>សេចក្តីថ្លែងអំណរគុណ៖</span>
+        </p>
+        <p class="text-[11px] text-slate-300 leading-relaxed">
+          សូមអរគុណបងប្អូនសមាជិកទាំងអស់ដែលបានធ្វើបច្ចុប្បន្នភាព មកកាន់ជំនាន់ថ្មី និងតែងតែសហការជាមួយគ្នា!
+        </p>
       </div>
+
+      <!-- 3. Feedback / Telegram Button -->
+      <div class="space-y-1.5 pt-0.5">
+        <p class="text-[11px] font-bold text-slate-400 flex items-center gap-1.5 px-0.5">
+          <i data-lucide="message-square" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
+          <span>💬 ផ្ញើមតិកែលម្អ / ជំនួយបច្ចេកទេស៖</span>
+        </p>
+        <a href="https://t.me/sdoeung_sd" target="_blank" 
+           class="w-full py-2.5 px-3 rounded-2xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
+          <i data-lucide="send" class="w-3.5 h-3.5 text-sky-400"></i>
+          <span>🚀 ផ្ញើមតិ ឬរាយការណ៍បញ្ហា (Telegram)</span>
+        </a>
+      </div>
+
     </div>
 
-    <!-- Done Button -->
-    <div class="pt-1">
-      <button onclick="closeAppUpdateModal(event)" 
-              class="w-full py-2.5 rounded-2xl accent-solid-btn font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg">
-        <i data-lucide="check" class="w-3.5 h-3.5"></i>
-        <span>${isKm ? 'យល់ព្រម (រួចរាល់)' : 'Got it (Done)'}</span>
+    <!-- Action Done Button (Triggers Clean Restart) -->
+    <div class="pt-1 font-kantumruy">
+      <button onclick="restartAppFresh()" 
+              class="w-full py-3 rounded-2xl accent-solid-btn font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition shadow-xl">
+        <i data-lucide="check" class="w-4 h-4"></i>
+        <span>យល់ព្រម (រួចរាល់)</span>
       </button>
     </div>
   `;
@@ -17423,6 +17436,56 @@ function closeAppUpdateModal(e) {
 async function triggerAppUpdateWithChangelog() {
   await manualReload(true);
   openAppUpdateModal();
+}
+
+function restartAppFresh() {
+  if (navigator.vibrate) {
+    try { navigator.vibrate([15, 50, 20]); } catch (_) {}
+  }
+  
+  // Close the update modal
+  const updateModal = document.getElementById('app-update-modal');
+  if (updateModal) updateModal.classList.add('hidden');
+
+  // Show full-screen restarting overlay with theme/accent styling
+  let restartOverlay = document.getElementById('app-restart-overlay');
+  if (!restartOverlay) {
+    restartOverlay = document.createElement('div');
+    restartOverlay.id = 'app-restart-overlay';
+    document.body.appendChild(restartOverlay);
+  }
+
+  restartOverlay.className = 'fixed inset-0 z-[150] bg-[#070D18]/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in transition-all duration-300';
+  restartOverlay.innerHTML = `
+    <div class="relative mb-5">
+      <div class="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl p-3 relative z-10 overflow-hidden">
+        <img src="bostar-logo.png" alt="Bostar" class="w-full h-full object-contain">
+      </div>
+      <div class="absolute -inset-2 rounded-3xl bg-orange-500/20 blur-xl pointer-events-none"></div>
+    </div>
+    <div class="space-y-2 max-w-xs font-kantumruy">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 text-xs font-bold font-kantumruy shadow-md">
+        <svg class="w-3.5 h-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>កំពុងចាប់ផ្តើមប្រព័ន្ធឡើងវិញ...</span>
+      </div>
+      <p class="text-xs text-slate-400 font-kantumruy leading-relaxed mt-1">
+        សូមរង់ចាំបន្តិច ប្រព័ន្ធកំពុងជម្រះ និងដំណើរការកំណែថ្មីជូនលោកអ្នក
+      </p>
+    </div>
+  `;
+
+  // Brief pause for smooth animation then full clean reload
+  setTimeout(() => {
+    try {
+      const cleanUrl = window.location.origin + window.location.pathname + '?v=' + Date.now();
+      window.location.replace(cleanUrl);
+    } catch (_) {
+      window.location.reload();
+    }
+  }, 900);
 }
 
 // ========================================================
