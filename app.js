@@ -13654,6 +13654,16 @@ const COD_STATUS_OPTIONS = [
   'ហ្វ្រី (Free)'
 ];
 
+const VALID_PENDING_COD_STATUSES = [
+  'បានដាក់ការកុម្ម៉ង់',
+  'បានដាក់ការកុម្មង់',
+  'បានរៀបចំ',
+  'ដល់អតិថិជន 1st',
+  'ដល់អតិថិជន 2nd',
+  'ដល់អតិថិជន 3rd',
+  'មិនទាន់ទូទាត់'
+];
+
 function getCodStatusBadgeClass(status) {
   const s = String(status || '').trim();
   if (s.includes('1st')) return 'bg-blue-600/30 text-blue-200 border border-blue-500/50';
@@ -13859,6 +13869,10 @@ function renderCodSummary() {
 
   // 2. Pull in orders from Personal Sales (Column Q), specifically active pending COD statuses
   // Active uncollected receivables must stay visible across month boundaries until settled
+  const validPendingStatuses = typeof VALID_PENDING_COD_STATUSES !== 'undefined' ? VALID_PENDING_COD_STATUSES : [
+    'បានដាក់ការកុម្ម៉ង់', 'បានដាក់ការកុម្មង់', 'បានរៀបចំ', 'ដល់អតិថិជន 1st', 'ដល់អតិថិជន 2nd', 'ដល់អតិថិជន 3rd', 'មិនទាន់ទូទាត់'
+  ];
+
   const salesItems = (d.personalSales || [])
     .filter(o => {
       const st = String(o.codStatus || '').trim();
