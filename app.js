@@ -4622,8 +4622,8 @@ function renderExecYearDropdown() {
   if (!menu) return;
 
   const currentYear = (new Date()).getFullYear();
-  const years = [2026, 2025];
-  const activeYear = execHierarchyFilterState.selectedYear ? parseInt(execHierarchyFilterState.selectedYear, 10) : 2026;
+  const years = [2028, 2027, 2026, 2025];
+  const activeYear = execHierarchyFilterState.selectedYear ? parseInt(execHierarchyFilterState.selectedYear, 10) : currentYear;
 
   menu.innerHTML = years.map(y => {
     const isSelected = execHierarchyFilterState.mode === 'year' && y === activeYear;
@@ -4658,8 +4658,9 @@ function setExecPeriodFilter(mode, val, event) {
   execHierarchyFilterState.userInteracted = true;
   execHierarchyFilterState.mode = mode;
   if (mode === 'year') {
-    execHierarchyFilterState.selectedYear = String(val || '2026');
-    execHierarchyFilterState.calYear = parseInt(val || '2026', 10);
+    const curYear = (new Date()).getFullYear();
+    execHierarchyFilterState.selectedYear = String(val || curYear);
+    execHierarchyFilterState.calYear = parseInt(val || curYear, 10);
   }
   renderExecutiveHierarchyDateFilterBar();
   renderExecutiveRoleSwitcherHtml('modal');
@@ -8034,8 +8035,9 @@ function getAnalyticsViewHTML() {
   });
 
   const months = Object.keys(monthlyStats).sort();
-  const allYears = [...new Set([...months.map(m => m.split('-')[0]), '2025', '2026', '2027'])].sort((a,b) => parseInt(a,10) - parseInt(b,10));
-  const currentActiveYear = appState.analyticsYear || (allYears.includes('2026') ? '2026' : (allYears[0] || '2026'));
+  const allYears = [...new Set([...months.map(m => m.split('-')[0]), '2025', '2026', '2027', '2028'])].sort((a,b) => parseInt(a,10) - parseInt(b,10));
+  const curYearStr = String((new Date()).getFullYear());
+  const currentActiveYear = appState.analyticsYear || (allYears.includes(curYearStr) ? curYearStr : (allYears.includes('2026') ? '2026' : (allYears[0] || '2026')));
   appState.analyticsYear = currentActiveYear;
 
   // Add boost for months
@@ -13360,7 +13362,7 @@ function renderPayablesList() {
         <!-- Year Selector Pill -->
         <div class="relative">
           <select onchange="changePayablesYear(this.value)" class="appearance-none bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white text-[11px] font-semibold rounded-lg pl-2 pr-5 py-1 focus:outline-none focus:border-orange-500/50 cursor-pointer transition">
-            ${[2025, 2026, 2027].map(y => {
+            ${[2028, 2027, 2026, 2025].map(y => {
               const isSelected = y === activePayablesYear;
               return `<option value="${y}" ${isSelected ? 'selected' : ''} class="bg-[#0B1528] text-white">ឆ្នាំ ${y}</option>`;
             }).join('')}
@@ -15148,8 +15150,7 @@ function renderBoostYearDropdown() {
   const menu = document.getElementById('boost-year-dropdown-menu');
   if (!menu) return;
 
-  const curYear = (new Date()).getFullYear();
-  const years = [curYear + 1, curYear, curYear - 1, curYear - 2];
+  const years = [2028, 2027, 2026, 2025];
 
   menu.innerHTML = years.map(y => {
     const isSelected = (y === activeBoostYear);
@@ -15418,7 +15419,8 @@ function openTeamSetsModal(leaderName, monthNum) {
   const modal = document.getElementById('team-sets-modal');
   if (!modal) return;
 
-  const targetMonth = monthNum || parseInt((appState.selectedMonthKey || '2026-10').split('-')[1], 10) || 10;
+  const curYear = (new Date()).getFullYear();
+  const targetMonth = monthNum || parseInt((appState.selectedMonthKey || `${curYear}-10`).split('-')[1], 10) || 10;
   activeTeamSetsMonthNum = targetMonth;
 
   const leaders = (d.teamLeadersByMonth && d.teamLeadersByMonth[targetMonth]) || d.teamLeaders || [];
@@ -15504,7 +15506,7 @@ function renderTeamSetsMiniCalendar() {
 
   const isKm = (appState && appState.language) !== 'en';
   const mNum = activeTeamSetsMonthNum || 10;
-  const year = 2026;
+  const year = parseInt((appState.selectedMonthKey || '').split('-')[0], 10) || parseInt(appState.selectedYear, 10) || (new Date()).getFullYear();
   const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
   const enMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const monthTitle = isKm ? `ខែ ${khmerMonths[mNum - 1]} ${year}` : `${enMonths[mNum - 1]} ${year}`;
@@ -15652,7 +15654,8 @@ function renderTeamSetsModalContent() {
   const subtitleEl = document.getElementById('team-sets-modal-subtitle');
   if (subtitleEl) {
     const moStr = String(activeTeamSetsMonthNum).padStart(2, '0');
-    subtitleEl.textContent = isKm ? `តារាងលម្អិតឈុតប្រចាំថ្ងៃ (${moStr}/2026)` : `Daily Set Breakdown (${moStr}/2026)`;
+    const year = parseInt((appState.selectedMonthKey || '').split('-')[0], 10) || parseInt(appState.selectedYear, 10) || (new Date()).getFullYear();
+    subtitleEl.textContent = isKm ? `តារាងលម្អិតឈុតប្រចាំថ្ងៃ (${moStr}/${year})` : `Daily Set Breakdown (${moStr}/${year})`;
   }
 
   // 2. Summary Row - 2-Row Layout (Title on Top, Amount Below, No Capsule, No Dividers, 3-Color Gradient)
@@ -20003,7 +20006,8 @@ function getModalShareText(modalType) {
   } else if (modalType === 'teamsets' && activeTeamSetsLeader) {
     const l = activeTeamSetsLeader;
     const moStr = String(activeTeamSetsMonthNum).padStart(2, '0');
-    let txt = `👥 គោលដៅ និងការលក់តាមឈុត: ${l.name} (${moStr}/2026)\n`;
+    const year = parseInt((appState.selectedMonthKey || '').split('-')[0], 10) || parseInt(appState.selectedYear, 10) || (new Date()).getFullYear();
+    let txt = `👥 គោលដៅ និងការលក់តាមឈុត: ${l.name} (${moStr}/${year})\n`;
     txt += `------------------------------------\n`;
     txt += `🎯 គោលដៅ: ${l.targetGoal || 100} ប្រអប់ | 📦 លក់បាន: ${l.totalBoxes} (${l.targetPercent}%)\n`;
     txt += `ឈុត 1: ${l.set1 || 0} | ឈុត 2: ${l.set2 || 0} | ឈុត 3: ${l.set3 || 0} | ឈុត 4: ${l.set4 || 0} | ឈុត 5: ${l.set5 || 0}${(l.set6 || 0) > 0 ? ` | ឈុត 6: ${l.set6}` : ''}\n`;
