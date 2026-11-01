@@ -4288,6 +4288,7 @@ function syncExecHierarchyWithHomeFilter(force = false) {
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
+  const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
 
   if (appState.periodFilter === 'today') {
     execHierarchyFilterState.mode = 'day';
@@ -4999,6 +5000,7 @@ function renderExecutiveHierarchyDateFilterBar() {
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
+  const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
 
   let dayLabel = 'ថ្ងៃទី';
   if (mode === 'day') {
@@ -5162,6 +5164,7 @@ function getExecFilteredStats(d) {
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
+  const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
 
   let filtered = allOrders;
   if (mode === 'day') {
@@ -6814,6 +6817,7 @@ function getDashboardViewHTML() {
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
+  const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
 
   let filteredSales = d.personalSales;
   let filteredExpenses = d.expenses;
@@ -7249,10 +7253,42 @@ function getDashboardViewHTML() {
     // ------------------------------------------
     // 2. UNLOCKED STATE: Full Executive Command Center
     // ------------------------------------------
-    if (typeof syncExecHierarchyWithHomeFilter === 'function') {
-      syncExecHierarchyWithHomeFilter();
+    // Filter BostarTrack Team Sales strictly matching Home Screen filter (appState)
+    let homeFilteredOrders = (d && Array.isArray(d.bostarTrackSales)) ? d.bostarTrackSales : [];
+    if (appState.periodFilter === 'today') {
+      if (appState.daySubFilter === 'specific' && appState.specificDate) {
+        homeFilteredOrders = homeFilteredOrders.filter(o => o.isoDate === appState.specificDate);
+      } else if (appState.daySubFilter === 'yesterday') {
+        const yDate = new Date();
+        yDate.setDate(yDate.getDate() - 1);
+        const yesterdayIsoDay = getLocalIsoDate(yDate);
+        homeFilteredOrders = homeFilteredOrders.filter(o => o.isoDate === yesterdayIsoDay);
+      } else {
+        homeFilteredOrders = homeFilteredOrders.filter(o => o.isoDate === currentIsoDay);
+      }
+    } else if (appState.periodFilter === 'month') {
+      const targetMonth = appState.selectedMonthKey || currentIsoMonth;
+      homeFilteredOrders = homeFilteredOrders.filter(o => o.isoDate && o.isoDate.startsWith(targetMonth));
+    } else if (appState.periodFilter === 'year') {
+      const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
+      homeFilteredOrders = homeFilteredOrders.filter(o => o.isoDate && o.isoDate.startsWith(targetYear));
+    } else if (appState.periodFilter === 'custom') {
+      if (appState.customStartDate && appState.customEndDate) {
+        homeFilteredOrders = homeFilteredOrders.filter(o => o.isoDate >= appState.customStartDate && o.isoDate <= appState.customEndDate);
+      } else if (appState.customStartDate) {
+        homeFilteredOrders = homeFilteredOrders.filter(o => o.isoDate === appState.customStartDate);
+      }
     }
-    const statsMap = getExecFilteredStats(d);
+
+    const statsMap = {};
+    homeFilteredOrders.forEach(o => {
+      const sName = (o.seller || '').trim();
+      if (!sName) return;
+      if (!statsMap[sName]) statsMap[sName] = { boxes: 0, orders: 0 };
+      const b = Number(o.totalBoxQty || o.boxes || 0);
+      statsMap[sName].boxes += b;
+      statsMap[sName].orders += 1;
+    });
     const execRole = sessionStorage.getItem('sd_exec_role') || 'manager';
 
     const {
@@ -7593,20 +7629,7 @@ function getDashboardViewHTML() {
       }
     }
 
-    let dynamicExecPeriodLabel = '';
-    if (execHierarchyFilterState.mode === 'day') {
-      const parts = (execHierarchyFilterState.selectedDate || '').split('-');
-      dynamicExecPeriodLabel = (parts.length === 3) ? `${parts[2]}/${parts[1]}/${parts[0]}` : 'ថ្ងៃនេះ';
-    } else if (execHierarchyFilterState.mode === 'month') {
-      const parts = (execHierarchyFilterState.selectedMonth || '').split('-');
-      dynamicExecPeriodLabel = (parts.length === 2) ? `${parts[1]}/${parts[0]}` : 'ប្រចាំខែ';
-    } else if (execHierarchyFilterState.mode === 'year') {
-      dynamicExecPeriodLabel = `${execHierarchyFilterState.selectedYear || '2026'}`;
-    } else if (execHierarchyFilterState.mode === 'all') {
-      dynamicExecPeriodLabel = 'ពេញ ១ឆ្នាំ (All-Time)';
-    }
-
-    const cardSubtitleText = dynamicExecPeriodLabel ? `BOSTAR GROUP • ${dynamicExecPeriodLabel}` : `BOSTAR GROUP`;
+    const cardSubtitleText = activePeriodDisplay ? `BOSTAR GROUP • ${activePeriodDisplay}` : `BOSTAR GROUP`;
 
     cardTeamSales = `
       <!-- CARD E: VIP EXECUTIVE COMMAND CENTER (UNLOCKED STATE) -->
@@ -16229,6 +16252,7 @@ function applyExpensesFilterAndRender() {
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
+  const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
 
   const btnDay = document.getElementById('expenses-filter-btn-day');
   const btnMonth = document.getElementById('expenses-filter-btn-month');
@@ -16329,6 +16353,7 @@ function openExpensesModal(mode = false, fromDrawer = false) {
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
+  const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
 
   // Initialize expensesFilterState based on mode or appState
   if (mode === 'all') {
@@ -27066,6 +27091,7 @@ function getFilteredTeamSales(sales) {
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
+  const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
 
   if (teamMembersFilterState.mode === 'day') {
     const targetDay = teamMembersFilterState.selectedDate || currentIsoDay;
@@ -27158,6 +27184,7 @@ function openTeamMembersModal(memberNameToOpen = null, fromDrawer = false) {
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
+  const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
 
   teamMembersFilterState.mode = 'month';
   teamMembersFilterState.selectedMonth = (appState.periodFilter === 'month' && appState.selectedMonthKey) ? appState.selectedMonthKey : currentIsoMonth;
@@ -27262,6 +27289,7 @@ function renderTeamMembersList() {
   const currentIsoDay = getLocalIsoDate(now);
   const currentIsoMonth = currentIsoDay.slice(0, 7);
   const currentIsoYear = currentIsoDay.slice(0, 4);
+  const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
 
   // Update UI Pills State & Labels
   const btnDay = document.getElementById('team-filter-btn-day');
