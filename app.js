@@ -31214,7 +31214,7 @@ function formatTelegramDate(dateStr) {
   return dateStr;
 }
 
-function generateBilingualTelegramOrderText(recordOrForm = null) {
+function generateBilingualTelegramOrderText(recordOrForm = null, leaderOverride = null) {
   let orderId = '';
   let dateRaw = '';
   let seller = '';
@@ -31278,7 +31278,7 @@ function generateBilingualTelegramOrderText(recordOrForm = null) {
   }
 
   const formattedDate = formatTelegramDate(dateRaw);
-  const managerCode = getManagerLatinCode(seller, team);
+  const managerCode = leaderOverride || getManagerLatinCode(seller, team);
   const sellerLatin = (typeof getSellerLatinName === 'function' ? getSellerLatinName(seller) : seller) || seller;
 
   let orderRowText = '';
@@ -31372,8 +31372,9 @@ function generateBilingualTelegramOrderText(recordOrForm = null) {
   return lines.join('\n');
 }
 
-async function copyOrderTelegramText(recordOrForm = null, silent = false) {
-  const text = generateBilingualTelegramOrderText(recordOrForm);
+async function copyOrderTelegramText(recordOrForm = null, silent = false, leaderOverride = null) {
+  const targetLeader = leaderOverride || ((currentOrderEntryMode === 'dock') ? 'Bech_Nora' : null);
+  const text = generateBilingualTelegramOrderText(recordOrForm, targetLeader);
   const ok = await copyTextToSystemClipboard(text);
 
   const btn = document.getElementById('btn-order-copy-tg-capsule');
@@ -31390,7 +31391,10 @@ async function copyOrderTelegramText(recordOrForm = null, silent = false) {
   }
 
   if (ok && !silent) {
-    showToastNotification('✅ បានចម្លងសារកុម្ម៉ង់ Bilingual ចូល Clipboard រួចរាល់! 📋');
+    const toastMsg = (currentOrderEntryMode === 'dock' || targetLeader === 'Bech_Nora')
+      ? '✅ បានចម្លងសារសម្រាប់ Group Messenger (វេចខ្ចប់) រួចរាល់! 📋'
+      : '✅ បានចម្លងសារកុម្ម៉ង់ Bilingual ចូល Clipboard រួចរាល់! 📋';
+    showToastNotification(toastMsg);
     if (navigator.vibrate) try { navigator.vibrate([20, 40]); } catch (_) {}
   }
   return ok;
@@ -31609,6 +31613,11 @@ function openNewOrderModal(mode = 'dock') {
       sliderHint.classList.add('hidden');
       sliderHint.style.setProperty('display', 'none', 'important');
     }
+    const hintsContainer = document.getElementById('order-hints-container');
+    if (hintsContainer) {
+      hintsContainer.classList.add('hidden');
+      hintsContainer.style.setProperty('display', 'none', 'important');
+    }
     if (btnSubmitOrder) {
       btnSubmitOrder.classList.remove('hidden');
       btnSubmitOrder.style.setProperty('display', 'flex', 'important');
@@ -31662,6 +31671,11 @@ function openNewOrderModal(mode = 'dock') {
       sliderHint.classList.remove('hidden');
       sliderHint.style.setProperty('display', 'flex', 'important');
     }
+    const hintsContainer = document.getElementById('order-hints-container');
+    if (hintsContainer) {
+      hintsContainer.classList.remove('hidden');
+      hintsContainer.style.setProperty('display', 'flex', 'important');
+    }
     if (typeof initOrderSubmitSlider === 'function') initOrderSubmitSlider();
     if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
   }
@@ -31711,11 +31725,13 @@ function openNewOrderModal(mode = 'dock') {
     }
   }
 
-  // Initialize Team Leader: Bech_Nora by default or from localStorage
+  // Initialize Team Leader: Member's OWN Leader by default in Dock Mode
   const teamInput = document.getElementById('order-field-team');
-  const savedTeam = localStorage.getItem('sd_last_team_leader') || 'Bech_Nora';
+  const profName = profile.name || '';
+  const myOwnLeader = (typeof getManagerLatinCode === 'function' ? getManagerLatinCode(profName) : '') || 'Bech_Nora';
+  const savedTeam = localStorage.getItem('sd_last_team_leader') || myOwnLeader;
   if (teamInput) {
-    teamInput.value = (currentOrderEntryMode === 'dock') ? 'Bech_Nora' : (savedTeam || 'Bech_Nora');
+    teamInput.value = (currentOrderEntryMode === 'dock') ? myOwnLeader : (savedTeam || myOwnLeader);
   }
   closeOrderTeamDropdown();
 
@@ -32041,13 +32057,13 @@ function checkOrderSubmitValidation() {
       slider.classList.remove('opacity-40', 'cursor-not-allowed', 'grayscale');
       slider.classList.add('border-orange-500/40');
       if (hint) {
-        hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i><span class="text-emerald-300 font-medium">ទិន្នន័យគ្រប់គ្រាន់ - អូសទៅស្តាំដើម្បីដាក់ការកុម្ម៉ង់ ✓</span>';
+        hint.innerHTML = '<i data-lucide="send" class="w-3 h-3 text-emerald-400 shrink-0"></i><span class="text-emerald-300 font-medium">អូសបញ្ជូនជោគជ័យ ➔ លោតចូល Telegram (ឈ្មោះ Leader ផ្ទាល់ខ្លួន)</span>';
       }
     } else {
       slider.classList.add('opacity-40', 'cursor-not-allowed', 'grayscale');
       slider.classList.remove('border-orange-500/40');
       if (hint) {
-        hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-orange-400/80"></i><span>អូសដល់ចុងស្តាំ ដើម្បីដាក់ការកុម្ម៉ង់</span>';
+        hint.innerHTML = '<i data-lucide="send" class="w-3 h-3 text-orange-400 shrink-0"></i><span>អូសបញ្ជូនជោគជ័យ ➔ លោតចូល Telegram (ឈ្មោះ Leader ផ្ទាល់ខ្លួន)</span>';
       }
     }
     if (window.lucide) window.lucide.createIcons();
@@ -32980,7 +32996,7 @@ async function submitNewOrder() {
     seller: seller,
     sellerLatin: getSellerLatinName(seller),
     sellerPhone: sellerPhone,
-    team: team,
+    team: (currentOrderEntryMode === 'dock') ? ((typeof getManagerLatinCode === 'function' ? getManagerLatinCode(seller, team) : team) || team) : team,
     location: location,
     phone: phone,
     orderType: currentOrderType, // 'standard', 'reward', 'return'
@@ -33119,19 +33135,25 @@ async function submitNewOrder() {
     showToastNotification('📡 បានរក្សាទុកក្នុងទូរសព្ទ (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)!');
   }
 
-  // 4. Generate Bilingual Telegram Order Text & Trigger Copy / 1-Tap Action
+  // 4. Generate Bilingual Telegram Order Text & Trigger Auto-Copy / Jump to Telegram
   if (isDockOrder) {
-    const tgOrderText = generateBilingualTelegramOrderText(newRecord);
-    copyOrderTelegramText(newRecord, true);
+    const myOwnLeader = (typeof getManagerLatinCode === 'function' ? getManagerLatinCode(newRecord.seller, newRecord.team) : newRecord.team) || 'Bech_Nora';
+    const tgOrderText = generateBilingualTelegramOrderText(newRecord, myOwnLeader);
+    
+    // Auto-Copy text with member's OWN Leader to system clipboard
+    await copyTextToSystemClipboard(tgOrderText);
 
-    // Auto-Send to Accounting Telegram Group (-1588825127) when member submits
-    if (isAccountingTelegramAutoShare()) {
+    // Auto-Send to Accounting Telegram Group bot if enabled
+    if (typeof isAccountingTelegramAutoShare === 'function' && isAccountingTelegramAutoShare()) {
       sendOrderViaTelegramBot(tgOrderText).then(sent => {
         if (sent) {
           showToastNotification('✅ បានផ្ញើសារចូលគ្រុបគណនេយ្យអូតូជោគជ័យ! 🚀');
         }
       });
     }
+
+    // Auto-open Telegram Accounting Group directly without requiring extra clicks
+    openAccountingTelegramGroup();
 
     showOrderSuccessTelegramAction(newRecord, tgOrderText);
   }
