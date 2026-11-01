@@ -30,7 +30,7 @@ function authorizeExternalSheets() {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'ok',
-    version: '3.0-bostartrack-direct-val',
+    version: '3.1-smart-26col-aligned',
     message: 'SD Dashboard Webhook is live and ready! 🚀'
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -212,7 +212,9 @@ function insertPersonalSalesOrder(ss, order) {
   var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];
   var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');
   var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;
-  var isNew26Col = lastCol >= 25 || hasEmmiOrSg;
+  var col12H = String(headerVals[11] || '').trim().toLowerCase();
+  var col14H = String(headerVals[13] || '').trim().toLowerCase();
+  var isNew26Col = (lastCol >= 25) || hasEmmiOrSg || (col14H.indexOf('free') !== -1) || (col12H.indexOf('free') === -1 && col12H !== '');
 
   for (var r = 1; r < numRows; r++) { // រាប់ពីជួរទី ២ (Index 1) ក្រោម Header
     var rowDate = values[r][0]; // Col A
@@ -459,7 +461,9 @@ function updatePersonalSalesOrder(ss, order) {
   var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];
   var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');
   var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;
-  var isNew26Col = lastCol >= 25 || hasEmmiOrSg;
+  var col12H = String(headerVals[11] || '').trim().toLowerCase();
+  var col14H = String(headerVals[13] || '').trim().toLowerCase();
+  var isNew26Col = (lastCol >= 25) || hasEmmiOrSg || (col14H.indexOf('free') !== -1) || (col12H.indexOf('free') === -1 && col12H !== '');
 
   var targetRecordId = String(order.recordId || '').trim();
   var targetOrderId = String(order.orderId || '').trim();
@@ -625,7 +629,9 @@ function updateCodStatus(ss, data) {
   var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];
   var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');
   var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;
-  var isNew26Col = lastCol >= 25 || hasEmmiOrSg;
+  var col12H = String(headerVals[11] || '').trim().toLowerCase();
+  var col14H = String(headerVals[13] || '').trim().toLowerCase();
+  var isNew26Col = (lastCol >= 25) || hasEmmiOrSg || (col14H.indexOf('free') !== -1) || (col12H.indexOf('free') === -1 && col12H !== '');
 
   var targetRecordId = String(data.recordId || '').trim();
   var targetOrderId = String(data.orderId || '').trim();

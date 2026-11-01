@@ -3,63 +3,1569 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Copy Google Apps Script Code</title>
+  <title>Google Apps Script Code Copier</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Kantumruy Pro', system-ui, sans-serif; background: #0b1329; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-    .card { background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 24px; padding: 32px; max-width: 640px; width: 100%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); backdrop-blur: 16px; }
-    h1 { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #f8fafc; }
-    p { font-size: 13.5px; color: #94a3b8; line-height: 1.6; margin-bottom: 24px; }
-    button { background: linear-gradient(135deg, #f97316, #ea580c); color: white; border: none; padding: 16px 36px; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.4); font-family: inherit; }
-    button:hover { transform: scale(1.02); background: linear-gradient(135deg, #fb923c, #f97316); }
-    button:active { transform: scale(0.97); }
-    .status { margin-top: 18px; font-size: 14px; font-weight: 700; color: #34d399; display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 12px; border-radius: 12px; }
-    .steps { text-align: left; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px 20px; margin-top: 24px; font-size: 12.5px; color: #cbd5e1; line-height: 1.7; }
-    .steps ol { margin: 0; padding-left: 20px; }
-    .steps li { margin-bottom: 6px; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Kantumruy Pro", system-ui, -apple-system, sans-serif;
+      background: #0b1329;
+      color: #f8fafc;
+      margin: 0;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+    }
+    .card {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 28px;
+      max-width: 820px;
+      width: 100%;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(12px);
+    }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    p.desc {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin: 0 0 16px 0;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .btn-copy {
+      flex: 1 1 240px;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #ffffff;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 8px 20px -4px rgba(249, 115, 22, 0.45);
+      font-family: inherit;
+    }
+    .btn-copy:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px -4px rgba(249, 115, 22, 0.55);
+    }
+    .btn-select {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #e2e8f0;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-select:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+    .status-toast {
+      display: none;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: #34d399;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      text-align: center;
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .code-box-container {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .code-box-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .code-box {
+      width: 100%;
+      height: 280px;
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      color: #cbd5e1;
+      font-family: "JetBrains Mono", Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 14px;
+      resize: vertical;
+      outline: none;
+      white-space: pre;
+    }
+    .code-box:focus {
+      border-color: #f97316;
+      box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+    }
+    .instructions {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 12.5px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    .instructions strong {
+      color: #f8fafc;
+      font-size: 13px;
+    }
+    .instructions ol {
+      margin: 8px 0 0 0;
+      padding-left: 20px;
+    }
+    .instructions li {
+      margin-bottom: 6px;
+    }
+    .instructions code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-family: monospace;
+      color: #fdba74;
+      font-size: 11.5px;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>📋 ចម្លងកូដ Google Apps Script ថ្មី (២៦ ជួរឈរ)</h1>
-    <p>ចុចប៊ូតុងពណ៌ទឹកក្រូចធំខាងក្រោម ដើម្បី Copy កូដទាំងអស់ដោយស្វ័យប្រវត្តិ៖</p>
-    
-    <button onclick="copyCode()" id="btnCopy">🚀 ចុចទីនេះដើម្បី Copy កូដទាំងស្រុង (1-Click Copy)</button>
-    <div id="status" class="status">✓ បានចម្លងកូដជោគជ័យហើយ! សូមចូលទៅ Paste ក្នុង Apps Script</div>
+    <div class="header-badge">
+      ⚡ កំណែទម្រង់ ២៦ ជួរ (Smart 26-Col Alignment v3.1)
+    </div>
+    <h1>📋 ចម្លងកូដ Google Apps Script (Code.gs)</h1>
+    <p class="desc">
+      កូដនេះបានកែសម្រួលគម្លាតជួរឈរទាំង ២៦ (រួមបញ្ចូល Emmi នៅ Col 12 និង S.G នៅ Col 13) ដោយមិនឱ្យប៉ះពាល់ជួរ Free, Price, Total, Ship Fee, Delivery, COD Status, Stock, Payment Date, Profit និង Record_ID ឡើយ។
+    </p>
 
-    <div class="steps">
-      <strong>ជំហានបន្តបន្ទាប់ពីចុច Copy រួច៖</strong>
+    <div class="btn-row">
+      <button id="btnCopy" class="btn-copy" onclick="copyCode()">
+        <span id="btnIcon">📋</span>
+        <span id="btnText">ចុចទីនេះដើម្បីចម្លងកូដ (Copy Code)</span>
+      </button>
+      <button class="btn-select" onclick="selectAllText()">
+        <span>🔘</span>
+        <span>Select All (ជ្រើសរើសទាំងអស់)</span>
+      </button>
+    </div>
+
+    <div id="statusToast" class="status-toast">
+      ✓ បានចម្លងកូដជោគជ័យ ១០០%! សូមចូលទៅ Paste ក្នុង Google Apps Script
+    </div>
+
+    <div class="code-box-container">
+      <div class="code-box-label">
+        <span>ប្រអប់កូដ Apps Script ពេញលេញ (1271 បន្ទាត់)៖</span>
+        <span style="color:#64748b;">ចុចលើប្រអប់ដើម្បី Select All</span>
+      </div>
+      <textarea id="codeBox" class="code-box" readonly onclick="this.select()">/**
+ * ==============================================================================
+ * SD Dashboard &amp; Personal Sales / Daily Expenses Sync Webhook
+ * ==============================================================================
+ * សុវត្ថិភាពខ្ពស់ ១០០% មិនប៉ះពាល់រូបមន្តចាស់ និងការពារទិន្នន័យ manual tracking
+ * 
+ * គោលការណ៍សុវត្ថិភាពទាំង ៤៖
+ * 1. ពិនិត្យភាពស្ទួន (Deduplication) តាម Order ID (អនុញ្ញាតលេខទូរស័ព្ទដដែលសម្រាប់អតិថិជនទិញម្តងទៀត)
+ * 2. ថែរក្សារូបមន្តស្វ័យប្រវត្តិ (No., Total $, Stock Cost, Profit)
+ * 3. មិនប៉ះពាល់ជួរឈរដែលកត់ត្រាដោយដៃ (COD Status = បានដាក់ការកុម្មង់, Payment Date, Note)
+ * 4. បង្កើត Record_ID (REC-XXXX) ស្វ័យប្រវត្តិសម្រាប់ AppSheet ស្គាល់
+ * 5. បំប្លែងកាលបរិច្ឆេទជា Date Object ពិតប្រាកដ ការពារបញ្ហា Invalid Date លើ Google Sheet
+ * ==============================================================================
+ */
+
+/**
+ * ដំណើរការមុខងារនេះ ១ ដង (ចុច Run) ដើម្បីឱ្យ Google សួរទាមទារសិទ្ធិ (Authorize) ចូលទៅកាន់ Google Sheets ដទៃទៀត
+ */
+function authorizeExternalSheets() {
+  DriveApp.getRootFolder();
+  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+  try {
+    var ss = SpreadsheetApp.openById(bostarTrackId);
+    Logger.log('ជោគជ័យក្នុងការតភ្ជាប់ទៅកាន់តារាង BostarTrack៖ ' + ss.getName());
+  } catch (e) {
+    Logger.log('Authorize error: ' + e);
+  }
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'ok',
+    version: '3.1-smart-26col-aligned',
+    message: 'SD Dashboard Webhook is live and ready! 🚀'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  // រង់ចាំ lock រយៈពេលរហូតដល់ 30 វិនាទី ដើម្បីការពារការបញ្ជូនទិន្នន័យជាន់គ្នា (Concurrency Safety)
+  var success = lock.tryLock(30000);
+  if (!success) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: 'Server is busy, could not obtain lock.'
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  try {
+    if (!e || !e.postData || !e.postData.contents) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: 'No data payload received'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var payload = JSON.parse(e.postData.contents);
+    var action = payload.action;
+    var data = payload.data;
+    var targetSheetId = (payload.sheetId &amp;&amp; String(payload.sheetId).length &gt; 15) ? String(payload.sheetId).trim() : null;
+    var ss = targetSheetId ? SpreadsheetApp.openById(targetSheetId) : SpreadsheetApp.getActiveSpreadsheet();
+
+    if (action === 'add_order') {
+      // 1. បញ្ចូលទៅក្នុង Sheet ផ្ទាល់ខ្លួនរបស់សមាជិក (Personal Sales)
+      var result = insertPersonalSalesOrder(ss, data);
+
+      // 2. Dual-Sync: បញ្ចូលទៅកាន់ Master Data នៃ BostarTrack (1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4) ស្វ័យប្រវត្តិ
+      // បញ្ជាដាច់ខាត៖ Master Data ទទួលតែពីការកុម្ម៉ង់ថ្មី (isDockOrder / syncToBostarTrack === true) ប៉ុណ្ណោះ ហាម Telegram Mode
+      var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+      var syncToBostarTrack = (payload.syncToBostarTrack === true) || (data.syncToBostarTrack === true);
+      if (syncToBostarTrack &amp;&amp; targetSheetId !== bostarTrackId) {
+        try {
+          var bostarSs = SpreadsheetApp.openById(bostarTrackId);
+          if (result &amp;&amp; result.orderId) {
+            data.orderId = result.orderId;
+          }
+          insertPersonalSalesOrder(bostarSs, data);
+        } catch (btErr) {
+          Logger.log('BostarTrack Dual Sync Warn: ' + btErr);
+        }
+      }
+
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'update_order' || action === 'update_personal_sales') {
+      var result = updatePersonalSalesOrder(ss, data);
+      var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+      var syncToBostarTrack = (payload.syncToBostarTrack !== false) &amp;&amp; (data.syncToBostarTrack !== false);
+      if (syncToBostarTrack &amp;&amp; targetSheetId !== bostarTrackId) {
+        try {
+          var bostarSs = SpreadsheetApp.openById(bostarTrackId);
+          updatePersonalSalesOrder(bostarSs, data);
+        } catch (btErr) {
+          Logger.log('BostarTrack Dual Sync Update Warn: ' + btErr);
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'add_expense') {
+      var result = insertDailyExpense(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'update_expense') {
+      var result = updateDailyExpense(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'delete_expense') {
+      var result = deleteDailyExpense(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'sync_attendance') {
+      var result = syncBostarAttendance(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'update_cod_status') {
+      var result = updateCodStatus(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'add_or_update_report' || action === 'sync_daily_report') {
+      var result = insertOrUpdateDailyReport(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else if (action === 'update_bank_balance' || action === 'update_bank_account') {
+      var result = updateBankAccountBalance(ss, data);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: 'Unknown action: ' + action
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * ជំនួយការបំប្លែង String ទៅជា JavaScript Date Object ពិតប្រាកដ
+ * ការពារដាច់ខាតកុំឱ្យលោតសញ្ញា Invalid Date លើ Google Sheet Data Validation
+ */
+function parseToDateObj(dateStr) {
+  if (!dateStr) return new Date();
+  if (dateStr instanceof Date) return dateStr;
+  var str = String(dateStr).trim();
+
+  // ទម្រង់ DD/MM/YYYY ឬ D/M/YYYY
+  var dmMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (dmMatch) {
+    var day = parseInt(dmMatch[1], 10);
+    var month = parseInt(dmMatch[2], 10) - 1; // 0-indexed month
+    var year = parseInt(dmMatch[3], 10);
+    return new Date(year, month, day, 12, 0, 0);
+  }
+
+  // ទម្រង់ ISO YYYY-MM-DD
+  var isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoMatch) {
+    var iYear = parseInt(isoMatch[1], 10);
+    var iMonth = parseInt(isoMatch[2], 10) - 1;
+    var iDay = parseInt(isoMatch[3], 10);
+    return new Date(iYear, iMonth, iDay, 12, 0, 0);
+  }
+
+  return new Date();
+}
+
+function formatToYmdString(dateVal) {
+  if (!dateVal) return '';
+  var dateObj = parseToDateObj(dateVal);
+  return Utilities.formatDate(dateObj, 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+}
+
+/**
+ * ស្វែងរក Sheet គោលដៅ (Personal Sales ឬ Master Data) ដោយមិនប្រកាន់អក្សរធំ-តូច
+ */
+function getTargetSalesSheet(ss) {
+  var sheets = ss.getSheets();
+  for (var i = 0; i &lt; sheets.length; i++) {
+    var name = sheets[i].getName().trim().toLowerCase();
+    if (name === 'personal sales' || name === 'master data') {
+      return sheets[i];
+    }
+  }
+  return ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheetByName('Master data') || sheets[0];
+}
+
+/**
+ * បញ្ចូលការកុម្ម៉ង់ចូលផ្ទាំង Personal Sales ឬ Master Data ដោយសុវត្ថិភាព ១០០%
+ * បំពេញតម្លៃលេខផ្ទាល់ (Direct Value) ជួរ N, R, T និងកត់ត្រា Reward QTY ជួរ V
+ */
+function insertPersonalSalesOrder(ss, order) {
+  var sheet = getTargetSalesSheet(ss);
+  if (!sheet) {
+    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };
+  }
+
+  // 1. ស្វែងរកជួរដេកទាំងអស់ដើម្បីពិនិត្យភាពស្ទួន Order ID (Col E)
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var numRows = values.length;
+  var lastCol = sheet.getLastColumn();
+
+  var newOrderId = String(order.orderId || '').trim();
+
+  // ប្រភេទការលក់៖ 'standard' (ស្តុកក្រុមហ៊ុន), 'reward' (លក់រង្វាន់), 'return' (លក់អីវ៉ាន់ត្រឡប់)
+  var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();
+
+  var maxRecNum = 0;
+  var maxBNum = 0; // តាមដានលេខ #B*** ខ្ពស់បំផុតក្នុង Sheet
+  var isBOrderClash = false; // ប្រសិនបើជា #B*** ជាន់លេខគ្នាដោយសារសមាជិក ២ នាក់ Submit ដំណាលគ្នា
+  var targetRow = -1; // ជួរដេកដែលត្រូវបំពេញ
+
+  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)
+  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];
+  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');
+  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;
+  var col12H = String(headerVals[11] || '').trim().toLowerCase();
+  var col14H = String(headerVals[13] || '').trim().toLowerCase();
+  var isNew26Col = (lastCol &gt;= 25) || hasEmmiOrSg || (col14H.indexOf('free') !== -1) || (col12H.indexOf('free') === -1 &amp;&amp; col12H !== '');
+
+  for (var r = 1; r &lt; numRows; r++) { // រាប់ពីជួរទី ២ (Index 1) ក្រោម Header
+    var rowDate = values[r][0]; // Col A
+    var existingOrderId = String(values[r][4] || '').trim(); // Col E
+    var existingRecId = String(values[r][isNew26Col ? 25 : 23] || values[r][25] || values[r][23] || values[r][22] || '').trim(); // Col Z / X / W
+
+    // តាមដានលេខ REC-XXXX ខ្ពស់បំផុត
+    var matchRec = existingRecId.match(/REC-(\d+)/i);
+    if (matchRec) {
+      var recVal = parseInt(matchRec[1], 10);
+      if (recVal &gt; maxRecNum) maxRecNum = recVal;
+    }
+
+    // តាមដានលេខ #B*** ខ្ពស់បំផុតក្នុង Sheet
+    var matchB = existingOrderId.match(/^#?B(\d+)$/i);
+    if (matchB) {
+      var bVal = parseInt(matchB[1], 10);
+      if (bVal &gt; maxBNum) maxBNum = bVal;
+    }
+
+    // ពិនិត្យភាពស្ទួនតាម Order ID (អនុវត្តត្រឹមតែការកុម្ម៉ង់ចេញពីក្រុមហ៊ុន 'standard' ប៉ុណ្ណោះ, លក់រង្វាន់ ឬអីវ៉ាន់ត្រឡប់អនុញ្ញាតលេខចាស់ ឬគ្មានលេខបាន)
+    if (orderType === 'standard' &amp;&amp; newOrderId &amp;&amp; existingOrderId &amp;&amp; newOrderId.toLowerCase() === existingOrderId.toLowerCase()) {
+      var isBOrder = /^#?B\d+$/i.test(newOrderId);
+      if (isBOrder) {
+        // ប្រសិនបើជា #B*** ជាន់លេខគ្នាដោយសារសមាជិក ២ នាក់ Submit ក្នុងវិនាទីតែមួយ កូដនឹង auto-bump មិនឱ្យខូចឡើយ
+        isBOrderClash = true;
+      } else {
+        return { 
+          status: 'duplicate', 
+          message: 'Order ID ' + newOrderId + ' មានរួចហើយក្នុងជួរទី ' + (r + 1),
+          row: r + 1 
+        };
+      }
+    }
+
+    // ពិនិត្យភាពស្ទួនតាម Phone + Seller + Date (ការពារករណីអ្នកលក់ចុច Submit ២ ដង ឬបញ្ចូលជាន់គ្នា)
+    var cleanNewPhone = String(order.phone || '').replace(/[\s\-\(\)]/g, '');
+    var cleanRowPhone = String(values[r][6] || '').replace(/[\s\-\(\)]/g, '');
+    var cleanNewSeller = String(order.seller || '').trim().toLowerCase();
+    var cleanRowSeller = String(values[r][3] || '').trim().toLowerCase();
+    var orderDateYmd = formatToYmdString(order.date);
+    var rowDateYmd = formatToYmdString(rowDate);
+
+    if (cleanNewPhone &amp;&amp; cleanRowPhone &amp;&amp; cleanNewPhone.length &gt;= 8 &amp;&amp; cleanNewPhone === cleanRowPhone &amp;&amp;
+        cleanNewSeller &amp;&amp; cleanRowSeller &amp;&amp; cleanNewSeller === cleanRowSeller &amp;&amp;
+        orderDateYmd &amp;&amp; rowDateYmd &amp;&amp; orderDateYmd === rowDateYmd) {
+      // ប្រសិនបើជួរចាស់គ្មានលេខ Order ID តែជួរថ្មីមានលេខ Order ID ➔ Update បំពេញលេខ Order ID លើជួរចាស់ដដែល
+      if (!existingOrderId &amp;&amp; newOrderId) {
+        sheet.getRange(r + 1, 5).setValue(newOrderId);
+        return { 
+          status: 'updated', 
+          message: 'បាន Update លេខ Order ID ' + newOrderId + ' លើជួរទី ' + (r + 1),
+          row: r + 1 
+        };
+      }
+      return { 
+        status: 'duplicate', 
+        message: 'Order របស់អ្នកលក់ ' + values[r][3] + ' (ទូរស័ព្ទ ' + cleanNewPhone + ') មានរួចហើយក្នុងជួរទី ' + (r + 1),
+        row: r + 1 
+      };
+    }
+
+    // ស្វែងរកជួរទំនេរដំបូង (Col A ទទេ ឬគ្មាន Date)
+    if (targetRow === -1 &amp;&amp; (!rowDate || String(rowDate).trim() === '')) {
+      targetRow = r + 1; // 1-indexed row number
+    }
+  }
+
+  // បើរកមិនឃើញជួរទំនេរដែលមានស្រាប់ទេ ត្រូវបន្ថែមជួរថ្មីនៅខាងក្រោម
+  if (targetRow === -1) {
+    targetRow = numRows + 1;
+  }
+
+  // បង្កើត Record_ID ថ្មីបន្តបន្ទាប់ (ឧ. REC-0503)
+  var nextRecNum = maxRecNum + 1;
+  var formattedRecId = 'REC-' + ('0000' + nextRecNum).slice(-4);
+
+  // គណនាចំនួនប្រអប់សរុប
+  var totalBoxes = Number(order.totalBoxQty || 0);
+  if (!totalBoxes || totalBoxes === 0) {
+    totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
+                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
+                 Number(order.qtyEmmi || 0) + Number(order.qtySGP || 0) + 
+                 Number(order.freeQty || 0);
+  }
+
+  // គណនាតម្លៃដើម Col R (Stock Cost) តាមប្រភេទការលក់៖
+  // - ស្តុកក្រុមហ៊ុន (Standard) = Qty * $24.00
+  // - លក់រង្វាន់ (Reward) = Qty * $5.00
+  // - លក់អីវ៉ាន់ត្រឡប់ (Return) = $0.00
+  var stockCost = 0;
+  if (orderType === 'reward') {
+    stockCost = totalBoxes * 5.0;
+  } else if (orderType === 'return') {
+    stockCost = 0;
+  } else {
+    stockCost = totalBoxes * 24.0;
+  }
+
+  // តម្លៃលក់សរុប Col N (Total USD)
+  var totalAmountUSD = Number(order.totalAmount || 0);
+
+  // ថ្លៃដឹកជញ្ជូន Col O (Ship Fee)
+  var shipFee = Number(order.shipFee || 0);
+
+  // ប្រាក់ចំណេញសុទ្ធ Col T (Profit)
+  var profitVal = (order.profit !== undefined &amp;&amp; order.profit !== null &amp;&amp; order.profit !== '') 
+    ? Number(order.profit) 
+    : Math.max(0, Math.round((totalAmountUSD - stockCost - shipFee) * 100) / 100);
+
+  // រូបមន្ត No. បន្តបន្ទាប់
+  var prevRow = targetRow - 1;
+  var formulaNo = '=IF(OR(A' + targetRow + '="", A' + targetRow + '=A' + prevRow + '), B' + prevRow + '+1, 1)';
+
+  // បំប្លែង Date Object ពិតប្រាកដ និងកំណត់ Format dd/MM/yyyy ការពារ Invalid Error
+  var dateObj = parseToDateObj(order.date);
+
+  // បំពេញទិន្នន័យចូលក្រឡាជួរនីមួយៗ (Direct Values ជួរ N, R, T)
+  sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date Object
+  sheet.getRange(targetRow, 2).setFormula(formulaNo); // Col B: No. (Formula)
+  sheet.getRange(targetRow, 3).setValue(order.customer || ''); // Col C: FB Name
+  sheet.getRange(targetRow, 4).setValue(order.seller || 'សមាជិក Bostar'); // Col D: Seller
+  
+  // Col E: Order ID (បើលក់រង្វាន់ ទុកទំនេរ; បើធម្មតា ឬត្រឡប់ ដាក់លេខ Order)
+  // ប្រសិនបើជាការកុម្ម៉ង់ថ្មី ហើយគ្មានលេខ Order ID ឬលេខទទេ ឬមានជាន់លេខ #B*** ➔ Auto-Generate #B*** បន្តបន្ទាប់
+  var finalOrderId = order.orderId || '';
+  if (orderType === 'reward') {
+    finalOrderId = '';
+  } else if (!finalOrderId || finalOrderId === '#' || finalOrderId === 'កំពុងទាញលេខ...' || isBOrderClash) {
+    var nextBNum = maxBNum + 1;
+    finalOrderId = '#B' + (nextBNum &lt; 1000 ? ('00' + nextBNum).slice(-3) : nextBNum);
+  }
+  sheet.getRange(targetRow, 5).setValue(finalOrderId);
+
+  sheet.getRange(targetRow, 6).setValue(order.location || ''); // Col F: Location
+  sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone
+
+  // ផលិតផល H, I, J, K, L, M, N (Qty)
+  // - ពេលលក់រង្វាន់ ឬលក់អីវ៉ាន់ត្រឡប់ ទុកនៅទំនេរ ("") ដើម្បីកុំឱ្យច្រឡំជាមួយស្តុកធម្មតា
+  // - ពេលស្តុកក្រុមហ៊ុន បំពេញតាមមុខទំនិញពិត
+  if (isNew26Col) {
+    if (orderType === 'reward' || orderType === 'return') {
+      sheet.getRange(targetRow, 8).setValue('');  // Col H: YL
+      sheet.getRange(targetRow, 9).setValue('');  // Col I: YLP
+      sheet.getRange(targetRow, 10).setValue(''); // Col J: KN
+      sheet.getRange(targetRow, 11).setValue(''); // Col K: P D.O
+      sheet.getRange(targetRow, 12).setValue(''); // Col L: Emmi
+      sheet.getRange(targetRow, 13).setValue(''); // Col M: S.G
+      sheet.getRange(targetRow, 14).setValue(''); // Col N: Free
+    } else {
+      sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0));
+      sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));
+      sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));
+      sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));
+      sheet.getRange(targetRow, 12).setValue(Number(order.qtyEmmi || 0));                // Col L: Emmi
+      sheet.getRange(targetRow, 13).setValue(Number(order.qtySGP || order.qtySG || 0)); // Col M: S.G
+      sheet.getRange(targetRow, 14).setValue(Number(order.freeQty || 0));               // Col N: Free
+    }
+
+    sheet.getRange(targetRow, 15).setValue(Number(order.thaiBaht || order.price || 0)); // Col O: Price (Baht)
+    sheet.getRange(targetRow, 16).setValue(totalAmountUSD).setNumberFormat('$#,##0.00'); // Col P: Total $
+    sheet.getRange(targetRow, 17).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col Q: Ship Fee
+    sheet.getRange(targetRow, 18).setValue(order.deliveryMethod || 'VET(COD)'); // Col R: Delivery
+    sheet.getRange(targetRow, 19).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col S: COD Status
+    sheet.getRange(targetRow, 20).setValue(stockCost).setNumberFormat('$#,##0.00'); // Col T: Stock Cost
+    if (order.paymentDate) {
+      sheet.getRange(targetRow, 21).setValue(order.paymentDate); // Col U: Payment Date
+    } else {
+      sheet.getRange(targetRow, 21).setValue('');
+    }
+    sheet.getRange(targetRow, 22).setValue(profitVal).setNumberFormat('$#,##0.00'); // Col V: Profit
+    sheet.getRange(targetRow, 23).setValue(order.note || ''); // Col W: Note
+
+    if (orderType === 'reward') {
+      sheet.getRange(targetRow, 24).setValue(totalBoxes); // Col X: Reward QTY
+    } else {
+      sheet.getRange(targetRow, 24).setValue('');
+    }
+    sheet.getRange(targetRow, 25).setValue(''); // Col Y: ទំនេរ
+    sheet.getRange(targetRow, 26).setValue(formattedRecId); // Col Z: Record_ID
+  } else {
+    if (orderType === 'reward' || orderType === 'return') {
+      sheet.getRange(targetRow, 8).setValue('');  // Col H: YL
+      sheet.getRange(targetRow, 9).setValue('');  // Col I: YLP
+      sheet.getRange(targetRow, 10).setValue(''); // Col J: KN
+      sheet.getRange(targetRow, 11).setValue(''); // Col K: P D.O
+      sheet.getRange(targetRow, 12).setValue(''); // Col L: Free
+    } else {
+      sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0));
+      sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));
+      sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));
+      sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));
+      sheet.getRange(targetRow, 12).setValue(Number(order.freeQty || 0));
+    }
+
+    sheet.getRange(targetRow, 13).setValue(Number(order.thaiBaht || order.price || 0)); // Col M: Price (Baht)
+    sheet.getRange(targetRow, 14).setValue(totalAmountUSD).setNumberFormat('$#,##0.00'); // Col N: Total $
+    sheet.getRange(targetRow, 15).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col O: Ship Fee
+    sheet.getRange(targetRow, 16).setValue(order.deliveryMethod || 'VET(COD)'); // Col P: Delivery
+    sheet.getRange(targetRow, 17).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col Q: COD Status
+    sheet.getRange(targetRow, 18).setValue(stockCost).setNumberFormat('$#,##0.00'); // Col R: Stock Cost
+    if (order.paymentDate) {
+      sheet.getRange(targetRow, 19).setValue(order.paymentDate); // Col S: Payment Date
+    } else {
+      sheet.getRange(targetRow, 19).setValue('');
+    }
+    sheet.getRange(targetRow, 20).setValue(profitVal).setNumberFormat('$#,##0.00'); // Col T: Profit
+    sheet.getRange(targetRow, 21).setValue(order.note || ''); // Col U: Note
+
+    if (orderType === 'reward') {
+      sheet.getRange(targetRow, 22).setValue(totalBoxes); // Col V: Reward QTY
+    } else {
+      sheet.getRange(targetRow, 22).setValue('');
+    }
+    sheet.getRange(targetRow, 23).setValue(''); // Col W: ទំនេរ
+    sheet.getRange(targetRow, 24).setValue(formattedRecId); // Col X: Record_ID
+  }
+
+  return {
+    status: 'success',
+    action: 'add_order',
+    row: targetRow,
+    recordId: formattedRecId,
+    orderId: finalOrderId
+  };
+}
+
+/**
+ * កែសម្រួលការកុម្ម៉ង់ក្នុង Personal Sales (ឈ្មោះ, លេខទូរស័ព្ទ, ទីតាំង, ចំនួនប្រអប់, តម្លៃ, COD...)
+ * រក្សារូបមន្តចាស់ Col B (No.) មិនឱ្យខូច
+ */
+function updatePersonalSalesOrder(ss, order) {
+  var sheet = getTargetSalesSheet(ss);
+  if (!sheet) {
+    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };
+  }
+
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var numRows = values.length;
+  var lastCol = sheet.getLastColumn();
+
+  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)
+  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];
+  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');
+  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;
+  var col12H = String(headerVals[11] || '').trim().toLowerCase();
+  var col14H = String(headerVals[13] || '').trim().toLowerCase();
+  var isNew26Col = (lastCol &gt;= 25) || hasEmmiOrSg || (col14H.indexOf('free') !== -1) || (col12H.indexOf('free') === -1 &amp;&amp; col12H !== '');
+
+  var targetRecordId = String(order.recordId || '').trim();
+  var targetOrderId = String(order.orderId || '').trim();
+  var targetRowIndex = (order.rowIndex !== undefined &amp;&amp; order.rowIndex !== null) ? Number(order.rowIndex) : -1;
+
+  var matchedRow = -1;
+
+  // 1. ស្វែងរកតាម Record_ID (Col 26 / Z សម្រាប់ 26-col, ឬ Col 24 / X, Col 23 / W)
+  if (targetRecordId) {
+    for (var r = 1; r &lt; numRows; r++) {
+      var existingRecId = String(values[r][25] || values[r][23] || values[r][22] || '').trim();
+      if (existingRecId &amp;&amp; targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {
+        matchedRow = r + 1;
+        break;
+      }
+    }
+  }
+
+  // 2. បើមិនឃើញ រកតាម Order ID (Col 5 / E)
+  if (matchedRow === -1 &amp;&amp; targetOrderId) {
+    for (var r = 1; r &lt; numRows; r++) {
+      var existingOrderId = String(values[r][4] || '').trim();
+      if (existingOrderId &amp;&amp; targetOrderId.toLowerCase() === existingOrderId.toLowerCase()) {
+        matchedRow = r + 1;
+        break;
+      }
+    }
+  }
+
+  // 3. បើនៅតែមិនឃើញ ពិនិត្យតាម rowIndex ប្រសិនបើផ្ញើមក
+  if (matchedRow === -1 &amp;&amp; targetRowIndex &gt; 0 &amp;&amp; targetRowIndex &lt; numRows) {
+    var checkRow = targetRowIndex + 1;
+    if (checkRow &lt;= numRows) {
+      matchedRow = checkRow;
+    }
+  }
+
+  // 4. បើនៅតែមិនឃើញ រកតាម Date + Phone ឬ Date + Customer
+  if (matchedRow === -1 &amp;&amp; order.date) {
+    var orderDateStr = String(order.date).trim();
+    var targetPhone = String(order.phone || '').replace(/\D/g, '');
+    for (var r = 1; r &lt; numRows; r++) {
+      var rDateVal = values[r][0];
+      var rDateStr = (rDateVal instanceof Date) ? Utilities.formatDate(rDateVal, 'Asia/Phnom_Penh', 'dd/MM/yyyy') : String(rDateVal || '').trim();
+      var rPhone = String(values[r][6] || '').replace(/\D/g, '');
+      var rCust = String(values[r][2] || '').trim();
+
+      if (rDateStr === orderDateStr) {
+        if (targetPhone &amp;&amp; rPhone &amp;&amp; rPhone === targetPhone) {
+          matchedRow = r + 1;
+          break;
+        }
+        if (order.customer &amp;&amp; rCust &amp;&amp; rCust.toLowerCase() === String(order.customer).toLowerCase().trim()) {
+          matchedRow = r + 1;
+          break;
+        }
+      }
+    }
+  }
+
+  if (matchedRow &lt;= 0) {
+    return {
+      status: 'not_found',
+      message: 'រកមិនឃើញការកុម្ម៉ង់លេខ ' + (targetOrderId || targetRecordId) + ' ក្នុងតារាង Personal Sales ឡើយ!'
+    };
+  }
+
+  // កែប្រែទិន្នន័យ (Inputs តែប៉ុណ្ណោះ រក្សារូបមន្ត)
+  if (order.date) {
+    var dateObj = parseToDateObj(order.date);
+    sheet.getRange(matchedRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date
+  }
+  if (order.customer !== undefined) sheet.getRange(matchedRow, 3).setValue(order.customer); // Col C: FB Name
+  if (order.seller !== undefined &amp;&amp; order.seller) sheet.getRange(matchedRow, 4).setValue(order.seller); // Col D: Seller
+  if (order.orderId !== undefined &amp;&amp; order.orderId) sheet.getRange(matchedRow, 5).setValue(order.orderId); // Col E: Order ID
+  if (order.location !== undefined) sheet.getRange(matchedRow, 6).setValue(order.location); // Col F: Location
+  if (order.phone !== undefined) sheet.getRange(matchedRow, 7).setValue(order.phone); // Col G: Phone
+
+  // ផលិតផល &amp; ទិន្នន័យហិរញ្ញវត្ថុ
+  var totalBoxes = Number(order.totalBoxQty || 0);
+  if (!totalBoxes || totalBoxes === 0) {
+    totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
+                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
+                 Number(order.qtyEmmi || 0) + Number(order.qtySGP || order.qtySG || 0) +
+                 Number(order.freeQty || 0);
+  }
+
+  var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();
+  var stockCost = 0;
+  if (orderType === 'reward') {
+    stockCost = totalBoxes * 5.0;
+  } else if (orderType === 'return') {
+    stockCost = 0;
+  } else {
+    stockCost = totalBoxes * 24.0;
+  }
+
+  var totalAmountUSD = Number(order.totalAmount || 0);
+  var shipFee = Number(order.shipFee || 0);
+  var profitVal = (order.profit !== undefined &amp;&amp; order.profit !== null &amp;&amp; order.profit !== '') 
+    ? Number(order.profit) 
+    : Math.max(0, Math.round((totalAmountUSD - stockCost - shipFee) * 100) / 100);
+
+  if (isNew26Col) {
+    if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL &gt; 0 ? Number(order.qtyYL) : '');
+    if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP &gt; 0 ? Number(order.qtyYLP) : '');
+    if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN &gt; 0 ? Number(order.qtyKN) : '');
+    if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO &gt; 0 ? Number(order.qtyPDO) : '');
+    if (order.qtyEmmi !== undefined) sheet.getRange(matchedRow, 12).setValue(order.qtyEmmi &gt; 0 ? Number(order.qtyEmmi) : ''); // Col L: Emmi
+    if (order.qtySGP !== undefined || order.qtySG !== undefined) sheet.getRange(matchedRow, 13).setValue((Number(order.qtySGP || order.qtySG || 0) &gt; 0) ? Number(order.qtySGP || order.qtySG) : ''); // Col M: S.G
+    if (order.freeQty !== undefined) sheet.getRange(matchedRow, 14).setValue(order.freeQty &gt; 0 ? Number(order.freeQty) : '');
+
+    if (order.price !== undefined &amp;&amp; order.price !== null &amp;&amp; order.price !== '') sheet.getRange(matchedRow, 15).setValue(order.price);
+    if (order.totalAmount !== undefined &amp;&amp; order.totalAmount !== null) sheet.getRange(matchedRow, 16).setValue(Number(order.totalAmount));
+    if (order.shipFee !== undefined &amp;&amp; order.shipFee !== null) sheet.getRange(matchedRow, 17).setValue(Number(order.shipFee));
+    if (order.delivery !== undefined || order.deliveryMethod !== undefined) sheet.getRange(matchedRow, 18).setValue(order.delivery || order.deliveryMethod || '');
+    if (order.codStatus !== undefined &amp;&amp; order.codStatus) sheet.getRange(matchedRow, 19).setValue(order.codStatus);
+    sheet.getRange(matchedRow, 20).setValue(stockCost);
+    if (order.paymentDate !== undefined) sheet.getRange(matchedRow, 21).setValue(order.paymentDate);
+    sheet.getRange(matchedRow, 22).setValue(profitVal);
+    if (order.note !== undefined) sheet.getRange(matchedRow, 23).setValue(order.note);
+  } else {
+    if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL &gt; 0 ? Number(order.qtyYL) : '');
+    if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP &gt; 0 ? Number(order.qtyYLP) : '');
+    if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN &gt; 0 ? Number(order.qtyKN) : '');
+    if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO &gt; 0 ? Number(order.qtyPDO) : '');
+    if (order.freeQty !== undefined) sheet.getRange(matchedRow, 12).setValue(order.freeQty &gt; 0 ? Number(order.freeQty) : '');
+
+    if (order.price !== undefined &amp;&amp; order.price !== null &amp;&amp; order.price !== '') sheet.getRange(matchedRow, 13).setValue(order.price);
+    if (order.totalAmount !== undefined &amp;&amp; order.totalAmount !== null) sheet.getRange(matchedRow, 14).setValue(Number(order.totalAmount));
+    if (order.shipFee !== undefined &amp;&amp; order.shipFee !== null) sheet.getRange(matchedRow, 15).setValue(Number(order.shipFee));
+    if (order.delivery !== undefined || order.deliveryMethod !== undefined) sheet.getRange(matchedRow, 16).setValue(order.delivery || order.deliveryMethod || '');
+    if (order.codStatus !== undefined &amp;&amp; order.codStatus) sheet.getRange(matchedRow, 17).setValue(order.codStatus);
+    sheet.getRange(matchedRow, 18).setValue(stockCost);
+    if (order.paymentDate !== undefined) sheet.getRange(matchedRow, 19).setValue(order.paymentDate);
+    sheet.getRange(matchedRow, 20).setValue(profitVal);
+    if (order.note !== undefined) sheet.getRange(matchedRow, 21).setValue(order.note);
+  }
+
+  return {
+    status: 'success',
+    message: 'បានកែសម្រួលការកុម្ម៉ង់ #' + (targetOrderId || targetRecordId) + ' លើជួរទី ' + matchedRow + ' ជោគជ័យ! ✅',
+    row: matchedRow,
+    recordId: targetRecordId,
+    orderId: targetOrderId
+  };
+}
+
+/**
+ * ធ្វើបច្ចុប្បន្នភាព COD Status ក្នុងផ្ទាំង Personal Sales ផ្ទាល់ (1st, 2nd, 3rd, បានទូទាត់...)
+ */
+function updateCodStatus(ss, data) {
+  var sheet = getTargetSalesSheet(ss);
+  if (!sheet) {
+    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };
+  }
+
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var numRows = values.length;
+  var lastCol = sheet.getLastColumn();
+
+  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];
+  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');
+  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;
+  var col12H = String(headerVals[11] || '').trim().toLowerCase();
+  var col14H = String(headerVals[13] || '').trim().toLowerCase();
+  var isNew26Col = (lastCol &gt;= 25) || hasEmmiOrSg || (col14H.indexOf('free') !== -1) || (col12H.indexOf('free') === -1 &amp;&amp; col12H !== '');
+
+  var targetRecordId = String(data.recordId || '').trim();
+  var targetOrderId = String(data.orderId || '').trim();
+  var newStatus = String(data.codStatus || '').trim();
+
+  if (!newStatus) {
+    return { status: 'error', message: 'No new codStatus provided!' };
+  }
+
+  var matchedRow = -1;
+  for (var r = 1; r &lt; numRows; r++) {
+    var existingOrderId = String(values[r][4] || '').trim(); // Col E
+    var existingRecId = String(values[r][isNew26Col ? 25 : 23] || values[r][25] || values[r][23] || values[r][22] || '').trim();
+
+    if (targetRecordId &amp;&amp; existingRecId &amp;&amp; targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {
+      matchedRow = r + 1;
+      break;
+    }
+    if (targetOrderId &amp;&amp; existingOrderId &amp;&amp; targetOrderId.toLowerCase() === targetOrderId.toLowerCase()) {
+      matchedRow = r + 1;
+      break;
+    }
+  }
+
+  // Fallback 1: Match by Date and Amount in Personal Sales
+  if (matchedRow &lt;= 0 &amp;&amp; data.date &amp;&amp; data.amount) {
+    var targetDate = String(data.date).trim();
+    var targetAmt = Number(data.amount);
+    for (var r = numRows - 1; r &gt;= 1; r--) {
+      var rowDate = String(values[r][0] || '').trim();
+      var rowAmt = Number(values[r][isNew26Col ? 15 : 13] || 0);
+      if (rowDate.includes(targetDate) &amp;&amp; Math.abs(rowAmt - targetAmt) &lt; 0.05) {
+        matchedRow = r + 1;
+        break;
+      }
+    }
+  }
+
+  if (matchedRow &gt; 0) {
+    var codStatusCol = isNew26Col ? 19 : 17; // Col S (19) in 26-col, Col Q (17) in 24-col
+    sheet.getRange(matchedRow, codStatusCol).setValue(newStatus);
+    if (newStatus === 'បានទូទាត់' || newStatus === 'ទូទាត់រួច') {
+      var payDateCol = isNew26Col ? 21 : 19; // Col U (21) in 26-col, Col S (19) in 24-col
+      var payDateVal = data.paymentDate || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'dd/MM/yyyy');
+      sheet.getRange(matchedRow, payDateCol).setValue(payDateVal);
+    }
+    return {
+      status: 'success',
+      message: 'Updated COD status to ' + newStatus + ' at row ' + matchedRow,
+      row: matchedRow,
+      codStatus: newStatus
+    };
+  }
+
+  // Fallback 2: Check Bank &amp; Cash Balance sheet (Pending COD section)
+  var bankSheet = ss.getSheetByName('Bank &amp; Cash Balance') || ss.getSheetByName('Bank &amp; Cash');
+  if (bankSheet) {
+    var bVals = bankSheet.getDataRange().getValues();
+    var bMatchRow = -1;
+    for (var br = 0; br &lt; bVals.length; br++) {
+      var bNo = String(bVals[br][0] || '').trim();
+      var bDate = String(bVals[br][1] || '').trim();
+      var bAmt = Number(bVals[br][5] || 0);
+      if ((targetOrderId &amp;&amp; bNo === targetOrderId) || (data.date &amp;&amp; bDate.includes(data.date) &amp;&amp; Math.abs(bAmt - Number(data.amount)) &lt; 0.05)) {
+        bMatchRow = br + 1;
+        break;
+      }
+    }
+    if (bMatchRow &gt; 0) {
+      bankSheet.getRange(bMatchRow, 7).setValue(newStatus); // Col G (7) is status in Bank &amp; Cash Balance
+      return { status: 'success', message: 'Updated COD status in Bank sheet at row ' + bMatchRow, row: bMatchRow, codStatus: newStatus };
+    }
+  }
+
+  return { status: 'not_found', message: 'Order ' + (targetOrderId || targetRecordId) + ' not found for status update' };
+}
+
+/**
+ * បញ្ចូលការចំណាយចូលផ្ទាំង Daily Expenses
+ */
+function insertDailyExpense(ss, exp) {
+  var sheet = ss.getSheetByName('Daily Expenses');
+  if (!sheet) {
+    return { status: 'error', message: 'Tab "Daily Expenses" not found!' };
+  }
+
+  // ស្វែងរកជួរដេកទំនេរដំបូង (Sequential First Empty Row) ការពារកុំឱ្យរំលងជួរទទេ
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var numRows = values.length;
+  var targetRow = -1;
+
+  for (var r = 1; r &lt; numRows; r++) {
+    var rowDate = values[r][0];
+    var rowDesc = values[r][1];
+    var rowAmt = values[r][3];
+    // បើ Col A, Col B និង Col D សុទ្ធតែទំនេរ នោះជាជួរទំនេរដំបូងពិតប្រាកដ
+    if ((!rowDate || String(rowDate).trim() === '') &amp;&amp; 
+        (!rowDesc || String(rowDesc).trim() === '') &amp;&amp; 
+        (rowAmt === '' || rowAmt === null || rowAmt === undefined)) {
+      targetRow = r + 1;
+      break;
+    }
+  }
+
+  // ប្រសិនបើគ្មានជួរទំនេរកណ្តាលទេ គឺដាក់នៅចុងទិន្នន័យ
+  if (targetRow === -1) {
+    targetRow = numRows + 1;
+  }
+
+  // បំប្លែង Date Object ពិតប្រាកដ និងកំណត់ Format dd/MM/yyyy សុទ្ធ
+  // ការពារដាច់ខាតកុំឱ្យលោតសញ្ញា Invalid Date ដោយសារជាប់ម៉ោង HH:mm លើ Data Validation របស់ Google Sheet
+  var dateObj = parseToDateObj(exp.date);
+  sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date
+
+  sheet.getRange(targetRow, 2).setValue(exp.description || ''); // Col B: Description
+  sheet.getRange(targetRow, 3).setValue(exp.category || 'ហូបចុក &amp; ប្រចាំថ្ងៃ'); // Col C: Category
+  sheet.getRange(targetRow, 4).setValue(Number(exp.amount || 0)); // Col D: Amount ($)
+
+  // ប្រសិនបើមានបញ្ជាក់ម៉ោង (Time) ដាក់ចូលក្នុង Col E (Note) ដើម្បីកុំឱ្យខូច Data Validation នៃ Col A
+  var noteText = exp.note || '';
+  if (exp.time) {
+    noteText = noteText ? (exp.time + ' - ' + noteText) : ('ម៉ោង ' + exp.time);
+  }
+  if (noteText) {
+    sheet.getRange(targetRow, 5).setValue(noteText); // Col E: Note
+  }
+
+  return {
+    status: 'success',
+    action: 'add_expense',
+    version: '2.0-sequential',
+    row: targetRow,
+    amount: exp.amount
+  };
+}
+
+/**
+ * Update an existing Daily Expense row
+ */
+function updateDailyExpense(ss, exp) {
+  var sheet = ss.getSheetByName('Daily Expenses');
+  if (!sheet) {
+    return { status: 'error', message: 'Tab "Daily Expenses" not found!' };
+  }
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var targetRow = -1;
+
+  if (exp.rowIndex &amp;&amp; exp.rowIndex &gt; 0 &amp;&amp; exp.rowIndex &lt; values.length) {
+    var checkRow = exp.rowIndex + 1;
+    if (checkRow &lt;= values.length) {
+      targetRow = checkRow;
+    }
+  }
+
+  if (targetRow === -1 || (exp.origDesc &amp;&amp; String(values[targetRow - 1][1] || '').trim() !== String(exp.origDesc).trim())) {
+    for (var r = 1; r &lt; values.length; r++) {
+      var rDesc = String(values[r][1] || '').trim();
+      var rAmt = Number(values[r][3] || 0);
+      if (exp.origDesc &amp;&amp; rDesc.toLowerCase() === String(exp.origDesc).toLowerCase().trim()) {
+        if (!exp.origAmount || Math.abs(rAmt - Number(exp.origAmount)) &lt; 0.05) {
+          targetRow = r + 1;
+          break;
+        }
+      }
+    }
+  }
+
+  if (targetRow === -1) {
+    return { status: 'not_found', message: 'រកមិនឃើញចំណាយត្រូវកែប្រែឡើយ!' };
+  }
+
+  if (exp.date) {
+    var dateObj = parseToDateObj(exp.date);
+    sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy');
+  }
+  if (exp.description) sheet.getRange(targetRow, 2).setValue(exp.description);
+  if (exp.category) sheet.getRange(targetRow, 3).setValue(exp.category);
+  if (exp.amount !== undefined &amp;&amp; exp.amount !== null) sheet.getRange(targetRow, 4).setValue(Number(exp.amount));
+
+  var noteText = exp.note || '';
+  if (exp.time &amp;&amp; noteText.indexOf(exp.time) === -1) {
+    noteText = exp.time + ' - ' + noteText;
+  }
+  if (noteText) sheet.getRange(targetRow, 5).setValue(noteText);
+
+  return { status: 'success', action: 'update_expense', row: targetRow };
+}
+
+/**
+ * Delete an existing Daily Expense row
+ */
+function deleteDailyExpense(ss, exp) {
+  var sheet = ss.getSheetByName('Daily Expenses');
+  if (!sheet) {
+    return { status: 'error', message: 'Tab "Daily Expenses" not found!' };
+  }
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var targetRow = -1;
+
+  if (exp.rowIndex &amp;&amp; exp.rowIndex &gt; 0 &amp;&amp; exp.rowIndex &lt; values.length) {
+    var checkRow = exp.rowIndex + 1;
+    if (checkRow &lt;= values.length) {
+      targetRow = checkRow;
+    }
+  }
+
+  if (targetRow === -1 || (exp.description &amp;&amp; String(values[targetRow - 1][1] || '').trim() !== String(exp.description).trim())) {
+    for (var r = 1; r &lt; values.length; r++) {
+      var rDesc = String(values[r][1] || '').trim();
+      var rAmt = Number(values[r][3] || 0);
+      if (exp.description &amp;&amp; rDesc.toLowerCase() === String(exp.description).toLowerCase().trim()) {
+        if (!exp.amount || Math.abs(rAmt - Number(exp.amount)) &lt; 0.05) {
+          targetRow = r + 1;
+          break;
+        }
+      }
+    }
+  }
+
+  if (targetRow === -1) {
+    return { status: 'not_found', message: 'រកមិនឃើញចំណាយត្រូវលុបឡើយ!' };
+  }
+
+  sheet.deleteRow(targetRow);
+  return { status: 'success', action: 'delete_expense', row: targetRow };
+}
+
+/**
+ * ==============================================================================
+ * SYNC ATTENDANCE TO BOSTARTRACK (Tab "Check in")
+ * គោលបំណង៖ Check-in និង Check-out ក្នុងជួរតែមួយ (Single Row per User per Day)
+ * Sheet: 1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4
+ * ==============================================================================
+ */
+function syncBostarAttendance(ss, data) {
+  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+  var targetSs = null;
+  try {
+    targetSs = SpreadsheetApp.openById(bostarTrackId);
+  } catch (e) {
+    targetSs = ss || SpreadsheetApp.getActiveSpreadsheet();
+  }
+
+  var sheet = targetSs.getSheetByName('Check in');
+  if (!sheet) {
+    sheet = targetSs.getSheetByName('Check In') || targetSs.getSheetByName('Attendance');
+  }
+  if (!sheet) {
+    sheet = targetSs.insertSheet('Check in');
+    sheet.appendRow([
+      'Date', 'Staff ID', 'Staff Name', 'Role', 'Check-in Time', 'Check-out Time', 
+      'Work Duration', 'Status', 'Late Mins', 'Location', 'Reason', 'Motivational Note', 
+      'Timestamp', 'Check-out Status', 'Check-out Location', 'Check-out Note'
+    ]);
+  }
+
+  var actionType = data.type || (data.checkOutTime ? 'out' : 'in');
+  var targetDate = data.date || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+  var staffId = String(data.staffId || '').replace(/^(ID:\s*)+/i, '').trim() || 'BG-001';
+  var staffName = data.staffName || 'Bostar Member';
+  var role = data.role || 'សមាជិកក្រុម BostarGroup';
+
+  // Read existing rows to locate today's row for this staffId
+  var lastRow = sheet.getLastRow();
+  var matchRowIndex = -1;
+
+  if (lastRow &gt; 1) {
+    var checkCount = Math.min(lastRow - 1, 500);
+    var dateStaffRange = sheet.getRange(2, 1, checkCount, 2).getValues();
+    for (var i = 0; i &lt; dateStaffRange.length; i++) {
+      var rDate = dateStaffRange[i][0];
+      var rDateStr = '';
+      if (rDate instanceof Date) {
+        rDateStr = Utilities.formatDate(rDate, 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+      } else {
+        rDateStr = String(rDate).trim();
+      }
+      var rStaffId = String(dateStaffRange[i][1]).replace(/^(ID:\s*)+/i, '').trim();
+
+      // Normalize date format (YYYY-MM-DD)
+      var normTarget = targetDate;
+      if (normTarget.indexOf('/') &gt; -1) {
+        var p = normTarget.split('/');
+        if (p.length === 3) normTarget = p[2] + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2);
+      }
+      if (rDateStr.indexOf('/') &gt; -1) {
+        var p = rDateStr.split('/');
+        if (p.length === 3) rDateStr = p[2] + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2);
+      }
+
+      if (rStaffId &amp;&amp; rStaffId.toLowerCase() === staffId.toLowerCase() &amp;&amp; rDateStr === normTarget) {
+        matchRowIndex = i + 2; // 1-based sheet row
+        break;
+      }
+    }
+  }
+
+  // ស្វែងរកជួរដេកទំនេរដំបូង (Sequential First Empty Row) ការពារកុំឱ្យ appendRow រំលងជួរទទេទៅ Row 101
+  var firstBlankRow = -1;
+  var scanLimit = Math.max(lastRow + 5, 20);
+  var checkCells = sheet.getRange(2, 1, Math.min(scanLimit, 200), 2).getValues();
+  for (var k = 0; k &lt; checkCells.length; k++) {
+    var cellDate = checkCells[k][0];
+    var cellStaff = checkCells[k][1];
+    if ((cellDate === '' || cellDate === null || cellDate === undefined) &amp;&amp;
+        (cellStaff === '' || cellStaff === null || cellStaff === undefined)) {
+      firstBlankRow = k + 2;
+      break;
+    }
+  }
+  if (firstBlankRow === -1) {
+    firstBlankRow = lastRow + 1;
+  }
+
+  // ប្រសិនបើសិនជាមាន matchRowIndex នៅជួរឆ្ងាយ (ឧទាហរណ៍ Row 101 ដោយសារ appendRow ចាស់) តែ Row 2 ទំនេរ
+  // យើងប្តូរគោលដៅមក Row 2 (firstBlankRow) ភ្លាម ដើម្បីឱ្យ User ឃើញនៅផ្នែកខាងលើ
+  var targetRow = matchRowIndex;
+  var oldTrappedRow = -1;
+  if (matchRowIndex &gt; 10 &amp;&amp; firstBlankRow &lt; matchRowIndex) {
+    oldTrappedRow = matchRowIndex;
+    targetRow = firstBlankRow;
+  } else if (matchRowIndex &lt;= 0) {
+    targetRow = firstBlankRow;
+  }
+
+  var now = new Date();
+  var timeStr = data.time || Utilities.formatDate(now, 'Asia/Phnom_Penh', 'hh:mm:ss a');
+  var timestampStr = Utilities.formatDate(now, 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm:ss');
+
+  if (actionType === 'in') {
+    // CHECK IN
+    var checkOutVal = (data.checkOutTime !== undefined &amp;&amp; data.checkOutTime !== null &amp;&amp; data.checkOutTime !== '') 
+      ? data.checkOutTime 
+      : ((data.clearCheckOut === true) ? '' : (matchRowIndex &gt; 0 ? sheet.getRange(matchRowIndex, 6).getValue() : ''));
+    var durationVal = (data.duration !== undefined &amp;&amp; data.duration !== null &amp;&amp; data.duration !== '')
+      ? data.duration
+      : ((data.clearCheckOut === true) ? '' : (matchRowIndex &gt; 0 ? sheet.getRange(matchRowIndex, 7).getValue() : ''));
+    var checkOutStatusVal = (data.clearCheckOut === true) ? '' : (matchRowIndex &gt; 0 ? sheet.getRange(matchRowIndex, 14).getValue() : '');
+    var checkOutLocVal = (data.clearCheckOut === true) ? '' : (matchRowIndex &gt; 0 ? sheet.getRange(matchRowIndex, 15).getValue() : '');
+    var checkOutNoteVal = (data.clearCheckOut === true) ? '' : (matchRowIndex &gt; 0 ? sheet.getRange(matchRowIndex, 16).getValue() : '');
+
+    var checkInRow = [
+      targetDate,                                        // A: Date
+      staffId,                                           // B: Staff ID
+      staffName,                                         // C: Staff Name
+      role,                                              // D: Role
+      data.checkInTime || timeStr,                       // E: Check-in Time
+      checkOutVal,                                       // F: Check-out Time
+      durationVal,                                       // G: Work Duration
+      data.status || 'Present',                          // H: Status
+      data.lateMinutes || 0,                             // I: Late Mins
+      data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location
+      data.reason || '',                                 // K: Reason
+      data.motivationalNote || '',                       // L: Motivational Note
+      timestampStr,                                      // M: Timestamp
+      checkOutStatusVal,                                 // N: Check-out Status
+      checkOutLocVal,                                    // O: Check-out Location
+      checkOutNoteVal                                    // P: Check-out Note
+    ];
+
+    var rowRange = sheet.getRange(targetRow, 1, 1, 16);
+    rowRange.setValues([checkInRow]);
+    try {
+      rowRange.setFontColor('#111827'); // Enforce clear dark text (ការពារកុំឱ្យជាប់ពណ៌សដូចផ្ទៃ)
+      rowRange.setVerticalAlignment('middle');
+    } catch (_) {}
+
+    if (oldTrappedRow &gt; 0 &amp;&amp; oldTrappedRow !== targetRow) {
+      try { sheet.getRange(oldTrappedRow, 1, 1, 16).clearContent(); } catch (_) {}
+    }
+
+    return {
+      status: 'success',
+      action: matchRowIndex &gt; 0 ? 'check_in_updated' : 'check_in_created',
+      rowIndex: targetRow,
+      message: 'Check-in recorded in row ' + targetRow + ' for ' + staffName
+    };
+  } else {
+    // CHECK OUT
+    var checkOutTime = data.checkOutTime || timeStr;
+    var duration = data.duration || '';
+
+    var checkOutRow = [
+      targetDate,                                        // A: Date
+      staffId,                                           // B: Staff ID
+      staffName,                                         // C: Staff Name
+      role,                                              // D: Role
+      (matchRowIndex &gt; 0 ? sheet.getRange(matchRowIndex, 5).getValue() : '—'), // E: Check-in Time
+      checkOutTime,                                      // F: Check-out Time
+      duration,                                          // G: Work Duration
+      data.status || 'Present',                          // H: Status
+      data.lateMinutes || 0,                             // I: Late Mins
+      data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location
+      data.reason || (matchRowIndex &gt; 0 ? sheet.getRange(matchRowIndex, 11).getValue() : 'Check-out តែម្តង'), // K: Reason
+      data.motivationalNote || '',                       // L: Motivational Note
+      timestampStr,                                      // M: Timestamp
+      data.checkOutStatus || 'Normal',                   // N: Check-out Status
+      data.checkOutLocation || data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // O: Check-out Location
+      data.checkOutNote || 'ចេញទាន់ពេល / បញ្ចប់ការងារដោយរលូន' // P: Check-out Note
+    ];
+
+    var rowRangeOut = sheet.getRange(targetRow, 1, 1, 16);
+    rowRangeOut.setValues([checkOutRow]);
+    try {
+      rowRangeOut.setFontColor('#111827'); // Enforce clear dark text (ការពារកុំឱ្យជាប់ពណ៌សដូចផ្ទៃ)
+      rowRangeOut.setVerticalAlignment('middle');
+    } catch (_) {}
+
+    if (oldTrappedRow &gt; 0 &amp;&amp; oldTrappedRow !== targetRow) {
+      try { sheet.getRange(oldTrappedRow, 1, 1, 16).clearContent(); } catch (_) {}
+    }
+
+    return {
+      status: 'success',
+      action: matchRowIndex &gt; 0 ? 'check_out_updated' : 'check_out_created',
+      rowIndex: targetRow,
+      message: 'Check-out recorded into row ' + targetRow
+    };
+  }
+}
+
+/**
+ * ==============================================================================
+ * DAILY SALES REPORT SYNC (SMART UPSERT - 100% DEDUPLICATION)
+ * ==============================================================================
+ * បញ្ចូល ឬ កែសម្រួលរបាយការណ៍លក់ប្រចាំថ្ងៃចូល Tab 'Report' ក្នុង BostarTrack
+ * ក្បួនការពារការស្ទួន ១០០%៖ ផ្ទៀងផ្ទាត់តាម Composite Key (Date + Page Name + Reporter)
+ * បើមានជួរចាស់ ➔ Update លើជួរដដែល | បើមិនទាន់មាន ➔ បន្ថែមជួរថ្មី
+ */
+function insertOrUpdateDailyReport(ss, data) {
+  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+  var targetSs = null;
+  try {
+    targetSs = SpreadsheetApp.openById(bostarTrackId);
+  } catch (e) {
+    targetSs = ss || SpreadsheetApp.getActiveSpreadsheet();
+  }
+
+  var sheet = targetSs.getSheetByName('Report');
+  if (!sheet) {
+    sheet = targetSs.getSheetByName('របាយការណ៍') || targetSs.getSheetByName('Daily Report');
+  }
+  if (!sheet) {
+    return { status: 'error', message: "រកមិនឃើញ Tab 'Report' ក្នុង Google Sheet ឡើយ!" };
+  }
+
+  var dateObj = parseToDateObj(data.date);
+  var targetDateNorm = Utilities.formatDate(dateObj, 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+
+  var timeStr = data.time || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'h:mm a');
+  var pageName = String(data.page || data.pageName || 'Bostar Store').trim();
+  var teamName = String(data.team || 'BostarGroup').trim();
+  var reporterName = String(data.reporter || data.staff || 'សមាជិក Bostar').trim();
+  var statusStr = String(data.status || 'បញ្ចប់').trim();
+
+  var chatTotal = Number(data.chatTotal) || 0;
+  var chatMistake = Number(data.chatMistake) || 0;
+  var chatTarget = Number(data.chatTarget) || 0;
+  var callDirect = Number(data.callDirect) || 0;
+  var followLeads = Number(data.followLeads) || 0;
+  var totalOrders = Number(data.totalOrders) || 0;
+  var totalBoxes = Number(data.totalBoxes) || 0;
+
+  var buyNewP = Number(data.buyNewP) || 0;
+  var buyNewB = Number(data.buyNewB) || 0;
+  var buyOldP = Number(data.buyOldP) || 0;
+  var buyOldB = Number(data.buyOldB) || 0;
+  var buyFollowP = Number(data.buyFollowP) || 0;
+  var buyFollowB = Number(data.buyFollowB) || 0;
+
+  var challenges = String(data.challenges || 'គ្មាន (None)').trim();
+
+  // ជួរឈរទាំង ២០ ត្រូវគ្នានឹង Tab Report បេះបិទ
+  var rowData = [
+    dateObj,       // Col A (0): កាលបរិច្ឆេទ (Date)
+    timeStr,       // Col B (1): ម៉ោងរាយការណ៍ (Time)
+    pageName,      // Col C (2): ឈ្មោះផេក (Page Name)
+    teamName,      // Col D (3): ក្រុមការងារ (Team)
+    reporterName,  // Col E (4): អ្នករាយការណ៍ (Reporter)
+    statusStr,     // Col F (5): ស្ថានភាព (Status)
+    chatTotal,     // Col G (6): សរុបទំនាក់ទំនង (Total Inquiries)
+    chatMistake,   // Col H (7): ឆាតប៉ះដៃ (Direct Chat)
+    chatTarget,    // Col I (8): ឆាតគោលដៅ (Targeted Ads)
+    callDirect,    // Col J (9): ខលចូលថ្មី (Incoming Calls)
+    followLeads,   // Col K (10): តាមដានចាស់ (Follow-up Leads)
+    totalOrders,   // Col L (11): សរុបកុម្ម៉ង់ (Total Orders)
+    totalBoxes,    // Col M (12): សរុបប្រអប់ (Total Boxes)
+    buyNewP,       // Col N (13): ថ្មីទិញ (នាក់)
+    buyNewB,       // Col O (14): ថ្មីទិញ (ប្រអប់)
+    buyOldP,       // Col P (15): ចាស់ទិញ (នាក់)
+    buyOldB,       // Col Q (16): ចាស់ទិញ (ប្រអប់)
+    buyFollowP,    // Col R (17): តាមដានទិញ (នាក់)
+    buyFollowB,    // Col S (18): តាមដានទិញ (ប្រអប់)
+    challenges     // Col T (19): បញ្ហាប្រឈម / កំណត់សម្គាល់ (Challenges &amp; Notes)
+  ];
+
+  // ស្វែងរកជួរដេកចាស់ដើម្បីការពារការស្ទួន (Deduplication Check)
+  var lastRow = sheet.getLastRow();
+  var matchRowIndex = -1;
+
+  if (lastRow &gt; 1) {
+    var range = sheet.getRange(2, 1, lastRow - 1, 5).getValues(); // អាន Col A ដល់ E (Date, Time, Page, Team, Reporter)
+    for (var i = 0; i &lt; range.length; i++) {
+      var rDate = range[i][0];
+      var rDateNorm = '';
+      if (rDate instanceof Date) {
+        rDateNorm = Utilities.formatDate(rDate, 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+      } else {
+        var parsed = parseToDateObj(rDate);
+        rDateNorm = Utilities.formatDate(parsed, 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+      }
+
+      var rPage = String(range[i][2] || '').trim().toLowerCase();
+      var rReporter = String(range[i][4] || '').trim().toLowerCase();
+
+      // ផ្ទៀងផ្ទាត់លក្ខខណ្ឌស្ទួន (Date + Page + Reporter)
+      if (rDateNorm === targetDateNorm &amp;&amp;
+          rPage === pageName.toLowerCase() &amp;&amp;
+          rReporter === reporterName.toLowerCase()) {
+        matchRowIndex = i + 2; // 1-based index (Header គឺជួរទី ១)
+        break;
+      }
+    }
+  }
+
+  if (matchRowIndex &gt; 0) {
+    // ករណីរកឃើញជួរចាស់ ➔ Update លើជួរដដែល (មិនបង្កើតជួរស្ទួន)
+    sheet.getRange(matchRowIndex, 1, 1, rowData.length).setValues([rowData]);
+    return {
+      status: 'success',
+      isUpdate: true,
+      rowIndex: matchRowIndex,
+      message: 'បានកែសម្រួលរបាយការណ៍លើជួរទី ' + matchRowIndex + ' (Update ជោគជ័យ មិនមានស្ទួន) ✅'
+    };
+  } else {
+    // ករណីទិន្នន័យថ្មី ➔ បន្ថែមជួរថ្មី
+    sheet.appendRow(rowData);
+    var newRowIndex = sheet.getLastRow();
+    return {
+      status: 'success',
+      isUpdate: false,
+      rowIndex: newRowIndex,
+      message: 'បានកត់ត្រារបាយការណ៍ថ្មីលើជួរទី ' + newRowIndex + ' ជោគជ័យ! 🚀'
+    };
+  }
+}
+
+/**
+ * កែប្រែឈ្មោះគណនី និងសមតុល្យសាច់ប្រាក់ (USD / KHR) ក្នុងផ្ទាំង «Bank &amp; Cash Balance»
+ */
+function updateBankAccountBalance(ss, data) {
+  var sheet = ss.getSheetByName('Bank &amp; Cash Balance') || ss.getSheetByName('Bank &amp; Cash') || ss.getSheetByName('App_Bank_Balance');
+  if (!sheet) {
+    return { status: 'error', message: 'មិនអាចស្វែងរក Tab "Bank &amp; Cash Balance" ឃើញក្នុង Spreadsheet នេះឡើយ!' };
+  }
+
+  var targetNo = data.accountNo ? parseInt(data.accountNo, 10) : null;
+  var targetName = String(data.accountName || '').trim();
+  var newAccountName = data.newAccountName ? String(data.newAccountName).trim() : null;
+  var amountUsd = (data.amountUsd !== undefined &amp;&amp; data.amountUsd !== null &amp;&amp; data.amountUsd !== '') ? Number(data.amountUsd) : null;
+  var amountKhr = (data.amountKhr !== undefined &amp;&amp; data.amountKhr !== null &amp;&amp; data.amountKhr !== '') ? Number(data.amountKhr) : null;
+
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var matchedRow = -1;
+
+  for (var r = 1; r &lt; Math.min(values.length, 30); r++) {
+    var rowNo = parseInt(values[r][0], 10); // Col A: លេខរៀង (1..10)
+    var rowName = String(values[r][1] || '').trim(); // Col B: ឈ្មោះគណនី
+
+    // បើដល់ផ្នែក COD ឬ សរុប គឺឈប់ស្វែងរក
+    if (rowName.indexOf('សរុប') === 0 || rowName.indexOf('Accounts Receivable') !== -1 || rowName.indexOf('Pending COD') !== -1) {
+      if (matchedRow &gt; 0) break;
+    }
+
+    if (targetNo &amp;&amp; !isNaN(rowNo) &amp;&amp; rowNo === targetNo) {
+      matchedRow = r + 1; // 1-based row index in Google Sheets
+      break;
+    }
+    if (targetName &amp;&amp; rowName.toLowerCase() === targetName.toLowerCase()) {
+      matchedRow = r + 1;
+      break;
+    }
+  }
+
+  if (matchedRow &lt;= 0) {
+    return {
+      status: 'not_found',
+      message: 'រកមិនឃើញគណនីធនាគារលេខ #' + (targetNo || '') + ' (' + (targetName || '') + ') ក្នុង Tab Bank &amp; Cash Balance ឡើយ!'
+    };
+  }
+
+  var currentAccountName = String(values[matchedRow - 1][1] || '').trim();
+  var finalAccountName = newAccountName || currentAccountName;
+
+  // 1. Update ឈ្មោះគណនី (Col B / Col 2) ប្រសិនបើមានការកែប្រែ
+  if (newAccountName &amp;&amp; newAccountName !== currentAccountName) {
+    sheet.getRange(matchedRow, 2).setValue(newAccountName);
+  }
+
+  var isKhrAccount = finalAccountName.indexOf('(KHR)') !== -1 || (amountKhr !== null &amp;&amp; amountKhr &gt; 0 &amp;&amp; (amountUsd === null || amountUsd === 0));
+
+  // 2. Update សមតុល្យរៀល (Col D / Col 4)
+  if (amountKhr !== null &amp;&amp; !isNaN(amountKhr)) {
+    sheet.getRange(matchedRow, 4).setValue(amountKhr);
+  }
+
+  // 3. Update សមតុល្យដុល្លារ (Col C / Col 3)
+  if (amountUsd !== null &amp;&amp; !isNaN(amountUsd)) {
+    var cRange = sheet.getRange(matchedRow, 3);
+    var cFormula = cRange.getFormula();
+
+    // បើជាគណនី KHR ហើយមានរូបមន្ត =D.../4100 ស្រាប់ គឺរក្សារូបមន្តទុកដើម្បីឲ្យ Sheet គណនាស្វ័យប្រវត្តិតាម KHR
+    if (isKhrAccount &amp;&amp; cFormula &amp;&amp; cFormula.indexOf('=') === 0) {
+      // រក្សារូបមន្តទុក
+    } else if (isKhrAccount &amp;&amp; (!cFormula || cFormula === '')) {
+      cRange.setFormula('=IFERROR(ROUND(D' + matchedRow + '/4100, 2), 0)');
+    } else {
+      cRange.setValue(amountUsd);
+    }
+  }
+
+  return {
+    status: 'success',
+    message: 'បានកែសម្រួលគណនី ' + finalAccountName + ' ជោគជ័យ! ✅',
+    accountNo: targetNo,
+    accountName: finalAccountName,
+    amountUsd: amountUsd,
+    amountKhr: amountKhr,
+    row: matchedRow
+  };
+}
+
+</textarea>
+    </div>
+
+    <div class="instructions">
+      <strong>📌 របៀបយកកូដទៅ Update ក្នុង Google Sheet (៤ ជំហានងាយៗ)៖</strong>
       <ol>
-        <li>បើកផ្ទាំង Apps Script លើ Google Sheet របស់បង</li>
-        <li>ចុច <code>Ctrl + A</code> (ឬ <code>Cmd + A</code>) ដើម្បី Select All កូដចាស់</li>
-        <li>ចុច <code>Ctrl + V</code> (ឬ <code>Cmd + V</code>) ដើម្បី <strong>Paste កូដថ្មី</strong> ចូលជំនួស</li>
-        <li>ចុច <strong>Save (💾)</strong></li>
-        <li>ចុច <strong>Deploy ➡️ Manage deployments ➡️ កែសម្រួល (រូបខ្មៅដៃ) ➡️ Version: New version ➡️ Deploy</strong>!</li>
+        <li>ចុចប៊ូតុងពណ៌ទឹកក្រូចខាងលើ ឬចុច <code>Cmd + A</code> ក្នុងប្រអប់កូដ រួចចុច <code>Cmd + C</code></li>
+        <li>ចូលទៅកាន់ Google Sheet របស់បង ➡️ ចុចលើ <strong>Extensions ➡️ Apps Script</strong></li>
+        <li>ក្នុងផ្ទាំង <code>Code.gs</code> ចាស់៖ ចុច <code>Cmd + A</code> រួចចុច <code>Cmd + V</code> ដើម្បី <strong>Paste កូដថ្មី</strong> រួចចុច <strong>Save (💾)</strong></li>
+        <li>ចុច <strong>Deploy ➡️ Manage deployments ➡️ រូបខ្មៅដៃ (Edit) ➡️ ត្រង់ Version ជ្រើសយក "New version" ➡️ ចុច Deploy</strong> ជាការស្រេច!</li>
       </ol>
     </div>
   </div>
 
   <script>
-    const fullCode = "/**\n * ==============================================================================\n * SD Dashboard & Personal Sales / Daily Expenses Sync Webhook\n * ==============================================================================\n * សុវត្ថិភាពខ្ពស់ ១០០% មិនប៉ះពាល់រូបមន្តចាស់ និងការពារទិន្នន័យ manual tracking\n * \n * គោលការណ៍សុវត្ថិភាពទាំង ៤៖\n * 1. ពិនិត្យភាពស្ទួន (Deduplication) តាម Order ID (អនុញ្ញាតលេខទូរស័ព្ទដដែលសម្រាប់អតិថិជនទិញម្តងទៀត)\n * 2. ថែរក្សារូបមន្តស្វ័យប្រវត្តិ (No., Total $, Stock Cost, Profit)\n * 3. មិនប៉ះពាល់ជួរឈរដែលកត់ត្រាដោយដៃ (COD Status = បានដាក់ការកុម្មង់, Payment Date, Note)\n * 4. បង្កើត Record_ID (REC-XXXX) ស្វ័យប្រវត្តិសម្រាប់ AppSheet ស្គាល់\n * 5. បំប្លែងកាលបរិច្ឆេទជា Date Object ពិតប្រាកដ ការពារបញ្ហា Invalid Date លើ Google Sheet\n * ==============================================================================\n */\n\n/**\n * ដំណើរការមុខងារនេះ ១ ដង (ចុច Run) ដើម្បីឱ្យ Google សួរទាមទារសិទ្ធិ (Authorize) ចូលទៅកាន់ Google Sheets ដទៃទៀត\n */\nfunction authorizeExternalSheets() {\n  DriveApp.getRootFolder();\n  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';\n  try {\n    var ss = SpreadsheetApp.openById(bostarTrackId);\n    Logger.log('ជោគជ័យក្នុងការតភ្ជាប់ទៅកាន់តារាង BostarTrack៖ ' + ss.getName());\n  } catch (e) {\n    Logger.log('Authorize error: ' + e);\n  }\n}\n\nfunction doGet(e) {\n  return ContentService.createTextOutput(JSON.stringify({\n    status: 'ok',\n    version: '3.0-bostartrack-direct-val',\n    message: 'SD Dashboard Webhook is live and ready! 🚀'\n  })).setMimeType(ContentService.MimeType.JSON);\n}\n\nfunction doPost(e) {\n  var lock = LockService.getScriptLock();\n  // រង់ចាំ lock រយៈពេលរហូតដល់ 30 វិនាទី ដើម្បីការពារការបញ្ជូនទិន្នន័យជាន់គ្នា (Concurrency Safety)\n  var success = lock.tryLock(30000);\n  if (!success) {\n    return ContentService.createTextOutput(JSON.stringify({\n      status: 'error',\n      message: 'Server is busy, could not obtain lock.'\n    })).setMimeType(ContentService.MimeType.JSON);\n  }\n\n  try {\n    if (!e || !e.postData || !e.postData.contents) {\n      return ContentService.createTextOutput(JSON.stringify({\n        status: 'error',\n        message: 'No data payload received'\n      })).setMimeType(ContentService.MimeType.JSON);\n    }\n\n    var payload = JSON.parse(e.postData.contents);\n    var action = payload.action;\n    var data = payload.data;\n    var targetSheetId = (payload.sheetId && String(payload.sheetId).length > 15) ? String(payload.sheetId).trim() : null;\n    var ss = targetSheetId ? SpreadsheetApp.openById(targetSheetId) : SpreadsheetApp.getActiveSpreadsheet();\n\n    if (action === 'add_order') {\n      // 1. បញ្ចូលទៅក្នុង Sheet ផ្ទាល់ខ្លួនរបស់សមាជិក (Personal Sales)\n      var result = insertPersonalSalesOrder(ss, data);\n\n      // 2. Dual-Sync: បញ្ចូលទៅកាន់ Master Data នៃ BostarTrack (1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4) ស្វ័យប្រវត្តិ\n      // បញ្ជាដាច់ខាត៖ Master Data ទទួលតែពីការកុម្ម៉ង់ថ្មី (isDockOrder / syncToBostarTrack === true) ប៉ុណ្ណោះ ហាម Telegram Mode\n      var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';\n      var syncToBostarTrack = (payload.syncToBostarTrack === true) || (data.syncToBostarTrack === true);\n      if (syncToBostarTrack && targetSheetId !== bostarTrackId) {\n        try {\n          var bostarSs = SpreadsheetApp.openById(bostarTrackId);\n          if (result && result.orderId) {\n            data.orderId = result.orderId;\n          }\n          insertPersonalSalesOrder(bostarSs, data);\n        } catch (btErr) {\n          Logger.log('BostarTrack Dual Sync Warn: ' + btErr);\n        }\n      }\n\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'update_order' || action === 'update_personal_sales') {\n      var result = updatePersonalSalesOrder(ss, data);\n      var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';\n      var syncToBostarTrack = (payload.syncToBostarTrack !== false) && (data.syncToBostarTrack !== false);\n      if (syncToBostarTrack && targetSheetId !== bostarTrackId) {\n        try {\n          var bostarSs = SpreadsheetApp.openById(bostarTrackId);\n          updatePersonalSalesOrder(bostarSs, data);\n        } catch (btErr) {\n          Logger.log('BostarTrack Dual Sync Update Warn: ' + btErr);\n        }\n      }\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'add_expense') {\n      var result = insertDailyExpense(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'update_expense') {\n      var result = updateDailyExpense(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'delete_expense') {\n      var result = deleteDailyExpense(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'sync_attendance') {\n      var result = syncBostarAttendance(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'update_cod_status') {\n      var result = updateCodStatus(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'add_or_update_report' || action === 'sync_daily_report') {\n      var result = insertOrUpdateDailyReport(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'update_bank_balance' || action === 'update_bank_account') {\n      var result = updateBankAccountBalance(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else {\n      return ContentService.createTextOutput(JSON.stringify({\n        status: 'error',\n        message: 'Unknown action: ' + action\n      })).setMimeType(ContentService.MimeType.JSON);\n    }\n\n  } catch (err) {\n    return ContentService.createTextOutput(JSON.stringify({\n      status: 'error',\n      message: err.toString()\n    })).setMimeType(ContentService.MimeType.JSON);\n  } finally {\n    lock.releaseLock();\n  }\n}\n\n/**\n * ជំនួយការបំប្លែង String ទៅជា JavaScript Date Object ពិតប្រាកដ\n * ការពារដាច់ខាតកុំឱ្យលោតសញ្ញា Invalid Date លើ Google Sheet Data Validation\n */\nfunction parseToDateObj(dateStr) {\n  if (!dateStr) return new Date();\n  if (dateStr instanceof Date) return dateStr;\n  var str = String(dateStr).trim();\n\n  // ទម្រង់ DD/MM/YYYY ឬ D/M/YYYY\n  var dmMatch = str.match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})/);\n  if (dmMatch) {\n    var day = parseInt(dmMatch[1], 10);\n    var month = parseInt(dmMatch[2], 10) - 1; // 0-indexed month\n    var year = parseInt(dmMatch[3], 10);\n    return new Date(year, month, day, 12, 0, 0);\n  }\n\n  // ទម្រង់ ISO YYYY-MM-DD\n  var isoMatch = str.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})/);\n  if (isoMatch) {\n    var iYear = parseInt(isoMatch[1], 10);\n    var iMonth = parseInt(isoMatch[2], 10) - 1;\n    var iDay = parseInt(isoMatch[3], 10);\n    return new Date(iYear, iMonth, iDay, 12, 0, 0);\n  }\n\n  return new Date();\n}\n\nfunction formatToYmdString(dateVal) {\n  if (!dateVal) return '';\n  var dateObj = parseToDateObj(dateVal);\n  return Utilities.formatDate(dateObj, 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n}\n\n/**\n * ស្វែងរក Sheet គោលដៅ (Personal Sales ឬ Master Data) ដោយមិនប្រកាន់អក្សរធំ-តូច\n */\nfunction getTargetSalesSheet(ss) {\n  var sheets = ss.getSheets();\n  for (var i = 0; i < sheets.length; i++) {\n    var name = sheets[i].getName().trim().toLowerCase();\n    if (name === 'personal sales' || name === 'master data') {\n      return sheets[i];\n    }\n  }\n  return ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheetByName('Master data') || sheets[0];\n}\n\n/**\n * បញ្ចូលការកុម្ម៉ង់ចូលផ្ទាំង Personal Sales ឬ Master Data ដោយសុវត្ថិភាព ១០០%\n * បំពេញតម្លៃលេខផ្ទាល់ (Direct Value) ជួរ N, R, T និងកត់ត្រា Reward QTY ជួរ V\n */\nfunction insertPersonalSalesOrder(ss, order) {\n  var sheet = getTargetSalesSheet(ss);\n  if (!sheet) {\n    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };\n  }\n\n  // 1. ស្វែងរកជួរដេកទាំងអស់ដើម្បីពិនិត្យភាពស្ទួន Order ID (Col E)\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var numRows = values.length;\n  var lastCol = sheet.getLastColumn();\n\n  var newOrderId = String(order.orderId || '').trim();\n\n  // ប្រភេទការលក់៖ 'standard' (ស្តុកក្រុមហ៊ុន), 'reward' (លក់រង្វាន់), 'return' (លក់អីវ៉ាន់ត្រឡប់)\n  var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();\n\n  var maxRecNum = 0;\n  var maxBNum = 0; // តាមដានលេខ #B*** ខ្ពស់បំផុតក្នុង Sheet\n  var isBOrderClash = false; // ប្រសិនបើជា #B*** ជាន់លេខគ្នាដោយសារសមាជិក ២ នាក់ Submit ដំណាលគ្នា\n  var targetRow = -1; // ជួរដេកដែលត្រូវបំពេញ\n\n  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)\n  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];\n  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');\n  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;\n  var isNew26Col = lastCol >= 25 || hasEmmiOrSg;\n\n  for (var r = 1; r < numRows; r++) { // រាប់ពីជួរទី ២ (Index 1) ក្រោម Header\n    var rowDate = values[r][0]; // Col A\n    var existingOrderId = String(values[r][4] || '').trim(); // Col E\n    var existingRecId = String(values[r][isNew26Col ? 25 : 23] || values[r][25] || values[r][23] || values[r][22] || '').trim(); // Col Z / X / W\n\n    // តាមដានលេខ REC-XXXX ខ្ពស់បំផុត\n    var matchRec = existingRecId.match(/REC-(\\d+)/i);\n    if (matchRec) {\n      var recVal = parseInt(matchRec[1], 10);\n      if (recVal > maxRecNum) maxRecNum = recVal;\n    }\n\n    // តាមដានលេខ #B*** ខ្ពស់បំផុតក្នុង Sheet\n    var matchB = existingOrderId.match(/^#?B(\\d+)$/i);\n    if (matchB) {\n      var bVal = parseInt(matchB[1], 10);\n      if (bVal > maxBNum) maxBNum = bVal;\n    }\n\n    // ពិនិត្យភាពស្ទួនតាម Order ID (អនុវត្តត្រឹមតែការកុម្ម៉ង់ចេញពីក្រុមហ៊ុន 'standard' ប៉ុណ្ណោះ, លក់រង្វាន់ ឬអីវ៉ាន់ត្រឡប់អនុញ្ញាតលេខចាស់ ឬគ្មានលេខបាន)\n    if (orderType === 'standard' && newOrderId && existingOrderId && newOrderId.toLowerCase() === existingOrderId.toLowerCase()) {\n      var isBOrder = /^#?B\\d+$/i.test(newOrderId);\n      if (isBOrder) {\n        // ប្រសិនបើជា #B*** ជាន់លេខគ្នាដោយសារសមាជិក ២ នាក់ Submit ក្នុងវិនាទីតែមួយ កូដនឹង auto-bump មិនឱ្យខូចឡើយ\n        isBOrderClash = true;\n      } else {\n        return { \n          status: 'duplicate', \n          message: 'Order ID ' + newOrderId + ' មានរួចហើយក្នុងជួរទី ' + (r + 1),\n          row: r + 1 \n        };\n      }\n    }\n\n    // ពិនិត្យភាពស្ទួនតាម Phone + Seller + Date (ការពារករណីអ្នកលក់ចុច Submit ២ ដង ឬបញ្ចូលជាន់គ្នា)\n    var cleanNewPhone = String(order.phone || '').replace(/[\\s\\-\\(\\)]/g, '');\n    var cleanRowPhone = String(values[r][6] || '').replace(/[\\s\\-\\(\\)]/g, '');\n    var cleanNewSeller = String(order.seller || '').trim().toLowerCase();\n    var cleanRowSeller = String(values[r][3] || '').trim().toLowerCase();\n    var orderDateYmd = formatToYmdString(order.date);\n    var rowDateYmd = formatToYmdString(rowDate);\n\n    if (cleanNewPhone && cleanRowPhone && cleanNewPhone.length >= 8 && cleanNewPhone === cleanRowPhone &&\n        cleanNewSeller && cleanRowSeller && cleanNewSeller === cleanRowSeller &&\n        orderDateYmd && rowDateYmd && orderDateYmd === rowDateYmd) {\n      // ប្រសិនបើជួរចាស់គ្មានលេខ Order ID តែជួរថ្មីមានលេខ Order ID ➔ Update បំពេញលេខ Order ID លើជួរចាស់ដដែល\n      if (!existingOrderId && newOrderId) {\n        sheet.getRange(r + 1, 5).setValue(newOrderId);\n        return { \n          status: 'updated', \n          message: 'បាន Update លេខ Order ID ' + newOrderId + ' លើជួរទី ' + (r + 1),\n          row: r + 1 \n        };\n      }\n      return { \n        status: 'duplicate', \n        message: 'Order របស់អ្នកលក់ ' + values[r][3] + ' (ទូរស័ព្ទ ' + cleanNewPhone + ') មានរួចហើយក្នុងជួរទី ' + (r + 1),\n        row: r + 1 \n      };\n    }\n\n    // ស្វែងរកជួរទំនេរដំបូង (Col A ទទេ ឬគ្មាន Date)\n    if (targetRow === -1 && (!rowDate || String(rowDate).trim() === '')) {\n      targetRow = r + 1; // 1-indexed row number\n    }\n  }\n\n  // បើរកមិនឃើញជួរទំនេរដែលមានស្រាប់ទេ ត្រូវបន្ថែមជួរថ្មីនៅខាងក្រោម\n  if (targetRow === -1) {\n    targetRow = numRows + 1;\n  }\n\n  // បង្កើត Record_ID ថ្មីបន្តបន្ទាប់ (ឧ. REC-0503)\n  var nextRecNum = maxRecNum + 1;\n  var formattedRecId = 'REC-' + ('0000' + nextRecNum).slice(-4);\n\n  // គណនាចំនួនប្រអប់សរុប\n  var totalBoxes = Number(order.totalBoxQty || 0);\n  if (!totalBoxes || totalBoxes === 0) {\n    totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + \n                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + \n                 Number(order.qtyEmmi || 0) + Number(order.qtySGP || 0) + \n                 Number(order.freeQty || 0);\n  }\n\n  // គណនាតម្លៃដើម Col R (Stock Cost) តាមប្រភេទការលក់៖\n  // - ស្តុកក្រុមហ៊ុន (Standard) = Qty * $24.00\n  // - លក់រង្វាន់ (Reward) = Qty * $5.00\n  // - លក់អីវ៉ាន់ត្រឡប់ (Return) = $0.00\n  var stockCost = 0;\n  if (orderType === 'reward') {\n    stockCost = totalBoxes * 5.0;\n  } else if (orderType === 'return') {\n    stockCost = 0;\n  } else {\n    stockCost = totalBoxes * 24.0;\n  }\n\n  // តម្លៃលក់សរុប Col N (Total USD)\n  var totalAmountUSD = Number(order.totalAmount || 0);\n\n  // ថ្លៃដឹកជញ្ជូន Col O (Ship Fee)\n  var shipFee = Number(order.shipFee || 0);\n\n  // ប្រាក់ចំណេញសុទ្ធ Col T (Profit)\n  var profitVal = (order.profit !== undefined && order.profit !== null && order.profit !== '') \n    ? Number(order.profit) \n    : Math.max(0, Math.round((totalAmountUSD - stockCost - shipFee) * 100) / 100);\n\n  // រូបមន្ត No. បន្តបន្ទាប់\n  var prevRow = targetRow - 1;\n  var formulaNo = '=IF(OR(A' + targetRow + '=\"\", A' + targetRow + '=A' + prevRow + '), B' + prevRow + '+1, 1)';\n\n  // បំប្លែង Date Object ពិតប្រាកដ និងកំណត់ Format dd/MM/yyyy ការពារ Invalid Error\n  var dateObj = parseToDateObj(order.date);\n\n  // បំពេញទិន្នន័យចូលក្រឡាជួរនីមួយៗ (Direct Values ជួរ N, R, T)\n  sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date Object\n  sheet.getRange(targetRow, 2).setFormula(formulaNo); // Col B: No. (Formula)\n  sheet.getRange(targetRow, 3).setValue(order.customer || ''); // Col C: FB Name\n  sheet.getRange(targetRow, 4).setValue(order.seller || 'សមាជិក Bostar'); // Col D: Seller\n  \n  // Col E: Order ID (បើលក់រង្វាន់ ទុកទំនេរ; បើធម្មតា ឬត្រឡប់ ដាក់លេខ Order)\n  // ប្រសិនបើជាការកុម្ម៉ង់ថ្មី ហើយគ្មានលេខ Order ID ឬលេខទទេ ឬមានជាន់លេខ #B*** ➔ Auto-Generate #B*** បន្តបន្ទាប់\n  var finalOrderId = order.orderId || '';\n  if (orderType === 'reward') {\n    finalOrderId = '';\n  } else if (!finalOrderId || finalOrderId === '#' || finalOrderId === 'កំពុងទាញលេខ...' || isBOrderClash) {\n    var nextBNum = maxBNum + 1;\n    finalOrderId = '#B' + (nextBNum < 1000 ? ('00' + nextBNum).slice(-3) : nextBNum);\n  }\n  sheet.getRange(targetRow, 5).setValue(finalOrderId);\n\n  sheet.getRange(targetRow, 6).setValue(order.location || ''); // Col F: Location\n  sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone\n\n  // ផលិតផល H, I, J, K, L, M, N (Qty)\n  // - ពេលលក់រង្វាន់ ឬលក់អីវ៉ាន់ត្រឡប់ ទុកនៅទំនេរ (\"\") ដើម្បីកុំឱ្យច្រឡំជាមួយស្តុកធម្មតា\n  // - ពេលស្តុកក្រុមហ៊ុន បំពេញតាមមុខទំនិញពិត\n  if (isNew26Col) {\n    if (orderType === 'reward' || orderType === 'return') {\n      sheet.getRange(targetRow, 8).setValue('');  // Col H: YL\n      sheet.getRange(targetRow, 9).setValue('');  // Col I: YLP\n      sheet.getRange(targetRow, 10).setValue(''); // Col J: KN\n      sheet.getRange(targetRow, 11).setValue(''); // Col K: P D.O\n      sheet.getRange(targetRow, 12).setValue(''); // Col L: Emmi\n      sheet.getRange(targetRow, 13).setValue(''); // Col M: S.G\n      sheet.getRange(targetRow, 14).setValue(''); // Col N: Free\n    } else {\n      sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0));\n      sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));\n      sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));\n      sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));\n      sheet.getRange(targetRow, 12).setValue(Number(order.qtyEmmi || 0));                // Col L: Emmi\n      sheet.getRange(targetRow, 13).setValue(Number(order.qtySGP || order.qtySG || 0)); // Col M: S.G\n      sheet.getRange(targetRow, 14).setValue(Number(order.freeQty || 0));               // Col N: Free\n    }\n\n    sheet.getRange(targetRow, 15).setValue(Number(order.thaiBaht || order.price || 0)); // Col O: Price (Baht)\n    sheet.getRange(targetRow, 16).setValue(totalAmountUSD).setNumberFormat('$#,##0.00'); // Col P: Total $\n    sheet.getRange(targetRow, 17).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col Q: Ship Fee\n    sheet.getRange(targetRow, 18).setValue(order.deliveryMethod || 'VET(COD)'); // Col R: Delivery\n    sheet.getRange(targetRow, 19).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col S: COD Status\n    sheet.getRange(targetRow, 20).setValue(stockCost).setNumberFormat('$#,##0.00'); // Col T: Stock Cost\n    if (order.paymentDate) {\n      sheet.getRange(targetRow, 21).setValue(order.paymentDate); // Col U: Payment Date\n    } else {\n      sheet.getRange(targetRow, 21).setValue('');\n    }\n    sheet.getRange(targetRow, 22).setValue(profitVal).setNumberFormat('$#,##0.00'); // Col V: Profit\n    sheet.getRange(targetRow, 23).setValue(order.note || ''); // Col W: Note\n\n    if (orderType === 'reward') {\n      sheet.getRange(targetRow, 24).setValue(totalBoxes); // Col X: Reward QTY\n    } else {\n      sheet.getRange(targetRow, 24).setValue('');\n    }\n    sheet.getRange(targetRow, 25).setValue(''); // Col Y: ទំនេរ\n    sheet.getRange(targetRow, 26).setValue(formattedRecId); // Col Z: Record_ID\n  } else {\n    if (orderType === 'reward' || orderType === 'return') {\n      sheet.getRange(targetRow, 8).setValue('');  // Col H: YL\n      sheet.getRange(targetRow, 9).setValue('');  // Col I: YLP\n      sheet.getRange(targetRow, 10).setValue(''); // Col J: KN\n      sheet.getRange(targetRow, 11).setValue(''); // Col K: P D.O\n      sheet.getRange(targetRow, 12).setValue(''); // Col L: Free\n    } else {\n      sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0));\n      sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));\n      sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));\n      sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));\n      sheet.getRange(targetRow, 12).setValue(Number(order.freeQty || 0));\n    }\n\n    sheet.getRange(targetRow, 13).setValue(Number(order.thaiBaht || order.price || 0)); // Col M: Price (Baht)\n    sheet.getRange(targetRow, 14).setValue(totalAmountUSD).setNumberFormat('$#,##0.00'); // Col N: Total $\n    sheet.getRange(targetRow, 15).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col O: Ship Fee\n    sheet.getRange(targetRow, 16).setValue(order.deliveryMethod || 'VET(COD)'); // Col P: Delivery\n    sheet.getRange(targetRow, 17).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col Q: COD Status\n    sheet.getRange(targetRow, 18).setValue(stockCost).setNumberFormat('$#,##0.00'); // Col R: Stock Cost\n    if (order.paymentDate) {\n      sheet.getRange(targetRow, 19).setValue(order.paymentDate); // Col S: Payment Date\n    } else {\n      sheet.getRange(targetRow, 19).setValue('');\n    }\n    sheet.getRange(targetRow, 20).setValue(profitVal).setNumberFormat('$#,##0.00'); // Col T: Profit\n    sheet.getRange(targetRow, 21).setValue(order.note || ''); // Col U: Note\n\n    if (orderType === 'reward') {\n      sheet.getRange(targetRow, 22).setValue(totalBoxes); // Col V: Reward QTY\n    } else {\n      sheet.getRange(targetRow, 22).setValue('');\n    }\n    sheet.getRange(targetRow, 23).setValue(''); // Col W: ទំនេរ\n    sheet.getRange(targetRow, 24).setValue(formattedRecId); // Col X: Record_ID\n  }\n\n  return {\n    status: 'success',\n    action: 'add_order',\n    row: targetRow,\n    recordId: formattedRecId,\n    orderId: finalOrderId\n  };\n}\n\n/**\n * កែសម្រួលការកុម្ម៉ង់ក្នុង Personal Sales (ឈ្មោះ, លេខទូរស័ព្ទ, ទីតាំង, ចំនួនប្រអប់, តម្លៃ, COD...)\n * រក្សារូបមន្តចាស់ Col B (No.) មិនឱ្យខូច\n */\nfunction updatePersonalSalesOrder(ss, order) {\n  var sheet = getTargetSalesSheet(ss);\n  if (!sheet) {\n    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };\n  }\n\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var numRows = values.length;\n  var lastCol = sheet.getLastColumn();\n\n  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)\n  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];\n  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');\n  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;\n  var isNew26Col = lastCol >= 25 || hasEmmiOrSg;\n\n  var targetRecordId = String(order.recordId || '').trim();\n  var targetOrderId = String(order.orderId || '').trim();\n  var targetRowIndex = (order.rowIndex !== undefined && order.rowIndex !== null) ? Number(order.rowIndex) : -1;\n\n  var matchedRow = -1;\n\n  // 1. ស្វែងរកតាម Record_ID (Col 26 / Z សម្រាប់ 26-col, ឬ Col 24 / X, Col 23 / W)\n  if (targetRecordId) {\n    for (var r = 1; r < numRows; r++) {\n      var existingRecId = String(values[r][25] || values[r][23] || values[r][22] || '').trim();\n      if (existingRecId && targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {\n        matchedRow = r + 1;\n        break;\n      }\n    }\n  }\n\n  // 2. បើមិនឃើញ រកតាម Order ID (Col 5 / E)\n  if (matchedRow === -1 && targetOrderId) {\n    for (var r = 1; r < numRows; r++) {\n      var existingOrderId = String(values[r][4] || '').trim();\n      if (existingOrderId && targetOrderId.toLowerCase() === existingOrderId.toLowerCase()) {\n        matchedRow = r + 1;\n        break;\n      }\n    }\n  }\n\n  // 3. បើនៅតែមិនឃើញ ពិនិត្យតាម rowIndex ប្រសិនបើផ្ញើមក\n  if (matchedRow === -1 && targetRowIndex > 0 && targetRowIndex < numRows) {\n    var checkRow = targetRowIndex + 1;\n    if (checkRow <= numRows) {\n      matchedRow = checkRow;\n    }\n  }\n\n  // 4. បើនៅតែមិនឃើញ រកតាម Date + Phone ឬ Date + Customer\n  if (matchedRow === -1 && order.date) {\n    var orderDateStr = String(order.date).trim();\n    var targetPhone = String(order.phone || '').replace(/\\D/g, '');\n    for (var r = 1; r < numRows; r++) {\n      var rDateVal = values[r][0];\n      var rDateStr = (rDateVal instanceof Date) ? Utilities.formatDate(rDateVal, 'Asia/Phnom_Penh', 'dd/MM/yyyy') : String(rDateVal || '').trim();\n      var rPhone = String(values[r][6] || '').replace(/\\D/g, '');\n      var rCust = String(values[r][2] || '').trim();\n\n      if (rDateStr === orderDateStr) {\n        if (targetPhone && rPhone && rPhone === targetPhone) {\n          matchedRow = r + 1;\n          break;\n        }\n        if (order.customer && rCust && rCust.toLowerCase() === String(order.customer).toLowerCase().trim()) {\n          matchedRow = r + 1;\n          break;\n        }\n      }\n    }\n  }\n\n  if (matchedRow <= 0) {\n    return {\n      status: 'not_found',\n      message: 'រកមិនឃើញការកុម្ម៉ង់លេខ ' + (targetOrderId || targetRecordId) + ' ក្នុងតារាង Personal Sales ឡើយ!'\n    };\n  }\n\n  // កែប្រែទិន្នន័យ (Inputs តែប៉ុណ្ណោះ រក្សារូបមន្ត)\n  if (order.date) {\n    var dateObj = parseToDateObj(order.date);\n    sheet.getRange(matchedRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date\n  }\n  if (order.customer !== undefined) sheet.getRange(matchedRow, 3).setValue(order.customer); // Col C: FB Name\n  if (order.seller !== undefined && order.seller) sheet.getRange(matchedRow, 4).setValue(order.seller); // Col D: Seller\n  if (order.orderId !== undefined && order.orderId) sheet.getRange(matchedRow, 5).setValue(order.orderId); // Col E: Order ID\n  if (order.location !== undefined) sheet.getRange(matchedRow, 6).setValue(order.location); // Col F: Location\n  if (order.phone !== undefined) sheet.getRange(matchedRow, 7).setValue(order.phone); // Col G: Phone\n\n  // ផលិតផល & ទិន្នន័យហិរញ្ញវត្ថុ\n  var totalBoxes = Number(order.totalBoxQty || 0);\n  if (!totalBoxes || totalBoxes === 0) {\n    totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + \n                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + \n                 Number(order.qtyEmmi || 0) + Number(order.qtySGP || order.qtySG || 0) +\n                 Number(order.freeQty || 0);\n  }\n\n  var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();\n  var stockCost = 0;\n  if (orderType === 'reward') {\n    stockCost = totalBoxes * 5.0;\n  } else if (orderType === 'return') {\n    stockCost = 0;\n  } else {\n    stockCost = totalBoxes * 24.0;\n  }\n\n  var totalAmountUSD = Number(order.totalAmount || 0);\n  var shipFee = Number(order.shipFee || 0);\n  var profitVal = (order.profit !== undefined && order.profit !== null && order.profit !== '') \n    ? Number(order.profit) \n    : Math.max(0, Math.round((totalAmountUSD - stockCost - shipFee) * 100) / 100);\n\n  if (isNew26Col) {\n    if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL > 0 ? Number(order.qtyYL) : '');\n    if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP > 0 ? Number(order.qtyYLP) : '');\n    if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN > 0 ? Number(order.qtyKN) : '');\n    if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO > 0 ? Number(order.qtyPDO) : '');\n    if (order.qtyEmmi !== undefined) sheet.getRange(matchedRow, 12).setValue(order.qtyEmmi > 0 ? Number(order.qtyEmmi) : ''); // Col L: Emmi\n    if (order.qtySGP !== undefined || order.qtySG !== undefined) sheet.getRange(matchedRow, 13).setValue((Number(order.qtySGP || order.qtySG || 0) > 0) ? Number(order.qtySGP || order.qtySG) : ''); // Col M: S.G\n    if (order.freeQty !== undefined) sheet.getRange(matchedRow, 14).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');\n\n    if (order.price !== undefined && order.price !== null && order.price !== '') sheet.getRange(matchedRow, 15).setValue(order.price);\n    if (order.totalAmount !== undefined && order.totalAmount !== null) sheet.getRange(matchedRow, 16).setValue(Number(order.totalAmount));\n    if (order.shipFee !== undefined && order.shipFee !== null) sheet.getRange(matchedRow, 17).setValue(Number(order.shipFee));\n    if (order.delivery !== undefined || order.deliveryMethod !== undefined) sheet.getRange(matchedRow, 18).setValue(order.delivery || order.deliveryMethod || '');\n    if (order.codStatus !== undefined && order.codStatus) sheet.getRange(matchedRow, 19).setValue(order.codStatus);\n    sheet.getRange(matchedRow, 20).setValue(stockCost);\n    if (order.paymentDate !== undefined) sheet.getRange(matchedRow, 21).setValue(order.paymentDate);\n    sheet.getRange(matchedRow, 22).setValue(profitVal);\n    if (order.note !== undefined) sheet.getRange(matchedRow, 23).setValue(order.note);\n  } else {\n    if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL > 0 ? Number(order.qtyYL) : '');\n    if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP > 0 ? Number(order.qtyYLP) : '');\n    if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN > 0 ? Number(order.qtyKN) : '');\n    if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO > 0 ? Number(order.qtyPDO) : '');\n    if (order.freeQty !== undefined) sheet.getRange(matchedRow, 12).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');\n\n    if (order.price !== undefined && order.price !== null && order.price !== '') sheet.getRange(matchedRow, 13).setValue(order.price);\n    if (order.totalAmount !== undefined && order.totalAmount !== null) sheet.getRange(matchedRow, 14).setValue(Number(order.totalAmount));\n    if (order.shipFee !== undefined && order.shipFee !== null) sheet.getRange(matchedRow, 15).setValue(Number(order.shipFee));\n    if (order.delivery !== undefined || order.deliveryMethod !== undefined) sheet.getRange(matchedRow, 16).setValue(order.delivery || order.deliveryMethod || '');\n    if (order.codStatus !== undefined && order.codStatus) sheet.getRange(matchedRow, 17).setValue(order.codStatus);\n    sheet.getRange(matchedRow, 18).setValue(stockCost);\n    if (order.paymentDate !== undefined) sheet.getRange(matchedRow, 19).setValue(order.paymentDate);\n    sheet.getRange(matchedRow, 20).setValue(profitVal);\n    if (order.note !== undefined) sheet.getRange(matchedRow, 21).setValue(order.note);\n  }\n\n  return {\n    status: 'success',\n    message: 'បានកែសម្រួលការកុម្ម៉ង់ #' + (targetOrderId || targetRecordId) + ' លើជួរទី ' + matchedRow + ' ជោគជ័យ! ✅',\n    row: matchedRow,\n    recordId: targetRecordId,\n    orderId: targetOrderId\n  };\n}\n\n/**\n * ធ្វើបច្ចុប្បន្នភាព COD Status ក្នុងផ្ទាំង Personal Sales ផ្ទាល់ (1st, 2nd, 3rd, បានទូទាត់...)\n */\nfunction updateCodStatus(ss, data) {\n  var sheet = getTargetSalesSheet(ss);\n  if (!sheet) {\n    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };\n  }\n\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var numRows = values.length;\n  var lastCol = sheet.getLastColumn();\n\n  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];\n  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');\n  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;\n  var isNew26Col = lastCol >= 25 || hasEmmiOrSg;\n\n  var targetRecordId = String(data.recordId || '').trim();\n  var targetOrderId = String(data.orderId || '').trim();\n  var newStatus = String(data.codStatus || '').trim();\n\n  if (!newStatus) {\n    return { status: 'error', message: 'No new codStatus provided!' };\n  }\n\n  var matchedRow = -1;\n  for (var r = 1; r < numRows; r++) {\n    var existingOrderId = String(values[r][4] || '').trim(); // Col E\n    var existingRecId = String(values[r][isNew26Col ? 25 : 23] || values[r][25] || values[r][23] || values[r][22] || '').trim();\n\n    if (targetRecordId && existingRecId && targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {\n      matchedRow = r + 1;\n      break;\n    }\n    if (targetOrderId && existingOrderId && targetOrderId.toLowerCase() === targetOrderId.toLowerCase()) {\n      matchedRow = r + 1;\n      break;\n    }\n  }\n\n  // Fallback 1: Match by Date and Amount in Personal Sales\n  if (matchedRow <= 0 && data.date && data.amount) {\n    var targetDate = String(data.date).trim();\n    var targetAmt = Number(data.amount);\n    for (var r = numRows - 1; r >= 1; r--) {\n      var rowDate = String(values[r][0] || '').trim();\n      var rowAmt = Number(values[r][isNew26Col ? 15 : 13] || 0);\n      if (rowDate.includes(targetDate) && Math.abs(rowAmt - targetAmt) < 0.05) {\n        matchedRow = r + 1;\n        break;\n      }\n    }\n  }\n\n  if (matchedRow > 0) {\n    var codStatusCol = isNew26Col ? 19 : 17; // Col S (19) in 26-col, Col Q (17) in 24-col\n    sheet.getRange(matchedRow, codStatusCol).setValue(newStatus);\n    if (newStatus === 'បានទូទាត់' || newStatus === 'ទូទាត់រួច') {\n      var payDateCol = isNew26Col ? 21 : 19; // Col U (21) in 26-col, Col S (19) in 24-col\n      var payDateVal = data.paymentDate || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'dd/MM/yyyy');\n      sheet.getRange(matchedRow, payDateCol).setValue(payDateVal);\n    }\n    return {\n      status: 'success',\n      message: 'Updated COD status to ' + newStatus + ' at row ' + matchedRow,\n      row: matchedRow,\n      codStatus: newStatus\n    };\n  }\n\n  // Fallback 2: Check Bank & Cash Balance sheet (Pending COD section)\n  var bankSheet = ss.getSheetByName('Bank & Cash Balance') || ss.getSheetByName('Bank & Cash');\n  if (bankSheet) {\n    var bVals = bankSheet.getDataRange().getValues();\n    var bMatchRow = -1;\n    for (var br = 0; br < bVals.length; br++) {\n      var bNo = String(bVals[br][0] || '').trim();\n      var bDate = String(bVals[br][1] || '').trim();\n      var bAmt = Number(bVals[br][5] || 0);\n      if ((targetOrderId && bNo === targetOrderId) || (data.date && bDate.includes(data.date) && Math.abs(bAmt - Number(data.amount)) < 0.05)) {\n        bMatchRow = br + 1;\n        break;\n      }\n    }\n    if (bMatchRow > 0) {\n      bankSheet.getRange(bMatchRow, 7).setValue(newStatus); // Col G (7) is status in Bank & Cash Balance\n      return { status: 'success', message: 'Updated COD status in Bank sheet at row ' + bMatchRow, row: bMatchRow, codStatus: newStatus };\n    }\n  }\n\n  return { status: 'not_found', message: 'Order ' + (targetOrderId || targetRecordId) + ' not found for status update' };\n}\n\n/**\n * បញ្ចូលការចំណាយចូលផ្ទាំង Daily Expenses\n */\nfunction insertDailyExpense(ss, exp) {\n  var sheet = ss.getSheetByName('Daily Expenses');\n  if (!sheet) {\n    return { status: 'error', message: 'Tab \"Daily Expenses\" not found!' };\n  }\n\n  // ស្វែងរកជួរដេកទំនេរដំបូង (Sequential First Empty Row) ការពារកុំឱ្យរំលងជួរទទេ\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var numRows = values.length;\n  var targetRow = -1;\n\n  for (var r = 1; r < numRows; r++) {\n    var rowDate = values[r][0];\n    var rowDesc = values[r][1];\n    var rowAmt = values[r][3];\n    // បើ Col A, Col B និង Col D សុទ្ធតែទំនេរ នោះជាជួរទំនេរដំបូងពិតប្រាកដ\n    if ((!rowDate || String(rowDate).trim() === '') && \n        (!rowDesc || String(rowDesc).trim() === '') && \n        (rowAmt === '' || rowAmt === null || rowAmt === undefined)) {\n      targetRow = r + 1;\n      break;\n    }\n  }\n\n  // ប្រសិនបើគ្មានជួរទំនេរកណ្តាលទេ គឺដាក់នៅចុងទិន្នន័យ\n  if (targetRow === -1) {\n    targetRow = numRows + 1;\n  }\n\n  // បំប្លែង Date Object ពិតប្រាកដ និងកំណត់ Format dd/MM/yyyy សុទ្ធ\n  // ការពារដាច់ខាតកុំឱ្យលោតសញ្ញា Invalid Date ដោយសារជាប់ម៉ោង HH:mm លើ Data Validation របស់ Google Sheet\n  var dateObj = parseToDateObj(exp.date);\n  sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date\n\n  sheet.getRange(targetRow, 2).setValue(exp.description || ''); // Col B: Description\n  sheet.getRange(targetRow, 3).setValue(exp.category || 'ហូបចុក & ប្រចាំថ្ងៃ'); // Col C: Category\n  sheet.getRange(targetRow, 4).setValue(Number(exp.amount || 0)); // Col D: Amount ($)\n\n  // ប្រសិនបើមានបញ្ជាក់ម៉ោង (Time) ដាក់ចូលក្នុង Col E (Note) ដើម្បីកុំឱ្យខូច Data Validation នៃ Col A\n  var noteText = exp.note || '';\n  if (exp.time) {\n    noteText = noteText ? (exp.time + ' - ' + noteText) : ('ម៉ោង ' + exp.time);\n  }\n  if (noteText) {\n    sheet.getRange(targetRow, 5).setValue(noteText); // Col E: Note\n  }\n\n  return {\n    status: 'success',\n    action: 'add_expense',\n    version: '2.0-sequential',\n    row: targetRow,\n    amount: exp.amount\n  };\n}\n\n/**\n * Update an existing Daily Expense row\n */\nfunction updateDailyExpense(ss, exp) {\n  var sheet = ss.getSheetByName('Daily Expenses');\n  if (!sheet) {\n    return { status: 'error', message: 'Tab \"Daily Expenses\" not found!' };\n  }\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var targetRow = -1;\n\n  if (exp.rowIndex && exp.rowIndex > 0 && exp.rowIndex < values.length) {\n    var checkRow = exp.rowIndex + 1;\n    if (checkRow <= values.length) {\n      targetRow = checkRow;\n    }\n  }\n\n  if (targetRow === -1 || (exp.origDesc && String(values[targetRow - 1][1] || '').trim() !== String(exp.origDesc).trim())) {\n    for (var r = 1; r < values.length; r++) {\n      var rDesc = String(values[r][1] || '').trim();\n      var rAmt = Number(values[r][3] || 0);\n      if (exp.origDesc && rDesc.toLowerCase() === String(exp.origDesc).toLowerCase().trim()) {\n        if (!exp.origAmount || Math.abs(rAmt - Number(exp.origAmount)) < 0.05) {\n          targetRow = r + 1;\n          break;\n        }\n      }\n    }\n  }\n\n  if (targetRow === -1) {\n    return { status: 'not_found', message: 'រកមិនឃើញចំណាយត្រូវកែប្រែឡើយ!' };\n  }\n\n  if (exp.date) {\n    var dateObj = parseToDateObj(exp.date);\n    sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy');\n  }\n  if (exp.description) sheet.getRange(targetRow, 2).setValue(exp.description);\n  if (exp.category) sheet.getRange(targetRow, 3).setValue(exp.category);\n  if (exp.amount !== undefined && exp.amount !== null) sheet.getRange(targetRow, 4).setValue(Number(exp.amount));\n\n  var noteText = exp.note || '';\n  if (exp.time && noteText.indexOf(exp.time) === -1) {\n    noteText = exp.time + ' - ' + noteText;\n  }\n  if (noteText) sheet.getRange(targetRow, 5).setValue(noteText);\n\n  return { status: 'success', action: 'update_expense', row: targetRow };\n}\n\n/**\n * Delete an existing Daily Expense row\n */\nfunction deleteDailyExpense(ss, exp) {\n  var sheet = ss.getSheetByName('Daily Expenses');\n  if (!sheet) {\n    return { status: 'error', message: 'Tab \"Daily Expenses\" not found!' };\n  }\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var targetRow = -1;\n\n  if (exp.rowIndex && exp.rowIndex > 0 && exp.rowIndex < values.length) {\n    var checkRow = exp.rowIndex + 1;\n    if (checkRow <= values.length) {\n      targetRow = checkRow;\n    }\n  }\n\n  if (targetRow === -1 || (exp.description && String(values[targetRow - 1][1] || '').trim() !== String(exp.description).trim())) {\n    for (var r = 1; r < values.length; r++) {\n      var rDesc = String(values[r][1] || '').trim();\n      var rAmt = Number(values[r][3] || 0);\n      if (exp.description && rDesc.toLowerCase() === String(exp.description).toLowerCase().trim()) {\n        if (!exp.amount || Math.abs(rAmt - Number(exp.amount)) < 0.05) {\n          targetRow = r + 1;\n          break;\n        }\n      }\n    }\n  }\n\n  if (targetRow === -1) {\n    return { status: 'not_found', message: 'រកមិនឃើញចំណាយត្រូវលុបឡើយ!' };\n  }\n\n  sheet.deleteRow(targetRow);\n  return { status: 'success', action: 'delete_expense', row: targetRow };\n}\n\n/**\n * ==============================================================================\n * SYNC ATTENDANCE TO BOSTARTRACK (Tab \"Check in\")\n * គោលបំណង៖ Check-in និង Check-out ក្នុងជួរតែមួយ (Single Row per User per Day)\n * Sheet: 1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4\n * ==============================================================================\n */\nfunction syncBostarAttendance(ss, data) {\n  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';\n  var targetSs = null;\n  try {\n    targetSs = SpreadsheetApp.openById(bostarTrackId);\n  } catch (e) {\n    targetSs = ss || SpreadsheetApp.getActiveSpreadsheet();\n  }\n\n  var sheet = targetSs.getSheetByName('Check in');\n  if (!sheet) {\n    sheet = targetSs.getSheetByName('Check In') || targetSs.getSheetByName('Attendance');\n  }\n  if (!sheet) {\n    sheet = targetSs.insertSheet('Check in');\n    sheet.appendRow([\n      'Date', 'Staff ID', 'Staff Name', 'Role', 'Check-in Time', 'Check-out Time', \n      'Work Duration', 'Status', 'Late Mins', 'Location', 'Reason', 'Motivational Note', \n      'Timestamp', 'Check-out Status', 'Check-out Location', 'Check-out Note'\n    ]);\n  }\n\n  var actionType = data.type || (data.checkOutTime ? 'out' : 'in');\n  var targetDate = data.date || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n  var staffId = String(data.staffId || '').replace(/^(ID:\\s*)+/i, '').trim() || 'BG-001';\n  var staffName = data.staffName || 'Bostar Member';\n  var role = data.role || 'សមាជិកក្រុម BostarGroup';\n\n  // Read existing rows to locate today's row for this staffId\n  var lastRow = sheet.getLastRow();\n  var matchRowIndex = -1;\n\n  if (lastRow > 1) {\n    var checkCount = Math.min(lastRow - 1, 500);\n    var dateStaffRange = sheet.getRange(2, 1, checkCount, 2).getValues();\n    for (var i = 0; i < dateStaffRange.length; i++) {\n      var rDate = dateStaffRange[i][0];\n      var rDateStr = '';\n      if (rDate instanceof Date) {\n        rDateStr = Utilities.formatDate(rDate, 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n      } else {\n        rDateStr = String(rDate).trim();\n      }\n      var rStaffId = String(dateStaffRange[i][1]).replace(/^(ID:\\s*)+/i, '').trim();\n\n      // Normalize date format (YYYY-MM-DD)\n      var normTarget = targetDate;\n      if (normTarget.indexOf('/') > -1) {\n        var p = normTarget.split('/');\n        if (p.length === 3) normTarget = p[2] + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2);\n      }\n      if (rDateStr.indexOf('/') > -1) {\n        var p = rDateStr.split('/');\n        if (p.length === 3) rDateStr = p[2] + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2);\n      }\n\n      if (rStaffId && rStaffId.toLowerCase() === staffId.toLowerCase() && rDateStr === normTarget) {\n        matchRowIndex = i + 2; // 1-based sheet row\n        break;\n      }\n    }\n  }\n\n  // ស្វែងរកជួរដេកទំនេរដំបូង (Sequential First Empty Row) ការពារកុំឱ្យ appendRow រំលងជួរទទេទៅ Row 101\n  var firstBlankRow = -1;\n  var scanLimit = Math.max(lastRow + 5, 20);\n  var checkCells = sheet.getRange(2, 1, Math.min(scanLimit, 200), 2).getValues();\n  for (var k = 0; k < checkCells.length; k++) {\n    var cellDate = checkCells[k][0];\n    var cellStaff = checkCells[k][1];\n    if ((cellDate === '' || cellDate === null || cellDate === undefined) &&\n        (cellStaff === '' || cellStaff === null || cellStaff === undefined)) {\n      firstBlankRow = k + 2;\n      break;\n    }\n  }\n  if (firstBlankRow === -1) {\n    firstBlankRow = lastRow + 1;\n  }\n\n  // ប្រសិនបើសិនជាមាន matchRowIndex នៅជួរឆ្ងាយ (ឧទាហរណ៍ Row 101 ដោយសារ appendRow ចាស់) តែ Row 2 ទំនេរ\n  // យើងប្តូរគោលដៅមក Row 2 (firstBlankRow) ភ្លាម ដើម្បីឱ្យ User ឃើញនៅផ្នែកខាងលើ\n  var targetRow = matchRowIndex;\n  var oldTrappedRow = -1;\n  if (matchRowIndex > 10 && firstBlankRow < matchRowIndex) {\n    oldTrappedRow = matchRowIndex;\n    targetRow = firstBlankRow;\n  } else if (matchRowIndex <= 0) {\n    targetRow = firstBlankRow;\n  }\n\n  var now = new Date();\n  var timeStr = data.time || Utilities.formatDate(now, 'Asia/Phnom_Penh', 'hh:mm:ss a');\n  var timestampStr = Utilities.formatDate(now, 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm:ss');\n\n  if (actionType === 'in') {\n    // CHECK IN\n    var checkOutVal = (data.checkOutTime !== undefined && data.checkOutTime !== null && data.checkOutTime !== '') \n      ? data.checkOutTime \n      : ((data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 6).getValue() : ''));\n    var durationVal = (data.duration !== undefined && data.duration !== null && data.duration !== '')\n      ? data.duration\n      : ((data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 7).getValue() : ''));\n    var checkOutStatusVal = (data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 14).getValue() : '');\n    var checkOutLocVal = (data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 15).getValue() : '');\n    var checkOutNoteVal = (data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 16).getValue() : '');\n\n    var checkInRow = [\n      targetDate,                                        // A: Date\n      staffId,                                           // B: Staff ID\n      staffName,                                         // C: Staff Name\n      role,                                              // D: Role\n      data.checkInTime || timeStr,                       // E: Check-in Time\n      checkOutVal,                                       // F: Check-out Time\n      durationVal,                                       // G: Work Duration\n      data.status || 'Present',                          // H: Status\n      data.lateMinutes || 0,                             // I: Late Mins\n      data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location\n      data.reason || '',                                 // K: Reason\n      data.motivationalNote || '',                       // L: Motivational Note\n      timestampStr,                                      // M: Timestamp\n      checkOutStatusVal,                                 // N: Check-out Status\n      checkOutLocVal,                                    // O: Check-out Location\n      checkOutNoteVal                                    // P: Check-out Note\n    ];\n\n    var rowRange = sheet.getRange(targetRow, 1, 1, 16);\n    rowRange.setValues([checkInRow]);\n    try {\n      rowRange.setFontColor('#111827'); // Enforce clear dark text (ការពារកុំឱ្យជាប់ពណ៌សដូចផ្ទៃ)\n      rowRange.setVerticalAlignment('middle');\n    } catch (_) {}\n\n    if (oldTrappedRow > 0 && oldTrappedRow !== targetRow) {\n      try { sheet.getRange(oldTrappedRow, 1, 1, 16).clearContent(); } catch (_) {}\n    }\n\n    return {\n      status: 'success',\n      action: matchRowIndex > 0 ? 'check_in_updated' : 'check_in_created',\n      rowIndex: targetRow,\n      message: 'Check-in recorded in row ' + targetRow + ' for ' + staffName\n    };\n  } else {\n    // CHECK OUT\n    var checkOutTime = data.checkOutTime || timeStr;\n    var duration = data.duration || '';\n\n    var checkOutRow = [\n      targetDate,                                        // A: Date\n      staffId,                                           // B: Staff ID\n      staffName,                                         // C: Staff Name\n      role,                                              // D: Role\n      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 5).getValue() : '—'), // E: Check-in Time\n      checkOutTime,                                      // F: Check-out Time\n      duration,                                          // G: Work Duration\n      data.status || 'Present',                          // H: Status\n      data.lateMinutes || 0,                             // I: Late Mins\n      data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location\n      data.reason || (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 11).getValue() : 'Check-out តែម្តង'), // K: Reason\n      data.motivationalNote || '',                       // L: Motivational Note\n      timestampStr,                                      // M: Timestamp\n      data.checkOutStatus || 'Normal',                   // N: Check-out Status\n      data.checkOutLocation || data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // O: Check-out Location\n      data.checkOutNote || 'ចេញទាន់ពេល / បញ្ចប់ការងារដោយរលូន' // P: Check-out Note\n    ];\n\n    var rowRangeOut = sheet.getRange(targetRow, 1, 1, 16);\n    rowRangeOut.setValues([checkOutRow]);\n    try {\n      rowRangeOut.setFontColor('#111827'); // Enforce clear dark text (ការពារកុំឱ្យជាប់ពណ៌សដូចផ្ទៃ)\n      rowRangeOut.setVerticalAlignment('middle');\n    } catch (_) {}\n\n    if (oldTrappedRow > 0 && oldTrappedRow !== targetRow) {\n      try { sheet.getRange(oldTrappedRow, 1, 1, 16).clearContent(); } catch (_) {}\n    }\n\n    return {\n      status: 'success',\n      action: matchRowIndex > 0 ? 'check_out_updated' : 'check_out_created',\n      rowIndex: targetRow,\n      message: 'Check-out recorded into row ' + targetRow\n    };\n  }\n}\n\n/**\n * ==============================================================================\n * DAILY SALES REPORT SYNC (SMART UPSERT - 100% DEDUPLICATION)\n * ==============================================================================\n * បញ្ចូល ឬ កែសម្រួលរបាយការណ៍លក់ប្រចាំថ្ងៃចូល Tab 'Report' ក្នុង BostarTrack\n * ក្បួនការពារការស្ទួន ១០០%៖ ផ្ទៀងផ្ទាត់តាម Composite Key (Date + Page Name + Reporter)\n * បើមានជួរចាស់ ➔ Update លើជួរដដែល | បើមិនទាន់មាន ➔ បន្ថែមជួរថ្មី\n */\nfunction insertOrUpdateDailyReport(ss, data) {\n  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';\n  var targetSs = null;\n  try {\n    targetSs = SpreadsheetApp.openById(bostarTrackId);\n  } catch (e) {\n    targetSs = ss || SpreadsheetApp.getActiveSpreadsheet();\n  }\n\n  var sheet = targetSs.getSheetByName('Report');\n  if (!sheet) {\n    sheet = targetSs.getSheetByName('របាយការណ៍') || targetSs.getSheetByName('Daily Report');\n  }\n  if (!sheet) {\n    return { status: 'error', message: \"រកមិនឃើញ Tab 'Report' ក្នុង Google Sheet ឡើយ!\" };\n  }\n\n  var dateObj = parseToDateObj(data.date);\n  var targetDateNorm = Utilities.formatDate(dateObj, 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n\n  var timeStr = data.time || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'h:mm a');\n  var pageName = String(data.page || data.pageName || 'Bostar Store').trim();\n  var teamName = String(data.team || 'BostarGroup').trim();\n  var reporterName = String(data.reporter || data.staff || 'សមាជិក Bostar').trim();\n  var statusStr = String(data.status || 'បញ្ចប់').trim();\n\n  var chatTotal = Number(data.chatTotal) || 0;\n  var chatMistake = Number(data.chatMistake) || 0;\n  var chatTarget = Number(data.chatTarget) || 0;\n  var callDirect = Number(data.callDirect) || 0;\n  var followLeads = Number(data.followLeads) || 0;\n  var totalOrders = Number(data.totalOrders) || 0;\n  var totalBoxes = Number(data.totalBoxes) || 0;\n\n  var buyNewP = Number(data.buyNewP) || 0;\n  var buyNewB = Number(data.buyNewB) || 0;\n  var buyOldP = Number(data.buyOldP) || 0;\n  var buyOldB = Number(data.buyOldB) || 0;\n  var buyFollowP = Number(data.buyFollowP) || 0;\n  var buyFollowB = Number(data.buyFollowB) || 0;\n\n  var challenges = String(data.challenges || 'គ្មាន (None)').trim();\n\n  // ជួរឈរទាំង ២០ ត្រូវគ្នានឹង Tab Report បេះបិទ\n  var rowData = [\n    dateObj,       // Col A (0): កាលបរិច្ឆេទ (Date)\n    timeStr,       // Col B (1): ម៉ោងរាយការណ៍ (Time)\n    pageName,      // Col C (2): ឈ្មោះផេក (Page Name)\n    teamName,      // Col D (3): ក្រុមការងារ (Team)\n    reporterName,  // Col E (4): អ្នករាយការណ៍ (Reporter)\n    statusStr,     // Col F (5): ស្ថានភាព (Status)\n    chatTotal,     // Col G (6): សរុបទំនាក់ទំនង (Total Inquiries)\n    chatMistake,   // Col H (7): ឆាតប៉ះដៃ (Direct Chat)\n    chatTarget,    // Col I (8): ឆាតគោលដៅ (Targeted Ads)\n    callDirect,    // Col J (9): ខលចូលថ្មី (Incoming Calls)\n    followLeads,   // Col K (10): តាមដានចាស់ (Follow-up Leads)\n    totalOrders,   // Col L (11): សរុបកុម្ម៉ង់ (Total Orders)\n    totalBoxes,    // Col M (12): សរុបប្រអប់ (Total Boxes)\n    buyNewP,       // Col N (13): ថ្មីទិញ (នាក់)\n    buyNewB,       // Col O (14): ថ្មីទិញ (ប្រអប់)\n    buyOldP,       // Col P (15): ចាស់ទិញ (នាក់)\n    buyOldB,       // Col Q (16): ចាស់ទិញ (ប្រអប់)\n    buyFollowP,    // Col R (17): តាមដានទិញ (នាក់)\n    buyFollowB,    // Col S (18): តាមដានទិញ (ប្រអប់)\n    challenges     // Col T (19): បញ្ហាប្រឈម / កំណត់សម្គាល់ (Challenges & Notes)\n  ];\n\n  // ស្វែងរកជួរដេកចាស់ដើម្បីការពារការស្ទួន (Deduplication Check)\n  var lastRow = sheet.getLastRow();\n  var matchRowIndex = -1;\n\n  if (lastRow > 1) {\n    var range = sheet.getRange(2, 1, lastRow - 1, 5).getValues(); // អាន Col A ដល់ E (Date, Time, Page, Team, Reporter)\n    for (var i = 0; i < range.length; i++) {\n      var rDate = range[i][0];\n      var rDateNorm = '';\n      if (rDate instanceof Date) {\n        rDateNorm = Utilities.formatDate(rDate, 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n      } else {\n        var parsed = parseToDateObj(rDate);\n        rDateNorm = Utilities.formatDate(parsed, 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n      }\n\n      var rPage = String(range[i][2] || '').trim().toLowerCase();\n      var rReporter = String(range[i][4] || '').trim().toLowerCase();\n\n      // ផ្ទៀងផ្ទាត់លក្ខខណ្ឌស្ទួន (Date + Page + Reporter)\n      if (rDateNorm === targetDateNorm &&\n          rPage === pageName.toLowerCase() &&\n          rReporter === reporterName.toLowerCase()) {\n        matchRowIndex = i + 2; // 1-based index (Header គឺជួរទី ១)\n        break;\n      }\n    }\n  }\n\n  if (matchRowIndex > 0) {\n    // ករណីរកឃើញជួរចាស់ ➔ Update លើជួរដដែល (មិនបង្កើតជួរស្ទួន)\n    sheet.getRange(matchRowIndex, 1, 1, rowData.length).setValues([rowData]);\n    return {\n      status: 'success',\n      isUpdate: true,\n      rowIndex: matchRowIndex,\n      message: 'បានកែសម្រួលរបាយការណ៍លើជួរទី ' + matchRowIndex + ' (Update ជោគជ័យ មិនមានស្ទួន) ✅'\n    };\n  } else {\n    // ករណីទិន្នន័យថ្មី ➔ បន្ថែមជួរថ្មី\n    sheet.appendRow(rowData);\n    var newRowIndex = sheet.getLastRow();\n    return {\n      status: 'success',\n      isUpdate: false,\n      rowIndex: newRowIndex,\n      message: 'បានកត់ត្រារបាយការណ៍ថ្មីលើជួរទី ' + newRowIndex + ' ជោគជ័យ! 🚀'\n    };\n  }\n}\n\n/**\n * កែប្រែឈ្មោះគណនី និងសមតុល្យសាច់ប្រាក់ (USD / KHR) ក្នុងផ្ទាំង «Bank & Cash Balance»\n */\nfunction updateBankAccountBalance(ss, data) {\n  var sheet = ss.getSheetByName('Bank & Cash Balance') || ss.getSheetByName('Bank & Cash') || ss.getSheetByName('App_Bank_Balance');\n  if (!sheet) {\n    return { status: 'error', message: 'មិនអាចស្វែងរក Tab \"Bank & Cash Balance\" ឃើញក្នុង Spreadsheet នេះឡើយ!' };\n  }\n\n  var targetNo = data.accountNo ? parseInt(data.accountNo, 10) : null;\n  var targetName = String(data.accountName || '').trim();\n  var newAccountName = data.newAccountName ? String(data.newAccountName).trim() : null;\n  var amountUsd = (data.amountUsd !== undefined && data.amountUsd !== null && data.amountUsd !== '') ? Number(data.amountUsd) : null;\n  var amountKhr = (data.amountKhr !== undefined && data.amountKhr !== null && data.amountKhr !== '') ? Number(data.amountKhr) : null;\n\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var matchedRow = -1;\n\n  for (var r = 1; r < Math.min(values.length, 30); r++) {\n    var rowNo = parseInt(values[r][0], 10); // Col A: លេខរៀង (1..10)\n    var rowName = String(values[r][1] || '').trim(); // Col B: ឈ្មោះគណនី\n\n    // បើដល់ផ្នែក COD ឬ សរុប គឺឈប់ស្វែងរក\n    if (rowName.indexOf('សរុប') === 0 || rowName.indexOf('Accounts Receivable') !== -1 || rowName.indexOf('Pending COD') !== -1) {\n      if (matchedRow > 0) break;\n    }\n\n    if (targetNo && !isNaN(rowNo) && rowNo === targetNo) {\n      matchedRow = r + 1; // 1-based row index in Google Sheets\n      break;\n    }\n    if (targetName && rowName.toLowerCase() === targetName.toLowerCase()) {\n      matchedRow = r + 1;\n      break;\n    }\n  }\n\n  if (matchedRow <= 0) {\n    return {\n      status: 'not_found',\n      message: 'រកមិនឃើញគណនីធនាគារលេខ #' + (targetNo || '') + ' (' + (targetName || '') + ') ក្នុង Tab Bank & Cash Balance ឡើយ!'\n    };\n  }\n\n  var currentAccountName = String(values[matchedRow - 1][1] || '').trim();\n  var finalAccountName = newAccountName || currentAccountName;\n\n  // 1. Update ឈ្មោះគណនី (Col B / Col 2) ប្រសិនបើមានការកែប្រែ\n  if (newAccountName && newAccountName !== currentAccountName) {\n    sheet.getRange(matchedRow, 2).setValue(newAccountName);\n  }\n\n  var isKhrAccount = finalAccountName.indexOf('(KHR)') !== -1 || (amountKhr !== null && amountKhr > 0 && (amountUsd === null || amountUsd === 0));\n\n  // 2. Update សមតុល្យរៀល (Col D / Col 4)\n  if (amountKhr !== null && !isNaN(amountKhr)) {\n    sheet.getRange(matchedRow, 4).setValue(amountKhr);\n  }\n\n  // 3. Update សមតុល្យដុល្លារ (Col C / Col 3)\n  if (amountUsd !== null && !isNaN(amountUsd)) {\n    var cRange = sheet.getRange(matchedRow, 3);\n    var cFormula = cRange.getFormula();\n\n    // បើជាគណនី KHR ហើយមានរូបមន្ត =D.../4100 ស្រាប់ គឺរក្សារូបមន្តទុកដើម្បីឲ្យ Sheet គណនាស្វ័យប្រវត្តិតាម KHR\n    if (isKhrAccount && cFormula && cFormula.indexOf('=') === 0) {\n      // រក្សារូបមន្តទុក\n    } else if (isKhrAccount && (!cFormula || cFormula === '')) {\n      cRange.setFormula('=IFERROR(ROUND(D' + matchedRow + '/4100, 2), 0)');\n    } else {\n      cRange.setValue(amountUsd);\n    }\n  }\n\n  return {\n    status: 'success',\n    message: 'បានកែសម្រួលគណនី ' + finalAccountName + ' ជោគជ័យ! ✅',\n    accountNo: targetNo,\n    accountName: finalAccountName,\n    amountUsd: amountUsd,\n    amountKhr: amountKhr,\n    row: matchedRow\n  };\n}\n\n";
-    async function copyCode() {
-      try {
-        await navigator.clipboard.writeText(fullCode);
-        document.getElementById('status').style.display = 'block';
-        document.getElementById('btnCopy').innerText = '✓ បានចម្លងរួចរាល់! (Copied to Clipboard)';
-        document.getElementById('btnCopy').style.background = '#059669';
-      } catch (err) {
-        const ta = document.createElement('textarea');
-        ta.value = fullCode;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        document.getElementById('status').style.display = 'block';
-        document.getElementById('btnCopy').innerText = '✓ បានចម្លងរួចរាល់! (Copied)';
-        document.getElementById('btnCopy').style.background = '#059669';
+    const fullCode = "/**\n * ==============================================================================\n * SD Dashboard & Personal Sales / Daily Expenses Sync Webhook\n * ==============================================================================\n * សុវត្ថិភាពខ្ពស់ ១០០% មិនប៉ះពាល់រូបមន្តចាស់ និងការពារទិន្នន័យ manual tracking\n * \n * គោលការណ៍សុវត្ថិភាពទាំង ៤៖\n * 1. ពិនិត្យភាពស្ទួន (Deduplication) តាម Order ID (អនុញ្ញាតលេខទូរស័ព្ទដដែលសម្រាប់អតិថិជនទិញម្តងទៀត)\n * 2. ថែរក្សារូបមន្តស្វ័យប្រវត្តិ (No., Total $, Stock Cost, Profit)\n * 3. មិនប៉ះពាល់ជួរឈរដែលកត់ត្រាដោយដៃ (COD Status = បានដាក់ការកុម្មង់, Payment Date, Note)\n * 4. បង្កើត Record_ID (REC-XXXX) ស្វ័យប្រវត្តិសម្រាប់ AppSheet ស្គាល់\n * 5. បំប្លែងកាលបរិច្ឆេទជា Date Object ពិតប្រាកដ ការពារបញ្ហា Invalid Date លើ Google Sheet\n * ==============================================================================\n */\n\n/**\n * ដំណើរការមុខងារនេះ ១ ដង (ចុច Run) ដើម្បីឱ្យ Google សួរទាមទារសិទ្ធិ (Authorize) ចូលទៅកាន់ Google Sheets ដទៃទៀត\n */\nfunction authorizeExternalSheets() {\n  DriveApp.getRootFolder();\n  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';\n  try {\n    var ss = SpreadsheetApp.openById(bostarTrackId);\n    Logger.log('ជោគជ័យក្នុងការតភ្ជាប់ទៅកាន់តារាង BostarTrack៖ ' + ss.getName());\n  } catch (e) {\n    Logger.log('Authorize error: ' + e);\n  }\n}\n\nfunction doGet(e) {\n  return ContentService.createTextOutput(JSON.stringify({\n    status: 'ok',\n    version: '3.1-smart-26col-aligned',\n    message: 'SD Dashboard Webhook is live and ready! 🚀'\n  })).setMimeType(ContentService.MimeType.JSON);\n}\n\nfunction doPost(e) {\n  var lock = LockService.getScriptLock();\n  // រង់ចាំ lock រយៈពេលរហូតដល់ 30 វិនាទី ដើម្បីការពារការបញ្ជូនទិន្នន័យជាន់គ្នា (Concurrency Safety)\n  var success = lock.tryLock(30000);\n  if (!success) {\n    return ContentService.createTextOutput(JSON.stringify({\n      status: 'error',\n      message: 'Server is busy, could not obtain lock.'\n    })).setMimeType(ContentService.MimeType.JSON);\n  }\n\n  try {\n    if (!e || !e.postData || !e.postData.contents) {\n      return ContentService.createTextOutput(JSON.stringify({\n        status: 'error',\n        message: 'No data payload received'\n      })).setMimeType(ContentService.MimeType.JSON);\n    }\n\n    var payload = JSON.parse(e.postData.contents);\n    var action = payload.action;\n    var data = payload.data;\n    var targetSheetId = (payload.sheetId && String(payload.sheetId).length > 15) ? String(payload.sheetId).trim() : null;\n    var ss = targetSheetId ? SpreadsheetApp.openById(targetSheetId) : SpreadsheetApp.getActiveSpreadsheet();\n\n    if (action === 'add_order') {\n      // 1. បញ្ចូលទៅក្នុង Sheet ផ្ទាល់ខ្លួនរបស់សមាជិក (Personal Sales)\n      var result = insertPersonalSalesOrder(ss, data);\n\n      // 2. Dual-Sync: បញ្ចូលទៅកាន់ Master Data នៃ BostarTrack (1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4) ស្វ័យប្រវត្តិ\n      // បញ្ជាដាច់ខាត៖ Master Data ទទួលតែពីការកុម្ម៉ង់ថ្មី (isDockOrder / syncToBostarTrack === true) ប៉ុណ្ណោះ ហាម Telegram Mode\n      var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';\n      var syncToBostarTrack = (payload.syncToBostarTrack === true) || (data.syncToBostarTrack === true);\n      if (syncToBostarTrack && targetSheetId !== bostarTrackId) {\n        try {\n          var bostarSs = SpreadsheetApp.openById(bostarTrackId);\n          if (result && result.orderId) {\n            data.orderId = result.orderId;\n          }\n          insertPersonalSalesOrder(bostarSs, data);\n        } catch (btErr) {\n          Logger.log('BostarTrack Dual Sync Warn: ' + btErr);\n        }\n      }\n\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'update_order' || action === 'update_personal_sales') {\n      var result = updatePersonalSalesOrder(ss, data);\n      var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';\n      var syncToBostarTrack = (payload.syncToBostarTrack !== false) && (data.syncToBostarTrack !== false);\n      if (syncToBostarTrack && targetSheetId !== bostarTrackId) {\n        try {\n          var bostarSs = SpreadsheetApp.openById(bostarTrackId);\n          updatePersonalSalesOrder(bostarSs, data);\n        } catch (btErr) {\n          Logger.log('BostarTrack Dual Sync Update Warn: ' + btErr);\n        }\n      }\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'add_expense') {\n      var result = insertDailyExpense(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'update_expense') {\n      var result = updateDailyExpense(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'delete_expense') {\n      var result = deleteDailyExpense(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'sync_attendance') {\n      var result = syncBostarAttendance(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'update_cod_status') {\n      var result = updateCodStatus(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'add_or_update_report' || action === 'sync_daily_report') {\n      var result = insertOrUpdateDailyReport(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else if (action === 'update_bank_balance' || action === 'update_bank_account') {\n      var result = updateBankAccountBalance(ss, data);\n      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);\n    } else {\n      return ContentService.createTextOutput(JSON.stringify({\n        status: 'error',\n        message: 'Unknown action: ' + action\n      })).setMimeType(ContentService.MimeType.JSON);\n    }\n\n  } catch (err) {\n    return ContentService.createTextOutput(JSON.stringify({\n      status: 'error',\n      message: err.toString()\n    })).setMimeType(ContentService.MimeType.JSON);\n  } finally {\n    lock.releaseLock();\n  }\n}\n\n/**\n * ជំនួយការបំប្លែង String ទៅជា JavaScript Date Object ពិតប្រាកដ\n * ការពារដាច់ខាតកុំឱ្យលោតសញ្ញា Invalid Date លើ Google Sheet Data Validation\n */\nfunction parseToDateObj(dateStr) {\n  if (!dateStr) return new Date();\n  if (dateStr instanceof Date) return dateStr;\n  var str = String(dateStr).trim();\n\n  // ទម្រង់ DD/MM/YYYY ឬ D/M/YYYY\n  var dmMatch = str.match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})/);\n  if (dmMatch) {\n    var day = parseInt(dmMatch[1], 10);\n    var month = parseInt(dmMatch[2], 10) - 1; // 0-indexed month\n    var year = parseInt(dmMatch[3], 10);\n    return new Date(year, month, day, 12, 0, 0);\n  }\n\n  // ទម្រង់ ISO YYYY-MM-DD\n  var isoMatch = str.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})/);\n  if (isoMatch) {\n    var iYear = parseInt(isoMatch[1], 10);\n    var iMonth = parseInt(isoMatch[2], 10) - 1;\n    var iDay = parseInt(isoMatch[3], 10);\n    return new Date(iYear, iMonth, iDay, 12, 0, 0);\n  }\n\n  return new Date();\n}\n\nfunction formatToYmdString(dateVal) {\n  if (!dateVal) return '';\n  var dateObj = parseToDateObj(dateVal);\n  return Utilities.formatDate(dateObj, 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n}\n\n/**\n * ស្វែងរក Sheet គោលដៅ (Personal Sales ឬ Master Data) ដោយមិនប្រកាន់អក្សរធំ-តូច\n */\nfunction getTargetSalesSheet(ss) {\n  var sheets = ss.getSheets();\n  for (var i = 0; i < sheets.length; i++) {\n    var name = sheets[i].getName().trim().toLowerCase();\n    if (name === 'personal sales' || name === 'master data') {\n      return sheets[i];\n    }\n  }\n  return ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheetByName('Master data') || sheets[0];\n}\n\n/**\n * បញ្ចូលការកុម្ម៉ង់ចូលផ្ទាំង Personal Sales ឬ Master Data ដោយសុវត្ថិភាព ១០០%\n * បំពេញតម្លៃលេខផ្ទាល់ (Direct Value) ជួរ N, R, T និងកត់ត្រា Reward QTY ជួរ V\n */\nfunction insertPersonalSalesOrder(ss, order) {\n  var sheet = getTargetSalesSheet(ss);\n  if (!sheet) {\n    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };\n  }\n\n  // 1. ស្វែងរកជួរដេកទាំងអស់ដើម្បីពិនិត្យភាពស្ទួន Order ID (Col E)\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var numRows = values.length;\n  var lastCol = sheet.getLastColumn();\n\n  var newOrderId = String(order.orderId || '').trim();\n\n  // ប្រភេទការលក់៖ 'standard' (ស្តុកក្រុមហ៊ុន), 'reward' (លក់រង្វាន់), 'return' (លក់អីវ៉ាន់ត្រឡប់)\n  var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();\n\n  var maxRecNum = 0;\n  var maxBNum = 0; // តាមដានលេខ #B*** ខ្ពស់បំផុតក្នុង Sheet\n  var isBOrderClash = false; // ប្រសិនបើជា #B*** ជាន់លេខគ្នាដោយសារសមាជិក ២ នាក់ Submit ដំណាលគ្នា\n  var targetRow = -1; // ជួរដេកដែលត្រូវបំពេញ\n\n  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)\n  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];\n  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');\n  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;\n  var col12H = String(headerVals[11] || '').trim().toLowerCase();\n  var col14H = String(headerVals[13] || '').trim().toLowerCase();\n  var isNew26Col = (lastCol >= 25) || hasEmmiOrSg || (col14H.indexOf('free') !== -1) || (col12H.indexOf('free') === -1 && col12H !== '');\n\n  for (var r = 1; r < numRows; r++) { // រាប់ពីជួរទី ២ (Index 1) ក្រោម Header\n    var rowDate = values[r][0]; // Col A\n    var existingOrderId = String(values[r][4] || '').trim(); // Col E\n    var existingRecId = String(values[r][isNew26Col ? 25 : 23] || values[r][25] || values[r][23] || values[r][22] || '').trim(); // Col Z / X / W\n\n    // តាមដានលេខ REC-XXXX ខ្ពស់បំផុត\n    var matchRec = existingRecId.match(/REC-(\\d+)/i);\n    if (matchRec) {\n      var recVal = parseInt(matchRec[1], 10);\n      if (recVal > maxRecNum) maxRecNum = recVal;\n    }\n\n    // តាមដានលេខ #B*** ខ្ពស់បំផុតក្នុង Sheet\n    var matchB = existingOrderId.match(/^#?B(\\d+)$/i);\n    if (matchB) {\n      var bVal = parseInt(matchB[1], 10);\n      if (bVal > maxBNum) maxBNum = bVal;\n    }\n\n    // ពិនិត្យភាពស្ទួនតាម Order ID (អនុវត្តត្រឹមតែការកុម្ម៉ង់ចេញពីក្រុមហ៊ុន 'standard' ប៉ុណ្ណោះ, លក់រង្វាន់ ឬអីវ៉ាន់ត្រឡប់អនុញ្ញាតលេខចាស់ ឬគ្មានលេខបាន)\n    if (orderType === 'standard' && newOrderId && existingOrderId && newOrderId.toLowerCase() === existingOrderId.toLowerCase()) {\n      var isBOrder = /^#?B\\d+$/i.test(newOrderId);\n      if (isBOrder) {\n        // ប្រសិនបើជា #B*** ជាន់លេខគ្នាដោយសារសមាជិក ២ នាក់ Submit ក្នុងវិនាទីតែមួយ កូដនឹង auto-bump មិនឱ្យខូចឡើយ\n        isBOrderClash = true;\n      } else {\n        return { \n          status: 'duplicate', \n          message: 'Order ID ' + newOrderId + ' មានរួចហើយក្នុងជួរទី ' + (r + 1),\n          row: r + 1 \n        };\n      }\n    }\n\n    // ពិនិត្យភាពស្ទួនតាម Phone + Seller + Date (ការពារករណីអ្នកលក់ចុច Submit ២ ដង ឬបញ្ចូលជាន់គ្នា)\n    var cleanNewPhone = String(order.phone || '').replace(/[\\s\\-\\(\\)]/g, '');\n    var cleanRowPhone = String(values[r][6] || '').replace(/[\\s\\-\\(\\)]/g, '');\n    var cleanNewSeller = String(order.seller || '').trim().toLowerCase();\n    var cleanRowSeller = String(values[r][3] || '').trim().toLowerCase();\n    var orderDateYmd = formatToYmdString(order.date);\n    var rowDateYmd = formatToYmdString(rowDate);\n\n    if (cleanNewPhone && cleanRowPhone && cleanNewPhone.length >= 8 && cleanNewPhone === cleanRowPhone &&\n        cleanNewSeller && cleanRowSeller && cleanNewSeller === cleanRowSeller &&\n        orderDateYmd && rowDateYmd && orderDateYmd === rowDateYmd) {\n      // ប្រសិនបើជួរចាស់គ្មានលេខ Order ID តែជួរថ្មីមានលេខ Order ID ➔ Update បំពេញលេខ Order ID លើជួរចាស់ដដែល\n      if (!existingOrderId && newOrderId) {\n        sheet.getRange(r + 1, 5).setValue(newOrderId);\n        return { \n          status: 'updated', \n          message: 'បាន Update លេខ Order ID ' + newOrderId + ' លើជួរទី ' + (r + 1),\n          row: r + 1 \n        };\n      }\n      return { \n        status: 'duplicate', \n        message: 'Order របស់អ្នកលក់ ' + values[r][3] + ' (ទូរស័ព្ទ ' + cleanNewPhone + ') មានរួចហើយក្នុងជួរទី ' + (r + 1),\n        row: r + 1 \n      };\n    }\n\n    // ស្វែងរកជួរទំនេរដំបូង (Col A ទទេ ឬគ្មាន Date)\n    if (targetRow === -1 && (!rowDate || String(rowDate).trim() === '')) {\n      targetRow = r + 1; // 1-indexed row number\n    }\n  }\n\n  // បើរកមិនឃើញជួរទំនេរដែលមានស្រាប់ទេ ត្រូវបន្ថែមជួរថ្មីនៅខាងក្រោម\n  if (targetRow === -1) {\n    targetRow = numRows + 1;\n  }\n\n  // បង្កើត Record_ID ថ្មីបន្តបន្ទាប់ (ឧ. REC-0503)\n  var nextRecNum = maxRecNum + 1;\n  var formattedRecId = 'REC-' + ('0000' + nextRecNum).slice(-4);\n\n  // គណនាចំនួនប្រអប់សរុប\n  var totalBoxes = Number(order.totalBoxQty || 0);\n  if (!totalBoxes || totalBoxes === 0) {\n    totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + \n                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + \n                 Number(order.qtyEmmi || 0) + Number(order.qtySGP || 0) + \n                 Number(order.freeQty || 0);\n  }\n\n  // គណនាតម្លៃដើម Col R (Stock Cost) តាមប្រភេទការលក់៖\n  // - ស្តុកក្រុមហ៊ុន (Standard) = Qty * $24.00\n  // - លក់រង្វាន់ (Reward) = Qty * $5.00\n  // - លក់អីវ៉ាន់ត្រឡប់ (Return) = $0.00\n  var stockCost = 0;\n  if (orderType === 'reward') {\n    stockCost = totalBoxes * 5.0;\n  } else if (orderType === 'return') {\n    stockCost = 0;\n  } else {\n    stockCost = totalBoxes * 24.0;\n  }\n\n  // តម្លៃលក់សរុប Col N (Total USD)\n  var totalAmountUSD = Number(order.totalAmount || 0);\n\n  // ថ្លៃដឹកជញ្ជូន Col O (Ship Fee)\n  var shipFee = Number(order.shipFee || 0);\n\n  // ប្រាក់ចំណេញសុទ្ធ Col T (Profit)\n  var profitVal = (order.profit !== undefined && order.profit !== null && order.profit !== '') \n    ? Number(order.profit) \n    : Math.max(0, Math.round((totalAmountUSD - stockCost - shipFee) * 100) / 100);\n\n  // រូបមន្ត No. បន្តបន្ទាប់\n  var prevRow = targetRow - 1;\n  var formulaNo = '=IF(OR(A' + targetRow + '=\"\", A' + targetRow + '=A' + prevRow + '), B' + prevRow + '+1, 1)';\n\n  // បំប្លែង Date Object ពិតប្រាកដ និងកំណត់ Format dd/MM/yyyy ការពារ Invalid Error\n  var dateObj = parseToDateObj(order.date);\n\n  // បំពេញទិន្នន័យចូលក្រឡាជួរនីមួយៗ (Direct Values ជួរ N, R, T)\n  sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date Object\n  sheet.getRange(targetRow, 2).setFormula(formulaNo); // Col B: No. (Formula)\n  sheet.getRange(targetRow, 3).setValue(order.customer || ''); // Col C: FB Name\n  sheet.getRange(targetRow, 4).setValue(order.seller || 'សមាជិក Bostar'); // Col D: Seller\n  \n  // Col E: Order ID (បើលក់រង្វាន់ ទុកទំនេរ; បើធម្មតា ឬត្រឡប់ ដាក់លេខ Order)\n  // ប្រសិនបើជាការកុម្ម៉ង់ថ្មី ហើយគ្មានលេខ Order ID ឬលេខទទេ ឬមានជាន់លេខ #B*** ➔ Auto-Generate #B*** បន្តបន្ទាប់\n  var finalOrderId = order.orderId || '';\n  if (orderType === 'reward') {\n    finalOrderId = '';\n  } else if (!finalOrderId || finalOrderId === '#' || finalOrderId === 'កំពុងទាញលេខ...' || isBOrderClash) {\n    var nextBNum = maxBNum + 1;\n    finalOrderId = '#B' + (nextBNum < 1000 ? ('00' + nextBNum).slice(-3) : nextBNum);\n  }\n  sheet.getRange(targetRow, 5).setValue(finalOrderId);\n\n  sheet.getRange(targetRow, 6).setValue(order.location || ''); // Col F: Location\n  sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone\n\n  // ផលិតផល H, I, J, K, L, M, N (Qty)\n  // - ពេលលក់រង្វាន់ ឬលក់អីវ៉ាន់ត្រឡប់ ទុកនៅទំនេរ (\"\") ដើម្បីកុំឱ្យច្រឡំជាមួយស្តុកធម្មតា\n  // - ពេលស្តុកក្រុមហ៊ុន បំពេញតាមមុខទំនិញពិត\n  if (isNew26Col) {\n    if (orderType === 'reward' || orderType === 'return') {\n      sheet.getRange(targetRow, 8).setValue('');  // Col H: YL\n      sheet.getRange(targetRow, 9).setValue('');  // Col I: YLP\n      sheet.getRange(targetRow, 10).setValue(''); // Col J: KN\n      sheet.getRange(targetRow, 11).setValue(''); // Col K: P D.O\n      sheet.getRange(targetRow, 12).setValue(''); // Col L: Emmi\n      sheet.getRange(targetRow, 13).setValue(''); // Col M: S.G\n      sheet.getRange(targetRow, 14).setValue(''); // Col N: Free\n    } else {\n      sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0));\n      sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));\n      sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));\n      sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));\n      sheet.getRange(targetRow, 12).setValue(Number(order.qtyEmmi || 0));                // Col L: Emmi\n      sheet.getRange(targetRow, 13).setValue(Number(order.qtySGP || order.qtySG || 0)); // Col M: S.G\n      sheet.getRange(targetRow, 14).setValue(Number(order.freeQty || 0));               // Col N: Free\n    }\n\n    sheet.getRange(targetRow, 15).setValue(Number(order.thaiBaht || order.price || 0)); // Col O: Price (Baht)\n    sheet.getRange(targetRow, 16).setValue(totalAmountUSD).setNumberFormat('$#,##0.00'); // Col P: Total $\n    sheet.getRange(targetRow, 17).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col Q: Ship Fee\n    sheet.getRange(targetRow, 18).setValue(order.deliveryMethod || 'VET(COD)'); // Col R: Delivery\n    sheet.getRange(targetRow, 19).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col S: COD Status\n    sheet.getRange(targetRow, 20).setValue(stockCost).setNumberFormat('$#,##0.00'); // Col T: Stock Cost\n    if (order.paymentDate) {\n      sheet.getRange(targetRow, 21).setValue(order.paymentDate); // Col U: Payment Date\n    } else {\n      sheet.getRange(targetRow, 21).setValue('');\n    }\n    sheet.getRange(targetRow, 22).setValue(profitVal).setNumberFormat('$#,##0.00'); // Col V: Profit\n    sheet.getRange(targetRow, 23).setValue(order.note || ''); // Col W: Note\n\n    if (orderType === 'reward') {\n      sheet.getRange(targetRow, 24).setValue(totalBoxes); // Col X: Reward QTY\n    } else {\n      sheet.getRange(targetRow, 24).setValue('');\n    }\n    sheet.getRange(targetRow, 25).setValue(''); // Col Y: ទំនេរ\n    sheet.getRange(targetRow, 26).setValue(formattedRecId); // Col Z: Record_ID\n  } else {\n    if (orderType === 'reward' || orderType === 'return') {\n      sheet.getRange(targetRow, 8).setValue('');  // Col H: YL\n      sheet.getRange(targetRow, 9).setValue('');  // Col I: YLP\n      sheet.getRange(targetRow, 10).setValue(''); // Col J: KN\n      sheet.getRange(targetRow, 11).setValue(''); // Col K: P D.O\n      sheet.getRange(targetRow, 12).setValue(''); // Col L: Free\n    } else {\n      sheet.getRange(targetRow, 8).setValue(Number(order.qtyYL || 0));\n      sheet.getRange(targetRow, 9).setValue(Number(order.qtyYLP || 0));\n      sheet.getRange(targetRow, 10).setValue(Number(order.qtyKN || 0));\n      sheet.getRange(targetRow, 11).setValue(Number(order.qtyPDO || 0));\n      sheet.getRange(targetRow, 12).setValue(Number(order.freeQty || 0));\n    }\n\n    sheet.getRange(targetRow, 13).setValue(Number(order.thaiBaht || order.price || 0)); // Col M: Price (Baht)\n    sheet.getRange(targetRow, 14).setValue(totalAmountUSD).setNumberFormat('$#,##0.00'); // Col N: Total $\n    sheet.getRange(targetRow, 15).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col O: Ship Fee\n    sheet.getRange(targetRow, 16).setValue(order.deliveryMethod || 'VET(COD)'); // Col P: Delivery\n    sheet.getRange(targetRow, 17).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col Q: COD Status\n    sheet.getRange(targetRow, 18).setValue(stockCost).setNumberFormat('$#,##0.00'); // Col R: Stock Cost\n    if (order.paymentDate) {\n      sheet.getRange(targetRow, 19).setValue(order.paymentDate); // Col S: Payment Date\n    } else {\n      sheet.getRange(targetRow, 19).setValue('');\n    }\n    sheet.getRange(targetRow, 20).setValue(profitVal).setNumberFormat('$#,##0.00'); // Col T: Profit\n    sheet.getRange(targetRow, 21).setValue(order.note || ''); // Col U: Note\n\n    if (orderType === 'reward') {\n      sheet.getRange(targetRow, 22).setValue(totalBoxes); // Col V: Reward QTY\n    } else {\n      sheet.getRange(targetRow, 22).setValue('');\n    }\n    sheet.getRange(targetRow, 23).setValue(''); // Col W: ទំនេរ\n    sheet.getRange(targetRow, 24).setValue(formattedRecId); // Col X: Record_ID\n  }\n\n  return {\n    status: 'success',\n    action: 'add_order',\n    row: targetRow,\n    recordId: formattedRecId,\n    orderId: finalOrderId\n  };\n}\n\n/**\n * កែសម្រួលការកុម្ម៉ង់ក្នុង Personal Sales (ឈ្មោះ, លេខទូរស័ព្ទ, ទីតាំង, ចំនួនប្រអប់, តម្លៃ, COD...)\n * រក្សារូបមន្តចាស់ Col B (No.) មិនឱ្យខូច\n */\nfunction updatePersonalSalesOrder(ss, order) {\n  var sheet = getTargetSalesSheet(ss);\n  if (!sheet) {\n    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };\n  }\n\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var numRows = values.length;\n  var lastCol = sheet.getLastColumn();\n\n  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)\n  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];\n  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');\n  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;\n  var col12H = String(headerVals[11] || '').trim().toLowerCase();\n  var col14H = String(headerVals[13] || '').trim().toLowerCase();\n  var isNew26Col = (lastCol >= 25) || hasEmmiOrSg || (col14H.indexOf('free') !== -1) || (col12H.indexOf('free') === -1 && col12H !== '');\n\n  var targetRecordId = String(order.recordId || '').trim();\n  var targetOrderId = String(order.orderId || '').trim();\n  var targetRowIndex = (order.rowIndex !== undefined && order.rowIndex !== null) ? Number(order.rowIndex) : -1;\n\n  var matchedRow = -1;\n\n  // 1. ស្វែងរកតាម Record_ID (Col 26 / Z សម្រាប់ 26-col, ឬ Col 24 / X, Col 23 / W)\n  if (targetRecordId) {\n    for (var r = 1; r < numRows; r++) {\n      var existingRecId = String(values[r][25] || values[r][23] || values[r][22] || '').trim();\n      if (existingRecId && targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {\n        matchedRow = r + 1;\n        break;\n      }\n    }\n  }\n\n  // 2. បើមិនឃើញ រកតាម Order ID (Col 5 / E)\n  if (matchedRow === -1 && targetOrderId) {\n    for (var r = 1; r < numRows; r++) {\n      var existingOrderId = String(values[r][4] || '').trim();\n      if (existingOrderId && targetOrderId.toLowerCase() === existingOrderId.toLowerCase()) {\n        matchedRow = r + 1;\n        break;\n      }\n    }\n  }\n\n  // 3. បើនៅតែមិនឃើញ ពិនិត្យតាម rowIndex ប្រសិនបើផ្ញើមក\n  if (matchedRow === -1 && targetRowIndex > 0 && targetRowIndex < numRows) {\n    var checkRow = targetRowIndex + 1;\n    if (checkRow <= numRows) {\n      matchedRow = checkRow;\n    }\n  }\n\n  // 4. បើនៅតែមិនឃើញ រកតាម Date + Phone ឬ Date + Customer\n  if (matchedRow === -1 && order.date) {\n    var orderDateStr = String(order.date).trim();\n    var targetPhone = String(order.phone || '').replace(/\\D/g, '');\n    for (var r = 1; r < numRows; r++) {\n      var rDateVal = values[r][0];\n      var rDateStr = (rDateVal instanceof Date) ? Utilities.formatDate(rDateVal, 'Asia/Phnom_Penh', 'dd/MM/yyyy') : String(rDateVal || '').trim();\n      var rPhone = String(values[r][6] || '').replace(/\\D/g, '');\n      var rCust = String(values[r][2] || '').trim();\n\n      if (rDateStr === orderDateStr) {\n        if (targetPhone && rPhone && rPhone === targetPhone) {\n          matchedRow = r + 1;\n          break;\n        }\n        if (order.customer && rCust && rCust.toLowerCase() === String(order.customer).toLowerCase().trim()) {\n          matchedRow = r + 1;\n          break;\n        }\n      }\n    }\n  }\n\n  if (matchedRow <= 0) {\n    return {\n      status: 'not_found',\n      message: 'រកមិនឃើញការកុម្ម៉ង់លេខ ' + (targetOrderId || targetRecordId) + ' ក្នុងតារាង Personal Sales ឡើយ!'\n    };\n  }\n\n  // កែប្រែទិន្នន័យ (Inputs តែប៉ុណ្ណោះ រក្សារូបមន្ត)\n  if (order.date) {\n    var dateObj = parseToDateObj(order.date);\n    sheet.getRange(matchedRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date\n  }\n  if (order.customer !== undefined) sheet.getRange(matchedRow, 3).setValue(order.customer); // Col C: FB Name\n  if (order.seller !== undefined && order.seller) sheet.getRange(matchedRow, 4).setValue(order.seller); // Col D: Seller\n  if (order.orderId !== undefined && order.orderId) sheet.getRange(matchedRow, 5).setValue(order.orderId); // Col E: Order ID\n  if (order.location !== undefined) sheet.getRange(matchedRow, 6).setValue(order.location); // Col F: Location\n  if (order.phone !== undefined) sheet.getRange(matchedRow, 7).setValue(order.phone); // Col G: Phone\n\n  // ផលិតផល & ទិន្នន័យហិរញ្ញវត្ថុ\n  var totalBoxes = Number(order.totalBoxQty || 0);\n  if (!totalBoxes || totalBoxes === 0) {\n    totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + \n                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + \n                 Number(order.qtyEmmi || 0) + Number(order.qtySGP || order.qtySG || 0) +\n                 Number(order.freeQty || 0);\n  }\n\n  var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();\n  var stockCost = 0;\n  if (orderType === 'reward') {\n    stockCost = totalBoxes * 5.0;\n  } else if (orderType === 'return') {\n    stockCost = 0;\n  } else {\n    stockCost = totalBoxes * 24.0;\n  }\n\n  var totalAmountUSD = Number(order.totalAmount || 0);\n  var shipFee = Number(order.shipFee || 0);\n  var profitVal = (order.profit !== undefined && order.profit !== null && order.profit !== '') \n    ? Number(order.profit) \n    : Math.max(0, Math.round((totalAmountUSD - stockCost - shipFee) * 100) / 100);\n\n  if (isNew26Col) {\n    if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL > 0 ? Number(order.qtyYL) : '');\n    if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP > 0 ? Number(order.qtyYLP) : '');\n    if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN > 0 ? Number(order.qtyKN) : '');\n    if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO > 0 ? Number(order.qtyPDO) : '');\n    if (order.qtyEmmi !== undefined) sheet.getRange(matchedRow, 12).setValue(order.qtyEmmi > 0 ? Number(order.qtyEmmi) : ''); // Col L: Emmi\n    if (order.qtySGP !== undefined || order.qtySG !== undefined) sheet.getRange(matchedRow, 13).setValue((Number(order.qtySGP || order.qtySG || 0) > 0) ? Number(order.qtySGP || order.qtySG) : ''); // Col M: S.G\n    if (order.freeQty !== undefined) sheet.getRange(matchedRow, 14).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');\n\n    if (order.price !== undefined && order.price !== null && order.price !== '') sheet.getRange(matchedRow, 15).setValue(order.price);\n    if (order.totalAmount !== undefined && order.totalAmount !== null) sheet.getRange(matchedRow, 16).setValue(Number(order.totalAmount));\n    if (order.shipFee !== undefined && order.shipFee !== null) sheet.getRange(matchedRow, 17).setValue(Number(order.shipFee));\n    if (order.delivery !== undefined || order.deliveryMethod !== undefined) sheet.getRange(matchedRow, 18).setValue(order.delivery || order.deliveryMethod || '');\n    if (order.codStatus !== undefined && order.codStatus) sheet.getRange(matchedRow, 19).setValue(order.codStatus);\n    sheet.getRange(matchedRow, 20).setValue(stockCost);\n    if (order.paymentDate !== undefined) sheet.getRange(matchedRow, 21).setValue(order.paymentDate);\n    sheet.getRange(matchedRow, 22).setValue(profitVal);\n    if (order.note !== undefined) sheet.getRange(matchedRow, 23).setValue(order.note);\n  } else {\n    if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL > 0 ? Number(order.qtyYL) : '');\n    if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP > 0 ? Number(order.qtyYLP) : '');\n    if (order.qtyKN !== undefined) sheet.getRange(matchedRow, 10).setValue(order.qtyKN > 0 ? Number(order.qtyKN) : '');\n    if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO > 0 ? Number(order.qtyPDO) : '');\n    if (order.freeQty !== undefined) sheet.getRange(matchedRow, 12).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');\n\n    if (order.price !== undefined && order.price !== null && order.price !== '') sheet.getRange(matchedRow, 13).setValue(order.price);\n    if (order.totalAmount !== undefined && order.totalAmount !== null) sheet.getRange(matchedRow, 14).setValue(Number(order.totalAmount));\n    if (order.shipFee !== undefined && order.shipFee !== null) sheet.getRange(matchedRow, 15).setValue(Number(order.shipFee));\n    if (order.delivery !== undefined || order.deliveryMethod !== undefined) sheet.getRange(matchedRow, 16).setValue(order.delivery || order.deliveryMethod || '');\n    if (order.codStatus !== undefined && order.codStatus) sheet.getRange(matchedRow, 17).setValue(order.codStatus);\n    sheet.getRange(matchedRow, 18).setValue(stockCost);\n    if (order.paymentDate !== undefined) sheet.getRange(matchedRow, 19).setValue(order.paymentDate);\n    sheet.getRange(matchedRow, 20).setValue(profitVal);\n    if (order.note !== undefined) sheet.getRange(matchedRow, 21).setValue(order.note);\n  }\n\n  return {\n    status: 'success',\n    message: 'បានកែសម្រួលការកុម្ម៉ង់ #' + (targetOrderId || targetRecordId) + ' លើជួរទី ' + matchedRow + ' ជោគជ័យ! ✅',\n    row: matchedRow,\n    recordId: targetRecordId,\n    orderId: targetOrderId\n  };\n}\n\n/**\n * ធ្វើបច្ចុប្បន្នភាព COD Status ក្នុងផ្ទាំង Personal Sales ផ្ទាល់ (1st, 2nd, 3rd, បានទូទាត់...)\n */\nfunction updateCodStatus(ss, data) {\n  var sheet = getTargetSalesSheet(ss);\n  if (!sheet) {\n    return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };\n  }\n\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var numRows = values.length;\n  var lastCol = sheet.getLastColumn();\n\n  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];\n  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');\n  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;\n  var col12H = String(headerVals[11] || '').trim().toLowerCase();\n  var col14H = String(headerVals[13] || '').trim().toLowerCase();\n  var isNew26Col = (lastCol >= 25) || hasEmmiOrSg || (col14H.indexOf('free') !== -1) || (col12H.indexOf('free') === -1 && col12H !== '');\n\n  var targetRecordId = String(data.recordId || '').trim();\n  var targetOrderId = String(data.orderId || '').trim();\n  var newStatus = String(data.codStatus || '').trim();\n\n  if (!newStatus) {\n    return { status: 'error', message: 'No new codStatus provided!' };\n  }\n\n  var matchedRow = -1;\n  for (var r = 1; r < numRows; r++) {\n    var existingOrderId = String(values[r][4] || '').trim(); // Col E\n    var existingRecId = String(values[r][isNew26Col ? 25 : 23] || values[r][25] || values[r][23] || values[r][22] || '').trim();\n\n    if (targetRecordId && existingRecId && targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {\n      matchedRow = r + 1;\n      break;\n    }\n    if (targetOrderId && existingOrderId && targetOrderId.toLowerCase() === targetOrderId.toLowerCase()) {\n      matchedRow = r + 1;\n      break;\n    }\n  }\n\n  // Fallback 1: Match by Date and Amount in Personal Sales\n  if (matchedRow <= 0 && data.date && data.amount) {\n    var targetDate = String(data.date).trim();\n    var targetAmt = Number(data.amount);\n    for (var r = numRows - 1; r >= 1; r--) {\n      var rowDate = String(values[r][0] || '').trim();\n      var rowAmt = Number(values[r][isNew26Col ? 15 : 13] || 0);\n      if (rowDate.includes(targetDate) && Math.abs(rowAmt - targetAmt) < 0.05) {\n        matchedRow = r + 1;\n        break;\n      }\n    }\n  }\n\n  if (matchedRow > 0) {\n    var codStatusCol = isNew26Col ? 19 : 17; // Col S (19) in 26-col, Col Q (17) in 24-col\n    sheet.getRange(matchedRow, codStatusCol).setValue(newStatus);\n    if (newStatus === 'បានទូទាត់' || newStatus === 'ទូទាត់រួច') {\n      var payDateCol = isNew26Col ? 21 : 19; // Col U (21) in 26-col, Col S (19) in 24-col\n      var payDateVal = data.paymentDate || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'dd/MM/yyyy');\n      sheet.getRange(matchedRow, payDateCol).setValue(payDateVal);\n    }\n    return {\n      status: 'success',\n      message: 'Updated COD status to ' + newStatus + ' at row ' + matchedRow,\n      row: matchedRow,\n      codStatus: newStatus\n    };\n  }\n\n  // Fallback 2: Check Bank & Cash Balance sheet (Pending COD section)\n  var bankSheet = ss.getSheetByName('Bank & Cash Balance') || ss.getSheetByName('Bank & Cash');\n  if (bankSheet) {\n    var bVals = bankSheet.getDataRange().getValues();\n    var bMatchRow = -1;\n    for (var br = 0; br < bVals.length; br++) {\n      var bNo = String(bVals[br][0] || '').trim();\n      var bDate = String(bVals[br][1] || '').trim();\n      var bAmt = Number(bVals[br][5] || 0);\n      if ((targetOrderId && bNo === targetOrderId) || (data.date && bDate.includes(data.date) && Math.abs(bAmt - Number(data.amount)) < 0.05)) {\n        bMatchRow = br + 1;\n        break;\n      }\n    }\n    if (bMatchRow > 0) {\n      bankSheet.getRange(bMatchRow, 7).setValue(newStatus); // Col G (7) is status in Bank & Cash Balance\n      return { status: 'success', message: 'Updated COD status in Bank sheet at row ' + bMatchRow, row: bMatchRow, codStatus: newStatus };\n    }\n  }\n\n  return { status: 'not_found', message: 'Order ' + (targetOrderId || targetRecordId) + ' not found for status update' };\n}\n\n/**\n * បញ្ចូលការចំណាយចូលផ្ទាំង Daily Expenses\n */\nfunction insertDailyExpense(ss, exp) {\n  var sheet = ss.getSheetByName('Daily Expenses');\n  if (!sheet) {\n    return { status: 'error', message: 'Tab \"Daily Expenses\" not found!' };\n  }\n\n  // ស្វែងរកជួរដេកទំនេរដំបូង (Sequential First Empty Row) ការពារកុំឱ្យរំលងជួរទទេ\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var numRows = values.length;\n  var targetRow = -1;\n\n  for (var r = 1; r < numRows; r++) {\n    var rowDate = values[r][0];\n    var rowDesc = values[r][1];\n    var rowAmt = values[r][3];\n    // បើ Col A, Col B និង Col D សុទ្ធតែទំនេរ នោះជាជួរទំនេរដំបូងពិតប្រាកដ\n    if ((!rowDate || String(rowDate).trim() === '') && \n        (!rowDesc || String(rowDesc).trim() === '') && \n        (rowAmt === '' || rowAmt === null || rowAmt === undefined)) {\n      targetRow = r + 1;\n      break;\n    }\n  }\n\n  // ប្រសិនបើគ្មានជួរទំនេរកណ្តាលទេ គឺដាក់នៅចុងទិន្នន័យ\n  if (targetRow === -1) {\n    targetRow = numRows + 1;\n  }\n\n  // បំប្លែង Date Object ពិតប្រាកដ និងកំណត់ Format dd/MM/yyyy សុទ្ធ\n  // ការពារដាច់ខាតកុំឱ្យលោតសញ្ញា Invalid Date ដោយសារជាប់ម៉ោង HH:mm លើ Data Validation របស់ Google Sheet\n  var dateObj = parseToDateObj(exp.date);\n  sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy'); // Col A: Date\n\n  sheet.getRange(targetRow, 2).setValue(exp.description || ''); // Col B: Description\n  sheet.getRange(targetRow, 3).setValue(exp.category || 'ហូបចុក & ប្រចាំថ្ងៃ'); // Col C: Category\n  sheet.getRange(targetRow, 4).setValue(Number(exp.amount || 0)); // Col D: Amount ($)\n\n  // ប្រសិនបើមានបញ្ជាក់ម៉ោង (Time) ដាក់ចូលក្នុង Col E (Note) ដើម្បីកុំឱ្យខូច Data Validation នៃ Col A\n  var noteText = exp.note || '';\n  if (exp.time) {\n    noteText = noteText ? (exp.time + ' - ' + noteText) : ('ម៉ោង ' + exp.time);\n  }\n  if (noteText) {\n    sheet.getRange(targetRow, 5).setValue(noteText); // Col E: Note\n  }\n\n  return {\n    status: 'success',\n    action: 'add_expense',\n    version: '2.0-sequential',\n    row: targetRow,\n    amount: exp.amount\n  };\n}\n\n/**\n * Update an existing Daily Expense row\n */\nfunction updateDailyExpense(ss, exp) {\n  var sheet = ss.getSheetByName('Daily Expenses');\n  if (!sheet) {\n    return { status: 'error', message: 'Tab \"Daily Expenses\" not found!' };\n  }\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var targetRow = -1;\n\n  if (exp.rowIndex && exp.rowIndex > 0 && exp.rowIndex < values.length) {\n    var checkRow = exp.rowIndex + 1;\n    if (checkRow <= values.length) {\n      targetRow = checkRow;\n    }\n  }\n\n  if (targetRow === -1 || (exp.origDesc && String(values[targetRow - 1][1] || '').trim() !== String(exp.origDesc).trim())) {\n    for (var r = 1; r < values.length; r++) {\n      var rDesc = String(values[r][1] || '').trim();\n      var rAmt = Number(values[r][3] || 0);\n      if (exp.origDesc && rDesc.toLowerCase() === String(exp.origDesc).toLowerCase().trim()) {\n        if (!exp.origAmount || Math.abs(rAmt - Number(exp.origAmount)) < 0.05) {\n          targetRow = r + 1;\n          break;\n        }\n      }\n    }\n  }\n\n  if (targetRow === -1) {\n    return { status: 'not_found', message: 'រកមិនឃើញចំណាយត្រូវកែប្រែឡើយ!' };\n  }\n\n  if (exp.date) {\n    var dateObj = parseToDateObj(exp.date);\n    sheet.getRange(targetRow, 1).setValue(dateObj).setNumberFormat('dd/MM/yyyy');\n  }\n  if (exp.description) sheet.getRange(targetRow, 2).setValue(exp.description);\n  if (exp.category) sheet.getRange(targetRow, 3).setValue(exp.category);\n  if (exp.amount !== undefined && exp.amount !== null) sheet.getRange(targetRow, 4).setValue(Number(exp.amount));\n\n  var noteText = exp.note || '';\n  if (exp.time && noteText.indexOf(exp.time) === -1) {\n    noteText = exp.time + ' - ' + noteText;\n  }\n  if (noteText) sheet.getRange(targetRow, 5).setValue(noteText);\n\n  return { status: 'success', action: 'update_expense', row: targetRow };\n}\n\n/**\n * Delete an existing Daily Expense row\n */\nfunction deleteDailyExpense(ss, exp) {\n  var sheet = ss.getSheetByName('Daily Expenses');\n  if (!sheet) {\n    return { status: 'error', message: 'Tab \"Daily Expenses\" not found!' };\n  }\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var targetRow = -1;\n\n  if (exp.rowIndex && exp.rowIndex > 0 && exp.rowIndex < values.length) {\n    var checkRow = exp.rowIndex + 1;\n    if (checkRow <= values.length) {\n      targetRow = checkRow;\n    }\n  }\n\n  if (targetRow === -1 || (exp.description && String(values[targetRow - 1][1] || '').trim() !== String(exp.description).trim())) {\n    for (var r = 1; r < values.length; r++) {\n      var rDesc = String(values[r][1] || '').trim();\n      var rAmt = Number(values[r][3] || 0);\n      if (exp.description && rDesc.toLowerCase() === String(exp.description).toLowerCase().trim()) {\n        if (!exp.amount || Math.abs(rAmt - Number(exp.amount)) < 0.05) {\n          targetRow = r + 1;\n          break;\n        }\n      }\n    }\n  }\n\n  if (targetRow === -1) {\n    return { status: 'not_found', message: 'រកមិនឃើញចំណាយត្រូវលុបឡើយ!' };\n  }\n\n  sheet.deleteRow(targetRow);\n  return { status: 'success', action: 'delete_expense', row: targetRow };\n}\n\n/**\n * ==============================================================================\n * SYNC ATTENDANCE TO BOSTARTRACK (Tab \"Check in\")\n * គោលបំណង៖ Check-in និង Check-out ក្នុងជួរតែមួយ (Single Row per User per Day)\n * Sheet: 1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4\n * ==============================================================================\n */\nfunction syncBostarAttendance(ss, data) {\n  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';\n  var targetSs = null;\n  try {\n    targetSs = SpreadsheetApp.openById(bostarTrackId);\n  } catch (e) {\n    targetSs = ss || SpreadsheetApp.getActiveSpreadsheet();\n  }\n\n  var sheet = targetSs.getSheetByName('Check in');\n  if (!sheet) {\n    sheet = targetSs.getSheetByName('Check In') || targetSs.getSheetByName('Attendance');\n  }\n  if (!sheet) {\n    sheet = targetSs.insertSheet('Check in');\n    sheet.appendRow([\n      'Date', 'Staff ID', 'Staff Name', 'Role', 'Check-in Time', 'Check-out Time', \n      'Work Duration', 'Status', 'Late Mins', 'Location', 'Reason', 'Motivational Note', \n      'Timestamp', 'Check-out Status', 'Check-out Location', 'Check-out Note'\n    ]);\n  }\n\n  var actionType = data.type || (data.checkOutTime ? 'out' : 'in');\n  var targetDate = data.date || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n  var staffId = String(data.staffId || '').replace(/^(ID:\\s*)+/i, '').trim() || 'BG-001';\n  var staffName = data.staffName || 'Bostar Member';\n  var role = data.role || 'សមាជិកក្រុម BostarGroup';\n\n  // Read existing rows to locate today's row for this staffId\n  var lastRow = sheet.getLastRow();\n  var matchRowIndex = -1;\n\n  if (lastRow > 1) {\n    var checkCount = Math.min(lastRow - 1, 500);\n    var dateStaffRange = sheet.getRange(2, 1, checkCount, 2).getValues();\n    for (var i = 0; i < dateStaffRange.length; i++) {\n      var rDate = dateStaffRange[i][0];\n      var rDateStr = '';\n      if (rDate instanceof Date) {\n        rDateStr = Utilities.formatDate(rDate, 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n      } else {\n        rDateStr = String(rDate).trim();\n      }\n      var rStaffId = String(dateStaffRange[i][1]).replace(/^(ID:\\s*)+/i, '').trim();\n\n      // Normalize date format (YYYY-MM-DD)\n      var normTarget = targetDate;\n      if (normTarget.indexOf('/') > -1) {\n        var p = normTarget.split('/');\n        if (p.length === 3) normTarget = p[2] + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2);\n      }\n      if (rDateStr.indexOf('/') > -1) {\n        var p = rDateStr.split('/');\n        if (p.length === 3) rDateStr = p[2] + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2);\n      }\n\n      if (rStaffId && rStaffId.toLowerCase() === staffId.toLowerCase() && rDateStr === normTarget) {\n        matchRowIndex = i + 2; // 1-based sheet row\n        break;\n      }\n    }\n  }\n\n  // ស្វែងរកជួរដេកទំនេរដំបូង (Sequential First Empty Row) ការពារកុំឱ្យ appendRow រំលងជួរទទេទៅ Row 101\n  var firstBlankRow = -1;\n  var scanLimit = Math.max(lastRow + 5, 20);\n  var checkCells = sheet.getRange(2, 1, Math.min(scanLimit, 200), 2).getValues();\n  for (var k = 0; k < checkCells.length; k++) {\n    var cellDate = checkCells[k][0];\n    var cellStaff = checkCells[k][1];\n    if ((cellDate === '' || cellDate === null || cellDate === undefined) &&\n        (cellStaff === '' || cellStaff === null || cellStaff === undefined)) {\n      firstBlankRow = k + 2;\n      break;\n    }\n  }\n  if (firstBlankRow === -1) {\n    firstBlankRow = lastRow + 1;\n  }\n\n  // ប្រសិនបើសិនជាមាន matchRowIndex នៅជួរឆ្ងាយ (ឧទាហរណ៍ Row 101 ដោយសារ appendRow ចាស់) តែ Row 2 ទំនេរ\n  // យើងប្តូរគោលដៅមក Row 2 (firstBlankRow) ភ្លាម ដើម្បីឱ្យ User ឃើញនៅផ្នែកខាងលើ\n  var targetRow = matchRowIndex;\n  var oldTrappedRow = -1;\n  if (matchRowIndex > 10 && firstBlankRow < matchRowIndex) {\n    oldTrappedRow = matchRowIndex;\n    targetRow = firstBlankRow;\n  } else if (matchRowIndex <= 0) {\n    targetRow = firstBlankRow;\n  }\n\n  var now = new Date();\n  var timeStr = data.time || Utilities.formatDate(now, 'Asia/Phnom_Penh', 'hh:mm:ss a');\n  var timestampStr = Utilities.formatDate(now, 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm:ss');\n\n  if (actionType === 'in') {\n    // CHECK IN\n    var checkOutVal = (data.checkOutTime !== undefined && data.checkOutTime !== null && data.checkOutTime !== '') \n      ? data.checkOutTime \n      : ((data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 6).getValue() : ''));\n    var durationVal = (data.duration !== undefined && data.duration !== null && data.duration !== '')\n      ? data.duration\n      : ((data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 7).getValue() : ''));\n    var checkOutStatusVal = (data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 14).getValue() : '');\n    var checkOutLocVal = (data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 15).getValue() : '');\n    var checkOutNoteVal = (data.clearCheckOut === true) ? '' : (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 16).getValue() : '');\n\n    var checkInRow = [\n      targetDate,                                        // A: Date\n      staffId,                                           // B: Staff ID\n      staffName,                                         // C: Staff Name\n      role,                                              // D: Role\n      data.checkInTime || timeStr,                       // E: Check-in Time\n      checkOutVal,                                       // F: Check-out Time\n      durationVal,                                       // G: Work Duration\n      data.status || 'Present',                          // H: Status\n      data.lateMinutes || 0,                             // I: Late Mins\n      data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location\n      data.reason || '',                                 // K: Reason\n      data.motivationalNote || '',                       // L: Motivational Note\n      timestampStr,                                      // M: Timestamp\n      checkOutStatusVal,                                 // N: Check-out Status\n      checkOutLocVal,                                    // O: Check-out Location\n      checkOutNoteVal                                    // P: Check-out Note\n    ];\n\n    var rowRange = sheet.getRange(targetRow, 1, 1, 16);\n    rowRange.setValues([checkInRow]);\n    try {\n      rowRange.setFontColor('#111827'); // Enforce clear dark text (ការពារកុំឱ្យជាប់ពណ៌សដូចផ្ទៃ)\n      rowRange.setVerticalAlignment('middle');\n    } catch (_) {}\n\n    if (oldTrappedRow > 0 && oldTrappedRow !== targetRow) {\n      try { sheet.getRange(oldTrappedRow, 1, 1, 16).clearContent(); } catch (_) {}\n    }\n\n    return {\n      status: 'success',\n      action: matchRowIndex > 0 ? 'check_in_updated' : 'check_in_created',\n      rowIndex: targetRow,\n      message: 'Check-in recorded in row ' + targetRow + ' for ' + staffName\n    };\n  } else {\n    // CHECK OUT\n    var checkOutTime = data.checkOutTime || timeStr;\n    var duration = data.duration || '';\n\n    var checkOutRow = [\n      targetDate,                                        // A: Date\n      staffId,                                           // B: Staff ID\n      staffName,                                         // C: Staff Name\n      role,                                              // D: Role\n      (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 5).getValue() : '—'), // E: Check-in Time\n      checkOutTime,                                      // F: Check-out Time\n      duration,                                          // G: Work Duration\n      data.status || 'Present',                          // H: Status\n      data.lateMinutes || 0,                             // I: Late Mins\n      data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // J: Location\n      data.reason || (matchRowIndex > 0 ? sheet.getRange(matchRowIndex, 11).getValue() : 'Check-out តែម្តង'), // K: Reason\n      data.motivationalNote || '',                       // L: Motivational Note\n      timestampStr,                                      // M: Timestamp\n      data.checkOutStatus || 'Normal',                   // N: Check-out Status\n      data.checkOutLocation || data.location || 'ការិយាល័យកណ្តាល (At Office Verified)', // O: Check-out Location\n      data.checkOutNote || 'ចេញទាន់ពេល / បញ្ចប់ការងារដោយរលូន' // P: Check-out Note\n    ];\n\n    var rowRangeOut = sheet.getRange(targetRow, 1, 1, 16);\n    rowRangeOut.setValues([checkOutRow]);\n    try {\n      rowRangeOut.setFontColor('#111827'); // Enforce clear dark text (ការពារកុំឱ្យជាប់ពណ៌សដូចផ្ទៃ)\n      rowRangeOut.setVerticalAlignment('middle');\n    } catch (_) {}\n\n    if (oldTrappedRow > 0 && oldTrappedRow !== targetRow) {\n      try { sheet.getRange(oldTrappedRow, 1, 1, 16).clearContent(); } catch (_) {}\n    }\n\n    return {\n      status: 'success',\n      action: matchRowIndex > 0 ? 'check_out_updated' : 'check_out_created',\n      rowIndex: targetRow,\n      message: 'Check-out recorded into row ' + targetRow\n    };\n  }\n}\n\n/**\n * ==============================================================================\n * DAILY SALES REPORT SYNC (SMART UPSERT - 100% DEDUPLICATION)\n * ==============================================================================\n * បញ្ចូល ឬ កែសម្រួលរបាយការណ៍លក់ប្រចាំថ្ងៃចូល Tab 'Report' ក្នុង BostarTrack\n * ក្បួនការពារការស្ទួន ១០០%៖ ផ្ទៀងផ្ទាត់តាម Composite Key (Date + Page Name + Reporter)\n * បើមានជួរចាស់ ➔ Update លើជួរដដែល | បើមិនទាន់មាន ➔ បន្ថែមជួរថ្មី\n */\nfunction insertOrUpdateDailyReport(ss, data) {\n  var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';\n  var targetSs = null;\n  try {\n    targetSs = SpreadsheetApp.openById(bostarTrackId);\n  } catch (e) {\n    targetSs = ss || SpreadsheetApp.getActiveSpreadsheet();\n  }\n\n  var sheet = targetSs.getSheetByName('Report');\n  if (!sheet) {\n    sheet = targetSs.getSheetByName('របាយការណ៍') || targetSs.getSheetByName('Daily Report');\n  }\n  if (!sheet) {\n    return { status: 'error', message: \"រកមិនឃើញ Tab 'Report' ក្នុង Google Sheet ឡើយ!\" };\n  }\n\n  var dateObj = parseToDateObj(data.date);\n  var targetDateNorm = Utilities.formatDate(dateObj, 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n\n  var timeStr = data.time || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'h:mm a');\n  var pageName = String(data.page || data.pageName || 'Bostar Store').trim();\n  var teamName = String(data.team || 'BostarGroup').trim();\n  var reporterName = String(data.reporter || data.staff || 'សមាជិក Bostar').trim();\n  var statusStr = String(data.status || 'បញ្ចប់').trim();\n\n  var chatTotal = Number(data.chatTotal) || 0;\n  var chatMistake = Number(data.chatMistake) || 0;\n  var chatTarget = Number(data.chatTarget) || 0;\n  var callDirect = Number(data.callDirect) || 0;\n  var followLeads = Number(data.followLeads) || 0;\n  var totalOrders = Number(data.totalOrders) || 0;\n  var totalBoxes = Number(data.totalBoxes) || 0;\n\n  var buyNewP = Number(data.buyNewP) || 0;\n  var buyNewB = Number(data.buyNewB) || 0;\n  var buyOldP = Number(data.buyOldP) || 0;\n  var buyOldB = Number(data.buyOldB) || 0;\n  var buyFollowP = Number(data.buyFollowP) || 0;\n  var buyFollowB = Number(data.buyFollowB) || 0;\n\n  var challenges = String(data.challenges || 'គ្មាន (None)').trim();\n\n  // ជួរឈរទាំង ២០ ត្រូវគ្នានឹង Tab Report បេះបិទ\n  var rowData = [\n    dateObj,       // Col A (0): កាលបរិច្ឆេទ (Date)\n    timeStr,       // Col B (1): ម៉ោងរាយការណ៍ (Time)\n    pageName,      // Col C (2): ឈ្មោះផេក (Page Name)\n    teamName,      // Col D (3): ក្រុមការងារ (Team)\n    reporterName,  // Col E (4): អ្នករាយការណ៍ (Reporter)\n    statusStr,     // Col F (5): ស្ថានភាព (Status)\n    chatTotal,     // Col G (6): សរុបទំនាក់ទំនង (Total Inquiries)\n    chatMistake,   // Col H (7): ឆាតប៉ះដៃ (Direct Chat)\n    chatTarget,    // Col I (8): ឆាតគោលដៅ (Targeted Ads)\n    callDirect,    // Col J (9): ខលចូលថ្មី (Incoming Calls)\n    followLeads,   // Col K (10): តាមដានចាស់ (Follow-up Leads)\n    totalOrders,   // Col L (11): សរុបកុម្ម៉ង់ (Total Orders)\n    totalBoxes,    // Col M (12): សរុបប្រអប់ (Total Boxes)\n    buyNewP,       // Col N (13): ថ្មីទិញ (នាក់)\n    buyNewB,       // Col O (14): ថ្មីទិញ (ប្រអប់)\n    buyOldP,       // Col P (15): ចាស់ទិញ (នាក់)\n    buyOldB,       // Col Q (16): ចាស់ទិញ (ប្រអប់)\n    buyFollowP,    // Col R (17): តាមដានទិញ (នាក់)\n    buyFollowB,    // Col S (18): តាមដានទិញ (ប្រអប់)\n    challenges     // Col T (19): បញ្ហាប្រឈម / កំណត់សម្គាល់ (Challenges & Notes)\n  ];\n\n  // ស្វែងរកជួរដេកចាស់ដើម្បីការពារការស្ទួន (Deduplication Check)\n  var lastRow = sheet.getLastRow();\n  var matchRowIndex = -1;\n\n  if (lastRow > 1) {\n    var range = sheet.getRange(2, 1, lastRow - 1, 5).getValues(); // អាន Col A ដល់ E (Date, Time, Page, Team, Reporter)\n    for (var i = 0; i < range.length; i++) {\n      var rDate = range[i][0];\n      var rDateNorm = '';\n      if (rDate instanceof Date) {\n        rDateNorm = Utilities.formatDate(rDate, 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n      } else {\n        var parsed = parseToDateObj(rDate);\n        rDateNorm = Utilities.formatDate(parsed, 'Asia/Phnom_Penh', 'yyyy-MM-dd');\n      }\n\n      var rPage = String(range[i][2] || '').trim().toLowerCase();\n      var rReporter = String(range[i][4] || '').trim().toLowerCase();\n\n      // ផ្ទៀងផ្ទាត់លក្ខខណ្ឌស្ទួន (Date + Page + Reporter)\n      if (rDateNorm === targetDateNorm &&\n          rPage === pageName.toLowerCase() &&\n          rReporter === reporterName.toLowerCase()) {\n        matchRowIndex = i + 2; // 1-based index (Header គឺជួរទី ១)\n        break;\n      }\n    }\n  }\n\n  if (matchRowIndex > 0) {\n    // ករណីរកឃើញជួរចាស់ ➔ Update លើជួរដដែល (មិនបង្កើតជួរស្ទួន)\n    sheet.getRange(matchRowIndex, 1, 1, rowData.length).setValues([rowData]);\n    return {\n      status: 'success',\n      isUpdate: true,\n      rowIndex: matchRowIndex,\n      message: 'បានកែសម្រួលរបាយការណ៍លើជួរទី ' + matchRowIndex + ' (Update ជោគជ័យ មិនមានស្ទួន) ✅'\n    };\n  } else {\n    // ករណីទិន្នន័យថ្មី ➔ បន្ថែមជួរថ្មី\n    sheet.appendRow(rowData);\n    var newRowIndex = sheet.getLastRow();\n    return {\n      status: 'success',\n      isUpdate: false,\n      rowIndex: newRowIndex,\n      message: 'បានកត់ត្រារបាយការណ៍ថ្មីលើជួរទី ' + newRowIndex + ' ជោគជ័យ! 🚀'\n    };\n  }\n}\n\n/**\n * កែប្រែឈ្មោះគណនី និងសមតុល្យសាច់ប្រាក់ (USD / KHR) ក្នុងផ្ទាំង «Bank & Cash Balance»\n */\nfunction updateBankAccountBalance(ss, data) {\n  var sheet = ss.getSheetByName('Bank & Cash Balance') || ss.getSheetByName('Bank & Cash') || ss.getSheetByName('App_Bank_Balance');\n  if (!sheet) {\n    return { status: 'error', message: 'មិនអាចស្វែងរក Tab \"Bank & Cash Balance\" ឃើញក្នុង Spreadsheet នេះឡើយ!' };\n  }\n\n  var targetNo = data.accountNo ? parseInt(data.accountNo, 10) : null;\n  var targetName = String(data.accountName || '').trim();\n  var newAccountName = data.newAccountName ? String(data.newAccountName).trim() : null;\n  var amountUsd = (data.amountUsd !== undefined && data.amountUsd !== null && data.amountUsd !== '') ? Number(data.amountUsd) : null;\n  var amountKhr = (data.amountKhr !== undefined && data.amountKhr !== null && data.amountKhr !== '') ? Number(data.amountKhr) : null;\n\n  var dataRange = sheet.getDataRange();\n  var values = dataRange.getValues();\n  var matchedRow = -1;\n\n  for (var r = 1; r < Math.min(values.length, 30); r++) {\n    var rowNo = parseInt(values[r][0], 10); // Col A: លេខរៀង (1..10)\n    var rowName = String(values[r][1] || '').trim(); // Col B: ឈ្មោះគណនី\n\n    // បើដល់ផ្នែក COD ឬ សរុប គឺឈប់ស្វែងរក\n    if (rowName.indexOf('សរុប') === 0 || rowName.indexOf('Accounts Receivable') !== -1 || rowName.indexOf('Pending COD') !== -1) {\n      if (matchedRow > 0) break;\n    }\n\n    if (targetNo && !isNaN(rowNo) && rowNo === targetNo) {\n      matchedRow = r + 1; // 1-based row index in Google Sheets\n      break;\n    }\n    if (targetName && rowName.toLowerCase() === targetName.toLowerCase()) {\n      matchedRow = r + 1;\n      break;\n    }\n  }\n\n  if (matchedRow <= 0) {\n    return {\n      status: 'not_found',\n      message: 'រកមិនឃើញគណនីធនាគារលេខ #' + (targetNo || '') + ' (' + (targetName || '') + ') ក្នុង Tab Bank & Cash Balance ឡើយ!'\n    };\n  }\n\n  var currentAccountName = String(values[matchedRow - 1][1] || '').trim();\n  var finalAccountName = newAccountName || currentAccountName;\n\n  // 1. Update ឈ្មោះគណនី (Col B / Col 2) ប្រសិនបើមានការកែប្រែ\n  if (newAccountName && newAccountName !== currentAccountName) {\n    sheet.getRange(matchedRow, 2).setValue(newAccountName);\n  }\n\n  var isKhrAccount = finalAccountName.indexOf('(KHR)') !== -1 || (amountKhr !== null && amountKhr > 0 && (amountUsd === null || amountUsd === 0));\n\n  // 2. Update សមតុល្យរៀល (Col D / Col 4)\n  if (amountKhr !== null && !isNaN(amountKhr)) {\n    sheet.getRange(matchedRow, 4).setValue(amountKhr);\n  }\n\n  // 3. Update សមតុល្យដុល្លារ (Col C / Col 3)\n  if (amountUsd !== null && !isNaN(amountUsd)) {\n    var cRange = sheet.getRange(matchedRow, 3);\n    var cFormula = cRange.getFormula();\n\n    // បើជាគណនី KHR ហើយមានរូបមន្ត =D.../4100 ស្រាប់ គឺរក្សារូបមន្តទុកដើម្បីឲ្យ Sheet គណនាស្វ័យប្រវត្តិតាម KHR\n    if (isKhrAccount && cFormula && cFormula.indexOf('=') === 0) {\n      // រក្សារូបមន្តទុក\n    } else if (isKhrAccount && (!cFormula || cFormula === '')) {\n      cRange.setFormula('=IFERROR(ROUND(D' + matchedRow + '/4100, 2), 0)');\n    } else {\n      cRange.setValue(amountUsd);\n    }\n  }\n\n  return {\n    status: 'success',\n    message: 'បានកែសម្រួលគណនី ' + finalAccountName + ' ជោគជ័យ! ✅',\n    accountNo: targetNo,\n    accountName: finalAccountName,\n    amountUsd: amountUsd,\n    amountKhr: amountKhr,\n    row: matchedRow\n  };\n}\n\n";
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const box = document.getElementById("codeBox");
+      if (box) {
+        box.value = fullCode;
       }
+    });
+
+    async function copyCode() {
+      const box = document.getElementById("codeBox");
+      let success = false;
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(fullCode);
+          success = true;
+        }
+      } catch (err) {
+        console.warn("Clipboard API blocked, falling back to selection:", err);
+      }
+
+      if (!success && box) {
+        try {
+          box.focus();
+          box.select();
+          box.setSelectionRange(0, 9999999);
+          success = document.execCommand("copy");
+        } catch (e) {
+          console.warn("execCommand failed:", e);
+        }
+      }
+
+      if (success) {
+        notifySuccess();
+      } else {
+        selectAllText();
+        alert("សូមចុច Cmd + C (លើ Mac) ឬ Ctrl + C (លើ Windows) ដើម្បី Copy កូដដែលបាន Select រួច!");
+      }
+    }
+
+    function selectAllText() {
+      const box = document.getElementById("codeBox");
+      if (box) {
+        box.focus();
+        box.select();
+        box.setSelectionRange(0, 9999999);
+      }
+    }
+
+    function notifySuccess() {
+      const toast = document.getElementById("statusToast");
+      const btn = document.getElementById("btnCopy");
+      const btnText = document.getElementById("btnText");
+      const btnIcon = document.getElementById("btnIcon");
+
+      if (toast) toast.style.display = "block";
+      if (btn) btn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+      if (btnText) btnText.textContent = "✓ បានចម្លងរួចរាល់! (Copied 100%)";
+      if (btnIcon) btnIcon.textContent = "✅";
+
+      setTimeout(() => {
+        if (btn) btn.style.background = "linear-gradient(135deg, #f97316, #ea580c)";
+        if (btnText) btnText.textContent = "ចុចទីនេះដើម្បីចម្លងកូដ (Copy Code)";
+        if (btnIcon) btnIcon.textContent = "📋";
+      }, 4000);
     }
   </script>
 </body>
