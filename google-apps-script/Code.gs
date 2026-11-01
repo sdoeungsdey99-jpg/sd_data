@@ -169,11 +169,25 @@ function formatToYmdString(dateVal) {
 }
 
 /**
+ * ស្វែងរក Sheet គោលដៅ (Personal Sales ឬ Master Data) ដោយមិនប្រកាន់អក្សរធំ-តូច
+ */
+function getTargetSalesSheet(ss) {
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var name = sheets[i].getName().trim().toLowerCase();
+    if (name === 'personal sales' || name === 'master data') {
+      return sheets[i];
+    }
+  }
+  return ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheetByName('Master data') || sheets[0];
+}
+
+/**
  * បញ្ចូលការកុម្ម៉ង់ចូលផ្ទាំង Personal Sales ឬ Master Data ដោយសុវត្ថិភាព ១០០%
  * បំពេញតម្លៃលេខផ្ទាល់ (Direct Value) ជួរ N, R, T និងកត់ត្រា Reward QTY ជួរ V
  */
 function insertPersonalSalesOrder(ss, order) {
-  var sheet = ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheets()[0];
+  var sheet = getTargetSalesSheet(ss);
   if (!sheet) {
     return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };
   }
@@ -182,6 +196,7 @@ function insertPersonalSalesOrder(ss, order) {
   var dataRange = sheet.getDataRange();
   var values = dataRange.getValues();
   var numRows = values.length;
+  var lastCol = sheet.getLastColumn();
 
   var newOrderId = String(order.orderId || '').trim();
 
@@ -193,10 +208,16 @@ function insertPersonalSalesOrder(ss, order) {
   var isBOrderClash = false; // ប្រសិនបើជា #B*** ជាន់លេខគ្នាដោយសារសមាជិក ២ នាក់ Submit ដំណាលគ្នា
   var targetRow = -1; // ជួរដេកដែលត្រូវបំពេញ
 
+  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)
+  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];
+  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');
+  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;
+  var isNew26Col = lastCol >= 25 || hasEmmiOrSg;
+
   for (var r = 1; r < numRows; r++) { // រាប់ពីជួរទី ២ (Index 1) ក្រោម Header
     var rowDate = values[r][0]; // Col A
     var existingOrderId = String(values[r][4] || '').trim(); // Col E
-    var existingRecId = String(values[r][23] || '').trim(); // Col X
+    var existingRecId = String(values[r][isNew26Col ? 25 : 23] || values[r][25] || values[r][23] || values[r][22] || '').trim(); // Col Z / X / W
 
     // តាមដានលេខ REC-XXXX ខ្ពស់បំផុត
     var matchRec = existingRecId.match(/REC-(\d+)/i);
@@ -329,12 +350,6 @@ function insertPersonalSalesOrder(ss, order) {
   sheet.getRange(targetRow, 6).setValue(order.location || ''); // Col F: Location
   sheet.getRange(targetRow, 7).setValue(order.phone || ''); // Col G: Phone
 
-  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)
-  var headerVals = sheet.getRange(1, 1, 1, Math.min(sheet.getLastColumn(), 30)).getValues()[0];
-  var col12Name = String(headerVals[11] || '').toLowerCase(); // Index 11 is Col L (12): S.G
-  var col13Name = String(headerVals[12] || '').toLowerCase(); // Index 12 is Col M (13): Emmi
-  var isNew26Col = sheet.getLastColumn() >= 25 || col12Name.includes('s.g') || col12Name.includes('sg') || col13Name.includes('emmi') || col12Name.includes('emmi');
-
   // ផលិតផល H, I, J, K, L, M, N (Qty)
   // - ពេលលក់រង្វាន់ ឬលក់អីវ៉ាន់ត្រឡប់ ទុកនៅទំនេរ ("") ដើម្បីកុំឱ្យច្រឡំជាមួយស្តុកធម្មតា
   // - ពេលស្តុកក្រុមហ៊ុន បំពេញតាមមុខទំនិញពិត
@@ -363,6 +378,11 @@ function insertPersonalSalesOrder(ss, order) {
     sheet.getRange(targetRow, 18).setValue(order.deliveryMethod || 'VET(COD)'); // Col R: Delivery
     sheet.getRange(targetRow, 19).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col S: COD Status
     sheet.getRange(targetRow, 20).setValue(stockCost).setNumberFormat('$#,##0.00'); // Col T: Stock Cost
+    if (order.paymentDate) {
+      sheet.getRange(targetRow, 21).setValue(order.paymentDate); // Col U: Payment Date
+    } else {
+      sheet.getRange(targetRow, 21).setValue('');
+    }
     sheet.getRange(targetRow, 22).setValue(profitVal).setNumberFormat('$#,##0.00'); // Col V: Profit
     sheet.getRange(targetRow, 23).setValue(order.note || ''); // Col W: Note
 
@@ -394,6 +414,11 @@ function insertPersonalSalesOrder(ss, order) {
     sheet.getRange(targetRow, 16).setValue(order.deliveryMethod || 'VET(COD)'); // Col P: Delivery
     sheet.getRange(targetRow, 17).setValue(order.codStatus || 'បានដាក់ការកុម្មង់'); // Col Q: COD Status
     sheet.getRange(targetRow, 18).setValue(stockCost).setNumberFormat('$#,##0.00'); // Col R: Stock Cost
+    if (order.paymentDate) {
+      sheet.getRange(targetRow, 19).setValue(order.paymentDate); // Col S: Payment Date
+    } else {
+      sheet.getRange(targetRow, 19).setValue('');
+    }
     sheet.getRange(targetRow, 20).setValue(profitVal).setNumberFormat('$#,##0.00'); // Col T: Profit
     sheet.getRange(targetRow, 21).setValue(order.note || ''); // Col U: Note
 
@@ -420,7 +445,7 @@ function insertPersonalSalesOrder(ss, order) {
  * រក្សារូបមន្តចាស់ Col B (No.) មិនឱ្យខូច
  */
 function updatePersonalSalesOrder(ss, order) {
-  var sheet = ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheets()[0];
+  var sheet = getTargetSalesSheet(ss);
   if (!sheet) {
     return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };
   }
@@ -428,6 +453,13 @@ function updatePersonalSalesOrder(ss, order) {
   var dataRange = sheet.getDataRange();
   var values = dataRange.getValues();
   var numRows = values.length;
+  var lastCol = sheet.getLastColumn();
+
+  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)
+  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];
+  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');
+  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;
+  var isNew26Col = lastCol >= 25 || hasEmmiOrSg;
 
   var targetRecordId = String(order.recordId || '').trim();
   var targetOrderId = String(order.orderId || '').trim();
@@ -435,10 +467,10 @@ function updatePersonalSalesOrder(ss, order) {
 
   var matchedRow = -1;
 
-  // 1. ស្វែងរកតាម Record_ID (Col 24 / X ឬ Col 23 / W)
+  // 1. ស្វែងរកតាម Record_ID (Col 26 / Z សម្រាប់ 26-col, ឬ Col 24 / X, Col 23 / W)
   if (targetRecordId) {
     for (var r = 1; r < numRows; r++) {
-      var existingRecId = String(values[r][23] || values[r][22] || '').trim();
+      var existingRecId = String(values[r][25] || values[r][23] || values[r][22] || '').trim();
       if (existingRecId && targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {
         matchedRow = r + 1;
         break;
@@ -505,12 +537,6 @@ function updatePersonalSalesOrder(ss, order) {
   if (order.orderId !== undefined && order.orderId) sheet.getRange(matchedRow, 5).setValue(order.orderId); // Col E: Order ID
   if (order.location !== undefined) sheet.getRange(matchedRow, 6).setValue(order.location); // Col F: Location
   if (order.phone !== undefined) sheet.getRange(matchedRow, 7).setValue(order.phone); // Col G: Phone
-
-  // ស្វែងរកការកំណត់រចនាសម្ព័ន្ធជួរឈរ (Smart 26-column vs 24-column layout detector)
-  var headerVals = sheet.getRange(1, 1, 1, Math.min(sheet.getLastColumn(), 30)).getValues()[0];
-  var col12Name = String(headerVals[11] || '').toLowerCase();
-  var col13Name = String(headerVals[12] || '').toLowerCase();
-  var isNew26Col = col12Name.includes('emmi') || col13Name.includes('s.g') || col13Name.includes('sg');
 
   // ផលិតផល & ទិន្នន័យហិរញ្ញវត្ថុ
   var totalBoxes = Number(order.totalBoxQty || 0);
@@ -586,7 +612,7 @@ function updatePersonalSalesOrder(ss, order) {
  * ធ្វើបច្ចុប្បន្នភាព COD Status ក្នុងផ្ទាំង Personal Sales ផ្ទាល់ (1st, 2nd, 3rd, បានទូទាត់...)
  */
 function updateCodStatus(ss, data) {
-  var sheet = ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheets()[0];
+  var sheet = getTargetSalesSheet(ss);
   if (!sheet) {
     return { status: 'error', message: 'Target sales tab not found in spreadsheet!' };
   }
@@ -594,6 +620,12 @@ function updateCodStatus(ss, data) {
   var dataRange = sheet.getDataRange();
   var values = dataRange.getValues();
   var numRows = values.length;
+  var lastCol = sheet.getLastColumn();
+
+  var headerVals = sheet.getRange(1, 1, 1, Math.min(Math.max(lastCol, 26), 35)).getValues()[0];
+  var headerStr = headerVals.map(function(h) { return String(h || '').trim().toLowerCase(); }).join(' | ');
+  var hasEmmiOrSg = headerStr.indexOf('emmi') !== -1 || headerStr.indexOf('s.g') !== -1 || headerStr.indexOf('sg') !== -1;
+  var isNew26Col = lastCol >= 25 || hasEmmiOrSg;
 
   var targetRecordId = String(data.recordId || '').trim();
   var targetOrderId = String(data.orderId || '').trim();
@@ -606,7 +638,7 @@ function updateCodStatus(ss, data) {
   var matchedRow = -1;
   for (var r = 1; r < numRows; r++) {
     var existingOrderId = String(values[r][4] || '').trim(); // Col E
-    var existingRecId = String(values[r][23] || values[r][22] || '').trim(); // Col W/X
+    var existingRecId = String(values[r][isNew26Col ? 25 : 23] || values[r][25] || values[r][23] || values[r][22] || '').trim();
 
     if (targetRecordId && existingRecId && targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {
       matchedRow = r + 1;
@@ -623,8 +655,8 @@ function updateCodStatus(ss, data) {
     var targetDate = String(data.date).trim();
     var targetAmt = Number(data.amount);
     for (var r = numRows - 1; r >= 1; r--) {
-      var rowDate = String(values[r][1] || '').trim();
-      var rowAmt = Number(values[r][13] || values[r][14] || 0);
+      var rowDate = String(values[r][0] || '').trim();
+      var rowAmt = Number(values[r][isNew26Col ? 15 : 13] || 0);
       if (rowDate.includes(targetDate) && Math.abs(rowAmt - targetAmt) < 0.05) {
         matchedRow = r + 1;
         break;
@@ -633,7 +665,13 @@ function updateCodStatus(ss, data) {
   }
 
   if (matchedRow > 0) {
-    sheet.getRange(matchedRow, 17).setValue(newStatus); // Col 17 (Q) is COD Status
+    var codStatusCol = isNew26Col ? 19 : 17; // Col S (19) in 26-col, Col Q (17) in 24-col
+    sheet.getRange(matchedRow, codStatusCol).setValue(newStatus);
+    if (newStatus === 'បានទូទាត់' || newStatus === 'ទូទាត់រួច') {
+      var payDateCol = isNew26Col ? 21 : 19; // Col U (21) in 26-col, Col S (19) in 24-col
+      var payDateVal = data.paymentDate || Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'dd/MM/yyyy');
+      sheet.getRange(matchedRow, payDateCol).setValue(payDateVal);
+    }
     return {
       status: 'success',
       message: 'Updated COD status to ' + newStatus + ' at row ' + matchedRow,

@@ -25309,12 +25309,16 @@ function openEditSalesOrder(recordId, orderId, rowIndex, fallbackDate, fallbackP
   const ylpInput = document.getElementById('edit-order-qty-ylp');
   const knInput = document.getElementById('edit-order-qty-kn');
   const pdoInput = document.getElementById('edit-order-qty-pdo');
+  const emmiInput = document.getElementById('edit-order-qty-emmi');
+  const sgInput = document.getElementById('edit-order-qty-sg');
   const freeInput = document.getElementById('edit-order-qty-free');
 
   if (ylInput) ylInput.value = o.qtyYL || '';
   if (ylpInput) ylpInput.value = o.qtyYLP || '';
   if (knInput) knInput.value = o.qtyKN || '';
   if (pdoInput) pdoInput.value = o.qtyPDO || '';
+  if (emmiInput) emmiInput.value = o.qtyEmmi || '';
+  if (sgInput) sgInput.value = o.qtySG || o.qtySGP || '';
   if (freeInput) freeInput.value = o.freeQty || '';
 
   const amtInput = document.getElementById('edit-order-total-amount');
@@ -25381,9 +25385,11 @@ function calculateEditOrderFinancials() {
   const ylp = Number(document.getElementById('edit-order-qty-ylp')?.value || 0);
   const kn = Number(document.getElementById('edit-order-qty-kn')?.value || 0);
   const pdo = Number(document.getElementById('edit-order-qty-pdo')?.value || 0);
+  const emmi = Number(document.getElementById('edit-order-qty-emmi')?.value || 0);
+  const sg = Number(document.getElementById('edit-order-qty-sg')?.value || 0);
   const free = Number(document.getElementById('edit-order-qty-free')?.value || 0);
 
-  const totalBoxes = yl + ylp + kn + pdo + free;
+  const totalBoxes = yl + ylp + kn + pdo + emmi + sg + free;
   const boxesDisplay = document.getElementById('edit-order-total-boxes-display');
   if (boxesDisplay) boxesDisplay.textContent = totalBoxes;
 
@@ -25426,8 +25432,10 @@ async function submitEditSalesOrder() {
   const qtyYLP = Number(document.getElementById('edit-order-qty-ylp')?.value || 0);
   const qtyKN = Number(document.getElementById('edit-order-qty-kn')?.value || 0);
   const qtyPDO = Number(document.getElementById('edit-order-qty-pdo')?.value || 0);
+  const qtyEmmi = Number(document.getElementById('edit-order-qty-emmi')?.value || 0);
+  const qtySG = Number(document.getElementById('edit-order-qty-sg')?.value || 0);
   const freeQty = Number(document.getElementById('edit-order-qty-free')?.value || 0);
-  const totalBoxes = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
+  const totalBoxes = qtyYL + qtyYLP + qtyKN + qtyPDO + qtyEmmi + qtySG + freeQty;
 
   const totalAmount = Number(document.getElementById('edit-order-total-amount')?.value || 0);
   const thaiBaht = Number(document.getElementById('edit-order-thai-baht')?.value || 0);
@@ -25449,6 +25457,9 @@ async function submitEditSalesOrder() {
   o.qtyYLP = qtyYLP;
   o.qtyKN = qtyKN;
   o.qtyPDO = qtyPDO;
+  o.qtyEmmi = qtyEmmi;
+  o.qtySG = qtySG;
+  o.qtySGP = qtySG;
   o.freeQty = freeQty;
   o.totalBoxQty = totalBoxes;
   o.totalAmount = totalAmount;
@@ -25490,6 +25501,9 @@ async function submitEditSalesOrder() {
     qtyYLP: qtyYLP,
     qtyKN: qtyKN,
     qtyPDO: qtyPDO,
+    qtyEmmi: qtyEmmi,
+    qtySGP: qtySG,
+    qtySG: qtySG,
     freeQty: freeQty,
     totalBoxQty: totalBoxes,
     totalAmount: totalAmount,
@@ -32873,7 +32887,7 @@ async function submitNewOrder() {
     qtyPDO: (isReward || isReturn) ? 0 : (currentOrderProducts.pdo || 0),
     qtyEmmi: (isReward || isReturn) ? 0 : (currentOrderProducts.emmi || 0),
     qtySGP: (isReward || isReturn) ? 0 : (currentOrderProducts.sgp || 0),
-    freeQty: (isReward || isReturn) ? 0 : totalBonusQty,
+    freeQty: (isReward || isReturn) ? 0 : (totalBonusQty > 0 ? totalBonusQty : (currentOrderProducts.free || 0)),
     bonusKN: currentOrderBonusProducts.kn || 0,
     bonusPDO: currentOrderBonusProducts.pdo || 0,
     bonusYL: currentOrderBonusProducts.yl || 0,

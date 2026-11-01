@@ -5445,7 +5445,7 @@
             </span>
           </div>
 
-          <div class="grid grid-cols-3 gap-2">
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
             <div class="p-2 rounded-xl bg-black/30 border border-white/5 text-center">
               <span class="text-[10px] text-slate-400 block mb-1">YL (លឿង)</span>
               <input type="number" min="0" id="edit-order-qty-yl" oninput="calculateEditOrderFinancials()" 
@@ -5467,6 +5467,16 @@
                      class="w-full bg-black/50 border border-white/10 rounded-lg p-1 text-center text-xs text-white font-mono focus:outline-none focus:border-orange-500">
             </div>
             <div class="p-2 rounded-xl bg-black/30 border border-white/5 text-center">
+              <span class="text-[10px] text-cyan-300 block mb-1">Emmi</span>
+              <input type="number" min="0" id="edit-order-qty-emmi" oninput="calculateEditOrderFinancials()" 
+                     class="w-full bg-black/50 border border-cyan-500/20 rounded-lg p-1 text-center text-xs text-cyan-300 font-mono focus:outline-none focus:border-cyan-400">
+            </div>
+            <div class="p-2 rounded-xl bg-black/30 border border-white/5 text-center">
+              <span class="text-[10px] text-purple-300 block mb-1">S.G</span>
+              <input type="number" min="0" id="edit-order-qty-sg" oninput="calculateEditOrderFinancials()" 
+                     class="w-full bg-black/50 border border-purple-500/20 rounded-lg p-1 text-center text-xs text-purple-300 font-mono focus:outline-none focus:border-purple-400">
+            </div>
+            <div class="p-2 rounded-xl bg-black/30 border border-white/5 text-center col-span-1 sm:col-span-2">
               <span class="text-[10px] text-slate-400 block mb-1">Free (ថែម)</span>
               <input type="number" min="0" id="edit-order-qty-free" oninput="calculateEditOrderFinancials()" 
                      class="w-full bg-black/50 border border-white/10 rounded-lg p-1 text-center text-xs text-emerald-400 font-mono focus:outline-none focus:border-orange-500">
@@ -7601,7 +7611,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=9.5"></script>
-  <script src="app.js?v=59.0"></script>
+  <script src="dataService.js?v=9.6"></script>
+  <script src="app.js?v=59.2"></script>
 </body>
 </html>

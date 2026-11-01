@@ -913,7 +913,8 @@ window.DataService = {
           shipFee,
           deliveryMethod,
           codStatus,
-          stock: cleanNumber(getCell(17)),
+          stock: isNewColumnLayout ? cleanNumber(getCell(19)) : cleanNumber(getCell(17)),
+          paymentDate: isNewColumnLayout ? formatToDDMMYYYY(getCell(20)) : formatToDDMMYYYY(getCell(18)),
           profit,
           note
         });
