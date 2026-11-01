@@ -31362,13 +31362,13 @@ function generateBilingualTelegramOrderText(recordOrForm = null, leaderOverride 
   const bYLP = (recordOrForm && recordOrForm.bonusYLP !== undefined) ? recordOrForm.bonusYLP : (currentOrderBonusProducts?.ylp || 0);
   const bSGP = (recordOrForm && recordOrForm.bonusSGP !== undefined) ? recordOrForm.bonusSGP : (currentOrderBonusProducts?.sgp || 0);
 
-  if (bKN > 0) prodLines.push(`▪️ ប្រអប់ថែមជូនអតិថិជន (Bonus) [Kidney Pro]: ${bKN}`);
-  if (bPDO > 0) prodLines.push(`▪️ ប្រអប់ថែមជូនអតិថិជន (Bonus) [Pro D.O]: ${bPDO}`);
-  if (bYL > 0) prodLines.push(`▪️ ប្រអប់ថែមជូនអតិថិជន (Bonus) [Yong Liang]: ${bYL}`);
-  if (bYLP > 0) prodLines.push(`▪️ ប្រអប់ថែមជូនអតិថិជន (Bonus) [Yong Liang Plus]: ${bYLP}`);
-  if (bSGP > 0) prodLines.push(`▪️ ប្រអប់ថែមជូនអតិថិជន (Bonus) [SG Pro]: ${bSGP}`);
+  if (bKN > 0) prodLines.push(`🎁 ប្រអប់ថែម (Bonus) [Kidney Pro]: ${bKN}`);
+  if (bPDO > 0) prodLines.push(`🎁 ប្រអប់ថែម (Bonus) [Pro D.O]: ${bPDO}`);
+  if (bYL > 0) prodLines.push(`🎁 ប្រអប់ថែម (Bonus) [Yong Liang]: ${bYL}`);
+  if (bYLP > 0) prodLines.push(`🎁 ប្រអប់ថែម (Bonus) [Yong Liang Plus]: ${bYLP}`);
+  if (bSGP > 0) prodLines.push(`🎁 ប្រអប់ថែម (Bonus) [SG Pro]: ${bSGP}`);
   if (bKN === 0 && bPDO === 0 && bYL === 0 && bYLP === 0 && bSGP === 0 && free > 0) {
-    prodLines.push(`▪️ ផលិតផល(Product) [Free]: ${free}`);
+    prodLines.push(`🎁 ប្រអប់ថែម (Bonus) [Free]: ${free}`);
   }
 
   let priceDisplay = '0';
