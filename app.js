@@ -31424,9 +31424,22 @@ function generateBilingualTelegramOrderText(recordOrForm = null, leaderOverride 
   return lines.join('\n');
 }
 
+let hasCopiedOrderTelegram = false;
+
 async function copyOrderTelegramText(recordOrForm = null, silent = false, leaderOverride = null) {
-  const targetLeader = leaderOverride || ((currentOrderEntryMode === 'dock') ? 'Bech_Nora' : null);
-  const text = generateBilingualTelegramOrderText(recordOrForm, targetLeader);
+  hasCopiedOrderTelegram = true;
+
+  let seller = '';
+  let team = '';
+  if (recordOrForm && typeof recordOrForm === 'object') {
+    seller = recordOrForm.seller || '';
+    team = recordOrForm.team || '';
+  } else {
+    seller = document.getElementById('order-field-seller')?.value || '';
+    team = document.getElementById('order-field-team')?.value || '';
+  }
+  const myOwnLeader = leaderOverride || (typeof getManagerLatinCode === 'function' ? getManagerLatinCode(seller, team) : team) || 'Bech_Nora';
+  const text = generateBilingualTelegramOrderText(recordOrForm, myOwnLeader);
   const ok = await copyTextToSystemClipboard(text);
 
   const btn = document.getElementById('btn-order-copy-tg-capsule');
@@ -31443,9 +31456,13 @@ async function copyOrderTelegramText(recordOrForm = null, silent = false, leader
   }
 
   if (ok && !silent) {
-    showToastNotification('✅ បានចម្លងសារកុម្ម៉ង់រួចរាល់! 📋');
+    showToastNotification('🚀 បានចម្លង & បើក Telegram... សូមចុច Paste!');
     if (navigator.vibrate) try { navigator.vibrate([20, 40]); } catch (_) {}
   }
+
+  // Jump to Telegram Accounting Group directly
+  openAccountingTelegramGroup();
+
   return ok;
 }
 
@@ -31605,6 +31622,7 @@ let currentOrderEntryMode = 'dock'; // 'dock' (3-in-1 fresh order) or 'telegram'
 
 function openNewOrderModal(mode = 'dock') {
   currentOrderEntryMode = mode || 'dock';
+  hasCopiedOrderTelegram = false;
   const modal = document.getElementById('new-order-modal');
   if (!modal) return;
 
@@ -31914,10 +31932,15 @@ function resetOrderSubmitSlider() {
   const textWrap = document.getElementById('order-slider-label-wrap');
   const icon = document.getElementById('order-slider-icon');
   const text = document.getElementById('order-slider-text');
+  const slider = document.getElementById('order-submit-slider');
 
   isOrderSubmittingInProgress = false;
 
+  if (slider) {
+    slider.classList.remove('pointer-events-none', 'border-emerald-500/50');
+  }
   if (thumb) {
+    thumb.classList.remove('bg-emerald-500');
     thumb.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)';
     thumb.style.transform = 'translateX(0px)';
   }
@@ -32094,13 +32117,13 @@ function checkOrderSubmitValidation() {
       slider.classList.remove('opacity-40', 'cursor-not-allowed', 'grayscale');
       slider.classList.add('border-orange-500/40');
       if (hint) {
-        hint.innerHTML = '<i data-lucide="send" class="w-3 h-3 text-emerald-400 shrink-0"></i><span class="text-emerald-300 font-medium">អូសបញ្ជូនជោគជ័យ ➔ លោតចូល Telegram (ឈ្មោះ Leader ផ្ទាល់ខ្លួន)</span>';
+        hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-emerald-400 shrink-0"></i><span class="text-emerald-300 font-medium">អូសបញ្ជូនទៅក្រុមហ៊ុន | ចុច «ចម្លង» ទៅ Telegram (Leader ផ្ទាល់ខ្លួន)</span>';
       }
     } else {
       slider.classList.add('opacity-40', 'cursor-not-allowed', 'grayscale');
       slider.classList.remove('border-orange-500/40');
       if (hint) {
-        hint.innerHTML = '<i data-lucide="send" class="w-3 h-3 text-orange-400 shrink-0"></i><span>អូសបញ្ជូនជោគជ័យ ➔ លោតចូល Telegram (ឈ្មោះ Leader ផ្ទាល់ខ្លួន)</span>';
+        hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-orange-400 shrink-0"></i><span>អូសបញ្ជូនទៅក្រុមហ៊ុន | ចុច «ចម្លង» ទៅ Telegram (Leader ផ្ទាល់ខ្លួន)</span>';
       }
     }
     if (window.lucide) window.lucide.createIcons();
@@ -33172,12 +33195,12 @@ async function submitNewOrder() {
     showToastNotification('📡 បានរក្សាទុកក្នុងទូរសព្ទ (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)!');
   }
 
-  // 4. Generate Bilingual Telegram Order Text & Trigger Auto-Copy / Jump to Telegram
+  // 4. Generate Bilingual Telegram Order Text & Trigger Background Auto-Copy (Does NOT open Telegram on slide)
   if (isDockOrder) {
     const myOwnLeader = (typeof getManagerLatinCode === 'function' ? getManagerLatinCode(newRecord.seller, newRecord.team) : newRecord.team) || 'Bech_Nora';
     const tgOrderText = generateBilingualTelegramOrderText(newRecord, myOwnLeader);
     
-    // Auto-Copy text with member's OWN Leader to system clipboard
+    // Auto-Copy text with member's OWN Leader to system clipboard in background
     await copyTextToSystemClipboard(tgOrderText);
 
     // Auto-Send to Accounting Telegram Group bot if enabled
@@ -33189,22 +33212,39 @@ async function submitNewOrder() {
       });
     }
 
-    // Auto-open Telegram Accounting Group directly without requiring extra clicks
-    openAccountingTelegramGroup();
-
-    showOrderSuccessTelegramAction(newRecord, tgOrderText);
+    // Dismiss floating action bar - របារចុចតេលេក្រាម មិនបង្ហាញទៀតទេ
+    dismissOrderTelegramToast();
   }
 
-  // 5. Update UI live and clear input
-  clearOrderInput();
-  closeNewOrderModal();
+  // 5. Update UI live
   renderCurrentView();
+
+  if (isDockOrder && !hasCopiedOrderTelegram) {
+    // ករណីគាត់ «អូសស្លាយ» មុន ➔ រក្សាទិន្នន័យលើផ្ទាំងដដែល ដើម្បីឱ្យគាត់អាចចុច «ចម្លង» ទៅ Telegram បន្តទៀតបាន
+    const sliderText = document.getElementById('order-slider-text');
+    const sliderThumb = document.getElementById('order-slider-thumb');
+    const submitSlider = document.getElementById('order-submit-slider');
+    if (sliderText) {
+      sliderText.innerHTML = '<span class="text-xs font-bold text-emerald-300">✓ បានបញ្ជូនចូលក្រុមហ៊ុនជោគជ័យ</span>';
+    }
+    if (sliderThumb) {
+      sliderThumb.classList.add('bg-emerald-500');
+    }
+    if (submitSlider) {
+      submitSlider.classList.add('pointer-events-none', 'border-emerald-500/50');
+    }
+    showToastNotification('✅ បានបញ្ជូនចូលក្រុមហ៊ុនជោគជ័យ! (អាចចុច «ចម្លង» ទៅ Telegram បន្តទៀតបាន)');
+  } else {
+    // បើគាត់បានចុចចម្លងរួចហើយ (ឬជា Telegram mode) ➔ Clear input និងបិទផ្ទាំង
+    clearOrderInput();
+    closeNewOrderModal();
+    if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
+  }
 
   if (btn) {
     btn.disabled = false;
     btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូលការលក់ 🚀</span>`;
   }
-  if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
 
   if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
 }
