@@ -30,7 +30,7 @@ function authorizeExternalSheets() {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'ok',
-    version: '3.1-smart-26col-aligned',
+    version: '3.2-ps-priority-26col',
     message: 'SD Dashboard Webhook is live and ready! 🚀'
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -172,14 +172,22 @@ function formatToYmdString(dateVal) {
  * ស្វែងរក Sheet គោលដៅ (Personal Sales ឬ Master Data) ដោយមិនប្រកាន់អក្សរធំ-តូច
  */
 function getTargetSalesSheet(ss) {
+  // 1. អាទិភាពចម្បងបង្អស់៖ រកមើលផ្ទាំង "Personal Sales" ជាមុនសិន
+  var ps = ss.getSheetByName('Personal Sales') || ss.getSheetByName('Personal sales') || ss.getSheetByName('personal sales');
+  if (ps) return ps;
+
+  // 2. អាទិភាពបន្ទាប់ (សម្រាប់ BostarTrack)៖ រកមើល "Master Data"
+  var md = ss.getSheetByName('Master Data') || ss.getSheetByName('Master data') || ss.getSheetByName('master data');
+  if (md) return md;
+
   var sheets = ss.getSheets();
   for (var i = 0; i < sheets.length; i++) {
     var name = sheets[i].getName().trim().toLowerCase();
-    if (name === 'personal sales' || name === 'master data') {
+    if (name.indexOf('personal') !== -1 || name.indexOf('sales') !== -1) {
       return sheets[i];
     }
   }
-  return ss.getSheetByName('Personal Sales') || ss.getSheetByName('Master Data') || ss.getSheetByName('Master data') || sheets[0];
+  return sheets[0];
 }
 
 /**
