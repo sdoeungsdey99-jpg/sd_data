@@ -31454,10 +31454,7 @@ async function copyOrderTelegramText(recordOrForm = null, silent = false, leader
   }
 
   if (ok && !silent) {
-    const toastMsg = (currentOrderEntryMode === 'dock' || targetLeader === 'Bech_Nora')
-      ? '✅ បានចម្លងសារសម្រាប់ Group Messenger (វេចខ្ចប់) រួចរាល់! 📋'
-      : '✅ បានចម្លងសារកុម្ម៉ង់ Bilingual ចូល Clipboard រួចរាល់! 📋';
-    showToastNotification(toastMsg);
+    showToastNotification('✅ បានចម្លងសារកុម្ម៉ង់រួចរាល់! 📋');
     if (navigator.vibrate) try { navigator.vibrate([20, 40]); } catch (_) {}
   }
   return ok;
@@ -31676,11 +31673,6 @@ function openNewOrderModal(mode = 'dock') {
       sliderHint.classList.add('hidden');
       sliderHint.style.setProperty('display', 'none', 'important');
     }
-    const hintsContainer = document.getElementById('order-hints-container');
-    if (hintsContainer) {
-      hintsContainer.classList.add('hidden');
-      hintsContainer.style.setProperty('display', 'none', 'important');
-    }
     if (btnSubmitOrder) {
       btnSubmitOrder.classList.remove('hidden');
       btnSubmitOrder.style.setProperty('display', 'flex', 'important');
@@ -31734,11 +31726,6 @@ function openNewOrderModal(mode = 'dock') {
       sliderHint.classList.remove('hidden');
       sliderHint.style.setProperty('display', 'flex', 'important');
     }
-    const hintsContainer = document.getElementById('order-hints-container');
-    if (hintsContainer) {
-      hintsContainer.classList.remove('hidden');
-      hintsContainer.style.setProperty('display', 'flex', 'important');
-    }
     if (typeof initOrderSubmitSlider === 'function') initOrderSubmitSlider();
     if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
   }
@@ -31788,13 +31775,11 @@ function openNewOrderModal(mode = 'dock') {
     }
   }
 
-  // Initialize Team Leader: Member's OWN Leader by default in Dock Mode
+  // Initialize Team Leader: Bech_Nora by default for Dock Mode
   const teamInput = document.getElementById('order-field-team');
-  const profName = profile.name || '';
-  const myOwnLeader = (typeof getManagerLatinCode === 'function' ? getManagerLatinCode(profName) : '') || 'Bech_Nora';
-  const savedTeam = localStorage.getItem('sd_last_team_leader') || myOwnLeader;
+  const savedTeam = localStorage.getItem('sd_last_team_leader') || 'Bech_Nora';
   if (teamInput) {
-    teamInput.value = (currentOrderEntryMode === 'dock') ? myOwnLeader : (savedTeam || myOwnLeader);
+    teamInput.value = (currentOrderEntryMode === 'dock') ? 'Bech_Nora' : (savedTeam || 'Bech_Nora');
   }
   closeOrderTeamDropdown();
 
