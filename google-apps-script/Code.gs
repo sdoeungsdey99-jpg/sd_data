@@ -650,17 +650,25 @@ function updateCodStatus(ss, data) {
   }
 
   var matchedRow = -1;
-  for (var r = 1; r < numRows; r++) {
-    var existingOrderId = String(values[r][4] || '').trim(); // Col E
-    var existingRecId = String(values[r][isNew26Col ? 25 : 23] || values[r][25] || values[r][23] || values[r][22] || '').trim();
-
-    if (targetRecordId && existingRecId && targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {
-      matchedRow = r + 1;
-      break;
+  // 1. ស្វែងរកតាម Record_ID (Col 26 / Z សម្រាប់ 26-col)
+  if (targetRecordId) {
+    for (var r = 1; r < numRows; r++) {
+      var existingRecId = String(values[r][isNew26Col ? 25 : 23] || values[r][25] || values[r][23] || values[r][22] || '').trim();
+      if (existingRecId && targetRecordId.toLowerCase() === existingRecId.toLowerCase()) {
+        matchedRow = r + 1;
+        break;
+      }
     }
-    if (targetOrderId && existingOrderId && targetOrderId.toLowerCase() === targetOrderId.toLowerCase()) {
-      matchedRow = r + 1;
-      break;
+  }
+
+  // 2. បើមិនឃើញ រកតាម Order ID (Col 5 / E)
+  if (matchedRow === -1 && targetOrderId) {
+    for (var r = 1; r < numRows; r++) {
+      var existingOrderId = String(values[r][4] || '').trim();
+      if (existingOrderId && targetOrderId.toLowerCase() === existingOrderId.toLowerCase()) {
+        matchedRow = r + 1;
+        break;
+      }
     }
   }
 
