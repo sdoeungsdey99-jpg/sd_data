@@ -8040,19 +8040,29 @@ function getAnalyticsViewHTML() {
   const currentActiveYear = appState.analyticsYear || (allYears.includes(curYearStr) ? curYearStr : (allYears.includes('2026') ? '2026' : (allYears[0] || '2026')));
   appState.analyticsYear = currentActiveYear;
 
-  // Add boost for months
-  months.forEach(m => {
+  // Always guarantee all 12 months for the selected active year
+  const all12Months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map(mm => `${currentActiveYear}-${mm}`);
+  const displayMonths = all12Months;
+
+  // Initialize monthlyStats for all 12 months
+  displayMonths.forEach(m => {
+    if (!monthlyStats[m]) {
+      monthlyStats[m] = { revenue: 0, profit: 0, expense: 0, qty: 0, salesCount: 0, expCount: 0, boost: 0 };
+    }
     const parts = m.split('-');
     const mInt = parseInt(parts[1], 10);
     monthlyStats[m].boost = typeof getBoostForMonth === 'function' ? getBoostForMonth(parts[0], mInt) : ((parts[0] === '2026' && d.boostByMonth) ? (d.boostByMonth[mInt] || 0) : 0);
   });
 
-  const displayMonths = allYears.length > 1 ? months.filter(m => m.startsWith(currentActiveYear)) : months;
-  
-  // Default to 1 month (latest month of the active year, e.g. '2026-10') unless explicitly set to 'all'
+  const now = new Date();
+  const curRealYear = String(now.getFullYear());
+  const curRealMonth = String(now.getMonth() + 1).padStart(2, '0');
+  const defaultMonthKey = (currentActiveYear === curRealYear) ? `${curRealYear}-${curRealMonth}` : `${currentActiveYear}-01`;
+
+  // Default to active month (or first month) unless explicitly set to 'all'
   let currentActiveMonthKey = appState.analyticsMonthKey;
-  if (!currentActiveMonthKey) {
-    currentActiveMonthKey = displayMonths.length > 0 ? displayMonths[displayMonths.length - 1] : 'all';
+  if (!currentActiveMonthKey || (currentActiveMonthKey !== 'all' && !currentActiveMonthKey.startsWith(currentActiveYear))) {
+    currentActiveMonthKey = defaultMonthKey;
     appState.analyticsMonthKey = currentActiveMonthKey;
   }
   const isAll = currentActiveMonthKey === 'all';
@@ -8126,6 +8136,7 @@ function getAnalyticsViewHTML() {
   `;
 
   // 2. Unlocked Month Tabs Row (Scrolls with page content)
+  const khmerMonthNames = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
   const monthTabsUnlockedHtml = `
     <div id="analytics-month-tabs" class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none no-scrollbar" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
       <button onclick="setAnalyticsMonth('all')" id="btn-month-all" 
@@ -8135,10 +8146,12 @@ function getAnalyticsViewHTML() {
       ${displayMonths.map(m => {
         const parts = m.split('-');
         const isSelected = activeMonth === m;
+        const mIdx = parseInt(parts[1], 10) - 1;
+        const kmName = khmerMonthNames[mIdx] || parts[1];
         return `
           <button onclick="setAnalyticsMonth('${m}')" id="btn-month-${m}" 
                   class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
-            ខែ ${parts[1]}
+            ខែ ${parts[1]} (${kmName})
           </button>
         `;
       }).join('')}
@@ -8912,7 +8925,7 @@ function getAnalyticsViewHTML() {
           <div class="overflow-x-auto pb-3 pt-2 no-scrollbar rounded-2xl bg-black/20 border border-white/5" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
             <div class="h-44 flex items-end gap-2 px-3 pb-2 pt-6 relative" style="min-width: ${dailyW}px;">
               ${dailySvgRunner}
-              ${chartBarsHtml}
+              ${chartBarsHtml || '<div class="w-full h-full flex items-center justify-center text-slate-400 text-xs py-10">មិនទាន់មានទិន្នន័យប្រចាំថ្ងៃសម្រាប់ខែនេះនៅឡើយទេ</div>'}
             </div>
           </div>
         </div>
@@ -8961,7 +8974,7 @@ function getAnalyticsViewHTML() {
           <div class="overflow-x-auto pb-3 pt-2 no-scrollbar rounded-2xl bg-black/20 border border-white/5" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
             <div class="h-44 flex items-end gap-2 px-3 pb-2 pt-6 relative" style="min-width: ${dailyW}px;">
               ${dailySvgRunner}
-              ${chartBarsHtml}
+              ${chartBarsHtml || '<div class="w-full h-full flex items-center justify-center text-slate-400 text-xs py-10">មិនទាន់មានទិន្នន័យប្រចាំថ្ងៃសម្រាប់ខែនេះនៅឡើយទេ</div>'}
             </div>
           </div>
         </div>
@@ -9046,7 +9059,8 @@ function getAnalyticsViewHTML() {
 
   // Animated SVG Trend Polyline with runner arrow for Annual chart
   let annualSvgRunner = '';
-  if (displayMonths.length > 1) {
+  const hasSomeAnnualData = displayMonths.some(m => (monthlyStats[m]?.revenue || 0) > 0 || (monthlyStats[m]?.expense || 0) > 0);
+  if (displayMonths.length > 1 && hasSomeAnnualData) {
     const svgW = 1000;
     const colW = svgW / displayMonths.length;
     const pts = displayMonths.map((m, idx) => {
