@@ -29283,7 +29283,7 @@ window.renderDailyReportPagePills = renderDailyReportPagePills;
 const pagesReportState = {
   currentTab: 'view', // 'view' (របាយការណ៍ Pages) | 'entry' (ចុះរបាយការណ៍)
   timeFilter: 'day',  // 'day' | 'week' | 'month'
-  selectedDate: '2026-10-30',   // YYYY-MM-DD
+  selectedDate: '',   // YYYY-MM-DD (Auto-resolved to latest recorded data or today)
   selectedMember: 'self', // 'self' | 'all' | specific seller name
   subView: 'pages',   // 'pages' | 'members' (for week & month)
   searchQuery: '',
@@ -29292,8 +29292,37 @@ const pagesReportState = {
 
 function getPagesReportCurrentIsoDate() {
   if (pagesReportState.selectedDate) return pagesReportState.selectedDate;
-  return getLocalIsoDate(new Date());
+  const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
+  const entries = Array.isArray(d.dailyReportEntries) ? d.dailyReportEntries : [];
+  const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
+  
+  // If there are reports for today, default to today
+  if (entries.some(e => e.isoDate === todayIso)) {
+    pagesReportState.selectedDate = todayIso;
+    return todayIso;
+  }
+  
+  // Otherwise resolve to the latest date that has recorded entries
+  if (entries.length > 0) {
+    const dates = entries.map(e => e.isoDate).filter(Boolean).sort();
+    if (dates.length > 0) {
+      const latest = dates[dates.length - 1];
+      pagesReportState.selectedDate = latest;
+      return latest;
+    }
+  }
+  
+  pagesReportState.selectedDate = todayIso;
+  return todayIso;
 }
+
+function setPagesReportSpecificDate(isoDate) {
+  if (!isoDate) return;
+  pagesReportState.selectedDate = isoDate;
+  pagesReportState.timeFilter = 'day';
+  renderDailyReportModal();
+}
+window.setPagesReportSpecificDate = setPagesReportSpecificDate;
 
 // Convert Latin or alternative names to standardized Khmer seller name
 function mapSellerNameToKhmer(rawName) {
@@ -29793,13 +29822,41 @@ function renderPagesReportDetailSection(entries = []) {
   const isEn = appState.language === 'en';
 
   if (!entries || entries.length === 0) {
+    const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
+    const allEntries = Array.isArray(d.dailyReportEntries) ? d.dailyReportEntries : [];
+    const availableDates = allEntries.map(e => e.isoDate).filter(Boolean).sort();
+    const latestDateIso = availableDates.length > 0 ? availableDates[availableDates.length - 1] : '';
+    const currentIso = getPagesReportCurrentIsoDate();
+    const hasOtherDate = latestDateIso && latestDateIso !== currentIso;
+    
+    let latestDateFormatted = '';
+    if (latestDateIso) {
+      const parts = latestDateIso.split('-');
+      if (parts.length === 3) latestDateFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
     return `
-      <div class="py-12 px-4 text-center rounded-2xl bg-black/30 dark:bg-black/30 border border-white/5 theme-light-card space-y-2">
-        <div class="w-12 h-12 rounded-2xl bg-white/5 text-slate-400 mx-auto flex items-center justify-center border border-white/10">
-          <i data-lucide="file-question" class="w-6 h-6"></i>
+      <div class="py-10 px-4 text-center rounded-2xl bg-black/30 dark:bg-black/30 border border-white/5 theme-light-card space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 mx-auto flex items-center justify-center border border-emerald-500/20 shadow-sm">
+          <i data-lucide="calendar-clock" class="w-6 h-6"></i>
         </div>
-        <p class="text-xs font-bold text-slate-300 dark:text-slate-300 theme-light-text">${isEn ? 'No report data found' : 'មិនទាន់មានទិន្នន័យរបាយការណ៍នៅឡើយទេ'}</p>
-        <p class="text-[10px] text-slate-500">${isEn ? 'Try selecting a different date or member filter.' : 'សូមសាកល្បងជ្រើសរើសកាលបរិច្ឆេទ ឬសមាជិកផ្សេង។'}</p>
+        <div class="space-y-1">
+          <p class="text-xs font-bold text-white dark:text-white theme-light-text">
+            ${isEn ? 'No reports recorded for this period' : 'មិនទាន់មានរបាយការណ៍កត់ត្រានៅឡើយទេ'}
+          </p>
+          <p class="text-[10.5px] text-slate-400 max-w-xs mx-auto">
+            ${isEn ? 'Nightly sales reports are typically finalized at 9:00 PM.' : 'របាយការណ៍ Pages ប្រចាំថ្ងៃ សង្ខេបម៉ោង ៩:០០ យប់'}
+          </p>
+        </div>
+        ${hasOtherDate ? `
+        <div class="pt-1">
+          <button type="button" onclick="setPagesReportSpecificDate('${latestDateIso}')" 
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold active:scale-95 transition shadow-sm">
+            <i data-lucide="history" class="w-3.5 h-3.5"></i>
+            <span>${isEn ? 'View Latest Data' : 'ពិនិត្យរបាយការណ៍ថ្ងៃចុងក្រោយ'} (${latestDateFormatted})</span>
+          </button>
+        </div>
+        ` : ''}
       </div>
     `;
   }
@@ -30261,6 +30318,11 @@ function openDailyReportModal(fromDrawer = false) {
   const modal = document.getElementById('daily-report-modal');
   if (!modal) return;
   closeAllModals();
+
+  // Dynamically resolve date if not set
+  if (!pagesReportState.selectedDate) {
+    getPagesReportCurrentIsoDate();
+  }
 
   // Set persistent flags AFTER closeAllModals so closeAllModals does not wipe them
   window._dailyReportFromDrawer = !!fromDrawer;

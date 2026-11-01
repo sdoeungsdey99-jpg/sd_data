@@ -107,6 +107,46 @@ function ddmmyyyyToIso(ddmmyyyy) {
   return ddmmyyyy;
 }
 
+// Dedicated robust parser for Official Daily Report Tab ("Report")
+function parseDailyReportTabDate(dateRaw) {
+  if (!dateRaw) return { ddmmyyyy: '', isoDate: '' };
+  const s = String(dateRaw).trim();
+
+  // Match M/D/YYYY or MM/DD/YYYY with optional time (Google Sheets export standard for Tab Report)
+  const slashMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (slashMatch) {
+    let p1 = parseInt(slashMatch[1], 10);
+    let p2 = parseInt(slashMatch[2], 10);
+    const yr = slashMatch[3];
+
+    // In Google Sheet Tab Report, date columns export as MM/DD/YYYY
+    let mo = String(p1).padStart(2, '0');
+    let dy = String(p2).padStart(2, '0');
+
+    // Safety: if p1 > 12, then it must be day-first (DD/MM/YYYY)
+    if (p1 > 12 && p2 <= 12) {
+      dy = String(p1).padStart(2, '0');
+      mo = String(p2).padStart(2, '0');
+    }
+
+    const ddmmyyyy = `${dy}/${mo}/${yr}`;
+    const isoDate = `${yr}-${mo}-${dy}`;
+    return { ddmmyyyy, isoDate };
+  }
+
+  // ISO YYYY-MM-DD
+  const isoMatch = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoMatch) {
+    const yr = isoMatch[1];
+    const mo = isoMatch[2].padStart(2, '0');
+    const dy = isoMatch[3].padStart(2, '0');
+    return { ddmmyyyy: `${dy}/${mo}/${yr}`, isoDate: `${yr}-${mo}-${dy}` };
+  }
+
+  const ddmmyyyy = formatToDDMMYYYY(s);
+  return { ddmmyyyy, isoDate: ddmmyyyyToIso(ddmmyyyy) };
+}
+
 function getDemoMockData() {
   const sampleSales = [
     {
@@ -1609,9 +1649,10 @@ window.DataService = {
           const dateRaw = String(r[0] || '').trim();
           if (!dateRaw || dateRaw.toLowerCase().includes('date') || dateRaw.toLowerCase().includes('កាលបរិច្ឆេទ')) continue;
 
-          const ddmmyyyy = formatToDDMMYYYY(dateRaw);
-          const isoDate = ddmmyyyyToIso(ddmmyyyy);
-          if (!ddmmyyyy) continue;
+          const dateParsed = parseDailyReportTabDate(dateRaw);
+          const ddmmyyyy = dateParsed.ddmmyyyy;
+          const isoDate = dateParsed.isoDate;
+          if (!ddmmyyyy || !isoDate) continue;
 
           const time = String(r[1] || '9:00 PM').trim();
           const page = String(r[2] || '').trim();
