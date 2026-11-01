@@ -1400,7 +1400,7 @@ const UNIVERSAL_PULL_REFRESH_TARGETS = [
   'notif-feed-list'
 ];
 
-async function manualReload() {
+async function manualReload(force = false) {
   if (navigator.vibrate) {
     try { navigator.vibrate(15); } catch (_) {}
   }
@@ -1434,9 +1434,12 @@ async function manualReload() {
       await syncOfflineQueue();
     } catch (_) {}
   }
-  await DataService.fetchData(false);
+  await DataService.fetchData(false, force);
   if (typeof renderCurrentView === 'function') {
     renderCurrentView();
+  }
+  if (force && typeof showToastNotification === 'function') {
+    showToastNotification('✅ បានទាញទិន្នន័យស្រស់ពី Google Sheet ជោគជ័យ! 🚀');
   }
   if (appState.currentView === 'learning') {
     const main = document.getElementById('main-content');
@@ -1526,7 +1529,7 @@ function attachUniversalPullToRefresh(target) {
     if (!indicator) return;
     if (isPulling && parseInt(indicator.style.height || '0', 10) >= 30) {
       indicator.style.height = '36px';
-      manualReload();
+      manualReload(true);
       setTimeout(() => {
         if (indicator) indicator.style.height = '0px';
       }, 1000);
@@ -12591,7 +12594,7 @@ function getSettingsViewHTML() {
             <i data-lucide="shield" class="w-3.5 h-3.5 text-blue-400"></i>
             <span>${isKm ? 'គណនី និងសុវត្ថិភាព' : 'Account & Security'}</span>
           </span>
-          <span class="text-[10px] text-slate-500 font-mono">${isKm ? '២ ជម្រើស' : '2 Options'}</span>
+          <span class="text-[10px] text-slate-500 font-mono">${isKm ? '៣ ជម្រើស' : '3 Options'}</span>
         </div>
 
         <div class="settings-list-card bg-[#0F1B2E] rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5 shadow-xl">
@@ -12628,6 +12631,27 @@ function getSettingsViewHTML() {
             <div class="flex items-center gap-2 shrink-0">
               <span class="text-[10px] ${appState.pinEnabled || localStorage.getItem('sd_app_biometric_enabled') === 'true' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-slate-400 bg-white/5 border-white/10'} font-medium px-2 py-0.5 rounded-full border font-mono">
                 ${appState.pinEnabled ? 'PIN' : ''}${appState.pinEnabled && localStorage.getItem('sd_app_biometric_enabled') === 'true' ? ' + ' : ''}${localStorage.getItem('sd_app_biometric_enabled') === 'true' ? 'Face ID' : (!appState.pinEnabled ? (isKm ? 'មិនទាន់កំណត់' : 'Off') : '')}
+              </span>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          </div>
+
+          <!-- 3. សមកាលកម្មទិន្នន័យស្រស់ (Force Refresh & Clear Cache) -->
+          <div onclick="manualReload(true)" 
+               class="settings-row p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 active:scale-[0.99] transition-all duration-150 select-none">
+            <div class="settings-row-left flex items-center gap-3 min-w-0">
+              <div class="settings-icon-box w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center shrink-0 transition-all duration-150">
+                <i data-lucide="refresh-cw" class="w-4 h-4 text-cyan-400"></i>
+              </div>
+              <div class="min-w-0">
+                <h4 class="settings-row-title text-xs font-bold text-white truncate leading-tight">${isKm ? 'ធ្វើសមកាលកម្មទិន្នន័យស្រស់' : 'Force Refresh & Clear Cache'}</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5 truncate settings-subtitle">${isKm ? 'ជម្រះ Cache និងទាញទិន្នន័យផ្ទាល់ពី Google Sheet' : 'Clear cache & pull fresh data from Google Sheet'}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[10px] text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 font-bold px-2 py-0.5 rounded-full flex items-center gap-1 font-mono">
+                <i data-lucide="rotate-cw" class="w-2.5 h-2.5"></i>
+                <span>${isKm ? 'ធ្វើបច្ចុប្បន្នភាព' : 'Sync Now'}</span>
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </div>
@@ -32945,6 +32969,20 @@ async function submitNewOrder() {
         })
       }).then(() => {
         syncSuccess = true;
+        try {
+          newRecord.syncedToSheet = true;
+          newRecord.delivered = true;
+          const raw = localStorage.getItem('sd_local_orders');
+          if (raw) {
+            const list = JSON.parse(raw);
+            const found = list.find(o => (o.orderId && o.orderId === newRecord.orderId) || (o.recordId && o.recordId === newRecord.recordId));
+            if (found) {
+              found.syncedToSheet = true;
+              found.delivered = true;
+              localStorage.setItem('sd_local_orders', JSON.stringify(list));
+            }
+          }
+        } catch (_) {}
       }).catch(e => {
         console.warn('Personal Webhook POST error:', e);
       })

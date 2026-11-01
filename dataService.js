@@ -345,11 +345,13 @@ function loadCachedData() {
   return null;
 }
 
-async function fetchGoogleSheetGViz(param, sheetNameFallback, overrideSheetId = null) {
+async function fetchGoogleSheetGViz(param, sheetNameFallback, overrideSheetId = null, forceRefresh = false) {
   const sheetId = overrideSheetId || getActiveSheetId();
   const queryParam = isNaN(param) ? `sheet=${encodeURIComponent(param)}` : `gid=${param}`;
   const timestamp = Date.now();
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&${queryParam}&_t=${timestamp}`;
+  const nonce = Math.random().toString(36).substring(2, 9);
+  const cacheBuster = forceRefresh ? `&_t=${timestamp}&_rnd=${nonce}&nocache=${timestamp}` : `&_t=${timestamp}`;
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&${queryParam}${cacheBuster}`;
 
   let response;
   try {
@@ -358,19 +360,27 @@ async function fetchGoogleSheetGViz(param, sheetNameFallback, overrideSheetId = 
     response = await fetch(url, { 
       signal: controller.signal,
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+      headers: {
+        'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
     clearTimeout(timer);
   } catch (e) {
     if (sheetNameFallback) {
-      const retryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}&_t=${Date.now()}`;
+      const retryUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}${cacheBuster}`;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 12000);
       try {
         response = await fetch(retryUrl, { 
           signal: controller.signal,
           cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+          headers: {
+            'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
         });
       } catch (_) {}
       clearTimeout(timer);
@@ -389,11 +399,13 @@ async function fetchGoogleSheetGViz(param, sheetNameFallback, overrideSheetId = 
 }
 
 // Fetch Google Sheet tab as raw CSV with native CORS support (via GViz CSV)
-async function fetchGoogleSheetCSV(param, sheetNameFallback, overrideSheetId = null) {
+async function fetchGoogleSheetCSV(param, sheetNameFallback, overrideSheetId = null, forceRefresh = false) {
   const sheetId = overrideSheetId || getActiveSheetId();
   const queryParam = isNaN(param) ? `sheet=${encodeURIComponent(param)}` : `gid=${param}`;
   const timestamp = Date.now();
-  const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&${queryParam}&_t=${timestamp}`;
+  const nonce = Math.random().toString(36).substring(2, 9);
+  const cacheBuster = forceRefresh ? `&_t=${timestamp}&_rnd=${nonce}&nocache=${timestamp}` : `&_t=${timestamp}`;
+  const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&${queryParam}${cacheBuster}`;
 
   let response;
   try {
@@ -402,19 +414,27 @@ async function fetchGoogleSheetCSV(param, sheetNameFallback, overrideSheetId = n
     response = await fetch(gvizUrl, { 
       signal: controller.signal,
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+      headers: {
+        'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
     clearTimeout(timer);
   } catch (e) {
     if (sheetNameFallback) {
-      const fallbackUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}&_t=${Date.now()}`;
+      const fallbackUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent(sheetNameFallback)}${cacheBuster}`;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 12000);
       try {
         response = await fetch(fallbackUrl, { 
           signal: controller.signal,
           cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+          headers: {
+            'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
         });
       } catch (_) {}
       clearTimeout(timer);
@@ -722,7 +742,7 @@ window.DataService = {
     this.listeners.forEach(fn => fn(this));
   },
 
-  async fetchData(silent = false) {
+  async fetchData(silent = false, forceRefresh = false) {
     if (this.isDemoMode()) {
       this.isLoading = false;
       this.data = getDemoMockData();
@@ -741,6 +761,19 @@ window.DataService = {
       return this.data;
     }
 
+    if (forceRefresh) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('sd_offline_master_data');
+          localStorage.removeItem('sd_offline_custom_data');
+          localStorage.removeItem('sd_local_orders');
+          localStorage.removeItem('sd_local_expenses');
+        }
+      } catch (_) {}
+      this.masterDataSalesCache = null;
+      this.teamNameCodesCache = null;
+    }
+
     if (!silent) {
       this.isLoading = true;
       this.error = null;
@@ -754,11 +787,11 @@ window.DataService = {
       const expTabParam = isMasterActive ? '1413782774' : 'Daily Expenses';
 
       const [psGviz, expCsvRows, bankCsvRows, teamGviz, teamSalesCsvRows, teamHierarchyCsvRows, bostarTrackCsvRows, monthlyTargetsCsvRows, dailyReportTabCsvRows] = await Promise.all([
-        fetchGoogleSheetGViz(psTabParam, 'Personal Sales').catch(e => { console.warn('PS fetch warning:', e); return null; }),
-        fetchGoogleSheetCSV(expTabParam, 'Daily Expenses').catch(e => { console.warn('Expenses fetch warning:', e); return []; }),
-        fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance', isMasterActive ? MASTER_SDOEUNG_SHEET_ID : currentActiveSheetId).catch(e => { console.warn('Bank fetch warning:', e); return []; }),
-        fetchGoogleSheetGViz('30391871', 'Team Monthly View').catch(e => { console.warn('Team Monthly fetch warning:', e); return null; }),
-        fetchGoogleSheetCSV('608899183', 'Team Sales').catch(e => { console.warn('Team Sales fetch warning:', e); return []; }),
+        fetchGoogleSheetGViz(psTabParam, 'Personal Sales', null, forceRefresh).catch(e => { console.warn('PS fetch warning:', e); return null; }),
+        fetchGoogleSheetCSV(expTabParam, 'Daily Expenses', null, forceRefresh).catch(e => { console.warn('Expenses fetch warning:', e); return []; }),
+        fetchGoogleSheetCSV('1381982614', 'Bank & Cash Balance', isMasterActive ? MASTER_SDOEUNG_SHEET_ID : currentActiveSheetId, forceRefresh).catch(e => { console.warn('Bank fetch warning:', e); return []; }),
+        fetchGoogleSheetGViz('30391871', 'Team Monthly View', null, forceRefresh).catch(e => { console.warn('Team Monthly fetch warning:', e); return null; }),
+        fetchGoogleSheetCSV('608899183', 'Team Sales', null, forceRefresh).catch(e => { console.warn('Team Sales fetch warning:', e); return []; }),
         fetchTeamHierarchyCSV().catch(e => { console.warn('Team Hierarchy fetch warning:', e); return []; }),
         fetchBostarTrackSalesCSV().catch(e => { console.warn('BostarTrack fetch warning:', e); return []; }),
         fetchMonthlyTargetsCSV().catch(e => { console.warn('Monthly Targets fetch warning:', e); return []; }),
@@ -1328,37 +1361,48 @@ window.DataService = {
         }
       }
 
-      // Merge any pending local orders (submitted through app within last 30 minutes)
+      // Merge any pending local orders (submitted through app within last 60 seconds)
       try {
-        const localOrders = JSON.parse(localStorage.getItem('sd_local_orders') || '[]');
-        if (Array.isArray(localOrders) && localOrders.length > 0) {
-          const sheetRecordIds = new Set(personalSales.map(s => s.orderId || s.recordId));
-          const stillPending = localOrders.filter(lo => {
-            if (sheetRecordIds.has(lo.orderId || lo.recordId)) return false; // Confirmed synced to sheet!
-            const age = Date.now() - (lo.createdAt || 0);
-            return lo.createdAt ? (age < 30 * 60 * 1000) : false; // Do not revive phantom/deleted records
-          });
-          localStorage.setItem('sd_local_orders', JSON.stringify(stillPending));
-          if (stillPending.length > 0) {
-            personalSales.unshift(...stillPending);
+        if (!forceRefresh) {
+          const localOrders = JSON.parse(localStorage.getItem('sd_local_orders') || '[]');
+          if (Array.isArray(localOrders) && localOrders.length > 0) {
+            const sheetRecordIds = new Set(personalSales.map(s => s.orderId || s.recordId));
+            const stillPending = localOrders.filter(lo => {
+              if (sheetRecordIds.has(lo.orderId || lo.recordId)) return false; // Confirmed synced to sheet!
+              // If already marked as delivered/synced to sheet previously, but now missing, it was deleted in Google Sheet!
+              if (lo.syncedToSheet || lo.delivered) return false;
+              const age = Date.now() - (lo.createdAt || 0);
+              return lo.createdAt ? (age < 60 * 1000) : false; // Only keep genuine fresh pending orders (max 60s)
+            });
+            localStorage.setItem('sd_local_orders', JSON.stringify(stillPending));
+            if (stillPending.length > 0) {
+              personalSales.unshift(...stillPending);
+            }
           }
+        } else {
+          localStorage.removeItem('sd_local_orders');
         }
       } catch (_) {}
 
-      // Merge any pending local expenses (submitted through app within last 30 minutes)
+      // Merge any pending local expenses (submitted through app within last 60 seconds)
       try {
-        const localExpenses = JSON.parse(localStorage.getItem('sd_local_expenses') || '[]');
-        if (Array.isArray(localExpenses) && localExpenses.length > 0) {
-          const sheetExpKeys = new Set(expenses.map(e => `${e.date}|${e.description}|${e.amount}`));
-          const stillPending = localExpenses.filter(le => {
-            if (sheetExpKeys.has(`${le.date}|${le.description}|${le.amount}`)) return false; // Confirmed synced to sheet!
-            const age = Date.now() - (le.createdAt || 0);
-            return le.createdAt ? (age < 30 * 60 * 1000) : false; // Do not revive phantom/deleted records
-          });
-          localStorage.setItem('sd_local_expenses', JSON.stringify(stillPending));
-          if (stillPending.length > 0) {
-            expenses.unshift(...stillPending);
+        if (!forceRefresh) {
+          const localExpenses = JSON.parse(localStorage.getItem('sd_local_expenses') || '[]');
+          if (Array.isArray(localExpenses) && localExpenses.length > 0) {
+            const sheetExpKeys = new Set(expenses.map(e => `${e.date}|${e.description}|${e.amount}`));
+            const stillPending = localExpenses.filter(le => {
+              if (sheetExpKeys.has(`${le.date}|${le.description}|${le.amount}`)) return false; // Confirmed synced to sheet!
+              if (le.syncedToSheet || le.delivered) return false;
+              const age = Date.now() - (le.createdAt || 0);
+              return le.createdAt ? (age < 60 * 1000) : false; // Only keep genuine fresh pending expenses (max 60s)
+            });
+            localStorage.setItem('sd_local_expenses', JSON.stringify(stillPending));
+            if (stillPending.length > 0) {
+              expenses.unshift(...stillPending);
+            }
           }
+        } else {
+          localStorage.removeItem('sd_local_expenses');
         }
       } catch (_) {}
 
@@ -1695,6 +1739,10 @@ window.DataService = {
       this.error = err.message || 'មិនអាចភ្ជាប់ទិន្នន័យ Google Sheet បានទេ';
       this.notify();
     }
+  },
+
+  async forceRefresh() {
+    return await this.fetchData(false, true);
   },
 
   startAutoReload(intervalMinutes = 1) {
