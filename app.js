@@ -27583,15 +27583,6 @@ function renderTeamMembersList() {
     countBadge.textContent = `(${filtered.length} នាក់)`;
   }
 
-  let teamGrowthBadge = '';
-  if (prevSellerStats !== null) {
-    const teamGrowth = calculateMoMGrowth(totalTeamBoxes, prevTotalTeamBoxes);
-    teamGrowthBadge = renderMoMBadgeHtml(teamGrowth, {
-      extraClass: 'scale-90 origin-right',
-      tooltip: `ការលក់សរុបទូទាំងក្រុមធៀបនឹងខែមុន (${teamGrowth ? teamGrowth.text : '0%'})`
-    });
-  }
-
   if (summaryStrip) {
     summaryStrip.innerHTML = `
       <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex flex-col justify-between">
@@ -27599,10 +27590,7 @@ function renderTeamMembersList() {
         <span class="font-mono text-white font-bold text-xs sm:text-sm mt-0.5">${filtered.length} <span class="text-[9.5px] font-sans font-normal text-slate-400">នាក់</span></span>
       </div>
       <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex flex-col justify-between">
-        <div class="flex items-center justify-between gap-1">
-          <span class="text-[10px] text-slate-400 font-semibold truncate">📦 លក់សរុប</span>
-          ${teamGrowthBadge}
-        </div>
+        <span class="text-[10px] text-slate-400 font-semibold truncate">📦 លក់សរុប</span>
         <span class="font-mono text-emerald-400 font-bold text-xs sm:text-sm mt-0.5">${formatInt(totalTeamBoxes)} <span class="text-[9.5px] font-sans font-normal text-slate-400">ប្រអប់</span></span>
       </div>
       <div class="p-2 rounded-xl bg-black/30 border border-white/5 flex flex-col justify-between">
@@ -27630,16 +27618,6 @@ function renderTeamMembersList() {
     const isBechNora = (seller.km && (seller.km.includes('ប៊ិច នោរ៉ា') || (seller.en && seller.en.toLowerCase().includes('bech nora'))));
     const isSdoeung = (seller.km && (seller.km.includes('ស្ដី ស្ដើង') || seller.km.includes('ស្តី ស្តើង')));
 
-    let momBadgeHtml = '';
-    if (prevSellerStats !== null) {
-      const prevStats = getSellerAggregatedStats(seller, prevSellerStats);
-      const growth = calculateMoMGrowth(stats.boxes, prevStats.boxes);
-      momBadgeHtml = renderMoMBadgeHtml(growth, {
-        extraClass: 'mt-0.5',
-        tooltip: `ធៀបនឹងខែមុន (${growth ? growth.text : '0%'}) • ${stats.orders} កុម្ម៉ង់`
-      });
-    }
-
     return `
       <div onclick="openTeamMemberDetail('${escapeHtml(seller.km)}')" 
            class="p-3.5 rounded-2xl ios-glass-card border border-white/10 hover:border-orange-500/40 flex items-center justify-between cursor-pointer active:scale-[0.99] transition group shadow-sm">
@@ -27665,7 +27643,6 @@ function renderTeamMembersList() {
             <span class="font-mono font-bold text-xs sm:text-sm text-emerald-400 block leading-tight">
               ${stats.boxes} <span class="text-[9.5px] font-sans font-normal text-slate-400">ប្រអប់</span>
             </span>
-            ${momBadgeHtml}
           </div>
           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 group-hover:text-orange-400 group-hover:translate-x-0.5 transition"></i>
         </div>
@@ -27754,11 +27731,6 @@ function openTeamMemberDetail(sellerKmName) {
       return sName === seller.km || sName === seller.en || (normKm && normS === normKm) || (normEn && normS === normEn);
     });
     const prevTotalBoxes = prevSales.reduce((sum, s) => sum + Number(s.totalBoxQty || s.boxes || 0), 0);
-    const memberGrowth = calculateMoMGrowth(totalBoxes, prevTotalBoxes);
-    detailMoMBadgeHtml = renderMoMBadgeHtml(memberGrowth, {
-      extraClass: 'mt-1',
-      tooltip: `ធៀបនឹងខែមុន (${memberGrowth ? memberGrowth.text : '0%'})`
-    });
   }
 
   detailView.innerHTML = `
@@ -27824,7 +27796,6 @@ function openTeamMemberDetail(sellerKmName) {
           <div class="text-base sm:text-lg font-black text-emerald-400 font-mono">
             ${totalBoxes} <span class="text-[10px] font-bold text-emerald-400/80 font-sans">ប្រអប់</span>
           </div>
-          ${detailMoMBadgeHtml ? `<div class="flex justify-center">${detailMoMBadgeHtml}</div>` : ''}
         </div>
         <div class="p-3 rounded-2xl bg-[#0F1B2E] border border-white/10 text-center space-y-1 shadow-lg">
           <div class="text-[10px] text-slate-400 flex items-center justify-center gap-1 font-semibold">
