@@ -30,7 +30,7 @@ function authorizeExternalSheets() {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'ok',
-    version: '3.5-emmi-19-stock-fixed',
+    version: '3.6-col-o-price-thai-only',
     message: 'SD Dashboard Webhook is live and ready! 🚀'
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -395,7 +395,31 @@ function insertPersonalSalesOrder(ss, order) {
       sheet.getRange(targetRow, 14).setValue(Number(order.freeQty || 0));               // Col N: Free
     }
 
-    sheet.getRange(targetRow, 15).setValue(Number(order.thaiBaht || order.price || 0)); // Col O: Price (Baht)
+    // ពិនិត្យមើលថាតើជាការលក់នៅប្រទេសថៃ ឬនៅកម្ពុជា
+    var orderLoc = String(order.location || '').trim();
+    var orderDeliv = String(order.deliveryMethod || order.delivery || '').trim();
+    var orderCurrency = String(order.currency || '').toUpperCase();
+    var isThaiOrder = (orderCurrency === 'THB') ||
+                      (orderLoc.indexOf('ថៃ') !== -1 || orderLoc.toLowerCase().indexOf('thai') !== -1) ||
+                      (orderDeliv.toLowerCase().indexOf('thai') !== -1) ||
+                      (order.thaiBaht !== undefined && order.thaiBaht !== null && String(order.thaiBaht).trim() !== '' && Number(order.thaiBaht) > 0);
+
+    // កំណត់តម្លៃជួរ O (Price)៖
+    // - បើភ្ញៀវនៅ ប្រទេសថៃ (គិតជាបាត ฿) ➔ បំពេញតម្លៃប្រាក់បាតនៅជួរ O (ឧ. 3000 ឬ 3400)
+    // - បើភ្ញៀវនៅ ប្រទេសកម្ពុជា (គិតជា $ ឬ ៛) ➔ ជួរ O ត្រូវទុកទំនេរ ("") មិនបាច់បំពេញឡើយ (ព្រោះជួរ P មានដុល្លារស្រាប់)
+    var colPriceValue = '';
+    if (isThaiOrder) {
+      var rawBaht = (order.thaiBaht !== undefined && order.thaiBaht !== null && String(order.thaiBaht).trim() !== '') ? order.thaiBaht : order.price;
+      colPriceValue = (rawBaht !== undefined && rawBaht !== null && String(rawBaht).trim() !== '') ? Number(rawBaht) : '';
+    } else {
+      colPriceValue = '';
+    }
+
+    if (colPriceValue !== '') {
+      sheet.getRange(targetRow, 15).setValue(colPriceValue).setNumberFormat('#,##0'); // Col O: Price (Baht)
+    } else {
+      sheet.getRange(targetRow, 15).setValue(''); // Col O: ទុកទំនេរសម្រាប់កម្ពុជា
+    }
     sheet.getRange(targetRow, 16).setValue(totalAmountUSD).setNumberFormat('$#,##0.00'); // Col P: Total $
     sheet.getRange(targetRow, 17).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col Q: Ship Fee
     sheet.getRange(targetRow, 18).setValue(order.deliveryMethod || 'VET(COD)'); // Col R: Delivery
@@ -431,7 +455,11 @@ function insertPersonalSalesOrder(ss, order) {
       sheet.getRange(targetRow, 12).setValue(Number(order.freeQty || 0));
     }
 
-    sheet.getRange(targetRow, 13).setValue(Number(order.thaiBaht || order.price || 0)); // Col M: Price (Baht)
+    if (colPriceValue !== '') {
+      sheet.getRange(targetRow, 13).setValue(colPriceValue).setNumberFormat('#,##0'); // Col M: Price (Baht)
+    } else {
+      sheet.getRange(targetRow, 13).setValue(''); // Col M: ទុកទំនេរសម្រាប់កម្ពុជា
+    }
     sheet.getRange(targetRow, 14).setValue(totalAmountUSD).setNumberFormat('$#,##0.00'); // Col N: Total $
     sheet.getRange(targetRow, 15).setValue(shipFee).setNumberFormat('$#,##0.00'); // Col O: Ship Fee
     sheet.getRange(targetRow, 16).setValue(order.deliveryMethod || 'VET(COD)'); // Col P: Delivery
@@ -593,6 +621,22 @@ function updatePersonalSalesOrder(ss, order) {
     ? Number(order.profit) 
     : Math.max(0, Math.round((totalAmountUSD - stockCost - shipFee) * 100) / 100);
 
+  // ពិនិត្យមើលថាតើជាការលក់នៅប្រទេសថៃ ឬនៅកម្ពុជា
+  var updLoc = String(order.location !== undefined ? order.location : (values[matchedRow - 1][5] || '')).trim();
+  var updDeliv = String(order.delivery !== undefined ? order.delivery : (order.deliveryMethod || values[matchedRow - 1][17] || '')).trim();
+  var isThaiOrderUpd = (String(order.currency || '').toUpperCase() === 'THB') ||
+                       (updLoc.indexOf('ថៃ') !== -1 || updLoc.toLowerCase().indexOf('thai') !== -1) ||
+                       (updDeliv.toLowerCase().indexOf('thai') !== -1) ||
+                       (order.thaiBaht !== undefined && order.thaiBaht !== null && String(order.thaiBaht).trim() !== '' && Number(order.thaiBaht) > 0);
+
+  var updPriceVal = '';
+  if (isThaiOrderUpd) {
+    var rawP = (order.thaiBaht !== undefined && order.thaiBaht !== null && String(order.thaiBaht).trim() !== '') ? order.thaiBaht : order.price;
+    updPriceVal = (rawP !== undefined && rawP !== null && String(rawP).trim() !== '') ? Number(rawP) : '';
+  } else {
+    updPriceVal = '';
+  }
+
   if (isNew26Col) {
     if (order.qtyYL !== undefined) sheet.getRange(matchedRow, 8).setValue(order.qtyYL > 0 ? Number(order.qtyYL) : '');
     if (order.qtyYLP !== undefined) sheet.getRange(matchedRow, 9).setValue(order.qtyYLP > 0 ? Number(order.qtyYLP) : '');
@@ -602,7 +646,11 @@ function updatePersonalSalesOrder(ss, order) {
     if (order.qtySGP !== undefined || order.qtySG !== undefined) sheet.getRange(matchedRow, 13).setValue((Number(order.qtySGP || order.qtySG || 0) > 0) ? Number(order.qtySGP || order.qtySG) : ''); // Col M: S.G
     if (order.freeQty !== undefined) sheet.getRange(matchedRow, 14).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');
 
-    if (order.price !== undefined && order.price !== null && order.price !== '') sheet.getRange(matchedRow, 15).setValue(order.price);
+    if (updPriceVal !== '') {
+      sheet.getRange(matchedRow, 15).setValue(updPriceVal).setNumberFormat('#,##0');
+    } else {
+      sheet.getRange(matchedRow, 15).setValue('');
+    }
     if (order.totalAmount !== undefined && order.totalAmount !== null) sheet.getRange(matchedRow, 16).setValue(Number(order.totalAmount));
     if (order.shipFee !== undefined && order.shipFee !== null) sheet.getRange(matchedRow, 17).setValue(Number(order.shipFee));
     if (order.delivery !== undefined || order.deliveryMethod !== undefined) sheet.getRange(matchedRow, 18).setValue(order.delivery || order.deliveryMethod || '');
@@ -618,7 +666,11 @@ function updatePersonalSalesOrder(ss, order) {
     if (order.qtyPDO !== undefined) sheet.getRange(matchedRow, 11).setValue(order.qtyPDO > 0 ? Number(order.qtyPDO) : '');
     if (order.freeQty !== undefined) sheet.getRange(matchedRow, 12).setValue(order.freeQty > 0 ? Number(order.freeQty) : '');
 
-    if (order.price !== undefined && order.price !== null && order.price !== '') sheet.getRange(matchedRow, 13).setValue(order.price);
+    if (updPriceVal !== '') {
+      sheet.getRange(matchedRow, 13).setValue(updPriceVal).setNumberFormat('#,##0');
+    } else {
+      sheet.getRange(matchedRow, 13).setValue('');
+    }
     if (order.totalAmount !== undefined && order.totalAmount !== null) sheet.getRange(matchedRow, 14).setValue(Number(order.totalAmount));
     if (order.shipFee !== undefined && order.shipFee !== null) sheet.getRange(matchedRow, 15).setValue(Number(order.shipFee));
     if (order.delivery !== undefined || order.deliveryMethod !== undefined) sheet.getRange(matchedRow, 16).setValue(order.delivery || order.deliveryMethod || '');

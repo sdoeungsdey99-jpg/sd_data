@@ -25647,6 +25647,12 @@ async function submitEditSalesOrder() {
   o.phone = phone;
   o.orderId = orderId;
   o.location = location;
+  const isThaiEdit = (location && (location.includes('ថៃ') || location.toLowerCase().includes('thai'))) ||
+                     (delivery && delivery.toLowerCase().includes('thai')) ||
+                     (thaiBaht > 0);
+  const finalThaiBaht = isThaiEdit ? (thaiBaht > 0 ? thaiBaht : '') : '';
+  const finalPrice = isThaiEdit ? finalThaiBaht : '';
+
   o.qtyYL = qtyYL;
   o.qtyYLP = qtyYLP;
   o.qtyKN = qtyKN;
@@ -25657,8 +25663,8 @@ async function submitEditSalesOrder() {
   o.freeQty = freeQty;
   o.totalBoxQty = totalBoxes;
   o.totalAmount = totalAmount;
-  o.thaiBaht = thaiBaht;
-  o.price = (thaiBaht > 0) ? thaiBaht : totalAmount;
+  o.thaiBaht = finalThaiBaht;
+  o.price = finalPrice;
   o.shipFee = shipFee;
   o.delivery = delivery;
   o.deliveryMethod = delivery;
@@ -25701,8 +25707,8 @@ async function submitEditSalesOrder() {
     freeQty: freeQty,
     totalBoxQty: totalBoxes,
     totalAmount: totalAmount,
-    thaiBaht: thaiBaht,
-    price: (thaiBaht > 0) ? thaiBaht : totalAmount,
+    thaiBaht: finalThaiBaht,
+    price: finalPrice,
     shipFee: shipFee,
     delivery: delivery,
     codStatus: codStatus,
@@ -33184,13 +33190,21 @@ async function submitNewOrder() {
     try { localStorage.setItem('sd_last_seller_phone', sellerPhone); } catch (_) {}
   }
 
-  // គណនាប្រាក់បាត (Thai Baht) សម្រាប់ Col M ក្នុង Google Sheet ដើម្បីកុំឲ្យខូចរូបមន្ត Col N
-  let thaiBaht = priceRaw;
-  if (currentOrderCurrency === 'KHR') {
-    // បើសិនជាប្រាក់រៀល (360,000៛) បំប្លែងទៅបាត (3303฿) ដើម្បីឲ្យរូបមន្ត Col N ស្មើ $90.00 គត់
-    thaiBaht = Math.round((totalUsd * 35.6) / 0.97);
-  } else if (currentOrderCurrency === 'USD') {
-    thaiBaht = Math.round((totalUsd * 35.6) / 0.97);
+  // កំណត់តម្លៃប្រាក់បាត (Thai Baht) សម្រាប់ជួរ O (Price) ក្នុង Google Sheet
+  // - បើជាការលក់នៅថៃ (THB): បំពេញតម្លៃប្រាក់បាតពិតប្រាកដ (ឧ. 3000, 3300, 3400)
+  // - បើជាការលក់នៅកម្ពុជា ($ ឬ ៛): ទុកទំនេរ ("") មិនបាច់បំពេញឡើយ (ព្រោះជួរ P មានដុល្លារស្រាប់)
+  const isThaiOrder = (currentOrderCurrency === 'THB') || 
+                      (location && (location.includes('ថៃ') || location.toLowerCase().includes('thai'))) ||
+                      (delivery && delivery.toLowerCase().includes('thai'));
+
+  let thaiBaht = '';
+  let priceValue = '';
+  if (isThaiOrder) {
+    thaiBaht = priceRaw;
+    priceValue = priceRaw;
+  } else {
+    thaiBaht = '';
+    priceValue = '';
   }
 
   const stdBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
@@ -33312,8 +33326,9 @@ async function submitNewOrder() {
     bonusSGP: currentOrderBonusProducts.sgp || 0,
     totalBoxQty: totalBoxes + totalBonusQty,
     product: isReward ? `លក់រង្វាន់ (${totalBoxes})` : (isReturn ? `លក់អីវ៉ាន់ត្រឡប់ (${totalBoxes})` : productSummary),
-    price: priceRaw,
+    price: priceValue,
     thaiBaht: thaiBaht,
+    currency: currentOrderCurrency,
     totalAmount: totalUsd,
     shipFee: shipFee,
     stockCost: stockCost,
