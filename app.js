@@ -31168,10 +31168,14 @@ function onPriceRawInput(isTyping = false) {
 
   let totalUsd = 0;
   if (currentOrderCurrency === 'KHR') {
-    // 360,000៛ / 4000 = $90.00
-    totalUsd = raw / 4000;
+    // 18 = 180,000៛ ($45), 36 = 360,000៛ ($90), 54 = 540,000៛ ($135)
+    if (raw < 1000) {
+      totalUsd = (raw * 10000) / 4000;
+    } else {
+      totalUsd = raw / 4000;
+    }
   } else if (currentOrderCurrency === 'THB') {
-    // រូបមន្តពិតតាម Google Sheet Col N: (M * 0.97) / 35.6
+    // រូបមន្តពិតតាម Google Sheet: (Baht * 0.97) / 35.6
     totalUsd = (raw * 0.97) / 35.6;
   } else if (currentOrderCurrency === 'USD') {
     totalUsd = raw;
@@ -33062,16 +33066,27 @@ function parsePastedOrderText(silent = false) {
     const num = cleanNumber(priceRaw);
     const priceInput = document.getElementById('order-field-price-raw');
     const totalInput = document.getElementById('order-field-total-usd');
-    if (priceInput) priceInput.value = num;
 
-    if (num >= 10000) {
-      setOrderCurrency('KHR');
-      if (totalInput) totalInput.value = (num / 4000).toFixed(2);
-    } else if (num >= 500) {
+    const isThaiLoc = (address && (address.includes('ថៃ') || address.toLowerCase().includes('thai'))) ||
+                      (delivery && delivery.toLowerCase().includes('thai'));
+
+    if (num >= 500 || isThaiLoc) {
       setOrderCurrency('THB');
+      if (priceInput) priceInput.value = num;
       if (totalInput) totalInput.value = ((num * 0.97) / 35.6).toFixed(2);
+    } else if (num >= 10000) {
+      setOrderCurrency('KHR');
+      if (priceInput) priceInput.value = num;
+      if (totalInput) totalInput.value = (num / 4000).toFixed(2);
+    } else if (num === 18 || num === 36 || num === 54 || num === 72) {
+      // 18 = 180,000៛ ($45), 36 = 360,000៛ ($90), 54 = 540,000៛ ($135), 72 = 720,000៛ ($180)
+      setOrderCurrency('KHR');
+      const rielVal = num * 10000;
+      if (priceInput) priceInput.value = rielVal;
+      if (totalInput) totalInput.value = (rielVal / 4000).toFixed(2);
     } else if (num > 0) {
       setOrderCurrency('USD');
+      if (priceInput) priceInput.value = num;
       if (totalInput) totalInput.value = num.toFixed(2);
     }
   }
