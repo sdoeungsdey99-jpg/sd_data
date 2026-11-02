@@ -30864,7 +30864,7 @@ async function submitToCompanyGoogleForm(orderData) {
 
 let currentOrderMode = 'paste';
 let currentOrderType = 'standard';
-let currentOrderCurrency = 'KHR';
+let currentOrderCurrency = 'USD';
 let currentOrderProducts = {
   yl: 0,
   ylp: 0,
@@ -31134,7 +31134,7 @@ function openOrderDatePicker() {
 }
 
 function setOrderCurrency(curr) {
-  currentOrderCurrency = curr || 'KHR';
+  currentOrderCurrency = curr || 'USD';
   const btnKhr = document.getElementById('curr-btn-khr');
   const btnThb = document.getElementById('curr-btn-thb');
   const btnUsd = document.getElementById('curr-btn-usd');
@@ -31160,16 +31160,35 @@ function onPriceRawInput(isTyping = false) {
     return;
   }
 
-  // ពេលវាយបញ្ចូល បើទឹកប្រាក់ធំជាង ឬស្មើ 10,000 កំណត់ស្វ័យប្រវត្តិជាប្រាក់រៀល (KHR)
-  if (isTyping && raw >= 10000 && currentOrderCurrency !== 'KHR') {
-    setOrderCurrency('KHR');
-    return;
+  // ពេលវាយបញ្ចូល Auto-Switch ឆ្លាតវៃតាមទំហំលេខ៖
+  if (isTyping) {
+    if (raw >= 10000 && currentOrderCurrency !== 'KHR') {
+      // លេខពេញរៀល ដូចជា 180000, 360000, 600000 ➔ ប្តូរទៅ ៛ (KHR)
+      setOrderCurrency('KHR');
+      return;
+    } else if ((raw === 18 || raw === 36) && currentOrderCurrency !== 'KHR') {
+      // លេខកាត់រៀល 18 (180,000៛) ឬ 36 (360,000៛) ➔ ប្តូរទៅ ៛ (KHR)
+      setOrderCurrency('KHR');
+      return;
+    } else if (raw >= 1000 && raw < 10000 && currentOrderCurrency !== 'THB') {
+      // លេខបាតថៃ 3000, 3400, 6400, 7500... ➔ ប្តូរទៅ ฿ (THB)
+      setOrderCurrency('THB');
+      return;
+    } else if (raw > 0 && raw < 1000 && raw !== 18 && raw !== 36 && currentOrderCurrency === 'KHR') {
+      // បើវាយលេខដុល្លារដូចជា 50, 90, 135, 150 ក្នុងពេលកំពុងជាប់ ៛ ➔ Auto-Switch ទៅ $ (USD) ភ្លាម!
+      setOrderCurrency('USD');
+      return;
+    }
   }
 
   let totalUsd = 0;
   if (currentOrderCurrency === 'KHR') {
-    // 18 = 180,000៛ ($45), 36 = 360,000៛ ($90), 54 = 540,000៛ ($135)
-    if (raw < 1000) {
+    // 18 = 180,000៛ ($45), 36 = 360,000៛ ($90)
+    if (raw === 18 || raw === 36) {
+      totalUsd = (raw * 10000) / 4000;
+    } else if (raw >= 10000) {
+      totalUsd = raw / 4000;
+    } else if (raw < 1000) {
       totalUsd = (raw * 10000) / 4000;
     } else {
       totalUsd = raw / 4000;
@@ -32088,7 +32107,7 @@ function openNewOrderModal(mode = 'dock') {
   // Default currency based on delivery carrier (THB strictly for Thai, KHR for Cambodian carriers)
   const deliverySel = document.getElementById('order-field-delivery');
   const isThaiDelivery = (deliverySel?.value || '').includes('Thai');
-  setOrderCurrency(isThaiDelivery ? 'THB' : 'KHR');
+  setOrderCurrency(isThaiDelivery ? 'THB' : 'USD');
 
   // Collapse extra products by default
   toggleExtraOrderProducts(false);
@@ -32474,7 +32493,7 @@ function clearOrderInput() {
   if (typeof updateDeliveryShippingDefault === 'function') {
     updateDeliveryShippingDefault();
   } else {
-    setOrderCurrency('KHR');
+    setOrderCurrency('USD');
   }
 
   currentOrderProducts = { yl: 0, ylp: 0, kn: 0, pdo: 0, emmi: 0, sgp: 0 };
@@ -34676,19 +34695,19 @@ function updateDeliveryShippingDefault() {
     setOrderCurrency('THB');
   } else if (val === 'VET (COD)') {
     shipInput.value = '3.00';
-    setOrderCurrency('KHR');
+    setOrderCurrency('USD');
   } else if (val === 'J&T (COD)') {
     shipInput.value = '3.00';
-    setOrderCurrency('KHR');
+    setOrderCurrency('USD');
   } else if (val === 'VET Express') {
     shipInput.value = '2.50';
-    setOrderCurrency('KHR');
+    setOrderCurrency('USD');
   } else if (val === 'J&T Cambodia') {
     shipInput.value = '2.50';
-    setOrderCurrency('KHR');
+    setOrderCurrency('USD');
   } else if (val === 'Motor ក្រុមហ៊ុន') {
     shipInput.value = '2.00';
-    setOrderCurrency('KHR');
+    setOrderCurrency('USD');
   }
   calculateOrderFinancials();
   if (typeof syncOrderCarrierUI === 'function') syncOrderCarrierUI();
