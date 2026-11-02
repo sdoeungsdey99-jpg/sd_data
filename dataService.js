@@ -1387,6 +1387,7 @@ window.DataService = {
           if (Array.isArray(localOrders) && localOrders.length > 0) {
             const sheetRecordIds = new Set(personalSales.map(s => s.orderId || s.recordId));
             const stillPending = localOrders.filter(lo => {
+              if (String(lo.note || '').includes('Apps Assistant')) return false; // ហាមដាច់ខាតកុំបញ្ចូល Apps Assistant ចូល Personal Sales
               if (sheetRecordIds.has(lo.orderId || lo.recordId)) return false; // Confirmed synced to sheet!
               // If already marked as delivered/synced to sheet previously, but now missing, it was deleted in Google Sheet!
               if (lo.syncedToSheet || lo.delivered) return false;
@@ -1402,6 +1403,9 @@ window.DataService = {
           localStorage.removeItem('sd_local_orders');
         }
       } catch (_) {}
+
+      // ធានាសុវត្ថិភាព ១០០%៖ សម្អាតរាល់ទិន្នន័យ Apps Assistant ចេញពី Personal Sales របស់ Admin
+      personalSales = personalSales.filter(s => !String(s.note || '').includes('Apps Assistant'));
 
       // Merge any pending local expenses (submitted through app within last 60 seconds)
       try {

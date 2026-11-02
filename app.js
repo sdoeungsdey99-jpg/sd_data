@@ -31721,17 +31721,50 @@ let isTelegramAppsAssistantActive = false;
 function isMasterAdminUser() {
   try {
     const isMasterAuth = (typeof localStorage !== 'undefined') && localStorage.getItem('sd_master_admin_authenticated') === 'true';
+    if (isMasterAuth) return true;
+
     const prof = (typeof getProfileData === 'function') ? getProfileData() : {};
-    const profName = (prof.name || '').trim();
-    const isSdey = profName.includes('ស្តី ស្តើង') || profName.includes('ស្ដី ស្ដើង') || profName.includes('ស្តី ស្នឹង');
+    const profName = (prof.name || '').trim().toLowerCase();
+    const profPhone = String(prof.phone || '').replace(/\D/g, '');
+
+    const lastSeller = (typeof localStorage !== 'undefined' ? (localStorage.getItem('sd_last_seller') || '') : '').trim().toLowerCase();
+    const lastSellerPhone = (typeof localStorage !== 'undefined' ? (localStorage.getItem('sd_last_seller_phone') || '') : '').replace(/\D/g, '');
+
     const activeSheet = (window.DataService && typeof window.DataService.getActiveSheetId === 'function') ? window.DataService.getActiveSheetId() : '';
     const masterId = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
-    return (isMasterAuth && activeSheet === masterId) || (isSdey && activeSheet === masterId) || (isSdey && isMasterAuth);
+
+    const matchesName = (n) => n && (n.includes('ស្ដី') || n.includes('ស្តី') || n.includes('sdey') || n.includes('sdoeung'));
+    const matchesPhone = (p) => p && (p.includes('0978595526') || p.includes('8595526') || p.endsWith('5526'));
+
+    if (matchesName(profName) || matchesName(lastSeller)) return true;
+    if (matchesPhone(profPhone) || matchesPhone(lastSellerPhone)) return true;
+    if (activeSheet === masterId) return true;
+
+    return false;
   } catch (_) {
     return false;
   }
 }
 window.isMasterAdminUser = isMasterAdminUser;
+
+function cleanupAssistantOrders() {
+  try {
+    const raw = localStorage.getItem('sd_local_orders');
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        const cleaned = list.filter(o => !String(o.note || '').includes('Apps Assistant'));
+        if (cleaned.length !== list.length) {
+          localStorage.setItem('sd_local_orders', JSON.stringify(cleaned));
+        }
+      }
+    }
+    if (window.DataService && window.DataService.data && Array.isArray(window.DataService.data.personalSales)) {
+      window.DataService.data.personalSales = window.DataService.data.personalSales.filter(o => !String(o.note || '').includes('Apps Assistant'));
+    }
+  } catch (_) {}
+}
+window.cleanupAssistantOrders = cleanupAssistantOrders;
 
 function toggleOrderAppsAssistant(event) {
   if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
@@ -31814,6 +31847,7 @@ function openNewOrderModal(mode = 'dock') {
   const btnAppsAssistant = document.getElementById('btn-order-apps-assistant');
 
   if (currentOrderEntryMode === 'telegram') {
+    cleanupAssistantOrders();
     if (modalTitle) modalTitle.textContent = isKm ? 'កត់ត្រាពី Telegram' : 'Record from Telegram';
     
     // Check saved state in sessionStorage
@@ -33281,18 +33315,28 @@ async function submitNewOrder() {
     createdAt: Date.now()
   };
 
-  // 1. Immediately inject into live DataService in-memory
-  if (DataService.data && Array.isArray(DataService.data.personalSales)) {
-    DataService.data.personalSales.unshift(newRecord);
-    if (DataService.data.meta) DataService.data.meta.totalSalesCount++;
-  }
+  const isAssistantEntry = (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive);
 
-  // 2. Persist to localStorage pending orders
-  try {
-    const existing = JSON.parse(localStorage.getItem('sd_local_orders') || '[]');
-    existing.unshift(newRecord);
-    localStorage.setItem('sd_local_orders', JSON.stringify(existing));
-  } catch (_) {}
+  // 1. Immediately inject into live DataService in-memory
+  // បើជា Apps Assistant បញ្ចូលជំនួសសមាជិក ហាមដាច់ខាតកុំបញ្ចូលទៅក្នុង Personal Sales របស់ ស្ដី ស្ដើង
+  if (!isAssistantEntry) {
+    if (DataService.data && Array.isArray(DataService.data.personalSales)) {
+      DataService.data.personalSales.unshift(newRecord);
+      if (DataService.data.meta) DataService.data.meta.totalSalesCount++;
+    }
+
+    // 2. Persist to localStorage pending orders
+    try {
+      const existing = JSON.parse(localStorage.getItem('sd_local_orders') || '[]');
+      existing.unshift(newRecord);
+      localStorage.setItem('sd_local_orders', JSON.stringify(existing));
+    } catch (_) {}
+  } else {
+    // សម្រាប់ Apps Assistant៖ ដាក់ចូលតែក្នុង BostarTrack Master Data
+    if (DataService.data && Array.isArray(DataService.data.bostarTrackSales)) {
+      DataService.data.bostarTrackSales.unshift(newRecord);
+    }
+  }
 
   // 3. យុទ្ធសាស្ត្រ 3 in 1: បញ្ជូនចូល Google Sheet ផ្ទាល់ខ្លួន & BostarTrack Master Data & Google Form ក្រុមហ៊ុន
   const isDockOrder = (currentOrderEntryMode === 'dock');
@@ -33312,10 +33356,10 @@ async function submitNewOrder() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'add_order',
-          sheetId: (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive)
-            ? '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU'
+          sheetId: isAssistantEntry
+            ? '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4'
             : ((typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : ''),
-          syncToBostarTrack: (currentOrderEntryMode === 'dock') || (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive),
+          syncToBostarTrack: (currentOrderEntryMode === 'dock') || isAssistantEntry,
           data: newRecord
         })
       }).then(() => {
@@ -33323,14 +33367,16 @@ async function submitNewOrder() {
         try {
           newRecord.syncedToSheet = true;
           newRecord.delivered = true;
-          const raw = localStorage.getItem('sd_local_orders');
-          if (raw) {
-            const list = JSON.parse(raw);
-            const found = list.find(o => (o.orderId && o.orderId === newRecord.orderId) || (o.recordId && o.recordId === newRecord.recordId));
-            if (found) {
-              found.syncedToSheet = true;
-              found.delivered = true;
-              localStorage.setItem('sd_local_orders', JSON.stringify(list));
+          if (!isAssistantEntry) {
+            const raw = localStorage.getItem('sd_local_orders');
+            if (raw) {
+              const list = JSON.parse(raw);
+              const found = list.find(o => (o.orderId && o.orderId === newRecord.orderId) || (o.recordId && o.recordId === newRecord.recordId));
+              if (found) {
+                found.syncedToSheet = true;
+                found.delivered = true;
+                localStorage.setItem('sd_local_orders', JSON.stringify(list));
+              }
             }
           }
         } catch (_) {}
@@ -33377,15 +33423,17 @@ async function submitNewOrder() {
     }
     showToastNotification(successMsg);
   } else {
-    if (typeof queueOfflineOrder === 'function') {
-      queueOfflineOrder(newRecord);
+    if (!isAssistantEntry) {
+      if (typeof queueOfflineOrder === 'function') {
+        queueOfflineOrder(newRecord);
+      }
     }
     if (typeof addAppNotification === 'function') {
       addAppNotification({
         type: 'order',
-        title: `[Offline] បានរក្សាទុកក្នុងម៉ាស៊ីន: ${customer || 'អតិថិជន'}`,
-        content: `${productSummary} | ចំនួន ${totalBoxes} ប្រអប់ | សរុប: $${formatUSD(totalUsd).replace('$', '')} (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)`,
-        tag: 'Offline Queued ⏳',
+        title: isAssistantEntry ? `[Offline] Apps Assistant: ${customer || 'អតិថិជន'}` : `[Offline] បានរក្សាទុកក្នុងម៉ាស៊ីន: ${customer || 'អតិថិជន'}`,
+        content: `${productSummary} | ចំនួន ${totalBoxes} ប្រអប់ | សរុប: $${formatUSD(totalUsd).replace('$', '')}`,
+        tag: isAssistantEntry ? 'Master Data ⏳' : 'Offline Queued ⏳',
         color: 'amber',
         icon: 'cloud-off'
       });
