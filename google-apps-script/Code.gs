@@ -306,26 +306,31 @@ function insertPersonalSalesOrder(ss, order) {
   var nextRecNum = maxRecNum + 1;
   var formattedRecId = 'REC-' + ('0000' + nextRecNum).slice(-4);
 
-  // គណនាចំនួនប្រអប់សរុប
-  var totalBoxes = Number(order.totalBoxQty || 0);
-  if (!totalBoxes || totalBoxes === 0) {
-    totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
-                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
-                 Number(order.qtyEmmi || 0) + Number(order.qtySGP || 0) + 
-                 Number(order.freeQty || 0);
-  }
+  // គណនាចំនួនប្រអប់គិតថ្លៃដើម (Paid Boxes ONLY) ដោយមិនរាប់បញ្ចូលប្រអប់ថែម Free ឡើយ
+  var paidBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
+                  Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
+                  Number(order.qtyEmmi || 0) + Number(order.qtySGP || order.qtySG || 0);
+  var freeQty = Number(order.freeQty || 0);
+  var totalBoxes = paidBoxes + freeQty;
+  var rewardQty = Number(order.rewardQty || order.totalBoxQty || totalBoxes || 0);
 
-  // គណនាតម្លៃដើម Col R (Stock Cost) តាមប្រភេទការលក់៖
-  // - ស្តុកក្រុមហ៊ុន (Standard) = Qty * $24.00
-  // - លក់រង្វាន់ (Reward) = Qty * $5.00
-  // - លក់អីវ៉ាន់ត្រឡប់ (Return) = $0.00
+  // គណនាតម្លៃដើម (Stock Cost) តាមប្រភេទការលក់៖
+  // - អាទិភាពទី ១៖ យកតម្លៃថ្លៃដើមដែលគណនាត្រឹមត្រូវផ្ទាល់ពី App (order.stockCost)
+  // - អាទិភាពទី ២ (Fallback)៖
+  //   * ស្តុកក្រុមហ៊ុន (Standard) = paidBoxes * $24.00 (មិនគិតប្រអប់ Free ឡើយ!)
+  //   * លក់រង្វាន់ (Reward) = (rewardQty || totalBoxes) * $5.00
+  //   * លក់អីវ៉ាន់ត្រឡប់ (Return) = $0.00
   var stockCost = 0;
-  if (orderType === 'reward') {
-    stockCost = totalBoxes * 5.0;
-  } else if (orderType === 'return') {
-    stockCost = 0;
+  if (order.stockCost !== undefined && order.stockCost !== null && order.stockCost !== '') {
+    stockCost = Number(order.stockCost);
   } else {
-    stockCost = totalBoxes * 24.0;
+    if (orderType === 'reward') {
+      stockCost = (rewardQty || totalBoxes) * 5.0;
+    } else if (orderType === 'return') {
+      stockCost = 0;
+    } else {
+      stockCost = paidBoxes * 24.0;
+    }
   }
 
   // តម្លៃលក់សរុប Col N (Total USD)
@@ -557,22 +562,25 @@ function updatePersonalSalesOrder(ss, order) {
   if (order.phone !== undefined) sheet.getRange(matchedRow, 7).setValue(order.phone); // Col G: Phone
 
   // ផលិតផល & ទិន្នន័យហិរញ្ញវត្ថុ
-  var totalBoxes = Number(order.totalBoxQty || 0);
-  if (!totalBoxes || totalBoxes === 0) {
-    totalBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
-                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
-                 Number(order.qtyEmmi || 0) + Number(order.qtySGP || order.qtySG || 0) +
-                 Number(order.freeQty || 0);
-  }
+  var paidBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
+                  Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
+                  Number(order.qtyEmmi || 0) + Number(order.qtySGP || order.qtySG || 0);
+  var freeQty = Number(order.freeQty || 0);
+  var totalBoxes = paidBoxes + freeQty;
+  var rewardQty = Number(order.rewardQty || order.totalBoxQty || totalBoxes || 0);
 
   var orderType = String(order.orderType || (order.isReward ? 'reward' : (order.isReturn ? 'return' : 'standard'))).toLowerCase();
   var stockCost = 0;
-  if (orderType === 'reward') {
-    stockCost = totalBoxes * 5.0;
-  } else if (orderType === 'return') {
-    stockCost = 0;
+  if (order.stockCost !== undefined && order.stockCost !== null && order.stockCost !== '') {
+    stockCost = Number(order.stockCost);
   } else {
-    stockCost = totalBoxes * 24.0;
+    if (orderType === 'reward') {
+      stockCost = (rewardQty || totalBoxes) * 5.0;
+    } else if (orderType === 'return') {
+      stockCost = 0;
+    } else {
+      stockCost = paidBoxes * 24.0;
+    }
   }
 
   var totalAmountUSD = Number(order.totalAmount || 0);
