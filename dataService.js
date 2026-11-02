@@ -821,7 +821,7 @@ window.DataService = {
       // 1. Process Personal Sales
       // ==========================================
       const psRows = (psGviz && psGviz.table && Array.isArray(psGviz.table.rows)) ? psGviz.table.rows : [];
-      const personalSales = [];
+      let personalSales = [];
 
       // Smart Column Layout Detector: Checks if Col 11 (Index 11) is S.G or Col 12 is Emmi, or if total cols >= 25
       const colsCount = (psGviz && psGviz.table && Array.isArray(psGviz.table.cols)) ? psGviz.table.cols.length : 0;
