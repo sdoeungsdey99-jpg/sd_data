@@ -30,7 +30,7 @@ function authorizeExternalSheets() {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'ok',
-    version: '3.6-col-o-price-thai-only',
+    version: '3.7-cambodia-blank-strict',
     message: 'SD Dashboard Webhook is live and ready! 🚀'
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -395,18 +395,17 @@ function insertPersonalSalesOrder(ss, order) {
       sheet.getRange(targetRow, 14).setValue(Number(order.freeQty || 0));               // Col N: Free
     }
 
-    // ពិនិត្យមើលថាតើជាការលក់នៅប្រទេសថៃ ឬនៅកម្ពុជា
+    // ពិនិត្យមើលថាតើជាការលក់នៅប្រទេសថៃ ឬនៅកម្ពុជា (ផ្អែកលើទីតាំង Location, ការដឹកជញ្ជូន Delivery ឬរូបិយប័ណ្ណ THB ដាច់ខាត)
     var orderLoc = String(order.location || '').trim();
     var orderDeliv = String(order.deliveryMethod || order.delivery || '').trim();
     var orderCurrency = String(order.currency || '').toUpperCase();
     var isThaiOrder = (orderCurrency === 'THB') ||
                       (orderLoc.indexOf('ថៃ') !== -1 || orderLoc.toLowerCase().indexOf('thai') !== -1) ||
-                      (orderDeliv.toLowerCase().indexOf('thai') !== -1) ||
-                      (order.thaiBaht !== undefined && order.thaiBaht !== null && String(order.thaiBaht).trim() !== '' && Number(order.thaiBaht) > 0);
+                      (orderDeliv.toLowerCase().indexOf('thai') !== -1);
 
     // កំណត់តម្លៃជួរ O (Price)៖
     // - បើភ្ញៀវនៅ ប្រទេសថៃ (គិតជាបាត ฿) ➔ បំពេញតម្លៃប្រាក់បាតនៅជួរ O (ឧ. 3000 ឬ 3400)
-    // - បើភ្ញៀវនៅ ប្រទេសកម្ពុជា (គិតជា $ ឬ ៛) ➔ ជួរ O ត្រូវទុកទំនេរ ("") មិនបាច់បំពេញឡើយ (ព្រោះជួរ P មានដុល្លារស្រាប់)
+    // - បើភ្ញៀវនៅ ប្រទេសកម្ពុជា (គិតជា $ ឬ ៛) ➔ ជួរ O ត្រូវទុកទំនេរ ("") មិនបាច់បំពេញអ្វីទាំងអស់ (ព្រោះជួរ P មានដុល្លារស្រាប់)
     var colPriceValue = '';
     if (isThaiOrder) {
       var rawBaht = (order.thaiBaht !== undefined && order.thaiBaht !== null && String(order.thaiBaht).trim() !== '') ? order.thaiBaht : order.price;
@@ -626,8 +625,7 @@ function updatePersonalSalesOrder(ss, order) {
   var updDeliv = String(order.delivery !== undefined ? order.delivery : (order.deliveryMethod || values[matchedRow - 1][17] || '')).trim();
   var isThaiOrderUpd = (String(order.currency || '').toUpperCase() === 'THB') ||
                        (updLoc.indexOf('ថៃ') !== -1 || updLoc.toLowerCase().indexOf('thai') !== -1) ||
-                       (updDeliv.toLowerCase().indexOf('thai') !== -1) ||
-                       (order.thaiBaht !== undefined && order.thaiBaht !== null && String(order.thaiBaht).trim() !== '' && Number(order.thaiBaht) > 0);
+                       (updDeliv.toLowerCase().indexOf('thai') !== -1);
 
   var updPriceVal = '';
   if (isThaiOrderUpd) {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google Apps Script Code Copier - Version 3.6</title>
+  <title>Google Apps Script Code Copier - Version 3.7</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -159,9 +159,9 @@
 </head>
 <body>
   <div class="card">
-    <div class="header-badge">✓ Version 3.6 - Col O (Thai Baht ONLY / Cambodia Blank)</div>
-    <h1>📋 ចម្លងកូដ Google Apps Script (Version 3.6)</h1>
-    <p class="desc">កូដនេះបានកែសម្រួល៖ ជួរ O (Price) បំពេញតែពេលលក់នៅប្រទេសថៃ (ប្រាក់បាត ฿) ប៉ុណ្ណោះ។ បើលក់នៅកម្ពុជា ($ ឬ ៛) គឺទុកទំនេរ ("") ស្អាត ១០០%។</p>
+    <div class="header-badge">✓ Version 3.7 - Strict Blank for Cambodia (Col O)</div>
+    <h1>📋 ចម្លងកូដ Google Apps Script (Version 3.7)</h1>
+    <p class="desc">កូដនេះបានកែសម្រួល៖ ជួរ O (Price) ត្រូវទុកទំនេរស្អាត ("") ដាច់ខាត ១០០% សម្រាប់ការលក់នៅកម្ពុជា ($ និង ៛) ដោយមិនឱ្យមានលេខបាតលេចឡើងឡើយ។ ជួរ O នេះបំពេញតែពេលណាទីតាំងនៅប្រទេសថៃប៉ុណ្ណោះ។</p>
 
     <div class="btn-row">
       <button class="btn-copy" onclick="copyFullScript()">
@@ -178,7 +178,7 @@
 
     <div class="code-preview-wrap">
       <div class="code-label">
-        <span>Google-Apps-Script / Code.gs (Version 3.6)</span>
+        <span>Google-Apps-Script / Code.gs (Version 3.7)</span>
         <span id="line-count">1350+ lines</span>
       </div>
       <textarea id="script-code" class="code-area" readonly>/**
@@ -213,7 +213,7 @@ function authorizeExternalSheets() {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: &#x27;ok&#x27;,
-    version: &#x27;3.6-col-o-price-thai-only&#x27;,
+    version: &#x27;3.7-cambodia-blank-strict&#x27;,
     message: &#x27;SD Dashboard Webhook is live and ready! 🚀&#x27;
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -578,18 +578,17 @@ function insertPersonalSalesOrder(ss, order) {
       sheet.getRange(targetRow, 14).setValue(Number(order.freeQty || 0));               // Col N: Free
     }
 
-    // ពិនិត្យមើលថាតើជាការលក់នៅប្រទេសថៃ ឬនៅកម្ពុជា
+    // ពិនិត្យមើលថាតើជាការលក់នៅប្រទេសថៃ ឬនៅកម្ពុជា (ផ្អែកលើទីតាំង Location, ការដឹកជញ្ជូន Delivery ឬរូបិយប័ណ្ណ THB ដាច់ខាត)
     var orderLoc = String(order.location || &#x27;&#x27;).trim();
     var orderDeliv = String(order.deliveryMethod || order.delivery || &#x27;&#x27;).trim();
     var orderCurrency = String(order.currency || &#x27;&#x27;).toUpperCase();
     var isThaiOrder = (orderCurrency === &#x27;THB&#x27;) ||
                       (orderLoc.indexOf(&#x27;ថៃ&#x27;) !== -1 || orderLoc.toLowerCase().indexOf(&#x27;thai&#x27;) !== -1) ||
-                      (orderDeliv.toLowerCase().indexOf(&#x27;thai&#x27;) !== -1) ||
-                      (order.thaiBaht !== undefined &amp;&amp; order.thaiBaht !== null &amp;&amp; String(order.thaiBaht).trim() !== &#x27;&#x27; &amp;&amp; Number(order.thaiBaht) &gt; 0);
+                      (orderDeliv.toLowerCase().indexOf(&#x27;thai&#x27;) !== -1);
 
     // កំណត់តម្លៃជួរ O (Price)៖
     // - បើភ្ញៀវនៅ ប្រទេសថៃ (គិតជាបាត ฿) ➔ បំពេញតម្លៃប្រាក់បាតនៅជួរ O (ឧ. 3000 ឬ 3400)
-    // - បើភ្ញៀវនៅ ប្រទេសកម្ពុជា (គិតជា $ ឬ ៛) ➔ ជួរ O ត្រូវទុកទំនេរ (&quot;&quot;) មិនបាច់បំពេញឡើយ (ព្រោះជួរ P មានដុល្លារស្រាប់)
+    // - បើភ្ញៀវនៅ ប្រទេសកម្ពុជា (គិតជា $ ឬ ៛) ➔ ជួរ O ត្រូវទុកទំនេរ (&quot;&quot;) មិនបាច់បំពេញអ្វីទាំងអស់ (ព្រោះជួរ P មានដុល្លារស្រាប់)
     var colPriceValue = &#x27;&#x27;;
     if (isThaiOrder) {
       var rawBaht = (order.thaiBaht !== undefined &amp;&amp; order.thaiBaht !== null &amp;&amp; String(order.thaiBaht).trim() !== &#x27;&#x27;) ? order.thaiBaht : order.price;
@@ -809,8 +808,7 @@ function updatePersonalSalesOrder(ss, order) {
   var updDeliv = String(order.delivery !== undefined ? order.delivery : (order.deliveryMethod || values[matchedRow - 1][17] || &#x27;&#x27;)).trim();
   var isThaiOrderUpd = (String(order.currency || &#x27;&#x27;).toUpperCase() === &#x27;THB&#x27;) ||
                        (updLoc.indexOf(&#x27;ថៃ&#x27;) !== -1 || updLoc.toLowerCase().indexOf(&#x27;thai&#x27;) !== -1) ||
-                       (updDeliv.toLowerCase().indexOf(&#x27;thai&#x27;) !== -1) ||
-                       (order.thaiBaht !== undefined &amp;&amp; order.thaiBaht !== null &amp;&amp; String(order.thaiBaht).trim() !== &#x27;&#x27; &amp;&amp; Number(order.thaiBaht) &gt; 0);
+                       (updDeliv.toLowerCase().indexOf(&#x27;thai&#x27;) !== -1);
 
   var updPriceVal = &#x27;&#x27;;
   if (isThaiOrderUpd) {

@@ -32964,7 +32964,7 @@ function parsePastedOrderText(silent = false) {
   const emmiQty = extract(/ផលិតផល\(Product\).*?\[Emmi\][:\s]*(\d+)/i) || extract(/\[Emmi\][:\s]*(\d+)/i);
   const sgpQty = extract(/ផលិតផល\(Product\).*?\[(?:SG\s*Pro|S\.G\s*Pro)\][:\s]*(\d+)/i) || extract(/\[SG\s*Pro\][:\s]*(\d+)/i) || extract(/\[S\.G\s*Pro\][:\s]*(\d+)/i);
   const freeQty = extract(/\[Free\][:\s]*(\d+)/i) || extract(/Free[:\s]*(\d+)/i) || extract(/\[ថែម\][:\s]*(\d+)/i) || extract(/ថែម[:\s]*(\d+)/i);
-  const priceRaw = extract(/(?:តម្លៃ\(Price\)|Price|តម្លៃ)[:\s]*(\d+[\d,\.]*)/i);
+  const priceLineRaw = extract(/(?:តម្លៃ\(Price\)|Price|តម្លៃ)[:\s]*([^\n\r]+)/i);
   const receiverNo = extract(/(?:លេខអ្នកទទួល\(Receiver No\)|Receiver No|លេខអ្នកទទួល)[:\s]*([^\n\r]+)/i);
   const address = extract(/(?:អាសយដ្ឋាន\(Address\)|Address|អាសយដ្ឋាន|Location)[:\s]*([^\n\r]+)/i);
   const delivery = extract(/(?:ដឹកជញ្ជូនតាម\(Delivery\)|Delivery|ដឹកជញ្ជូនតាម)[:\s]*([^\n\r]+)/i);
@@ -33062,32 +33062,66 @@ function parsePastedOrderText(silent = false) {
     toggleExtraOrderProducts(true);
   }
 
-  if (priceRaw) {
-    const num = cleanNumber(priceRaw);
-    const priceInput = document.getElementById('order-field-price-raw');
-    const totalInput = document.getElementById('order-field-total-usd');
+  if (priceLineRaw) {
+    const cleanLine = priceLineRaw.trim();
+    let detectedCurrency = null;
+    if (/[\$]|usd/i.test(cleanLine)) detectedCurrency = 'USD';
+    else if (/[៛]|រៀល|riel|\br\b/i.test(cleanLine)) detectedCurrency = 'KHR';
+    else if (/[฿]|baht|បាត/i.test(cleanLine)) detectedCurrency = 'THB';
 
-    const isThaiLoc = (address && (address.includes('ថៃ') || address.toLowerCase().includes('thai'))) ||
-                      (delivery && delivery.toLowerCase().includes('thai'));
+    let num = 0;
+    const numMatch = cleanLine.match(/([\d]+(?:[\d,\.]*[\d])?)/);
+    if (numMatch) {
+      num = parseFloat(numMatch[1].replace(/,/g, ''));
+    }
 
-    if (num >= 500 || isThaiLoc) {
-      setOrderCurrency('THB');
-      if (priceInput) priceInput.value = num;
-      if (totalInput) totalInput.value = ((num * 0.97) / 35.6).toFixed(2);
-    } else if (num >= 10000) {
-      setOrderCurrency('KHR');
-      if (priceInput) priceInput.value = num;
-      if (totalInput) totalInput.value = (num / 4000).toFixed(2);
-    } else if (num === 18 || num === 36 || num === 54 || num === 72) {
-      // 18 = 180,000៛ ($45), 36 = 360,000៛ ($90), 54 = 540,000៛ ($135), 72 = 720,000៛ ($180)
-      setOrderCurrency('KHR');
-      const rielVal = num * 10000;
-      if (priceInput) priceInput.value = rielVal;
-      if (totalInput) totalInput.value = (rielVal / 4000).toFixed(2);
-    } else if (num > 0) {
-      setOrderCurrency('USD');
-      if (priceInput) priceInput.value = num;
-      if (totalInput) totalInput.value = num.toFixed(2);
+    if (num > 0) {
+      const priceInput = document.getElementById('order-field-price-raw');
+      const totalInput = document.getElementById('order-field-total-usd');
+
+      const isThaiLoc = (address && (address.includes('ថៃ') || address.toLowerCase().includes('thai'))) ||
+                        (delivery && delivery.toLowerCase().includes('thai'));
+
+      let finalCurrency = detectedCurrency;
+      let finalPriceRaw = num;
+      let finalTotalUsd = 0;
+
+      if (isThaiLoc || finalCurrency === 'THB') {
+        finalCurrency = 'THB';
+        finalTotalUsd = (num * 0.97) / 35.6;
+      } else if (finalCurrency === 'USD') {
+        finalTotalUsd = num;
+      } else if (finalCurrency === 'KHR') {
+        if (num < 1000) {
+          finalPriceRaw = num * 10000;
+          finalTotalUsd = (num * 10000) / 4000;
+        } else {
+          finalTotalUsd = num / 4000;
+        }
+      } else {
+        // មិនមាននិមិត្តសញ្ញាប្រាក់ វិភាគតាមទំហំលេខ
+        if (num >= 10000) {
+          finalCurrency = 'KHR';
+          finalTotalUsd = num / 4000;
+        } else if (num === 18 || num === 36 || num === 54 || num === 72) {
+          // Shorthand រៀល: 18 = 180,000៛ ($45), 36 = 360,000៛ ($90)...
+          finalCurrency = 'KHR';
+          finalPriceRaw = num * 10000;
+          finalTotalUsd = (num * 10000) / 4000;
+        } else if (num >= 500) {
+          // លុយបាតថៃ: 3000, 3400, 5700, 6400, 7500...
+          finalCurrency = 'THB';
+          finalTotalUsd = (num * 0.97) / 35.6;
+        } else {
+          // លុយដុល្លារ: 50, 90, 135, 150...
+          finalCurrency = 'USD';
+          finalTotalUsd = num;
+        }
+      }
+
+      setOrderCurrency(finalCurrency);
+      if (priceInput) priceInput.value = finalPriceRaw;
+      if (totalInput) totalInput.value = finalTotalUsd.toFixed(2);
     }
   }
 
