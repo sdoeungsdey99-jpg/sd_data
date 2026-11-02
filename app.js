@@ -29777,10 +29777,10 @@ function renderPagesReportViewContent() {
         <div class="grid grid-cols-2 gap-2 pt-1 text-xs border-t border-white/5">
           <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
             <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ${isEn ? 'Total Chat' : 'ឆាតសរុប'}៖</span>
-            <span class="font-mono font-bold text-white dark:text-white theme-light-text">
-              ${totalChat} 
-              <span class="text-[11px] font-normal">
-                (<span class="text-emerald-400 font-bold">${totalChatTarget}</span>|<span class="${totalChatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${totalChatMistake}</span>)
+            <span class="font-mono font-bold text-white dark:text-white theme-light-text flex items-center gap-1">
+              <span>${totalChat}</span>
+              <span class="text-xs font-mono font-normal text-slate-400">
+                (<span class="text-emerald-400 font-bold text-xs">${totalChatTarget}</span> | <span class="${totalChatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${totalChatMistake}</span>)
               </span>
             </span>
           </div>
@@ -29928,19 +29928,23 @@ function renderPagesReportDetailSection(entries = []) {
               </div>
 
               <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-white/5">
-                <div class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">
-                  💬 ឆាត៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.chat}</span> 
-                  <span class="text-[11px] font-normal">
-                    (<span class="text-emerald-400 font-bold">${g.chatTarget}</span>|<span class="${g.chatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${g.chatMistake}</span>)
+                <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
+                  <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាត៖</span>
+                  <span class="font-mono font-bold text-white dark:text-white theme-light-text flex items-center gap-1">
+                    <span>${g.chat}</span>
+                    <span class="text-xs font-mono font-normal text-slate-400">
+                      (<span class="text-emerald-400 font-bold text-xs">${g.chatTarget}</span> | <span class="${g.chatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${g.chatMistake}</span>)
+                    </span>
                   </span>
                 </div>
-                <div class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">
-                  📞 ខល៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.calls}</span> នាក់
+                <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
+                  <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខល៖</span>
+                  <span class="font-mono font-bold text-white dark:text-white theme-light-text">${g.calls} នាក់</span>
                 </div>
               </div>
 
-              <div class="flex items-center justify-between text-xs pt-1.5 border-t border-white/5 text-slate-300 dark:text-slate-300 theme-light-text-sub">
-                <span class="truncate max-w-[190px] sm:max-w-[240px] font-medium">👥 អ្នកលក់៖ ${Array.from(g.reporters).join(', ') || '—'}</span>
+              <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-xs border-t border-white/5">
+                <span class="truncate max-w-[170px] sm:max-w-[220px] font-medium text-slate-300 dark:text-slate-300 theme-light-text-sub">👥 អ្នកលក់៖ ${Array.from(g.reporters).join(', ') || '—'}</span>
                 <span class="font-mono text-xs font-semibold shrink-0">
                   ថ្មី <span class="${g.newB > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${g.newB}</span> | 
                   ចាស់ <span class="${g.oldB > 0 ? 'text-teal-400 font-bold' : 'text-slate-400'}">${g.oldB}</span> | 
@@ -30008,19 +30012,23 @@ function renderPagesReportDetailSection(entries = []) {
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-white/5">
-              <div class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">
-                💬 ឆាត៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.chat}</span> 
-                <span class="text-[11px] font-normal">
-                  (<span class="text-emerald-400 font-bold">${g.chatTarget}</span>|<span class="${g.chatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${g.chatMistake}</span>)
+              <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
+                <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាត៖</span>
+                <span class="font-mono font-bold text-white dark:text-white theme-light-text flex items-center gap-1">
+                  <span>${g.chat}</span>
+                  <span class="text-xs font-mono font-normal text-slate-400">
+                    (<span class="text-emerald-400 font-bold text-xs">${g.chatTarget}</span> | <span class="${g.chatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${g.chatMistake}</span>)
+                  </span>
                 </span>
               </div>
-              <div class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">
-                📞 ខល៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.calls}</span> នាក់
+              <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
+                <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខល៖</span>
+                <span class="font-mono font-bold text-white dark:text-white theme-light-text">${g.calls} នាក់</span>
               </div>
             </div>
 
-            <div class="flex items-center justify-between text-xs pt-1.5 border-t border-white/5 text-slate-300 dark:text-slate-300 theme-light-text-sub">
-              <span class="truncate max-w-[190px] sm:max-w-[240px] font-medium">📄 ផេក៖ ${Array.from(g.pages).join(', ') || '—'}</span>
+            <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-xs border-t border-white/5">
+              <span class="truncate max-w-[170px] sm:max-w-[220px] font-medium text-slate-300 dark:text-slate-300 theme-light-text-sub">📄 ផេក៖ ${Array.from(g.pages).join(', ') || '—'}</span>
               <span class="font-mono text-xs font-semibold shrink-0">
                 ថ្មី <span class="${g.newB > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${g.newB}</span> | 
                 ចាស់ <span class="${g.oldB > 0 ? 'text-teal-400 font-bold' : 'text-slate-400'}">${g.oldB}</span> | 
@@ -30079,16 +30087,16 @@ function renderSingleCompactPageReportCard(e) {
       <!-- Traffic Line (Chat & Call) -->
       <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-white/5">
         <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-          <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាតសរុប៖</span>
-          <span class="font-mono font-bold text-white dark:text-white theme-light-text">
-            ${e.chatTotal || 0} 
-            <span class="text-[11px] font-normal">
-              (<span class="text-emerald-400 font-bold">${targetCount}</span>|<span class="${mistakeCount > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${mistakeCount}</span>)
+          <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាត៖</span>
+          <span class="font-mono font-bold text-white dark:text-white theme-light-text flex items-center gap-1">
+            <span>${e.chatTotal || 0}</span>
+            <span class="text-xs font-mono font-normal text-slate-400">
+              (<span class="text-emerald-400 font-bold text-xs">${targetCount}</span> | <span class="${mistakeCount > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${mistakeCount}</span>)
             </span>
           </span>
         </div>
         <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-          <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខលផ្ទាល់៖</span>
+          <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខល៖</span>
           <span class="font-mono font-bold text-white dark:text-white theme-light-text">${e.callDirect || 0} នាក់</span>
         </div>
       </div>
