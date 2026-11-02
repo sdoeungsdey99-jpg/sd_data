@@ -3349,6 +3349,16 @@
     }
 
     /* 13.12. ផ្ទាំងបញ្ចូលការកុម្ម៉ង់ថ្មី (New Order Modal: Submit Slider & Copy Capsule Light Mode) */
+    .light-theme #btn-order-apps-assistant.apps-assistant-active {
+      background: linear-gradient(to right, rgba(245, 158, 11, 0.15), rgba(249, 115, 22, 0.15)) !important;
+      border-color: rgba(217, 119, 6, 0.5) !important;
+      color: #B45309 !important;
+    }
+    .light-theme #btn-order-apps-assistant:not(.apps-assistant-active) {
+      background: rgba(0, 0, 0, 0.04) !important;
+      border-color: rgba(0, 0, 0, 0.12) !important;
+      color: #64748B !important;
+    }
     .light-theme #order-submit-container {
       background: transparent !important;
     }
@@ -6904,6 +6914,16 @@
                title="ទម្រង់ដើម (អនុវត្ត 4 in 1)">
               ទម្រង់ដើម
             </button>
+
+            <!-- Right: Admin ស្ដី ស្ដើង Only - Apps Assistant Toggle Button (Strictly in Telegram Mode) -->
+            <button type="button" id="btn-order-apps-assistant" 
+               onclick="toggleOrderAppsAssistant(event)"
+               class="hidden px-3.5 py-1.5 rounded-full text-xs font-bold items-center gap-1.5 border transition active:scale-95 select-none shrink-0 shadow-sm" 
+               title="Apps Assistant (បញ្ចូលចូល Master Data)">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+              <span id="btn-order-apps-assistant-label">Apps Assistant</span>
+              <span id="btn-order-apps-assistant-dot" class="w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0 transition-colors"></span>
+            </button>
           </div>
         </div>
 
@@ -7741,6 +7761,6 @@
   </div>
 
   <script src="dataService.js?v=10.2"></script>
-  <script src="app.js?v=62.5"></script>
+  <script src="app.js?v=62.6"></script>
 </body>
 </html>

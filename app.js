@@ -31716,6 +31716,67 @@ function selectOrderTeam(teamName) {
 }
 
 let currentOrderEntryMode = 'dock'; // 'dock' (3-in-1 fresh order) or 'telegram' (paste from telegram to personal sheet only)
+let isTelegramAppsAssistantActive = false;
+
+function isMasterAdminUser() {
+  try {
+    const isMasterAuth = (typeof localStorage !== 'undefined') && localStorage.getItem('sd_master_admin_authenticated') === 'true';
+    const prof = (typeof getProfileData === 'function') ? getProfileData() : {};
+    const profName = (prof.name || '').trim();
+    const isSdey = profName.includes('ស្តី ស្តើង') || profName.includes('ស្ដី ស្ដើង') || profName.includes('ស្តី ស្នឹង');
+    const activeSheet = (window.DataService && typeof window.DataService.getActiveSheetId === 'function') ? window.DataService.getActiveSheetId() : '';
+    const masterId = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+    return (isMasterAuth && activeSheet === masterId) || (isSdey && activeSheet === masterId) || (isSdey && isMasterAuth);
+  } catch (_) {
+    return false;
+  }
+}
+window.isMasterAdminUser = isMasterAdminUser;
+
+function toggleOrderAppsAssistant(event) {
+  if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+  isTelegramAppsAssistantActive = !isTelegramAppsAssistantActive;
+  try {
+    sessionStorage.setItem('sd_tg_apps_assistant', isTelegramAppsAssistantActive ? 'true' : 'false');
+  } catch (_) {}
+  updateTelegramAppsAssistantUI();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+window.toggleOrderAppsAssistant = toggleOrderAppsAssistant;
+
+function updateTelegramAppsAssistantUI() {
+  const btn = document.getElementById('btn-order-apps-assistant');
+  const dot = document.getElementById('btn-order-apps-assistant-dot');
+  const modalSubtitle = document.getElementById('order-modal-subtitle');
+  const isKm = (appState && appState.language) !== 'en';
+
+  if (isTelegramAppsAssistantActive) {
+    if (btn) {
+      btn.classList.add('apps-assistant-active', 'bg-gradient-to-r', 'from-amber-500/20', 'to-orange-500/20', 'border-amber-400/60', 'text-amber-300', 'shadow-[0_0_12px_rgba(245,158,11,0.25)]');
+      btn.classList.remove('bg-white/5', 'border-white/15', 'text-slate-300');
+    }
+    if (dot) {
+      dot.classList.remove('bg-slate-500');
+      dot.classList.add('bg-emerald-400', 'shadow-sm', 'shadow-emerald-400/80');
+    }
+    if (modalSubtitle && currentOrderEntryMode === 'telegram') {
+      modalSubtitle.textContent = isKm ? 'ចូល Master Data' : 'Entry Master Data';
+    }
+  } else {
+    if (btn) {
+      btn.classList.remove('apps-assistant-active', 'bg-gradient-to-r', 'from-amber-500/20', 'to-orange-500/20', 'border-amber-400/60', 'text-amber-300', 'shadow-[0_0_12px_rgba(245,158,11,0.25)]');
+      btn.classList.add('bg-white/5', 'border-white/15', 'text-slate-300');
+    }
+    if (dot) {
+      dot.classList.add('bg-slate-500');
+      dot.classList.remove('bg-emerald-400', 'shadow-sm', 'shadow-emerald-400/80');
+    }
+    if (modalSubtitle && currentOrderEntryMode === 'telegram') {
+      modalSubtitle.textContent = isKm ? 'កត់ត្រាផ្ទាល់ខ្លួន' : 'Personal Sales';
+    }
+  }
+}
+window.updateTelegramAppsAssistantUI = updateTelegramAppsAssistantUI;
 
 function openNewOrderModal(mode = 'dock') {
   currentOrderEntryMode = mode || 'dock';
@@ -31748,9 +31809,36 @@ function openNewOrderModal(mode = 'dock') {
   const sliderHint = document.getElementById('order-slider-hint');
   const btnSubmitOrder = document.getElementById('btn-submit-order');
 
+  const isKm = (appState && appState.language) !== 'en';
+  const isMasterAdmin = isMasterAdminUser();
+  const btnAppsAssistant = document.getElementById('btn-order-apps-assistant');
+
   if (currentOrderEntryMode === 'telegram') {
-    if (modalTitle) modalTitle.textContent = 'កត់ត្រាពី Telegram';
-    if (modalSubtitle) modalSubtitle.textContent = 'ចូល Google Sheet ផ្ទាល់ខ្លួន';
+    if (modalTitle) modalTitle.textContent = isKm ? 'កត់ត្រាពី Telegram' : 'Record from Telegram';
+    
+    // Check saved state in sessionStorage
+    try {
+      const savedAssState = sessionStorage.getItem('sd_tg_apps_assistant');
+      if (savedAssState !== null) {
+        isTelegramAppsAssistantActive = (savedAssState === 'true');
+      } else {
+        isTelegramAppsAssistantActive = false;
+      }
+    } catch (_) {}
+
+    // Show Apps Assistant button ONLY if user is Master Admin ស្ដី ស្ដើង
+    if (btnAppsAssistant) {
+      if (isMasterAdmin) {
+        btnAppsAssistant.classList.remove('hidden');
+        btnAppsAssistant.classList.add('flex');
+      } else {
+        btnAppsAssistant.classList.add('hidden');
+        btnAppsAssistant.classList.remove('flex');
+        isTelegramAppsAssistantActive = false;
+      }
+    }
+    updateTelegramAppsAssistantUI();
+
     if (pasteBox) pasteBox.classList.remove('hidden');
     if (btnHeaderPass) btnHeaderPass.classList.remove('hidden');
     if (card3in1) {
@@ -31817,6 +31905,10 @@ function openNewOrderModal(mode = 'dock') {
     }
     const btnOriginalForm = document.getElementById('btn-order-original-form');
     if (btnOriginalForm) btnOriginalForm.classList.remove('hidden');
+    if (btnAppsAssistant) {
+      btnAppsAssistant.classList.add('hidden');
+      btnAppsAssistant.classList.remove('flex');
+    }
     // Dock Mode: Show Slide ONLY, Hide Button completely!
     if (btnSubmitOrder) {
       btnSubmitOrder.classList.add('hidden');
@@ -31867,7 +31959,7 @@ function openNewOrderModal(mode = 'dock') {
       sellerInput.value = savedSeller;
       sellerInput.readOnly = false;
       sellerInput.classList.remove('opacity-80', 'bg-white/5', 'cursor-not-allowed');
-      sellerInput.setAttribute('list', 'order-seller-datalist');
+      sellerInput.setAttribute('list', 'bostar-sellers-list');
       onSellerNameChange(savedSeller);
     }
     const savedSellerPhone = localStorage.getItem('sd_last_seller_phone') || profile.phone || '';
@@ -33182,8 +33274,10 @@ async function submitNewOrder() {
     deliveryMethod: delivery,
     codStatus: codStatus, // ស្ថានភាពដែលបានជ្រើសរើស (បានដាក់ការកុម្ម៉ង់, មិនទាន់ទូទាត់, បានទូទាត់)
     profit: profit,
-    note: note,
-    syncToBostarTrack: (currentOrderEntryMode === 'dock'), // Master Data ទទួលតែពីការកុម្ម៉ង់ថ្មី (Dock Order) ប៉ុណ្ណោះ
+    note: (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive)
+      ? ((note ? note + ' • ' : '') + '(Apps Assistant)')
+      : note,
+    syncToBostarTrack: (currentOrderEntryMode === 'dock') || (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive), // Master Data ទទួលពី Dock Order និង Apps Assistant
     createdAt: Date.now()
   };
 
@@ -33218,8 +33312,10 @@ async function submitNewOrder() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'add_order',
-          sheetId: (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '',
-          syncToBostarTrack: isDockOrder, // Strictly true សម្រាប់តែកុម្ម៉ង់ថ្មី (Dock) ប៉ុណ្ណោះ ហាម Telegram Mode
+          sheetId: (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive)
+            ? '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU'
+            : ((typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : ''),
+          syncToBostarTrack: (currentOrderEntryMode === 'dock') || (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive),
           data: newRecord
         })
       }).then(() => {
@@ -33260,16 +33356,21 @@ async function submitNewOrder() {
   }
 
   if (syncSuccess || companyFormSuccess) {
-    const successMsg = (syncToCompany && companyFormSuccess) 
-      ? '✅ បានកត់ត្រាការលក់ និង Sync ចូល BostarTrack / Form ក្រុមហ៊ុនជោគជ័យ! 🚀'
-      : '✅ បានកត់ត្រាការលក់ចូល Google Sheet ជោគជ័យ! 🚀';
+    const isKm = (appState && appState.language) !== 'en';
+    let successMsg = (syncToCompany && companyFormSuccess) 
+      ? (isKm ? '✅ បានកត់ត្រាការលក់ និង Sync ចូល BostarTrack / Form ក្រុមហ៊ុនជោគជ័យ! 🚀' : '✅ Recorded and Synced to BostarTrack / Company Form successfully! 🚀')
+      : (isKm ? '✅ បានកត់ត្រាការលក់ចូល Google Sheet ជោគជ័យ! 🚀' : '✅ Recorded to Google Sheet successfully! 🚀');
+
+    if (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive) {
+      successMsg = isKm ? '✅ បានបញ្ចូលទៅ Master Data ជោគជ័យ (Apps Assistant)! 🚀' : '✅ Saved to Master Data successfully (Apps Assistant)! 🚀';
+    }
 
     if (typeof addAppNotification === 'function') {
       addAppNotification({
         type: 'order',
-        title: (syncToCompany ? 'កុម្ម៉ង់ 3-in-1: ' : 'កត់ត្រាការលក់: ') + `${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
+        title: (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive ? 'Apps Assistant: ' : (syncToCompany ? 'កុម្ម៉ង់ 3-in-1: ' : 'កត់ត្រាការលក់: ')) + `${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
         content: `${newRecord.product} | ${totalBoxes} ប្រអប់ | $${formatUSD(totalUsd).replace('$', '')} | Team: ${team} | ដឹក: ${delivery}`,
-        tag: syncToCompany ? 'BostarTrack & Sheet ✓' : 'Google Sheet ✓',
+        tag: (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive) ? 'Master Data ✓' : (syncToCompany ? 'BostarTrack & Sheet ✓' : 'Google Sheet ✓'),
         color: isReward ? 'amber' : (isReturn ? 'sky' : 'orange'),
         icon: isReward ? 'gift' : (isReturn ? 'rotate-ccw' : 'package')
       });
