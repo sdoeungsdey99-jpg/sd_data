@@ -29381,6 +29381,9 @@ function mapSellerNameToKhmer(rawName) {
   if (norm.includes('seth') || norm.includes('sim seth')) {
     return 'សឹម សិត';
   }
+  if (norm.includes('leanghak') || norm.includes('sroeun leanghak')) {
+    return 'ស្រឿន លាងហាក់';
+  }
   return s;
 }
 
@@ -29481,7 +29484,7 @@ function getManagedMembersForCurrentUser() {
 function initPagesReportMemberState() {
   const userRole = getPagesReportUserRole();
   if (!pagesReportState.hasInitializedMember) {
-    pagesReportState.selectedMember = 'self';
+    pagesReportState.selectedMember = userRole.isExecutive ? 'all' : 'self';
     pagesReportState.hasInitializedMember = true;
   }
 }
@@ -29696,18 +29699,18 @@ function renderPagesReportViewContent() {
         <div class="flex items-center justify-between gap-1.5">
           <div class="flex items-center p-1 rounded-xl bg-white/5 dark:bg-white/5 border border-white/5 flex-1">
             <button type="button" onclick="setPagesReportTimeFilter('day')" 
-                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'day' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
-              <i data-lucide="calendar" class="w-3 h-3"></i>
+                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-1.5 ${pagesReportState.timeFilter === 'day' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
               <span>${isEn ? 'Day' : 'ថ្ងៃ'}</span>
             </button>
             <button type="button" onclick="setPagesReportTimeFilter('week')" 
-                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'week' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
-              <i data-lucide="calendar-range" class="w-3 h-3"></i>
+                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-1.5 ${pagesReportState.timeFilter === 'week' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+              <i data-lucide="calendar-range" class="w-3.5 h-3.5"></i>
               <span>${isEn ? 'Week' : 'សប្តាហ៍'}</span>
             </button>
             <button type="button" onclick="setPagesReportTimeFilter('month')" 
-                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] sm:text-xs transition active:scale-95 flex items-center justify-center gap-1 ${pagesReportState.timeFilter === 'month' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
-              <i data-lucide="pie-chart" class="w-3 h-3"></i>
+                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-1.5 ${pagesReportState.timeFilter === 'month' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+              <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
               <span>${isEn ? 'Month' : 'ខែ'}</span>
             </button>
           </div>
@@ -29715,17 +29718,17 @@ function renderPagesReportViewContent() {
           <!-- Date Stepper (Prev / Current / Next) joined with equal height -->
           <div class="inline-flex items-center rounded-xl bg-white/5 dark:bg-white/5 border border-white/10 p-0.5 shrink-0 shadow-sm theme-light-card">
             <button type="button" onclick="stepPagesReportDate(-1)" 
-                    class="h-7 w-7 rounded-lg hover:bg-white/10 text-slate-300 dark:text-slate-300 flex items-center justify-center active:scale-95 transition" 
+                    class="h-7.5 w-7.5 rounded-lg hover:bg-white/10 text-slate-300 dark:text-slate-300 flex items-center justify-center active:scale-95 transition" 
                     title="${isEn ? 'Previous' : 'ថយក្រោយ'}">
               <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
             </button>
             <button type="button" onclick="resetPagesReportDateToToday()" 
-                    class="h-7 px-2.5 rounded-lg hover:bg-white/10 text-emerald-400 font-mono font-bold text-[10.5px] active:scale-95 transition flex items-center justify-center border-x border-white/5" 
+                    class="h-7.5 px-3 rounded-lg hover:bg-white/10 text-emerald-400 font-mono font-bold text-xs active:scale-95 transition flex items-center justify-center border-x border-white/5" 
                     title="${stepperLabel}">
               <span>${stepperLabel}</span>
             </button>
             <button type="button" onclick="stepPagesReportDate(1)" 
-                    class="h-7 w-7 rounded-lg hover:bg-white/10 text-slate-300 dark:text-slate-300 flex items-center justify-center active:scale-95 transition" 
+                    class="h-7.5 w-7.5 rounded-lg hover:bg-white/10 text-slate-300 dark:text-slate-300 flex items-center justify-center active:scale-95 transition" 
                     title="${isEn ? 'Next' : 'ទៅមុខ'}">
               <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
             </button>
@@ -29733,26 +29736,26 @@ function renderPagesReportViewContent() {
         </div>
 
         <!-- Date Range Indicator & Member Dropdown for Leaders/Managers -->
-        <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/5 text-xs">
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-white/5 text-xs">
           <div class="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 font-semibold theme-light-text">
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="font-mono text-emerald-400 dark:text-emerald-300 font-bold">${timeDisplayLabel}</span>
-            <span class="text-[10px] text-slate-400">(${entries.length} ${isEn ? 'Reports' : 'របាយការណ៍'})</span>
+            <span class="font-mono text-emerald-400 dark:text-emerald-300 font-bold text-xs sm:text-sm">${timeDisplayLabel}</span>
+            <span class="text-[11px] text-slate-400 font-medium">(${entries.length} ${isEn ? 'Reports' : 'របាយការណ៍'})</span>
           </div>
 
           ${userRole.isExecutive && managedMembers.length > 1 ? `
           <div class="flex items-center gap-1.5">
-            <label class="text-[11px] text-slate-400">${isEn ? 'Filter:' : 'សមាជិក៖'}</label>
+            <label class="text-xs text-slate-400 font-medium">${isEn ? 'Filter:' : 'សមាជិក៖'}</label>
             <select onchange="setPagesReportMember(this.value)" 
                     class="bg-black/60 dark:bg-black/60 border border-white/15 rounded-xl px-2.5 py-1 text-white font-semibold text-xs focus:outline-none focus:border-emerald-500 theme-light-input">
-              <option value="self" ${pagesReportState.selectedMember === 'self' ? 'selected' : ''}>👤 ${escapeHtml(userRole.name || 'ខ្លួនឯង')} (ផ្ទាល់ខ្លួន)</option>
               <option value="all" ${pagesReportState.selectedMember === 'all' ? 'selected' : ''}>${allTeamLabel}</option>
+              <option value="self" ${pagesReportState.selectedMember === 'self' ? 'selected' : ''}>👤 ${escapeHtml(userRole.name || 'ខ្លួនឯង')} (ផ្ទាល់ខ្លួន)</option>
               ${managedMembers.filter(m => normalizeSellerName(m) !== normalizeSellerName(userRole.name)).map(m => `<option value="${escapeHtml(m)}" ${pagesReportState.selectedMember === m ? 'selected' : ''}>👤 ${escapeHtml(m)}</option>`).join('')}
             </select>
           </div>
           ` : `
-          <div class="text-[11px] text-slate-300 dark:text-slate-300 flex items-center gap-1 font-semibold theme-light-text">
-            <i data-lucide="user" class="w-3 h-3 text-sky-400"></i>
+          <div class="text-xs text-slate-300 dark:text-slate-300 flex items-center gap-1.5 font-semibold theme-light-text">
+            <i data-lucide="user" class="w-3.5 h-3.5 text-sky-400"></i>
             <span>${escapeHtml(userRole.name || 'សមាជិក')}</span>
           </div>
           `}
@@ -29760,9 +29763,9 @@ function renderPagesReportViewContent() {
       </div>
 
       <!-- Macro Summary Badge (Boxes, Chat, Calls) -->
-      <div class="p-3 rounded-2xl bg-gradient-to-br from-[#0E1C38] to-[#0A1325] border border-emerald-500/30 space-y-2 shadow-lg theme-light-card">
+      <div class="p-3.5 rounded-2xl bg-gradient-to-br from-[#0E1C38] to-[#0A1325] border border-emerald-500/30 space-y-2.5 shadow-lg theme-light-card">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-white dark:text-white flex items-center gap-1.5 theme-light-text">
+          <span class="text-xs sm:text-sm font-bold text-white dark:text-white flex items-center gap-1.5 theme-light-text">
             <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
             <span>${isEn ? 'Total Boxes Sold' : 'សរុបលក់បានទាំងអស់'}</span>
           </span>
@@ -29771,25 +29774,25 @@ function renderPagesReportViewContent() {
           </span>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 pt-1 text-[11px] border-t border-white/5">
+        <div class="grid grid-cols-2 gap-2 pt-1 text-xs border-t border-white/5">
           <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-            <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">💬 ${isEn ? 'Total Chat' : 'ឆាតសរុប'}៖</span>
+            <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ${isEn ? 'Total Chat' : 'ឆាតសរុប'}៖</span>
             <span class="font-mono font-bold text-white dark:text-white theme-light-text">
               ${totalChat} 
-              <span class="text-[9.5px]">
+              <span class="text-[11px] font-normal">
                 (<span class="text-emerald-400 font-bold">${totalChatTarget}</span>|<span class="${totalChatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${totalChatMistake}</span>)
               </span>
             </span>
           </div>
           <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-            <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📞 ${isEn ? 'Direct Calls' : 'ខលផ្ទាល់'}៖</span>
+            <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📞 ${isEn ? 'Direct Calls' : 'ខលផ្ទាល់'}៖</span>
             <span class="font-mono font-bold text-white dark:text-white theme-light-text">${totalCalls} ${isEn ? 'Calls' : 'នាក់'}</span>
           </div>
         </div>
 
-        <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-[11px]">
-          <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📦 ${isEn ? 'Sales Breakdown' : 'លក់ជាក់ស្តែង'}៖</span>
-          <span class="font-mono font-semibold text-[10.5px]">
+        <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-xs">
+          <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📦 ${isEn ? 'Sales Breakdown' : 'លក់ជាក់ស្តែង'}៖</span>
+          <span class="font-mono font-semibold text-xs">
             <span class="text-slate-300">${isEn ? 'New' : 'ថ្មី'}</span> <span class="${buyNewB > 0 ? 'text-emerald-300 font-bold' : 'text-slate-400'}">${buyNewB}</span> | 
             <span class="text-slate-300">${isEn ? 'Repeat' : 'ចាស់'}</span> <span class="${buyOldB > 0 ? 'text-teal-300 font-bold' : 'text-slate-400'}">${buyOldB}</span> | 
             <span class="text-slate-300">Follow</span> <span class="${buyFollowB > 0 ? 'text-sky-300 font-bold' : 'text-slate-400'}">${buyFollowB}</span>
@@ -29800,12 +29803,12 @@ function renderPagesReportViewContent() {
       <!-- Sub-view Switcher (By Pages vs By Members) - Always Visible across Day, Week & Month -->
       <div class="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 dark:bg-white/5 border border-white/10 theme-light-card">
         <button type="button" onclick="setPagesReportSubView('pages')" 
-                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'pages' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+                class="flex-1 py-1.5 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'pages' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
           <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
           <span>${isEn ? 'By Pages' : 'តាមផេក'}</span>
         </button>
         <button type="button" onclick="setPagesReportSubView('members')" 
-                class="flex-1 py-1.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'members' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+                class="flex-1 py-1.5 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'members' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
           <i data-lucide="users" class="w-3.5 h-3.5"></i>
           <span>${isEn ? 'By Members' : 'តាមសមាជិក'}</span>
         </button>
@@ -30036,13 +30039,13 @@ function renderSingleCompactPageReportCard(e) {
     <div class="p-3.5 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-emerald-500/30 transition space-y-2.5 theme-light-card">
       <!-- Card Top: Page Name & Reporter -->
       <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2 min-w-0">
-          <div class="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
-            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">${escapeHtml(e.page || 'ផេកទូទៅ')}</h4>
-            <p class="text-[10px] text-slate-400 truncate flex items-center gap-1">
+            <h4 class="font-bold text-sm text-white dark:text-white truncate theme-light-text">${escapeHtml(e.page || 'ផេកទូទៅ')}</h4>
+            <p class="text-[11.5px] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
               <span class="font-semibold text-slate-300 dark:text-slate-300 theme-light-text">👤 ${escapeHtml(reporterKm)}</span>
               <span>•</span>
               <span class="font-mono">${e.ddmmyyyy || ''}</span>
@@ -30051,33 +30054,33 @@ function renderSingleCompactPageReportCard(e) {
         </div>
 
         <div class="text-right shrink-0">
-          <span class="px-2.5 py-1 rounded-xl font-mono text-xs ${boxBadgeStyle}">
+          <span class="px-2.5 py-1 rounded-xl font-mono text-xs font-bold ${boxBadgeStyle}">
             ${boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
           </span>
         </div>
       </div>
 
       <!-- Traffic Line (Chat & Call) -->
-      <div class="grid grid-cols-2 gap-2 text-[11px] pt-1.5 border-t border-white/5">
+      <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-white/5">
         <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-          <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">💬 ឆាតសរុប៖</span>
+          <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាតសរុប៖</span>
           <span class="font-mono font-bold text-white dark:text-white theme-light-text">
             ${e.chatTotal || 0} 
-            <span class="text-[9.5px] font-normal">
+            <span class="text-[11px] font-normal">
               (<span class="text-emerald-400 font-bold">${targetCount}</span>|<span class="${mistakeCount > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${mistakeCount}</span>)
             </span>
           </span>
         </div>
         <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-          <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📞 ខលផ្ទាល់៖</span>
+          <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខលផ្ទាល់៖</span>
           <span class="font-mono font-bold text-white dark:text-white theme-light-text">${e.callDirect || 0} នាក់</span>
         </div>
       </div>
 
       <!-- Sales Breakdown Line -->
-      <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-[11px]">
-        <span class="text-slate-300 dark:text-slate-300 theme-light-text-sub">📦 លទ្ធផលលក់៖</span>
-        <span class="font-mono font-semibold text-[10.5px]">
+      <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-xs">
+        <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📦 លទ្ធផលលក់៖</span>
+        <span class="font-mono font-semibold text-xs">
           <span class="text-slate-300">ថ្មី</span> <span class="${(e.buyNewB || 0) > 0 ? 'text-emerald-300 font-bold' : 'text-slate-400'}">${e.buyNewB || 0}</span> | 
           <span class="text-slate-300">ចាស់</span> <span class="${(e.buyOldB || 0) > 0 ? 'text-teal-300 font-bold' : 'text-slate-400'}">${e.buyOldB || 0}</span> | 
           <span class="text-slate-300">Follow</span> <span class="${(e.buyFollowB || 0) > 0 ? 'text-sky-300 font-bold' : 'text-slate-400'}">${e.buyFollowB || 0}</span>
