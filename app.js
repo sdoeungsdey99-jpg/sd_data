@@ -29684,78 +29684,79 @@ function renderPagesReportViewContent() {
         : (isEn ? '👥 All Team' : '👥 ក្រុមការងារទាំងអស់'));
 
   // Macro Boxes Badge Style
-  let macroBoxBadgeClass = 'text-slate-400 bg-white/5 border border-white/10';
+  let macroBoxBadgeClass = 'text-slate-600 bg-slate-100 border border-slate-200 dark:text-slate-400 dark:bg-white/5 dark:border-white/10';
   if (totalBoxes >= 5) {
-    macroBoxBadgeClass = 'text-emerald-300 bg-emerald-500/25 border border-emerald-500/40 shadow-emerald-500/20';
+    macroBoxBadgeClass = 'text-emerald-700 bg-emerald-50 border border-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/25 dark:border-emerald-500/40 shadow-sm';
   } else if (totalBoxes > 0) {
-    macroBoxBadgeClass = 'text-sky-300 bg-sky-500/20 border border-sky-500/30';
+    macroBoxBadgeClass = 'text-sky-700 bg-sky-50 border border-sky-200 dark:text-sky-300 dark:bg-sky-500/20 dark:border-sky-500/30';
   }
 
   return `
     <div class="space-y-3 select-none">
       
       <!-- Top Time Filter Pills (Day | Week | Month) -->
-      <div class="p-2.5 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 theme-light-card space-y-2">
-        <div class="flex items-center justify-between gap-1.5">
-          <div class="flex items-center p-1 rounded-xl bg-white/5 dark:bg-white/5 border border-white/5 flex-1">
+      <div class="p-2.5 rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 theme-light-card space-y-2.5 shadow-sm dark:shadow-none">
+        <div class="flex items-center justify-between gap-2">
+          <!-- Time Filter Segmented Control -->
+          <div class="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex-1">
             <button type="button" onclick="setPagesReportTimeFilter('day')" 
-                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-1.5 ${pagesReportState.timeFilter === 'day' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+                    class="h-8 flex-1 px-2 rounded-lg font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-1.5 ${pagesReportState.timeFilter === 'day' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white theme-light-text-sub'}">
               <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
               <span>${isEn ? 'Day' : 'ថ្ងៃ'}</span>
             </button>
             <button type="button" onclick="setPagesReportTimeFilter('week')" 
-                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-1.5 ${pagesReportState.timeFilter === 'week' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+                    class="h-8 flex-1 px-2 rounded-lg font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-1.5 ${pagesReportState.timeFilter === 'week' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white theme-light-text-sub'}">
               <i data-lucide="calendar-range" class="w-3.5 h-3.5"></i>
               <span>${isEn ? 'Week' : 'សប្តាហ៍'}</span>
             </button>
             <button type="button" onclick="setPagesReportTimeFilter('month')" 
-                    class="flex-1 py-1.5 px-2 rounded-lg font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-1.5 ${pagesReportState.timeFilter === 'month' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+                    class="h-8 flex-1 px-2 rounded-lg font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-1.5 ${pagesReportState.timeFilter === 'month' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white theme-light-text-sub'}">
               <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
               <span>${isEn ? 'Month' : 'ខែ'}</span>
             </button>
           </div>
 
-          <!-- Date Stepper (Prev / Current / Next) joined with equal height -->
-          <div class="inline-flex items-center rounded-xl bg-white/5 dark:bg-white/5 border border-white/10 p-0.5 shrink-0 shadow-sm theme-light-card">
+          <!-- Date Stepper Button (< ថ្ងៃនេះ >) with Perfect Height & Colors -->
+          <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 shrink-0">
             <button type="button" onclick="stepPagesReportDate(-1)" 
-                    class="h-7.5 w-7.5 rounded-lg hover:bg-white/10 text-slate-300 dark:text-slate-300 flex items-center justify-center active:scale-95 transition" 
+                    class="h-8 w-8 rounded-lg hover:bg-white/80 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center active:scale-95 transition" 
                     title="${isEn ? 'Previous' : 'ថយក្រោយ'}">
-              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
             </button>
             <button type="button" onclick="resetPagesReportDateToToday()" 
-                    class="h-7.5 px-3 rounded-lg hover:bg-white/10 text-emerald-400 font-mono font-bold text-xs active:scale-95 transition flex items-center justify-center border-x border-white/5" 
+                    class="h-8 px-2.5 sm:px-3 rounded-lg hover:bg-white/80 dark:hover:bg-white/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs sm:text-sm active:scale-95 transition flex items-center justify-center border-x border-slate-200 dark:border-white/10" 
                     title="${stepperLabel}">
               <span>${stepperLabel}</span>
             </button>
             <button type="button" onclick="stepPagesReportDate(1)" 
-                    class="h-7.5 w-7.5 rounded-lg hover:bg-white/10 text-slate-300 dark:text-slate-300 flex items-center justify-center active:scale-95 transition" 
+                    class="h-8 w-8 rounded-lg hover:bg-white/80 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center active:scale-95 transition" 
                     title="${isEn ? 'Next' : 'ទៅមុខ'}">
-              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
             </button>
           </div>
         </div>
 
         <!-- Date Range Indicator & Member Dropdown for Leaders/Managers -->
-        <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-white/5 text-xs">
-          <div class="flex items-center gap-1.5 text-slate-300 dark:text-slate-300 font-semibold theme-light-text">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="font-mono text-emerald-400 dark:text-emerald-300 font-bold text-xs sm:text-sm">${timeDisplayLabel}</span>
-            <span class="text-[11px] text-slate-400 font-medium">(${entries.length} ${isEn ? 'Reports' : 'របាយការណ៍'})</span>
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-white/5 text-xs">
+          <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-semibold theme-light-text">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="font-mono text-emerald-600 dark:text-emerald-300 font-bold text-xs sm:text-sm">${timeDisplayLabel}</span>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">(${entries.length} ${isEn ? 'Reports' : 'របាយការណ៍'})</span>
           </div>
 
           ${userRole.isExecutive && managedMembers.length > 1 ? `
           <div class="flex items-center gap-1.5">
-            <label class="text-xs text-slate-400 font-medium">${isEn ? 'Filter:' : 'សមាជិក៖'}</label>
+            <label class="text-xs text-slate-500 dark:text-slate-400 font-medium">${isEn ? 'Filter:' : 'សមាជិក៖'}</label>
             <select onchange="setPagesReportMember(this.value)" 
-                    class="bg-black/60 dark:bg-black/60 border border-white/15 rounded-xl px-2.5 py-1 text-white font-semibold text-xs focus:outline-none focus:border-emerald-500 theme-light-input">
+                    class="bg-slate-100 dark:bg-black/60 border border-slate-300 dark:border-white/15 rounded-xl px-2.5 py-1 text-slate-800 dark:text-white font-semibold text-xs focus:outline-none focus:border-emerald-500 theme-light-input">
               <option value="all" ${pagesReportState.selectedMember === 'all' ? 'selected' : ''}>${allTeamLabel}</option>
               <option value="self" ${pagesReportState.selectedMember === 'self' ? 'selected' : ''}>👤 ${escapeHtml(userRole.name || 'ខ្លួនឯង')} (ផ្ទាល់ខ្លួន)</option>
               ${managedMembers.filter(m => normalizeSellerName(m) !== normalizeSellerName(userRole.name)).map(m => `<option value="${escapeHtml(m)}" ${pagesReportState.selectedMember === m ? 'selected' : ''}>👤 ${escapeHtml(m)}</option>`).join('')}
             </select>
           </div>
           ` : `
-          <div class="text-xs text-slate-300 dark:text-slate-300 flex items-center gap-1.5 font-semibold theme-light-text">
-            <i data-lucide="user" class="w-3.5 h-3.5 text-sky-400"></i>
+          <div class="text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1.5 font-semibold theme-light-text">
+            <i data-lucide="user" class="w-3.5 h-3.5 text-sky-500 dark:text-sky-400"></i>
             <span>${escapeHtml(userRole.name || 'សមាជិក')}</span>
           </div>
           `}
@@ -29763,10 +29764,10 @@ function renderPagesReportViewContent() {
       </div>
 
       <!-- Macro Summary Badge (Boxes, Chat, Calls) -->
-      <div class="p-3.5 rounded-2xl bg-gradient-to-br from-[#0E1C38] to-[#0A1325] border border-emerald-500/30 space-y-2.5 shadow-lg theme-light-card">
+      <div class="p-3.5 rounded-2xl bg-white dark:bg-gradient-to-br dark:from-[#0E1C38] dark:to-[#0A1325] border border-slate-200 dark:border-emerald-500/30 space-y-2.5 shadow-sm dark:shadow-lg theme-light-card">
         <div class="flex items-center justify-between">
-          <span class="text-xs sm:text-sm font-bold text-white dark:text-white flex items-center gap-1.5 theme-light-text">
-            <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
+          <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5 theme-light-text">
+            <i data-lucide="award" class="w-4 h-4 text-emerald-500 dark:text-emerald-400"></i>
             <span>${isEn ? 'Total Boxes Sold' : 'សរុបលក់បានទាំងអស់'}</span>
           </span>
           <span class="px-2.5 py-1 rounded-xl font-mono font-black text-sm sm:text-base ${macroBoxBadgeClass}">
@@ -29774,41 +29775,41 @@ function renderPagesReportViewContent() {
           </span>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 pt-1 text-xs border-t border-white/5">
-          <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-            <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ${isEn ? 'Total Chat' : 'ឆាតសរុប'}៖</span>
-            <span class="font-mono font-bold text-white dark:text-white theme-light-text flex items-center gap-1">
+        <div class="grid grid-cols-2 gap-2 pt-1 text-xs border-t border-slate-100 dark:border-white/5">
+          <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between">
+            <span class="text-slate-600 dark:text-slate-300 font-medium theme-light-text-sub">💬 ${isEn ? 'Total Chat' : 'ឆាតសរុប'}៖</span>
+            <span class="font-mono font-bold text-slate-900 dark:text-white theme-light-text flex items-center gap-1">
               <span>${totalChat}</span>
-              <span class="text-xs font-mono font-normal text-slate-400">
-                (<span class="text-emerald-400 font-bold text-xs">${totalChatTarget}</span> | <span class="${totalChatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${totalChatMistake}</span>)
+              <span class="text-xs font-mono font-normal text-slate-500 dark:text-slate-400">
+                (<span class="text-emerald-600 dark:text-emerald-400 font-bold text-xs">${totalChatTarget}</span> | <span class="${totalChatMistake > 0 ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${totalChatMistake}</span>)
               </span>
             </span>
           </div>
-          <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-            <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📞 ${isEn ? 'Direct Calls' : 'ខលផ្ទាល់'}៖</span>
-            <span class="font-mono font-bold text-white dark:text-white theme-light-text">${totalCalls} ${isEn ? 'Calls' : 'នាក់'}</span>
+          <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between">
+            <span class="text-slate-600 dark:text-slate-300 font-medium theme-light-text-sub">📞 ${isEn ? 'Direct Calls' : 'ខលផ្ទាល់'}៖</span>
+            <span class="font-mono font-bold text-slate-900 dark:text-white theme-light-text">${totalCalls} ${isEn ? 'Calls' : 'នាក់'}</span>
           </div>
         </div>
 
-        <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-xs">
-          <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📦 ${isEn ? 'Sales Breakdown' : 'លក់ជាក់ស្តែង'}៖</span>
+        <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
+          <span class="text-slate-600 dark:text-slate-300 font-medium theme-light-text-sub">📦 ${isEn ? 'Sales Breakdown' : 'លក់ជាក់ស្តែង'}៖</span>
           <span class="font-mono font-semibold text-xs">
-            <span class="text-slate-300">${isEn ? 'New' : 'ថ្មី'}</span> <span class="${buyNewB > 0 ? 'text-emerald-300 font-bold' : 'text-slate-400'}">${buyNewB}</span> | 
-            <span class="text-slate-300">${isEn ? 'Repeat' : 'ចាស់'}</span> <span class="${buyOldB > 0 ? 'text-teal-300 font-bold' : 'text-slate-400'}">${buyOldB}</span> | 
-            <span class="text-slate-300">Follow</span> <span class="${buyFollowB > 0 ? 'text-sky-300 font-bold' : 'text-slate-400'}">${buyFollowB}</span>
+            <span class="text-slate-500 dark:text-slate-300">${isEn ? 'New' : 'ថ្មី'}</span> <span class="${buyNewB > 0 ? 'text-emerald-600 dark:text-emerald-300 font-bold' : 'text-slate-400'}">${buyNewB}</span> | 
+            <span class="text-slate-500 dark:text-slate-300">${isEn ? 'Repeat' : 'ចាស់'}</span> <span class="${buyOldB > 0 ? 'text-teal-600 dark:text-teal-300 font-bold' : 'text-slate-400'}">${buyOldB}</span> | 
+            <span class="text-slate-500 dark:text-slate-300">Follow</span> <span class="${buyFollowB > 0 ? 'text-sky-600 dark:text-sky-300 font-bold' : 'text-slate-400'}">${buyFollowB}</span>
           </span>
         </div>
       </div>
 
       <!-- Sub-view Switcher (By Pages vs By Members) - Always Visible across Day, Week & Month -->
-      <div class="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 dark:bg-white/5 border border-white/10 theme-light-card">
+      <div class="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 theme-light-card">
         <button type="button" onclick="setPagesReportSubView('pages')" 
-                class="flex-1 py-1.5 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'pages' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+                class="h-8 flex-1 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'pages' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white theme-light-text-sub'}">
           <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
           <span>${isEn ? 'By Pages' : 'តាមផេក'}</span>
         </button>
         <button type="button" onclick="setPagesReportSubView('members')" 
-                class="flex-1 py-1.5 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'members' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-300 dark:text-slate-300 hover:text-white theme-light-text-sub'}">
+                class="h-8 flex-1 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition active:scale-95 ${pagesReportState.subView === 'members' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white theme-light-text-sub'}">
           <i data-lucide="users" class="w-3.5 h-3.5"></i>
           <span>${isEn ? 'By Members' : 'តាមសមាជិក'}</span>
         </button>
@@ -29898,27 +29899,27 @@ function renderPagesReportDetailSection(entries = []) {
     return `
       <div class="space-y-2.5">
         ${sortedPages.map((g, idx) => {
-          let boxBadgeClass = 'text-slate-400 bg-white/5 border border-white/10';
+          let boxBadgeClass = 'text-slate-600 bg-slate-100 border border-slate-200 dark:text-slate-400 dark:bg-white/5 dark:border-white/10';
           if (g.boxes >= 5) {
-            boxBadgeClass = 'text-emerald-300 bg-emerald-500/25 border border-emerald-500/40 shadow-emerald-500/10 font-black';
+            boxBadgeClass = 'text-emerald-700 bg-emerald-50 border border-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/25 dark:border-emerald-500/40 shadow-sm font-black';
           } else if (g.boxes > 0) {
-            boxBadgeClass = 'text-sky-300 bg-sky-500/20 border border-sky-500/30 font-bold';
+            boxBadgeClass = 'text-sky-700 bg-sky-50 border border-sky-200 dark:text-sky-300 dark:bg-sky-500/20 dark:border-sky-500/30 font-bold';
           }
 
-          let rankBadgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-          if (idx === 0) rankBadgeClass = 'bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-sm';
-          else if (idx === 1) rankBadgeClass = 'bg-slate-300/20 text-slate-200 border-slate-300/40';
-          else if (idx === 2) rankBadgeClass = 'bg-amber-700/25 text-amber-300 border-amber-600/40';
+          let rankBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30';
+          if (idx === 0) rankBadgeClass = 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-500/25 dark:text-amber-300 dark:border-amber-500/40 shadow-sm';
+          else if (idx === 1) rankBadgeClass = 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-300/20 dark:text-slate-200 dark:border-slate-300/40';
+          else if (idx === 2) rankBadgeClass = 'bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-700/25 dark:text-amber-300 dark:border-amber-600/40';
 
           return `
-            <div class="p-3.5 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-emerald-500/40 transition space-y-2.5 theme-light-card">
+            <div class="p-3.5 rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 hover:border-emerald-500/40 transition space-y-2.5 theme-light-card shadow-sm dark:shadow-none">
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <span class="w-6 h-6 rounded-lg ${rankBadgeClass} font-mono font-bold text-xs flex items-center justify-center shrink-0 border">
                     ${idx + 1}
                   </span>
-                  <span class="font-bold text-sm sm:text-base text-white dark:text-white truncate theme-light-text flex items-center gap-1.5">
-                    <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                  <span class="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate theme-light-text flex items-center gap-1.5">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0"></i>
                     <span class="truncate">${escapeHtml(g.page)}</span>
                   </span>
                 </div>
@@ -29927,28 +29928,28 @@ function renderPagesReportDetailSection(entries = []) {
                 </span>
               </div>
 
-              <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-white/5">
-                <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-                  <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាត៖</span>
-                  <span class="font-mono font-bold text-white dark:text-white theme-light-text flex items-center gap-1">
+              <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-slate-100 dark:border-white/5">
+                <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between">
+                  <span class="text-slate-600 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាត៖</span>
+                  <span class="font-mono font-bold text-slate-900 dark:text-white theme-light-text flex items-center gap-1">
                     <span>${g.chat}</span>
-                    <span class="text-xs font-mono font-normal text-slate-400">
-                      (<span class="text-emerald-400 font-bold text-xs">${g.chatTarget}</span> | <span class="${g.chatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${g.chatMistake}</span>)
+                    <span class="text-xs font-mono font-normal text-slate-500 dark:text-slate-400">
+                      (<span class="text-emerald-600 dark:text-emerald-400 font-bold text-xs">${g.chatTarget}</span> | <span class="${g.chatMistake > 0 ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${g.chatMistake}</span>)
                     </span>
                   </span>
                 </div>
-                <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-                  <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខល៖</span>
-                  <span class="font-mono font-bold text-white dark:text-white theme-light-text">${g.calls} នាក់</span>
+                <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between">
+                  <span class="text-slate-600 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខល៖</span>
+                  <span class="font-mono font-bold text-slate-900 dark:text-white theme-light-text">${g.calls} នាក់</span>
                 </div>
               </div>
 
-              <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-xs border-t border-white/5">
-                <span class="truncate max-w-[170px] sm:max-w-[220px] font-medium text-slate-300 dark:text-slate-300 theme-light-text-sub">👥 អ្នកលក់៖ ${Array.from(g.reporters).join(', ') || '—'}</span>
+              <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between text-xs border-t border-slate-100 dark:border-white/5">
+                <span class="truncate max-w-[170px] sm:max-w-[220px] font-medium text-slate-600 dark:text-slate-300 theme-light-text-sub">👥 អ្នកលក់៖ ${Array.from(g.reporters).join(', ') || '—'}</span>
                 <span class="font-mono text-xs font-semibold shrink-0">
-                  ថ្មី <span class="${g.newB > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${g.newB}</span> | 
-                  ចាស់ <span class="${g.oldB > 0 ? 'text-teal-400 font-bold' : 'text-slate-400'}">${g.oldB}</span> | 
-                  Follow <span class="${g.followB > 0 ? 'text-sky-400 font-bold' : 'text-slate-400'}">${g.followB}</span>
+                  <span class="text-slate-500 dark:text-slate-300">ថ្មី</span> <span class="${g.newB > 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400'}">${g.newB}</span> | 
+                  <span class="text-slate-500 dark:text-slate-300">ចាស់</span> <span class="${g.oldB > 0 ? 'text-teal-600 dark:text-teal-400 font-bold' : 'text-slate-400'}">${g.oldB}</span> | 
+                  <span class="text-slate-500 dark:text-slate-300">Follow</span> <span class="${g.followB > 0 ? 'text-sky-600 dark:text-sky-400 font-bold' : 'text-slate-400'}">${g.followB}</span>
                 </span>
               </div>
             </div>
@@ -29982,27 +29983,27 @@ function renderPagesReportDetailSection(entries = []) {
   return `
     <div class="space-y-2.5">
       ${sortedMembers.map((g, idx) => {
-        let boxBadgeClass = 'text-slate-400 bg-white/5 border border-white/10';
+        let boxBadgeClass = 'text-slate-600 bg-slate-100 border border-slate-200 dark:text-slate-400 dark:bg-white/5 dark:border-white/10';
         if (g.boxes >= 5) {
-          boxBadgeClass = 'text-emerald-300 bg-emerald-500/25 border border-emerald-500/40 shadow-emerald-500/10 font-black';
+          boxBadgeClass = 'text-emerald-700 bg-emerald-50 border border-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/25 dark:border-emerald-500/40 shadow-sm font-black';
         } else if (g.boxes > 0) {
-          boxBadgeClass = 'text-sky-300 bg-sky-500/20 border border-sky-500/30 font-bold';
+          boxBadgeClass = 'text-sky-700 bg-sky-50 border border-sky-200 dark:text-sky-300 dark:bg-sky-500/20 dark:border-sky-500/30 font-bold';
         }
 
-        let rankBadgeClass = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
-        if (idx === 0) rankBadgeClass = 'bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-sm';
-        else if (idx === 1) rankBadgeClass = 'bg-slate-300/20 text-slate-200 border-slate-300/40';
-        else if (idx === 2) rankBadgeClass = 'bg-amber-700/25 text-amber-300 border-amber-600/40';
+        let rankBadgeClass = 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/20 dark:text-sky-300 dark:border-sky-500/30';
+        if (idx === 0) rankBadgeClass = 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-500/25 dark:text-amber-300 dark:border-amber-500/40 shadow-sm';
+        else if (idx === 1) rankBadgeClass = 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-300/20 dark:text-slate-200 dark:border-slate-300/40';
+        else if (idx === 2) rankBadgeClass = 'bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-700/25 dark:text-amber-300 dark:border-amber-600/40';
 
         return `
-          <div class="p-3.5 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-sky-500/40 transition space-y-2.5 theme-light-card">
+          <div class="p-3.5 rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 hover:border-sky-500/40 transition space-y-2.5 theme-light-card shadow-sm dark:shadow-none">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2.5 min-w-0">
                 <span class="w-6 h-6 rounded-lg ${rankBadgeClass} font-mono font-bold text-xs flex items-center justify-center shrink-0 border">
                   ${idx + 1}
                 </span>
-                <span class="font-bold text-sm sm:text-base text-white dark:text-white truncate theme-light-text flex items-center gap-1.5">
-                  <i data-lucide="user" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
+                <span class="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate theme-light-text flex items-center gap-1.5">
+                  <i data-lucide="user" class="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 shrink-0"></i>
                   <span class="truncate">${escapeHtml(g.reporter)}</span>
                 </span>
               </div>
@@ -30011,28 +30012,28 @@ function renderPagesReportDetailSection(entries = []) {
               </span>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-white/5">
-              <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-                <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាត៖</span>
-                <span class="font-mono font-bold text-white dark:text-white theme-light-text flex items-center gap-1">
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-slate-100 dark:border-white/5">
+              <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between">
+                <span class="text-slate-600 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាត៖</span>
+                <span class="font-mono font-bold text-slate-900 dark:text-white theme-light-text flex items-center gap-1">
                   <span>${g.chat}</span>
-                  <span class="text-xs font-mono font-normal text-slate-400">
-                    (<span class="text-emerald-400 font-bold text-xs">${g.chatTarget}</span> | <span class="${g.chatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${g.chatMistake}</span>)
+                  <span class="text-xs font-mono font-normal text-slate-500 dark:text-slate-400">
+                    (<span class="text-emerald-600 dark:text-emerald-400 font-bold text-xs">${g.chatTarget}</span> | <span class="${g.chatMistake > 0 ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${g.chatMistake}</span>)
                   </span>
                 </span>
               </div>
-              <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-                <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខល៖</span>
-                <span class="font-mono font-bold text-white dark:text-white theme-light-text">${g.calls} នាក់</span>
+              <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between">
+                <span class="text-slate-600 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខល៖</span>
+                <span class="font-mono font-bold text-slate-900 dark:text-white theme-light-text">${g.calls} នាក់</span>
               </div>
             </div>
 
-            <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-xs border-t border-white/5">
-              <span class="truncate max-w-[170px] sm:max-w-[220px] font-medium text-slate-300 dark:text-slate-300 theme-light-text-sub">📄 ផេក៖ ${Array.from(g.pages).join(', ') || '—'}</span>
+            <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between text-xs border-t border-slate-100 dark:border-white/5">
+              <span class="truncate max-w-[170px] sm:max-w-[220px] font-medium text-slate-600 dark:text-slate-300 theme-light-text-sub">📄 ផេក៖ ${Array.from(g.pages).join(', ') || '—'}</span>
               <span class="font-mono text-xs font-semibold shrink-0">
-                ថ្មី <span class="${g.newB > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${g.newB}</span> | 
-                ចាស់ <span class="${g.oldB > 0 ? 'text-teal-400 font-bold' : 'text-slate-400'}">${g.oldB}</span> | 
-                Follow <span class="${g.followB > 0 ? 'text-sky-400 font-bold' : 'text-slate-400'}">${g.followB}</span>
+                <span class="text-slate-500 dark:text-slate-300">ថ្មី</span> <span class="${g.newB > 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400'}">${g.newB}</span> | 
+                <span class="text-slate-500 dark:text-slate-300">ចាស់</span> <span class="${g.oldB > 0 ? 'text-teal-600 dark:text-teal-400 font-bold' : 'text-slate-400'}">${g.oldB}</span> | 
+                <span class="text-slate-500 dark:text-slate-300">Follow</span> <span class="${g.followB > 0 ? 'text-sky-600 dark:text-sky-400 font-bold' : 'text-slate-400'}">${g.followB}</span>
               </span>
             </div>
           </div>
@@ -30048,11 +30049,11 @@ function renderSingleCompactPageReportCard(e) {
   const boxes = Number(e.totalBoxes) || 0;
 
   // Dynamic Box Badge Coloring: 0 (slate), 1-4 (sky), 5+ (emerald gold)
-  let boxBadgeStyle = 'text-slate-400 bg-white/5 border border-white/10';
+  let boxBadgeStyle = 'text-slate-600 bg-slate-100 border border-slate-200 dark:text-slate-400 dark:bg-white/5 dark:border-white/10';
   if (boxes >= 5) {
-    boxBadgeStyle = 'text-emerald-300 bg-emerald-500/25 border border-emerald-500/40 shadow-emerald-500/10 font-black';
+    boxBadgeStyle = 'text-emerald-700 bg-emerald-50 border border-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/25 dark:border-emerald-500/40 shadow-sm font-black';
   } else if (boxes > 0) {
-    boxBadgeStyle = 'text-sky-300 bg-sky-500/20 border border-sky-500/30 font-bold';
+    boxBadgeStyle = 'text-sky-700 bg-sky-50 border border-sky-200 dark:text-sky-300 dark:bg-sky-500/20 dark:border-sky-500/30 font-bold';
   }
 
   // Mistake Badge Styling
@@ -30060,19 +30061,19 @@ function renderSingleCompactPageReportCard(e) {
   const targetCount = Number(e.chatTarget) || 0;
 
   return `
-    <div class="p-3.5 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-emerald-500/30 transition space-y-2.5 theme-light-card">
+    <div class="p-3.5 rounded-2xl bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 hover:border-emerald-500/30 transition space-y-2.5 theme-light-card shadow-sm dark:shadow-none">
       <!-- Card Top: Page Name & Reporter -->
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/25 dark:border-emerald-500/30">
             <i data-lucide="file-text" class="w-4 h-4"></i>
           </div>
           <div class="min-w-0">
-            <h4 class="font-bold text-sm text-white dark:text-white truncate theme-light-text">${escapeHtml(e.page || 'ផេកទូទៅ')}</h4>
-            <p class="text-[11.5px] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
-              <span class="font-semibold text-slate-300 dark:text-slate-300 theme-light-text">👤 ${escapeHtml(reporterKm)}</span>
+            <h4 class="font-bold text-sm text-slate-900 dark:text-white truncate theme-light-text">${escapeHtml(e.page || 'ផេកទូទៅ')}</h4>
+            <p class="text-[11.5px] text-slate-500 dark:text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
+              <span class="font-semibold text-slate-700 dark:text-slate-300 theme-light-text">👤 ${escapeHtml(reporterKm)}</span>
               <span>•</span>
-              <span class="font-mono">${e.ddmmyyyy || ''}</span>
+              <span class="font-mono text-slate-500 dark:text-slate-400">${e.ddmmyyyy || ''}</span>
             </p>
           </div>
         </div>
@@ -30085,29 +30086,29 @@ function renderSingleCompactPageReportCard(e) {
       </div>
 
       <!-- Traffic Line (Chat & Call) -->
-      <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-white/5">
-        <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-          <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាត៖</span>
-          <span class="font-mono font-bold text-white dark:text-white theme-light-text flex items-center gap-1">
+      <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-slate-100 dark:border-white/5">
+        <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between">
+          <span class="text-slate-600 dark:text-slate-300 font-medium theme-light-text-sub">💬 ឆាត៖</span>
+          <span class="font-mono font-bold text-slate-900 dark:text-white theme-light-text flex items-center gap-1">
             <span>${e.chatTotal || 0}</span>
-            <span class="text-xs font-mono font-normal text-slate-400">
-              (<span class="text-emerald-400 font-bold text-xs">${targetCount}</span> | <span class="${mistakeCount > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${mistakeCount}</span>)
+            <span class="text-xs font-mono font-normal text-slate-500 dark:text-slate-400">
+              (<span class="text-emerald-600 dark:text-emerald-400 font-bold text-xs">${targetCount}</span> | <span class="${mistakeCount > 0 ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-400'} text-xs font-bold">${mistakeCount}</span>)
             </span>
           </span>
         </div>
-        <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between">
-          <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខល៖</span>
-          <span class="font-mono font-bold text-white dark:text-white theme-light-text">${e.callDirect || 0} នាក់</span>
+        <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between">
+          <span class="text-slate-600 dark:text-slate-300 font-medium theme-light-text-sub">📞 ខល៖</span>
+          <span class="font-mono font-bold text-slate-900 dark:text-white theme-light-text">${e.callDirect || 0} នាក់</span>
         </div>
       </div>
 
       <!-- Sales Breakdown Line -->
-      <div class="p-2 rounded-xl bg-white/5 flex items-center justify-between text-xs">
-        <span class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">📦 លទ្ធផលលក់៖</span>
+      <div class="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
+        <span class="text-slate-600 dark:text-slate-300 font-medium theme-light-text-sub">📦 លទ្ធផលលក់៖</span>
         <span class="font-mono font-semibold text-xs">
-          <span class="text-slate-300">ថ្មី</span> <span class="${(e.buyNewB || 0) > 0 ? 'text-emerald-300 font-bold' : 'text-slate-400'}">${e.buyNewB || 0}</span> | 
-          <span class="text-slate-300">ចាស់</span> <span class="${(e.buyOldB || 0) > 0 ? 'text-teal-300 font-bold' : 'text-slate-400'}">${e.buyOldB || 0}</span> | 
-          <span class="text-slate-300">Follow</span> <span class="${(e.buyFollowB || 0) > 0 ? 'text-sky-300 font-bold' : 'text-slate-400'}">${e.buyFollowB || 0}</span>
+          <span class="text-slate-500 dark:text-slate-300">ថ្មី</span> <span class="${(e.buyNewB || 0) > 0 ? 'text-emerald-600 dark:text-emerald-300 font-bold' : 'text-slate-400'}">${e.buyNewB || 0}</span> | 
+          <span class="text-slate-500 dark:text-slate-300">ចាស់</span> <span class="${(e.buyOldB || 0) > 0 ? 'text-teal-600 dark:text-teal-300 font-bold' : 'text-slate-400'}">${e.buyOldB || 0}</span> | 
+          <span class="text-slate-500 dark:text-slate-300">Follow</span> <span class="${(e.buyFollowB || 0) > 0 ? 'text-sky-600 dark:text-sky-300 font-bold' : 'text-slate-400'}">${e.buyFollowB || 0}</span>
         </span>
       </div>
     </div>
