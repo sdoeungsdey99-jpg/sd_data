@@ -13288,20 +13288,25 @@ function getPayablesCycleStockData(cycleNum, monthKey) {
   orders.sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
 
   let totalBoxes = 0;
+  let totalStockCost = 0;
   orders.forEach(o => {
-    const boxes = (cleanNumber(o.qtyYL) || 0) + 
-                  (cleanNumber(o.qtyYLP) || 0) + 
-                  (cleanNumber(o.qtyKN) || 0) + 
-                  (cleanNumber(o.qtyPDO) || 0) + 
-                  (cleanNumber(o.qtySG) || 0) + 
-                  (cleanNumber(o.freeQty) || 0);
-    const orderBox = boxes > 0 ? boxes : (cleanNumber(o.totalBoxQty) || 0);
+    const stdBoxes = (cleanNumber(o.qtyYL) || 0) + 
+                     (cleanNumber(o.qtyYLP) || 0) + 
+                     (cleanNumber(o.qtyKN) || 0) + 
+                     (cleanNumber(o.qtyPDO) || 0) + 
+                     (cleanNumber(o.qtySG) || 0);
+    const emmiBoxes = (cleanNumber(o.qtyEmmi) || 0);
+    const orderCost = (cleanNumber(o.stockCost) > 0)
+      ? cleanNumber(o.stockCost)
+      : ((stdBoxes * 24.00) + (emmiBoxes * 19.00));
+    const orderBox = (stdBoxes + emmiBoxes) > 0 ? (stdBoxes + emmiBoxes) : (cleanNumber(o.totalBoxQty) || 0);
     o._standardBoxes = orderBox;
-    o._orderStockCost = orderBox * 24.00;
+    o._orderStockCost = orderCost;
     totalBoxes += orderBox;
+    totalStockCost += orderCost;
   });
 
-  const stockCost = totalBoxes * 24.00;
+  const stockCost = totalStockCost;
   return {
     orders,
     totalBoxes,
@@ -25580,7 +25585,8 @@ function calculateEditOrderFinancials() {
   const boxesDisplay = document.getElementById('edit-order-total-boxes-display');
   if (boxesDisplay) boxesDisplay.textContent = totalBoxes;
 
-  const stockCost = totalBoxes * 24.0;
+  const stdBoxes = yl + ylp + kn + pdo + sg;
+  const stockCost = (stdBoxes * 24.0) + (emmi * 19.0);
   const totalAmount = Number(document.getElementById('edit-order-total-amount')?.value || 0);
   const shipFee = Number(document.getElementById('edit-order-ship-fee')?.value || 0);
   const profit = Math.max(0, totalAmount - stockCost - shipFee);
@@ -25631,7 +25637,8 @@ async function submitEditSalesOrder() {
   const codStatus = document.getElementById('edit-order-cod-status')?.value || o.codStatus;
   const note = document.getElementById('edit-order-note')?.value?.trim() || '';
 
-  const stockCost = totalBoxes * 24.0;
+  const stdBoxesEdit = qtyYL + qtyYLP + qtyKN + qtyPDO + qtySG;
+  const stockCost = (stdBoxesEdit * 24.0) + (qtyEmmi * 19.0);
   const profit = Math.max(0, totalAmount - stockCost - shipFee);
 
   // 1. Optimistic Local Update
@@ -32587,7 +32594,7 @@ function setOrderType(type) {
       capsuleBtn.innerHTML = `<span id="label-order-stock-capsule">ស្តុក</span>`;
       capsuleBtn.onclick = toggleOrderTypeCapsule;
     }
-    if (desc) desc.innerText = 'ស្តុកក្រុមហ៊ុន: គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ (មិនឱ្យស្ទួន)។';
+    if (desc) desc.innerText = 'ស្តុកក្រុមហ៊ុន: គិតថ្លៃដើមស្តុកធម្មតា ($24/ប្រអប់, Emmi $19/ប្រអប់) និងបញ្ចូលលេខ Order ID ផ្លូវការ (មិនឱ្យស្ទួន)។';
     if (orderIdGroup) orderIdGroup.classList.remove('opacity-40', 'pointer-events-none');
     const idInput = document.getElementById('order-field-id');
     if (idInput) {
@@ -32812,9 +32819,11 @@ function toggleExtraProducts() {
 }
 
 function calculateOrderFinancials() {
-  const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
-                     (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
-                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0);
+  const stdBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                   (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                   (currentOrderProducts.sgp || 0);
+  const emmiBoxes = (currentOrderProducts.emmi || 0);
+  const totalBoxes = stdBoxes + emmiBoxes;
 
   const totalUsdInput = document.getElementById('order-field-total-usd');
   const shipInput = document.getElementById('order-field-ship');
@@ -32828,7 +32837,8 @@ function calculateOrderFinancials() {
   } else if (currentOrderType === 'return') {
     stockCost = 0.00; // ថ្លៃដើម $0 ព្រោះបានទូទាត់រួច
   } else {
-    stockCost = totalBoxes * 24.00; // ស្តុកក្រុមហ៊ុនធម្មតា
+    // ស្តុកក្រុមហ៊ុនធម្មតា: Emmi $19, ផ្សេងទៀត $24
+    stockCost = (stdBoxes * 24.00) + (emmiBoxes * 19.00);
   }
 
   const profit = Math.max(0, totalUsd - stockCost - shipFee);
@@ -33183,9 +33193,11 @@ async function submitNewOrder() {
     thaiBaht = Math.round((totalUsd * 35.6) / 0.97);
   }
 
-  const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
-                     (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
-                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0);
+  const stdBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                   (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                   (currentOrderProducts.sgp || 0);
+  const emmiBoxes = (currentOrderProducts.emmi || 0);
+  const totalBoxes = stdBoxes + emmiBoxes;
 
   if (totalBoxes === 0) {
     showToastNotification('សូមជ្រើសរើសចំនួនប្រអប់ទំនិញ!');
@@ -33232,7 +33244,7 @@ async function submitNewOrder() {
   }
 
   // គណនាថ្លៃដើមតាមប្រភេទការលក់៖
-  // - ស្តុកក្រុមហ៊ុន = totalBoxes * $24
+  // - ស្តុកក្រុមហ៊ុន: stdBoxes * $24 + emmiBoxes * $19
   // - លក់រង្វាន់ = totalBoxes * $5
   // - លក់អីវ៉ាន់ត្រឡប់ = $0.00
   let stockCost = 0;
@@ -33241,7 +33253,7 @@ async function submitNewOrder() {
   } else if (isReturn) {
     stockCost = 0.00;
   } else {
-    stockCost = totalBoxes * 24.00;
+    stockCost = (stdBoxes * 24.00) + (emmiBoxes * 19.00);
   }
   const profit = Math.max(0, totalUsd - stockCost - shipFee);
 

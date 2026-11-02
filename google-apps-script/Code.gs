@@ -30,7 +30,7 @@ function authorizeExternalSheets() {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: 'ok',
-    version: '3.4-stock-cost-fixed',
+    version: '3.5-emmi-19-stock-fixed',
     message: 'SD Dashboard Webhook is live and ready! 🚀'
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -307,9 +307,11 @@ function insertPersonalSalesOrder(ss, order) {
   var formattedRecId = 'REC-' + ('0000' + nextRecNum).slice(-4);
 
   // គណនាចំនួនប្រអប់គិតថ្លៃដើម (Paid Boxes ONLY) ដោយមិនរាប់បញ្ចូលប្រអប់ថែម Free ឡើយ
-  var paidBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
-                  Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
-                  Number(order.qtyEmmi || 0) + Number(order.qtySGP || order.qtySG || 0);
+  var stdBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
+                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
+                 Number(order.qtySGP || order.qtySG || 0);
+  var emmiBoxes = Number(order.qtyEmmi || 0);
+  var paidBoxes = stdBoxes + emmiBoxes;
   var freeQty = Number(order.freeQty || 0);
   var totalBoxes = paidBoxes + freeQty;
   var rewardQty = Number(order.rewardQty || order.totalBoxQty || totalBoxes || 0);
@@ -317,7 +319,7 @@ function insertPersonalSalesOrder(ss, order) {
   // គណនាតម្លៃដើម (Stock Cost) តាមប្រភេទការលក់៖
   // - អាទិភាពទី ១៖ យកតម្លៃថ្លៃដើមដែលគណនាត្រឹមត្រូវផ្ទាល់ពី App (order.stockCost)
   // - អាទិភាពទី ២ (Fallback)៖
-  //   * ស្តុកក្រុមហ៊ុន (Standard) = paidBoxes * $24.00 (មិនគិតប្រអប់ Free ឡើយ!)
+  //   * ស្តុកក្រុមហ៊ុន (Standard) = (stdBoxes * $24.00) + (emmiBoxes * $19.00) (មិនគិតប្រអប់ Free ឡើយ!)
   //   * លក់រង្វាន់ (Reward) = (rewardQty || totalBoxes) * $5.00
   //   * លក់អីវ៉ាន់ត្រឡប់ (Return) = $0.00
   var stockCost = 0;
@@ -329,7 +331,7 @@ function insertPersonalSalesOrder(ss, order) {
     } else if (orderType === 'return') {
       stockCost = 0;
     } else {
-      stockCost = paidBoxes * 24.0;
+      stockCost = (stdBoxes * 24.0) + (emmiBoxes * 19.0);
     }
   }
 
@@ -562,9 +564,11 @@ function updatePersonalSalesOrder(ss, order) {
   if (order.phone !== undefined) sheet.getRange(matchedRow, 7).setValue(order.phone); // Col G: Phone
 
   // ផលិតផល & ទិន្នន័យហិរញ្ញវត្ថុ
-  var paidBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
-                  Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
-                  Number(order.qtyEmmi || 0) + Number(order.qtySGP || order.qtySG || 0);
+  var stdBoxes = Number(order.qtyYL || 0) + Number(order.qtyYLP || 0) + 
+                 Number(order.qtyKN || 0) + Number(order.qtyPDO || 0) + 
+                 Number(order.qtySGP || order.qtySG || 0);
+  var emmiBoxes = Number(order.qtyEmmi || 0);
+  var paidBoxes = stdBoxes + emmiBoxes;
   var freeQty = Number(order.freeQty || 0);
   var totalBoxes = paidBoxes + freeQty;
   var rewardQty = Number(order.rewardQty || order.totalBoxQty || totalBoxes || 0);
@@ -579,7 +583,7 @@ function updatePersonalSalesOrder(ss, order) {
     } else if (orderType === 'return') {
       stockCost = 0;
     } else {
-      stockCost = paidBoxes * 24.0;
+      stockCost = (stdBoxes * 24.0) + (emmiBoxes * 19.0);
     }
   }
 
