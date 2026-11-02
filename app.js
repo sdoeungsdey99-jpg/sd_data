@@ -29900,40 +29900,48 @@ function renderPagesReportDetailSection(entries = []) {
         ${sortedPages.map((g, idx) => {
           let boxBadgeClass = 'text-slate-400 bg-white/5 border border-white/10';
           if (g.boxes >= 5) {
-            boxBadgeClass = 'text-emerald-300 bg-emerald-500/20 border border-emerald-500/30';
+            boxBadgeClass = 'text-emerald-300 bg-emerald-500/25 border border-emerald-500/40 shadow-emerald-500/10 font-black';
           } else if (g.boxes > 0) {
-            boxBadgeClass = 'text-sky-300 bg-sky-500/15 border border-sky-500/20';
+            boxBadgeClass = 'text-sky-300 bg-sky-500/20 border border-sky-500/30 font-bold';
           }
 
+          let rankBadgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+          if (idx === 0) rankBadgeClass = 'bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-sm';
+          else if (idx === 1) rankBadgeClass = 'bg-slate-300/20 text-slate-200 border-slate-300/40';
+          else if (idx === 2) rankBadgeClass = 'bg-amber-700/25 text-amber-300 border-amber-600/40';
+
           return `
-            <div class="p-3 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-emerald-500/40 transition space-y-2 theme-light-card">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
+            <div class="p-3.5 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-emerald-500/40 transition space-y-2.5 theme-light-card">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="w-6 h-6 rounded-lg ${rankBadgeClass} font-mono font-bold text-xs flex items-center justify-center shrink-0 border">
                     ${idx + 1}
                   </span>
-                  <span class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">${escapeHtml(g.page)}</span>
+                  <span class="font-bold text-sm sm:text-base text-white dark:text-white truncate theme-light-text flex items-center gap-1.5">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                    <span class="truncate">${escapeHtml(g.page)}</span>
+                  </span>
                 </div>
-                <span class="px-2 py-0.5 rounded-full font-mono font-bold text-xs shrink-0 ${boxBadgeClass}">
+                <span class="px-2.5 py-1 rounded-xl font-mono font-bold text-xs shrink-0 ${boxBadgeClass}">
                   ${g.boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
                 </span>
               </div>
 
-              <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/5">
-                <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">
+              <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-white/5">
+                <div class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">
                   💬 ឆាត៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.chat}</span> 
-                  <span class="text-[9.5px]">
+                  <span class="text-[11px] font-normal">
                     (<span class="text-emerald-400 font-bold">${g.chatTarget}</span>|<span class="${g.chatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${g.chatMistake}</span>)
                   </span>
                 </div>
-                <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">
+                <div class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">
                   📞 ខល៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.calls}</span> នាក់
                 </div>
               </div>
 
-              <div class="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 text-slate-400">
-                <span class="truncate max-w-[200px]">👥 អ្នកលក់៖ ${Array.from(g.reporters).join(', ') || '—'}</span>
-                <span class="font-mono">
+              <div class="flex items-center justify-between text-xs pt-1.5 border-t border-white/5 text-slate-300 dark:text-slate-300 theme-light-text-sub">
+                <span class="truncate max-w-[190px] sm:max-w-[240px] font-medium">👥 អ្នកលក់៖ ${Array.from(g.reporters).join(', ') || '—'}</span>
+                <span class="font-mono text-xs font-semibold shrink-0">
                   ថ្មី <span class="${g.newB > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${g.newB}</span> | 
                   ចាស់ <span class="${g.oldB > 0 ? 'text-teal-400 font-bold' : 'text-slate-400'}">${g.oldB}</span> | 
                   Follow <span class="${g.followB > 0 ? 'text-sky-400 font-bold' : 'text-slate-400'}">${g.followB}</span>
@@ -29972,40 +29980,48 @@ function renderPagesReportDetailSection(entries = []) {
       ${sortedMembers.map((g, idx) => {
         let boxBadgeClass = 'text-slate-400 bg-white/5 border border-white/10';
         if (g.boxes >= 5) {
-          boxBadgeClass = 'text-emerald-300 bg-emerald-500/20 border border-emerald-500/30';
+          boxBadgeClass = 'text-emerald-300 bg-emerald-500/25 border border-emerald-500/40 shadow-emerald-500/10 font-black';
         } else if (g.boxes > 0) {
-          boxBadgeClass = 'text-sky-300 bg-sky-500/15 border border-sky-500/20';
+          boxBadgeClass = 'text-sky-300 bg-sky-500/20 border border-sky-500/30 font-bold';
         }
 
+        let rankBadgeClass = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
+        if (idx === 0) rankBadgeClass = 'bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-sm';
+        else if (idx === 1) rankBadgeClass = 'bg-slate-300/20 text-slate-200 border-slate-300/40';
+        else if (idx === 2) rankBadgeClass = 'bg-amber-700/25 text-amber-300 border-amber-600/40';
+
         return `
-          <div class="p-3 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-sky-500/40 transition space-y-2 theme-light-card">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="w-5 h-5 rounded-lg bg-sky-500/20 text-sky-300 font-mono font-bold text-[10px] flex items-center justify-center shrink-0">
+          <div class="p-3.5 rounded-2xl bg-black/40 dark:bg-black/40 border border-white/10 hover:border-sky-500/40 transition space-y-2.5 theme-light-card">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-6 h-6 rounded-lg ${rankBadgeClass} font-mono font-bold text-xs flex items-center justify-center shrink-0 border">
                   ${idx + 1}
                 </span>
-                <span class="font-bold text-xs sm:text-sm text-white dark:text-white truncate theme-light-text">👤 ${escapeHtml(g.reporter)}</span>
+                <span class="font-bold text-sm sm:text-base text-white dark:text-white truncate theme-light-text flex items-center gap-1.5">
+                  <i data-lucide="user" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
+                  <span class="truncate">${escapeHtml(g.reporter)}</span>
+                </span>
               </div>
-              <span class="px-2 py-0.5 rounded-full font-mono font-bold text-xs shrink-0 ${boxBadgeClass}">
+              <span class="px-2.5 py-1 rounded-xl font-mono font-bold text-xs shrink-0 ${boxBadgeClass}">
                 ${g.boxes} ${isEn ? 'Boxes' : 'ប្រអប់'} 🏆
               </span>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-white/5">
-              <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-white/5">
+              <div class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">
                 💬 ឆាត៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.chat}</span> 
-                <span class="text-[9.5px]">
+                <span class="text-[11px] font-normal">
                   (<span class="text-emerald-400 font-bold">${g.chatTarget}</span>|<span class="${g.chatMistake > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${g.chatMistake}</span>)
                 </span>
               </div>
-              <div class="text-slate-300 dark:text-slate-300 theme-light-text-sub">
+              <div class="text-slate-300 dark:text-slate-300 font-medium theme-light-text-sub">
                 📞 ខល៖ <span class="text-white dark:text-white font-mono font-bold theme-light-text">${g.calls}</span> នាក់
               </div>
             </div>
 
-            <div class="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 text-slate-400">
-              <span class="truncate max-w-[200px]">📄 ផេក៖ ${Array.from(g.pages).join(', ') || '—'}</span>
-              <span class="font-mono">
+            <div class="flex items-center justify-between text-xs pt-1.5 border-t border-white/5 text-slate-300 dark:text-slate-300 theme-light-text-sub">
+              <span class="truncate max-w-[190px] sm:max-w-[240px] font-medium">📄 ផេក៖ ${Array.from(g.pages).join(', ') || '—'}</span>
+              <span class="font-mono text-xs font-semibold shrink-0">
                 ថ្មី <span class="${g.newB > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${g.newB}</span> | 
                 ចាស់ <span class="${g.oldB > 0 ? 'text-teal-400 font-bold' : 'text-slate-400'}">${g.oldB}</span> | 
                 Follow <span class="${g.followB > 0 ? 'text-sky-400 font-bold' : 'text-slate-400'}">${g.followB}</span>
