@@ -2007,29 +2007,61 @@ window.DataService = {
         const location = String(r[5] || '').trim();
         const phone = String(r[6] || '').trim();
 
-        const qtyYL = cleanNumber(r[7]);
-        const qtyYLP = cleanNumber(r[8]);
-        const qtyKN = cleanNumber(r[9]);
-        const qtyPDO = cleanNumber(r[10]);
-        const freeQty = cleanNumber(r[11]);
-        const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + freeQty;
+        const is26Col = (r.length >= 24);
+        let qtyYL = cleanNumber(r[7]);
+        let qtyYLP = cleanNumber(r[8]);
+        let qtyKN = cleanNumber(r[9]);
+        let qtyPDO = cleanNumber(r[10]);
+        let qtyEmmi = 0;
+        let qtySG = 0;
+        let freeQty = 0;
+        let price = 0;
+        let totalAmount = 0;
+        let shipFee = 0;
+        let delivery = '';
+        let codStatus = '';
+        let stockCost = 0;
+        let paymentDate = '';
+        let profit = 0;
+        let note = '';
+        let recordId = '';
 
-        const price = cleanNumber(r[12]);
-        const totalAmount = cleanNumber(r[13]);
-        const shipFee = cleanNumber(r[14]);
-        const delivery = String(r[15] || '').trim();
-        const codStatus = String(r[16] || '').trim();
-        const stockCost = cleanNumber(r[17]);
-        const paymentDate = String(r[18] || '').trim();
-        const profit = cleanNumber(r[19]);
-        const note = String(r[20] || '').trim();
-        const recordId = String(r[23] || `REC-${i}`).trim();
+        if (is26Col) {
+          qtyEmmi = cleanNumber(r[11]);
+          qtySG = cleanNumber(r[12]);
+          freeQty = cleanNumber(r[13]);
+          price = cleanNumber(r[14]);
+          totalAmount = cleanNumber(r[15]);
+          shipFee = cleanNumber(r[16]);
+          delivery = String(r[17] || '').trim();
+          codStatus = String(r[18] || '').trim();
+          stockCost = cleanNumber(r[19]);
+          paymentDate = String(r[20] || '').trim();
+          profit = cleanNumber(r[21]);
+          note = String(r[22] || '').trim();
+          recordId = String(r[25] || r[23] || `REC-${i}`).trim();
+        } else {
+          freeQty = cleanNumber(r[11]);
+          price = cleanNumber(r[12]);
+          totalAmount = cleanNumber(r[13]);
+          shipFee = cleanNumber(r[14]);
+          delivery = String(r[15] || '').trim();
+          codStatus = String(r[16] || '').trim();
+          stockCost = cleanNumber(r[17]);
+          paymentDate = String(r[18] || '').trim();
+          profit = cleanNumber(r[19]);
+          note = String(r[20] || '').trim();
+          recordId = String(r[23] || `REC-${i}`).trim();
+        }
+        const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + qtyEmmi + qtySG + freeQty;
 
         const prodParts = [];
         if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
         if (qtyPDO > 0) prodParts.push(qtyPDO > 1 ? `PDO (${qtyPDO})` : `PDO`);
         if (qtyYL > 0) prodParts.push(qtyYL > 1 ? `YL (${qtyYL})` : `YL`);
         if (qtyYLP > 0) prodParts.push(qtyYLP > 1 ? `YLP (${qtyYLP})` : `YLP`);
+        if (qtySG > 0) prodParts.push(qtySG > 1 ? `SG (${qtySG})` : `SG`);
+        if (qtyEmmi > 0) prodParts.push(qtyEmmi > 1 ? `Emmi (${qtyEmmi})` : `Emmi`);
         if (freeQty > 0) prodParts.push(`Free (${freeQty})`);
         const product = prodParts.join(', ') || 'ទំនិញ';
 

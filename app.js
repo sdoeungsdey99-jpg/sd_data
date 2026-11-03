@@ -17379,7 +17379,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.5)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.6)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
