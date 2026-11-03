@@ -997,14 +997,20 @@
     .light-theme .bg-\[\#0F1B2E\],
     .light-theme [class*="bg-[#0F1B2E]"],
     .light-theme #change-pin-modal > div,
-    .light-theme #about-modal-card {
+    .light-theme #about-modal,
+    .light-theme #app-update-modal {
+      background-color: rgba(15, 23, 42, 0.45) !important;
+    }
+    .light-theme #about-modal-card,
+    .light-theme #app-update-modal-card {
       background-color: #FFFFFF !important;
       border-color: #E2E8F0 !important;
-      box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.1) !important;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15) !important;
       color: #0F172A !important;
     }
-    .light-theme #about-modal-card .border-white\/10 {
-      border-color: #E2E8F0 !important;
+    .light-theme #about-modal-card .border-white\/10,
+    .light-theme #app-update-modal-card .border-white\/10 {
+      border-color: #F1F5F9 !important;
     }
     .light-theme #about-modal-card .bg-white\/5 {
       background-color: #F8FAFC !important;
@@ -1015,6 +1021,67 @@
     }
     .light-theme #about-modal-card .text-slate-300 {
       color: #334155 !important;
+    }
+    /* App Update Modal Light Theme */
+    .light-theme #app-update-modal-card .update-icon-badge {
+      background-color: #E0F2FE !important;
+      border-color: #BAE6FD !important;
+      color: #0284C7 !important;
+    }
+    .light-theme #app-update-modal-card .update-modal-subtitle {
+      color: #0284C7 !important;
+    }
+    .light-theme #app-update-modal-card .update-close-btn {
+      background-color: #F1F5F9 !important;
+      border-color: #E2E8F0 !important;
+      color: #64748B !important;
+    }
+    .light-theme #app-update-modal-card .update-close-btn:hover {
+      background-color: #E2E8F0 !important;
+      color: #0F172A !important;
+    }
+    .light-theme #app-update-modal-card .update-info-card {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #app-update-modal-card .update-info-title,
+    .light-theme #app-update-modal-card .update-info-title i {
+      color: #D97706 !important;
+    }
+    .light-theme #app-update-modal-card .update-info-sub {
+      color: #334155 !important;
+    }
+    .light-theme #app-update-modal-card .update-info-card .text-slate-200 {
+      color: #1E293B !important;
+    }
+    .light-theme #app-update-modal-card .update-info-card .text-emerald-400 {
+      color: #059669 !important;
+    }
+    .light-theme #app-update-modal-card .update-thanks-card {
+      background-color: #FFF7ED !important;
+      border-color: #FED7AA !important;
+    }
+    .light-theme #app-update-modal-card .update-thanks-title {
+      color: #EA580C !important;
+    }
+    .light-theme #app-update-modal-card .update-thanks-text {
+      color: #431407 !important;
+    }
+    .light-theme #app-update-modal-card .update-feedback-label {
+      color: #64748B !important;
+    }
+    .light-theme #app-update-modal-card .update-tg-btn {
+      background-color: #F0F9FF !important;
+      border-color: #BAE6FD !important;
+      color: #0284C7 !important;
+    }
+    .light-theme #app-update-modal-card .update-tg-btn:hover {
+      background-color: #E0F2FE !important;
+      border-color: #7DD3FC !important;
+      color: #0369A1 !important;
+    }
+    .light-theme #app-update-modal-card .update-tg-btn i {
+      color: #0284C7 !important;
     }
     .light-theme #change-pin-modal input {
       background-color: #F1F5F9 !important;
@@ -8116,6 +8183,6 @@
   </div>
 
   <script src="dataService.js?v=10.4"></script>
-  <script src="app.js?v=63.6"></script>
+  <script src="app.js?v=63.7"></script>
 </body>
 </html>

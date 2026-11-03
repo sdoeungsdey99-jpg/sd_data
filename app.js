@@ -17373,16 +17373,16 @@ function renderAppUpdateModalContent() {
     <!-- Top Header -->
     <div class="flex items-center justify-between border-b border-white/10 pb-3">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shadow-lg shrink-0">
+        <div class="update-icon-badge w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shadow-lg shrink-0">
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v6.1)</h3>
-          <p class="text-[10px] text-cyan-400 font-mono mt-0.5">កំណែប្រព័ន្ធផ្លូវការ</p>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v63.7)</h3>
+          <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
       <button id="app-update-close-btn" onclick="closeAppUpdateModal(event)" 
-              class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition active:scale-95">
+              class="update-close-btn w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition active:scale-95">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
     </div>
@@ -17391,12 +17391,12 @@ function renderAppUpdateModalContent() {
     <div class="space-y-3 py-1 font-kantumruy">
       
       <!-- 1. System Adjustment Info -->
-      <div class="bg-black/40 rounded-2xl p-3 border border-white/5 space-y-2">
-        <p class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+      <div class="update-info-card bg-white/[0.04] rounded-2xl p-3 border border-white/10 space-y-2">
+        <p class="update-info-title text-xs font-bold text-amber-400 flex items-center gap-1.5">
           <i data-lucide="bell-ring" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
           <span>📢 ដំណឹងពីការកែសម្រួលប្រព័ន្ធ៖</span>
         </p>
-        <p class="text-[11px] text-slate-300 leading-relaxed font-semibold">
+        <p class="update-info-sub text-[11px] text-slate-300 leading-relaxed font-semibold">
           បានកែសម្រួលតាមការប្រកាសរបស់ក្រុមហ៊ុន៖
         </p>
         <div class="space-y-1.5 text-xs pl-1">
@@ -17416,24 +17416,24 @@ function renderAppUpdateModalContent() {
       </div>
 
       <!-- 2. Appreciation Note -->
-      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
-        <p class="text-xs font-bold text-orange-400 flex items-center gap-1.5">
+      <div class="update-thanks-card p-3 rounded-2xl bg-white/[0.04] border border-white/10 space-y-1">
+        <p class="update-thanks-title text-xs font-bold text-orange-400 flex items-center gap-1.5">
           <span>🙏</span>
           <span>សេចក្តីថ្លែងអំណរគុណ៖</span>
         </p>
-        <p class="text-[11px] text-slate-300 leading-relaxed">
+        <p class="update-thanks-text text-[11px] text-slate-300 leading-relaxed">
           សូមអរគុណបងប្អូនសមាជិកទាំងអស់ដែលបានធ្វើបច្ចុប្បន្នភាព មកកាន់ជំនាន់ថ្មី និងតែងតែសហការជាមួយគ្នា!
         </p>
       </div>
 
       <!-- 3. Feedback / Telegram Button -->
       <div class="space-y-1.5 pt-0.5">
-        <p class="text-[11px] font-bold text-slate-400 flex items-center gap-1.5 px-0.5">
+        <p class="update-feedback-label text-[11px] font-bold text-slate-400 flex items-center gap-1.5 px-0.5">
           <i data-lucide="message-square" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
           <span>💬 ផ្ញើមតិកែលម្អ / ជំនួយបច្ចេកទេស៖</span>
         </p>
         <a href="https://t.me/sdoeung_sd" target="_blank" 
-           class="w-full py-2.5 px-3 rounded-2xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
+           class="update-tg-btn w-full py-2.5 px-3 rounded-2xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
           <i data-lucide="send" class="w-3.5 h-3.5 text-sky-400"></i>
           <span>🚀 ផ្ញើមតិ ឬរាយការណ៍បញ្ហា (Telegram)</span>
         </a>
