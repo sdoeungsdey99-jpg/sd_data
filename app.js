@@ -2212,13 +2212,6 @@ function hookScrollableForDock(el, isMain = false) {
             analyticsHeader.classList.add('filter-hidden');
           }
         }
-        if (el.id === 'expenses-modal-list') {
-          const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
-          if (expFilterBar && !expFilterBar.classList.contains('filter-hidden')) {
-            closeAllExpensesDropdowns();
-            expFilterBar.classList.add('filter-hidden');
-          }
-        }
       }
     }
     // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock & Filter Bar
@@ -2238,12 +2231,6 @@ function hookScrollableForDock(el, isMain = false) {
           const studyHeader = document.getElementById('study-sticky-header');
           if (studyHeader && studyHeader.classList.contains('filter-hidden')) {
             studyHeader.classList.remove('filter-hidden');
-          }
-        }
-        if (el.id === 'expenses-modal-list') {
-          const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
-          if (expFilterBar && expFilterBar.classList.contains('filter-hidden')) {
-            expFilterBar.classList.remove('filter-hidden');
           }
         }
       }
@@ -2279,7 +2266,7 @@ function setupSmartDockScroll() {
   const scrollableIds = [
     'notif-feed-list',
     'sales-modal-list',
-    'expenses-modal-list',
+    // 'expenses-modal-list' is managed exclusively by setupExpensesScroll() to prevent event conflict & jittering
     'cod-modal-table-container',
     'cod-thai-orders-list',
     'bank-modal-list',
@@ -16386,6 +16373,38 @@ function applyExpensesFilterAndRender() {
   if (window.lucide) window.lucide.createIcons();
 }
 
+let expensesScrollInitialized = false;
+
+function setupExpensesScroll() {
+  const listEl = document.getElementById('expenses-modal-list');
+  if (!listEl || expensesScrollInitialized) return;
+  expensesScrollInitialized = true;
+
+  let lastScrollTop = listEl.scrollTop || 0;
+
+  listEl.addEventListener('scroll', () => {
+    const currentScrollTop = listEl.scrollTop;
+    const diff = currentScrollTop - lastScrollTop;
+
+    // Ignore abnormal layout-resize jumps (greater than 120px)
+    if (Math.abs(diff) > 120) {
+      lastScrollTop = currentScrollTop;
+      return;
+    }
+
+    // 1. Scrolling down deeply (finger dragging up, intentional scroll) -> Hide Dock smoothly
+    if (diff > 14 && currentScrollTop > 60) {
+      setDockVisible(false);
+    }
+    // 2. Scrolling back up towards top (finger dragging down, intentional scroll) OR near top -> Show Dock smoothly
+    else if (diff < -12 || currentScrollTop <= 20) {
+      setDockVisible(true);
+    }
+
+    lastScrollTop = currentScrollTop;
+  }, { passive: true });
+}
+
 function openExpensesModal(mode = false, fromDrawer = false) {
   if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
   window.navOpenedFromDrawer.expenses = !!fromDrawer;
@@ -16483,7 +16502,7 @@ function openExpensesModal(mode = false, fromDrawer = false) {
 
   modal.classList.remove('hidden');
   setDockVisible(true);
-  if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
+  setupExpensesScroll();
   if (appState.fontFamily) modal.classList.add(appState.fontFamily);
   if (window.lucide) window.lucide.createIcons();
 }
@@ -19839,6 +19858,7 @@ function handleHeaderScrollToTop(e, targetId = null) {
       if (summaryEl) summaryEl.classList.remove('summary-collapsed');
     }
     if (target.id === 'expenses-modal-list') {
+      setDockVisible(true);
       const expFilterBar = document.getElementById('expenses-modal-date-filter-bar');
       if (expFilterBar) expFilterBar.classList.remove('filter-hidden');
     }
