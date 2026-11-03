@@ -17379,7 +17379,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.3)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.4)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -25970,7 +25970,10 @@ function checkOnboardingGate() {
   const isMasterAdminAuth = localStorage.getItem('sd_master_admin_authenticated') === 'true';
   const isDemo = localStorage.getItem('sd_demo_mode') === 'true';
 
-  if (!skipGate && !isMasterAdminAuth && !isDemo && (!hasCustomSheet || !hasOnboardingDone)) {
+  // ធានាភាពស្ថិតស្ថេរ ១០០%៖ ពេល Login រួចរាល់ មិនដែលលោតផ្ទាំង Onboarding សួរម្តងទៀតពេល Refresh ឬអូសចោលឡើយ
+  const isUserAuthenticated = isMasterAdminAuth || isDemo || hasOnboardingDone || hasCustomSheet;
+
+  if (!skipGate && !isUserAuthenticated) {
     gate.classList.remove('hidden');
     if (dock) dock.classList.add('hidden');
     setDockVisible(false);
@@ -26155,7 +26158,6 @@ async function submitMemberLogin() {
       localStorage.removeItem('sd_offline_master_data');
       localStorage.removeItem('sd_offline_custom_data');
       localStorage.removeItem('sd_demo_mode');
-      localStorage.removeItem('sd_master_admin_authenticated');
     } catch (_) {}
 
     localStorage.setItem('sd_custom_sheet_id', cleanId);
@@ -26166,6 +26168,16 @@ async function submitMemberLogin() {
     localStorage.setItem('sd_user_name', verifiedSellerKm);
     localStorage.setItem('sd_member_special_code', code);
     localStorage.setItem('sd_master_cust_auth_' + normalizeSellerName(verifiedSellerKm), 'true');
+
+    // ប្រសិនបើជាលោក ស្ដី ស្ដើង (តាមកូដ MASTER-01/SD-01 ឬ Sheet ID ផ្ទាល់ខ្លួន) ផ្តល់សិទ្ធិ Master Admin ស្វ័យប្រវត្តិ
+    const isSDMaster = (cleanId === '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU') || 
+                       (code === 'MASTER-01' || code === 'SD-01') ||
+                       (verifiedSellerKm && (verifiedSellerKm.includes('ស្ដី') || verifiedSellerKm.includes('ស្តី')));
+    if (isSDMaster) {
+      localStorage.setItem('sd_master_admin_authenticated', 'true');
+    } else {
+      localStorage.removeItem('sd_master_admin_authenticated');
+    }
 
     const memberProfile = {
       name: verifiedSellerKm,

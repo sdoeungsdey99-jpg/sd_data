@@ -29,9 +29,6 @@ function getActiveSheetId() {
       const urlSheet = urlParams.get('sheet') || urlParams.get('sheet_id');
       if (urlSheet && urlSheet.trim().length > 15) {
         const cleanUrlSheet = extractSheetId(urlSheet.trim()) || urlSheet.trim();
-        if (cleanUrlSheet === MASTER_SDOEUNG_SHEET_ID && localStorage.getItem('sd_master_admin_authenticated') !== 'true') {
-          return '';
-        }
         localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
         return cleanUrlSheet;
       }
@@ -40,14 +37,6 @@ function getActiveSheetId() {
     if (custom && custom.trim() === TEAM_HIERARCHY_SHEET_ID) {
       localStorage.removeItem('sd_custom_sheet_id');
     } else if (custom && custom.trim().length > 15) {
-      if (custom.trim() === MASTER_SDOEUNG_SHEET_ID) {
-        if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_master_admin_authenticated') === 'true') {
-          return MASTER_SDOEUNG_SHEET_ID;
-        } else {
-          localStorage.removeItem('sd_custom_sheet_id');
-          return '';
-        }
-      }
       return custom.trim();
     }
     // Only return MASTER_SDOEUNG_SHEET_ID if authenticated as Master Admin
