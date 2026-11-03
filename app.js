@@ -17379,7 +17379,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v63.8)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v63.9)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -24041,7 +24041,7 @@ function renderProfileDrawerContent() {
   if (drawerId) drawerId.textContent = 'ID: ' + String(p.memberId || 'BG-001').replace(/^(ID:\s*)+/i, '').trim();
 
   const infoItems = [
-    { key: 'showGender', icon: 'user-check', color: 'text-amber-400', label: 'ភេទ / គោរមងារ', val: (p.gender === 'female' ? 'ស្រី (អ្នកគ្រូ)' : 'ប្រុស (លោកគ្រូ)') },
+    { key: 'showGender', icon: 'user-check', color: 'text-amber-400', label: 'ភេទ', val: (p.gender === 'female' ? 'ស្រី' : 'ប្រុស') },
     { key: 'showWork', icon: 'briefcase', color: 'text-orange-400', label: 'ធ្វើការនៅ', val: p.work },
     { key: 'showStudy', icon: 'graduation-cap', color: 'text-blue-400', label: 'សិក្សានៅ', val: p.study },
     { key: 'showLive', icon: 'home', color: 'text-emerald-400', label: 'រស់នៅ', val: p.live },
@@ -24346,7 +24346,7 @@ function getProfileViewHTML() {
   const membersCount = BOSTAR_TEAM_SELLERS.length;
 
   const infoItems = [
-    { key: 'showGender', icon: 'user-check', color: 'text-amber-400', label: 'ភេទ / គោរមងារ', val: (p.gender === 'female' ? 'ស្រី (អ្នកគ្រូ)' : 'ប្រុស (លោកគ្រូ)') },
+    { key: 'showGender', icon: 'user-check', color: 'text-amber-400', label: 'ភេទ', val: (p.gender === 'female' ? 'ស្រី' : 'ប្រុស') },
     { key: 'showWork', icon: 'briefcase', color: 'text-orange-400', label: 'ធ្វើការនៅ', val: p.work },
     { key: 'showStudy', icon: 'graduation-cap', color: 'text-blue-400', label: 'សិក្សានៅ', val: p.study },
     { key: 'showLive', icon: 'home', color: 'text-emerald-400', label: 'រស់នៅ', val: p.live },
