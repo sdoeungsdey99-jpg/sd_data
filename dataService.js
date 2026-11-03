@@ -43,6 +43,32 @@ function getActiveSheetId() {
     if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_master_admin_authenticated') === 'true') {
       return MASTER_SDOEUNG_SHEET_ID;
     }
+
+    // ស្គាល់ Device របស់លោក ស្ដី ស្ដើង ដោយស្វ័យប្រវត្តិតាម Profile ដែលមានស្រាប់ ដើម្បីកុំឱ្យគាំង loading
+    if (typeof localStorage !== 'undefined') {
+      let isSD = false;
+      try {
+        const profStr = localStorage.getItem('sd_profile_data');
+        if (profStr) {
+          const prof = JSON.parse(profStr);
+          const pName = (prof.name || '').trim().toLowerCase();
+          const pId = (prof.memberId || '').trim().toUpperCase();
+          if (pName.includes('ស្ដី') || pName.includes('ស្តី') || pName.includes('sdey') || pId === 'MASTER-01' || pId === 'SD-01') {
+            isSD = true;
+          }
+        }
+        const lastSeller = (localStorage.getItem('sd_last_seller') || localStorage.getItem('sd_user_name') || localStorage.getItem('sd_verified_seller_km') || '').toLowerCase();
+        if (lastSeller.includes('ស្ដី') || lastSeller.includes('ស្តី') || lastSeller.includes('sdey')) {
+          isSD = true;
+        }
+      } catch (_) {}
+
+      if (isSD) {
+        localStorage.setItem('sd_master_admin_authenticated', 'true');
+        localStorage.setItem('sd_custom_sheet_id', MASTER_SDOEUNG_SHEET_ID);
+        return MASTER_SDOEUNG_SHEET_ID;
+      }
+    }
   } catch (_) {}
   return '';
 }
