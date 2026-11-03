@@ -17379,7 +17379,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.2)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.3)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -23278,6 +23278,14 @@ async function handleAttendanceAction(action) {
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   if (action === 'in') {
+    if (data.todayStatus === 'checked_in') {
+      showToastNotification('⚠️ អ្នកបានចុះវត្តមានចូលធ្វើការរួចហើយសម្រាប់ថ្ងៃនេះ!');
+      return;
+    }
+    if (data.todayStatus === 'checked_out') {
+      showToastNotification('⚠️ អ្នកបានបញ្ចប់ការងារ និងចុះវត្តមានចេញរួចហើយសម្រាប់ថ្ងៃនេះ (កំណត់ត្រឹម ២ ដងក្នុងមួយថ្ងៃ)!');
+      return;
+    }
     showToastNotification('កំពុងផ្ទៀងផ្ទាត់ Wi-Fi & ទីតាំងការិយាល័យ... ⏳');
     const check = await verifyOfficePresence();
     if (!check.verified) {
@@ -23288,6 +23296,14 @@ async function handleAttendanceAction(action) {
     proceedWithAttendanceCheckIn(check);
     return;
   } else if (action === 'out') {
+    if (data.todayStatus === 'checked_out') {
+      showToastNotification('⚠️ អ្នកបានចុះវត្តមានចេញពីធ្វើការរួចហើយសម្រាប់ថ្ងៃនេះ!');
+      return;
+    }
+    if (data.todayStatus !== 'checked_in') {
+      showToastNotification('⚠️ សូមចុះវត្តមានចូលធ្វើការ (Check-in) ជាមុនសិន ទើបអាច Check-out បាន!');
+      return;
+    }
     data.todayStatus = 'checked_out';
     data.checkOutTime = timeStr;
     data.duration = calculateAttendanceDuration(data.checkInTime, timeStr) || '៨ ម៉ោង ២៥ នាទី';
@@ -25149,8 +25165,16 @@ async function setCustomersScope(mode) {
     // Fallback: if not found in list, use currentName directly
     const sellerToUse = matchedSeller || { km: currentName, en: currentName, code: currentMemberId };
 
-    // 3. Seamlessly activate Master Data without demanding code again!
-    await loadAndActivateMasterCustomers(sellerToUse);
+    // 3. ផ្ទៀងផ្ទាត់សិទ្ធិ ឬកូដសម្ងាត់យ៉ាងតឹងរ៉ឹងមុននឹងអនុញ្ញាតឱ្យបើកមើល Master Data
+    const targetSellerNorm = (typeof normalizeSellerName === 'function') ? normalizeSellerName(sellerToUse.km) : sellerToUse.km.toLowerCase().trim();
+    const isMasterAuth = (typeof isMasterAdminUser === 'function') && isMasterAdminUser();
+    const isSellerAuth = (typeof localStorage !== 'undefined') && localStorage.getItem('sd_master_cust_auth_' + targetSellerNorm) === 'true';
+
+    if (isMasterAuth || isSellerAuth) {
+      await loadAndActivateMasterCustomers(sellerToUse);
+    } else {
+      openMasterCustomerAuthModal(sellerToUse);
+    }
   }
 }
 
@@ -31818,27 +31842,8 @@ let isTelegramAppsAssistantActive = false;
 
 function isMasterAdminUser() {
   try {
-    const isMasterAuth = (typeof localStorage !== 'undefined') && localStorage.getItem('sd_master_admin_authenticated') === 'true';
-    if (isMasterAuth) return true;
-
-    const prof = (typeof getProfileData === 'function') ? getProfileData() : {};
-    const profName = (prof.name || '').trim().toLowerCase();
-    const profPhone = String(prof.phone || '').replace(/\D/g, '');
-
-    const lastSeller = (typeof localStorage !== 'undefined' ? (localStorage.getItem('sd_last_seller') || '') : '').trim().toLowerCase();
-    const lastSellerPhone = (typeof localStorage !== 'undefined' ? (localStorage.getItem('sd_last_seller_phone') || '') : '').replace(/\D/g, '');
-
-    const activeSheet = (window.DataService && typeof window.DataService.getActiveSheetId === 'function') ? window.DataService.getActiveSheetId() : '';
-    const masterId = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
-
-    const matchesName = (n) => n && (n.includes('ស្ដី') || n.includes('ស្តី') || n.includes('sdey') || n.includes('sdoeung'));
-    const matchesPhone = (p) => p && (p.includes('0978595526') || p.includes('8595526') || p.endsWith('5526'));
-
-    if (matchesName(profName) || matchesName(lastSeller)) return true;
-    if (matchesPhone(profPhone) || matchesPhone(lastSellerPhone)) return true;
-    if (activeSheet === masterId) return true;
-
-    return false;
+    // សុវត្ថិភាពខ្ពស់បំផុត៖ មានតែការផ្ទៀងផ្ទាត់កូដសម្ងាត់ Master Admin ជោគជ័យប៉ុណ្ណោះ ទើបចាត់ទុកជា Master Admin
+    return (typeof localStorage !== 'undefined') && localStorage.getItem('sd_master_admin_authenticated') === 'true';
   } catch (_) {
     return false;
   }
@@ -33495,7 +33500,7 @@ async function submitNewOrder() {
     }
   }
 
-  // 3. យុទ្ធសាស្ត្រ 3 in 1: បញ្ជូនចូល Google Sheet ផ្ទាល់ខ្លួន & BostarTrack Master Data & Google Form ក្រុមហ៊ុន
+  // 3. យុទ្ធសាស្ត្រ 3 in 1: បញ្ជូនចូល Google Form ក្រុមហ៊ុន (ទិសទី ១), Master Data (ទិសទី ២), និង Sheet ផ្ទាល់ខ្លួន (ទិសទី ៣)
   const isDockOrder = (currentOrderEntryMode === 'dock');
   const syncToCompany = isDockOrder && (document.getElementById('order-field-sync-company-form')?.checked !== false);
   const webhookUrl = getAppsScriptWebhookUrl();
@@ -33504,21 +33509,48 @@ async function submitNewOrder() {
 
   const syncTasks = [];
 
-  // 3A. Personal Apps Script Webhook (Auto dual-syncs to BostarTrack Master Data ONLY when isDockOrder is true)
+  // កំណត់ស្ថានភាព Sheet ផ្ទាល់ខ្លួនរបស់អ្នកលក់
+  const isMasterAdmin = (typeof isMasterAdminUser === 'function') && isMasterAdminUser();
+  const customSheetId = (typeof DataService !== 'undefined' && DataService.getCustomSheetId) ? DataService.getCustomSheetId() : '';
+  const bostarMasterDataSheetId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+  const hasPersonalSheet = (isMasterAdmin) || (customSheetId && customSheetId.length > 15 && customSheetId !== bostarMasterDataSheetId);
+  const personalSheetId = isMasterAdmin ? '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU' : customSheetId;
+
+  // 3A. Webhook Sync (ទិសទី ២: Master Data និង ទិសទី ៣: Sheet ផ្ទាល់ខ្លួន)
   if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+    let orderPayload = null;
+    if (isAssistantEntry) {
+      orderPayload = {
+        action: 'add_order',
+        sheetId: bostarMasterDataSheetId,
+        syncToBostarTrack: true,
+        data: newRecord
+      };
+    } else if (hasPersonalSheet) {
+      // សមាជិកដែលមាន Sheet ផ្ទាល់ខ្លួន៖ បញ្ចូលទាំងក្នុង Sheet ផ្ទាល់ខ្លួន និង Master Data (3-in-1 ពេញលេញ)
+      orderPayload = {
+        action: 'add_order',
+        sheetId: personalSheetId,
+        syncToBostarTrack: isDockOrder,
+        data: newRecord
+      };
+    } else {
+      // សមាជិកថ្មីដែលគ្មាន Sheet ផ្ទាល់ខ្លួន៖ ផ្អាក (Skip) ទិសទី ៣ ដោយស្វ័យប្រវត្តិ!
+      // បាញ់ត្រង់ចូលតែ Master Data ប៉ុណ្ណោះ ដាច់ខាតមិនឱ្យធ្លាក់ចូល Sheet របស់ Admin ឡើយ!
+      orderPayload = {
+        action: 'add_order',
+        sheetId: bostarMasterDataSheetId,
+        syncToBostarTrack: false,
+        data: newRecord
+      };
+    }
+
     syncTasks.push(
       fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'add_order',
-          sheetId: isAssistantEntry
-            ? '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4'
-            : ((typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : ''),
-          syncToBostarTrack: (currentOrderEntryMode === 'dock') || isAssistantEntry,
-          data: newRecord
-        })
+        body: JSON.stringify(orderPayload)
       }).then(() => {
         syncSuccess = true;
         try {

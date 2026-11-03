@@ -57,16 +57,17 @@ function doPost(e) {
     var payload = JSON.parse(e.postData.contents);
     var action = payload.action;
     var data = payload.data;
-    var targetSheetId = (payload.sheetId && String(payload.sheetId).length > 15) ? String(payload.sheetId).trim() : null;
-    var ss = targetSheetId ? SpreadsheetApp.openById(targetSheetId) : SpreadsheetApp.getActiveSpreadsheet();
+    var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+    // បើគ្មាន sheetId (ឧ. សមាជិកថ្មី) ដាច់ខាតមិនទម្លាក់ចូល Sheet របស់ Admin ឡើយ ដោយកំណត់ចូល Master Data ជាលំនាំដើម
+    var targetSheetId = (payload.sheetId && String(payload.sheetId).length > 15) ? String(payload.sheetId).trim() : bostarTrackId;
+    var ss = SpreadsheetApp.openById(targetSheetId);
 
     if (action === 'add_order') {
-      // 1. បញ្ចូលទៅក្នុង Sheet ផ្ទាល់ខ្លួនរបស់សមាជិក (Personal Sales)
+      // 1. បញ្ចូលទៅក្នុង Sheet ផ្ទាល់ខ្លួនរបស់សមាជិក (Personal Sales) ឬ Master Data
       var result = insertPersonalSalesOrder(ss, data);
 
       // 2. Dual-Sync: បញ្ចូលទៅកាន់ Master Data នៃ BostarTrack (1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4) ស្វ័យប្រវត្តិ
       // បញ្ជាដាច់ខាត៖ Master Data ទទួលតែពីការកុម្ម៉ង់ថ្មី (isDockOrder / syncToBostarTrack === true) ប៉ុណ្ណោះ ហាម Telegram Mode
-      var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
       var syncToBostarTrack = (payload.syncToBostarTrack === true) || (data.syncToBostarTrack === true);
       if (syncToBostarTrack && targetSheetId !== bostarTrackId) {
         try {

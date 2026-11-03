@@ -4,7 +4,7 @@
  */
 
 const MASTER_SDOEUNG_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
-const DEFAULT_MASTER_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+const DEFAULT_MASTER_SHEET_ID = '';
 const TEAM_HIERARCHY_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
 const BOSTAR_TRACK_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
 const TEAM_HIERARCHY_GID = '1865868146';
@@ -29,6 +29,9 @@ function getActiveSheetId() {
       const urlSheet = urlParams.get('sheet') || urlParams.get('sheet_id');
       if (urlSheet && urlSheet.trim().length > 15) {
         const cleanUrlSheet = extractSheetId(urlSheet.trim()) || urlSheet.trim();
+        if (cleanUrlSheet === MASTER_SDOEUNG_SHEET_ID && localStorage.getItem('sd_master_admin_authenticated') !== 'true') {
+          return '';
+        }
         localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
         return cleanUrlSheet;
       }
@@ -37,10 +40,22 @@ function getActiveSheetId() {
     if (custom && custom.trim() === TEAM_HIERARCHY_SHEET_ID) {
       localStorage.removeItem('sd_custom_sheet_id');
     } else if (custom && custom.trim().length > 15) {
+      if (custom.trim() === MASTER_SDOEUNG_SHEET_ID) {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_master_admin_authenticated') === 'true') {
+          return MASTER_SDOEUNG_SHEET_ID;
+        } else {
+          localStorage.removeItem('sd_custom_sheet_id');
+          return '';
+        }
+      }
       return custom.trim();
     }
+    // Only return MASTER_SDOEUNG_SHEET_ID if authenticated as Master Admin
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_master_admin_authenticated') === 'true') {
+      return MASTER_SDOEUNG_SHEET_ID;
+    }
   } catch (_) {}
-  return DEFAULT_MASTER_SHEET_ID;
+  return '';
 }
 
 function cleanNumber(val) {
