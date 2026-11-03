@@ -2284,7 +2284,7 @@ function setupSmartDockScroll() {
     'cod-thai-orders-list',
     'bank-modal-list',
     'payables-modal-list',
-    'all-customers-list',
+    // 'all-customers-list' is managed exclusively by setupAllCustomersScroll() to prevent event conflict
     'team-members-list',
     'new-order-modal-body',
     'edit-profile-body',
@@ -24832,40 +24832,31 @@ let allCustScrollInitialized = false;
 
 function setupAllCustomersScroll() {
   const listEl = document.getElementById('all-customers-list');
-  const summaryEl = document.getElementById('all-customers-summary');
-  if (!listEl || !summaryEl || allCustScrollInitialized) return;
+  if (!listEl || allCustScrollInitialized) return;
   allCustScrollInitialized = true;
 
   let lastScrollTop = listEl.scrollTop || 0;
-  let dockIdleTimer = null;
 
   listEl.addEventListener('scroll', () => {
     const currentScrollTop = listEl.scrollTop;
     const diff = currentScrollTop - lastScrollTop;
 
-    // 1. Scrolling down into deeper items (finger dragging up) -> Hide Summary & Dock
-    if (diff > 6 && currentScrollTop > 25) {
-      if (!summaryEl.classList.contains('summary-collapsed')) {
-        summaryEl.classList.add('summary-collapsed');
-      }
-      if (diff > 8 && currentScrollTop > 30) {
-        setDockVisible(false);
-      }
+    // Ignore abnormal layout-resize jumps (greater than 120px)
+    if (Math.abs(diff) > 120) {
+      lastScrollTop = currentScrollTop;
+      return;
     }
-    // 2. Scrolling back up towards top (finger dragging down) OR near top -> Show Summary & Dock
-    else if (diff < -5 || currentScrollTop <= 15) {
-      if (summaryEl.classList.contains('summary-collapsed')) {
-        summaryEl.classList.remove('summary-collapsed');
-      }
+
+    // 1. Scrolling down deeply (finger dragging up, intentional scroll) -> Hide Dock smoothly
+    if (diff > 14 && currentScrollTop > 60) {
+      setDockVisible(false);
+    }
+    // 2. Scrolling back up towards top (finger dragging down, intentional scroll) OR near top -> Show Dock smoothly
+    else if (diff < -12 || currentScrollTop <= 20) {
       setDockVisible(true);
     }
 
     lastScrollTop = currentScrollTop;
-    // NOTE: Summary strip stays hidden on idle, but Dock restores smoothly when screen is still
-    clearTimeout(dockIdleTimer);
-    dockIdleTimer = setTimeout(() => {
-      setDockVisible(true);
-    }, 450);
   }, { passive: true });
 }
 
