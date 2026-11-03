@@ -17379,7 +17379,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v63.9)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.0)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -24774,26 +24774,29 @@ function onBirthdayInput(e) {
 }
 window.onBirthdayInput = onBirthdayInput;
 
-function compressImageFile(file, maxSizePx = 500, quality = 0.82) {
+function compressImageFile(file, maxSizePx = 400, quality = 0.85) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        let w = img.width;
-        let h = img.height;
-        if (w > h && w > maxSizePx) {
-          h = Math.round((h * maxSizePx) / w);
-          w = maxSizePx;
-        } else if (h >= w && h > maxSizePx) {
-          h = Math.round((w * maxSizePx) / h);
-          h = maxSizePx;
-        }
-        canvas.width = w;
-        canvas.height = h;
+        
+        // Smart Center-Crop to Square 1:1 (រក្សាសមាមាត្រដើម ១០០% មិនឱ្យរីក ឬសំប៉ែតមុខឡើយ)
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+
+        const targetSize = Math.min(maxSizePx, size);
+        canvas.width = targetSize;
+        canvas.height = targetSize;
+
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
+        if (ctx) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, sx, sy, size, size, 0, 0, targetSize, targetSize);
+        }
         resolve(canvas.toDataURL('image/jpeg', quality));
       };
       img.onerror = reject;
