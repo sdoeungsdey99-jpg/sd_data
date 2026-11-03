@@ -3085,6 +3085,28 @@
     }
     .light-theme #edit-profile-body label { color: #334155 !important; }
     .light-theme #edit-profile-body .border-2.border-\[\#0F1B2E\] { border-color: #FFFFFF !important; }
+    .gender-btn-active {
+      background-color: rgba(249, 115, 22, 0.2) !important;
+      border-color: #F97316 !important;
+      color: #FB923C !important;
+      box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25) !important;
+    }
+    .gender-btn-inactive {
+      background-color: rgba(0, 0, 0, 0.4) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      color: #94A3B8 !important;
+    }
+    .light-theme #edit-profile-modal .gender-btn-active {
+      background-color: #FFF7ED !important;
+      border-color: #EA580C !important;
+      color: #EA580C !important;
+      box-shadow: 0 2px 8px rgba(234, 88, 12, 0.15) !important;
+    }
+    .light-theme #edit-profile-modal .gender-btn-inactive {
+      background-color: #F8FAFC !important;
+      border-color: #CBD5E1 !important;
+      color: #64748B !important;
+    }
 
     /* Full Expenses Modal Refinements */
     .light-theme #expenses-modal,
@@ -6911,7 +6933,7 @@
           </div>
         </div>
 
-        <!-- Basic Identity: Name, ID, Subtitle -->
+        <!-- Basic Identity: Name, ID, Gender / Honorific, Subtitle -->
         <div class="p-3.5 rounded-2xl bg-black/30 border border-white/10 space-y-3 text-xs">
           <div class="grid grid-cols-2 gap-2.5">
             <div>
@@ -6924,6 +6946,27 @@
               <input type="text" id="edit-prof-id" placeholder="BG-001" 
                      class="w-full h-10 px-3 text-xs sm:text-sm font-mono bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none focus:border-orange-500 transition">
             </div>
+          </div>
+
+          <!-- ភេទ និង គោរមងារស្វាគមន៍ -->
+          <div>
+            <label class="block text-xs text-slate-300 mb-1.5 font-semibold flex items-center gap-1.5">
+              <span>👤</span>
+              <span>ភេទ / គោរមងារស្វាគមន៍</span>
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" id="edit-prof-gender-male" onclick="setEditProfileGender('male')" 
+                      class="gender-btn gender-btn-active h-10 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border transition active:scale-95">
+                <span>👨‍🏫</span>
+                <span>លោកគ្រូ (ប្រុស)</span>
+              </button>
+              <button type="button" id="edit-prof-gender-female" onclick="setEditProfileGender('female')" 
+                      class="gender-btn gender-btn-inactive h-10 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border transition active:scale-95">
+                <span>👩‍🏫</span>
+                <span>អ្នកគ្រូ (ស្រី)</span>
+              </button>
+            </div>
+            <input type="hidden" id="edit-prof-gender" value="male">
           </div>
 
           <div>
@@ -8183,6 +8226,6 @@
   </div>
 
   <script src="dataService.js?v=10.4"></script>
-  <script src="app.js?v=63.7"></script>
+  <script src="app.js?v=63.8"></script>
 </body>
 </html>

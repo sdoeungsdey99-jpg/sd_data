@@ -258,6 +258,7 @@ const appState = {
 const DEFAULT_GUEST_PROFILE_DATA = {
   name: 'សមាជិក Bostar',
   memberId: 'BG-001',
+  gender: 'male',
   subtitle: 'BostarGroup Member',
   avatar: 'bostar-logo.png',
   work: 'សមាជិកក្រុម BostarGroup',
@@ -268,6 +269,7 @@ const DEFAULT_GUEST_PROFILE_DATA = {
   birthday: '',
   phone: '',
   privacy: {
+    showGender: true,
     showWork: true,
     showStudy: true,
     showLive: true,
@@ -17377,7 +17379,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v63.7)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v63.8)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -20152,6 +20154,7 @@ function showToastNotification(msg) {
 const DEFAULT_PROFILE_DATA = {
   name: 'សមាជិក Bostar',
   memberId: 'BG-001',
+  gender: 'male',
   subtitle: 'BostarGroup Member',
   avatar: 'bostar-logo.png',
   work: 'សមាជិកក្រុម BostarGroup',
@@ -20162,6 +20165,7 @@ const DEFAULT_PROFILE_DATA = {
   birthday: '',
   phone: '',
   privacy: {
+    showGender: true,
     showWork: true,
     showStudy: true,
     showLive: true,
@@ -20334,15 +20338,23 @@ function triggerDrawerGreetingAnimation(e) {
 
   const p = getProfileData();
   const fullName = (p.name || 'ស្តី ស្តើង').trim();
-  let displayName = fullName;
-  if (fullName.includes('ស្តី')) {
-    displayName = 'ស្តី';
-  } else if (fullName.includes('ស៊ីថា') || fullName.includes('វណ្ណ')) {
-    displayName = 'លោកអគ្គនាយក ស៊ីថា';
-  } else if (fullName.includes('នោរ៉ា') || fullName.includes('ប៊ិច')) {
-    displayName = 'លោកប្រធាន នោរ៉ា';
+
+  // 1. កំណត់គោរមងារ៖ «លោកគ្រូ» (ប្រុស/Default) ឬ «អ្នកគ្រូ» (ស្រី)
+  let isFemale = (p.gender === 'female');
+  if (!p.gender && (fullName.includes('ស្រី') || fullName.includes('នារី') || fullName.includes('ធីតា'))) {
+    isFemale = true;
+  }
+  const title = isFemale ? 'អ្នកគ្រូ' : 'លោកគ្រូ';
+
+  // 2. ចាប់យក «នាមខ្លួន / ឈ្មោះខ្លួន» (ពាក្យចុងក្រោយបង្អស់តាមទម្លាប់ខ្មែរ)
+  const nameParts = fullName.split(/\s+/).filter(Boolean);
+  const givenName = nameParts.length > 0 ? nameParts[nameParts.length - 1] : fullName;
+
+  let displayName = '';
+  if (fullName === 'សមាជិក Bostar' || fullName === 'Bostar') {
+    displayName = `${title}`;
   } else {
-    displayName = fullName.split(/\s+/)[0];
+    displayName = `${title} ${givenName}`;
   }
 
   const hour = new Date().getHours();
@@ -24029,6 +24041,7 @@ function renderProfileDrawerContent() {
   if (drawerId) drawerId.textContent = 'ID: ' + String(p.memberId || 'BG-001').replace(/^(ID:\s*)+/i, '').trim();
 
   const infoItems = [
+    { key: 'showGender', icon: 'user-check', color: 'text-amber-400', label: 'ភេទ / គោរមងារ', val: (p.gender === 'female' ? 'ស្រី (អ្នកគ្រូ)' : 'ប្រុស (លោកគ្រូ)') },
     { key: 'showWork', icon: 'briefcase', color: 'text-orange-400', label: 'ធ្វើការនៅ', val: p.work },
     { key: 'showStudy', icon: 'graduation-cap', color: 'text-blue-400', label: 'សិក្សានៅ', val: p.study },
     { key: 'showLive', icon: 'home', color: 'text-emerald-400', label: 'រស់នៅ', val: p.live },
@@ -24036,7 +24049,7 @@ function renderProfileDrawerContent() {
     { key: 'showStatus', icon: 'heart', color: 'text-pink-400', label: 'ស្ថានភាព', val: p.status },
     { key: 'showBirth', icon: 'cake', color: 'text-purple-400', label: 'ថ្ងៃកំណើត', val: p.birthday },
     { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរស័ព្ទ', val: p.phone }
-  ].filter(item => p.privacy[item.key] !== false && item.val && item.val.trim() !== '');
+  ].filter(item => p.privacy[item.key] !== false && item.val && String(item.val).trim() !== '');
 
   const container = document.getElementById('profile-drawer-content');
   if (!container) return;
@@ -24333,6 +24346,7 @@ function getProfileViewHTML() {
   const membersCount = BOSTAR_TEAM_SELLERS.length;
 
   const infoItems = [
+    { key: 'showGender', icon: 'user-check', color: 'text-amber-400', label: 'ភេទ / គោរមងារ', val: (p.gender === 'female' ? 'ស្រី (អ្នកគ្រូ)' : 'ប្រុស (លោកគ្រូ)') },
     { key: 'showWork', icon: 'briefcase', color: 'text-orange-400', label: 'ធ្វើការនៅ', val: p.work },
     { key: 'showStudy', icon: 'graduation-cap', color: 'text-blue-400', label: 'សិក្សានៅ', val: p.study },
     { key: 'showLive', icon: 'home', color: 'text-emerald-400', label: 'រស់នៅ', val: p.live },
@@ -24340,7 +24354,7 @@ function getProfileViewHTML() {
     { key: 'showStatus', icon: 'heart', color: 'text-pink-400', label: 'ស្ថានភាព', val: p.status },
     { key: 'showBirth', icon: 'cake', color: 'text-purple-400', label: 'ថ្ងៃកំណើត', val: p.birthday },
     { key: 'showPhone', icon: 'phone', color: 'text-amber-400', label: 'ទូរស័ព្ទ', val: p.phone }
-  ].filter(item => p.privacy[item.key] !== false && item.val && item.val.trim() !== '');
+  ].filter(item => p.privacy[item.key] !== false && item.val && String(item.val).trim() !== '');
 
   return `
     <div class="space-y-3.5 pb-10 relative">
@@ -24609,6 +24623,34 @@ function getProfileViewHTML() {
 // =========================================================
 let tempAvatarDataUrl = null;
 
+function setEditProfileGender(gender) {
+  const maleBtn = document.getElementById('edit-prof-gender-male');
+  const femaleBtn = document.getElementById('edit-prof-gender-female');
+  const hiddenInput = document.getElementById('edit-prof-gender');
+  if (hiddenInput) hiddenInput.value = gender;
+
+  if (gender === 'female') {
+    if (femaleBtn) {
+      femaleBtn.classList.remove('gender-btn-inactive');
+      femaleBtn.classList.add('gender-btn-active');
+    }
+    if (maleBtn) {
+      maleBtn.classList.remove('gender-btn-active');
+      maleBtn.classList.add('gender-btn-inactive');
+    }
+  } else {
+    if (maleBtn) {
+      maleBtn.classList.remove('gender-btn-inactive');
+      maleBtn.classList.add('gender-btn-active');
+    }
+    if (femaleBtn) {
+      femaleBtn.classList.remove('gender-btn-active');
+      femaleBtn.classList.add('gender-btn-inactive');
+    }
+  }
+}
+window.setEditProfileGender = setEditProfileGender;
+
 function openEditProfileModal(fromDrawer = false) {
   if (!window.navOpenedFromDrawer) window.navOpenedFromDrawer = {};
   window.navOpenedFromDrawer.editProfile = !!fromDrawer;
@@ -24626,6 +24668,11 @@ function openEditProfileModal(fromDrawer = false) {
   setVal('edit-prof-name', p.name);
   setVal('edit-prof-id', p.memberId);
   setVal('edit-prof-sub', p.subtitle);
+
+  // Set Gender / Honorific
+  const currentGender = p.gender || (p.name && (p.name.includes('ស្រី') || p.name.includes('នារី') || p.name.includes('ធីតា')) ? 'female' : 'male');
+  setEditProfileGender(currentGender);
+
   setVal('edit-prof-work', p.work);
   setVal('edit-prof-study', p.study);
   setVal('edit-prof-live', p.live);
@@ -24811,6 +24858,7 @@ function saveProfileData() {
     avatar: tempAvatarDataUrl || current.avatar || (isMaster ? 'profile.png' : 'bostar-logo.png'),
     name: getVal('edit-prof-name') || (isMaster ? 'ស្តី ស្តើង' : 'សមាជិក Bostar'),
     memberId: (getVal('edit-prof-id') || (isMaster ? 'SD-0001' : 'BG-001')).replace(/^(ID:\s*)+/i, '').trim(),
+    gender: getVal('edit-prof-gender') || 'male',
     subtitle: getVal('edit-prof-sub') || (isMaster ? 'SDEY SDOEUNG' : 'BostarGroup Member'),
     work: getVal('edit-prof-work') || (isMaster ? current.work : 'សមាជិកក្រុម BostarGroup'),
     study: getVal('edit-prof-study') || (isMaster ? current.study : 'BostarGroup'),
