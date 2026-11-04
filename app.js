@@ -5373,7 +5373,17 @@ function getMemberBostarTrackSetsAndDaily(memberName, d, monthOverride = null) {
   const normName = normalizeSellerName(memberName);
   const allOrders = (d && Array.isArray(d.bostarTrackSales)) ? d.bostarTrackSales : [];
   
-  let targetMonth = monthOverride || (typeof teamMembersFilterState !== 'undefined' && teamMembersFilterState.selectedMonth) || (typeof execHierarchyFilterState !== 'undefined' && execHierarchyFilterState.selectedMonth);
+  let targetMonth = monthOverride;
+  if (!targetMonth) {
+    if (typeof execHierarchyFilterState !== 'undefined' && execHierarchyFilterState.selectedMonth) {
+      targetMonth = execHierarchyFilterState.selectedMonth;
+    } else if (typeof teamMembersFilterState !== 'undefined' && teamMembersFilterState.selectedMonth) {
+      targetMonth = teamMembersFilterState.selectedMonth;
+    } else {
+      const now = new Date();
+      targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+  }
   if (!targetMonth || targetMonth === 'all') {
     const now = new Date();
     targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -5395,23 +5405,10 @@ function getMemberBostarTrackSetsAndDaily(memberName, d, monthOverride = null) {
     return false;
   };
 
-  let memberOrders = allOrders.filter(o => {
+  const memberOrders = allOrders.filter(o => {
     if (!o.isoDate || !o.isoDate.startsWith(targetMonth)) return false;
     return matchSeller(o.seller);
   });
-
-  // Fallback: If no orders found for the target month, look up latest available month with orders for this seller
-  if (memberOrders.length === 0 && allOrders.length > 0) {
-    const sellerOrdersAll = allOrders.filter(o => matchSeller(o.seller));
-    if (sellerOrdersAll.length > 0) {
-      const months = [...new Set(sellerOrdersAll.map(o => (o.isoDate || '').slice(0, 7)).filter(Boolean))].sort();
-      const fallbackMonth = months[months.length - 1];
-      if (fallbackMonth) {
-        targetMonth = fallbackMonth;
-        memberOrders = sellerOrdersAll.filter(o => o.isoDate && o.isoDate.startsWith(fallbackMonth));
-      }
-    }
-  }
   
   const parts = targetMonth.split('-');
   const yearNum = parseInt(parts[0], 10) || 2026;
@@ -5515,8 +5512,14 @@ function getMemberBostarTrackSetsAndDaily(memberName, d, monthOverride = null) {
   };
 }
 
-function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
+function renderExecutiveLeaderTeamTargetCard(selectedL, d, targetMonth = null) {
   if (!selectedL) return '';
+  const now = new Date();
+  const currentIsoMonth = getLocalIsoDate(now).slice(0, 7);
+  const activeMonth = targetMonth 
+    || (typeof execHierarchyFilterState !== 'undefined' && execHierarchyFilterState.selectedMonth)
+    || currentIsoMonth;
+
   const hierarchy = (d && d.teamHierarchy) ? d.teamHierarchy : null;
   const rawMembers = (hierarchy && Array.isArray(hierarchy.members) && hierarchy.members.length > 0) ? hierarchy.members : (window.BOSTAR_TEAM_SELLERS || []);
 
@@ -5544,7 +5547,7 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
 
   let groupTotalTarget = 0;
   const rosterData = teamRoster.map(mem => {
-    const data = getMemberBostarTrackSetsAndDaily(mem.km, d);
+    const data = getMemberBostarTrackSetsAndDaily(mem.km, d, activeMonth);
     if (data.target && data.target > 0) {
       groupTotalTarget += data.target;
     }
@@ -5587,7 +5590,7 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
           const displayTargetText = item.targetDisplay || (hasTarget ? item.target : '--');
 
           return `
-            <div onclick="openMemberDailyBreakdownModal('${safeName}')" 
+            <div onclick="openMemberDailyBreakdownModal('${safeName}', '${activeMonth}')" 
                  class="ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-amber-500/30 hover:bg-white/5 cursor-pointer active:scale-[0.99] transition duration-150 space-y-1.5 group select-none shadow-sm">
               <!-- Top Row: Name + Verified + Target pill (Left) | Boxes + % + Chevron (Right) -->
               <div class="flex items-center justify-between gap-2">
@@ -5634,10 +5637,10 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
   `;
 }
 
-function editMemberPersonalTarget(memberName) {
+function editMemberPersonalTarget(memberName, monthOverride = null) {
   const normName = normalizeSellerName(memberName);
-  let targetMonth = execHierarchyFilterState.selectedMonth;
-  if (!targetMonth || execHierarchyFilterState.mode === 'all') {
+  let targetMonth = monthOverride || window.currentMemberBreakdownMonth || (typeof execHierarchyFilterState !== 'undefined' && execHierarchyFilterState.selectedMonth);
+  if (!targetMonth || targetMonth === 'all') {
     const now = new Date();
     targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
@@ -5647,7 +5650,7 @@ function editMemberPersonalTarget(memberName) {
   const targetKey = `sd_target_${normName}_${targetMonth}`;
   const currentVal = localStorage.getItem(targetKey) || localStorage.getItem(`sd_target_${normName}`) || '';
   const d = window.DataService && window.DataService.data ? window.DataService.data : null;
-  const currentData = getMemberBostarTrackSetsAndDaily(memberName, d);
+  const currentData = getMemberBostarTrackSetsAndDaily(memberName, d, targetMonth);
   const promptVal = currentVal || currentData.target;
   const input = prompt('បញ្ចូលចំនួនប្រអប់គោលដៅសម្រាប់ ' + memberName + ' (ប្រអប់)៖', promptVal);
   if (input !== null) {
@@ -5662,7 +5665,7 @@ function editMemberPersonalTarget(memberName) {
       localStorage.removeItem(targetKey);
       localStorage.removeItem(`sd_target_${normName}`);
     }
-    openMemberDailyBreakdownModal(memberName);
+    openMemberDailyBreakdownModal(memberName, targetMonth);
     if (typeof renderExecutiveHierarchyModalContent === 'function') {
       renderExecutiveHierarchyModalContent();
     }
@@ -5672,9 +5675,16 @@ function editMemberPersonalTarget(memberName) {
   }
 }
 
-function openMemberDailyBreakdownModal(memberName) {
+function openMemberDailyBreakdownModal(memberName, monthOverride = null) {
   const d = window.DataService && window.DataService.data ? window.DataService.data : null;
-  const data = getMemberBostarTrackSetsAndDaily(memberName, d);
+  const now = new Date();
+  const currentIsoMonth = getLocalIsoDate(now).slice(0, 7);
+  const activeMonth = monthOverride 
+    || (typeof execHierarchyFilterState !== 'undefined' && execHierarchyFilterState.selectedMonth)
+    || window.currentMemberBreakdownMonth 
+    || currentIsoMonth;
+  window.currentMemberBreakdownMonth = activeMonth;
+  const data = getMemberBostarTrackSetsAndDaily(memberName, d, activeMonth);
   const container = document.getElementById('member-daily-breakdown-container');
   const modal = document.getElementById('member-daily-breakdown-modal');
   if (!container || !modal) return;
@@ -5726,15 +5736,15 @@ function openMemberDailyBreakdownModal(memberName) {
           <i data-lucide="more-horizontal" class="w-5 h-5"></i>
         </button>
         <div id="modal-menu-member-daily" class="hidden absolute right-0 top-full mt-1.5 w-48 bg-[#0A1222]/95 backdrop-blur-3xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.85)] ring-1 ring-white/10 p-1.5 rounded-2xl z-50 divide-y divide-white/10 animate-fade-in font-sans">
-          <button type="button" onclick="handleMemberDailyAction('pdf', '${safeName}')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
+          <button type="button" onclick="handleMemberDailyAction('pdf', '${safeName}', '${activeMonth}')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
             <i data-lucide="file-text" class="w-4 h-4 text-orange-400"></i>
             <span>រក្សាទុកជា PDF</span>
           </button>
-          <button type="button" onclick="handleMemberDailyAction('share', '${safeName}')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
+          <button type="button" onclick="handleMemberDailyAction('share', '${safeName}', '${activeMonth}')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
             <i data-lucide="share-2" class="w-4 h-4 text-blue-400"></i>
             <span>ចែករំលែក</span>
           </button>
-          <button type="button" onclick="handleMemberDailyAction('copy', '${safeName}')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
+          <button type="button" onclick="handleMemberDailyAction('copy', '${safeName}', '${activeMonth}')" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl flex items-center gap-2.5 transition active:scale-95">
             <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
             <span>ចម្លង</span>
           </button>
@@ -5748,7 +5758,7 @@ function openMemberDailyBreakdownModal(memberName) {
       <div class="p-3.5 pb-2.5">
         <div class="grid grid-cols-3 gap-2">
           <!-- 1. គោលដៅ (អាចកែប្រែបាន ជាមួយ icon edit លើស្តាំ, Default: --) -->
-          <div onclick="editMemberPersonalTarget('${safeName}')" 
+          <div onclick="editMemberPersonalTarget('${safeName}', '${activeMonth}')" 
                class="p-3 rounded-2xl bg-[#0F1B2E] border border-amber-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition relative group"
                title="ចុចដើម្បីកែប្រែគោលដៅ">
             <button type="button" class="absolute top-2 right-2 w-5 h-5 rounded-lg bg-amber-500/10 group-hover:bg-amber-500/25 text-amber-300 flex items-center justify-center transition border border-amber-500/20" title="កែប្រែគោលដៅ">
@@ -5773,7 +5783,7 @@ function openMemberDailyBreakdownModal(memberName) {
           </div>
 
           <!-- 3. Boost (ជាមួយ icon edit លើស្តាំ) -->
-          <div onclick="editMemberPersonalBoost('${safeName}')" 
+          <div onclick="editMemberPersonalBoost('${safeName}', '${activeMonth}')" 
                class="p-3 rounded-2xl bg-[#0F1B2E] border border-purple-500/30 text-center space-y-1 shadow-lg cursor-pointer hover:bg-white/5 active:scale-95 transition relative group"
                title="ចុចដើម្បីកែប្រែ Boost ផ្ទាល់ខ្លួន">
             <button type="button" class="absolute top-2 right-2 w-5 h-5 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/25 text-purple-300 flex items-center justify-center transition border border-purple-500/20" title="កែប្រែ Boost">
@@ -5795,7 +5805,7 @@ function openMemberDailyBreakdownModal(memberName) {
             <!-- Table Header (ថ្ងៃ គ្មាន ទី - Sticky Locked When Scrolling with Smooth 2XL Rounded Corners) -->
             <thead class="sticky top-0 z-30 bg-[#0B1528] text-[10.5px] border-b border-white/10 text-slate-300 shadow-md rounded-t-2xl">
               <tr class="bg-[#0B1528] rounded-t-2xl">
-                <th onclick="toggleMemberDailyFilterMode('${safeName}')" 
+                <th onclick="toggleMemberDailyFilterMode('${safeName}', '${activeMonth}')" 
                     class="sticky top-0 z-30 bg-[#0B1528] py-2.5 px-2 text-left font-bold text-slate-200 cursor-pointer hover:text-amber-400 select-none transition group rounded-tl-2xl" 
                     title="ចុចដើម្បីប្តូរ (ថ្ងៃលក់បាន / ទាំងអស់)">
                   <div class="flex items-center gap-1">
@@ -5889,9 +5899,10 @@ function openMemberDailyBreakdownModal(memberName) {
   if (window.lucide) window.lucide.createIcons();
 }
 
-function toggleMemberDailyFilterMode(memberName) {
+function toggleMemberDailyFilterMode(memberName, monthOverride = null) {
   window.memberDailyFilterMode = (window.memberDailyFilterMode === 'active' ? 'all' : 'active');
-  openMemberDailyBreakdownModal(memberName);
+  const activeMonth = monthOverride || window.currentMemberBreakdownMonth;
+  openMemberDailyBreakdownModal(memberName, activeMonth);
 }
 
 // ==========================================
@@ -5920,20 +5931,22 @@ function closeMemberDailyContextMenu() {
   if (backdrop) backdrop.classList.add('hidden');
 }
 
-function handleMemberDailyAction(action, memberName) {
+function handleMemberDailyAction(action, memberName, monthOverride = null) {
   closeMemberDailyContextMenu();
+  const activeMonth = monthOverride || window.currentMemberBreakdownMonth;
   if (action === 'pdf') {
-    printMemberDailyReport(memberName);
+    printMemberDailyReport(memberName, activeMonth);
   } else if (action === 'share') {
-    shareMemberDailyReport(memberName);
+    shareMemberDailyReport(memberName, activeMonth);
   } else if (action === 'copy') {
-    copyMemberDailyReport(memberName);
+    copyMemberDailyReport(memberName, activeMonth);
   }
 }
 
-function buildMemberReportText(memberName) {
+function buildMemberReportText(memberName, monthOverride = null) {
   const d = window.DataService && window.DataService.data ? window.DataService.data : null;
-  const data = getMemberBostarTrackSetsAndDaily(memberName, d);
+  const activeMonth = monthOverride || window.currentMemberBreakdownMonth;
+  const data = getMemberBostarTrackSetsAndDaily(memberName, d, activeMonth);
   return `📊 របាយការណ៍លក់តាមឈុត: ${memberName}\n` +
          `📅 ខែ: ${data.monthLabel}\n` +
          `🎯 គោលដៅ: ${data.target} ប្រអប់\n` +
@@ -5949,8 +5962,8 @@ function buildMemberReportText(memberName) {
          `✨ BOSTAR GROUP • SD DATA`;
 }
 
-function copyMemberDailyReport(memberName) {
-  const text = buildMemberReportText(memberName);
+function copyMemberDailyReport(memberName, monthOverride = null) {
+  const text = buildMemberReportText(memberName, monthOverride);
   closeMemberDailyContextMenu();
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(() => {
@@ -5965,22 +5978,22 @@ function copyMemberDailyReport(memberName) {
   }
 }
 
-function shareMemberDailyReport(memberName) {
-  const text = buildMemberReportText(memberName);
+function shareMemberDailyReport(memberName, monthOverride = null) {
+  const text = buildMemberReportText(memberName, monthOverride);
   closeMemberDailyContextMenu();
   if (navigator.share) {
     navigator.share({
       title: `របាយការណ៍លក់តាមឈុត: ${memberName}`,
       text: text
     }).catch(() => {
-      copyMemberDailyReport(memberName);
+      copyMemberDailyReport(memberName, monthOverride);
     });
   } else {
-    copyMemberDailyReport(memberName);
+    copyMemberDailyReport(memberName, monthOverride);
   }
 }
 
-function printMemberDailyReport(memberName) {
+function printMemberDailyReport(memberName, monthOverride = null) {
   closeMemberDailyContextMenu();
   setTimeout(() => {
     window.print();
@@ -5992,10 +6005,10 @@ function closeMemberDailyBreakdownModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-function editMemberPersonalBoost(memberName) {
+function editMemberPersonalBoost(memberName, monthOverride = null) {
   const normName = normalizeSellerName(memberName);
-  let targetMonth = execHierarchyFilterState.selectedMonth;
-  if (!targetMonth || execHierarchyFilterState.mode === 'all') {
+  let targetMonth = monthOverride || window.currentMemberBreakdownMonth || (typeof execHierarchyFilterState !== 'undefined' && execHierarchyFilterState.selectedMonth);
+  if (!targetMonth || targetMonth === 'all') {
     const now = new Date();
     targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
@@ -6012,19 +6025,20 @@ function editMemberPersonalBoost(memberName) {
     } else if (input.trim() === '') {
       localStorage.removeItem(boostKey);
     }
-    openMemberDailyBreakdownModal(memberName);
+    openMemberDailyBreakdownModal(memberName, targetMonth);
   }
 }
 
 function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isCardE = false, prevParsed = null) {
   if (!selectedM) return '';
+  const curIso = getLocalIsoDate(new Date()).slice(0, 7);
+  const activeMonth = (typeof execHierarchyFilterState !== 'undefined' && execHierarchyFilterState.selectedMonth) ? execHierarchyFilterState.selectedMonth : curIso;
   const isSdoeung = (selectedM.km && (selectedM.km.includes('ស្ដី ស្ដើង') || selectedM.km.includes('ស្តី ស្តើង')));
   const isBechNora = (selectedM.km && (selectedM.km.includes('ប៊ិច នោរ៉ា') || (selectedM.en && selectedM.en.toLowerCase().includes('bech nora'))));
   const origRank = (d && d.managersList && Array.isArray(d.managersList)) ? (d.managersList.findIndex(m => m.km === selectedM.km) + 1 || 1) : 1;
   const rankBadge = getManagerRankBadge(origRank);
 
   if (!prevParsed && execHierarchyFilterState.mode === 'month') {
-    const curIso = getLocalIsoDate(new Date()).slice(0, 7);
     const tMonth = execHierarchyFilterState.selectedMonth || curIso;
     const pMonth = getPreviousMonthKey(tMonth);
     const pStats = getExecMonthStatsMap(d, pMonth);
@@ -6138,7 +6152,7 @@ function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isC
                   <!-- Revealed Team Target Card when this Leader is tapped -->
                   ${isSelectedSub ? `
                     <div class="animate-fadeIn">
-                      ${renderExecutiveLeaderTeamTargetCard(tl, d)}
+                      ${renderExecutiveLeaderTeamTargetCard(tl, d, activeMonth)}
                     </div>
                   ` : ''}
                 </div>
@@ -6170,7 +6184,7 @@ function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isC
               tooltip: `ធៀបនឹងខែមុន (${memGrowth ? memGrowth.text : '0%'}) • ${mem.displayOrders} កុម្ម៉ង់`
             });
             return `
-              <div onclick="openMemberDailyBreakdownModal('${safeMemName}')" 
+              <div onclick="openMemberDailyBreakdownModal('${safeMemName}', '${activeMonth}')" 
                    class="p-2.5 rounded-xl bg-black/40 border border-white/5 hover:border-emerald-400/30 flex items-center justify-between gap-2 hover:bg-white/[0.04] cursor-pointer active:scale-[0.99] transition group shadow-sm"
                    title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
                 <div class="flex items-center gap-2 min-w-0">
@@ -6439,7 +6453,7 @@ function renderExecutiveHierarchyModalContent() {
             </div>
 
             <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
-            ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
+            ${renderExecutiveLeaderTeamTargetCard(selectedL, d, targetMonth)}
           </div>
         `;
       }
@@ -6472,7 +6486,7 @@ function renderExecutiveHierarchyModalContent() {
       });
 
       return `
-        <div onclick="openMemberDailyBreakdownModal('${safeMemName}')"
+        <div onclick="openMemberDailyBreakdownModal('${safeMemName}', '${targetMonth}')"
              class="p-3 rounded-2xl bg-black/40 border ${borderAccent} space-y-2 hover:bg-white/[0.04] hover:border-emerald-400/40 cursor-pointer active:scale-[0.99] transition shadow-sm group"
              title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
           <div class="flex items-center justify-between gap-2.5">
@@ -7453,7 +7467,7 @@ function getDashboardViewHTML() {
               </div>
 
               <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
-              ${renderExecutiveLeaderTeamTargetCard(selectedL, d)}
+              ${renderExecutiveLeaderTeamTargetCard(selectedL, d, targetMonth)}
             </div>
           `;
         }
@@ -7479,7 +7493,7 @@ function getDashboardViewHTML() {
         const safeMemName = mem.km.replace(/'/g, "\\'");
 
         return `
-          <div onclick="openMemberDailyBreakdownModal('${safeMemName}')"
+          <div onclick="openMemberDailyBreakdownModal('${safeMemName}', '${targetMonth}')"
                class="p-2.5 rounded-2xl bg-black/40 border ${borderAccent} space-y-1.5 hover:bg-white/[0.04] hover:border-emerald-400/40 cursor-pointer active:scale-[0.99] transition shadow-sm group"
                title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
             <div class="flex items-center justify-between gap-2.5">
@@ -17383,7 +17397,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.1)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.2)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
