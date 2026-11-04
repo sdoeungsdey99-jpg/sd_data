@@ -4680,12 +4680,12 @@
   <!-- ======================================================== -->
 
   <!-- Personal Sales Drill-down Modal (Latest First 31 -> 01) -->
-  <div id="sales-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
-    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in relative">
+  <div id="sales-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300 font-kantumruy">
+    <div class="w-full max-w-md mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in relative">
       <!-- Backdrop Blur Overlay for Context Menu -->
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
-      <div onclick="handleHeaderScrollToTop(event, 'sales-modal-list')" class="relative z-50 p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'sales-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer shadow-md shadow-black/20">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeSalesModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -4718,11 +4718,11 @@
           </div>
         </div>
       </div>
-      <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
-      <div id="sales-modal-footer" class="px-4 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+      <!-- Total Summary Row at TOP (ស្តង់ដារដូចបញ្ជីអតិថិជន) -->
+      <div id="sales-modal-footer" class="px-3.5 py-2.5 border-b border-white/10 bg-[#0B1528]/90 backdrop-blur-md flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
-      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2.5" id="sales-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2" id="sales-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Rendered dynamically -->
       </div>
     </div>
@@ -8034,7 +8034,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=10.2"></script>
-  <script src="app.js?v=63.6"></script>
+  <script src="dataService.js?v=11.2"></script>
+  <script src="app.js?v=65.4"></script>
 </body>
 </html>

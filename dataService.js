@@ -24,50 +24,35 @@ function getActiveSheetId() {
     if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_demo_mode') === 'true') {
       return 'DEMO_MODE';
     }
+
+    // 1. ពិនិត្យ Custom Sheet ID ដែលសមាជិកបានភ្ជាប់ដោយផ្ទាល់ខ្លួន
+    const custom = (typeof localStorage !== 'undefined') ? localStorage.getItem('sd_custom_sheet_id') : null;
+    const hasValidCustom = custom && custom.trim().length > 15 && custom.trim() !== TEAM_HIERARCHY_SHEET_ID;
+
+    // 2. ការពារសមាជិកដែលមាន Sheet រួចហើយ មិនឱ្យ URL ?sheet= មកសង្កត់ជាន់ (Overwrite) ដាច់ខាត
     if (typeof window !== 'undefined' && window.location && window.location.search) {
       const urlParams = new URLSearchParams(window.location.search);
       const urlSheet = urlParams.get('sheet') || urlParams.get('sheet_id');
       if (urlSheet && urlSheet.trim().length > 15) {
         const cleanUrlSheet = extractSheetId(urlSheet.trim()) || urlSheet.trim();
-        localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
-        return cleanUrlSheet;
+        // អនុញ្ញាតឱ្យកំណត់តែពេលដែលទូរសព្ទនេះមិនទាន់មាន Sheet ID ផ្ទាល់ខ្លួនប៉ុណ្ណោះ
+        if (!hasValidCustom) {
+          localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
+          return cleanUrlSheet;
+        }
       }
     }
-    const custom = (typeof localStorage !== 'undefined') ? localStorage.getItem('sd_custom_sheet_id') : null;
+
     if (custom && custom.trim() === TEAM_HIERARCHY_SHEET_ID) {
       localStorage.removeItem('sd_custom_sheet_id');
-    } else if (custom && custom.trim().length > 15) {
+    } else if (hasValidCustom) {
       return custom.trim();
     }
-    // Only return MASTER_SDOEUNG_SHEET_ID if authenticated as Master Admin
+
+    // 3. សុវត្ថិភាពខ្ពស់បំផុត៖ ផ្តល់សិទ្ធិ Master Admin Sheet (1Qu70...) លុះត្រាតែមានការផ្ទៀងផ្ទាត់ផ្លូវការជាក់ស្តែងប៉ុណ្ណោះ
+    // ហាមដាច់ខាតកុំស្មានតាមឈ្មោះ sd_last_seller ដែលធ្វើឱ្យច្រឡំគណនីឆ្លងគ្នា!
     if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_master_admin_authenticated') === 'true') {
       return MASTER_SDOEUNG_SHEET_ID;
-    }
-
-    // ស្គាល់ Device របស់លោក ស្ដី ស្ដើង ដោយស្វ័យប្រវត្តិតាម Profile ដែលមានស្រាប់ ដើម្បីកុំឱ្យគាំង loading
-    if (typeof localStorage !== 'undefined') {
-      let isSD = false;
-      try {
-        const profStr = localStorage.getItem('sd_profile_data');
-        if (profStr) {
-          const prof = JSON.parse(profStr);
-          const pName = (prof.name || '').trim().toLowerCase();
-          const pId = (prof.memberId || '').trim().toUpperCase();
-          if (pName.includes('ស្ដី') || pName.includes('ស្តី') || pName.includes('sdey') || pId === 'MASTER-01' || pId === 'SD-01') {
-            isSD = true;
-          }
-        }
-        const lastSeller = (localStorage.getItem('sd_last_seller') || localStorage.getItem('sd_user_name') || localStorage.getItem('sd_verified_seller_km') || '').toLowerCase();
-        if (lastSeller.includes('ស្ដី') || lastSeller.includes('ស្តី') || lastSeller.includes('sdey')) {
-          isSD = true;
-        }
-      } catch (_) {}
-
-      if (isSD) {
-        localStorage.setItem('sd_master_admin_authenticated', 'true');
-        localStorage.setItem('sd_custom_sheet_id', MASTER_SDOEUNG_SHEET_ID);
-        return MASTER_SDOEUNG_SHEET_ID;
-      }
     }
   } catch (_) {}
   return '';

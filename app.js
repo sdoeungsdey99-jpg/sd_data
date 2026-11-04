@@ -17426,7 +17426,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.3)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.4)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -17442,24 +17442,21 @@ function renderAppUpdateModalContent() {
       <!-- 1. System Adjustment Info -->
       <div class="update-info-card bg-white/[0.04] rounded-2xl p-3 border border-white/10 space-y-2">
         <p class="update-info-title text-xs font-bold text-amber-400 flex items-center gap-1.5">
-          <i data-lucide="bell-ring" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
-          <span>📢 ដំណឹងពីការកែសម្រួលប្រព័ន្ធ៖</span>
-        </p>
-        <p class="update-info-sub text-[11px] text-slate-300 leading-relaxed font-semibold">
-          បានកែសម្រួលតាមការប្រកាសរបស់ក្រុមហ៊ុន៖
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+          <span>📢 ការកែសម្រួលសុវត្ថិភាពទិន្នន័យ & UI៖</span>
         </p>
         <div class="space-y-1.5 text-xs pl-1">
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">បន្ថែមមុខងារ Promotion ថ្មី</span>
+            <span class="text-[11px] leading-relaxed">ធានាសុវត្ថិភាព Sheet ផ្ទាល់ខ្លួន ១០០% (ដាច់ខាតមិនច្រឡំ ឬឆ្លងទិន្នន័យចំណាយ និងការលក់គ្នា)</span>
           </div>
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">បន្ថែមជួរឈរសម្រាប់ដាក់ចំនួន ដោយមិនគិតថ្លៃដើម</span>
+            <span class="text-[11px] leading-relaxed">សម្រួលគម្លាតតារាងការលក់ Personal Sales ឱ្យមានស្តង់ដា និងភាពស្អាតបាតដូចផ្ទាំងបញ្ជីអតិថិជន</span>
           </div>
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">កែសម្រួលប្រព័ន្ធកត់ត្រាលក់ឱ្យស្របតាមក្រុមហ៊ុន</span>
+            <span class="text-[11px] leading-relaxed">ប្រព័ន្ធដំណើរការរលូន គ្មានការគាំង ឬលោតផ្ទាំងទទេ</span>
           </div>
         </div>
       </div>
@@ -19118,13 +19115,19 @@ async function syncOfflineQueue() {
 
   let syncedExpenses = 0;
   const remainingExpenses = [];
+  const currentActiveSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
   for (const exp of queue.expenses) {
+    const targetSheetId = exp.sheetId || currentActiveSheetId;
+    if (!targetSheetId || targetSheetId.length < 15 || targetSheetId === BOSTAR_TRACK_ATTENDANCE_SHEET_ID) {
+      console.warn('Skipping offline expense sync due to missing or invalid personal sheet ID:', exp);
+      continue;
+    }
     try {
       await fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'add_expense', data: exp })
+        body: JSON.stringify({ action: 'add_expense', sheetId: targetSheetId, data: exp })
       });
       syncedExpenses++;
     } catch (err) {
@@ -34639,6 +34642,17 @@ async function submitNewExpense() {
   const webhookUrl = getAppsScriptWebhookUrl();
   const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
 
+  // សុវត្ថិភាពខ្ពស់បំផុត៖ ទាមទារ Sheet ID ផ្ទាល់ខ្លួនជាដាច់ខាត ហាមកត់ត្រាចូល BostarTrack ឬគ្មាន Sheet ID
+  if (!activeSheetId || activeSheetId === 'DEMO_MODE' || activeSheetId.length < 15 || activeSheetId === BOSTAR_TRACK_ATTENDANCE_SHEET_ID) {
+    alert('⚠️ មិនអាចកត់ត្រាចំណាយបានទេ! សូមភ្ជាប់ Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នកជាមុនសិន ក្នុងទំព័រ Profile / Settings ដើម្បីការពារកុំឱ្យច្រឡំទិន្នន័យ។');
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>រក្សាទុកចំណាយ 💸</span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+    return;
+  }
+
   let totalAmountUsd = 0;
 
   for (let i = 0; i < validRows.length; i++) {
@@ -34658,6 +34672,7 @@ async function submitNewExpense() {
     totalAmountUsd += finalUsd;
 
     const newExpense = {
+      sheetId: activeSheetId,
       date: ddmmyyyy,
       isoDate: isoDate,
       time: timeStr,

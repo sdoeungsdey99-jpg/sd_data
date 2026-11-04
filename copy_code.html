@@ -277,14 +277,22 @@ function doPost(e) {
         }
       }
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
-    } else if (action === &#x27;add_expense&#x27;) {
-      var result = insertDailyExpense(ss, data);
-      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
-    } else if (action === &#x27;update_expense&#x27;) {
-      var result = updateDailyExpense(ss, data);
-      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
-    } else if (action === &#x27;delete_expense&#x27;) {
-      var result = deleteDailyExpense(ss, data);
+    } else if (action === &#x27;add_expense&#x27; || action === &#x27;update_expense&#x27; || action === &#x27;delete_expense&#x27;) {
+      // សុវត្ថិភាពខ្ពស់បំផុត៖ ហាមដាច់ខាតមិនឱ្យកត់ត្រា ឬកែប្រែចំណាយចូល BostarTrack ឬពេលគ្មាន Sheet ID ផ្ទាល់ខ្លួន
+      if (!payload.sheetId || String(payload.sheetId).trim().length &lt; 15 || String(payload.sheetId).trim() === bostarTrackId) {
+        return ContentService.createTextOutput(JSON.stringify({
+          status: &#x27;error&#x27;,
+          message: &#x27;ហាមដាច់ខាតមិនអនុញ្ញាតឱ្យកត់ត្រាចំណាយចូល BostarTrack ឬគ្មាន Sheet ID ផ្ទាល់ខ្លួនឡើយ!&#x27;
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var result;
+      if (action === &#x27;add_expense&#x27;) {
+        result = insertDailyExpense(ss, data);
+      } else if (action === &#x27;update_expense&#x27;) {
+        result = updateDailyExpense(ss, data);
+      } else {
+        result = deleteDailyExpense(ss, data);
+      }
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     } else if (action === &#x27;sync_attendance&#x27;) {
       var result = syncBostarAttendance(ss, data);
