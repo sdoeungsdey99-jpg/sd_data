@@ -879,7 +879,7 @@ window.DataService = {
         const phone = String(getCell(6) || '').trim();
 
         let qtyYL = 0, qtyYLP = 0, qtyKN = 0, qtyPDO = 0, qtyEmmi = 0, qtySG = 0, freeVal = 0;
-        let thaiBaht = 0, price = 0, totalAmount = 0, shipFee = 0, deliveryMethod = '', codStatus = '', profit = 0, note = '';
+        let rawPrice = 0, rawTotalAmount = 0, shipFee = 0, deliveryMethod = '', codStatus = '', profit = 0, note = '';
 
         if (isNewColumnLayout) {
           qtyYL = cleanNumber(getCell(7));
@@ -889,9 +889,8 @@ window.DataService = {
           qtyEmmi = cleanNumber(getCell(11));
           qtySG = cleanNumber(getCell(12));
           freeVal = cleanNumber(getCell(13));
-          thaiBaht = cleanNumber(getCell(14));
-          price = thaiBaht;
-          totalAmount = cleanNumber(getCell(15));
+          rawPrice = cleanNumber(getCell(14));
+          rawTotalAmount = cleanNumber(getCell(15));
           shipFee = cleanNumber(getCell(16));
           deliveryMethod = String(getCell(17) || 'មិនបញ្ជាក់').trim();
           codStatus = String(getCell(18) || 'មិនទាន់ទូទាត់').trim();
@@ -903,9 +902,8 @@ window.DataService = {
           qtyKN = cleanNumber(getCell(9));
           qtyPDO = cleanNumber(getCell(10));
           freeVal = cleanNumber(getCell(11));
-          thaiBaht = cleanNumber(getCell(12));
-          price = thaiBaht;
-          totalAmount = cleanNumber(getCell(13));
+          rawPrice = cleanNumber(getCell(12));
+          rawTotalAmount = cleanNumber(getCell(13));
           shipFee = cleanNumber(getCell(14));
           deliveryMethod = String(getCell(15) || 'មិនបញ្ជាក់').trim();
           codStatus = String(getCell(16) || 'មិនទាន់ទូទាត់').trim();
@@ -965,6 +963,54 @@ window.DataService = {
         }
         const product = prodParts.join(', ') || (isReward ? 'លក់រង្វាន់' : (isReturn ? 'លក់អីវ៉ាន់ត្រឡប់' : 'ទំនិញ'));
 
+        // ត្រួតពិនិត្យរូបិយប័ណ្ណយ៉ាងម៉ត់ចត់សម្រាប់ Personal Sales
+        const locLower = (location || '').toLowerCase();
+        const delivLower = (deliveryMethod || '').toLowerCase();
+        const hasThaiChars = /[\u0E00-\u0E7F]/.test(location || '');
+        const isExplicitThailand = (locLower.includes('ថៃ') || locLower.includes('thai') || 
+                                   locLower.includes('bangkok') || locLower.includes('chonburi') || 
+                                   locLower.includes('rayong') || delivLower.includes('thai') ||
+                                   hasThaiChars) &&
+                                   !locLower.includes('កំពង់') && !locLower.includes('ភ្នំពេញ') && 
+                                   !locLower.includes('កណ្តាល') && !locLower.includes('សៀមរាប') &&
+                                   !locLower.includes('បាត់ដំបង') && !locLower.includes('ពោធិ៍សាត់') &&
+                                   !locLower.includes('បន្ទាយមានជ័យ') && !locLower.includes('ព្រៃវែង');
+
+        let thaiBaht = 0;
+        let riel = 0;
+        let currencyType = 'USD';
+        const price = rawPrice;
+        let totalAmount = rawTotalAmount;
+
+        if (isExplicitThailand) {
+          if (price >= 500 && price <= 100000) {
+            thaiBaht = price;
+            currencyType = 'THB';
+          }
+        } else {
+          thaiBaht = 0;
+          if (price >= 100000) {
+            riel = price;
+            currencyType = 'KHR';
+            totalAmount = price / 4000;
+          } else if (price === 36000 || price === 18000) {
+            riel = (price === 36000 ? 360000 : 180000);
+            currencyType = 'KHR';
+            totalAmount = (price === 36000 ? 90 : 45);
+          } else if (price >= 10000 && price < 100000) {
+            riel = price * 10;
+            currencyType = 'KHR';
+            totalAmount = riel / 4000;
+          } else {
+            currencyType = 'USD';
+            if (totalAmount > 500) {
+              totalAmount = (totalBoxQty > 0 ? totalBoxQty * 45 : (price >= 40 ? price : 90));
+            } else if (totalAmount === 0 && price >= 40) {
+              totalAmount = price;
+            }
+          }
+        }
+
         personalSales.push({
           rowIndex: i,
           date: ddmmyyyy,
@@ -991,6 +1037,8 @@ window.DataService = {
           product,
           price,
           thaiBaht,
+          riel,
+          currencyType,
           totalAmount,
           shipFee,
           deliveryMethod,
@@ -2056,32 +2104,54 @@ window.DataService = {
         const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + qtyEmmi + qtySG + freeQty;
 
         // ត្រួតពិនិត្យរូបិយប័ណ្ណយ៉ាងម៉ត់ចត់ (Cambodia KHR/USD vs Thailand THB Sanity Check):
-        // ការពារដាច់ខាតកុំឱ្យច្រឡំប្រាក់រៀលខ្មែរ (360,000៛ / 36,000៛) ទៅជាបាតថៃ នាំឱ្យទឹកប្រាក់ហក់ដល់រាប់ពាន់ដុល្លារ
+        // ការពារដាច់ខាតកុំឱ្យច្រឡំប្រាក់រៀលខ្មែរ (360,000៛ / 36,000៛) ឬប្រាក់ដុល្លារ ទៅជាបាតថៃ
         const locLower = (location || '').toLowerCase();
         const delivLower = (delivery || '').toLowerCase();
+        const hasThaiChars = /[\u0E00-\u0E7F]/.test(location || '');
         const isExplicitThailand = (locLower.includes('ថៃ') || locLower.includes('thai') || 
                                    locLower.includes('bangkok') || locLower.includes('chonburi') || 
-                                   locLower.includes('rayong') || delivLower.includes('thai')) &&
+                                   locLower.includes('rayong') || delivLower.includes('thai') ||
+                                   hasThaiChars) &&
                                    !locLower.includes('កំពង់') && !locLower.includes('ភ្នំពេញ') && 
-                                   !locLower.includes('កណ្តាល') && !locLower.includes('សៀមរាប');
+                                   !locLower.includes('កណ្តាល') && !locLower.includes('សៀមរាប') &&
+                                   !locLower.includes('បាត់ដំបង') && !locLower.includes('ពោធិ៍សាត់') &&
+                                   !locLower.includes('បន្ទាយមានជ័យ') && !locLower.includes('ព្រៃវែង');
         
         let thaiBaht = 0;
+        let riel = 0;
+        let currencyType = 'USD';
         let correctedTotalAmount = totalAmount;
 
         if (isExplicitThailand) {
-          if (price >= 500 && price <= 30000) {
+          // ទំនិញនៅថៃ យ៉ាងហោចណាស់ 1,000 - 1,500 ฿ ឡើងទៅ (គ្មានទំនិញក្រោម $40 ឡើយ)
+          if (price >= 500 && price <= 100000) {
             thaiBaht = price;
+            currencyType = 'THB';
           }
         } else {
           thaiBaht = 0; // នៅកម្ពុជា ដាច់ខាតមិនមែនជាប្រាក់បាត ฿ ឡើយ
 
           if (price >= 100000) {
             // ឧ. 360,000៛ -> $90, 180,000៛ -> $45
+            riel = price;
+            currencyType = 'KHR';
             correctedTotalAmount = price / 4000;
           } else if (price === 36000 || price === 18000) {
+            riel = (price === 36000 ? 360000 : 180000);
+            currencyType = 'KHR';
             correctedTotalAmount = (price === 36000 ? 90 : 45);
-          } else if (correctedTotalAmount > 500) {
-            correctedTotalAmount = (totalBoxQty > 0 ? totalBoxQty * 45 : 90);
+          } else if (price >= 10000 && price < 100000) {
+            riel = price * 10;
+            currencyType = 'KHR';
+            correctedTotalAmount = riel / 4000;
+          } else {
+            // តម្លៃគិតជាប្រាក់ដុល្លារ USD (ឧ. 45, 54, 90, 135, 180...)
+            currencyType = 'USD';
+            if (correctedTotalAmount > 500) {
+              correctedTotalAmount = (totalBoxQty > 0 ? totalBoxQty * 45 : (price >= 40 ? price : 90));
+            } else if (correctedTotalAmount === 0 && price >= 40) {
+              correctedTotalAmount = price;
+            }
           }
         }
 
@@ -2114,6 +2184,8 @@ window.DataService = {
           product,
           price,
           thaiBaht,
+          riel,
+          currencyType,
           totalAmount: correctedTotalAmount,
           shipFee,
           delivery,

@@ -17379,7 +17379,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.7)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.8)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -20269,6 +20269,7 @@ function getAllUniqueCustomers() {
         totalBoxes: 0,
         totalSpent: 0,
         totalThaiBaht: 0,
+        totalRiel: 0,
         lastDate: s.date || '',
         lastIsoDate: s.isoDate || '',
         orders: []
@@ -20287,7 +20288,8 @@ function getAllUniqueCustomers() {
     entry.totalOrders += 1;
     entry.totalBoxes += (s.totalBoxQty || 0);
     entry.totalSpent += (s.totalAmount || 0);
-    entry.totalThaiBaht += (s.thaiBaht || s.price || 0);
+    entry.totalThaiBaht += (s.thaiBaht || 0);
+    entry.totalRiel += (s.riel || 0);
     if ((s.isoDate || '') >= (entry.lastIsoDate || '')) {
       entry.lastIsoDate = s.isoDate || '';
       entry.lastDate = s.date || '';
@@ -25412,7 +25414,10 @@ function renderAllCustomersList() {
           <!-- Right Column: Amount on top line, Box quantity on bottom line (Ensures complete digit visibility) -->
           <div class="text-right shrink-0 min-w-[70px]">
             <div class="font-mono font-bold text-xs text-emerald-400 leading-tight">${formatUSD(c.totalSpent)}</div>
-            ${c.totalThaiBaht > 0 ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalThaiBaht)} ฿</div>` : ''}
+            ${c.totalThaiBaht > 0 
+              ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalThaiBaht)} ฿</div>` 
+              : (c.totalRiel > 0 ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalRiel)} ៛</div>` : '')
+            }
             <div class="text-[10px] font-mono font-bold text-orange-400 leading-tight mt-0.5">
               ${c.totalBoxes} ${isEn ? 'Boxes' : 'ប្រអប់'}
             </div>
@@ -25449,7 +25454,10 @@ function renderAllCustomersList() {
                         <span class="text-slate-300 font-medium text-[10.5px] truncate">(${getOrderProductSummary(o)})</span>
                       </div>
                       <div class="font-mono text-right shrink-0 whitespace-nowrap text-xs">
-                        ${(o.thaiBaht > 0) ? `<span class="text-slate-300 text-[10.5px]">${formatInt(o.thaiBaht)} ฿</span><span class="text-slate-500 mx-1">•</span>` : ''}
+                        ${(o.thaiBaht > 0) 
+                          ? `<span class="text-slate-300 text-[10.5px]">${formatInt(o.thaiBaht)} ฿</span><span class="text-slate-500 mx-1">•</span>` 
+                          : (o.riel > 0 ? `<span class="text-slate-300 text-[10.5px]">${formatInt(o.riel)} ៛</span><span class="text-slate-500 mx-1">•</span>` : '')
+                        }
                         <span class="text-emerald-400 font-bold">${formatUSD(o.totalAmount)}</span>
                       </div>
                     </div>
@@ -25573,7 +25581,7 @@ function openEditSalesOrder(recordId, orderId, rowIndex, fallbackDate, fallbackP
   const bahtInput = document.getElementById('edit-order-thai-baht');
   const shipInput = document.getElementById('edit-order-ship-fee');
   if (amtInput) amtInput.value = (o.totalAmount !== undefined && o.totalAmount !== null) ? Number(o.totalAmount).toFixed(2) : '';
-  if (bahtInput) bahtInput.value = (o.thaiBaht > 0 || o.price > 0) ? Number(o.thaiBaht || o.price) : '';
+  if (bahtInput) bahtInput.value = (o.thaiBaht > 0) ? Number(o.thaiBaht) : '';
   if (shipInput) shipInput.value = (o.shipFee !== undefined && o.shipFee !== null) ? Number(o.shipFee).toFixed(2) : '2.50';
 
   const delivSel = document.getElementById('edit-order-delivery');
