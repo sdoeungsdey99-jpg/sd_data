@@ -9585,9 +9585,9 @@ function getLearningViewHTML() {
   const currentTab = appState.studyTab || 'sales_reset';
 
   return `
-    <div class="space-y-3.5 pb-28 sm:pb-32" id="study-container">
+    <div class="space-y-2 pb-28 sm:pb-32" id="study-container">
       <!-- Top Sticky Segmented Tab Bar (Auto-hide on scroll like front filter bar) -->
-      <div id="study-sticky-header" class="sticky top-0 z-30 pt-1 pb-1.5 backdrop-blur-md">
+      <div id="study-sticky-header" class="sticky top-0 z-30 pt-0.5 pb-0.5 backdrop-blur-md">
         <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
           <button onclick="setStudyTab('sales_reset')" 
                   class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${currentTab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
@@ -9623,7 +9623,7 @@ function setStudyTab(tab) {
   const container = document.getElementById('study-container');
   if (container) {
     container.innerHTML = `
-      <div id="study-sticky-header" class="sticky top-0 z-30 pt-1 pb-1.5 backdrop-blur-md">
+      <div id="study-sticky-header" class="sticky top-0 z-30 pt-0.5 pb-0.5 backdrop-blur-md">
         <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
           <button onclick="setStudyTab('sales_reset')" 
                   class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
@@ -10691,7 +10691,7 @@ function renderSdoeungLessonsContentHTML() {
 
 function renderPromotionAnnouncementBannerHTML() {
   return `
-    <div class="space-y-3.5 animate-fade-in text-left">
+    <div class="space-y-2.5 animate-fade-in text-left">
       
       <!-- Top Promotion Hero Header (Centered, No Logo, No Avatar Frame, No Tick) -->
       <div id="study-promo-banner-card" class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-orange-500/35 relative overflow-hidden bg-gradient-to-br from-orange-500/20 via-[#1E120A] to-[#070D18] shadow-2xl text-center">
@@ -11096,7 +11096,7 @@ function renderSalesResetContent() {
   else if (activeTrainer === 'sdoeung') initialContent = renderSdoeungLessonsContentHTML();
 
   return `
-    <div class="space-y-4 animate-fade-in text-left">
+    <div class="space-y-2.5 animate-fade-in text-left">
       
       <!-- 1. Hero Promotion Announcement (នៅមុខគេបង្អស់ ក្នុងផ្ទាំងសិក្សា) -->
       ${renderPromotionAnnouncementBannerHTML()}
@@ -12172,7 +12172,7 @@ function renderSalesQuotesContent() {
   const heroQuote = lib[heroIndex] || lib[0];
 
   return `
-    <div class="space-y-3.5 animate-fade-in">
+    <div class="space-y-2.5 animate-fade-in">
       <!-- Hero Daily Quote Card (Today's Mindset) -->
       <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/35 relative overflow-hidden bg-gradient-to-b from-[#131D33] via-[#0B1528] to-[#070D18] shadow-2xl">
         <div class="absolute -top-12 -right-12 w-40 h-40 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -12390,7 +12390,7 @@ function renderEnglishWordsContent() {
   const hasMore = visibleWords.length < DAILY_ENGLISH_WORDS.length;
 
   return `
-    <div class="space-y-3.5 animate-fade-in">
+    <div class="space-y-2.5 animate-fade-in">
       <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 text-center relative overflow-hidden">
         <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-500 text-white flex items-center justify-center mx-auto mb-2 shadow-lg shadow-blue-500/20">
           <i data-lucide="languages" class="w-6 h-6"></i>
@@ -17379,7 +17379,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.9)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.0)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -25391,10 +25391,10 @@ function renderAllCustomersList() {
     const sortedOrders = [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
 
     return `
-      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 shadow-md shadow-black/25 hover:border-white/25 transition select-none">
+      <div class="ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
         <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-2.5 cursor-pointer select-none">
           <!-- Left Column: Compact No. + Two-Line Flow (Line 1: Date + Name + Count; Line 2: Phone + Location) -->
-          <div class="min-w-0 flex-1 space-y-1">
+          <div class="min-w-0 flex-1 space-y-0.5">
             <!-- Line 1: No. + Date + Customer Name + Orders Count -->
             <div class="flex items-center gap-1.5 min-w-0">
               <span class="font-mono font-bold text-[11px] text-orange-400 shrink-0">${idx + 1}.</span>
@@ -25425,7 +25425,7 @@ function renderAllCustomersList() {
         </div>
 
         ${isExpanded ? `
-          <div class="mt-3 pt-2.5 border-t border-white/10 space-y-2">
+          <div class="mt-2 pt-2 border-t border-white/10 space-y-1.5">
             <div class="flex items-center justify-between text-[10px]">
               <span class="text-slate-400 font-semibold">ប្រវត្តិទិញទាំងអស់ (${sortedOrders.length} ប្រតិបត្តិការ)</span>
               ${c.phone && c.phone !== '—' ? `
@@ -25441,12 +25441,12 @@ function renderAllCustomersList() {
                 </div>
               ` : ''}
             </div>
-            <div class="space-y-2 max-h-56 overflow-y-auto no-scrollbar">
+            <div class="space-y-1.5 max-h-56 overflow-y-auto no-scrollbar">
               ${sortedOrders.map(o => {
                 const currentStatus = String(o.codStatus || 'មិនទាន់ទូទាត់').trim();
 
                 return `
-                  <div class="p-2.5 rounded-xl bg-black/35 border border-white/5 shadow-inner flex flex-col gap-1.5 transition select-none">
+                  <div class="p-2 px-2.5 rounded-xl bg-black/35 border border-white/5 flex flex-col gap-1 transition select-none">
                     <!-- Line 1: Date & Products on Left | USD/THB amounts on Right -->
                     <div class="flex items-center justify-between gap-2">
                       <div class="flex items-center gap-1.5 min-w-0 pr-1 truncate">
