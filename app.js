@@ -5552,23 +5552,29 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
   });
 
   return `
-    <div class="p-3.5 sm:p-4 rounded-3xl bg-[#0B1528] border border-white/10 shadow-2xl space-y-3 select-none">
-      <!-- Card Header: Title + Target pill (Exact Image 1) -->
-      <div class="flex items-center justify-between gap-2">
+    <div class="space-y-2 select-none">
+      <!-- Section Header (Clean & Flat - Eliminates Nested Card Fatigue) -->
+      <div class="flex items-center justify-between gap-2 px-1 pt-1 pb-0.5">
         <div class="flex items-center gap-2 min-w-0">
-          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-            <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+          <div class="w-6 h-6 rounded-lg bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+            <i data-lucide="users" class="w-3.5 h-3.5"></i>
           </div>
-          <h3 class="font-black text-xs sm:text-sm text-white tracking-wide truncate">👥 គោលដៅលក់តាមក្រុម</h3>
+          <h4 class="font-bold text-xs sm:text-sm text-white tracking-wide truncate">
+            គោលដៅលក់តាមក្រុម <span class="text-sky-400 font-mono text-[11px] font-normal">(${rosterData.length} នាក់)</span>
+          </h4>
         </div>
-        <div class="px-2.5 sm:px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1.5 text-blue-300 text-[11px] sm:text-xs font-bold font-mono shrink-0">
-          <span>🎯</span>
-          <span>${groupTotalTarget > 0 ? `${groupTotalTarget} ប្រអប់` : '--'}</span>
-        </div>
+        ${groupTotalTarget > 0 ? `
+          <div class="px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center gap-1.5 text-blue-300 text-[11px] font-bold font-mono shrink-0">
+            <span>🎯</span>
+            <span>${groupTotalTarget} ប្រអប់</span>
+          </div>
+        ` : `
+          <span class="text-[10px] text-slate-400 font-sans">តម្លាភាព និងរួមគ្នាលូតលាស់</span>
+        `}
       </div>
 
-      <!-- Member Rows (Exact 100% Image 1) -->
-      <div class="space-y-2">
+      <!-- Member Rows (Flat & Open Layout with Set 1 to Set 6 Complete) -->
+      <div class="space-y-1.5">
         ${rosterData.map(item => {
           const isMemBechNora = (item.mem.km && (item.mem.km.includes('ប៊ិច នោរ៉ា') || (item.mem.en && item.mem.en.toLowerCase().includes('bech nora'))));
           const isMemSdoeung = (item.mem.km && (item.mem.km.includes('ស្ដី ស្ដើង') || item.mem.km.includes('ស្តី ស្តើង') || item.mem.km.includes('ស្តី ស្នឹង')));
@@ -5577,51 +5583,49 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d) {
             : (isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : '');
           const pctNum = parseFloat(item.percentage) || 0;
           const safeName = item.mem.km.replace(/'/g, "\\'");
-          const displayTargetText = item.targetDisplay || (item.target > 0 ? item.target : '--');
+          const hasTarget = item.target && item.target > 0;
+          const displayTargetText = item.targetDisplay || (hasTarget ? item.target : '--');
 
           return `
             <div onclick="openMemberDailyBreakdownModal('${safeName}')" 
-                 class="p-3 sm:p-3.5 rounded-2xl bg-black/40 hover:bg-white/[0.04] border border-white/5 hover:border-amber-500/30 cursor-pointer active:scale-[0.99] transition duration-150 space-y-2 group shadow-sm">
+                 class="ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-amber-500/30 hover:bg-white/5 cursor-pointer active:scale-[0.99] transition duration-150 space-y-1.5 group select-none shadow-sm">
               <!-- Top Row: Name + Verified + Target pill (Left) | Boxes + % + Chevron (Right) -->
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-1.5 min-w-0">
-                  <span class="font-bold text-xs sm:text-sm text-white truncate">${item.mem.km}</span>
+                  <span class="font-bold text-xs sm:text-sm text-white group-hover:text-amber-300 transition truncate">${item.mem.km}</span>
                   ${tickBadge}
-                  <span class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono shrink-0">
+                  <span class="px-1.5 py-0.2 rounded bg-white/5 border border-white/10 text-[9.5px] text-slate-300 font-mono shrink-0">
                     គោលដៅ: ${displayTargetText}
                   </span>
                 </div>
-                <div class="flex items-center gap-1 shrink-0 text-amber-400 font-bold text-xs sm:text-xs font-mono">
+                <div class="flex items-center gap-1 shrink-0 text-amber-400 font-bold text-xs font-mono">
                   <span>${item.totalBoxes} ប្រអប់</span>
                   ${item.percentageDisplay && item.percentageDisplay !== '--' ? `<span class="text-amber-400/80">(${item.percentageDisplay})</span>` : ''}
                   <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-400 transition"></i>
                 </div>
               </div>
 
-              <!-- Set Badges Row (Exact Image 1: Set 1, Set 2, Set 3, Set 5, Set 6 - NO Set 4) -->
-              <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap">
-                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
-                  Set 1: <strong class="text-white">${item.setCounts[1] || 0}</strong>
-                </span>
-                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
-                  Set 2: <strong class="text-white">${item.setCounts[2] || 0}</strong>
-                </span>
-                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
-                  Set 3: <strong class="text-white">${item.setCounts[3] || 0}</strong>
-                </span>
-                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
-                  Set 5: <strong class="text-white">${item.setCounts[5] || 0}</strong>
-                </span>
-                <span class="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9.5px] sm:text-[10px] text-slate-300 font-mono">
-                  Set 6: <strong class="text-white">${item.setCounts[6] || 0}</strong>
-                </span>
+              <!-- Clean Inline Sets Row (Complete Set 1 to Set 6 - No Box Clutter) -->
+              <div class="flex items-center gap-2 pt-0.5 text-[10px] font-mono text-slate-400 flex-wrap">
+                ${[1, 2, 3, 4, 5, 6].map(setNum => {
+                  const count = item.setCounts[setNum] || 0;
+                  const isSold = count > 0;
+                  return `
+                    <span class="inline-flex items-center gap-1 ${isSold ? 'text-slate-200' : 'text-slate-500'}">
+                      <span class="text-[9.5px] font-sans">Set ${setNum}:</span>
+                      <strong class="${isSold ? 'text-white font-bold' : 'text-slate-500 font-normal'}">${count}</strong>
+                    </span>
+                  `;
+                }).join('<span class="text-slate-600 text-[8px]">•</span>')}
               </div>
 
-              <!-- Glowing Amber Progress Bar -->
-              <div class="w-full bg-slate-800/80 h-1.5 sm:h-2 rounded-full overflow-hidden p-0.5 border border-white/5">
-                <div class="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-400 shadow-sm shadow-amber-500/50 transition-all duration-500" 
-                     style="width: ${Math.min(pctNum, 100)}%"></div>
-              </div>
+              <!-- Amber Progress Bar (Only shown when Target is set) -->
+              ${hasTarget ? `
+                <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                  <div class="h-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-400 transition-all duration-300" 
+                       style="width: ${Math.min(pctNum, 100)}%"></div>
+                </div>
+              ` : ''}
             </div>
           `;
         }).join('')}
@@ -17379,7 +17383,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.0)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.1)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
