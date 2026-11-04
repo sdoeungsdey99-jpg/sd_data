@@ -2055,6 +2055,36 @@ window.DataService = {
         }
         const totalBoxQty = qtyYL + qtyYLP + qtyKN + qtyPDO + qtyEmmi + qtySG + freeQty;
 
+        // ត្រួតពិនិត្យរូបិយប័ណ្ណយ៉ាងម៉ត់ចត់ (Cambodia KHR/USD vs Thailand THB Sanity Check):
+        // ការពារដាច់ខាតកុំឱ្យច្រឡំប្រាក់រៀលខ្មែរ (360,000៛ / 36,000៛) ទៅជាបាតថៃ នាំឱ្យទឹកប្រាក់ហក់ដល់រាប់ពាន់ដុល្លារ
+        const locLower = (location || '').toLowerCase();
+        const delivLower = (delivery || '').toLowerCase();
+        const isExplicitThailand = (locLower.includes('ថៃ') || locLower.includes('thai') || 
+                                   locLower.includes('bangkok') || locLower.includes('chonburi') || 
+                                   locLower.includes('rayong') || delivLower.includes('thai')) &&
+                                   !locLower.includes('កំពង់') && !locLower.includes('ភ្នំពេញ') && 
+                                   !locLower.includes('កណ្តាល') && !locLower.includes('សៀមរាប');
+        
+        let thaiBaht = 0;
+        let correctedTotalAmount = totalAmount;
+
+        if (isExplicitThailand) {
+          if (price >= 500 && price <= 30000) {
+            thaiBaht = price;
+          }
+        } else {
+          thaiBaht = 0; // នៅកម្ពុជា ដាច់ខាតមិនមែនជាប្រាក់បាត ฿ ឡើយ
+
+          if (price >= 100000) {
+            // ឧ. 360,000៛ -> $90, 180,000៛ -> $45
+            correctedTotalAmount = price / 4000;
+          } else if (price === 36000 || price === 18000) {
+            correctedTotalAmount = (price === 36000 ? 90 : 45);
+          } else if (correctedTotalAmount > 500) {
+            correctedTotalAmount = (totalBoxQty > 0 ? totalBoxQty * 45 : 90);
+          }
+        }
+
         const prodParts = [];
         if (qtyKN > 0) prodParts.push(qtyKN > 1 ? `KN (${qtyKN})` : `KN`);
         if (qtyPDO > 0) prodParts.push(qtyPDO > 1 ? `PDO (${qtyPDO})` : `PDO`);
@@ -2083,8 +2113,8 @@ window.DataService = {
           totalBoxQty,
           product,
           price,
-          thaiBaht: price > 500 ? price : 0,
-          totalAmount,
+          thaiBaht,
+          totalAmount: correctedTotalAmount,
           shipFee,
           delivery,
           codStatus,

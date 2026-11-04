@@ -17379,7 +17379,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.6)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.7)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -25269,44 +25269,14 @@ async function loadAndActivateMasterCustomers(seller) {
     const normSeller = normalizeSellerName(seller.km);
     const normEn = normalizeSellerName(seller.en);
 
-    // Build Set of all allowed seller names (including subordinates for Leader / Manager / Director)
-    const allowedSellerNorms = new Set();
-    if (normSeller) allowedSellerNorms.add(normSeller);
-    if (normEn) allowedSellerNorms.add(normEn);
-
-    // Check if user is Director Bech Nora
-    const isDirector = (normSeller.includes('នោរ៉ា') || normSeller.includes('ប៊ិច នោរ៉ា') || (normEn && normEn.includes('nora')));
-
-    const hierarchy = DataService.data?.teamHierarchy;
-    const allMembers = (hierarchy && Array.isArray(hierarchy.members) && hierarchy.members.length > 0) 
-      ? hierarchy.members 
-      : (window.BOSTAR_TEAM_SELLERS || []);
-
-    if (isDirector) {
-      // Director can see all members' customer database
-      allMembers.forEach(m => {
-        if (m.km) allowedSellerNorms.add(normalizeSellerName(m.km));
-        if (m.en) allowedSellerNorms.add(normalizeSellerName(m.en));
-      });
-    } else {
-      // Find all subordinates whose leader matches this seller
-      allMembers.forEach(m => {
-        const memLeaderNorm = normalizeSellerName(m.leader || '');
-        if (memLeaderNorm && normSeller && (memLeaderNorm === normSeller || memLeaderNorm.includes(normSeller) || normSeller.includes(memLeaderNorm))) {
-          if (m.km) allowedSellerNorms.add(normalizeSellerName(m.km));
-          if (m.en) allowedSellerNorms.add(normalizeSellerName(m.en));
-        }
-      });
-    }
-
+    // តាមច្បាប់កំពូល BostarApps Law៖
+    // បង្ហាញតែការលក់ណាដែលត្រូវនឹងឈ្មោះ Profile អ្នកលក់ផ្ទាល់ប៉ុណ្ណោះ (Record.Seller === Profile.Name)
+    // ដាច់ខាតមិនបញ្ចូលការលក់របស់អ្នកដទៃ ឬកូនក្រុមមកច្របល់ចូលឡើយ
     masterFilteredCustomersSales = allMasterSales.filter(o => {
       const oSeller = normalizeSellerName(o.seller);
       if (!oSeller) return false;
-      if (allowedSellerNorms.has(oSeller)) return true;
-      for (const allowed of allowedSellerNorms) {
-        if (oSeller === allowed || oSeller.includes(allowed) || allowed.includes(oSeller)) return true;
-      }
-      return false;
+      return (normSeller && (oSeller === normSeller || oSeller.includes(normSeller) || normSeller.includes(oSeller))) ||
+             (normEn && (oSeller === normEn || oSeller.includes(normEn) || normEn.includes(oSeller)));
     });
 
     allCustomersScopeMode = 'all';
@@ -25479,7 +25449,7 @@ function renderAllCustomersList() {
                         <span class="text-slate-300 font-medium text-[10.5px] truncate">(${getOrderProductSummary(o)})</span>
                       </div>
                       <div class="font-mono text-right shrink-0 whitespace-nowrap text-xs">
-                        ${(o.thaiBaht > 0 || o.price > 0) ? `<span class="text-slate-300 text-[10.5px]">${formatInt(o.thaiBaht || o.price)} ฿</span><span class="text-slate-500 mx-1">•</span>` : ''}
+                        ${(o.thaiBaht > 0) ? `<span class="text-slate-300 text-[10.5px]">${formatInt(o.thaiBaht)} ฿</span><span class="text-slate-500 mx-1">•</span>` : ''}
                         <span class="text-emerald-400 font-bold">${formatUSD(o.totalAmount)}</span>
                       </div>
                     </div>
