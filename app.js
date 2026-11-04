@@ -13094,7 +13094,7 @@ function openPersonalSalesModal() {
       : String(item.phone || '').trim();
 
     return `
-      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
+      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 shadow-md shadow-black/25 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
         <!-- Row 1: Left: Phone (in front) + Customer Name | Right: Total Amount -->
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1.5 flex-wrap min-w-0">
@@ -17379,7 +17379,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.8)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v64.9)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -25370,15 +25370,15 @@ function renderAllCustomersList() {
 
   if (summaryEl) {
     summaryEl.innerHTML = `
-      <div class="p-2 rounded-xl bg-black/30 border border-white/5">
+      <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 shadow-sm">
         <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Orders' : 'សរុបការកុម្ម៉ង់'}</span>
         <span class="font-mono font-bold text-xs text-white">${formatInt(totalOrdersSum)} ${isEn ? 'times' : 'ដង'}</span>
       </div>
-      <div class="p-2 rounded-xl bg-black/30 border border-white/5">
+      <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 shadow-sm">
         <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Boxes' : 'សរុបប្រអប់'}</span>
         <span class="font-mono font-bold text-xs text-orange-400">${formatInt(totalBoxesSum)} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>
       </div>
-      <div class="p-2 rounded-xl bg-black/30 border border-white/5">
+      <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 shadow-sm">
         <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Revenue' : 'ទឹកប្រាក់សរុប'}</span>
         <span class="font-mono font-bold text-xs text-emerald-400">${formatUSD(totalSpentSum)}</span>
       </div>
@@ -25391,7 +25391,7 @@ function renderAllCustomersList() {
     const sortedOrders = [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
 
     return `
-      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 transition">
+      <div class="ios-glass-card rounded-2xl p-3 border border-white/10 shadow-md shadow-black/25 hover:border-white/25 transition select-none">
         <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-2.5 cursor-pointer select-none">
           <!-- Left Column: Compact No. + Two-Line Flow (Line 1: Date + Name + Count; Line 2: Phone + Location) -->
           <div class="min-w-0 flex-1 space-y-1">
@@ -25425,7 +25425,7 @@ function renderAllCustomersList() {
         </div>
 
         ${isExpanded ? `
-          <div class="mt-2.5 pt-2.5 border-t border-white/10 space-y-2">
+          <div class="mt-3 pt-2.5 border-t border-white/10 space-y-2">
             <div class="flex items-center justify-between text-[10px]">
               <span class="text-slate-400 font-semibold">ប្រវត្តិទិញទាំងអស់ (${sortedOrders.length} ប្រតិបត្តិការ)</span>
               ${c.phone && c.phone !== '—' ? `
@@ -25446,7 +25446,7 @@ function renderAllCustomersList() {
                 const currentStatus = String(o.codStatus || 'មិនទាន់ទូទាត់').trim();
 
                 return `
-                  <div class="p-2.5 rounded-xl bg-black/25 border border-white/5 flex flex-col gap-1.5 transition select-none">
+                  <div class="p-2.5 rounded-xl bg-black/35 border border-white/5 shadow-inner flex flex-col gap-1.5 transition select-none">
                     <!-- Line 1: Date & Products on Left | USD/THB amounts on Right -->
                     <div class="flex items-center justify-between gap-2">
                       <div class="flex items-center gap-1.5 min-w-0 pr-1 truncate">
