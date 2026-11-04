@@ -104,8 +104,8 @@ function formatToDDMMYYYY(dateStr) {
     return `${dy}/${mo}/${yr}`;
   }
 
-  // Slash format handling (supports both DD/MM/YYYY and MM/DD/YYYY)
-  const slashMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  // Slash or Dash format handling (supports DD/MM/YYYY, MM/DD/YYYY, DD-MM-YYYY, MM-DD-YYYY)
+  const slashMatch = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
   if (slashMatch) {
     let p1 = parseInt(slashMatch[1], 10);
     let p2 = parseInt(slashMatch[2], 10);
@@ -130,8 +130,12 @@ function formatToDDMMYYYY(dateStr) {
 // Convert DD/MM/YYYY to YYYY-MM-DD for standard comparisons
 function ddmmyyyyToIso(ddmmyyyy) {
   if (!ddmmyyyy) return '';
-  const parts = ddmmyyyy.split('/');
+  const clean = String(ddmmyyyy).trim().replace(/-/g, '/');
+  const parts = clean.split('/');
   if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+    }
     return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
   }
   return ddmmyyyy;

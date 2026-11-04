@@ -3265,37 +3265,63 @@ function renderCurrentView() {
   const container = document.getElementById('main-content');
   if (!container) return;
 
+  // Strict Filter Bar Visibility Sync (Only visible on dashboard)
+  const filterBar = document.getElementById('sticky-filter-bar');
+  if (filterBar) {
+    if (appState.currentView === 'dashboard') {
+      filterBar.classList.remove('hidden');
+    } else {
+      filterBar.classList.add('hidden');
+    }
+  }
+
   // Update Dynamic Dock Labels based on Language
   updateStaticLabels();
 
-  switch (appState.currentView) {
-    case 'dashboard':
-      container.innerHTML = getDashboardViewHTML();
-      break;
-    case 'analytics':
-      container.innerHTML = getAnalyticsViewHTML();
-      setTimeout(() => {
-        const activeBtn = document.querySelector('#analytics-month-tabs .analytics-month-active');
-        const tabsRow = document.getElementById('analytics-month-tabs');
-        if (activeBtn && tabsRow) {
-          const offsetLeft = activeBtn.offsetLeft - (tabsRow.clientWidth / 2) + (activeBtn.clientWidth / 2);
-          tabsRow.scrollTo({ left: Math.max(0, offsetLeft), behavior: 'smooth' });
-        }
-      }, 50);
-      break;
-    case 'learning':
-      container.innerHTML = getLearningViewHTML();
-      break;
-    case 'settings':
-      container.innerHTML = getSettingsViewHTML();
-      break;
-    case 'profile':
-      container.innerHTML = getProfileViewHTML();
-      break;
+  try {
+    switch (appState.currentView) {
+      case 'dashboard':
+        container.innerHTML = getDashboardViewHTML();
+        break;
+      case 'analytics':
+        container.innerHTML = getAnalyticsViewHTML();
+        setTimeout(() => {
+          const activeBtn = document.querySelector('#analytics-month-tabs .analytics-month-active');
+          const tabsRow = document.getElementById('analytics-month-tabs');
+          if (activeBtn && tabsRow) {
+            const offsetLeft = activeBtn.offsetLeft - (tabsRow.clientWidth / 2) + (activeBtn.clientWidth / 2);
+            tabsRow.scrollTo({ left: Math.max(0, offsetLeft), behavior: 'smooth' });
+          }
+        }, 50);
+        break;
+      case 'learning':
+        container.innerHTML = getLearningViewHTML();
+        break;
+      case 'settings':
+        container.innerHTML = getSettingsViewHTML();
+        break;
+      case 'profile':
+        container.innerHTML = getProfileViewHTML();
+        break;
+    }
+  } catch (err) {
+    console.error('Critical Render View Error Shield:', err);
+    container.innerHTML = `
+      <div class="ios-glass-card rounded-3xl p-6 border border-amber-500/30 text-center py-12 my-6 space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/30">
+          <i data-lucide="refresh-cw" class="w-6 h-6 animate-spin"></i>
+        </div>
+        <p class="text-sm font-bold text-white">កំពុងធ្វើសមកាលកម្មទិន្នន័យ...</p>
+        <p class="text-xs text-slate-400">សូមរង់ចាំបន្តិច ឬចុច Refresh ឡើងវិញ</p>
+        <button onclick="manualReload(true)" class="px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs shadow-lg active:scale-95 transition">
+          Refresh ឡើងវិញ
+        </button>
+      </div>
+    `;
   }
 
   if (window.lucide) {
-    window.lucide.createIcons();
+    try { window.lucide.createIcons(); } catch (_) {}
   }
 }
 
@@ -5300,7 +5326,7 @@ function getExecutiveHierarchyParsedData(d, statsMap) {
     const m_clean = m.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
     const teamLeaders = sortedLeaders.filter(l => {
       const mgrName = (l.manager || '').replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim();
-      return l.manager === m.km || (m_clean && mgrName === m_clean) || (m_clean && l.manager.includes(m_clean));
+      return l.manager === m.km || (m_clean && mgrName === m_clean) || (m_clean && l.manager && l.manager.includes(m_clean));
     });
     const l_names = new Set(teamLeaders.map(l => l.km.replace('លោក ', '').replace('អ្នកគ្រូ ', '').trim()));
     l_names.add(m_clean);
@@ -6855,18 +6881,18 @@ function getDashboardViewHTML() {
     }
   } else if (appState.periodFilter === 'month') {
     const targetMonth = appState.selectedMonthKey || currentIsoMonth;
-    filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(targetMonth));
-    filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetMonth));
+    filteredSales = d.personalSales.filter(s => s.isoDate && s.isoDate.startsWith(targetMonth));
+    filteredExpenses = d.expenses.filter(e => e.isoDate && e.isoDate.startsWith(targetMonth));
     const parts = targetMonth.split('-');
     activePeriodDisplay = `(${parts[1]}/${parts[0]})`;
   } else if (appState.periodFilter === 'year') {
     const targetYear = appState.selectedYear ? String(appState.selectedYear) : currentIsoYear;
-    filteredSales = d.personalSales.filter(s => s.isoDate.startsWith(targetYear));
-    filteredExpenses = d.expenses.filter(e => e.isoDate.startsWith(targetYear));
+    filteredSales = d.personalSales.filter(s => s.isoDate && s.isoDate.startsWith(targetYear));
+    filteredExpenses = d.expenses.filter(e => e.isoDate && e.isoDate.startsWith(targetYear));
     activePeriodDisplay = `ឆ្នាំ ${targetYear}`;
   } else if (appState.periodFilter === 'custom' && appState.customStartDate && appState.customEndDate) {
-    filteredSales = d.personalSales.filter(s => s.isoDate >= appState.customStartDate && s.isoDate <= appState.customEndDate);
-    filteredExpenses = d.expenses.filter(e => e.isoDate >= appState.customStartDate && e.isoDate <= appState.customEndDate);
+    filteredSales = d.personalSales.filter(s => s.isoDate && s.isoDate >= appState.customStartDate && s.isoDate <= appState.customEndDate);
+    filteredExpenses = d.expenses.filter(e => e.isoDate && e.isoDate >= appState.customStartDate && e.isoDate <= appState.customEndDate);
     activePeriodDisplay = `${displayDDMMYYYY(appState.customStartDate)} ➔ ${displayDDMMYYYY(appState.customEndDate)}`;
   } else {
     activePeriodDisplay = 'All Period';
@@ -6895,7 +6921,7 @@ function getDashboardViewHTML() {
   
   // Pick live dynamic team leaders for the selected month (targets + boxes sold + sets)
   const currentTeamLeaders = (d.teamLeadersByMonth && d.teamLeadersByMonth[selectedMonthInt]) || d.teamLeaders;
-  const monthlyExpensesList = d.expenses.filter(e => e.isoDate.startsWith(targetMonthKey));
+  const monthlyExpensesList = d.expenses.filter(e => e.isoDate && e.isoDate.startsWith(targetMonthKey));
   const monthlyTotalExpenseAmt = monthlyExpensesList.reduce((sum, e) => sum + (e.amount || 0), 0);
   const targetYearStr = targetMonthKey.split('-')[0] || String((new Date()).getFullYear());
   const monthlyBoostAmt = typeof getBoostForMonth === 'function' ? getBoostForMonth(targetYearStr, selectedMonthInt) : ((d.boostByMonth && d.boostByMonth[selectedMonthInt]) || 0);
@@ -7301,6 +7327,9 @@ function getDashboardViewHTML() {
       statsMap[sName].orders += 1;
     });
     const execRole = sessionStorage.getItem('sd_exec_role') || 'manager';
+    const activeTargetMonth = (appState.periodFilter === 'month' && appState.selectedMonthKey) 
+      ? appState.selectedMonthKey 
+      : currentIsoMonth;
 
     const {
       directorRaw,
@@ -7467,7 +7496,7 @@ function getDashboardViewHTML() {
               </div>
 
               <!-- 👥 គោលដៅលក់តាមក្រុម (Image 1) - Shown directly under Selected Leader! -->
-              ${renderExecutiveLeaderTeamTargetCard(selectedL, d, targetMonth)}
+              ${renderExecutiveLeaderTeamTargetCard(selectedL, d, activeTargetMonth)}
             </div>
           `;
         }
@@ -7493,7 +7522,7 @@ function getDashboardViewHTML() {
         const safeMemName = mem.km.replace(/'/g, "\\'");
 
         return `
-          <div onclick="openMemberDailyBreakdownModal('${safeMemName}', '${targetMonth}')"
+          <div onclick="openMemberDailyBreakdownModal('${safeMemName}', '${activeTargetMonth}')"
                class="p-2.5 rounded-2xl bg-black/40 border ${borderAccent} space-y-1.5 hover:bg-white/[0.04] hover:border-emerald-400/40 cursor-pointer active:scale-[0.99] transition shadow-sm group"
                title="ចុចដើម្បីមើលតារាងលម្អិតលក់តាមឈុត">
             <div class="flex items-center justify-between gap-2.5">
@@ -17397,7 +17426,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.2)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.3)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
