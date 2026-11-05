@@ -425,6 +425,46 @@ function getLocalIsoDate(d = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+// ==========================================
+// SYSTEM SCREEN ORIENTATION LOCK (Option 3)
+// Strictly locks screen orientation to portrait for this application only
+// ==========================================
+function applyScreenOrientationLock() {
+  try {
+    if (typeof window !== 'undefined' && window.screen && window.screen.orientation && typeof window.screen.orientation.lock === 'function') {
+      window.screen.orientation.lock('portrait').catch(() => {});
+    }
+  } catch (_) {}
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', applyScreenOrientationLock);
+  window.addEventListener('load', applyScreenOrientationLock);
+  window.addEventListener('orientationchange', () => {
+    applyScreenOrientationLock();
+    // Force immediate hit-test matrix recalculation for mobile WebKit & Blink
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      if (document.body) {
+        document.body.style.transform = 'translateZ(0)';
+        setTimeout(() => { document.body.style.transform = ''; }, 60);
+      }
+    }, 40);
+  });
+  window.addEventListener('resize', () => {
+    window.scrollTo(0, 0);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      applyScreenOrientationLock();
+    }
+  });
+  document.addEventListener('touchstart', function onFirstTouch() {
+    applyScreenOrientationLock();
+    document.removeEventListener('touchstart', onFirstTouch);
+  }, { passive: true });
+}
+
 function t(key) {
   const lang = appState.language === 'en' ? 'en' : 'km';
   return translations[lang][key] || key;
@@ -17426,7 +17466,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.5)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.6)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -17448,15 +17488,15 @@ function renderAppUpdateModalContent() {
         <div class="space-y-1.5 text-xs pl-1">
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">សម្រួលរបាយការណ៍ប្រចាំថ្ងៃ (Tab Report)៖ ចាប់ចំនួនប្រអប់លក់បានស្វ័យប្រវត្តិ និងចម្លងទៅ Bot Telegram ត្រឹមត្រូវ ១០០%</span>
+            <span class="text-[11px] leading-relaxed">ចាក់សោអេក្រង់បញ្ឈរ System Screen Orientation API (ចាក់តែលើ App យើង មិនប៉ះពាល់ទូរសព្ទ)</span>
           </div>
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">ចាក់សោអេក្រង់ទូរសព្ទដំណើរការបញ្ឈរ (Portrait Mode) ងាយស្រួលមើល មិនរញ៉េរញ៉ៃពេលបង្វិល</span>
+            <span class="text-[11px] leading-relaxed">កែសម្រួលចំណុចចុចប៉ះ Touch Precision មិនរអិល ឬចុចខុសកន្លែងឡើយ (លុបផ្ទាំងខ្មៅរំលឹកចេញ)</span>
           </div>
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">ការពារ Sheet គំរូដើម ១០០%៖ ហាមឃាត់មិនឱ្យច្រឡំភ្ជាប់ ឬកត់ត្រាទិន្នន័យចូល Sheet គំរូ</span>
+            <span class="text-[11px] leading-relaxed">សម្រួលរបាយការណ៍ប្រចាំថ្ងៃ (Tab Report) ចាប់ចំនួនប្រអប់លក់ និងការពារ Sheet គំរូដើម ១០០%</span>
           </div>
         </div>
       </div>
