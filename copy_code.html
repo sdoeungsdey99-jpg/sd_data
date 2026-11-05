@@ -240,8 +240,13 @@ function doPost(e) {
     var payload = JSON.parse(e.postData.contents);
     var action = payload.action;
     var data = payload.data;
-    var targetSheetId = (payload.sheetId &amp;&amp; String(payload.sheetId).length &gt; 15) ? String(payload.sheetId).trim() : null;
-    var ss = targetSheetId ? SpreadsheetApp.openById(targetSheetId) : SpreadsheetApp.getActiveSpreadsheet();
+    var bostarTrackId = &#x27;1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4&#x27;;
+    var templateSheetId = &#x27;1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg&#x27;;
+    var targetSheetId = (payload.sheetId &amp;&amp; String(payload.sheetId).length &gt; 15) ? String(payload.sheetId).trim() : bostarTrackId;
+    if (targetSheetId === templateSheetId) {
+      targetSheetId = bostarTrackId;
+    }
+    var ss = SpreadsheetApp.openById(targetSheetId);
 
     if (action === &#x27;add_order&#x27;) {
       // 1. បញ្ចូលទៅក្នុង Sheet ផ្ទាល់ខ្លួនរបស់សមាជិក (Personal Sales)
@@ -278,11 +283,11 @@ function doPost(e) {
       }
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     } else if (action === &#x27;add_expense&#x27; || action === &#x27;update_expense&#x27; || action === &#x27;delete_expense&#x27;) {
-      // សុវត្ថិភាពខ្ពស់បំផុត៖ ហាមដាច់ខាតមិនឱ្យកត់ត្រា ឬកែប្រែចំណាយចូល BostarTrack ឬពេលគ្មាន Sheet ID ផ្ទាល់ខ្លួន
-      if (!payload.sheetId || String(payload.sheetId).trim().length &lt; 15 || String(payload.sheetId).trim() === bostarTrackId) {
+      // សុវត្ថិភាពខ្ពស់បំផុត៖ ហាមដាច់ខាតមិនឱ្យកត់ត្រា ឬកែប្រែចំណាយចូល BostarTrack, Sheet គំរូដើម ឬពេលគ្មាន Sheet ID ផ្ទាល់ខ្លួន
+      if (!payload.sheetId || String(payload.sheetId).trim().length &lt; 15 || String(payload.sheetId).trim() === bostarTrackId || String(payload.sheetId).trim() === templateSheetId) {
         return ContentService.createTextOutput(JSON.stringify({
           status: &#x27;error&#x27;,
-          message: &#x27;ហាមដាច់ខាតមិនអនុញ្ញាតឱ្យកត់ត្រាចំណាយចូល BostarTrack ឬគ្មាន Sheet ID ផ្ទាល់ខ្លួនឡើយ!&#x27;
+          message: &#x27;ហាមដាច់ខាតមិនអនុញ្ញាតឱ្យកត់ត្រាចំណាយចូល BostarTrack, Sheet គំរូដើម ឬគ្មាន Sheet ID ផ្ទាល់ខ្លួនឡើយ!&#x27;
         })).setMimeType(ContentService.MimeType.JSON);
       }
       var result;

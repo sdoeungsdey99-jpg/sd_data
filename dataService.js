@@ -7,6 +7,7 @@ const MASTER_SDOEUNG_SHEET_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
 const DEFAULT_MASTER_SHEET_ID = '';
 const TEAM_HIERARCHY_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
 const BOSTAR_TRACK_SHEET_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+const TEMPLATE_SHEET_ID = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
 const TEAM_HIERARCHY_GID = '1865868146';
 const BOSTAR_TRACK_GID = '1127553691';
 const REPORT_TAB_GID = '1381931511';
@@ -27,7 +28,10 @@ function getActiveSheetId() {
 
     // 1. ពិនិត្យ Custom Sheet ID ដែលសមាជិកបានភ្ជាប់ដោយផ្ទាល់ខ្លួន
     const custom = (typeof localStorage !== 'undefined') ? localStorage.getItem('sd_custom_sheet_id') : null;
-    const hasValidCustom = custom && custom.trim().length > 15 && custom.trim() !== TEAM_HIERARCHY_SHEET_ID;
+    if (custom && custom.trim() === TEMPLATE_SHEET_ID) {
+      try { localStorage.removeItem('sd_custom_sheet_id'); } catch (_) {}
+    }
+    const hasValidCustom = custom && custom.trim().length > 15 && custom.trim() !== TEAM_HIERARCHY_SHEET_ID && custom.trim() !== TEMPLATE_SHEET_ID;
 
     // 2. ការពារសមាជិកដែលមាន Sheet រួចហើយ មិនឱ្យ URL ?sheet= មកសង្កត់ជាន់ (Overwrite) ដាច់ខាត
     if (typeof window !== 'undefined' && window.location && window.location.search) {
@@ -35,8 +39,8 @@ function getActiveSheetId() {
       const urlSheet = urlParams.get('sheet') || urlParams.get('sheet_id');
       if (urlSheet && urlSheet.trim().length > 15) {
         const cleanUrlSheet = extractSheetId(urlSheet.trim()) || urlSheet.trim();
-        // អនុញ្ញាតឱ្យកំណត់តែពេលដែលទូរសព្ទនេះមិនទាន់មាន Sheet ID ផ្ទាល់ខ្លួនប៉ុណ្ណោះ
-        if (!hasValidCustom) {
+        // ហាមដាច់ខាតមិនកំណត់ Template Sheet ចូល LocalStorage
+        if (cleanUrlSheet !== TEMPLATE_SHEET_ID && !hasValidCustom) {
           localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
           return cleanUrlSheet;
         }
@@ -1912,6 +1916,9 @@ window.DataService = {
     if (!cleanId || cleanId.length < 15) {
       throw new Error('លេខសម្គាល់ Google Sheet ID មិនត្រឹមត្រូវឡើយ');
     }
+    if (cleanId === TEMPLATE_SHEET_ID) {
+      throw new Error('នេះជា Sheet គំរូដើម! សូមចុច "Make a copy" (ចម្លង Sheet នេះទុកក្នុង Google Drive ផ្ទាល់ខ្លួនរបស់អ្នកសិន) រួចយក ID ឬ Link នៃ Sheet ថ្មីនោះមកភ្ជាប់។');
+    }
     try {
       localStorage.removeItem('sd_local_orders');
       localStorage.removeItem('sd_local_expenses');
@@ -1935,6 +1942,10 @@ window.DataService = {
 
   getMasterSheetId() {
     return MASTER_SDOEUNG_SHEET_ID;
+  },
+
+  getTemplateSheetId() {
+    return TEMPLATE_SHEET_ID;
   },
 
   disconnectSheet() {

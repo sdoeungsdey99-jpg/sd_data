@@ -58,8 +58,12 @@ function doPost(e) {
     var action = payload.action;
     var data = payload.data;
     var bostarTrackId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
-    // បើគ្មាន sheetId (ឧ. សមាជិកថ្មី) ដាច់ខាតមិនទម្លាក់ចូល Sheet របស់ Admin ឡើយ ដោយកំណត់ចូល Master Data ជាលំនាំដើម
+    var templateSheetId = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
+    // បើគ្មាន sheetId ឬជា Template Sheet គំរូ ដាច់ខាតមិនទម្លាក់ចូល Sheet របស់ Admin ឬ Sheet គំរូឡើយ ដោយកំណត់ចូល Master Data
     var targetSheetId = (payload.sheetId && String(payload.sheetId).length > 15) ? String(payload.sheetId).trim() : bostarTrackId;
+    if (targetSheetId === templateSheetId) {
+      targetSheetId = bostarTrackId;
+    }
     var ss = SpreadsheetApp.openById(targetSheetId);
 
     if (action === 'add_order') {
@@ -96,11 +100,11 @@ function doPost(e) {
       }
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     } else if (action === 'add_expense' || action === 'update_expense' || action === 'delete_expense') {
-      // សុវត្ថិភាពខ្ពស់បំផុត៖ ហាមដាច់ខាតមិនឱ្យកត់ត្រា ឬកែប្រែចំណាយចូល BostarTrack ឬពេលគ្មាន Sheet ID ផ្ទាល់ខ្លួន
-      if (!payload.sheetId || String(payload.sheetId).trim().length < 15 || String(payload.sheetId).trim() === bostarTrackId) {
+      // សុវត្ថិភាពខ្ពស់បំផុត៖ ហាមដាច់ខាតមិនឱ្យកត់ត្រា ឬកែប្រែចំណាយចូល BostarTrack, Sheet គំរូដើម ឬពេលគ្មាន Sheet ID ផ្ទាល់ខ្លួន
+      if (!payload.sheetId || String(payload.sheetId).trim().length < 15 || String(payload.sheetId).trim() === bostarTrackId || String(payload.sheetId).trim() === templateSheetId) {
         return ContentService.createTextOutput(JSON.stringify({
           status: 'error',
-          message: 'ហាមដាច់ខាតមិនអនុញ្ញាតឱ្យកត់ត្រាចំណាយចូល BostarTrack ឬគ្មាន Sheet ID ផ្ទាល់ខ្លួនឡើយ!'
+          message: 'ហាមដាច់ខាតមិនអនុញ្ញាតឱ្យកត់ត្រាចំណាយចូល BostarTrack, Sheet គំរូដើម ឬគ្មាន Sheet ID ផ្ទាល់ខ្លួនឡើយ!'
         })).setMimeType(ContentService.MimeType.JSON);
       }
       var result;

@@ -17426,7 +17426,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.4)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.5)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -17448,15 +17448,15 @@ function renderAppUpdateModalContent() {
         <div class="space-y-1.5 text-xs pl-1">
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">ធានាសុវត្ថិភាព Sheet ផ្ទាល់ខ្លួន ១០០% (ដាច់ខាតមិនច្រឡំ ឬឆ្លងទិន្នន័យចំណាយ និងការលក់គ្នា)</span>
+            <span class="text-[11px] leading-relaxed">សម្រួលរបាយការណ៍ប្រចាំថ្ងៃ (Tab Report)៖ ចាប់ចំនួនប្រអប់លក់បានស្វ័យប្រវត្តិ និងចម្លងទៅ Bot Telegram ត្រឹមត្រូវ ១០០%</span>
           </div>
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">សម្រួលគម្លាតតារាងការលក់ Personal Sales ឱ្យមានស្តង់ដា និងភាពស្អាតបាតដូចផ្ទាំងបញ្ជីអតិថិជន</span>
+            <span class="text-[11px] leading-relaxed">ចាក់សោអេក្រង់ទូរសព្ទដំណើរការបញ្ឈរ (Portrait Mode) ងាយស្រួលមើល មិនរញ៉េរញ៉ៃពេលបង្វិល</span>
           </div>
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">ប្រព័ន្ធដំណើរការរលូន គ្មានការគាំង ឬលោតផ្ទាំងទទេ</span>
+            <span class="text-[11px] leading-relaxed">ការពារ Sheet គំរូដើម ១០០%៖ ហាមឃាត់មិនឱ្យច្រឡំភ្ជាប់ ឬកត់ត្រាទិន្នន័យចូល Sheet គំរូ</span>
           </div>
         </div>
       </div>
@@ -26173,6 +26173,16 @@ async function submitMemberLogin() {
     return;
   }
 
+  const TEMPLATE_SHEET_REF = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
+  if (cleanId === TEMPLATE_SHEET_REF) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5 leading-snug"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>នេះជា Sheet គំរូដើម! សូមចុច "Make a copy" (ចម្លងទុកក្នុង Google Drive ផ្ទាល់ខ្លួន) រួចយក Link នៃ Sheet ថ្មីរបស់អ្នកមកភ្ជាប់។</span></span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    urlInput?.focus();
+    return;
+  }
+
   if (statusBox) {
     statusBox.innerHTML = '<span class="text-sky-400 text-xs font-medium flex items-center gap-1.5"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> ផ្ទៀងផ្ទាត់ជោគជ័យ! កំពុងភ្ជាប់ទៅកាន់ Google Sheet...</span>';
     if (window.lucide) window.lucide.createIcons();
@@ -26282,6 +26292,16 @@ async function submitNewAccount() {
   if (!cleanId || cleanId.length < 15) {
     if (statusBox) {
       statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> តំណភ្ជាប់ Google Sheet មិនត្រឹមត្រូវឡើយ</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    urlInput?.focus();
+    return;
+  }
+
+  const TEMPLATE_SHEET_REF = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
+  if (cleanId === TEMPLATE_SHEET_REF) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5 leading-snug"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>នេះជា Sheet គំរូដើម! សូមចុច "Make a copy" (ចម្លងទុកក្នុង Google Drive ផ្ទាល់ខ្លួន) រួចយក Link នៃ Sheet ថ្មីរបស់អ្នកមកភ្ជាប់។</span></span>';
       if (window.lucide) window.lucide.createIcons();
     }
     urlInput?.focus();
@@ -29345,6 +29365,21 @@ function selectReportCalendarDay(thisDateIso, event) {
     const dateInput = document.getElementById('rep-field-date');
     if (dateInput) dateInput.value = formatted;
     repCalendarState.selectedDate = thisDateIso;
+
+    // Smart auto-update sales for chosen date
+    try {
+      const sales = (DataService.data && DataService.data.personalSales) ? DataService.data.personalSales : [];
+      const daySales = sales.filter(s => s.isoDate === thisDateIso || s.date === formatted);
+      const dayOrders = daySales.length;
+      const dayBoxes = daySales.reduce((sum, s) => sum + (Number(s.totalBoxQty) || Number(s.boxes) || 0), 0);
+      const buyNewP = document.getElementById('rep-buy-new-p');
+      const buyNewB = document.getElementById('rep-buy-new-b');
+      if (buyNewP && buyNewB) {
+        buyNewP.value = dayOrders;
+        buyNewB.value = dayBoxes;
+        calculateDailyReportMetrics();
+      }
+    } catch (_) {}
   }
   const calEl = document.getElementById('rep-mini-calendar-container');
   if (calEl) calEl.classList.add('hidden');
@@ -30302,11 +30337,11 @@ function renderDailyReportModal() {
   let autoTodayBoxes = 0;
   let autoTodayOrders = 0;
   try {
-    const todayIso = today.toISOString().slice(0, 10);
+    const todayIso = (typeof getLocalIsoDate === 'function') ? getLocalIsoDate(today) : `${yyyy}-${mm}-${dd}`;
     const sales = (DataService.data && DataService.data.personalSales) ? DataService.data.personalSales : [];
-    const todaySales = sales.filter(s => s.isoDate === todayIso);
+    const todaySales = sales.filter(s => s.isoDate === todayIso || s.date === defaultDate);
     autoTodayOrders = todaySales.length;
-    autoTodayBoxes = todaySales.reduce((sum, s) => sum + (Number(s.boxes) || 0), 0);
+    autoTodayBoxes = todaySales.reduce((sum, s) => sum + (Number(s.totalBoxQty) || Number(s.boxes) || 0), 0);
   } catch (_) {}
 
   container.innerHTML = `
@@ -33553,7 +33588,8 @@ async function submitNewOrder() {
   const isMasterAdmin = (typeof isMasterAdminUser === 'function') && isMasterAdminUser();
   const customSheetId = (typeof DataService !== 'undefined' && DataService.getCustomSheetId) ? DataService.getCustomSheetId() : '';
   const bostarMasterDataSheetId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
-  const hasPersonalSheet = (isMasterAdmin) || (customSheetId && customSheetId.length > 15 && customSheetId !== bostarMasterDataSheetId);
+  const templateSheetId = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
+  const hasPersonalSheet = (isMasterAdmin) || (customSheetId && customSheetId.length > 15 && customSheetId !== bostarMasterDataSheetId && customSheetId !== templateSheetId);
   const personalSheetId = isMasterAdmin ? '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU' : customSheetId;
 
   // 3A. Webhook Sync (ទិសទី ២: Master Data និង ទិសទី ៣: Sheet ផ្ទាល់ខ្លួន)
@@ -34642,9 +34678,10 @@ async function submitNewExpense() {
   const webhookUrl = getAppsScriptWebhookUrl();
   const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
 
-  // សុវត្ថិភាពខ្ពស់បំផុត៖ ទាមទារ Sheet ID ផ្ទាល់ខ្លួនជាដាច់ខាត ហាមកត់ត្រាចូល BostarTrack ឬគ្មាន Sheet ID
-  if (!activeSheetId || activeSheetId === 'DEMO_MODE' || activeSheetId.length < 15 || activeSheetId === BOSTAR_TRACK_ATTENDANCE_SHEET_ID) {
-    alert('⚠️ មិនអាចកត់ត្រាចំណាយបានទេ! សូមភ្ជាប់ Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នកជាមុនសិន ក្នុងទំព័រ Profile / Settings ដើម្បីការពារកុំឱ្យច្រឡំទិន្នន័យ។');
+  // សុវត្ថិភាពខ្ពស់បំផុត៖ ទាមទារ Sheet ID ផ្ទាល់ខ្លួនជាដាច់ខាត ហាមកត់ត្រាចូល BostarTrack, Sheet គំរូ ឬគ្មាន Sheet ID
+  const TEMPLATE_EXP_REF = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
+  if (!activeSheetId || activeSheetId === 'DEMO_MODE' || activeSheetId.length < 15 || activeSheetId === BOSTAR_TRACK_ATTENDANCE_SHEET_ID || activeSheetId === TEMPLATE_EXP_REF) {
+    alert('⚠️ មិនអាចកត់ត្រាចំណាយបានទេ! សូមភ្ជាប់ Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នកជាមុនសិន ក្នុងទំព័រ Profile / Settings ដើម្បីការពារកុំឱ្យច្រឡំទិន្នន័យ (ហាមដាច់ខាតមិនឱ្យប្រើប្រាស់ Sheet គំរូដើម)។');
     if (btn) {
       btn.disabled = false;
       btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>រក្សាទុកចំណាយ 💸</span>`;

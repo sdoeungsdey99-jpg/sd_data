@@ -47,7 +47,9 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=64.1">
+  <link rel="manifest" href="manifest.json?v=65.5">
+  <meta name="screen-orientation" content="portrait">
+  <meta name="x5-orientation" content="portrait">
 
   <!-- Open Graph Meta Tags (For Safari Link Share & Home Screen Preview) -->
   <meta property="og:title" content="BostarGroup">
@@ -3991,10 +3993,26 @@
     .light-theme #analytics-donut-chart-view .donut-cat-name {
       color: #1E293B !important;
     }
+
+    /* Mobile Portrait Lock Reminder (Option 1) */
+    @media screen and (orientation: landscape) and (max-height: 550px) {
+      #screen-orientation-lock-overlay {
+        display: flex !important;
+      }
+    }
   </style>
 </head>
 
 <body class="text-slate-100 font-sans h-full overflow-hidden flex flex-col select-none relative hide-subtitles">
+
+  <!-- Mobile Portrait Lock Reminder Overlay (Option 1) -->
+  <div id="screen-orientation-lock-overlay" class="hidden fixed inset-0 z-[999999] bg-[#070D18]/95 backdrop-blur-xl flex-col items-center justify-center p-6 text-center text-white select-none pointer-events-auto">
+    <div class="w-16 h-16 rounded-3xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mb-3 text-amber-400 shadow-lg shadow-amber-500/10">
+      <i data-lucide="smartphone" class="w-8 h-8 animate-bounce"></i>
+    </div>
+    <h3 class="text-base font-bold text-white mb-1.5 font-kantumruy">សូមបង្វិលទូរសព្ទមកបញ្ឈរវិញ</h3>
+    <p class="text-xs text-slate-300 max-w-xs leading-relaxed font-kantumruy">BostarGroup ដំណើរការល្អឥតខ្ចោះ និងងាយស្រួលបំផុតក្នុងទម្រង់អេក្រង់បញ្ឈរ (Portrait Mode)។</p>
+  </div>
 
   <!-- ======================================================== -->
   <!-- 0. 100% CLEAN iOS PASSCODE LOCK SCREEN                      -->

@@ -4,6 +4,7 @@
   "description": "BostarGroup Performance Dashboard & Fintech ERP",
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#070D18",
   "theme_color": "#070D18",
   "icons": [
