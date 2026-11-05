@@ -1840,10 +1840,33 @@ window.DataService = {
     return await this.fetchData(false, true);
   },
 
+  isUserActivelyEditingForm() {
+    if (typeof document === 'undefined') return false;
+    // Check if any critical form modal is open
+    const formModalIds = ['new-order-modal', 'new-expense-modal', 'attendance-leave-modal', 'order-edit-modal'];
+    for (let i = 0; i < formModalIds.length; i++) {
+      const el = document.getElementById(formModalIds[i]);
+      if (el && !el.classList.contains('hidden')) return true;
+    }
+    // Check if daily report modal is open in entry mode
+    const repM = document.getElementById('daily-report-modal');
+    if (repM && !repM.classList.contains('hidden')) {
+      if (typeof window !== 'undefined' && window.pagesReportState && window.pagesReportState.currentTab === 'entry') return true;
+    }
+    // Check if user is currently typing in an input or textarea
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+      return true;
+    }
+    return false;
+  },
+
   startAutoReload(intervalMinutes = 1) {
     if (this.pollTimer) clearInterval(this.pollTimer);
     const ms = intervalMinutes * 60 * 1000;
     this.pollTimer = setInterval(() => {
+      // ហាមដាច់ខាតមិនឱ្យ Auto-Reload ពេលសមាជិកកំពុងបើក Form ឬកំពុងវាយបញ្ចូលទិន្នន័យ
+      if (this.isUserActivelyEditingForm()) return;
       if (typeof document !== 'undefined' && document.visibilityState === 'visible' && (!('onLine' in navigator) || navigator.onLine)) {
         this.fetchData(true);
       }
@@ -1864,6 +1887,8 @@ window.DataService = {
     let lastResumeFetch = Date.now();
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
+        // ហាមដាច់ខាតមិនឱ្យលួច Reload ពេលសមាជិកប្តូរចេញទៅ Telegram ហើយត្រឡប់មកវិញកំពុងបើក Form
+        if (this.isUserActivelyEditingForm()) return;
         const now = Date.now();
         const lastFetchMs = this.lastFetched ? this.lastFetched.getTime() : 0;
         // If tab was away for over 8 seconds, silently fetch fresh data
@@ -1876,6 +1901,7 @@ window.DataService = {
 
     // 2. iOS Safari bfcache (Back-Forward Cache) recovery
     window.addEventListener('pageshow', (e) => {
+      if (this.isUserActivelyEditingForm()) return;
       if (e.persisted && !this.isLoading && this.hasActiveSheet()) {
         this.fetchData(true);
       }

@@ -1259,13 +1259,21 @@ function onDataUpdated(service) {
   }
   const repM = document.getElementById('daily-report-modal');
   if (repM && !repM.classList.contains('hidden') && typeof renderDailyReportModal === 'function') {
-    renderDailyReportModal();
+    // សុវត្ថិភាពខ្ពស់បំផុត៖ អនុញ្ញាតឱ្យ Re-render តែពេលសមាជិកកំពុងស្ថិតក្នុង Tab មើលចំណាត់ថ្នាក់ ('view') ប៉ុណ្ណោះ
+    // ហាមដាច់ខាតមិនឱ្យ Re-render ផ្ទាំងបំពេញលេខ ('entry') ឡើយ ដើម្បីកុំឱ្យបាត់លេខដែលគាត់កំពុងវាយ!
+    if (window.pagesReportState && window.pagesReportState.currentTab === 'view') {
+      renderDailyReportModal();
+    }
   }
   const drawerM = document.getElementById('profile-drawer-modal');
   if (drawerM && !drawerM.classList.contains('hidden') && typeof renderProfileDrawerContent === 'function') {
-    renderProfileDrawerContent();
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-      window.lucide.createIcons();
+    const activeEl = document.activeElement;
+    const isTyping = activeEl && drawerM.contains(activeEl) && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+    if (!isTyping) {
+      renderProfileDrawerContent();
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
     }
   }
 
@@ -17466,7 +17474,7 @@ function renderAppUpdateModalContent() {
           <i data-lucide="sparkles" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.6)</h3>
+          <h3 class="font-bold text-sm text-white leading-tight font-kantumruy">✨ ធ្វើបច្ចុប្បន្នភាពរួចរាល់ (v65.7)</h3>
           <p class="update-modal-subtitle text-[10px] text-cyan-400 font-mono mt-0.5 font-semibold">កំណែប្រព័ន្ធផ្លូវការ</p>
         </div>
       </div>
@@ -17488,15 +17496,15 @@ function renderAppUpdateModalContent() {
         <div class="space-y-1.5 text-xs pl-1">
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">ចាក់សោអេក្រង់បញ្ឈរ System Screen Orientation API (ចាក់តែលើ App យើង មិនប៉ះពាល់ទូរសព្ទ)</span>
+            <span class="text-[11px] leading-relaxed">បិទ Auto-Reload ជាដាច់ខាតពេលសមាជិកកំពុងបំពេញ Form (មិនបាត់លេខពេលប្តូរចេញចូល App/Telegram)</span>
           </div>
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">កែសម្រួលចំណុចចុចប៉ះ Touch Precision មិនរអិល ឬចុចខុសកន្លែងឡើយ (លុបផ្ទាំងខ្មៅរំលឹកចេញ)</span>
+            <span class="text-[11px] leading-relaxed">កម្ចាត់ Auto-Fill លើផ្ទាំងរបាយការណ៍ប្រចាំថ្ងៃ (ចាប់ផ្តើមពី 0 បរិសុទ្ធ គ្រប់គ្រងដោយសមាជិកផ្ទាល់ដៃ ១០០%)</span>
           </div>
           <div class="flex items-start gap-2 text-slate-200">
             <span class="text-emerald-400 font-bold shrink-0">•</span>
-            <span class="text-[11px] leading-relaxed">សម្រួលរបាយការណ៍ប្រចាំថ្ងៃ (Tab Report) ចាប់ចំនួនប្រអប់លក់ និងការពារ Sheet គំរូដើម ១០០%</span>
+            <span class="text-[11px] leading-relaxed">ការពារទិន្នន័យ និងលេខកូដកុម្ម៉ង់ឱ្យដំណើរការត្រឹមត្រូវ និងមានស្ថិរភាពខ្ពស់បំផុត</span>
           </div>
         </div>
       </div>
@@ -29405,21 +29413,6 @@ function selectReportCalendarDay(thisDateIso, event) {
     const dateInput = document.getElementById('rep-field-date');
     if (dateInput) dateInput.value = formatted;
     repCalendarState.selectedDate = thisDateIso;
-
-    // Smart auto-update sales for chosen date
-    try {
-      const sales = (DataService.data && DataService.data.personalSales) ? DataService.data.personalSales : [];
-      const daySales = sales.filter(s => s.isoDate === thisDateIso || s.date === formatted);
-      const dayOrders = daySales.length;
-      const dayBoxes = daySales.reduce((sum, s) => sum + (Number(s.totalBoxQty) || Number(s.boxes) || 0), 0);
-      const buyNewP = document.getElementById('rep-buy-new-p');
-      const buyNewB = document.getElementById('rep-buy-new-b');
-      if (buyNewP && buyNewB) {
-        buyNewP.value = dayOrders;
-        buyNewB.value = dayBoxes;
-        calculateDailyReportMetrics();
-      }
-    } catch (_) {}
   }
   const calEl = document.getElementById('rep-mini-calendar-container');
   if (calEl) calEl.classList.add('hidden');
@@ -30373,17 +30366,6 @@ function renderDailyReportModal() {
   const savedPage = localStorage.getItem('sd_report_page') || savedPagesList[0] || 'Bostar Store';
   const savedStaff = localStorage.getItem('sd_report_staff') || p.name || 'សមាជិក Bostar';
 
-  // Auto-detect today's sales from DataService
-  let autoTodayBoxes = 0;
-  let autoTodayOrders = 0;
-  try {
-    const todayIso = (typeof getLocalIsoDate === 'function') ? getLocalIsoDate(today) : `${yyyy}-${mm}-${dd}`;
-    const sales = (DataService.data && DataService.data.personalSales) ? DataService.data.personalSales : [];
-    const todaySales = sales.filter(s => s.isoDate === todayIso || s.date === defaultDate);
-    autoTodayOrders = todaySales.length;
-    autoTodayBoxes = todaySales.reduce((sum, s) => sum + (Number(s.totalBoxQty) || Number(s.boxes) || 0), 0);
-  } catch (_) {}
-
   container.innerHTML = `
     <div class="space-y-3 text-xs select-none">
       <!-- Card 1: Meta Information -->
@@ -30491,8 +30473,8 @@ function renderDailyReportModal() {
               <span>ភ្ញៀវថ្មីទិញ៖</span>
             </span>
             <div class="grid grid-cols-2 gap-2.5">
-              ${renderRulerNumberControl('rep-buy-new-p', 'ចំនួនភ្ញៀវ', (autoTodayBoxes > 0 ? autoTodayOrders : 0), 'នាក់', 0, 100, 'ភ្ញៀវថ្មីទិញ')}
-              ${renderRulerNumberControl('rep-buy-new-b', 'ចំនួនប្រអប់', autoTodayBoxes, 'ប្រអប់', 0, 200, 'ភ្ញៀវថ្មីទិញ')}
+              ${renderRulerNumberControl('rep-buy-new-p', 'ចំនួនភ្ញៀវ', 0, 'នាក់', 0, 100, 'ភ្ញៀវថ្មីទិញ')}
+              ${renderRulerNumberControl('rep-buy-new-b', 'ចំនួនប្រអប់', 0, 'ប្រអប់', 0, 200, 'ភ្ញៀវថ្មីទិញ')}
             </div>
           </div>
 
@@ -30528,7 +30510,7 @@ function renderDailyReportModal() {
             <span>សរុបទំនិញលក់បានទាំងអស់៖</span>
           </span>
           <span id="rep-total-summary-disp" class="text-emerald-300 font-black text-base sm:text-lg drop-shadow">
-            ${autoTodayBoxes || 0} ប្រអប់
+            0 ប្រអប់
           </span>
         </div>
       </div>
