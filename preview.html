@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=66.2">
+  <link rel="manifest" href="manifest.json?v=66.3">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -458,33 +458,14 @@
     }
     #top-header,
     #sticky-filter-bar {
-      background-color: #070D18 !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
+      background-color: rgba(8, 18, 32, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
     #top-header {
       padding-top: env(safe-area-inset-top, 0px) !important;
       height: calc(4rem + env(safe-area-inset-top, 0px)) !important;
-      transition: margin-top 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease-out;
-      will-change: margin-top;
-    }
-    #top-header.header-collapsed {
-      margin-top: calc(-1 * (4rem + env(safe-area-inset-top, 0px))) !important;
-      opacity: 0;
-      pointer-events: none;
-    }
-    #sticky-filter-bar {
-      transition: padding-top 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    #sticky-filter-bar.filter-pinned-top {
-      padding-top: calc(0.5rem + env(safe-area-inset-top, 0px)) !important;
-    }
-    #header-normal {
-      margin-top: 4px;
-      isolation: isolate;
-      transform: translateZ(0);
-      -webkit-transform: translateZ(0);
     }
     html.light-theme #top-header,
     body.light-theme #top-header,
@@ -4378,7 +4359,7 @@
     </div>
 
     <!-- Top Header Navigation (Tap empty area/Status Bar to Scroll to Top like Native iOS) -->
-    <header id="top-header" onclick="handleHeaderScrollToTop(event)" class="h-16 px-4 flex items-center justify-between shrink-0 border-b border-white/5 z-30 relative cursor-pointer bg-[#070D18]">
+    <header id="top-header" onclick="handleHeaderScrollToTop(event)" class="h-16 px-4 flex items-center justify-between shrink-0 border-b border-white/5 backdrop-blur-md z-30 relative cursor-pointer">
       
       <!-- Normal Header Bar -->
       <div id="header-normal" class="w-full flex items-center justify-between">
@@ -8056,6 +8037,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=66.2"></script>
+  <script src="app.js?v=66.3"></script>
 </body>
 </html>
