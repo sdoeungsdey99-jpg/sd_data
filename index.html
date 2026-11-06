@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=66.8">
+  <link rel="manifest" href="manifest.json?v=66.9">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -523,12 +523,12 @@
       border-color: #E2E8F0 !important;
       box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
     }
-    html.light-theme #sticky-filter-bar button:not(.accent-solid-btn),
-    body.light-theme #sticky-filter-bar button:not(.accent-solid-btn) {
+    html.light-theme #sticky-filter-bar #filter-pills-bar button:not(.accent-solid-btn),
+    body.light-theme #sticky-filter-bar #filter-pills-bar button:not(.accent-solid-btn) {
       color: #64748B !important;
     }
-    html.light-theme #sticky-filter-bar button:not(.accent-solid-btn):hover,
-    body.light-theme #sticky-filter-bar button:not(.accent-solid-btn):hover {
+    html.light-theme #sticky-filter-bar #filter-pills-bar button:not(.accent-solid-btn):hover,
+    body.light-theme #sticky-filter-bar #filter-pills-bar button:not(.accent-solid-btn):hover {
       background-color: #E2E8F0 !important;
       color: #0F172A !important;
     }
@@ -1903,21 +1903,21 @@
       z-index: 70 !important;
     }
     .light-theme #day-dropdown-menu span,
-    .light-theme #day-dropdown-menu button,
-    .light-theme #month-dropdown-menu button,
-    .light-theme #year-dropdown-menu button,
+    .light-theme #day-dropdown-menu button:not([class*="bg-orange"]),
+    .light-theme #month-dropdown-menu button:not([class*="bg-orange"]),
+    .light-theme #year-dropdown-menu button:not([class*="bg-orange"]),
     .light-theme #team-day-dropdown-menu span,
-    .light-theme #team-day-dropdown-menu button,
-    .light-theme #team-month-dropdown-menu button,
-    .light-theme #team-year-dropdown-menu button,
+    .light-theme #team-day-dropdown-menu button:not([class*="bg-orange"]),
+    .light-theme #team-month-dropdown-menu button:not([class*="bg-orange"]),
+    .light-theme #team-year-dropdown-menu button:not([class*="bg-orange"]),
     .light-theme #expenses-day-dropdown-menu span,
-    .light-theme #expenses-day-dropdown-menu button,
-    .light-theme #expenses-month-dropdown-menu button,
-    .light-theme #expenses-year-dropdown-menu button,
+    .light-theme #expenses-day-dropdown-menu button:not([class*="bg-orange"]),
+    .light-theme #expenses-month-dropdown-menu button:not([class*="bg-orange"]),
+    .light-theme #expenses-year-dropdown-menu button:not([class*="bg-orange"]),
     .light-theme #exec-day-dropdown-menu span,
-    .light-theme #exec-day-dropdown-menu button,
-    .light-theme #exec-month-dropdown-menu button,
-    .light-theme #exec-year-dropdown-menu button,
+    .light-theme #exec-day-dropdown-menu button:not([class*="bg-amber"]),
+    .light-theme #exec-month-dropdown-menu button:not([class*="bg-amber"]),
+    .light-theme #exec-year-dropdown-menu button:not([class*="bg-amber"]),
     .light-theme #order-mini-calendar-popup span,
     .light-theme #order-mini-calendar-popup button:not([class*="bg-orange"]),
     .light-theme #expense-mini-calendar-popup span,
@@ -2022,14 +2022,22 @@
     .light-theme #exec-day-dropdown-menu .border-orange-500\/60:hover {
       background-color: #FFF7ED !important;
     }
+    #day-dropdown-menu .bg-orange-500,
+    #expenses-day-dropdown-menu .bg-orange-500,
+    #team-day-dropdown-menu .bg-orange-500,
+    #exec-day-dropdown-menu .bg-orange-500,
     .light-theme #day-dropdown-menu .bg-orange-500,
     .light-theme #expenses-day-dropdown-menu .bg-orange-500,
     .light-theme #team-day-dropdown-menu .bg-orange-500,
-    .light-theme #exec-day-dropdown-menu .bg-orange-500 {
+    .light-theme #exec-day-dropdown-menu .bg-orange-500,
+    .light-theme #day-dropdown-menu button.bg-orange-500,
+    .light-theme #expenses-day-dropdown-menu button.bg-orange-500,
+    .light-theme #team-day-dropdown-menu button.bg-orange-500,
+    .light-theme #exec-day-dropdown-menu button.bg-orange-500 {
       background-color: #EA580C !important;
       color: #FFFFFF !important;
       font-weight: 700 !important;
-      box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35) !important;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.45) !important;
     }
 
 
@@ -8281,6 +8289,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=66.8"></script>
+  <script src="app.js?v=66.9"></script>
 </body>
 </html>

@@ -2978,7 +2978,7 @@ function renderMiniCalendar() {
 
     daysGridHtml += `
       <button onclick="selectSpecificCalendarDay('${thisDateIso}', event)" 
-              class="${cellClasses}">
+              class="${cellClasses}" ${isSelected ? 'style="color: #FFFFFF !important;"' : ''}>
         ${day}
       </button>
     `;
@@ -3005,11 +3005,13 @@ function renderMiniCalendar() {
     <!-- Quick Pick Shortcuts (Today / Yesterday) -->
     <div class="grid grid-cols-2 gap-1.5 pb-2 border-b border-white/10">
       <button onclick="selectDayFilter('today', event)" 
-              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${appState.daySubFilter !== 'yesterday' && appState.daySubFilter !== 'specific' ? 'bg-orange-500 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${appState.daySubFilter !== 'yesterday' && appState.daySubFilter !== 'specific' ? 'bg-orange-500 text-white font-bold' : 'bg-white/5 text-slate-300 hover:bg-white/10'}"
+              ${appState.daySubFilter !== 'yesterday' && appState.daySubFilter !== 'specific' ? 'style="color: #FFFFFF !important;"' : ''}>
         ☀️ ថ្ងៃនេះ
       </button>
       <button onclick="selectDayFilter('yesterday', event)" 
-              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${appState.daySubFilter === 'yesterday' ? 'bg-orange-500 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+              class="py-1 px-2 rounded-xl text-center text-[11px] font-semibold transition active:scale-95 ${appState.daySubFilter === 'yesterday' ? 'bg-orange-500 text-white font-bold' : 'bg-white/5 text-slate-300 hover:bg-white/10'}"
+              ${appState.daySubFilter === 'yesterday' ? 'style="color: #FFFFFF !important;"' : ''}>
         🌙 ម្សិលមិញ
       </button>
     </div>
@@ -16225,7 +16227,7 @@ function renderExpensesMiniCalendar() {
     }
 
     daysGridHtml += `
-      <button onclick="selectExpensesCalendarDay('${thisDateIso}', event)" class="${cellClasses}">
+      <button onclick="selectExpensesCalendarDay('${thisDateIso}', event)" class="${cellClasses}" ${isSelected ? 'style="color: #FFFFFF !important;"' : ''}>
         <span>${day}</span>
         ${hasExpenses ? `<span class="w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-rose-400'} absolute bottom-0.5"></span>` : ''}
       </button>
@@ -27351,7 +27353,7 @@ function renderTeamMiniCalendar() {
     }
 
     daysGridHtml += `
-      <button onclick="selectTeamCalendarDay('${thisDateIso}', event)" class="${cellClasses}">
+      <button onclick="selectTeamCalendarDay('${thisDateIso}', event)" class="${cellClasses}" ${isSelected ? 'style="color: #FFFFFF !important;"' : ''}>
         <span>${day}</span>
         ${hasSales ? `<span class="w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-emerald-400'} absolute bottom-0.5"></span>` : ''}
       </button>
