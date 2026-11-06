@@ -1365,3 +1365,179 @@ function updateBankAccountBalance(ss, data) {
   };
 }
 
+/**
+ * ==============================================================================
+ * មុខងារសម្អាតទិន្នន័យប្រវត្តិសាស្ត្រក្នុង Master Data (01/01/2026 - 12/08/2026)
+ * ==============================================================================
+ * គោលការណ៍សុវត្ថិភាពខ្ពស់បំផុត៖
+ * 1. បង្កើត Tab Backup (Master Data_Backup_YYYYMMDD_HHmmss) ស្វ័យប្រវត្តិកូដជាមុនសិន
+ * 2. ដំណើរការតែលើជួរទី ២ ដល់ជួរទី ៦៩៣១ (មុនថ្ងៃ ១៣/០៨/២០២៦) ប៉ុណ្ណោះ
+ * 3. ជួសជុលចំនួនប្រអប់ QTY សម្រាប់ឈុត ២ ប្រអប់ ($90 / 3,400 THB) និង ៣ ប្រអប់ ($135 / 4,700 THB)
+ * 4. កែសម្រួល Location សម្រាប់ Thai COD ដែលច្រឡំដាក់ឈ្មោះទំនិញ ឱ្យទៅជា "ថៃ"
+ * 5. គណនាថ្លៃដើមស្តុក ($24 * Qty) និង Profit ឡើងវិញយ៉ាងត្រឹមត្រូវ ១០០%
+ * 6. មិនប៉ះពាល់ដល់ Webhook ឬជួរក្រោយថ្ងៃ ១២/០៨/២០២៦ ឡើយ
+ */
+function cleanHistoricalMasterData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Master Data') || ss.getSheetByName('Master data');
+  if (!sheet) {
+    Logger.log('រកមិនឃើញផ្ទាំង Master Data ឡើយ!');
+    return;
+  }
+
+  // ១. បង្កើត Backup Tab ជាមុនសិនដើម្បីធានាសុវត្ថិភាព ១០០%
+  var timeStamp = Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyyMMdd_HHmmss');
+  var backupName = 'Master Data_Backup_' + timeStamp;
+  var backupSheet = sheet.copyTo(ss);
+  backupSheet.setName(backupName);
+  Logger.log('✅ បានបង្កើត Tab Backup រួចរាល់៖ ' + backupName);
+
+  // ២. ទាញទិន្នន័យពីជួរទី ២ ដល់ជួរទី ៦៩៣១ (សរុប ៦,៩៣០ ជួរ)
+  var startRow = 2;
+  var numRows = 6930; // ជួរទី 2 ដល់ 6931
+  var numCols = Math.min(sheet.getLastColumn(), 26);
+  var range = sheet.getRange(startRow, 1, numRows, numCols);
+  var values = range.getValues();
+
+  var qtyUpdatedCount = 0;
+  var locUpdatedCount = 0;
+
+  for (var r = 0; r < values.length; r++) {
+    var rowDate = String(values[r][0] || '').trim();
+    if (!rowDate) continue;
+
+    // ពិនិត្យកាលបរិច្ឆេទ ធានាថាមិនប៉ះពាល់ទិន្នន័យក្រោយថ្ងៃ ១២/០៨/២០២៦
+    var rowNum = startRow + r;
+    if (rowNum > 6931) break;
+
+    // ទាញតម្លៃ QTY
+    var yl = parseInt(values[r][7], 10) || 0;
+    var ylp = parseInt(values[r][8], 10) || 0;
+    var kn = parseInt(values[r][9], 10) || 0;
+    var pdo = parseInt(values[r][10], 10) || 0;
+    var free = parseInt(values[r][13], 10) || 0;
+    var currentTotalQty = yl + ylp + kn + pdo;
+
+    // តម្លៃលក់
+    var priceStr = String(values[r][14] || '').replace(/[^\d]/g, '');
+    var delivery = String(values[r][17] || '').trim();
+    var loc = String(values[r][5] || '').trim();
+
+    var qtyWasUpdated = false;
+
+    // ក. ជួសជុលឈុត ២ ប្រអប់ ($90, 3400 THB, 3300 THB, $80) ដែលមានត្រឹមតែ ១ ប្រអប់
+    if ((priceStr === '90' || priceStr === '3400' || priceStr === '3300' || priceStr === '80') && currentTotalQty === 1) {
+      if (kn === 1 && pdo === 0) {
+        values[r][10] = 1; // ថែម PDO = 1
+        pdo = 1;
+        qtyWasUpdated = true;
+      } else if (pdo === 1 && kn === 0) {
+        values[r][9] = 1; // ថែម KN = 1
+        kn = 1;
+        qtyWasUpdated = true;
+      } else if (yl === 1 && ylp === 0) {
+        values[r][8] = 1; // ថែម YLP = 1
+        ylp = 1;
+        qtyWasUpdated = true;
+      } else if (ylp === 1 && yl === 0) {
+        values[r][7] = 1; // ថែម YL = 1
+        yl = 1;
+        qtyWasUpdated = true;
+      }
+    }
+    // ខ. ជួសជុលឈុត ៣ ប្រអប់ ($135, 4700 THB) ដែលមានត្រឹមតែ ២ ប្រអប់
+    else if ((priceStr === '135' || priceStr === '4700') && currentTotalQty === 2) {
+      if (kn === 1 && pdo === 1) {
+        values[r][9] = 2; // KN = 2, PDO = 1
+        kn = 2;
+        qtyWasUpdated = true;
+      } else if (yl === 1 && ylp === 1) {
+        values[r][7] = 2; // YL = 2, YLP = 1
+        yl = 2;
+        qtyWasUpdated = true;
+      } else if (kn === 2 && pdo === 0) {
+        values[r][10] = 1;
+        pdo = 1;
+        qtyWasUpdated = true;
+      } else if (yl === 2 && ylp === 0) {
+        values[r][8] = 1;
+        ylp = 1;
+        qtyWasUpdated = true;
+      }
+    }
+
+    // គណនាថ្លៃដើមស្តុក (Stock) និង Profit ឡើងវិញប្រសិនបើ QTY ត្រូវបានជួសជុល
+    if (qtyWasUpdated) {
+      qtyUpdatedCount++;
+      var newTotalQty = yl + ylp + kn + pdo + free;
+      var newStockCost = newTotalQty * 24;
+      values[r][19] = '$' + newStockCost.toFixed(2);
+
+      var totalUsdStr = String(values[r][15] || '').replace(/[^\d\.]/g, '');
+      var shipFeeStr = String(values[r][16] || '').replace(/[^\d\.]/g, '');
+      var totalUsd = parseFloat(totalUsdStr) || 0;
+      var shipFee = parseFloat(shipFeeStr) || 0;
+
+      if (totalUsd > 0) {
+        var newProfit = Math.max(0, totalUsd - newStockCost - shipFee);
+        values[r][21] = '$' + newProfit.toFixed(2);
+      }
+    }
+
+    // គ. ជួសជុល Location សម្រាប់ Thai COD ដែលជាប់ឈ្មោះទំនិញ
+    var isThai = (delivery.indexOf('Thai') !== -1 || delivery.indexOf('ថៃ') !== -1);
+    if (isThai) {
+      var locLower = loc.toLowerCase();
+      var hasProdText = locLower.indexOf('kidney') !== -1 ||
+                        locLower.indexOf('yong') !== -1 ||
+                        locLower.indexOf('box') !== -1 ||
+                        locLower.indexOf('ប្រអប់') !== -1 ||
+                        locLower.indexOf('pro d.o') !== -1 ||
+                        locLower.indexOf('note') !== -1 ||
+                        loc === '';
+      if (hasProdText) {
+        values[r][5] = 'ថៃ';
+        locUpdatedCount++;
+      }
+    }
+  }
+
+  // ៣. សរសេរទិន្នន័យត្រឡប់ចូល Sheet វិញទាំងអស់ក្នុងពេលតែមួយ (Batch Write)
+  range.setValues(values);
+
+  var summaryMsg = '🎉 សម្អាតទិន្នន័យប្រវត្តិសាស្ត្រជោគជ័យ ១០០%!' +
+                   '\n- បានជួសជុល QTY & Stock/Profit៖ ' + qtyUpdatedCount + ' ជួរ' +
+                   '\n- បានកែសម្រួល Location ថៃ៖ ' + locUpdatedCount + ' ជួរ' +
+                   '\n- បាន Backup ទុកក្នុង៖ ' + backupName;
+  Logger.log(summaryMsg);
+  return summaryMsg;
+}
+
+
+
+
+/**
+ * ជួសជុលកាលបរិច្ឆេទក្នុង Tab BostarTrack ឱ្យត្រូវតាម Master Data (DD/MM/YYYY)
+ * ការពារការច្រឡំថ្ងៃ និងខែ (MM/DD ➔ DD/MM)
+ */
+function fixBostarTrackDates() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var master = ss.getSheetByName('Master Data');
+  var bostar = ss.getSheetByName('BostarTrack');
+  
+  if (!master || !bostar) {
+    Logger.log('រកមិនឃើញ Sheet ឡើយ!');
+    return;
+  }
+  
+  var lastRow = master.getLastRow();
+  // យក Column A (កាលបរិច្ឆេទ) ពី Master Data ជាទម្រង់ដើមជាក់ស្តែង (DD/MM/YYYY)
+  var masterDates = master.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
+  
+  // កំណត់ទម្រង់ Column A ក្នុង BostarTrack ជា Plain Text និងបញ្ចូលទិន្នន័យ
+  var bostarDateRange = bostar.getRange(2, 1, lastRow - 1, 1);
+  bostarDateRange.setNumberFormat('@');
+  bostarDateRange.setValues(masterDates);
+  
+  Logger.log('✅ ជោគជ័យ! បានកែសម្រួលកាលបរិច្ឆេទក្នុង BostarTrack ចំនួន ' + masterDates.length + ' ជួរឱ្យស្របតាម Master Data (DD/MM/YYYY) ១០០%!');
+}

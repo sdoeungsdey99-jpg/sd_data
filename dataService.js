@@ -567,6 +567,27 @@ async function fetchTeamHierarchyCSV() {
 // Fetch BostarTrack Sales Orders tab (Always 100% directly from BostarGroup Official Sheet with native CORS)
 async function fetchBostarTrackSalesCSV() {
   const sId = TEAM_HIERARCHY_SHEET_ID;
+  // 1. Direct CSV Export (Fastest, avoids GViz type inference)
+  try {
+    const directUrl = `https://docs.google.com/spreadsheets/d/${sId}/export?format=csv&gid=${BOSTAR_TRACK_GID}&_t=${Date.now()}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(directUrl, { 
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
+    clearTimeout(timer);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 1) return rows;
+      }
+    }
+  } catch (_) {}
+
+  // 2. Fallback to GViz
   try {
     const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${BOSTAR_TRACK_GID}&_t=${Date.now()}`;
     const controller = new AbortController();
@@ -723,6 +744,27 @@ async function fetchTeamNameCodesCSV() {
 // Fetch Master Data tab (Full customer & order archive with GID 0)
 async function fetchMasterDataSalesCSV() {
   const sId = TEAM_HIERARCHY_SHEET_ID;
+  // 1. Direct CSV Export (Fastest, avoids GViz type inference dropping dates/headers)
+  try {
+    const directUrl = `https://docs.google.com/spreadsheets/d/${sId}/export?format=csv&gid=${MASTER_DATA_TAB_GID}&_t=${Date.now()}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    const resp = await fetch(directUrl, { 
+      signal: controller.signal,
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
+    clearTimeout(timer);
+    if (resp && resp.ok) {
+      const text = await resp.text();
+      if (text && !text.trim().startsWith('<!DOCTYPE html>') && text.includes('Order Date')) {
+        const rows = parseCSV(text);
+        if (rows && rows.length > 1) return rows;
+      }
+    }
+  } catch (_) {}
+
+  // 2. Fallback to GViz
   try {
     const gvizUrl = `https://docs.google.com/spreadsheets/d/${sId}/gviz/tq?tqx=out:csv&headers=0&gid=${MASTER_DATA_TAB_GID}&_t=${Date.now()}`;
     const controller = new AbortController();

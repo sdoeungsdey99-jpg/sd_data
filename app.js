@@ -33149,7 +33149,7 @@ function parsePastedOrderText(silent = false) {
   const freeQty = extract(/\[Free\][:\s]*(\d+)/i) || extract(/Free[:\s]*(\d+)/i) || extract(/\[ថែម\][:\s]*(\d+)/i) || extract(/ថែម[:\s]*(\d+)/i);
   const priceLineRaw = extract(/(?:តម្លៃ\(Price\)|Price|តម្លៃ)[:\s]*([^\n\r]+)/i);
   const receiverNo = extract(/(?:លេខអ្នកទទួល\(Receiver No\)|Receiver No|លេខអ្នកទទួល)[:\s]*([^\n\r]+)/i);
-  const address = extract(/(?:អាសយដ្ឋាន\(Address\)|Address|អាសយដ្ឋាន|Location)[:\s]*([^\n\r]+)/i);
+  const address = extract(/(?:អាសយដ្ឋាន\(Address\)|Address|អាសយដ្ឋាន|Location)[^\S\r\n]*:[^\S\r\n]*([^\r\n]+)/i);
   const delivery = extract(/(?:ដឹកជញ្ជូនតាម\(Delivery\)|Delivery|ដឹកជញ្ជូនតាម)[:\s]*([^\n\r]+)/i);
   const teamRaw = extract(/(?:ថ្នាក់ដឹកនាំ|Team Leader|Team)[:\s]*([^\n\r]+)/i);
 
@@ -33214,10 +33214,17 @@ function parsePastedOrderText(silent = false) {
     const rField = document.getElementById('order-field-phone');
     if (rField) rField.value = formatKhmerPhone(receiverNo);
   }
-  if (address) {
+  let validAddress = address;
+  if (validAddress) {
+    const isProdInLoc = /kidney|yong\s*liang|pro\s*d\.?o|box|ប្រអប់|emmi|sg\s*pro/i.test(validAddress);
+    if (isProdInLoc) {
+      validAddress = '';
+    }
+  }
+  if (validAddress) {
     const aField = document.getElementById('order-field-location');
-    if (aField) aField.value = address;
-    const aLower = address.toLowerCase();
+    if (aField) aField.value = validAddress;
+    const aLower = validAddress.toLowerCase();
     if ((aLower.includes('ថៃ') || aLower.includes('thai')) && !delivery) {
       const delivField = document.getElementById('order-field-delivery');
       if (delivField) delivField.value = 'Thai ✅COD';

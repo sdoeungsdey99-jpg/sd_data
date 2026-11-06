@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=65.7">
+  <link rel="manifest" href="manifest.json?v=65.8">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -3001,8 +3001,10 @@
     /* 13.7. ផ្ទាំង Notification & Badge, ផ្ទាំងរបាយការណ៍លើកទឹកចិត្ត, គណនី, ចំណាយពេញ, ផ្ទាំងសិក្សា ចន្ធី & លាងហាក់ */
     /* --------------------------------------------------------------------------------------------------------- */
     /* Notification Modal & Bell Badge */
-    .light-theme #notif-badge {
+    .light-theme #notif-badge,
+    .light-theme #header-notif-wrapper #notif-badge {
       border-color: #FFFFFF !important;
+      color: #FFFFFF !important;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
     }
     .light-theme #header-notif-wrapper button {
@@ -4437,9 +4439,7 @@
     </div>
   </div>
 
-  <!-- Ambient Glow Backdrops -->
-  <div class="fixed -top-32 -left-32 w-96 h-96 liquid-ambient-orange rounded-full pointer-events-none z-0"></div>
-  <div class="fixed top-1/4 -right-36 w-96 h-96 liquid-ambient-blue rounded-full pointer-events-none z-0"></div>
+  <!-- Ambient Glow Backdrops (Disabled to eliminate top-left blur smudge for a pristine, clean solid background) -->
 
   <!-- ======================================================== -->
   <!-- 1. MAIN APP CONTAINER                                   -->
@@ -8228,7 +8228,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=11.2"></script>
-  <script src="app.js?v=65.4"></script>
+  <script src="dataService.js?v=11.3"></script>
+  <script src="app.js?v=65.8"></script>
 </body>
 </html>
