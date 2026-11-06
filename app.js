@@ -2248,7 +2248,14 @@ function hookScrollableForDock(el, isMain = false) {
       // Home Page (dashboard) & Study Page (learning): Dock remains STATIC (pinned / no auto-hide / no jittering)
       if (isMain && (appState.currentView === 'dashboard' || appState.currentView === 'learning')) {
         setDockVisible(true);
-        if (filterBar && appState.currentView === 'dashboard') filterBar.classList.remove('filter-hidden');
+        if (filterBar && appState.currentView === 'dashboard') {
+          filterBar.classList.remove('filter-hidden');
+          filterBar.classList.add('filter-pinned-top');
+        }
+        const topHeader = document.getElementById('top-header');
+        if (topHeader && appState.currentView === 'dashboard') {
+          topHeader.classList.add('header-collapsed');
+        }
         const studyHeader = document.getElementById('study-sticky-header');
         if (studyHeader) studyHeader.classList.remove('filter-hidden');
       } else {
@@ -2268,6 +2275,11 @@ function hookScrollableForDock(el, isMain = false) {
     else if (diff < -6 || currentScrollTop <= 15) {
       if (!isDialogModalOpen()) {
         setDockVisible(true);
+        if (isMain && appState.currentView === 'dashboard') {
+          const topHeader = document.getElementById('top-header');
+          if (topHeader) topHeader.classList.remove('header-collapsed');
+          if (filterBar) filterBar.classList.remove('filter-hidden', 'filter-pinned-top');
+        }
         if (isMain && filterBar && appState.currentView === 'dashboard') {
           filterBar.classList.remove('filter-hidden');
         }
@@ -2755,6 +2767,10 @@ function switchView(viewName, shouldReload = false) {
   const main = document.getElementById('main-content');
   if (main) {
     main.scrollTop = 0;
+    const topH = document.getElementById('top-header');
+    if (topH) topH.classList.remove('header-collapsed');
+    const filterB = document.getElementById('sticky-filter-bar');
+    if (filterB) filterB.classList.remove('filter-pinned-top');
     if (viewName === 'settings') {
       main.classList.add('settings-view-active');
     } else {
@@ -19952,6 +19968,12 @@ function handleHeaderScrollToTop(e, targetId = null) {
 
   if (target) {
     target.scrollTo({ top: 0, behavior: 'smooth' });
+    if (target.id === 'main-content') {
+      const topH = document.getElementById('top-header');
+      if (topH) topH.classList.remove('header-collapsed');
+      const filterB = document.getElementById('sticky-filter-bar');
+      if (filterB) filterB.classList.remove('filter-pinned-top');
+    }
     // If scrolling customer list to top, ensure summary bar is revealed
     if (target.id === 'all-customers-list') {
       const summaryEl = document.getElementById('all-customers-summary');
