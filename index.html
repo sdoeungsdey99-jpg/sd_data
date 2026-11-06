@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=65.9">
+  <link rel="manifest" href="manifest.json?v=66.0">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -145,11 +145,10 @@
     .liquid-orange-glow {
       box-shadow: 0 0 45px -8px rgba(249, 115, 22, 0.35);
     }
-    .liquid-ambient-orange {
-      background: radial-gradient(circle, rgba(249, 115, 22, 0.22) 0%, rgba(249, 115, 22, 0) 70%);
-    }
+    .liquid-ambient-orange,
     .liquid-ambient-blue {
-      background: radial-gradient(circle, rgba(24, 119, 242, 0.22) 0%, rgba(24, 119, 242, 0) 70%);
+      display: none !important;
+      background: none !important;
     }
     /* Confetti Animation for Special Celebrations */
     @keyframes confettiFall {
@@ -1981,10 +1980,7 @@
       font-weight: 700 !important;
       box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35) !important;
     }
-    .light-theme .liquid-ambient-orange,
-    .light-theme .liquid-ambient-blue {
-      opacity: 0.15;
-    }
+
 
     /* ========================================================== */
     /* COMPREHENSIVE LIGHT THEME RULES (ALL SCREENS & MODALS)     */
@@ -4226,9 +4222,6 @@
   <!-- 0.1 ONBOARDING / GOOGLE SHEET CONNECTION GATE             -->
   <!-- ======================================================== -->
   <div id="onboarding-gate" class="hidden fixed inset-0 z-[80] bg-[#070D18] flex flex-col items-center justify-between p-5 overflow-y-auto no-scrollbar select-none">
-    <!-- Ambient glows -->
-    <div class="fixed -top-32 -left-32 w-96 h-96 liquid-ambient-orange rounded-full pointer-events-none"></div>
-    <div class="fixed top-1/3 -right-36 w-96 h-96 liquid-ambient-blue rounded-full pointer-events-none"></div>
 
     <div class="w-full max-w-sm my-auto py-6 relative z-10 flex flex-col items-center">
       <!-- App Brand Logo & Title -->
@@ -8229,6 +8222,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=65.9"></script>
+  <script src="app.js?v=66.0"></script>
 </body>
 </html>
