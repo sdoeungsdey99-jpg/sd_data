@@ -1454,6 +1454,10 @@ async function manualReload(force = false) {
   if (navigator.vibrate) {
     try { navigator.vibrate(15); } catch (_) {}
   }
+  // Reset scroll blur appearance on reload
+  if (document.body && document.body.classList.contains('is-scrolled')) {
+    document.body.classList.remove('is-scrolled');
+  }
   const btnReload = document.getElementById('btn-reload');
   const icon = document.getElementById('reload-icon');
   const timeText = document.getElementById('reload-time-text');
@@ -2227,6 +2231,19 @@ function hookScrollableForDock(el, isMain = false) {
       return;
     }
 
+    // Dynamic Frosted Blur toggle on scroll across all views
+    if (isMain) {
+      if (currentScrollTop > 10) {
+        if (!document.body.classList.contains('is-scrolled')) {
+          document.body.classList.add('is-scrolled');
+        }
+      } else {
+        if (document.body.classList.contains('is-scrolled')) {
+          document.body.classList.remove('is-scrolled');
+        }
+      }
+    }
+
     // Analytics Sticky Header: Locked style when scrolled
     if (isMain && appState.currentView === 'analytics') {
       const analyticsHeader = document.getElementById('analytics-sticky-header');
@@ -2243,8 +2260,8 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // 1. Scrolling content down (finger dragging up, reading down) -> Smoothly hide Header, Sub-bar & Dock
-    if (diff > 12 && currentScrollTop > 40) {
+    // 1. Scrolling content down (finger dragging up, reading down) -> Smoothly hide Header, Sub-bar & Dock (Standardized threshold)
+    if (diff > 25 && currentScrollTop > 60) {
       setDockVisible(false);
       const topHeader = document.getElementById('top-header');
       if (topHeader && !topHeader.classList.contains('header-collapsed')) {
@@ -2268,8 +2285,8 @@ function hookScrollableForDock(el, isMain = false) {
         }
       }
     }
-    // 2. Actively scrolling content up (finger dragging down) OR near top -> Immediately restore Header, Sub-bar & Dock
-    else if (diff < -15 || currentScrollTop <= 15) {
+    // 2. Actively scrolling content up (finger dragging down) OR near top -> Smoothly restore Header, Sub-bar & Dock
+    else if (diff < -20 || currentScrollTop <= 15) {
       if (!isDialogModalOpen()) {
         setDockVisible(true);
         const topHeader = document.getElementById('top-header');
@@ -2304,10 +2321,10 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // 4. When scrolling stops / screen is still -> Smoothly restore Dock (except when deep inside profile drawer or in dialog modal)
+    // 4. When scrolling stops / screen is still -> Smoothly restore Dock (Main views remain stable without idle pop)
     clearTimeout(scrollIdleTimer);
     scrollIdleTimer = setTimeout(() => {
-      if (isMain && (appState.currentView === 'dashboard' || appState.currentView === 'learning')) return; // Home & Study Pages stay static; no idle timer needed
+      if (isMain) return; // Main views stay completely stable when stationary; zero jitter
       if (el.id === 'profile-drawer-content' && el.scrollTop > 25) return;
       if (isDialogModalOpen()) return;
       setDockVisible(true);
@@ -2774,10 +2791,18 @@ function switchView(viewName, shouldReload = false) {
       main.classList.remove('analytics-view-active');
     }
     if (viewName === 'learning') {
+      main.classList.add('learning-view-active');
       setTimeout(() => {
         if (main) main.scrollTo({ top: 0, behavior: 'instant' });
       }, 30);
+    } else {
+      main.classList.remove('learning-view-active');
     }
+  }
+
+  // Reset scroll blur appearance on view switch
+  if (document.body && document.body.classList.contains('is-scrolled')) {
+    document.body.classList.remove('is-scrolled');
   }
 
   setDockVisible(true);
@@ -3181,8 +3206,8 @@ function renderYearDropdownMenu() {
   if (!menu) return;
 
   const currentYear = (new Date()).getFullYear();
-  // Include 2028, 2027, 2026, 2025 as requested
-  const years = [2028, 2027, 2026, 2025];
+  // Include 2027, 2026, 2025 as requested
+  const years = [2027, 2026, 2025];
   const activeYear = appState.selectedYear || currentYear;
 
   menu.innerHTML = years.map(y => {
@@ -4732,7 +4757,7 @@ function renderExecYearDropdown() {
   if (!menu) return;
 
   const currentYear = (new Date()).getFullYear();
-  const years = [2028, 2027, 2026, 2025];
+  const years = [2027, 2026, 2025];
   const activeYear = execHierarchyFilterState.selectedYear ? parseInt(execHierarchyFilterState.selectedYear, 10) : currentYear;
 
   menu.innerHTML = years.map(y => {
@@ -8166,7 +8191,7 @@ function getAnalyticsViewHTML() {
   });
 
   const months = Object.keys(monthlyStats).sort();
-  const allYears = [...new Set([...months.map(m => m.split('-')[0]), '2025', '2026', '2027', '2028'])].sort((a,b) => parseInt(a,10) - parseInt(b,10));
+  const allYears = [...new Set([...months.map(m => m.split('-')[0]), '2025', '2026', '2027'])].filter(y => y !== '2028').sort((a,b) => parseInt(a,10) - parseInt(b,10));
   const curYearStr = String((new Date()).getFullYear());
   const currentActiveYear = appState.analyticsYear || (allYears.includes(curYearStr) ? curYearStr : (allYears.includes('2026') ? '2026' : (allYears[0] || '2026')));
   appState.analyticsYear = currentActiveYear;
@@ -8212,7 +8237,7 @@ function getAnalyticsViewHTML() {
 
   // 1. Slim Sticky Header: ONLY Year Selector & Perspective Dropdown (Locks against Profile Bar)
   const stickyYearHeaderHtml = `
-    <div id="analytics-sticky-header" class="sticky top-0 z-40 w-full bg-[#070D18]/94 backdrop-blur-2xl px-3.5 pt-2 pb-2 border-b border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
+    <div id="analytics-sticky-header" class="sticky top-0 z-40 w-full px-3.5 pt-2 pb-2 border-b border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-colors">
       <div class="flex items-center justify-between gap-2">
         <!-- Year Selector -->
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
@@ -9727,9 +9752,9 @@ function getLearningViewHTML() {
   const currentTab = appState.studyTab || 'sales_reset';
 
   return `
-    <div class="space-y-2 pb-28 sm:pb-32" id="study-container">
-      <!-- Top Sticky Segmented Tab Bar (Auto-hide on scroll like front filter bar) -->
-      <div id="study-sticky-header" class="sticky top-0 z-30 pt-0.5 pb-0.5 backdrop-blur-md">
+    <div class="w-full pb-28 sm:pb-32" id="study-container">
+      <!-- Top Sticky Segmented Tab Bar (Auto-hide on scroll like front filter bar, locks against Profile Bar) -->
+      <div id="study-sticky-header" class="sticky top-0 z-30 w-full px-3.5 py-1.5 transition-colors">
         <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
           <button onclick="setStudyTab('sales_reset')" 
                   class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${currentTab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
@@ -9750,9 +9775,11 @@ function getLearningViewHTML() {
       </div>
 
       <!-- Tab Content Area -->
-      ${currentTab === 'sales_reset' ? renderSalesResetContent() : ''}
-      ${currentTab === 'quotes' ? renderSalesQuotesContent() : ''}
-      ${currentTab === 'english' ? renderEnglishWordsContent() : ''}
+      <div id="study-tab-content-area" class="px-3.5 pt-1 space-y-2.5">
+        ${currentTab === 'sales_reset' ? renderSalesResetContent() : ''}
+        ${currentTab === 'quotes' ? renderSalesQuotesContent() : ''}
+        ${currentTab === 'english' ? renderEnglishWordsContent() : ''}
+      </div>
     </div>
   `;
 }
@@ -9765,7 +9792,7 @@ function setStudyTab(tab) {
   const container = document.getElementById('study-container');
   if (container) {
     container.innerHTML = `
-      <div id="study-sticky-header" class="sticky top-0 z-30 pt-0.5 pb-0.5 backdrop-blur-md">
+      <div id="study-sticky-header" class="sticky top-0 z-30 w-full px-3.5 py-1.5 transition-colors">
         <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
           <button onclick="setStudyTab('sales_reset')" 
                   class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
@@ -9784,9 +9811,11 @@ function setStudyTab(tab) {
           </button>
         </div>
       </div>
-      ${tab === 'sales_reset' ? renderSalesResetContent() : ''}
-      ${tab === 'quotes' ? renderSalesQuotesContent() : ''}
-      ${tab === 'english' ? renderEnglishWordsContent() : ''}
+      <div id="study-tab-content-area" class="px-3.5 pt-1 space-y-2.5">
+        ${tab === 'sales_reset' ? renderSalesResetContent() : ''}
+        ${tab === 'quotes' ? renderSalesQuotesContent() : ''}
+        ${tab === 'english' ? renderEnglishWordsContent() : ''}
+      </div>
     `;
     if (window.lucide) window.lucide.createIcons();
   } else {
@@ -13512,7 +13541,7 @@ function renderPayablesList() {
         <!-- Year Selector Pill -->
         <div class="relative">
           <select onchange="changePayablesYear(this.value)" class="appearance-none bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 text-white text-[11px] font-semibold rounded-lg pl-2 pr-5 py-1 focus:outline-none focus:border-orange-500/50 cursor-pointer transition">
-            ${[2028, 2027, 2026, 2025].map(y => {
+            ${[2027, 2026, 2025].map(y => {
               const isSelected = y === activePayablesYear;
               return `<option value="${y}" ${isSelected ? 'selected' : ''} class="bg-[#0B1528] text-white">ឆ្នាំ ${y}</option>`;
             }).join('')}
@@ -15300,7 +15329,7 @@ function renderBoostYearDropdown() {
   const menu = document.getElementById('boost-year-dropdown-menu');
   if (!menu) return;
 
-  const years = [2028, 2027, 2026, 2025];
+  const years = [2027, 2026, 2025];
 
   menu.innerHTML = years.map(y => {
     const isSelected = (y === activeBoostYear);
@@ -16388,7 +16417,7 @@ function renderExpensesYearDropdown() {
   if (!menu) return;
 
   const currentYear = (new Date()).getFullYear();
-  const years = [2028, 2027, 2026, 2025];
+  const years = [2027, 2026, 2025];
   const activeYear = expensesFilterState.selectedYear ? parseInt(expensesFilterState.selectedYear, 10) : currentYear;
 
   menu.innerHTML = years.map(y => {
@@ -27517,7 +27546,7 @@ function renderTeamYearDropdown() {
   if (!menu) return;
 
   const currentYear = (new Date()).getFullYear();
-  const years = [2028, 2027, 2026, 2025];
+  const years = [2027, 2026, 2025];
   const activeYear = teamMembersFilterState.selectedYear ? parseInt(teamMembersFilterState.selectedYear, 10) : currentYear;
 
   menu.innerHTML = years.map(y => {
