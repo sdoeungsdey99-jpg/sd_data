@@ -3343,35 +3343,39 @@ function setPeriodFilter(mode) {
 function handleCustomDateInputChange() {
   const startEl = document.getElementById('custom-start-date');
   const endEl = document.getElementById('custom-end-date');
-  const btn = document.getElementById('custom-date-action-btn');
-  if (!btn) return;
+  const submitBtn = document.getElementById('custom-date-submit-btn');
+  if (!submitBtn) return;
   const start = startEl ? startEl.value : '';
   const end = endEl ? endEl.value : '';
   if (start && end) {
-    btn.textContent = 'យល់ព្រម';
-    btn.className = 'px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-[11px] shrink-0 transition-all duration-150 active:scale-95 shadow-md shadow-orange-500/30';
+    submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+    submitBtn.classList.add('opacity-100', 'cursor-pointer');
   } else {
-    btn.textContent = 'បោះបង់';
-    btn.className = 'px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 font-semibold text-[11px] shrink-0 transition-all duration-150 active:scale-95 shadow-sm';
+    submitBtn.classList.remove('opacity-100', 'cursor-pointer');
+    submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
   }
 }
 window.handleCustomDateInputChange = handleCustomDateInputChange;
 
-function handleCustomDateAction() {
+function cancelCustomDateFilter(event) {
+  if (event) event.stopPropagation();
   const startEl = document.getElementById('custom-start-date');
   const endEl = document.getElementById('custom-end-date');
-  const start = startEl ? startEl.value : '';
-  const end = endEl ? endEl.value : '';
-  if (start && end) {
-    applyCustomRangeFilter();
-  } else {
-    // When dates are not yet selected, tapping Cancel restores the pill bar and reverts to today
-    setPeriodFilter('today');
-  }
+  if (startEl) startEl.value = '';
+  if (endEl) endEl.value = '';
+  appState.customStartDate = null;
+  appState.customEndDate = null;
+  setPeriodFilter('today');
+}
+window.cancelCustomDateFilter = cancelCustomDateFilter;
+
+function handleCustomDateAction() {
+  cancelCustomDateFilter();
 }
 window.handleCustomDateAction = handleCustomDateAction;
 
-function applyCustomRangeFilter() {
+function applyCustomRangeFilter(event) {
+  if (event) event.stopPropagation();
   const start = document.getElementById('custom-start-date')?.value;
   const end = document.getElementById('custom-end-date')?.value;
   if (!start || !end) {

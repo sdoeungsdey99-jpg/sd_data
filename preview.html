@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.0">
+  <link rel="manifest" href="manifest.json?v=67.1">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -549,10 +549,16 @@
       color: #0F172A !important;
       border: 1px solid #CBD5E1 !important;
     }
-    html.light-theme #custom-date-action-btn:not([class*="bg-gradient"]),
-    body.light-theme #custom-date-action-btn:not([class*="bg-gradient"]) {
+    html.light-theme #custom-date-cancel-btn,
+    body.light-theme #custom-date-cancel-btn {
       background-color: #E2E8F0 !important;
-      color: #334155 !important;
+      color: #475569 !important;
+      border: 1px solid #CBD5E1 !important;
+    }
+    html.light-theme #custom-date-cancel-btn:hover,
+    body.light-theme #custom-date-cancel-btn:hover {
+      background-color: #CBD5E1 !important;
+      color: #0F172A !important;
     }
     #main-content.settings-view-active {
       padding-top: calc(0.75rem + env(safe-area-inset-top, 0px)) !important;
@@ -4643,11 +4649,18 @@
           <input type="date" id="custom-end-date" onchange="handleCustomDateInputChange()" 
                  class="bg-white/10 rounded-xl px-2 py-1 text-white text-[11px] w-full focus:outline-none focus:ring-1 focus:ring-orange-500/50">
         </div>
-        <!-- Smart Dynamic 1 Button: [បោះបង់] when empty, [យល់ព្រម] when both dates picked -->
-        <button id="custom-date-action-btn" type="button" onclick="handleCustomDateAction()" 
-                class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 font-semibold text-[11px] shrink-0 transition-all duration-150 active:scale-95 shadow-sm">
-          បោះបង់
-        </button>
+        <!-- Action Buttons: [✕ Cancel] + [យល់ព្រម Apply] -->
+        <div class="flex items-center gap-1 shrink-0">
+          <button id="custom-date-cancel-btn" type="button" onclick="cancelCustomDateFilter(event)" 
+                  class="w-7 h-7 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center text-xs font-bold transition shadow-sm"
+                  title="បោះបង់">
+            ✕
+          </button>
+          <button id="custom-date-submit-btn" type="button" onclick="applyCustomRangeFilter(event)" 
+                  class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-[11px] shrink-0 transition-all duration-150 active:scale-95 shadow-md shadow-orange-500/30">
+            យល់ព្រម
+          </button>
+        </div>
       </div>
     </div>
 
@@ -8114,6 +8127,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.0"></script>
+  <script src="app.js?v=67.1"></script>
 </body>
 </html>
