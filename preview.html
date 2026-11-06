@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=66.3">
+  <link rel="manifest" href="manifest.json?v=66.4">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -458,14 +458,16 @@
     }
     #top-header,
     #sticky-filter-bar {
-      background-color: rgba(8, 18, 32, 0.95);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background-color: #070D18 !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
     #top-header {
-      padding-top: env(safe-area-inset-top, 0px) !important;
+      padding-top: calc(env(safe-area-inset-top, 0px) + 6px) !important;
+      padding-bottom: 6px !important;
       height: calc(4rem + env(safe-area-inset-top, 0px)) !important;
+      box-sizing: border-box !important;
     }
     html.light-theme #top-header,
     body.light-theme #top-header,
@@ -4359,7 +4361,7 @@
     </div>
 
     <!-- Top Header Navigation (Tap empty area/Status Bar to Scroll to Top like Native iOS) -->
-    <header id="top-header" onclick="handleHeaderScrollToTop(event)" class="h-16 px-4 flex items-center justify-between shrink-0 border-b border-white/5 backdrop-blur-md z-30 relative cursor-pointer">
+    <header id="top-header" onclick="handleHeaderScrollToTop(event)" class="h-16 px-4 flex items-center justify-between shrink-0 border-b border-white/5 z-30 relative cursor-pointer bg-[#070D18]">
       
       <!-- Normal Header Bar -->
       <div id="header-normal" class="w-full flex items-center justify-between">
@@ -4499,11 +4501,11 @@
     </div>
 
     <!-- STICKY FLOATING FILTER PILLS BAR (Shown ONLY on Home / Dashboard) -->
-    <div id="sticky-filter-bar" class="sticky top-0 z-20 px-3 py-2 backdrop-blur-md border-b border-white/5 flex flex-col gap-1.5">
+    <div id="sticky-filter-bar" class="sticky top-0 z-20 px-3 py-2 border-b border-white/5 flex flex-col gap-1.5 bg-[#070D18]">
       <!-- iOS Subtle Backdrop Blur for Filter Popovers -->
       <div id="filter-dropdown-backdrop" onclick="closeAllFilterDropdowns()" class="hidden fixed inset-0 z-30 bg-black/25 backdrop-blur-sm transition-opacity duration-200"></div>
 
-      <div class="flex items-center gap-1 bg-[#050B14]/85 p-1 rounded-2xl border border-white/5 w-full relative z-40">
+      <div class="flex items-center gap-1 bg-[#050B14] p-1 rounded-2xl border border-white/5 w-full relative z-40">
         
         <!-- 1. Day Popover Pill (ថ្ងៃ ⌄) -> iPhone UI Mini Calendar Popover -->
         <div class="relative flex-1">
@@ -8037,6 +8039,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=66.3"></script>
+  <script src="app.js?v=66.4"></script>
 </body>
 </html>
