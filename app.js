@@ -2264,8 +2264,11 @@ function hookScrollableForDock(el, isMain = false) {
     if (diff > 25 && currentScrollTop > 60) {
       setDockVisible(false);
       const topHeader = document.getElementById('top-header');
-      if (topHeader && !topHeader.classList.contains('header-collapsed') && appState.currentView !== 'dashboard') {
+      if (topHeader && !topHeader.classList.contains('header-collapsed')) {
         topHeader.classList.add('header-collapsed');
+      }
+      if (isMain && filterBar && appState.currentView === 'dashboard') {
+        filterBar.classList.add('filter-hidden');
       }
       if (isMain && appState.currentView === 'analytics') {
         const analyticsHeader = document.getElementById('analytics-sticky-header');
