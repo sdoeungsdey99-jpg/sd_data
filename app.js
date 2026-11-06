@@ -2243,31 +2243,39 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // 1. Scrolling content down (finger moving up) -> Smoothly hide Dock & Filter Bar (except on Home Page & Study Page)
-    if (diff > 8 && currentScrollTop > 30) {
-      // Home Page (dashboard) & Study Page (learning): Dock remains STATIC (pinned / no auto-hide / no jittering)
-      if (isMain && (appState.currentView === 'dashboard' || appState.currentView === 'learning')) {
-        setDockVisible(true);
-        if (filterBar && appState.currentView === 'dashboard') filterBar.classList.remove('filter-hidden');
+    // 1. Scrolling content down (finger dragging up, reading down) -> Smoothly hide Header, Sub-bar & Dock
+    if (diff > 12 && currentScrollTop > 40) {
+      setDockVisible(false);
+      const topHeader = document.getElementById('top-header');
+      if (topHeader && !topHeader.classList.contains('header-collapsed')) {
+        topHeader.classList.add('header-collapsed');
+      }
+      if (isMain && filterBar && appState.currentView === 'dashboard') {
+        filterBar.classList.add('filter-hidden');
+      }
+      if (isMain && appState.currentView === 'analytics') {
+        const analyticsHeader = document.getElementById('analytics-sticky-header');
+        if (analyticsHeader && !analyticsHeader.classList.contains('filter-hidden')) {
+          const analyticsMenu = document.getElementById('analytics-view-dropdown-menu');
+          if (analyticsMenu) analyticsMenu.classList.add('hidden');
+          analyticsHeader.classList.add('filter-hidden');
+        }
+      }
+      if (isMain && appState.currentView === 'learning') {
         const studyHeader = document.getElementById('study-sticky-header');
-        if (studyHeader) studyHeader.classList.remove('filter-hidden');
-      } else {
-        setDockVisible(false);
-        if (isMain && filterBar) filterBar.classList.add('filter-hidden');
-        if (isMain && appState.currentView === 'analytics') {
-          const analyticsHeader = document.getElementById('analytics-sticky-header');
-          if (analyticsHeader && !analyticsHeader.classList.contains('filter-hidden')) {
-            const analyticsMenu = document.getElementById('analytics-view-dropdown-menu');
-            if (analyticsMenu) analyticsMenu.classList.add('hidden');
-            analyticsHeader.classList.add('filter-hidden');
-          }
+        if (studyHeader && !studyHeader.classList.contains('filter-hidden')) {
+          studyHeader.classList.add('filter-hidden');
         }
       }
     }
-    // 2. Scrolling content up (finger moving down) or near top -> Immediately restore Dock & Filter Bar
-    else if (diff < -6 || currentScrollTop <= 15) {
+    // 2. Actively scrolling content up (finger dragging down) OR near top -> Immediately restore Header, Sub-bar & Dock
+    else if (diff < -15 || currentScrollTop <= 15) {
       if (!isDialogModalOpen()) {
         setDockVisible(true);
+        const topHeader = document.getElementById('top-header');
+        if (topHeader && topHeader.classList.contains('header-collapsed')) {
+          topHeader.classList.remove('header-collapsed');
+        }
         if (isMain && filterBar && appState.currentView === 'dashboard') {
           filterBar.classList.remove('filter-hidden');
         }
@@ -2790,6 +2798,7 @@ function switchView(viewName, shouldReload = false) {
   // Top Header Bar: Hide completely when in Settings (search, bell, reload hidden)
   const topHeader = document.getElementById('top-header');
   if (topHeader) {
+    topHeader.classList.remove('header-collapsed');
     if (viewName === 'settings') {
       topHeader.classList.add('hidden');
     } else {
@@ -3015,8 +3024,7 @@ function navigateCalendarMonth(delta, event) {
 
 function selectSpecificCalendarDay(dateIso, event) {
   if (event) event.stopPropagation();
-  const menu = document.getElementById('day-dropdown-menu');
-  if (menu) menu.classList.add('hidden');
+  closeAllFilterDropdowns();
 
   appState.daySubFilter = 'specific';
   appState.specificDate = dateIso;
@@ -3032,8 +3040,7 @@ function selectSpecificCalendarDay(dateIso, event) {
 
 function selectDayFilter(subMode, event) {
   if (event) event.stopPropagation();
-  const menu = document.getElementById('day-dropdown-menu');
-  if (menu) menu.classList.add('hidden');
+  closeAllFilterDropdowns();
 
   appState.daySubFilter = subMode; // 'today' or 'yesterday'
   appState.specificDate = null;
@@ -3143,8 +3150,7 @@ function renderMonthDropdownMenu() {
 
 function selectMonthFilter(mNum, mKhmer, event) {
   if (event) event.stopPropagation();
-  const menu = document.getElementById('month-dropdown-menu');
-  if (menu) menu.classList.add('hidden');
+  closeAllFilterDropdowns();
 
   const yr = monthPickerYear || appState.selectedYear || (new Date()).getFullYear();
   appState.selectedYear = yr;
@@ -3195,8 +3201,7 @@ function renderYearDropdownMenu() {
 
 function selectYearFilter(y, event) {
   if (event) event.stopPropagation();
-  const menu = document.getElementById('year-dropdown-menu');
-  if (menu) menu.classList.add('hidden');
+  closeAllFilterDropdowns();
 
   appState.selectedYear = y;
   
@@ -3285,10 +3290,21 @@ function setPeriodFilter(mode) {
     }
   }
 
+  const pillsBar = document.getElementById('filter-pills-bar');
   const customContainer = document.getElementById('custom-date-container');
-  if (customContainer) {
+  if (pillsBar && customContainer) {
+    if (mode === 'custom') {
+      pillsBar.classList.add('hidden');
+      customContainer.classList.remove('hidden');
+      handleCustomDateInputChange();
+    } else {
+      pillsBar.classList.remove('hidden');
+      customContainer.classList.add('hidden');
+    }
+  } else if (customContainer) {
     if (mode === 'custom') {
       customContainer.classList.remove('hidden');
+      handleCustomDateInputChange();
     } else {
       customContainer.classList.add('hidden');
     }
@@ -3297,11 +3313,42 @@ function setPeriodFilter(mode) {
   renderCurrentView();
 }
 
+function handleCustomDateInputChange() {
+  const startEl = document.getElementById('custom-start-date');
+  const endEl = document.getElementById('custom-end-date');
+  const btn = document.getElementById('custom-date-action-btn');
+  if (!btn) return;
+  const start = startEl ? startEl.value : '';
+  const end = endEl ? endEl.value : '';
+  if (start && end) {
+    btn.textContent = 'យល់ព្រម';
+    btn.className = 'px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-[11px] shrink-0 transition-all duration-150 active:scale-95 shadow-md shadow-orange-500/30';
+  } else {
+    btn.textContent = 'បោះបង់';
+    btn.className = 'px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 font-semibold text-[11px] shrink-0 transition-all duration-150 active:scale-95 shadow-sm';
+  }
+}
+window.handleCustomDateInputChange = handleCustomDateInputChange;
+
+function handleCustomDateAction() {
+  const startEl = document.getElementById('custom-start-date');
+  const endEl = document.getElementById('custom-end-date');
+  const start = startEl ? startEl.value : '';
+  const end = endEl ? endEl.value : '';
+  if (start && end) {
+    applyCustomRangeFilter();
+  } else {
+    // When dates are not yet selected, tapping Cancel restores the pill bar and reverts to today
+    setPeriodFilter('today');
+  }
+}
+window.handleCustomDateAction = handleCustomDateAction;
+
 function applyCustomRangeFilter() {
-  const start = document.getElementById('custom-start-date').value;
-  const end = document.getElementById('custom-end-date').value;
+  const start = document.getElementById('custom-start-date')?.value;
+  const end = document.getElementById('custom-end-date')?.value;
   if (!start || !end) {
-    alert('សូមជ្រើសរើសថ្ងៃចាប់ផ្តើម និងថ្ងៃបញ្ចប់!');
+    handleCustomDateInputChange();
     return;
   }
   appState.customStartDate = start;
@@ -19952,6 +19999,16 @@ function handleHeaderScrollToTop(e, targetId = null) {
 
   if (target) {
     target.scrollTo({ top: 0, behavior: 'smooth' });
+    if (target.id === 'main-content') {
+      const topH = document.getElementById('top-header');
+      if (topH) topH.classList.remove('header-collapsed');
+      const filterB = document.getElementById('sticky-filter-bar');
+      if (filterB) filterB.classList.remove('filter-hidden');
+      const analyticsH = document.getElementById('analytics-sticky-header');
+      if (analyticsH) analyticsH.classList.remove('filter-hidden');
+      const studyH = document.getElementById('study-sticky-header');
+      if (studyH) studyH.classList.remove('filter-hidden');
+    }
     // If scrolling customer list to top, ensure summary bar is revealed
     if (target.id === 'all-customers-list') {
       const summaryEl = document.getElementById('all-customers-summary');
