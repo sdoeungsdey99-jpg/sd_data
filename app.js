@@ -9784,17 +9784,17 @@ function getCustomerViewHTML() {
           
           <!-- Normal Header Content (Profile Avatar + Title + Scope + Count + Action Buttons) -->
           <div id="customer-view-normal-nav" class="flex items-center justify-between gap-2.5 flex-1 min-w-0 transition-all duration-200">
-            <!-- Profile Avatar & Title Block (Matches Home & Profile Drawer) -->
+            <!-- Customer Directory Representation Icon & Title Block -->
             <div id="customer-header-profile-block" class="flex items-center gap-2.5 min-w-0 cursor-pointer active:scale-95 transition" onclick="openProfileDrawer()" title="បើក Profile Drawer">
-              <div class="relative shrink-0">
-                <img id="customer-profile-avatar" src="${avatarSrc}" alt="Profile" 
-                     class="w-11 h-11 rounded-full object-cover border-2 border-amber-500">
-                <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
+              <!-- Stylized Customer Duo Icon (44px x 44px container matching standard header height) -->
+              <div class="relative shrink-0 w-11 h-11 rounded-2xl bg-blue-500/15 border-2 border-blue-500/30 flex items-center justify-center text-blue-400 shadow-sm">
+                <i data-lucide="users" class="w-5 h-5 text-blue-400"></i>
+                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-[#070D18]"></span>
               </div>
               <div id="customer-view-title-heading" class="min-w-0 flex-1 truncate">
                 <div class="flex items-center gap-1.5">
                   <h1 class="font-bold text-[15.5px] text-white leading-tight brand-title truncate">បញ្ជីអតិថិជន</h1>
-                  <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 text-[10px] font-medium leading-none border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span>
+                  <span id="customer-view-scope-badge" class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 text-[10px] font-medium leading-none border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span>
                 </div>
                 <p class="text-[11.5px] text-amber-400 font-semibold leading-tight truncate mt-0.5">
                   ចំនួនសរុប: <span id="customer-view-count-text" class="font-mono text-blue-300">0 នាក់</span>
@@ -9972,9 +9972,11 @@ function setCustomerViewSort(mode) {
 function updateCustomerViewScopeUI() {
   const checkPersonal = document.getElementById('cust-view-check-scope-personal');
   const checkAll = document.getElementById('cust-view-check-scope-all');
+  const scopeBadge = document.getElementById('customer-view-scope-badge');
   const isAll = (customerViewScopeMode === 'all');
   if (checkPersonal) checkPersonal.classList.toggle('hidden', isAll);
   if (checkAll) checkAll.classList.toggle('hidden', !isAll);
+  if (scopeBadge) scopeBadge.textContent = isAll ? 'ទិន្នន័យរួម' : 'Sheet ផ្ទាល់ខ្លួន';
 }
 
 async function setCustomerViewScope(mode) {
@@ -20868,7 +20870,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.13';
+const CURRENT_APP_VERSION = '67.14';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -20964,8 +20966,6 @@ function syncHeaderProfileUI() {
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
 
   if (avatarEl) avatarEl.src = isMaster ? (p.avatar || 'profile.png') : (p.avatar || 'bostar-logo.png');
-  const custAvatarEl = document.getElementById('customer-profile-avatar');
-  if (custAvatarEl) custAvatarEl.src = isMaster ? (p.avatar || 'profile.png') : (p.avatar || 'bostar-logo.png');
   if (nameEl) nameEl.textContent = isMaster ? (p.name || 'ស្តី ស្តើង') : (p.name || 'BostarGroup');
   if (subEl) subEl.textContent = isMaster ? (p.subtitle || 'SDEY SDOEUNG') : (p.subtitle || 'Bostar Sales & Finance');
   if (badgeEl) {

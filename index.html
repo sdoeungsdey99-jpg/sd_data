@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.13">
+  <link rel="manifest" href="manifest.json?v=67.14">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -643,6 +643,18 @@
     body.light-theme #profile-drawer-header [data-lucide="x"] {
       color: #334155 !important;
       stroke: #334155 !important;
+    }
+    html.light-theme #drawer-motto-bar,
+    body.light-theme #drawer-motto-bar {
+      background-color: #F8FAFC !important;
+    }
+    html.light-theme #drawer-motto-text,
+    body.light-theme #drawer-motto-text {
+      color: #475569 !important;
+    }
+    html.light-theme #customer-view-title-heading h1,
+    body.light-theme #customer-view-title-heading h1 {
+      color: #0F172A !important;
     }
     #sticky-filter-bar > div {
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -5958,18 +5970,18 @@
             </button>
           </div>
         </div>
+      </div>
 
-        <!-- Frameless Executive Sales Motto Slide (No Box / No Capsule - Clean Minimalist Typography) -->
-        <div onclick="nextDrawerMotto(event)" 
-             title="ចុចដើម្បីប្តូរស្លោកបន្ទាប់"
-             class="mt-2.5 pt-2 border-t border-white/5 flex items-center gap-2 cursor-pointer select-none group">
-          <span class="text-amber-400 text-xs shrink-0 select-none">✨</span>
-          <div class="relative h-4.5 flex-1 overflow-hidden" id="drawer-motto-container">
-            <p id="drawer-motto-text" 
-               class="text-[11px] text-slate-300 group-hover:text-amber-300 font-medium font-kantumruy truncate transition-all duration-400 transform translate-y-0 opacity-100 leading-relaxed">
-              «ការលក់ធ្លាក់ ≠ យើងធ្លាក់ • សកម្មភាពត្រូវតែកើនឡើង!»
-            </p>
-          </div>
+      <!-- Frameless Executive Sales Motto Slide Bar (Clean, no extra border, single top line from header) -->
+      <div id="drawer-motto-bar" onclick="nextDrawerMotto(event)" 
+           title="ចុចដើម្បីប្តូរស្លោកបន្ទាប់"
+           class="px-4 py-2.5 bg-[#070D18] flex items-center gap-2 cursor-pointer select-none group shrink-0">
+        <span class="text-amber-400 text-xs shrink-0 select-none">✨</span>
+        <div class="relative h-4.5 flex-1 overflow-hidden" id="drawer-motto-container">
+          <p id="drawer-motto-text" 
+             class="text-[11px] text-slate-300 group-hover:text-amber-300 font-medium font-kantumruy truncate transition-all duration-400 transform translate-y-0 opacity-100 leading-relaxed">
+            «ការលក់ធ្លាក់ ≠ យើងធ្លាក់ • សកម្មភាពត្រូវតែកើនឡើង!»
+          </p>
         </div>
       </div>
 
@@ -8468,6 +8480,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.13"></script>
+  <script src="app.js?v=67.14"></script>
 </body>
 </html>
