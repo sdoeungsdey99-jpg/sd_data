@@ -2271,6 +2271,22 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
+    // Customer View Header: Reduce opacity when scrolled up (content scrolling up under header)
+    if (isMain && appState.currentView === 'customer') {
+      const custHeader = document.getElementById('customer-view-header');
+      if (custHeader) {
+        if (currentScrollTop > 15) {
+          if (!custHeader.classList.contains('customer-header-scrolled')) {
+            custHeader.classList.add('customer-header-scrolled');
+          }
+        } else if (currentScrollTop <= 5) {
+          if (custHeader.classList.contains('customer-header-scrolled')) {
+            custHeader.classList.remove('customer-header-scrolled');
+          }
+        }
+      }
+    }
+
     // 1. Scrolling content down (finger dragging up, reading down) -> Smoothly hide Bottom Dock only (Matching All Customers list)
     if (diff > 14 && currentScrollTop > 60) {
       setDockVisible(false);
@@ -9772,9 +9788,11 @@ function getCustomerViewHTML() {
 
   return `
     <div class="w-full pb-28 sm:pb-32" id="customer-view-container">
-      <!-- Sticky Customer Top Header Bar (100% Solid Opaque, Stationary like Profile Drawer & Home) -->
+      <!-- Sticky Customer Top Header Bar (Tap empty or solid area to Scroll To Top) -->
       <div id="customer-view-header" 
-           class="sticky top-0 z-30 w-full px-4 border-b border-white/5 bg-[#070D18] shrink-0 select-none flex items-center justify-between">
+           onclick="handleHeaderScrollToTop(event, 'main-content')"
+           title="ប៉ះកន្លែងទំនេរដើម្បីឡើងលើបង្អស់ (Scroll to Top)"
+           class="sticky top-0 z-30 w-full px-4 border-b border-white/5 bg-[#070D18] shrink-0 select-none flex items-center justify-between cursor-pointer">
         
         <!-- Header Bar: Title & Controls -->
         <div id="customer-view-header-bar" class="w-full flex items-center justify-between gap-2">
@@ -20569,6 +20587,8 @@ function handleHeaderScrollToTop(e, targetId = null) {
       if (analyticsH) analyticsH.classList.remove('filter-hidden');
       const studyH = document.getElementById('study-sticky-header');
       if (studyH) studyH.classList.remove('filter-hidden');
+      const custH = document.getElementById('customer-view-header');
+      if (custH) custH.classList.remove('customer-header-scrolled');
     }
     // If scrolling customer list to top, ensure summary bar is revealed
     if (target.id === 'all-customers-list') {
@@ -20867,7 +20887,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.17';
+const CURRENT_APP_VERSION = '67.18';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

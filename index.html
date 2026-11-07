@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.17">
+  <link rel="manifest" href="manifest.json?v=67.18">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -579,6 +579,24 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
       box-shadow: none !important;
       box-sizing: border-box !important;
+    }
+    #customer-view-header {
+      transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.28s ease, backdrop-filter 0.28s ease, -webkit-backdrop-filter 0.28s ease;
+    }
+    #customer-view-header.customer-header-scrolled {
+      opacity: 0.82 !important;
+      background-color: rgba(7, 13, 24, 0.82) !important;
+      backdrop-filter: blur(18px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    }
+    html.light-theme #customer-view-header.customer-header-scrolled,
+    body.light-theme #customer-view-header.customer-header-scrolled {
+      opacity: 0.85 !important;
+      background-color: rgba(255, 255, 255, 0.85) !important;
+      backdrop-filter: blur(18px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+      border-bottom: 1px solid #CBD5E1 !important;
     }
     #top-header,
     #customer-view-header,
@@ -8492,6 +8510,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.17"></script>
+  <script src="app.js?v=67.18"></script>
 </body>
 </html>
