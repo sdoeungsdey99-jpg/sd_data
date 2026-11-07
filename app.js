@@ -2848,8 +2848,10 @@ function switchView(viewName, shouldReload = false) {
   if (filterBar) {
     if (viewName === 'dashboard') {
       filterBar.classList.remove('hidden', 'filter-hidden');
+      filterBar.style.display = '';
     } else {
-      filterBar.classList.add('hidden');
+      filterBar.classList.add('hidden', 'filter-hidden');
+      filterBar.style.display = 'none';
     }
   }
 
@@ -3428,9 +3430,11 @@ function renderCurrentView() {
   const filterBar = document.getElementById('sticky-filter-bar');
   if (filterBar) {
     if (appState.currentView === 'dashboard') {
-      filterBar.classList.remove('hidden');
+      filterBar.classList.remove('hidden', 'filter-hidden');
+      filterBar.style.display = '';
     } else {
-      filterBar.classList.add('hidden');
+      filterBar.classList.add('hidden', 'filter-hidden');
+      filterBar.style.display = 'none';
     }
   }
 
@@ -20904,7 +20908,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.20';
+const CURRENT_APP_VERSION = '67.21';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

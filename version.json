@@ -1,5 +1,5 @@
 {
-  "version": "67.20",
-  "buildTime": "2026-11-07T22:07:00+07:00",
-  "notes": "Home Dashboard Date Bar (#sticky-filter-bar) opacity fades to 0 on scroll down & restores on scroll up"
+  "version": "67.21",
+  "buildTime": "2026-11-07T22:48:00+07:00",
+  "notes": "Fixed Analytics view gap: eliminated ghost sticky-filter-bar in non-dashboard views for 100% flush header connection"
 }
