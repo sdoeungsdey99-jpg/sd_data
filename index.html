@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.29">
+  <link rel="manifest" href="manifest.json?v=67.30">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -625,6 +625,8 @@
     #profile-drawer-header {
       padding-top: max(env(safe-area-inset-top, 0px), 14px) !important;
       padding-bottom: 10px !important;
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
       height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
       min-height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
       max-height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
@@ -4698,7 +4700,7 @@
   <div id="app-container" class="relative z-10 flex flex-col h-full w-full max-w-md mx-auto overflow-hidden">
 
     <!-- Top Header Navigation (Tap empty area/Status Bar to Scroll to Top like Native iOS) -->
-    <header id="top-header" onclick="handleHeaderScrollToTop(event)" class="px-4 flex items-center justify-between shrink-0 border-b border-white/5 z-30 relative cursor-pointer bg-[#070D18]">
+    <header id="top-header" onclick="handleHeaderScrollToTop(event)" class="px-3 flex items-center justify-between shrink-0 border-b border-white/5 z-30 relative cursor-pointer bg-[#070D18]">
       
       <!-- Normal Header Bar -->
       <div id="header-normal" class="w-full flex items-center justify-between">
@@ -5872,7 +5874,7 @@
       
       <!-- Top Header inside Drawer: Matches Home Header Geometry & Exact Vertical Alignment -->
       <div id="profile-drawer-header" onclick="handleHeaderScrollToTop(event, 'profile-drawer-content')" 
-           class="px-4 flex items-center justify-between shrink-0 border-b border-white/10 bg-[#0B1528] cursor-pointer"
+           class="px-3 flex items-center justify-between shrink-0 border-b border-white/10 bg-[#0B1528] cursor-pointer"
            title="ប៉ះកន្លែងទំនេរដើម្បីឡើងលើបង្អស់ (Scroll to Top)">
         <div class="w-full flex items-center justify-between gap-2.5">
           <!-- Left: Profile avatar + Name + ID/Greeting (Clickable to trigger greeting morph) -->
@@ -5917,7 +5919,7 @@
       <!-- Frameless Executive Sales Motto Slide Bar (With bottom divider line to clearly separate from content) -->
       <div id="drawer-motto-bar" onclick="nextDrawerMotto(event)" 
            title="ចុចដើម្បីប្តូរស្លោកបន្ទាប់"
-           class="px-4 py-2.5 bg-[#070D18] border-b border-white/10 flex items-center gap-2 cursor-pointer select-none group shrink-0">
+           class="px-3 py-2.5 bg-[#070D18] border-b border-white/10 flex items-center gap-2 cursor-pointer select-none group shrink-0">
         <span class="text-amber-400 text-xs shrink-0 select-none">✨</span>
         <div class="relative h-4.5 flex-1 overflow-hidden" id="drawer-motto-container">
           <p id="drawer-motto-text" 
@@ -8422,6 +8424,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.29"></script>
+  <script src="app.js?v=67.30"></script>
 </body>
 </html>

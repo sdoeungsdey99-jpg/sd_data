@@ -20977,7 +20977,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.29';
+const CURRENT_APP_VERSION = '67.30';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

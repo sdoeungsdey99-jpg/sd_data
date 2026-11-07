@@ -1,5 +1,5 @@
 {
-  "version": "67.29",
-  "buildTime": "2026-11-08T00:55:00+07:00",
-  "notes": "v67.29: Standardized all modals, team members, expenses, executive hierarchy, honors with auto-hiding dock, customer header flush alignment, and inward Apsara positioning"
+  "version": "67.30",
+  "buildTime": "2026-11-08T01:10:00+07:00",
+  "notes": "v67.30: Standardized Top Header in Home and Analytics to px-3 (12px), perfectly aligning left Profile avatar and right action icons with edge-to-edge cards below"
 }
