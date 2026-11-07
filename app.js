@@ -2260,82 +2260,14 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // Customer View Header: Fluid Dynamic Opacity Scroll Fade (Scroll ឡើងលើគឺបន្ថយ Opacity រហូតដល់អស់, Scroll ចុះទើបបង្ហាញសន្សឹមៗ)
-    if (isMain && appState.currentView === 'customer') {
-      const custHeader = document.getElementById('customer-view-header');
-      if (custHeader) {
-        if (currentScrollTop <= 15) {
-          custHeader.style.opacity = '1';
-          custHeader.style.pointerEvents = 'auto';
-        } else if (diff > 0) {
-          // Scrolling down into content (finger dragging up) -> Fade out (Scroll លឿនថយដល់ 0 ភ្លាម)
-          if (diff > 20) {
-            custHeader.style.opacity = '0';
-            custHeader.style.pointerEvents = 'none';
-          } else {
-            const curOp = parseFloat(custHeader.style.opacity !== '' ? custHeader.style.opacity : '1');
-            const targetOp = Math.max(0, curOp - (diff / 30));
-            custHeader.style.opacity = targetOp.toFixed(2);
-            if (targetOp <= 0.05) custHeader.style.pointerEvents = 'none';
-          }
-        } else if (diff < 0) {
-          // Scrolling back up towards top (finger dragging down) -> Fade in gradually (បង្ហាញសន្សឹមៗ)
-          const curOp = parseFloat(custHeader.style.opacity !== '' ? custHeader.style.opacity : '0');
-          const targetOp = Math.min(1, curOp + (Math.abs(diff) / 25));
-          custHeader.style.opacity = targetOp.toFixed(2);
-          if (targetOp > 0.08) custHeader.style.pointerEvents = 'auto';
-        }
-      }
-    }
-
-    // 1. Scrolling content down (finger dragging up, reading down) -> Smoothly hide Header, Sub-bar & Dock (Standardized threshold matching All Customers list)
+    // 1. Scrolling content down (finger dragging up, reading down) -> Smoothly hide Bottom Dock only (Matching All Customers list)
     if (diff > 14 && currentScrollTop > 60) {
       setDockVisible(false);
-      const topHeader = document.getElementById('top-header');
-      if (topHeader && !topHeader.classList.contains('header-collapsed')) {
-        topHeader.classList.add('header-collapsed');
-      }
-      if (isMain && filterBar && appState.currentView === 'dashboard') {
-        filterBar.classList.add('filter-hidden');
-      }
-      if (isMain && appState.currentView === 'analytics') {
-        const analyticsHeader = document.getElementById('analytics-sticky-header');
-        if (analyticsHeader && !analyticsHeader.classList.contains('filter-hidden')) {
-          const analyticsMenu = document.getElementById('analytics-view-dropdown-menu');
-          if (analyticsMenu) analyticsMenu.classList.add('hidden');
-          analyticsHeader.classList.add('filter-hidden');
-        }
-      }
-      if (isMain && appState.currentView === 'learning') {
-        const studyHeader = document.getElementById('study-sticky-header');
-        if (studyHeader && !studyHeader.classList.contains('filter-hidden')) {
-          studyHeader.classList.add('filter-hidden');
-        }
-      }
     }
-    // 2. Actively scrolling content up (finger dragging down) OR near top -> Smoothly restore Header, Sub-bar & Dock (Matching All Customers list)
+    // 2. Actively scrolling content up (finger dragging down) OR near top -> Smoothly restore Bottom Dock (Matching All Customers list)
     else if (diff < -12 || currentScrollTop <= 20) {
       if (!isDialogModalOpen()) {
         setDockVisible(true);
-        const topHeader = document.getElementById('top-header');
-        if (topHeader && topHeader.classList.contains('header-collapsed')) {
-          topHeader.classList.remove('header-collapsed');
-        }
-        if (isMain && filterBar && appState.currentView === 'dashboard') {
-          filterBar.classList.remove('filter-hidden');
-        }
-        if (isMain && appState.currentView === 'analytics') {
-          const analyticsHeader = document.getElementById('analytics-sticky-header');
-          if (analyticsHeader && analyticsHeader.classList.contains('filter-hidden')) {
-            analyticsHeader.classList.remove('filter-hidden');
-          }
-        }
-        if (isMain && appState.currentView === 'learning') {
-          const studyHeader = document.getElementById('study-sticky-header');
-          if (studyHeader && studyHeader.classList.contains('filter-hidden')) {
-            studyHeader.classList.remove('filter-hidden');
-          }
-        }
       }
     }
 
@@ -9825,10 +9757,9 @@ let expandedCustomerViewKey = null;
 function getCustomerViewHTML() {
   return `
     <div class="w-full pb-28 sm:pb-32" id="customer-view-container">
-      <!-- Sticky Customer Top Header Bar (With Fluid Dynamic Opacity Scroll Fade, No Back Button) -->
+      <!-- Sticky Customer Top Header Bar (Solid 96% Opaque, Stationary like Profile Drawer) -->
       <div id="customer-view-header" 
-           class="sticky top-0 z-30 w-full p-3 border-b border-white/10 bg-[#070D18]/95 backdrop-blur-xl shrink-0 select-none shadow-md shadow-black/20 transition-opacity duration-200"
-           style="opacity: 1; pointer-events: auto;">
+           class="sticky top-0 z-30 w-full p-3 border-b border-white/10 bg-[#070D18]/95 shrink-0 select-none shadow-md shadow-black/20">
         
         <!-- Header Bar: Title & Controls -->
         <div id="customer-view-header-bar" class="flex items-center justify-between gap-2">
@@ -20500,22 +20431,12 @@ function handleCustomerTabClick(e) {
     if (navigator.vibrate) navigator.vibrate([15, 50, 15]);
     const main = document.getElementById('main-content');
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
-    const custHeader = document.getElementById('customer-view-header');
-    if (custHeader) {
-      custHeader.style.opacity = '1';
-      custHeader.style.pointerEvents = 'auto';
-    }
     setDockVisible(true);
     manualReload();
   } else {
-    // 👆 SINGLE TAP: Smooth scroll to top & restore header & dock
+    // 👆 SINGLE TAP: Smooth scroll to top & restore dock
     const main = document.getElementById('main-content');
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
-    const custHeader = document.getElementById('customer-view-header');
-    if (custHeader) {
-      custHeader.style.opacity = '1';
-      custHeader.style.pointerEvents = 'auto';
-    }
     setDockVisible(true);
     if (navigator.vibrate) navigator.vibrate(10);
   }
