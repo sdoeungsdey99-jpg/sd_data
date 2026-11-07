@@ -1,5 +1,5 @@
 {
-  "version": "67.18",
-  "buildTime": "2026-11-07T21:56:00+07:00",
-  "notes": "Customer Directory bar reduced opacity on scroll up & tap solid/empty header area to scroll to top"
+  "version": "67.19",
+  "buildTime": "2026-11-07T22:00:00+07:00",
+  "notes": "Customer Directory bar fades to 0 opacity on scroll down & restored on scroll up; Profile Drawer vertically centered to match Home header"
 }

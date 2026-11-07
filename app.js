@@ -2271,15 +2271,15 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // Customer View Header: Reduce opacity when scrolled up (content scrolling up under header)
+    // Customer View Header: Reduce opacity to 0 when scrolling down (reading deeper), restore when scrolling up
     if (isMain && appState.currentView === 'customer') {
       const custHeader = document.getElementById('customer-view-header');
       if (custHeader) {
-        if (currentScrollTop > 15) {
+        if (diff > 8 && currentScrollTop > 25) {
           if (!custHeader.classList.contains('customer-header-scrolled')) {
             custHeader.classList.add('customer-header-scrolled');
           }
-        } else if (currentScrollTop <= 5) {
+        } else if (diff < -6 || currentScrollTop <= 10) {
           if (custHeader.classList.contains('customer-header-scrolled')) {
             custHeader.classList.remove('customer-header-scrolled');
           }
@@ -20887,7 +20887,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.18';
+const CURRENT_APP_VERSION = '67.19';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
