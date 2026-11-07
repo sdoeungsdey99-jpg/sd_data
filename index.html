@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.22">
+  <link rel="manifest" href="manifest.json?v=67.23">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -608,10 +608,10 @@
     }
     #top-header.analytics-header-touching {
       border-bottom: none !important;
-      padding-bottom: 2px !important;
-      height: calc(3.45rem + max(env(safe-area-inset-top, 0px), 14px)) !important;
-      min-height: calc(3.45rem + max(env(safe-area-inset-top, 0px), 14px)) !important;
-      max-height: calc(3.45rem + max(env(safe-area-inset-top, 0px), 14px)) !important;
+      padding-bottom: 8px !important;
+      height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
+      min-height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
+      max-height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
       box-shadow: none !important;
     }
     html.light-theme #top-header.analytics-header-touching,
@@ -619,9 +619,9 @@
       border-bottom: none !important;
       box-shadow: none !important;
     }
+    #sticky-filter-bar:not(.dashboard-active),
     #sticky-filter-bar.hidden,
     #sticky-filter-bar[hidden],
-    #sticky-filter-bar.filter-hidden,
     #top-header.analytics-header-touching ~ #sticky-filter-bar,
     body:has(#main-content.analytics-view-active) #sticky-filter-bar,
     #demo-mode-indicator-bar.hidden {
@@ -639,6 +639,7 @@
       visibility: hidden !important;
       transform: none !important;
     }
+    #pull-refresh-indicator:not([style*="height: 36px"]),
     #top-header.analytics-header-touching ~ #pull-refresh-indicator,
     body:has(#main-content.analytics-view-active) #pull-refresh-indicator {
       display: none !important;
@@ -4906,7 +4907,7 @@
     </div>
 
     <!-- STICKY FLOATING FILTER PILLS BAR (Shown ONLY on Home / Dashboard) -->
-    <div id="sticky-filter-bar" class="sticky top-0 z-20 px-3 py-2 border-b border-white/5 flex flex-col gap-1.5 bg-[#070D18]">
+    <div id="sticky-filter-bar" class="dashboard-active sticky top-0 z-20 px-3 py-2 border-b border-white/5 flex flex-col gap-1.5 bg-[#070D18]">
       <!-- iOS Subtle Backdrop Blur for Filter Popovers -->
       <div id="filter-dropdown-backdrop" onclick="closeAllFilterDropdowns()" class="hidden fixed inset-0 z-30 bg-black/25 backdrop-blur-sm transition-opacity duration-200"></div>
 
@@ -8567,6 +8568,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.22"></script>
+  <script src="app.js?v=67.23"></script>
 </body>
 </html>

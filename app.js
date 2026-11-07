@@ -2847,9 +2847,11 @@ function switchView(viewName, shouldReload = false) {
   const filterBar = document.getElementById('sticky-filter-bar');
   if (filterBar) {
     if (viewName === 'dashboard') {
+      filterBar.classList.add('dashboard-active');
       filterBar.classList.remove('hidden', 'filter-hidden');
       filterBar.style.display = '';
     } else {
+      filterBar.classList.remove('dashboard-active');
       filterBar.classList.add('hidden', 'filter-hidden');
       filterBar.style.display = 'none';
     }
@@ -3435,9 +3437,11 @@ function renderCurrentView() {
   const filterBar = document.getElementById('sticky-filter-bar');
   if (filterBar) {
     if (appState.currentView === 'dashboard') {
+      filterBar.classList.add('dashboard-active');
       filterBar.classList.remove('hidden', 'filter-hidden');
       filterBar.style.display = '';
     } else {
+      filterBar.classList.remove('dashboard-active');
       filterBar.classList.add('hidden', 'filter-hidden');
       filterBar.style.display = 'none';
     }
@@ -20613,7 +20617,16 @@ function handleHeaderScrollToTop(e, targetId = null) {
       const topH = document.getElementById('top-header');
       if (topH) topH.classList.remove('header-collapsed');
       const filterB = document.getElementById('sticky-filter-bar');
-      if (filterB) filterB.classList.remove('filter-hidden');
+      if (filterB) {
+        if (appState.currentView === 'dashboard') {
+          filterB.classList.add('dashboard-active');
+          filterB.classList.remove('filter-hidden');
+        } else {
+          filterB.classList.remove('dashboard-active');
+          filterB.classList.add('filter-hidden', 'hidden');
+          filterB.style.display = 'none';
+        }
+      }
       const analyticsH = document.getElementById('analytics-sticky-header');
       if (analyticsH) analyticsH.classList.remove('filter-hidden');
       const studyH = document.getElementById('study-sticky-header');
@@ -20918,7 +20931,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.22';
+const CURRENT_APP_VERSION = '67.23';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

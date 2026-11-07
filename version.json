@@ -1,5 +1,5 @@
 {
-  "version": "67.22",
-  "buildTime": "2026-11-07T23:02:00+07:00",
-  "notes": "MacBook & Desktop UI perfection: seamlessly joined Analytics Year bar with Profile header (removed border split, zero gap, flush alignment)"
+  "version": "67.23",
+  "buildTime": "2026-11-07T23:12:00+07:00",
+  "notes": "Strict multi-device fix (iPhone & MacBook): eliminated ghost date bar with :not(.dashboard-active) and protected tap-to-scroll to guarantee 100% seamless flush Analytics header"
 }
