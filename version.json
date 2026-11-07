@@ -1,5 +1,5 @@
 {
-  "version": "67.15",
-  "buildTime": "2026-11-07T21:42:00+07:00",
-  "notes": "Unified toast position below header & bottom divider line under motto in Profile Drawer"
+  "version": "67.16",
+  "buildTime": "2026-11-07T21:47:00+07:00",
+  "notes": "Frameless full customer icon without box, stationary header title without drawer trigger"
 }

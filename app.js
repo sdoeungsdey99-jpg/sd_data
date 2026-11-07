@@ -9784,12 +9784,11 @@ function getCustomerViewHTML() {
           
           <!-- Normal Header Content (Profile Avatar + Title + Scope + Count + Action Buttons) -->
           <div id="customer-view-normal-nav" class="flex items-center justify-between gap-2.5 flex-1 min-w-0 transition-all duration-200">
-            <!-- Customer Directory Representation Icon & Title Block -->
-            <div id="customer-header-profile-block" class="flex items-center gap-2.5 min-w-0 cursor-pointer active:scale-95 transition" onclick="openProfileDrawer()" title="បើក Profile Drawer">
-              <!-- Stylized Customer Duo Icon (44px x 44px container matching standard header height) -->
-              <div class="relative shrink-0 w-11 h-11 rounded-2xl bg-blue-500/15 border-2 border-blue-500/30 flex items-center justify-center text-blue-400 shadow-sm">
-                <i data-lucide="users" class="w-5 h-5 text-blue-400"></i>
-                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-[#070D18]"></span>
+            <!-- Customer Directory Representation Icon & Title Block (Stationary, Frameless full icon, does not open drawer) -->
+            <div id="customer-header-title-block" class="flex items-center gap-2.5 min-w-0 select-none">
+              <!-- Full Frameless Customer Icon (No border box/frame, fills space cleanly) -->
+              <div class="shrink-0 w-11 h-11 flex items-center justify-center text-blue-400">
+                <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
               </div>
               <div id="customer-view-title-heading" class="min-w-0 flex-1 truncate">
                 <div class="flex items-center gap-1.5">
@@ -20871,7 +20870,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.15';
+const CURRENT_APP_VERSION = '67.16';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
