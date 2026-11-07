@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.7">
+  <link rel="manifest" href="manifest.json?v=67.8">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -266,7 +266,7 @@
       -webkit-filter: none !important;
     }
     .state-a-back {
-      transform: translate3d(3.6px, -1.2px, 0) scale(0.82);
+      transform: translate3d(3.2px, 1.2px, 0) scale(0.92);
       z-index: 10;
       opacity: 0.65;
       filter: none !important;
@@ -280,7 +280,7 @@
       -webkit-filter: none !important;
     }
     .state-b-back {
-      transform: translate3d(3.6px, -1.2px, 0) scale(0.82);
+      transform: translate3d(3.2px, 1.2px, 0) scale(0.92);
       z-index: 10;
       opacity: 0.65;
       filter: none !important;
@@ -289,21 +289,21 @@
 
     @keyframes frontToBack3D {
       0.0%   { transform: translate3d(-2.8px, 1.8px, 0) scale(1.06); z-index: 20; opacity: 1.00; }
-      16.7%  { transform: translate3d(-3.8px, 0.4px, 0) scale(1.08); z-index: 20; opacity: 0.95; }
-      33.3%  { transform: translate3d(-4.6px, -1.8px, 0) scale(1.06); z-index: 18; opacity: 0.88; }
-      50.0%  { transform: translate3d(-3.5px, -3.8px, 0) scale(1.01); z-index: 16; opacity: 0.80; }
-      66.7%  { transform: translate3d(-1.5px, -4.6px, 0) scale(0.95); z-index: 14; opacity: 0.74; }
-      83.3%  { transform: translate3d(1.8px, -3.6px, 0) scale(0.88); z-index: 11; opacity: 0.69; }
-      100.0% { transform: translate3d(3.6px, -1.2px, 0) scale(0.82); z-index: 10; opacity: 0.65; }
+      16.7%  { transform: translate3d(-3.6px, 1.2px, 0) scale(1.06); z-index: 20; opacity: 0.95; }
+      33.3%  { transform: translate3d(-4.2px, 0.2px, 0) scale(1.03); z-index: 18; opacity: 0.88; }
+      50.0%  { transform: translate3d(-2.8px, -0.6px, 0) scale(1.00); z-index: 16; opacity: 0.80; }
+      66.7%  { transform: translate3d(-0.5px, -0.2px, 0) scale(0.97); z-index: 14; opacity: 0.74; }
+      83.3%  { transform: translate3d(1.8px, 0.6px, 0) scale(0.94); z-index: 11; opacity: 0.69; }
+      100.0% { transform: translate3d(3.2px, 1.2px, 0) scale(0.92); z-index: 10; opacity: 0.65; }
     }
 
     @keyframes backToFront3D {
-      0.0%   { transform: translate3d(3.6px, -1.2px, 0) scale(0.82); z-index: 10; opacity: 0.65; }
-      16.7%  { transform: translate3d(4.4px, 0.4px, 0) scale(0.86); z-index: 14; opacity: 0.72; }
-      33.3%  { transform: translate3d(4.3px, 1.9px, 0) scale(0.91); z-index: 16; opacity: 0.80; }
-      50.0%  { transform: translate3d(3.2px, 3.2px, 0) scale(0.96); z-index: 18; opacity: 0.88; }
-      66.7%  { transform: translate3d(1.2px, 3.8px, 0) scale(1.01); z-index: 20; opacity: 0.94; }
-      83.3%  { transform: translate3d(-1.2px, 3.2px, 0) scale(1.05); z-index: 20; opacity: 0.98; }
+      0.0%   { transform: translate3d(3.2px, 1.2px, 0) scale(0.92); z-index: 10; opacity: 0.65; }
+      16.7%  { transform: translate3d(3.8px, 1.8px, 0) scale(0.94); z-index: 14; opacity: 0.72; }
+      33.3%  { transform: translate3d(3.4px, 2.6px, 0) scale(0.97); z-index: 16; opacity: 0.80; }
+      50.0%  { transform: translate3d(2.0px, 3.0px, 0) scale(1.00); z-index: 18; opacity: 0.88; }
+      66.7%  { transform: translate3d(0.2px, 2.9px, 0) scale(1.03); z-index: 20; opacity: 0.94; }
+      83.3%  { transform: translate3d(-1.5px, 2.4px, 0) scale(1.05); z-index: 20; opacity: 0.98; }
       100.0% { transform: translate3d(-2.8px, 1.8px, 0) scale(1.06); z-index: 20; opacity: 1.00; }
     }
 
@@ -314,6 +314,17 @@
       filter: none !important;
       -webkit-filter: none !important;
     }
+    .person-shape,
+    .person-cutout circle,
+    .person-cutout path,
+    #dock-btn-customer svg circle,
+    #dock-btn-customer svg path {
+      stroke: #070D18;
+      stroke-width: 1.8px;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      paint-order: stroke fill;
+    }
     .light-theme .person-cutout,
     .light-theme .state-a-front,
     .light-theme .state-a-back,
@@ -322,6 +333,19 @@
     .light-theme #dock-btn-customer * {
       filter: none !important;
       -webkit-filter: none !important;
+    }
+    .light-theme .person-shape,
+    .light-theme .person-cutout circle,
+    .light-theme .person-cutout path,
+    html.light-theme #dock-btn-customer svg circle,
+    html.light-theme #dock-btn-customer svg path,
+    body.light-theme #dock-btn-customer svg circle,
+    body.light-theme #dock-btn-customer svg path {
+      stroke: #FFFFFF !important;
+      stroke-width: 1.8px !important;
+      stroke-linejoin: round !important;
+      stroke-linecap: round !important;
+      paint-order: stroke fill !important;
     }
     .light-theme .state-a-back,
     .light-theme .state-b-back {
@@ -538,7 +562,17 @@
     #main-content.customer-view-active > :not([hidden]) ~ :not([hidden]) {
       margin-top: 0 !important;
     }
-    #top-header,
+    #top-header {
+      background-color: #070D18 !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      box-shadow: none !important;
+      padding-top: max(env(safe-area-inset-top, 0px), 14px) !important;
+      padding-bottom: 10px !important;
+      height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 4px) !important;
+      box-sizing: border-box !important;
+    }
     #sticky-filter-bar,
     #study-sticky-header,
     #customer-view-header,
@@ -549,14 +583,14 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
       box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45);
     }
-    #top-header {
-      padding-top: max(env(safe-area-inset-top, 0px), 14px) !important;
-      padding-bottom: 10px !important;
-      height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 4px) !important;
-      box-sizing: border-box !important;
-    }
     html.light-theme #top-header,
-    body.light-theme #top-header,
+    body.light-theme #top-header {
+      background-color: #FFFFFF !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border-bottom: 1px solid #E2E8F0 !important;
+      box-shadow: none !important;
+    }
     html.light-theme #sticky-filter-bar,
     body.light-theme #sticky-filter-bar,
     html.light-theme #study-sticky-header,
@@ -3193,7 +3227,13 @@
       border-color: #FFFFFF !important;
     }
     .light-theme #header-profile-name { color: #0F172A !important; }
-    .light-theme #header-profile-sub { color: #64748B !important; }
+    .light-theme #header-profile-sub { 
+      color: #D97706 !important; 
+      font-weight: 700 !important;
+    }
+    .light-theme #notif-badge {
+      border-color: #FFFFFF !important;
+    }
     .light-theme #edit-profile-modal { background-color: #F8FAFC !important; }
     .light-theme #edit-profile-modal > div > div:first-child {
       background-color: #FFFFFF !important;
@@ -4580,7 +4620,7 @@
         <div id="header-profile-block" class="flex items-center gap-2.5 min-w-0 cursor-pointer active:scale-95 transition" onclick="openProfileDrawer()">
           <div class="relative shrink-0">
             <img id="header-profile-avatar" src="bostar-logo.png" alt="BostarGroup" 
-                 class="w-11 h-11 rounded-full object-cover border-2 border-amber-500">
+                 class="w-11 h-11 rounded-full object-cover border-2 border-amber-500 shadow-lg shadow-amber-500/20">
             <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
           </div>
           <div class="min-w-0">
@@ -4589,7 +4629,7 @@
               <!-- Exact 100% Facebook Blue Tick (Visible only for Master Admin) -->
               <img id="header-profile-badge" src="blue-tick.png" alt="Verified" class="w-[18px] h-[18px] object-contain shrink-0 hidden">
             </div>
-            <p id="header-profile-sub" class="text-[11.5px] text-slate-400 leading-tight truncate">Bostar Sales & Finance</p>
+            <p id="header-profile-sub" class="text-[11.5px] text-amber-400 font-semibold leading-tight truncate">Bostar Sales & Finance</p>
           </div>
         </div>
 
@@ -4878,15 +4918,15 @@
           <!-- Person 1 (Front initially) -->
           <div id="dock-person-1" class="gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-front">
             <svg class="w-5 h-5 text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="7" r="4.2"/>
-              <path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/>
+              <circle cx="12" cy="7" r="4.2" class="person-shape"/>
+              <path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5" class="person-shape"/>
             </svg>
           </div>
           <!-- Person 2 (Back initially) -->
           <div id="dock-person-2" class="gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-back">
             <svg class="w-5 h-5 text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="7" r="4.2"/>
-              <path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/>
+              <circle cx="12" cy="7" r="4.2" class="person-shape"/>
+              <path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5" class="person-shape"/>
             </svg>
           </div>
         </div>
@@ -8360,6 +8400,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.7"></script>
+  <script src="app.js?v=67.8"></script>
 </body>
 </html>
