@@ -9793,17 +9793,17 @@ function getCustomerViewHTML() {
             <div class="flex items-center gap-1.5 shrink-0">
               <!-- Search Toggle Button -->
               <button id="btn-customer-view-search-toggle" onclick="toggleCustomerViewSearch()" 
-                      class="w-8 h-8 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
+                      class="w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
                       title="ស្វែងរកអតិថិជន">
-                <i data-lucide="search" class="w-3.5 h-3.5 text-orange-400"></i>
+                <i data-lucide="search" class="w-4 h-4 text-orange-400"></i>
               </button>
 
               <!-- Sort Option Dropdown Trigger (3 lines / Menu icon) -->
               <div class="relative">
                 <button id="btn-customer-view-sort-trigger" onclick="toggleCustomerViewSortMenu(event)" 
-                        class="w-8 h-8 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
+                        class="w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
                         title="ជម្រើស និងការតម្រៀប">
-                  <i data-lucide="menu" class="w-3.5 h-3.5 text-orange-400"></i>
+                  <i data-lucide="menu" class="w-4 h-4 text-orange-400"></i>
                 </button>
                 
                 <!-- Dropdown Menu (Newest -> Oldest [Default], Top Buyer, Name + Scope Master Data) -->
@@ -20839,7 +20839,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.10';
+const CURRENT_APP_VERSION = '67.11';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

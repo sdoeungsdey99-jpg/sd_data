@@ -1,5 +1,5 @@
 {
-  "version": "67.10",
-  "buildTime": "2026-11-07T20:25:00+07:00",
-  "notes": "PWA Standalone optimizations: Solid status-bar, iOS overscroll lock, and auto version update detection"
+  "version": "67.11",
+  "buildTime": "2026-11-07T20:46:00+07:00",
+  "notes": "Native Header Polish: black-translucent transparent status bar, uniform header height & geometry matching iOS native apps"
 }
