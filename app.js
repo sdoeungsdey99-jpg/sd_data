@@ -2260,6 +2260,34 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
+    // Customer View Header: Fluid Dynamic Opacity Scroll Fade
+    if (isMain && appState.currentView === 'customer') {
+      const custHeader = document.getElementById('customer-view-header');
+      if (custHeader) {
+        if (currentScrollTop <= 15) {
+          custHeader.style.opacity = '1';
+          custHeader.style.pointerEvents = 'auto';
+        } else if (diff > 0) {
+          // Scrolling down into content -> Fade out (fast scroll drops to 0 immediately)
+          if (diff > 25) {
+            custHeader.style.opacity = '0';
+            custHeader.style.pointerEvents = 'none';
+          } else {
+            const curOp = parseFloat(custHeader.style.opacity !== '' ? custHeader.style.opacity : '1');
+            const targetOp = Math.max(0, curOp - (diff / 35));
+            custHeader.style.opacity = targetOp.toFixed(2);
+            if (targetOp <= 0.05) custHeader.style.pointerEvents = 'none';
+          }
+        } else if (diff < 0) {
+          // Scrolling up towards top -> Fade in gradually (សន្សឹមៗ)
+          const curOp = parseFloat(custHeader.style.opacity !== '' ? custHeader.style.opacity : '0');
+          const targetOp = Math.min(1, curOp + (Math.abs(diff) / 25));
+          custHeader.style.opacity = targetOp.toFixed(2);
+          if (targetOp > 0.08) custHeader.style.pointerEvents = 'auto';
+        }
+      }
+    }
+
     // 1. Scrolling content down (finger dragging up, reading down) -> Smoothly hide Header, Sub-bar & Dock (Standardized threshold)
     if (diff > 25 && currentScrollTop > 60) {
       setDockVisible(false);
@@ -2332,11 +2360,80 @@ function hookScrollableForDock(el, isMain = false) {
   }, { passive: true });
 }
 
+// Damped, comfortable reading scroll speed for Dashboard, Learning & Customer views
+function setupScrollDamping(container) {
+  if (!container || container._scrollDamped) return;
+  container._scrollDamped = true;
+
+  // 1. Wheel / Trackpad damping (Mouse & Mac trackpad: calibrated ~48% steady speed)
+  container.addEventListener('wheel', (e) => {
+    if (appState.currentView === 'dashboard' || appState.currentView === 'learning' || appState.currentView === 'customer') {
+      // Allow unaffected scrolling inside open sub-modals, dropdowns, inputs
+      if (e.target.closest('#all-customers-modal, #sales-modal, #new-order-modal, [role="dialog"], .dropdown-menu, select, textarea')) return;
+      e.preventDefault();
+      container.scrollTop += e.deltaY * 0.48;
+    }
+  }, { passive: false });
+
+  // 2. Mobile Touch momentum damping
+  let isTouching = false;
+  let touchStartY = 0;
+  let touchLastY = 0;
+  let touchTime = 0;
+  let touchVelocity = 0;
+  let momentumRaf = null;
+
+  container.addEventListener('touchstart', (e) => {
+    if (appState.currentView === 'dashboard' || appState.currentView === 'learning' || appState.currentView === 'customer') {
+      if (e.target.closest('#all-customers-modal, #sales-modal, #new-order-modal, [role="dialog"], .dropdown-menu, select, textarea')) return;
+      if (momentumRaf) cancelAnimationFrame(momentumRaf);
+      isTouching = true;
+      touchStartY = e.touches[0].clientY;
+      touchLastY = touchStartY;
+      touchTime = performance.now();
+      touchVelocity = 0;
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchmove', (e) => {
+    if (!isTouching) return;
+    const currentY = e.touches[0].clientY;
+    const now = performance.now();
+    const dt = now - touchTime || 16;
+    const dy = currentY - touchLastY;
+    touchVelocity = (0.7 * (dy / dt)) + (0.3 * touchVelocity);
+    touchLastY = currentY;
+    touchTime = now;
+  }, { passive: true });
+
+  container.addEventListener('touchend', () => {
+    if (!isTouching) return;
+    isTouching = false;
+    if (Math.abs(touchVelocity) > 0.15) {
+      let v = touchVelocity * 14;
+      const maxV = 20; // Cap top velocity so it never flies uncontrollably past cards
+      if (v > maxV) v = maxV;
+      if (v < -maxV) v = -maxV;
+
+      function step() {
+        if (Math.abs(v) < 0.3) return;
+        container.scrollTop -= v;
+        v *= 0.92; // Smooth 0.92 friction deceleration
+        momentumRaf = requestAnimationFrame(step);
+      }
+      momentumRaf = requestAnimationFrame(step);
+    }
+  }, { passive: true });
+}
+
 function setupSmartDockScroll() {
   setDockVisible(true);
 
   const main = document.getElementById('main-content');
-  if (main) hookScrollableForDock(main, true);
+  if (main) {
+    hookScrollableForDock(main, true);
+    setupScrollDamping(main);
+  }
 
   const scrollableIds = [
     'notif-feed-list',
@@ -2766,11 +2863,20 @@ function switchView(viewName, shouldReload = false) {
     openProfileDrawer();
     return;
   }
+  const prevView = appState.currentView;
   const isAlreadyDashboard = (appState.currentView === 'dashboard' && viewName === 'dashboard');
   if (appState.currentView !== viewName) {
     appState.previousView = appState.currentView;
   }
   appState.currentView = viewName;
+
+  // Manage Customer Icon 3D Orbit: Enter vs Exit
+  if (viewName === 'customer') {
+    if (typeof animateCustomerIconEnter === 'function') animateCustomerIconEnter();
+  } else if (prevView === 'customer' || !isPerson1Front) {
+    if (typeof animateCustomerIconExit === 'function') animateCustomerIconExit();
+  }
+
   if (viewName === 'analytics') {
     appState.analyticsMonthKey = null; // Always open into 1-month drill-down
     appState.isAnalyticsDetailMinimized = true;
@@ -2798,6 +2904,16 @@ function switchView(viewName, shouldReload = false) {
     } else {
       main.classList.remove('learning-view-active');
     }
+    if (viewName === 'dashboard') {
+      main.classList.add('dashboard-view-active');
+    } else {
+      main.classList.remove('dashboard-view-active');
+    }
+    if (viewName === 'customer') {
+      main.classList.add('customer-view-active');
+    } else {
+      main.classList.remove('customer-view-active');
+    }
   }
 
   // Reset scroll blur appearance on view switch
@@ -2820,11 +2936,11 @@ function switchView(viewName, shouldReload = false) {
     }
   }
 
-  // Top Header Bar: Hide completely when in Settings (search, bell, reload hidden)
+  // Top Header Bar: Hide completely when in Settings or Customer (they have their own headers)
   const topHeader = document.getElementById('top-header');
   if (topHeader) {
     topHeader.classList.remove('header-collapsed');
-    if (viewName === 'settings') {
+    if (viewName === 'settings' || viewName === 'customer') {
       topHeader.classList.add('hidden');
     } else {
       topHeader.classList.remove('hidden');
@@ -2875,7 +2991,7 @@ function switchView(viewName, shouldReload = false) {
     }
   }
 
-  ['dashboard', 'analytics', 'learning', 'settings'].forEach(v => {
+  ['dashboard', 'analytics', 'learning', 'customer', 'settings'].forEach(v => {
     const btn = document.getElementById(`dock-btn-${v}`);
     if (btn) {
       if (v === viewName) {
@@ -3422,6 +3538,13 @@ function renderCurrentView() {
         break;
       case 'learning':
         container.innerHTML = getLearningViewHTML();
+        break;
+      case 'customer':
+        container.innerHTML = getCustomerViewHTML();
+        customerViewScopeMode = 'personal';
+        updateCustomerViewScopeUI();
+        expandedCustomerViewKey = null;
+        renderCustomerViewList();
         break;
       case 'settings':
         container.innerHTML = getSettingsViewHTML();
@@ -9749,6 +9872,377 @@ function getAnalyticsViewHTML() {
       ${annualTableHtml}
     </div>
   `;
+}
+
+// ==========================================
+// 5b. View: Customer Directory (Clean Minimalist Full View)
+// ==========================================
+let customerViewScopeMode = 'personal'; // 'personal' or 'all'
+let customerViewSortMode = 'latest'; // 'latest', 'top', 'name'
+let expandedCustomerViewKey = null;
+
+function getCustomerViewHTML() {
+  return `
+    <div class="w-full pb-28 sm:pb-32" id="customer-view-container">
+      <!-- Sticky Customer Top Header Bar (With Fluid Dynamic Opacity Scroll Fade, No Back Button) -->
+      <div id="customer-view-header" 
+           class="sticky top-0 z-30 w-full p-3 border-b border-white/10 bg-[#070D18]/95 backdrop-blur-xl shrink-0 select-none transition-opacity duration-200"
+           style="opacity: 1; pointer-events: auto;">
+        
+        <!-- Header Bar: Title & Controls -->
+        <div id="customer-view-header-bar" class="flex items-center justify-between gap-2">
+          
+          <!-- Normal Header Content (Title + Scope + Count + Search Icon + Sort Trigger) -->
+          <div id="customer-view-normal-nav" class="flex items-center justify-between gap-2 flex-1 min-w-0 transition-all duration-200">
+            <!-- Title with Count merged in single line -->
+            <div class="min-w-0 flex-1 truncate">
+              <h3 id="customer-view-title-heading" class="font-bold text-xs sm:text-sm text-white truncate flex items-center gap-1.5 leading-normal">
+                <span>បញ្ជីអតិថិជន</span>
+                <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-blue-500/20 text-blue-300 text-[10.5px] font-medium leading-normal border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span>
+                <span id="customer-view-count-text" class="text-blue-400 font-mono text-[11px] font-semibold">(0 នាក់)</span>
+              </h3>
+            </div>
+
+            <!-- Action Buttons Group (Search Button + Sort Dropdown Trigger) -->
+            <div class="flex items-center gap-1.5 shrink-0">
+              <!-- Search Toggle Button -->
+              <button id="btn-customer-view-search-toggle" onclick="toggleCustomerViewSearch()" 
+                      class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
+                      title="ស្វែងរកអតិថិជន">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-orange-400"></i>
+              </button>
+
+              <!-- Sort Option Dropdown Trigger (3 lines / Menu icon) -->
+              <div class="relative">
+                <button id="btn-customer-view-sort-trigger" onclick="toggleCustomerViewSortMenu(event)" 
+                        class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
+                        title="ជម្រើស និងការតម្រៀប">
+                  <i data-lucide="menu" class="w-3.5 h-3.5 text-orange-400"></i>
+                </button>
+                
+                <!-- Dropdown Menu (Newest -> Oldest [Default], Top Buyer, Name + Scope Master Data) -->
+                <div id="customer-view-sort-dropdown" 
+                     class="hidden absolute right-0 top-full mt-1.5 w-52 bg-[#0D1829] backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl p-1.5 z-[100] divide-y divide-white/10 animate-fade-in select-none">
+                  <div class="space-y-0.5 pb-1">
+                    <button onclick="setCustomerViewSort('latest'); toggleCustomerViewSortMenu();" 
+                            class="w-full text-left px-3 py-2 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition">
+                      <span class="flex items-center gap-2">
+                        <i data-lucide="clock" class="w-3.5 h-3.5 text-orange-400"></i>
+                        <span>ថ្មីបំផុត (31 ➔ 01)</span>
+                      </span>
+                      <span id="cust-view-check-latest" class="text-orange-400 text-xs font-bold">✓</span>
+                    </button>
+                    <button onclick="setCustomerViewSort('top'); toggleCustomerViewSortMenu();" 
+                            class="w-full text-left px-3 py-2 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition">
+                      <span class="flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>ទិញច្រើនបំផុត</span>
+                      </span>
+                      <span id="cust-view-check-top" class="text-emerald-400 text-xs font-bold hidden">✓</span>
+                    </button>
+                    <button onclick="setCustomerViewSort('name'); toggleCustomerViewSortMenu();" 
+                            class="w-full text-left px-3 py-2 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition">
+                      <span class="flex items-center gap-2">
+                        <i data-lucide="arrow-down-a-z" class="w-3.5 h-3.5 text-sky-400"></i>
+                        <span>ឈ្មោះ (ក ➔ អ)</span>
+                      </span>
+                      <span id="cust-view-check-name" class="text-sky-400 text-xs font-bold hidden">✓</span>
+                    </button>
+                  </div>
+
+                  <!-- Data Scope Section -->
+                  <div class="pt-1.5 mt-1 border-t border-white/10 space-y-0.5">
+                    <div class="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                      <span>ប្រភពទិន្នន័យ</span>
+                      <span class="text-[9px] text-slate-500 font-mono">Scope</span>
+                    </div>
+
+                    <!-- Personal Sheet Option -->
+                    <button id="btn-cust-view-scope-personal" onclick="setCustomerViewScope('personal'); toggleCustomerViewSortMenu();" 
+                            class="w-full text-left px-3 py-2 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition group">
+                      <span class="flex items-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition"></i>
+                        <span class="font-medium text-slate-200">Sheet ផ្ទាល់ខ្លួន</span>
+                      </span>
+                      <span id="cust-view-check-scope-personal" class="text-blue-400 text-xs font-bold">✓</span>
+                    </button>
+
+                    <!-- Master Data Option (Auto-verified without code prompt) -->
+                    <button id="btn-cust-view-scope-all" onclick="setCustomerViewScope('all'); toggleCustomerViewSortMenu();" 
+                            class="w-full text-left px-3 py-2 text-xs text-white hover:bg-white/10 rounded-xl flex items-center justify-between transition group">
+                      <span class="flex items-center gap-2">
+                        <i data-lucide="database" class="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition"></i>
+                        <span class="font-bold text-amber-300">អតិថិជនទាំងអស់</span>
+                      </span>
+                      <span id="cust-view-check-scope-all" class="text-amber-400 text-xs font-bold hidden">✓</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating iOS Capsule Search Bar (Clear inside, Circular ✕ outside) -->
+          <div id="customer-view-search-bar" class="hidden flex items-center gap-2 flex-1 min-w-0">
+            <div class="flex-1 min-w-0 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-white shadow-lg focus-within:border-orange-500/60 focus-within:bg-white/15 transition-all">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+              <input type="text" id="customer-view-search-input" 
+                     oninput="renderCustomerViewList()"
+                     placeholder="ស្វែងរកឈ្មោះ, ទូរសព្ទ..." 
+                     class="w-full bg-transparent text-xs text-white placeholder-slate-400 focus:outline-none min-w-0 font-medium">
+              <button onclick="clearCustomerViewSearchInput()" 
+                      title="សម្អាត"
+                      class="text-slate-400 hover:text-white w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[10px] transition shrink-0">✕</button>
+            </div>
+            <!-- Independent Circular ✕ Button outside -->
+            <button onclick="clearAndHideCustomerViewSearch()" 
+                    class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white flex items-center justify-center shrink-0 border border-white/15 shadow-md transition-all"
+                    title="បិទ (Close)">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Cards List (Directly below header, NO summary cards) -->
+      <div id="customer-view-list" class="p-3 space-y-1.5 pb-28">
+        <!-- Injected dynamically by renderCustomerViewList() -->
+      </div>
+    </div>
+  `;
+}
+
+function toggleCustomerViewSearch() {
+  const normalNav = document.getElementById('customer-view-normal-nav');
+  const searchBar = document.getElementById('customer-view-search-bar');
+  const input = document.getElementById('customer-view-search-input');
+  if (!searchBar || !input) return;
+
+  if (searchBar.classList.contains('hidden')) {
+    if (normalNav) normalNav.classList.add('hidden');
+    searchBar.classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
+    setTimeout(() => input.focus(), 60);
+  } else {
+    clearAndHideCustomerViewSearch();
+  }
+}
+
+function clearCustomerViewSearchInput() {
+  const input = document.getElementById('customer-view-search-input');
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+  renderCustomerViewList();
+}
+
+function clearAndHideCustomerViewSearch() {
+  const normalNav = document.getElementById('customer-view-normal-nav');
+  const searchBar = document.getElementById('customer-view-search-bar');
+  const input = document.getElementById('customer-view-search-input');
+  if (input) input.value = '';
+  if (searchBar) searchBar.classList.add('hidden');
+  if (normalNav) normalNav.classList.remove('hidden');
+  renderCustomerViewList();
+}
+
+function toggleCustomerViewSortMenu(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('customer-view-sort-dropdown');
+  if (!menu) return;
+  menu.classList.toggle('hidden');
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#btn-customer-view-sort-trigger') && !e.target.closest('#customer-view-sort-dropdown')) {
+    const menu = document.getElementById('customer-view-sort-dropdown');
+    if (menu) menu.classList.add('hidden');
+  }
+});
+
+function setCustomerViewSort(mode) {
+  customerViewSortMode = mode;
+  ['latest', 'top', 'name'].forEach(m => {
+    const el = document.getElementById(`cust-view-check-${m}`);
+    if (el) el.classList.toggle('hidden', m !== mode);
+  });
+  renderCustomerViewList();
+}
+
+function updateCustomerViewScopeUI() {
+  const checkPersonal = document.getElementById('cust-view-check-scope-personal');
+  const checkAll = document.getElementById('cust-view-check-scope-all');
+  const isAll = (customerViewScopeMode === 'all');
+  if (checkPersonal) checkPersonal.classList.toggle('hidden', isAll);
+  if (checkAll) checkAll.classList.toggle('hidden', !isAll);
+}
+
+async function setCustomerViewScope(mode) {
+  if (mode === 'personal') {
+    customerViewScopeMode = 'personal';
+    updateCustomerViewScopeUI();
+    renderCustomerViewList();
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('ត្រឡប់មកកាន់អតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួន 📄');
+    }
+    return;
+  }
+
+  if (mode === 'all') {
+    customerViewScopeMode = 'all';
+    updateCustomerViewScopeUI();
+    renderCustomerViewList();
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('ទិន្នន័យអតិថិជនទាំងអស់ (Master Data) 🌐');
+    }
+  }
+}
+
+function toggleCustomerViewOrderHistory(key) {
+  if (expandedCustomerViewKey === key) {
+    expandedCustomerViewKey = null;
+  } else {
+    expandedCustomerViewKey = key;
+  }
+  renderCustomerViewList();
+}
+
+function renderCustomerViewList() {
+  const listEl = document.getElementById('customer-view-list');
+  if (!listEl) return;
+
+  const q = (document.getElementById('customer-view-search-input')?.value || '').trim().toLowerCase();
+  
+  const prevScope = allCustomersScopeMode;
+  allCustomersScopeMode = customerViewScopeMode;
+  let customers = getAllUniqueCustomers();
+  allCustomersScopeMode = prevScope;
+
+  if (q) {
+    customers = customers.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.phone.toLowerCase().includes(q) ||
+      c.location.toLowerCase().includes(q) ||
+      c.seller.toLowerCase().includes(q)
+    );
+  }
+
+  if (customerViewSortMode === 'top') {
+    customers.sort((a, b) => (b.totalBoxes - a.totalBoxes) || (b.totalSpent - a.totalSpent));
+  } else if (customerViewSortMode === 'name') {
+    customers.sort((a, b) => a.name.localeCompare(b.name, 'km'));
+  } else {
+    customers.sort((a, b) => (b.lastIsoDate || '').localeCompare(a.lastIsoDate || ''));
+  }
+
+  const isEn = appState.language === 'en';
+  const heading = document.getElementById('customer-view-title-heading');
+  const countText = document.getElementById('customer-view-count-text');
+  const countDisplay = isEn ? `(${customers.length} Cust)` : `(${customers.length} នាក់)`;
+  
+  if (heading) {
+    if (customerViewScopeMode === 'all') {
+      heading.innerHTML = `<span>អតិថិជនទាំងអស់</span> <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-amber-500/20 text-amber-300 text-[10.5px] font-medium leading-normal border border-amber-500/30">Master</span> <span id="customer-view-count-text" class="text-amber-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+    } else {
+      heading.innerHTML = `<span>បញ្ជីអតិថិជន</span> <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-blue-500/20 text-blue-300 text-[10.5px] font-medium leading-normal border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span> <span id="customer-view-count-text" class="text-blue-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+    }
+  } else if (countText) {
+    countText.textContent = countDisplay;
+  }
+
+  listEl.innerHTML = customers.map((c, idx) => {
+    const isExpanded = (expandedCustomerViewKey === c.key);
+    const encodedKey = encodeURIComponent(c.key);
+    const sortedOrders = [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
+
+    return `
+      <div class="ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
+        <div onclick="toggleCustomerViewOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-2.5 cursor-pointer select-none">
+          <!-- Left Column: No. + Date + Name + Count; Phone + Location -->
+          <div class="min-w-0 flex-1 space-y-0.5">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="font-mono font-bold text-[11px] text-orange-400 shrink-0">${idx + 1}.</span>
+              <span class="font-mono text-[10px] text-slate-400 shrink-0 whitespace-nowrap">${c.lastDate || '—'}</span>
+              <h4 class="font-bold text-xs text-white truncate min-w-0">${c.name}</h4>
+              <span class="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-mono text-slate-300 shrink-0 whitespace-nowrap">${c.totalOrders} ${isEn ? 'orders' : 'ដង'}</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0">
+              <span class="font-mono font-semibold text-slate-300 shrink-0 whitespace-nowrap">📞 ${c.phone || '—'}</span>
+              <span class="text-slate-500 shrink-0">•</span>
+              <span class="truncate min-w-0">📍 ${c.location || '—'}</span>
+            </div>
+          </div>
+          <!-- Right Column: Amount on top line, Box quantity on bottom line -->
+          <div class="text-right shrink-0 min-w-[70px]">
+            <div class="font-mono font-bold text-xs text-emerald-400 leading-tight">${formatUSD(c.totalSpent)}</div>
+            ${c.totalThaiBaht > 0 
+              ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalThaiBaht)} ฿</div>` 
+              : (c.totalRiel > 0 ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalRiel)} ៛</div>` : '')}
+            <div class="font-mono text-[10px] text-orange-400 font-semibold leading-tight mt-0.5">${formatInt(c.totalBoxes)} ${isEn ? 'boxes' : 'ប្រអប់'}</div>
+          </div>
+        </div>
+
+        <!-- Expanded Orders List -->
+        ${isExpanded ? `
+          <div class="mt-2 pt-2 border-t border-white/10 space-y-2 animate-fade-in">
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-300 px-1">
+              <span>ប្រវត្តិការកុម្ម៉ង់ (${sortedOrders.length} ដង)</span>
+              <button onclick="event.stopPropagation(); openNewOrderForCustomer('${encodeURIComponent(c.name)}', '${encodeURIComponent(c.phone || '')}', '${encodeURIComponent(c.location || '')}')" 
+                      class="px-2 py-0.5 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 text-[10px] font-medium border border-orange-500/30 transition flex items-center gap-1">
+                <i data-lucide="plus" class="w-3 h-3"></i> កុម្ម៉ង់ថ្មី
+              </button>
+            </div>
+            <div class="space-y-1.5 max-h-72 overflow-y-auto no-scrollbar pr-0.5">
+              ${sortedOrders.map(o => {
+                const currentStatus = getLiveOrderStatus(o);
+                return `
+                  <div onclick="openOrderActions('${o.recordId || ''}', '${o.orderId || ''}', ${o.rowIndex !== undefined ? o.rowIndex : 'null'}, '${o.date || ''}', '${o.phone || ''}')" 
+                       class="p-2 rounded-xl bg-black/40 border border-white/5 hover:border-white/20 transition flex flex-col gap-1 cursor-pointer">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="font-mono text-[10px] text-slate-400">${o.date || '—'}</span>
+                        <span class="font-mono font-bold text-xs text-white">${o.orderId || o.recordId || '#'}</span>
+                      </div>
+                      <div class="text-right shrink-0">
+                        <span class="font-mono font-bold text-xs text-emerald-400">${formatUSD(o.total || 0)}</span>
+                        ${o.totalThaiBaht > 0 ? `<span class="font-mono text-[9px] text-slate-400 block">${formatInt(o.totalThaiBaht)} ฿</span>` : ''}
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 text-[10px] text-slate-400">
+                      <div class="flex items-center gap-2 truncate">
+                        <span class="font-mono text-orange-400 font-semibold">${formatInt(o.boxes || 0)} ប្រអប់</span>
+                        ${o.seller ? `<span>•</span><span class="truncate max-w-[80px] sm:max-w-[120px]">👤 ${o.seller}</span>` : ''}
+                      </div>
+                      <span class="text-[10px] font-semibold py-0.5 px-2 rounded-lg border shrink-0 ${getCodStatusBadgeClass(currentStatus)}">
+                        ${currentStatus}
+                      </span>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('') || (customerViewScopeMode === 'all'
+    ? `<div class="text-center py-12 px-4 space-y-2">
+         <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center mx-auto text-amber-400">
+           <i data-lucide="database" class="w-5 h-5"></i>
+         </div>
+         <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនចាស់ក្នុង Master Data នៅឡើយទេ</p>
+         <p class="text-[11px] text-slate-500">អ្នកអាចប្តូរទៅកាន់ "Sheet ផ្ទាល់ខ្លួន" ដើម្បីពិនិត្យមើលទិន្នន័យបច្ចុប្បន្ន</p>
+       </div>`
+    : `<div class="text-center py-12 px-4 space-y-2">
+         <div class="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center mx-auto text-blue-400">
+           <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+         </div>
+         <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួននៅឡើយទេ</p>
+         <p class="text-[11px] text-slate-500">រាល់ការកត់ត្រាការលក់ថ្មី អតិថិជននឹងបង្ហាញនៅទីនេះដោយស្វ័យប្រវត្តិ</p>
+       </div>`);
+
+  if (window.lucide) window.lucide.createIcons();
 }
 
 // ==========================================
@@ -19960,6 +20454,97 @@ function handleLearningClick(e) {
 
 window.handleAnalyticsClick = handleAnalyticsClick;
 window.handleLearningClick = handleLearningClick;
+
+let isPerson1Front = true;
+let customerAnimTimer = null;
+
+function animateCustomerIconEnter() {
+  if (!isPerson1Front) return;
+  const p1 = document.getElementById('dock-person-1');
+  const p2 = document.getElementById('dock-person-2');
+  if (!p1 || !p2) return;
+
+  if (customerAnimTimer) clearTimeout(customerAnimTimer);
+  p1.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none run-f2b';
+  p2.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none run-b2f';
+
+  customerAnimTimer = setTimeout(() => {
+    p1.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-b-back';
+    p2.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-b-front';
+    isPerson1Front = false;
+  }, 1160);
+}
+
+function animateCustomerIconExit() {
+  if (isPerson1Front) return;
+  const p1 = document.getElementById('dock-person-1');
+  const p2 = document.getElementById('dock-person-2');
+  if (!p1 || !p2) return;
+
+  if (customerAnimTimer) clearTimeout(customerAnimTimer);
+  p1.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none run-b2f';
+  p2.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none run-f2b';
+
+  customerAnimTimer = setTimeout(() => {
+    p1.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-front';
+    p2.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-back';
+    isPerson1Front = true;
+  }, 1160);
+}
+
+let lastCustomerTapTime = 0;
+
+function handleCustomerTabClick(e) {
+  const now = Date.now();
+  closeProfileDrawer();
+  closeAllModals();
+
+  const dock = document.getElementById('bottom-dock');
+  if (dock) {
+    dock.classList.remove('dock-hidden');
+    dock.classList.remove('dock-profile-active');
+  }
+
+  // Case 1: If currently on another tab -> Single tap switches to Customer view
+  if (appState.currentView !== 'customer') {
+    switchView('customer', false);
+    return;
+  }
+
+  // Case 2: Already on Customer -> Single Tap (Scroll to Top) vs Double Tap (Reload Data)
+  const timeDiff = now - lastCustomerTapTime;
+  lastCustomerTapTime = now;
+
+  if (timeDiff > 0 && timeDiff < 350) {
+    // 👆👆 DOUBLE TAP: Manual Reload data from Google Sheet!
+    lastCustomerTapTime = 0;
+    if (navigator.vibrate) navigator.vibrate([15, 50, 15]);
+    const main = document.getElementById('main-content');
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+    const custHeader = document.getElementById('customer-view-header');
+    if (custHeader) {
+      custHeader.style.opacity = '1';
+      custHeader.style.pointerEvents = 'auto';
+    }
+    setDockVisible(true);
+    manualReload();
+  } else {
+    // 👆 SINGLE TAP: Smooth scroll to top & restore header & dock
+    const main = document.getElementById('main-content');
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+    const custHeader = document.getElementById('customer-view-header');
+    if (custHeader) {
+      custHeader.style.opacity = '1';
+      custHeader.style.pointerEvents = 'auto';
+    }
+    setDockVisible(true);
+    if (navigator.vibrate) navigator.vibrate(10);
+  }
+}
+
+window.handleCustomerTabClick = handleCustomerTabClick;
+window.animateCustomerIconEnter = animateCustomerIconEnter;
+window.animateCustomerIconExit = animateCustomerIconExit;
 
 // Native iOS Tap Status Bar / Header / Static Empty Area to Scroll To Top
 function handleHeaderScrollToTop(e, targetId = null) {

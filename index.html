@@ -249,6 +249,70 @@
     .diag-a { animation: diagonalSwapA 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
     .diag-wen { animation: diagonalSwapWen 3.6s infinite cubic-bezier(0.4, 0, 0.2, 1); }
 
+    /* Customer Duo 3D On-Click Micro-Animation */
+    .gpu-layer {
+      -webkit-transform-style: preserve-3d;
+      transform-style: preserve-3d;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      will-change: transform, opacity;
+    }
+
+    .state-a-front {
+      transform: translate3d(-2.8px, 1.8px, 0) scale(1.06);
+      z-index: 20;
+      opacity: 1.0;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+    }
+    .state-a-back {
+      transform: translate3d(3.6px, -1.2px, 0) scale(0.82);
+      z-index: 10;
+      opacity: 0.82;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+    }
+    .state-b-front {
+      transform: translate3d(-2.8px, 1.8px, 0) scale(1.06);
+      z-index: 20;
+      opacity: 1.0;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+    }
+    .state-b-back {
+      transform: translate3d(3.6px, -1.2px, 0) scale(0.82);
+      z-index: 10;
+      opacity: 0.82;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+    }
+
+    @keyframes frontToBack3D {
+      0.0%   { transform: translate3d(-2.8px, 1.8px, 0) scale(1.06); z-index: 20; opacity: 1.00; }
+      16.7%  { transform: translate3d(-3.8px, 0.4px, 0) scale(1.08); z-index: 20; opacity: 0.98; }
+      33.3%  { transform: translate3d(-4.6px, -1.8px, 0) scale(1.06); z-index: 18; opacity: 0.95; }
+      50.0%  { transform: translate3d(-3.5px, -3.8px, 0) scale(1.01); z-index: 16; opacity: 0.91; }
+      66.7%  { transform: translate3d(-1.5px, -4.6px, 0) scale(0.95); z-index: 14; opacity: 0.87; }
+      83.3%  { transform: translate3d(1.8px, -3.6px, 0) scale(0.88); z-index: 11; opacity: 0.84; }
+      100.0% { transform: translate3d(3.6px, -1.2px, 0) scale(0.82); z-index: 10; opacity: 0.82; }
+    }
+
+    @keyframes backToFront3D {
+      0.0%   { transform: translate3d(3.6px, -1.2px, 0) scale(0.82); z-index: 10; opacity: 0.82; }
+      16.7%  { transform: translate3d(4.4px, 0.4px, 0) scale(0.86); z-index: 14; opacity: 0.86; }
+      33.3%  { transform: translate3d(4.3px, 1.9px, 0) scale(0.91); z-index: 16; opacity: 0.91; }
+      50.0%  { transform: translate3d(3.2px, 3.2px, 0) scale(0.96); z-index: 18; opacity: 0.95; }
+      66.7%  { transform: translate3d(1.2px, 3.8px, 0) scale(1.01); z-index: 20; opacity: 0.98; }
+      83.3%  { transform: translate3d(-1.2px, 3.2px, 0) scale(1.05); z-index: 20; opacity: 1.00; }
+      100.0% { transform: translate3d(-2.8px, 1.8px, 0) scale(1.06); z-index: 20; opacity: 1.00; }
+    }
+
+    .run-f2b { animation: frontToBack3D 1.15s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+    .run-b2f { animation: backToFront3D 1.15s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+    .person-cutout {
+      filter: drop-shadow(0 0 1.5px rgba(15, 27, 46, 0.95)) drop-shadow(0 0 2.5px rgba(15, 27, 46, 0.9));
+    }
+    .light-theme .person-cutout {
+      filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.98)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.95));
+    }
+
     /* ✨ Micro Celestial Glow (✨ Sparkle, ☀️ Ray, 🌙 Moon) */
     @keyframes sparkleTwinkle {
       0%, 100% {
@@ -447,14 +511,22 @@
       scroll-behavior: auto !important;
       padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 16px)) !important;
     }
+    #main-content.learning-view-active,
+    #main-content.dashboard-view-active,
+    #main-content.customer-view-active {
+      -webkit-overflow-scrolling: auto !important;
+      scroll-behavior: smooth !important;
+    }
     #main-content.analytics-view-active,
-    #main-content.learning-view-active {
+    #main-content.learning-view-active,
+    #main-content.customer-view-active {
       padding-left: 0 !important;
       padding-right: 0 !important;
       padding-top: 0 !important;
     }
     #main-content.analytics-view-active > :not([hidden]) ~ :not([hidden]),
-    #main-content.learning-view-active > :not([hidden]) ~ :not([hidden]) {
+    #main-content.learning-view-active > :not([hidden]) ~ :not([hidden]),
+    #main-content.customer-view-active > :not([hidden]) ~ :not([hidden]) {
       margin-top: 0 !important;
     }
     #top-header,
@@ -466,12 +538,14 @@
       -webkit-backdrop-filter: none !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
-    #study-sticky-header {
+    #study-sticky-header,
+    #customer-view-header {
       background-color: #070D18 !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      transition: background-color 0.2s ease, -webkit-backdrop-filter 0.2s ease, backdrop-filter 0.2s ease;
+      transition: opacity 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+      will-change: opacity;
     }
     #top-header {
       padding-top: max(env(safe-area-inset-top, 0px), 14px) !important;
@@ -4761,7 +4835,7 @@
       <i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1"></i> កំពុងទាញទិន្នន័យ...
     </div>
 
-    <main class="flex-1 overflow-y-auto px-3.5 pt-2.5 pb-28 space-y-3.5 no-scrollbar" id="main-content">
+    <main class="flex-1 overflow-y-auto px-3.5 pt-2.5 pb-28 space-y-3.5 no-scrollbar dashboard-view-active" id="main-content">
       <!-- Dynamic render by app.js -->
     </main>
   </div>
@@ -4835,14 +4909,26 @@
         <span id="dock-label-order" class="dock-label">កុម្ម៉ង់</span>
       </button>
 
-      <!-- 4. Learning 5 Words (Languages A ⇄ 文 Position Swap Micro-Animation) -->
-      <button onclick="handleLearningClick(event)" id="dock-btn-learning" 
-              class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition">
-        <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0">
-          <span class="diag-a absolute text-[12px] font-black font-sans leading-none text-current" style="font-size: 12px !important;">A</span>
-          <span class="diag-wen absolute text-[11px] font-bold leading-none text-current" style="font-size: 11px !important;">文</span>
+      <!-- 4. Customer Duo (On-Click Step-by-Step 3D Swap Micro-Animation) -->
+      <button onclick="handleCustomerTabClick(event)" id="dock-btn-customer" 
+              class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition cursor-pointer select-none outline-none">
+        <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0 gpu-layer">
+          <!-- Person 1 (Front initially) -->
+          <div id="dock-person-1" class="gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-front">
+            <svg class="w-5 h-5 text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="7" r="4.2"/>
+              <path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/>
+            </svg>
+          </div>
+          <!-- Person 2 (Back initially) -->
+          <div id="dock-person-2" class="gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-back">
+            <svg class="w-5 h-5 text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="7" r="4.2"/>
+              <path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/>
+            </svg>
+          </div>
         </div>
-        <span id="dock-label-learning" class="dock-label">សិក្សា</span>
+        <span id="dock-label-customer" class="dock-label">អតិថិជន</span>
       </button>
 
       <!-- 5. Settings (Gear ⚙️ with Spin Animation) -->
