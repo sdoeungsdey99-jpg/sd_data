@@ -2349,6 +2349,14 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
+    // 3b. Auto-load next batch of customers when near bottom in Customer view
+    if (isMain && appState.currentView === 'customer') {
+      const scrollBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      if (scrollBottom < 380 && typeof customerViewRenderedCount !== 'undefined' && customerViewRenderedCount < currentCustomerViewList.length) {
+        renderCustomerViewBatch(true);
+      }
+    }
+
     // 4. When scrolling stops / screen is still -> Smoothly restore Dock (Main views remain stable without idle pop)
     clearTimeout(scrollIdleTimer);
     scrollIdleTimer = setTimeout(() => {
@@ -10032,16 +10040,139 @@ async function setCustomerViewScope(mode) {
   }
 }
 
-function toggleCustomerViewOrderHistory(key) {
+function toggleCustomerViewOrderHistory(encodedKey) {
+  const key = decodeURIComponent(encodedKey);
   if (expandedCustomerViewKey === key) {
     expandedCustomerViewKey = null;
   } else {
     expandedCustomerViewKey = key;
   }
-  renderCustomerViewList();
+  renderCustomerViewList(true);
 }
 
-function renderCustomerViewList() {
+const CUSTOMER_VIEW_CHUNK_SIZE = 40;
+let currentCustomerViewList = [];
+let customerViewRenderedCount = 0;
+
+function getCustomerViewCardHTML(c, idx, isEn) {
+  const isExpanded = (expandedCustomerViewKey === c.key);
+  const encodedKey = encodeURIComponent(c.key);
+  const sortedOrders = isExpanded ? [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || '')) : [];
+
+  return `
+    <div class="ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
+      <div onclick="toggleCustomerViewOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-2.5 cursor-pointer select-none">
+        <!-- Left Column: No. + Date + Name + Count; Phone + Location -->
+        <div class="min-w-0 flex-1 space-y-0.5">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-mono font-bold text-[11px] text-orange-400 shrink-0">${idx + 1}.</span>
+            <span class="font-mono text-[10px] text-slate-400 shrink-0 whitespace-nowrap">${c.lastDate || '—'}</span>
+            <h4 class="font-bold text-xs text-white truncate min-w-0">${c.name}</h4>
+            <span class="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-mono text-slate-300 shrink-0 whitespace-nowrap">${c.totalOrders} ${isEn ? 'orders' : 'ដង'}</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0">
+            <span class="font-mono font-semibold text-slate-300 shrink-0 whitespace-nowrap">📞 ${c.phone || '—'}</span>
+            <span class="text-slate-500 shrink-0">•</span>
+            <span class="truncate min-w-0">📍 ${c.location || '—'}</span>
+          </div>
+        </div>
+        <!-- Right Column: Amount on top line, Box quantity on bottom line -->
+        <div class="text-right shrink-0 min-w-[70px]">
+          <div class="font-mono font-bold text-xs text-emerald-400 leading-tight">${formatUSD(c.totalSpent)}</div>
+          ${c.totalThaiBaht > 0 
+            ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalThaiBaht)} ฿</div>` 
+            : (c.totalRiel > 0 ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalRiel)} ៛</div>` : '')}
+          <div class="font-mono text-[10px] text-orange-400 font-semibold leading-tight mt-0.5">${formatInt(c.totalBoxes)} ${isEn ? 'boxes' : 'ប្រអប់'}</div>
+        </div>
+      </div>
+
+      <!-- Expanded Orders List -->
+      ${isExpanded ? `
+        <div class="mt-2 pt-2 border-t border-white/10 space-y-2 animate-fade-in">
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-300 px-1">
+            <span>ប្រវត្តិការកុម្ម៉ង់ (${c.orders.length} ដង)</span>
+            <button onclick="event.stopPropagation(); openNewOrderForCustomer('${encodeURIComponent(c.name)}', '${encodeURIComponent(c.phone || '')}', '${encodeURIComponent(c.location || '')}')" 
+                    class="px-2 py-0.5 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 text-[10px] font-medium border border-orange-500/30 transition flex items-center gap-1">
+              <i data-lucide="plus" class="w-3 h-3"></i> កុម្ម៉ង់ថ្មី
+            </button>
+          </div>
+          <div class="space-y-1.5 max-h-72 overflow-y-auto no-scrollbar pr-0.5">
+            ${sortedOrders.map(o => {
+              const currentStatus = getLiveOrderStatus(o);
+              return `
+                <div onclick="openOrderActions('${o.recordId || ''}', '${o.orderId || ''}', ${o.rowIndex !== undefined ? o.rowIndex : 'null'}, '${o.date || ''}', '${o.phone || ''}')" 
+                     class="p-2 rounded-xl bg-black/40 border border-white/5 hover:border-white/20 transition flex flex-col gap-1 cursor-pointer">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      <span class="font-mono text-[10px] text-slate-400">${o.date || '—'}</span>
+                      <span class="font-mono font-bold text-xs text-white">${o.orderId || o.recordId || '#'}</span>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <span class="font-mono font-bold text-xs text-emerald-400">${formatUSD(o.total || 0)}</span>
+                      ${o.totalThaiBaht > 0 ? `<span class="font-mono text-[9px] text-slate-400 block">${formatInt(o.totalThaiBaht)} ฿</span>` : ''}
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between gap-2 text-[10px] text-slate-400">
+                    <div class="flex items-center gap-2 truncate">
+                      <span class="font-mono text-orange-400 font-semibold">${formatInt(o.boxes || 0)} ប្រអប់</span>
+                      ${o.seller ? `<span>•</span><span class="truncate max-w-[80px] sm:max-w-[120px]">👤 ${o.seller}</span>` : ''}
+                    </div>
+                    <span class="text-[10px] font-semibold py-0.5 px-2 rounded-lg border shrink-0 ${getCodStatusBadgeClass(currentStatus)}">
+                      ${currentStatus}
+                    </span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderCustomerViewBatch(isAppend = false, countOverride = null) {
+  const listEl = document.getElementById('customer-view-list');
+  if (!listEl) return;
+
+  const isEn = appState.language === 'en';
+  const startIdx = isAppend ? customerViewRenderedCount : 0;
+  const targetCount = countOverride || (isAppend ? customerViewRenderedCount + CUSTOMER_VIEW_CHUNK_SIZE : Math.min(CUSTOMER_VIEW_CHUNK_SIZE, currentCustomerViewList.length));
+  const batch = currentCustomerViewList.slice(startIdx, targetCount);
+
+  if (batch.length === 0 && !isAppend) {
+    listEl.innerHTML = (customerViewScopeMode === 'all'
+      ? `<div class="text-center py-12 px-4 space-y-2">
+           <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center mx-auto text-amber-400">
+             <i data-lucide="database" class="w-5 h-5"></i>
+           </div>
+           <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនចាស់ក្នុង Master Data នៅឡើយទេ</p>
+           <p class="text-[11px] text-slate-500">អ្នកអាចប្តូរទៅកាន់ "Sheet ផ្ទាល់ខ្លួន" ដើម្បីពិនិត្យមើលទិន្នន័យបច្ចុប្បន្ន</p>
+         </div>`
+      : `<div class="text-center py-12 px-4 space-y-2">
+           <div class="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center mx-auto text-blue-400">
+             <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+           </div>
+           <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួននៅឡើយទេ</p>
+           <p class="text-[11px] text-slate-500">រាល់ការកត់ត្រាការលក់ថ្មី អតិថិជននឹងបង្ហាញនៅទីនេះដោយស្វ័យប្រវត្តិ</p>
+         </div>`);
+    customerViewRenderedCount = 0;
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  const html = batch.map((c, i) => getCustomerViewCardHTML(c, startIdx + i, isEn)).join('');
+  if (isAppend) {
+    listEl.insertAdjacentHTML('beforeend', html);
+  } else {
+    listEl.innerHTML = html;
+  }
+  customerViewRenderedCount = targetCount;
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function renderCustomerViewList(preserveCount = false) {
   const listEl = document.getElementById('customer-view-list');
   if (!listEl) return;
 
@@ -10069,6 +10200,8 @@ function renderCustomerViewList() {
     customers.sort((a, b) => (b.lastIsoDate || '').localeCompare(a.lastIsoDate || ''));
   }
 
+  currentCustomerViewList = customers;
+
   const isEn = appState.language === 'en';
   const heading = document.getElementById('customer-view-title-heading');
   const countText = document.getElementById('customer-view-count-text');
@@ -10084,98 +10217,11 @@ function renderCustomerViewList() {
     countText.textContent = countDisplay;
   }
 
-  listEl.innerHTML = customers.map((c, idx) => {
-    const isExpanded = (expandedCustomerViewKey === c.key);
-    const encodedKey = encodeURIComponent(c.key);
-    const sortedOrders = [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
+  const initialCount = preserveCount && customerViewRenderedCount > 0 
+    ? Math.min(customerViewRenderedCount, customers.length) 
+    : Math.min(CUSTOMER_VIEW_CHUNK_SIZE, customers.length);
 
-    return `
-      <div class="ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
-        <div onclick="toggleCustomerViewOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-2.5 cursor-pointer select-none">
-          <!-- Left Column: No. + Date + Name + Count; Phone + Location -->
-          <div class="min-w-0 flex-1 space-y-0.5">
-            <div class="flex items-center gap-1.5 min-w-0">
-              <span class="font-mono font-bold text-[11px] text-orange-400 shrink-0">${idx + 1}.</span>
-              <span class="font-mono text-[10px] text-slate-400 shrink-0 whitespace-nowrap">${c.lastDate || '—'}</span>
-              <h4 class="font-bold text-xs text-white truncate min-w-0">${c.name}</h4>
-              <span class="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-mono text-slate-300 shrink-0 whitespace-nowrap">${c.totalOrders} ${isEn ? 'orders' : 'ដង'}</span>
-            </div>
-            <div class="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0">
-              <span class="font-mono font-semibold text-slate-300 shrink-0 whitespace-nowrap">📞 ${c.phone || '—'}</span>
-              <span class="text-slate-500 shrink-0">•</span>
-              <span class="truncate min-w-0">📍 ${c.location || '—'}</span>
-            </div>
-          </div>
-          <!-- Right Column: Amount on top line, Box quantity on bottom line -->
-          <div class="text-right shrink-0 min-w-[70px]">
-            <div class="font-mono font-bold text-xs text-emerald-400 leading-tight">${formatUSD(c.totalSpent)}</div>
-            ${c.totalThaiBaht > 0 
-              ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalThaiBaht)} ฿</div>` 
-              : (c.totalRiel > 0 ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalRiel)} ៛</div>` : '')}
-            <div class="font-mono text-[10px] text-orange-400 font-semibold leading-tight mt-0.5">${formatInt(c.totalBoxes)} ${isEn ? 'boxes' : 'ប្រអប់'}</div>
-          </div>
-        </div>
-
-        <!-- Expanded Orders List -->
-        ${isExpanded ? `
-          <div class="mt-2 pt-2 border-t border-white/10 space-y-2 animate-fade-in">
-            <div class="flex items-center justify-between text-[11px] font-bold text-slate-300 px-1">
-              <span>ប្រវត្តិការកុម្ម៉ង់ (${sortedOrders.length} ដង)</span>
-              <button onclick="event.stopPropagation(); openNewOrderForCustomer('${encodeURIComponent(c.name)}', '${encodeURIComponent(c.phone || '')}', '${encodeURIComponent(c.location || '')}')" 
-                      class="px-2 py-0.5 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 text-[10px] font-medium border border-orange-500/30 transition flex items-center gap-1">
-                <i data-lucide="plus" class="w-3 h-3"></i> កុម្ម៉ង់ថ្មី
-              </button>
-            </div>
-            <div class="space-y-1.5 max-h-72 overflow-y-auto no-scrollbar pr-0.5">
-              ${sortedOrders.map(o => {
-                const currentStatus = getLiveOrderStatus(o);
-                return `
-                  <div onclick="openOrderActions('${o.recordId || ''}', '${o.orderId || ''}', ${o.rowIndex !== undefined ? o.rowIndex : 'null'}, '${o.date || ''}', '${o.phone || ''}')" 
-                       class="p-2 rounded-xl bg-black/40 border border-white/5 hover:border-white/20 transition flex flex-col gap-1 cursor-pointer">
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-1.5 min-w-0">
-                        <span class="font-mono text-[10px] text-slate-400">${o.date || '—'}</span>
-                        <span class="font-mono font-bold text-xs text-white">${o.orderId || o.recordId || '#'}</span>
-                      </div>
-                      <div class="text-right shrink-0">
-                        <span class="font-mono font-bold text-xs text-emerald-400">${formatUSD(o.total || 0)}</span>
-                        ${o.totalThaiBaht > 0 ? `<span class="font-mono text-[9px] text-slate-400 block">${formatInt(o.totalThaiBaht)} ฿</span>` : ''}
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between gap-2 text-[10px] text-slate-400">
-                      <div class="flex items-center gap-2 truncate">
-                        <span class="font-mono text-orange-400 font-semibold">${formatInt(o.boxes || 0)} ប្រអប់</span>
-                        ${o.seller ? `<span>•</span><span class="truncate max-w-[80px] sm:max-w-[120px]">👤 ${o.seller}</span>` : ''}
-                      </div>
-                      <span class="text-[10px] font-semibold py-0.5 px-2 rounded-lg border shrink-0 ${getCodStatusBadgeClass(currentStatus)}">
-                        ${currentStatus}
-                      </span>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        ` : ''}
-      </div>
-    `;
-  }).join('') || (customerViewScopeMode === 'all'
-    ? `<div class="text-center py-12 px-4 space-y-2">
-         <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center mx-auto text-amber-400">
-           <i data-lucide="database" class="w-5 h-5"></i>
-         </div>
-         <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនចាស់ក្នុង Master Data នៅឡើយទេ</p>
-         <p class="text-[11px] text-slate-500">អ្នកអាចប្តូរទៅកាន់ "Sheet ផ្ទាល់ខ្លួន" ដើម្បីពិនិត្យមើលទិន្នន័យបច្ចុប្បន្ន</p>
-       </div>`
-    : `<div class="text-center py-12 px-4 space-y-2">
-         <div class="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center mx-auto text-blue-400">
-           <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
-         </div>
-         <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួននៅឡើយទេ</p>
-         <p class="text-[11px] text-slate-500">រាល់ការកត់ត្រាការលក់ថ្មី អតិថិជននឹងបង្ហាញនៅទីនេះដោយស្វ័យប្រវត្តិ</p>
-       </div>`);
-
-  if (window.lucide) window.lucide.createIcons();
+  renderCustomerViewBatch(false, initialCount);
 }
 
 // ==========================================
@@ -20405,7 +20451,7 @@ function animateCustomerIconEnter() {
     p1.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-b-back';
     p2.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-b-front';
     isPerson1Front = false;
-  }, 1160);
+  }, 380);
 }
 
 function animateCustomerIconExit() {
@@ -20422,7 +20468,7 @@ function animateCustomerIconExit() {
     p1.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-front';
     p2.className = 'gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-back';
     isPerson1Front = true;
-  }, 1160);
+  }, 380);
 }
 
 let lastCustomerTapTime = 0;
@@ -20948,14 +20994,33 @@ function syncHeaderProfileUI() {
 let allCustomersScopeMode = 'personal'; // 'personal' (default) or 'all' (Master Data)
 let masterFilteredCustomersSales = [];
 let pendingMasterAuthSeller = null;
+let _cachedSalesRef = null;
+let _cachedUniqueCustomersPersonal = null;
+let _cachedMasterSalesRef = null;
+let _cachedUniqueCustomersAll = null;
+
+function invalidateUniqueCustomersCache() {
+  _cachedSalesRef = null;
+  _cachedUniqueCustomersPersonal = null;
+  _cachedMasterSalesRef = null;
+  _cachedUniqueCustomersAll = null;
+}
+window.invalidateUniqueCustomersCache = invalidateUniqueCustomersCache;
 
 function getAllUniqueCustomers() {
   const d = DataService.data;
   let sales = [];
-  if (allCustomersScopeMode === 'all') {
+  const isAll = (allCustomersScopeMode === 'all');
+  if (isAll) {
     sales = Array.isArray(masterFilteredCustomersSales) ? masterFilteredCustomersSales : [];
+    if (_cachedMasterSalesRef === sales && _cachedUniqueCustomersAll) {
+      return _cachedUniqueCustomersAll;
+    }
   } else {
     sales = (d && d.personalSales) ? d.personalSales : [];
+    if (_cachedSalesRef === sales && _cachedUniqueCustomersPersonal) {
+      return _cachedUniqueCustomersPersonal;
+    }
   }
   const map = new Map();
 
@@ -21006,7 +21071,15 @@ function getAllUniqueCustomers() {
     entry.orders.push(s);
   });
 
-  return Array.from(map.values());
+  const res = Array.from(map.values());
+  if (isAll) {
+    _cachedMasterSalesRef = sales;
+    _cachedUniqueCustomersAll = res;
+  } else {
+    _cachedSalesRef = sales;
+    _cachedUniqueCustomersPersonal = res;
+  }
+  return res;
 }
 
 function getProfileNotes() {
