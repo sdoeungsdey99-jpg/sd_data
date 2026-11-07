@@ -1,5 +1,5 @@
 {
-  "version": "67.12",
-  "buildTime": "2026-11-07T20:56:00+07:00",
-  "notes": "Fix drawer pull-refresh indicator height and restore clean header geometry"
+  "version": "67.13",
+  "buildTime": "2026-11-07T21:13:00+07:00",
+  "notes": "100% Header Geometry & Profile Avatar Uniformity across Home, Analytics, Customer, and Profile Drawer"
 }

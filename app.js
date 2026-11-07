@@ -9769,24 +9769,37 @@ let customerViewSortMode = 'latest'; // 'latest', 'top', 'name'
 let expandedCustomerViewKey = null;
 
 function getCustomerViewHTML() {
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+  const avatarSrc = isMaster ? (p.avatar || 'profile.png') : (p.avatar || 'bostar-logo.png');
+
   return `
     <div class="w-full pb-28 sm:pb-32" id="customer-view-container">
-      <!-- Sticky Customer Top Header Bar (100% Solid Opaque, Stationary like Profile Drawer) -->
+      <!-- Sticky Customer Top Header Bar (100% Solid Opaque, Stationary like Profile Drawer & Home) -->
       <div id="customer-view-header" 
-           class="sticky top-0 z-30 w-full px-4 py-3 border-b border-white/10 bg-[#070D18] shrink-0 select-none">
+           class="sticky top-0 z-30 w-full px-4 border-b border-white/5 bg-[#070D18] shrink-0 select-none flex items-center justify-between">
         
         <!-- Header Bar: Title & Controls -->
-        <div id="customer-view-header-bar" class="flex items-center justify-between gap-2">
+        <div id="customer-view-header-bar" class="w-full flex items-center justify-between gap-2">
           
-          <!-- Normal Header Content (Title + Scope + Count + Search Icon + Sort Trigger) -->
-          <div id="customer-view-normal-nav" class="flex items-center justify-between gap-2 flex-1 min-w-0 transition-all duration-200">
-            <!-- Title with Count merged in single line -->
-            <div class="min-w-0 flex-1 truncate">
-              <h3 id="customer-view-title-heading" class="font-bold text-xs sm:text-sm text-white truncate flex items-center gap-1.5 leading-normal">
-                <span>បញ្ជីអតិថិជន</span>
-                <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-blue-500/20 text-blue-300 text-[10.5px] font-medium leading-normal border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span>
-                <span id="customer-view-count-text" class="text-blue-400 font-mono text-[11px] font-semibold">(0 នាក់)</span>
-              </h3>
+          <!-- Normal Header Content (Profile Avatar + Title + Scope + Count + Action Buttons) -->
+          <div id="customer-view-normal-nav" class="flex items-center justify-between gap-2.5 flex-1 min-w-0 transition-all duration-200">
+            <!-- Profile Avatar & Title Block (Matches Home & Profile Drawer) -->
+            <div id="customer-header-profile-block" class="flex items-center gap-2.5 min-w-0 cursor-pointer active:scale-95 transition" onclick="openProfileDrawer()" title="បើក Profile Drawer">
+              <div class="relative shrink-0">
+                <img id="customer-profile-avatar" src="${avatarSrc}" alt="Profile" 
+                     class="w-11 h-11 rounded-full object-cover border-2 border-amber-500">
+                <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
+              </div>
+              <div id="customer-view-title-heading" class="min-w-0 flex-1 truncate">
+                <div class="flex items-center gap-1.5">
+                  <h1 class="font-bold text-[15.5px] text-white leading-tight brand-title truncate">បញ្ជីអតិថិជន</h1>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 text-[10px] font-medium leading-none border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span>
+                </div>
+                <p class="text-[11.5px] text-amber-400 font-semibold leading-tight truncate mt-0.5">
+                  ចំនួនសរុប: <span id="customer-view-count-text" class="font-mono text-blue-300">0 នាក់</span>
+                </p>
+              </div>
             </div>
 
             <!-- Action Buttons Group (Search Button + Sort Dropdown Trigger) -->
@@ -10154,9 +10167,25 @@ function renderCustomerViewList(preserveCount = false) {
   
   if (heading) {
     if (customerViewScopeMode === 'all') {
-      heading.innerHTML = `<span>អតិថិជនទាំងអស់</span> <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-amber-500/20 text-amber-300 text-[10.5px] font-medium leading-normal border border-amber-500/30">Master</span> <span id="customer-view-count-text" class="text-amber-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+      heading.innerHTML = `
+        <div class="flex items-center gap-1.5">
+          <h1 class="font-bold text-[15.5px] text-white leading-tight brand-title truncate">${isEn ? 'All Customers' : 'អតិថិជនទាំងអស់'}</h1>
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] font-medium leading-none border border-amber-500/30">Master</span>
+        </div>
+        <p class="text-[11.5px] text-amber-400 font-semibold leading-tight truncate mt-0.5">
+          ${isEn ? 'Total:' : 'ចំនួនសរុប:'} <span id="customer-view-count-text" class="font-mono text-amber-300">${countDisplay}</span>
+        </p>
+      `;
     } else {
-      heading.innerHTML = `<span>បញ្ជីអតិថិជន</span> <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-blue-500/20 text-blue-300 text-[10.5px] font-medium leading-normal border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span> <span id="customer-view-count-text" class="text-blue-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+      heading.innerHTML = `
+        <div class="flex items-center gap-1.5">
+          <h1 class="font-bold text-[15.5px] text-white leading-tight brand-title truncate">${isEn ? 'Customer List' : 'បញ្ជីអតិថិជន'}</h1>
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 text-[10px] font-medium leading-none border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span>
+        </div>
+        <p class="text-[11.5px] text-amber-400 font-semibold leading-tight truncate mt-0.5">
+          ${isEn ? 'Total:' : 'ចំនួនសរុប:'} <span id="customer-view-count-text" class="font-mono text-blue-300">${countDisplay}</span>
+        </p>
+      `;
     }
   } else if (countText) {
     countText.textContent = countDisplay;
@@ -20839,7 +20868,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.12';
+const CURRENT_APP_VERSION = '67.13';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -20935,6 +20964,8 @@ function syncHeaderProfileUI() {
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
 
   if (avatarEl) avatarEl.src = isMaster ? (p.avatar || 'profile.png') : (p.avatar || 'bostar-logo.png');
+  const custAvatarEl = document.getElementById('customer-profile-avatar');
+  if (custAvatarEl) custAvatarEl.src = isMaster ? (p.avatar || 'profile.png') : (p.avatar || 'bostar-logo.png');
   if (nameEl) nameEl.textContent = isMaster ? (p.name || 'ស្តី ស្តើង') : (p.name || 'BostarGroup');
   if (subEl) subEl.textContent = isMaster ? (p.subtitle || 'SDEY SDOEUNG') : (p.subtitle || 'Bostar Sales & Finance');
   if (badgeEl) {
