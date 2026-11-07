@@ -1,5 +1,5 @@
 {
-  "version": "67.24",
-  "buildTime": "2026-11-07T23:26:00+07:00",
-  "notes": "Unified Analytics Header: Year & Month bars joined directly together with top & bottom blur/borders. Dock icons enlarged to 22px with equal visual size at rest."
+  "version": "67.23",
+  "buildTime": "2026-11-07T23:12:00+07:00",
+  "notes": "Strict multi-device fix (iPhone & MacBook): eliminated ghost date bar with :not(.dashboard-active) and protected tap-to-scroll to guarantee 100% seamless flush Analytics header"
 }

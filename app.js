@@ -2866,6 +2866,11 @@ function switchView(viewName, shouldReload = false) {
     } else {
       topHeader.classList.remove('hidden');
     }
+    if (viewName === 'analytics') {
+      topHeader.classList.add('analytics-header-touching');
+    } else {
+      topHeader.classList.remove('analytics-header-touching');
+    }
   }
 
   // Profile block & Back button in Header
@@ -3442,7 +3447,10 @@ function renderCurrentView() {
     }
   }
 
-
+  const topHeader = document.getElementById('top-header');
+  if (topHeader) {
+    topHeader.classList.toggle('analytics-header-touching', appState.currentView === 'analytics');
+  }
 
   // Update Dynamic Dock Labels based on Language
   updateStaticLabels();
@@ -8291,32 +8299,9 @@ function getAnalyticsViewHTML() {
     activeTabIcon = 'receipt';
   }
 
-  // 1. Month Tabs Row
-  const khmerMonthNames = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
-  const monthTabsHtml = `
-    <div id="analytics-month-tabs" class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none no-scrollbar" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
-      <button onclick="setAnalyticsMonth('all')" id="btn-month-all" 
-              class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
-        ✨ ពេញ ១ ឆ្នាំ
-      </button>
-      ${displayMonths.map(m => {
-        const parts = m.split('-');
-        const isSelected = activeMonth === m;
-        const mIdx = parseInt(parts[1], 10) - 1;
-        const kmName = khmerMonthNames[mIdx] || parts[1];
-        return `
-          <button onclick="setAnalyticsMonth('${m}')" id="btn-month-${m}" 
-                  class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
-            ខែ ${parts[1]} (${kmName})
-          </button>
-        `;
-      }).join('')}
-    </div>
-  `;
-
-  // 2. Unified Sticky Header: Year Selector + Perspective Dropdown (Row 1) & Month Tabs (Row 2) Directly Joined Together!
+  // 1. Slim Sticky Header: ONLY Year Selector & Perspective Dropdown (Locks against Profile Bar)
   const stickyYearHeaderHtml = `
-    <div id="analytics-sticky-header" class="sticky top-0 z-40 w-full px-3.5 pt-2 pb-2.5 border-b border-white/10 shadow-[0_6px_20px_rgba(0,0,0,0.4)] flex flex-col gap-2 transition-colors">
+    <div id="analytics-sticky-header" class="sticky top-0 z-40 w-full px-3.5 pt-1.5 pb-2 border-b border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-colors">
       <div class="flex items-center justify-between gap-2">
         <!-- Year Selector -->
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
@@ -8367,9 +8352,29 @@ function getAnalyticsViewHTML() {
           </div>
         </div>
       </div>
+    </div>
+  `;
 
-      <!-- Row 2: Month Tabs Row (Unified inside the header!) -->
-      ${monthTabsHtml}
+  // 2. Unlocked Month Tabs Row (Scrolls with page content)
+  const khmerMonthNames = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const monthTabsUnlockedHtml = `
+    <div id="analytics-month-tabs" class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none no-scrollbar" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
+      <button onclick="setAnalyticsMonth('all')" id="btn-month-all" 
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+        ✨ ពេញ ១ ឆ្នាំ
+      </button>
+      ${displayMonths.map(m => {
+        const parts = m.split('-');
+        const isSelected = activeMonth === m;
+        const mIdx = parseInt(parts[1], 10) - 1;
+        const kmName = khmerMonthNames[mIdx] || parts[1];
+        return `
+          <button onclick="setAnalyticsMonth('${m}')" id="btn-month-${m}" 
+                  class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+            ខែ ${parts[1]} (${kmName})
+          </button>
+        `;
+      }).join('')}
     </div>
   `;
 
@@ -9198,7 +9203,10 @@ function getAnalyticsViewHTML() {
 
     return `
       ${stickyYearHeaderHtml}
-      <div class="space-y-3.5 px-3.5 pt-3 pb-6">
+      <div class="space-y-3.5 px-3.5 pt-2.5 pb-6">
+        <!-- Unlocked Month Tabs (Scrolls away with content) -->
+        ${monthTabsUnlockedHtml}
+
         <!-- Month Hero Card -->
         <div onclick="cycleAnalyticsPerspective(event)" 
              title="ចុចកន្លែងទំនេរដើម្បីឆ្លាស់ទិដ្ឋភាព (ទិដ្ឋភាពរួម • អាជីវកម្ម • ចំណាយផ្ទាល់ខ្លួន)"
@@ -9755,7 +9763,10 @@ function getAnalyticsViewHTML() {
 
   return `
     ${stickyYearHeaderHtml}
-    <div class="space-y-3.5 px-3.5 pt-3 pb-6">
+    <div class="space-y-3.5 px-3.5 pt-2.5 pb-6">
+      <!-- Unlocked Month Tabs (Scrolls away with content) -->
+      ${monthTabsUnlockedHtml}
+
       <!-- Year Hero Card -->
       <div onclick="cycleAnalyticsPerspective(event)" 
            title="ចុចកន្លែងទំនេរដើម្បីឆ្លាស់ទិដ្ឋភាព (ទិដ្ឋភាពរួម • អាជីវកម្ម • ចំណាយផ្ទាល់ខ្លួន)"
@@ -20920,7 +20931,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.24';
+const CURRENT_APP_VERSION = '67.23';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
