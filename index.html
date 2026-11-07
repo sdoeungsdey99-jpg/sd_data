@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.8">
+  <link rel="manifest" href="manifest.json?v=67.9">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -562,48 +562,70 @@
     #main-content.customer-view-active > :not([hidden]) ~ :not([hidden]) {
       margin-top: 0 !important;
     }
-    #top-header {
-      background-color: #070D18 !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-      box-shadow: none !important;
-      padding-top: max(env(safe-area-inset-top, 0px), 14px) !important;
-      padding-bottom: 10px !important;
-      height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 4px) !important;
-      box-sizing: border-box !important;
-    }
+    #top-header,
+    #customer-view-header,
+    #profile-drawer-panel [class*="bg-[#0B1528]"],
     #sticky-filter-bar,
     #study-sticky-header,
-    #customer-view-header,
     #analytics-sticky-header {
       background-color: #070D18 !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-      box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45);
-    }
-    html.light-theme #top-header,
-    body.light-theme #top-header {
-      background-color: #FFFFFF !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      border-bottom: 1px solid #E2E8F0 !important;
       box-shadow: none !important;
     }
+    #profile-drawer-panel [class*="bg-[#0B1528]"] {
+      background-color: #0B1528 !important;
+    }
+    #top-header {
+      padding-top: max(env(safe-area-inset-top, 0px), 14px) !important;
+      padding-bottom: 10px !important;
+      height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 4px) !important;
+      box-sizing: border-box !important;
+    }
+    #customer-view-header {
+      padding-top: max(env(safe-area-inset-top, 0px), 14px) !important;
+      box-sizing: border-box !important;
+    }
+    html.light-theme #top-header,
+    body.light-theme #top-header,
+    html.light-theme #customer-view-header,
+    body.light-theme #customer-view-header,
+    html.light-theme #profile-drawer-panel [class*="bg-[#0B1528]"],
+    body.light-theme #profile-drawer-panel [class*="bg-[#0B1528]"],
     html.light-theme #sticky-filter-bar,
     body.light-theme #sticky-filter-bar,
     html.light-theme #study-sticky-header,
     body.light-theme #study-sticky-header,
-    html.light-theme #customer-view-header,
-    body.light-theme #customer-view-header,
     html.light-theme #analytics-sticky-header,
     body.light-theme #analytics-sticky-header {
       background-color: #FFFFFF !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
       border-bottom: 1px solid #E2E8F0 !important;
-      box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06);
+      box-shadow: none !important;
+    }
+    #top-header button,
+    #customer-view-header button,
+    #profile-drawer-panel [class*="bg-[#0B1528]"] button {
+      background-color: #0F1B2E !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html.light-theme #top-header button,
+    body.light-theme #top-header button,
+    html.light-theme #customer-view-header button,
+    body.light-theme #customer-view-header button,
+    html.light-theme #profile-drawer-panel [class*="bg-[#0B1528]"] button,
+    body.light-theme #profile-drawer-panel [class*="bg-[#0B1528]"] button {
+      background-color: #F1F5F9 !important;
+      border: 1px solid #E2E8F0 !important;
+      color: #0F172A !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
     }
     #sticky-filter-bar > div {
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -4611,7 +4633,7 @@
       <div id="header-normal" class="w-full flex items-center justify-between">
         <!-- Back Button shown only when inside Profile View -->
         <button id="header-profile-back" onclick="switchView('dashboard')" 
-                class="hidden items-center gap-1.5 py-1.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs font-bold text-slate-200 transition shadow-sm">
+                class="hidden items-center gap-1.5 py-1.5 px-3 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-xs font-bold text-slate-200 transition shadow-sm">
           <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
           <span>ត្រឡប់</span>
         </button>
@@ -4620,7 +4642,7 @@
         <div id="header-profile-block" class="flex items-center gap-2.5 min-w-0 cursor-pointer active:scale-95 transition" onclick="openProfileDrawer()">
           <div class="relative shrink-0">
             <img id="header-profile-avatar" src="bostar-logo.png" alt="BostarGroup" 
-                 class="w-11 h-11 rounded-full object-cover border-2 border-amber-500 shadow-lg shadow-amber-500/20">
+                 class="w-11 h-11 rounded-full object-cover border-2 border-amber-500">
             <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
           </div>
           <div class="min-w-0">
@@ -4638,21 +4660,21 @@
           
           <!-- Manual Reload with Time (Auto-Hides when up-to-date, Reveals on loading/error) -->
           <button id="btn-reload" onclick="manualReload(true)" 
-                  class="h-9 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-xs text-slate-300 transition-all duration-200 ease-out flex items-center gap-1.5 shadow-sm hidden opacity-0 scale-90 pointer-events-none">
+                  class="h-9 px-2.5 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-xs text-slate-300 transition-all duration-200 ease-out flex items-center gap-1.5 shadow-sm hidden opacity-0 scale-90 pointer-events-none">
             <i id="reload-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
             <span id="reload-time-text" class="text-[11px] font-mono leading-none">--:--</span>
           </button>
 
           <!-- Daily Report Quick Header Button (Direct 1-Tap Access - Icon Only) -->
           <button onclick="openDailyReportModal()" 
-                  class="w-9 h-9 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-95 border border-emerald-500/30 text-emerald-400 flex items-center justify-center transition shadow-sm"
+                  class="w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-emerald-500/30 text-emerald-400 flex items-center justify-center transition shadow-sm"
                   title="របាយការណ៍លក់ប្រចាំថ្ងៃ ៩:០០ យប់">
             <i data-lucide="clipboard-check" class="w-4 h-4"></i>
           </button>
 
           <!-- Search Button -->
           <button onclick="openSearchBar()" 
-                  class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition shadow-sm"
+                  class="w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-orange-400 flex items-center justify-center transition shadow-sm"
                   title="ស្វែងរកទិន្នន័យ">
             <i data-lucide="search" class="w-4 h-4 text-orange-400"></i>
           </button>
@@ -4660,7 +4682,7 @@
           <!-- Notification Bell with Red Badge (Hidden when in Profile View) -->
           <div id="header-notif-wrapper" class="relative">
             <button onclick="toggleNotificationsModal()" 
-                    class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-300 relative flex items-center justify-center transition shadow-sm">
+                    class="w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-300 relative flex items-center justify-center transition shadow-sm">
               <i data-lucide="bell" class="w-4 h-4"></i>
               <span id="notif-badge" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center border-2 border-[#070D18] hidden">0</span>
             </button>
@@ -5850,14 +5872,14 @@
       
       <!-- Top Header inside Drawer: Profile in natural position (Not centered, keeps original high location) + Search Button -->
       <div onclick="handleHeaderScrollToTop(event, 'profile-drawer-content')" 
-           class="px-4 py-3.5 border-b border-white/10 bg-[#0B1528]/90 backdrop-blur-xl shrink-0 cursor-pointer"
+           class="px-4 py-3.5 border-b border-white/10 bg-[#0B1528] shrink-0 cursor-pointer"
            title="ប៉ះកន្លែងទំនេរដើម្បីឡើងលើបង្អស់ (Scroll to Top)">
         <div class="flex items-center justify-between gap-3">
           <!-- Left: Profile avatar + Name + ID/Greeting (Clickable to trigger greeting morph) -->
           <div onclick="triggerDrawerGreetingAnimation(event)" class="flex items-center gap-3 min-w-0 flex-1 overflow-visible cursor-pointer select-none" title="ចុចដើម្បីមើលសារស្វាគមន៍">
             <div class="relative shrink-0">
               <img id="drawer-prof-avatar" src="bostar-logo.png" alt="Profile" 
-                   class="w-11 h-11 rounded-full object-cover border-2 border-amber-500 shadow-lg shadow-amber-500/20">
+                   class="w-11 h-11 rounded-full object-cover border-2 border-amber-500">
               <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#070D18]"></span>
             </div>
             <div class="min-w-0 flex-1 overflow-visible">
@@ -5880,12 +5902,12 @@
           <div class="flex items-center gap-1.5 shrink-0">
             <button onclick="closeProfileDrawer(); openProfileSettingsSearch();" 
                     title="ស្វែងរក" 
-                    class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-90 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition shadow-sm">
+                    class="w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-90 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition shadow-sm">
               <i data-lucide="search" class="w-4 h-4 text-orange-400"></i>
             </button>
             <button onclick="closeProfileDrawer()" 
                     title="ត្រឡប់ (Back)" 
-                    class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 active:scale-90 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition shadow-sm">
+                    class="w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-90 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition shadow-sm">
               <i data-lucide="x" class="w-4 h-4 text-slate-300"></i>
             </button>
           </div>
@@ -8400,6 +8422,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.8"></script>
+  <script src="app.js?v=67.9"></script>
 </body>
 </html>

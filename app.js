@@ -9759,7 +9759,7 @@ function getCustomerViewHTML() {
     <div class="w-full pb-28 sm:pb-32" id="customer-view-container">
       <!-- Sticky Customer Top Header Bar (100% Solid Opaque, Stationary like Profile Drawer) -->
       <div id="customer-view-header" 
-           class="sticky top-0 z-30 w-full p-3 border-b border-white/10 bg-[#070D18] shrink-0 select-none shadow-md shadow-black/20">
+           class="sticky top-0 z-30 w-full px-4 py-3 border-b border-white/10 bg-[#070D18] shrink-0 select-none">
         
         <!-- Header Bar: Title & Controls -->
         <div id="customer-view-header-bar" class="flex items-center justify-between gap-2">
@@ -9779,7 +9779,7 @@ function getCustomerViewHTML() {
             <div class="flex items-center gap-1.5 shrink-0">
               <!-- Search Toggle Button -->
               <button id="btn-customer-view-search-toggle" onclick="toggleCustomerViewSearch()" 
-                      class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
+                      class="w-8 h-8 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
                       title="ស្វែងរកអតិថិជន">
                 <i data-lucide="search" class="w-3.5 h-3.5 text-orange-400"></i>
               </button>
@@ -9787,7 +9787,7 @@ function getCustomerViewHTML() {
               <!-- Sort Option Dropdown Trigger (3 lines / Menu icon) -->
               <div class="relative">
                 <button id="btn-customer-view-sort-trigger" onclick="toggleCustomerViewSortMenu(event)" 
-                        class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
+                        class="w-8 h-8 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
                         title="ជម្រើស និងការតម្រៀប">
                   <i data-lucide="menu" class="w-3.5 h-3.5 text-orange-400"></i>
                 </button>
