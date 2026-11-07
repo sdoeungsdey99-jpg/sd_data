@@ -1,5 +1,5 @@
 {
-  "version": "67.11",
-  "buildTime": "2026-11-07T20:46:00+07:00",
-  "notes": "Native Header Polish: black-translucent transparent status bar, uniform header height & geometry matching iOS native apps"
+  "version": "67.12",
+  "buildTime": "2026-11-07T20:56:00+07:00",
+  "notes": "Fix drawer pull-refresh indicator height and restore clean header geometry"
 }
