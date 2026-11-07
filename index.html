@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.19">
+  <link rel="manifest" href="manifest.json?v=67.20">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -586,6 +586,24 @@
     #customer-view-header.customer-header-scrolled {
       opacity: 0 !important;
       pointer-events: none !important;
+      transform: translateY(-8px) !important;
+    }
+    #sticky-filter-bar {
+      max-height: 80px;
+      transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1), transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1), padding 0.28s ease, margin 0.28s ease, border-color 0.28s ease;
+      overflow: visible;
+    }
+    #sticky-filter-bar.filter-hidden {
+      max-height: 0 !important;
+      opacity: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      border-bottom: 0px solid transparent !important;
+      border-bottom-width: 0px !important;
+      pointer-events: none !important;
+      overflow: hidden !important;
       transform: translateY(-8px) !important;
     }
     #top-header,
@@ -8500,6 +8518,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.19"></script>
+  <script src="app.js?v=67.20"></script>
 </body>
 </html>

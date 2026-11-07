@@ -2271,6 +2271,23 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
+    // Home Dashboard: Reduce Date Bar (#sticky-filter-bar) opacity to 0 when scrolling down, restore when scrolling up
+    if (isMain && appState.currentView === 'dashboard') {
+      const filterBarEl = document.getElementById('sticky-filter-bar');
+      if (filterBarEl) {
+        if (diff > 8 && currentScrollTop > 25) {
+          if (!filterBarEl.classList.contains('filter-hidden')) {
+            if (typeof closeAllFilterDropdowns === 'function') closeAllFilterDropdowns();
+            filterBarEl.classList.add('filter-hidden');
+          }
+        } else if (diff < -6 || currentScrollTop <= 10) {
+          if (filterBarEl.classList.contains('filter-hidden')) {
+            filterBarEl.classList.remove('filter-hidden');
+          }
+        }
+      }
+    }
+
     // Customer View Header: Reduce opacity to 0 when scrolling down (reading deeper), restore when scrolling up
     if (isMain && appState.currentView === 'customer') {
       const custHeader = document.getElementById('customer-view-header');
@@ -20887,7 +20904,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.19';
+const CURRENT_APP_VERSION = '67.20';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

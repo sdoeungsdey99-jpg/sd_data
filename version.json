@@ -1,5 +1,5 @@
 {
-  "version": "67.19",
-  "buildTime": "2026-11-07T22:00:00+07:00",
-  "notes": "Customer Directory bar fades to 0 opacity on scroll down & restored on scroll up; Profile Drawer vertically centered to match Home header"
+  "version": "67.20",
+  "buildTime": "2026-11-07T22:07:00+07:00",
+  "notes": "Home Dashboard Date Bar (#sticky-filter-bar) opacity fades to 0 on scroll down & restores on scroll up"
 }
