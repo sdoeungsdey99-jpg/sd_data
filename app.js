@@ -8410,9 +8410,9 @@ function getAnalyticsViewHTML() {
       </div>
 
       <!-- Bar 3: Month Tabs Row -->
-      <div id="analytics-month-tabs" class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none no-scrollbar" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
+      <div id="analytics-month-tabs" class="w-full flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none no-scrollbar" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
         <button onclick="setAnalyticsMonth('all')" id="btn-month-all" 
-                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+                class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
           ✨ ពេញ ១ ឆ្នាំ
         </button>
         ${displayMonths.map(m => {
@@ -8422,7 +8422,7 @@ function getAnalyticsViewHTML() {
           const kmName = khmerMonthNames[mIdx] || parts[1];
           return `
             <button onclick="setAnalyticsMonth('${m}')" id="btn-month-${m}" 
-                    class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+                    class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
               ខែ ${parts[1]} (${kmName})
             </button>
           `;
@@ -9878,18 +9878,18 @@ function getCustomerViewHTML() {
       <div id="customer-view-header" 
            onclick="handleHeaderScrollToTop(event, 'main-content')"
            title="ប៉ះកន្លែងទំនេរដើម្បីឡើងលើបង្អស់ (Scroll to Top)"
-           class="sticky top-0 z-30 w-full px-4 border-b border-white/5 bg-[#070D18] shrink-0 select-none flex items-center justify-between cursor-pointer">
+           class="sticky top-0 z-30 w-full px-3 border-b border-white/5 bg-[#070D18] shrink-0 select-none flex items-center justify-between cursor-pointer">
         
         <!-- Header Bar: Title & Controls -->
         <div id="customer-view-header-bar" class="w-full flex items-center justify-between gap-2">
           
           <!-- Normal Header Content (Profile Avatar + Title + Scope + Count + Action Buttons) -->
-          <div id="customer-view-normal-nav" class="flex items-center justify-between gap-2.5 flex-1 min-w-0 transition-all duration-200">
+          <div id="customer-view-normal-nav" class="flex items-center justify-between gap-2 flex-1 min-w-0 transition-all duration-200">
             <!-- Customer Directory Representation Icon & Title Block (Stationary, Frameless full icon, does not open drawer) -->
-            <div id="customer-header-title-block" class="flex items-center gap-2.5 min-w-0 select-none">
+            <div id="customer-header-title-block" class="flex items-center gap-2 min-w-0 select-none">
               <!-- Full Frameless Customer Icon (No border box/frame, fills space cleanly) -->
-              <div class="shrink-0 w-11 h-11 flex items-center justify-center text-blue-400">
-                <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
+              <div class="shrink-0 w-8 h-8 flex items-center justify-start text-blue-400">
+                <i data-lucide="users" class="w-7 h-7 text-blue-400"></i>
               </div>
               <div id="customer-view-title-heading" class="min-w-0 flex-1 truncate">
                 <div class="flex items-center gap-1.5">
@@ -13260,7 +13260,7 @@ function getSettingsViewHTML() {
     <div id="settings-view-container" class="w-full p-3 space-y-3 pb-28 relative">
       
       <!-- Animated Khmer Apsara Motif with Twinkling Stars Behind (ផ្កាយក្រោយទេវតា និង Animation ទាំងទេវតា និងផ្កាយ) -->
-      <div class="absolute -top-3 right-0 w-28 h-32 pointer-events-none select-none overflow-hidden z-0 flex items-start justify-end">
+      <div class="absolute -top-3 right-3 w-28 h-32 pointer-events-none select-none overflow-hidden z-0 flex items-start justify-end">
         
         <!-- Twinkling Stars Behind Apsara (ផ្កាយនៅពីក្រោយទេវតា - ពន្លឺស្រទន់តិចៗ មិនភ្លឺចាំង) -->
         <div class="absolute inset-0 z-0 pointer-events-none">
@@ -17880,7 +17880,7 @@ function renderExpensesModalRows(items) {
 
   if (expensesFilterState.viewTab === 'list') {
     listEl.innerHTML = items.map((item, idx) => `
-      <div class="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-1.5 transition select-none shadow-sm">
+      <div class="p-2.5 px-3 rounded-2xl ios-glass-card border border-white/10 hover:border-rose-500/30 flex flex-col gap-1.5 transition select-none shadow-sm">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 min-w-0 pr-2">
             <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
@@ -18973,7 +18973,15 @@ function openHonorsModal(tab = 'honors', fromDrawer = false) {
     window._currentHonorsTab = isGateOpen ? (tab || 'honors') : 'honors';
     renderHonorsModalContent();
     modal.classList.remove('hidden');
-    setDockVisible(false);
+    if (!isGateOpen) {
+      setDockVisible(true);
+      const honorsBody = document.getElementById('honors-modal-body');
+      if (honorsBody && typeof hookScrollableForDock === 'function') {
+        hookScrollableForDock(honorsBody, false);
+      }
+    } else {
+      setDockVisible(false);
+    }
     hookHonorsModalGestures();
     if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
   }
@@ -20969,7 +20977,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.28';
+const CURRENT_APP_VERSION = '67.29';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -28658,7 +28666,7 @@ function renderTeamMembersList() {
 
     return `
       <div onclick="openTeamMemberDetail('${escapeHtml(seller.km)}')" 
-           class="p-3.5 rounded-2xl ios-glass-card border border-white/10 hover:border-orange-500/40 flex items-center justify-between cursor-pointer active:scale-[0.99] transition group shadow-sm">
+           class="p-2.5 px-3 rounded-2xl ios-glass-card border border-white/10 hover:border-orange-500/40 flex items-center justify-between cursor-pointer active:scale-[0.99] transition group shadow-sm">
         <div class="flex items-center gap-3 min-w-0">
           <span class="w-8 h-8 rounded-xl bg-orange-500/15 border border-orange-500/25 text-orange-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
             ${String(seller.no || idx + 1).padStart(2, '0')}

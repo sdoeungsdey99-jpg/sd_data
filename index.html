@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.28">
+  <link rel="manifest" href="manifest.json?v=67.29">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -5013,10 +5013,10 @@
         </div>
       </div>
       <!-- Total Summary Row at TOP (ស្តង់ដារដូចបញ្ជីអតិថិជន) -->
-      <div id="sales-modal-footer" class="px-3.5 py-2.5 border-b border-white/10 bg-[#0B1528]/90 backdrop-blur-md flex items-center justify-between text-xs shrink-0">
+      <div id="sales-modal-footer" class="px-3 py-2 border-b border-white/10 bg-[#0B1528]/90 backdrop-blur-md flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
-      <div class="p-3 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2" id="sales-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-1.5" id="sales-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Rendered dynamically -->
       </div>
     </div>
@@ -5028,7 +5028,7 @@
       <!-- Backdrop Blur Overlay for Context Menu -->
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
-      <div onclick="handleHeaderScrollToTop(event, 'payables-modal-list')" class="relative z-50 p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'payables-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closePayablesModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5062,10 +5062,10 @@
         </div>
       </div>
       <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
-      <div id="payables-modal-footer" class="px-4 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+      <div id="payables-modal-footer" class="px-3 py-2 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
-      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2" id="payables-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-1.5" id="payables-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Rendered dynamically -->
       </div>
     </div>
@@ -5078,7 +5078,7 @@
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
       <!-- Header -->
-      <div onclick="handleHeaderScrollToTop(event, 'boost-modal-list')" class="relative z-50 p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'boost-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeBoostModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-rose-400"></i>
@@ -5110,12 +5110,12 @@
       </div>
 
       <!-- Top Summary Row: Actual, Planned, Total Year -->
-      <div id="boost-modal-summary" class="px-3.5 py-2.5 border-b border-white/10 bg-black/40 grid grid-cols-3 gap-2 text-xs shrink-0">
+      <div id="boost-modal-summary" class="px-3 py-2 border-b border-white/10 bg-black/40 grid grid-cols-3 gap-2 text-xs shrink-0">
         <!-- Rendered dynamically -->
       </div>
 
       <!-- Scrollable Month List -->
-      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2.5" id="boost-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-1.5" id="boost-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Rendered dynamically -->
       </div>
     </div>
@@ -5173,7 +5173,7 @@
       <!-- Backdrop Blur Overlay for Context Menu -->
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
-      <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="relative z-50 p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeExpensesModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5247,7 +5247,7 @@
       <div id="expenses-dropdown-backdrop" onclick="closeAllExpensesDropdowns()" class="hidden absolute inset-0 z-30 bg-black/60 backdrop-blur-sm transition-opacity duration-200"></div>
 
       <!-- Date Filter Bar (Pills matching Image 3 with relative z-40) -->
-      <div id="expenses-modal-date-filter-bar" class="relative z-40 px-3.5 py-2 border-b border-white/10 bg-[#050B14]/85 backdrop-blur-md shrink-0">
+      <div id="expenses-modal-date-filter-bar" class="relative z-40 px-3 py-2 border-b border-white/10 bg-[#050B14]/85 backdrop-blur-md shrink-0">
         <div class="flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/5 w-full relative">
           
           <!-- 1. Day Popover Pill (ថ្ងៃ ⌄) -> Opens Mini Calendar -->
@@ -5318,10 +5318,10 @@
       </div>
 
       <!-- Total Summary Row at TOP -->
-      <div id="expenses-modal-footer" class="px-4 py-2.5 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+      <div id="expenses-modal-footer" class="px-3 py-2 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
-      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2" id="expenses-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-1.5" id="expenses-modal-list" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Rendered dynamically -->
       </div>
     </div>
@@ -5365,7 +5365,7 @@
       </div>
 
       <!-- Header matching iOS Standard -->
-      <div onclick="handleHeaderScrollToTop(event)" class="relative z-50 p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event)" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeCodModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5387,7 +5387,7 @@
       </div>
 
       <!-- Segmented Control Tabs (Bank 5 Rows vs Thai COD) -->
-      <div id="cod-modal-tabs-bar" class="px-3.5 pt-2.5 pb-2 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-md flex items-center gap-2 shrink-0">
+      <div id="cod-modal-tabs-bar" class="px-3 pt-2.5 pb-2 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-md flex items-center gap-2 shrink-0">
         <div class="grid grid-cols-2 p-1 bg-black/40 rounded-xl border border-white/10 flex-1">
           <button id="cod-tab-summary-btn" onclick="switchCodModalTab('summary')" class="py-1.5 px-2.5 rounded-lg text-xs font-semibold transition active:scale-95 bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center gap-1.5">
             <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
@@ -5403,7 +5403,7 @@
       <!-- VIEW 1: Summary Table (Bank & Cash Balance) -->
       <div id="cod-summary-view" class="flex flex-col flex-1 overflow-hidden">
         <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
-        <div id="cod-modal-footer" class="px-4 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+        <div id="cod-modal-footer" class="px-3 py-2 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
           <!-- Injected dynamically -->
         </div>
 
@@ -5528,7 +5528,7 @@
       <!-- Backdrop Blur Overlay for Context Menu -->
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
-      <div onclick="handleHeaderScrollToTop(event, 'bank-modal-list')" class="relative z-50 p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'bank-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeBankModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5564,10 +5564,10 @@
         </div>
       </div>
       <!-- Total Summary Row at TOP (លើកមកលើកុំឲបាំង Dock) -->
-      <div id="bank-modal-footer" class="px-4 py-3 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
+      <div id="bank-modal-footer" class="px-3 py-2 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
-      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2" id="bank-modal-list">
+      <div class="p-3 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-1.5" id="bank-modal-list">
         <!-- Populated dynamically -->
       </div>
     </div>
@@ -5661,7 +5661,7 @@
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
       <!-- Header matching iOS Standard -->
-      <div onclick="handleHeaderScrollToTop(event, 'team-sets-modal-table-container')" class="relative z-50 p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'team-sets-modal-table-container')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeTeamSetsModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5715,7 +5715,7 @@
   <!-- Notification Bottom Sheet Modal (លាតពេញឆ្វេងទៅស្តាំ ១០០% + ប៉ះផ្ទៃទំនេរបិទ) -->
   <div id="notif-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
     <div id="notif-modal-card" class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
-      <div onclick="handleHeaderScrollToTop(event, 'notif-feed-list')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'notif-feed-list')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="toggleNotificationsModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5742,7 +5742,7 @@
         </div>
       </div>
 
-      <div id="notif-feed-list" class="p-3.5 space-y-2.5 overflow-y-auto no-scrollbar pb-28 flex-1" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div id="notif-feed-list" class="p-3 space-y-1.5 overflow-y-auto no-scrollbar pb-28 flex-1" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Injected dynamically -->
       </div>
     </div>
@@ -6306,7 +6306,7 @@
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden relative">
       <!-- Top Sticky Bar -->
       <div onclick="handleHeaderScrollToTop(event, 'executive-hierarchy-scroll-body')" 
-           class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2 cursor-pointer select-none">
+           class="relative z-30 px-3 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2 cursor-pointer select-none">
         <div class="flex items-center justify-between gap-2">
           <!-- Minimalist Back Button -->
           <button onclick="closeExecutiveHierarchyModal()" 
@@ -6345,7 +6345,7 @@
       </div>
 
       <!-- Scrollable Body with Director, Managers Leaderboard, and Member Roster -->
-      <div id="executive-hierarchy-scroll-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 pb-24">
+      <div id="executive-hierarchy-scroll-body" class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2.5 pb-28">
         <!-- Injected dynamically by renderExecutiveHierarchyModalContent() -->
       </div>
     </div>
@@ -6370,7 +6370,7 @@
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden relative">
       <!-- Top Bar -->
       <div id="team-members-header" onclick="handleHeaderScrollToTop(event, 'team-members-list')" 
-           class="relative z-30 px-3.5 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2 cursor-pointer select-none">
+           class="relative z-30 px-3 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2 cursor-pointer select-none">
         <!-- Morphing Header: Default Bar vs Search Expanded Bar -->
         <div id="team-members-header-bar" class="flex items-center justify-between gap-2">
           <!-- Minimalist Back Button (32x32) -->
@@ -6482,7 +6482,7 @@
 
       <!-- View 1: Scrollable Full-Screen Member Cards List -->
       <div id="team-members-list-view" class="flex-1 flex flex-col overflow-hidden">
-        <div id="team-members-list" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-2.5 pb-28">
+        <div id="team-members-list" class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-1.5 pb-28">
           <!-- Injected dynamically by renderTeamMembersList() -->
         </div>
       </div>
@@ -6501,7 +6501,7 @@
     <div class="w-full max-w-lg lg:max-w-xl mx-auto flex flex-col h-full overflow-hidden">
       <!-- Top Bar -->
       <div onclick="handleHeaderScrollToTop(event, 'attendance-modal-body')" 
-           class="relative z-30 px-3.5 sm:px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-2xl shrink-0 flex items-center justify-between gap-2 cursor-pointer select-none transition">
+           class="relative z-30 px-3 pt-3 pb-2.5 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-2xl shrink-0 flex items-center justify-between gap-2 cursor-pointer select-none transition">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeAttendanceModal()" 
                   class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
@@ -6529,7 +6529,7 @@
       </div>
 
       <!-- Scrollable Body -->
-      <div id="attendance-modal-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 sm:p-4 space-y-3 pb-32" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div id="attendance-modal-body" class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2.5 pb-28" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         <!-- Injected dynamically by renderAttendanceContent() -->
       </div>
     </div>
@@ -7089,7 +7089,7 @@
   <!-- ======================================================== -->
   <div id="edit-profile-modal" class="fixed inset-0 z-[70] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy select-none">
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl relative">
-      <div onclick="handleHeaderScrollToTop(event, 'edit-profile-body')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
+      <div onclick="handleHeaderScrollToTop(event, 'edit-profile-body')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
             <i data-lucide="user-pen" class="w-4 h-4"></i>
@@ -7105,7 +7105,7 @@
         </button>
       </div>
 
-      <div id="edit-profile-body" class="p-3.5 sm:p-4 overflow-y-auto flex-1 no-scrollbar space-y-3.5" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
+      <div id="edit-profile-body" class="p-3 overflow-y-auto flex-1 no-scrollbar space-y-2.5 pb-28" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
         <!-- Avatar Upload Section -->
         <div class="p-4 rounded-2xl bg-black/30 border border-white/10 flex flex-col items-center justify-center">
           <div class="relative group cursor-pointer" onclick="document.getElementById('profile-avatar-input').click()">
@@ -7279,7 +7279,7 @@
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in relative">
       
       <!-- Top Modal Header -->
-      <div onclick="handleHeaderScrollToTop(event, 'honors-modal-body')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
+      <div onclick="handleHeaderScrollToTop(event, 'honors-modal-body')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5 min-w-0">
           <!-- Minimalist Back Button (32x32) exactly like All Customers (បញ្ជីអតិថិជន) -->
           <button type="button" onclick="closeHonorsModal()" 
@@ -7304,7 +7304,7 @@
       </div>
 
       <!-- Scrollable Honors Content -->
-      <div id="honors-modal-body" class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3.5 pb-28">
+      <div id="honors-modal-body" class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2.5 pb-28">
         <!-- Rendered dynamically by renderHonorsModalContent() -->
       </div>
     </div>
@@ -7460,7 +7460,7 @@
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
       
       <!-- Top Modal Header -->
-      <div onclick="handleHeaderScrollToTop(event, 'new-order-modal-body')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
+      <div onclick="handleHeaderScrollToTop(event, 'new-order-modal-body')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5 min-w-0">
           <button type="button" onclick="closeNewOrderModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -7489,7 +7489,7 @@
       </div>
 
       <!-- Scrollable Modal Body (Unified Seamless Flow) -->
-      <div class="p-3.5 pb-36 overflow-y-auto flex-1 no-scrollbar space-y-3" id="new-order-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3 pb-36 overflow-y-auto flex-1 no-scrollbar space-y-2.5" id="new-order-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         
         <!-- Telegram Smart Paste Box (Minimized by default on open) -->
         <div id="order-paste-box" class="p-2.5 rounded-2xl bg-black/30 border border-white/10 space-y-1.5 transition-all duration-300">
@@ -8171,7 +8171,7 @@
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
       
       <!-- Top Modal Header -->
-      <div onclick="handleHeaderScrollToTop(event, 'new-expense-modal-body')" class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
+      <div onclick="handleHeaderScrollToTop(event, 'new-expense-modal-body')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5 min-w-0">
           <button type="button" onclick="closeNewExpenseModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-rose-400"></i>
@@ -8187,7 +8187,7 @@
       </div>
 
       <!-- Scrollable Modal Body -->
-      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-3" id="new-expense-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-2.5" id="new-expense-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
         
         <input type="hidden" id="expense-edit-mode" value="false">
         <input type="hidden" id="expense-edit-row-index" value="">
@@ -8422,6 +8422,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.28"></script>
+  <script src="app.js?v=67.29"></script>
 </body>
 </html>
