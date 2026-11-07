@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.1">
+  <link rel="manifest" href="manifest.json?v=67.7">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -262,44 +262,48 @@
       transform: translate3d(-2.8px, 1.8px, 0) scale(1.06);
       z-index: 20;
       opacity: 1.0;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+      filter: none !important;
+      -webkit-filter: none !important;
     }
     .state-a-back {
       transform: translate3d(3.6px, -1.2px, 0) scale(0.82);
       z-index: 10;
-      opacity: 0.82;
-      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+      opacity: 0.65;
+      filter: none !important;
+      -webkit-filter: none !important;
     }
     .state-b-front {
       transform: translate3d(-2.8px, 1.8px, 0) scale(1.06);
       z-index: 20;
       opacity: 1.0;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+      filter: none !important;
+      -webkit-filter: none !important;
     }
     .state-b-back {
       transform: translate3d(3.6px, -1.2px, 0) scale(0.82);
       z-index: 10;
-      opacity: 0.82;
-      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+      opacity: 0.65;
+      filter: none !important;
+      -webkit-filter: none !important;
     }
 
     @keyframes frontToBack3D {
       0.0%   { transform: translate3d(-2.8px, 1.8px, 0) scale(1.06); z-index: 20; opacity: 1.00; }
-      16.7%  { transform: translate3d(-3.8px, 0.4px, 0) scale(1.08); z-index: 20; opacity: 0.98; }
-      33.3%  { transform: translate3d(-4.6px, -1.8px, 0) scale(1.06); z-index: 18; opacity: 0.95; }
-      50.0%  { transform: translate3d(-3.5px, -3.8px, 0) scale(1.01); z-index: 16; opacity: 0.91; }
-      66.7%  { transform: translate3d(-1.5px, -4.6px, 0) scale(0.95); z-index: 14; opacity: 0.87; }
-      83.3%  { transform: translate3d(1.8px, -3.6px, 0) scale(0.88); z-index: 11; opacity: 0.84; }
-      100.0% { transform: translate3d(3.6px, -1.2px, 0) scale(0.82); z-index: 10; opacity: 0.82; }
+      16.7%  { transform: translate3d(-3.8px, 0.4px, 0) scale(1.08); z-index: 20; opacity: 0.95; }
+      33.3%  { transform: translate3d(-4.6px, -1.8px, 0) scale(1.06); z-index: 18; opacity: 0.88; }
+      50.0%  { transform: translate3d(-3.5px, -3.8px, 0) scale(1.01); z-index: 16; opacity: 0.80; }
+      66.7%  { transform: translate3d(-1.5px, -4.6px, 0) scale(0.95); z-index: 14; opacity: 0.74; }
+      83.3%  { transform: translate3d(1.8px, -3.6px, 0) scale(0.88); z-index: 11; opacity: 0.69; }
+      100.0% { transform: translate3d(3.6px, -1.2px, 0) scale(0.82); z-index: 10; opacity: 0.65; }
     }
 
     @keyframes backToFront3D {
-      0.0%   { transform: translate3d(3.6px, -1.2px, 0) scale(0.82); z-index: 10; opacity: 0.82; }
-      16.7%  { transform: translate3d(4.4px, 0.4px, 0) scale(0.86); z-index: 14; opacity: 0.86; }
-      33.3%  { transform: translate3d(4.3px, 1.9px, 0) scale(0.91); z-index: 16; opacity: 0.91; }
-      50.0%  { transform: translate3d(3.2px, 3.2px, 0) scale(0.96); z-index: 18; opacity: 0.95; }
-      66.7%  { transform: translate3d(1.2px, 3.8px, 0) scale(1.01); z-index: 20; opacity: 0.98; }
-      83.3%  { transform: translate3d(-1.2px, 3.2px, 0) scale(1.05); z-index: 20; opacity: 1.00; }
+      0.0%   { transform: translate3d(3.6px, -1.2px, 0) scale(0.82); z-index: 10; opacity: 0.65; }
+      16.7%  { transform: translate3d(4.4px, 0.4px, 0) scale(0.86); z-index: 14; opacity: 0.72; }
+      33.3%  { transform: translate3d(4.3px, 1.9px, 0) scale(0.91); z-index: 16; opacity: 0.80; }
+      50.0%  { transform: translate3d(3.2px, 3.2px, 0) scale(0.96); z-index: 18; opacity: 0.88; }
+      66.7%  { transform: translate3d(1.2px, 3.8px, 0) scale(1.01); z-index: 20; opacity: 0.94; }
+      83.3%  { transform: translate3d(-1.2px, 3.2px, 0) scale(1.05); z-index: 20; opacity: 0.98; }
       100.0% { transform: translate3d(-2.8px, 1.8px, 0) scale(1.06); z-index: 20; opacity: 1.00; }
     }
 
@@ -307,10 +311,21 @@
     .run-b2f { animation: backToFront3D 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
     .person-cutout {
-      filter: drop-shadow(0 0 1.5px rgba(15, 27, 46, 0.95)) drop-shadow(0 0 2.5px rgba(15, 27, 46, 0.9));
+      filter: none !important;
+      -webkit-filter: none !important;
     }
-    .light-theme .person-cutout {
-      filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.98)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.95));
+    .light-theme .person-cutout,
+    .light-theme .state-a-front,
+    .light-theme .state-a-back,
+    .light-theme .state-b-front,
+    .light-theme .state-b-back,
+    .light-theme #dock-btn-customer * {
+      filter: none !important;
+      -webkit-filter: none !important;
+    }
+    .light-theme .state-a-back,
+    .light-theme .state-b-back {
+      opacity: 0.55 !important;
     }
 
     /* ✨ Micro Celestial Glow (✨ Sparkle, ☀️ Ray, 🌙 Moon) */
@@ -526,8 +541,11 @@
     #top-header,
     #sticky-filter-bar,
     #study-sticky-header,
-    #customer-view-header {
-      background-color: rgba(7, 13, 24, 0.96) !important;
+    #customer-view-header,
+    #analytics-sticky-header {
+      background-color: #070D18 !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
       box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45);
     }
@@ -544,8 +562,12 @@
     html.light-theme #study-sticky-header,
     body.light-theme #study-sticky-header,
     html.light-theme #customer-view-header,
-    body.light-theme #customer-view-header {
-      background-color: rgba(255, 255, 255, 0.96) !important;
+    body.light-theme #customer-view-header,
+    html.light-theme #analytics-sticky-header,
+    body.light-theme #analytics-sticky-header {
+      background-color: #FFFFFF !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
       border-bottom: 1px solid #E2E8F0 !important;
       box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06);
     }
@@ -2440,7 +2462,9 @@
 
     /* 13.2. ផ្ទាំងសិក្សា (Study / Learning Hub View) - Full Dual-Mode Support (Light & Dark) */
     .light-theme #study-sticky-header > div {
-      background-color: rgba(255, 255, 255, 0.96) !important;
+      background-color: #FFFFFF !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
       border-color: #E2E8F0 !important;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
     }
@@ -4137,7 +4161,9 @@
       position: sticky !important;
       top: 0 !important;
       z-index: 40 !important;
-      background-color: rgba(7, 13, 24, 0.96) !important;
+      background-color: #070D18 !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
       box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45);
       -webkit-transform: translate3d(0, 0, 0) !important;
@@ -4147,7 +4173,9 @@
       isolation: isolate !important;
     }
     .light-theme #analytics-sticky-header {
-      background-color: rgba(255, 255, 255, 0.96) !important;
+      background-color: #FFFFFF !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
       border-bottom: 1px solid #E2E8F0 !important;
       box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06);
     }
@@ -8332,6 +8360,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.1"></script>
+  <script src="app.js?v=67.7"></script>
 </body>
 </html>

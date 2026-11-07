@@ -9757,9 +9757,9 @@ let expandedCustomerViewKey = null;
 function getCustomerViewHTML() {
   return `
     <div class="w-full pb-28 sm:pb-32" id="customer-view-container">
-      <!-- Sticky Customer Top Header Bar (Solid 96% Opaque, Stationary like Profile Drawer) -->
+      <!-- Sticky Customer Top Header Bar (100% Solid Opaque, Stationary like Profile Drawer) -->
       <div id="customer-view-header" 
-           class="sticky top-0 z-30 w-full p-3 border-b border-white/10 bg-[#070D18]/95 shrink-0 select-none shadow-md shadow-black/20">
+           class="sticky top-0 z-30 w-full p-3 border-b border-white/10 bg-[#070D18] shrink-0 select-none shadow-md shadow-black/20">
         
         <!-- Header Bar: Title & Controls -->
         <div id="customer-view-header-bar" class="flex items-center justify-between gap-2">
