@@ -2255,24 +2255,6 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-
-    // Home Dashboard: Reduce Date Bar (#sticky-filter-bar) opacity to 0 when scrolling down, restore when scrolling up
-    if (isMain && appState.currentView === 'dashboard') {
-      const filterBarEl = document.getElementById('sticky-filter-bar');
-      if (filterBarEl) {
-        if (diff > 8 && currentScrollTop > 25) {
-          if (!filterBarEl.classList.contains('filter-hidden')) {
-            if (typeof closeAllFilterDropdowns === 'function') closeAllFilterDropdowns();
-            filterBarEl.classList.add('filter-hidden');
-          }
-        } else if (diff < -6 || currentScrollTop <= 10) {
-          if (filterBarEl.classList.contains('filter-hidden')) {
-            filterBarEl.classList.remove('filter-hidden');
-          }
-        }
-      }
-    }
-
     // Customer View Header: Reduce opacity to 0 when scrolling down (reading deeper), restore when scrolling up
     if (isMain && appState.currentView === 'customer') {
       const custHeader = document.getElementById('customer-view-header');
@@ -2827,19 +2809,6 @@ function switchView(viewName, shouldReload = false) {
 
   if (viewName === 'dashboard' && shouldReload) {
     manualReload();
-  }
-
-  const filterBar = document.getElementById('sticky-filter-bar');
-  if (filterBar) {
-    if (viewName === 'dashboard') {
-      filterBar.classList.add('dashboard-active');
-      filterBar.classList.remove('hidden', 'filter-hidden');
-      filterBar.style.display = '';
-    } else {
-      filterBar.classList.remove('dashboard-active');
-      filterBar.classList.add('hidden', 'filter-hidden');
-      filterBar.style.display = 'none';
-    }
   }
 
   // Top Header Bar: Hide completely when in Settings or Customer (they have their own headers)
@@ -3412,20 +3381,6 @@ function applyCustomRangeFilter(event) {
 function renderCurrentView() {
   const container = document.getElementById('main-content');
   if (!container) return;
-
-  // Strict Filter Bar Visibility Sync (Only visible on dashboard)
-  const filterBar = document.getElementById('sticky-filter-bar');
-  if (filterBar) {
-    if (appState.currentView === 'dashboard') {
-      filterBar.classList.add('dashboard-active');
-      filterBar.classList.remove('hidden', 'filter-hidden');
-      filterBar.style.display = '';
-    } else {
-      filterBar.classList.remove('dashboard-active');
-      filterBar.classList.add('hidden', 'filter-hidden');
-      filterBar.style.display = 'none';
-    }
-  }
 
   // Update Dynamic Dock Labels based on Language
   updateStaticLabels();
@@ -6984,6 +6939,122 @@ function getLivePendingCodTotal() {
   return combined.reduce((sum, it) => sum + (it.amount || 0), 0);
 }
 
+function getStickyFilterBarHTML() {
+  const isEn = appState.language === 'en';
+  const period = appState.periodFilter || 'today';
+
+  // Calculate current label values
+  const now = new Date();
+  const curDay = String(now.getDate()).padStart(2, '0');
+  let dayLabel = appState.daySubFilter === 'yesterday'
+    ? (isEn ? 'Yesterday' : 'ម្សិលមិញ')
+    : (appState.specificDate
+        ? `ថ្ងៃទី ${appState.specificDate.split('-')[2]}`
+        : `ថ្ងៃទី ${curDay}`);
+
+  let monthLabel = appState.selectedMonthKey
+    ? `ខែ ${appState.selectedMonthKey.split('-')[1]}`
+    : (isEn ? 'Month' : 'ខែ');
+
+  let yearLabel = appState.selectedYear
+    ? String(appState.selectedYear)
+    : (isEn ? 'Year' : 'ឆ្នាំ');
+
+  const isTodayActive = period === 'today';
+  const isMonthActive = period === 'month';
+  const isYearActive = period === 'year';
+  const isCustomActive = period === 'custom';
+
+  return `
+    <div id="sticky-filter-bar" class="w-full relative z-20 flex flex-col gap-1.5 select-none pt-0">
+      <!-- iOS Subtle Backdrop Blur for Filter Popovers -->
+      <div id="filter-dropdown-backdrop" onclick="closeAllFilterDropdowns()" class="hidden fixed inset-0 z-30 bg-black/25 backdrop-blur-sm transition-opacity duration-200"></div>
+
+      <!-- 1. Normal Filter Pills Bar -->
+      <div id="filter-pills-bar" class="${isCustomActive ? 'hidden' : 'flex'} items-center gap-1 bg-[#050B14] p-1 rounded-2xl border border-white/5 w-full relative z-40">
+        
+        <!-- 1. Day Popover Pill (ថ្ងៃ ⌄) -> iPhone UI Mini Calendar Popover -->
+        <div class="relative flex-1">
+          <button onclick="toggleDayDropdown(event)" id="filter-btn-today" 
+                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn ${isTodayActive ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'} flex items-center justify-center gap-1">
+            <span id="day-pill-label">${dayLabel}</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
+          </button>
+
+          <!-- iPhone UI Mini Calendar Popover Container -->
+          <div id="day-dropdown-menu" 
+               class="hidden absolute top-full left-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-[#0C1425]/95 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl p-3.5 z-50 flex flex-col gap-2.5">
+            <!-- Rendered dynamically by renderMiniCalendar() in app.js -->
+          </div>
+        </div>
+
+        <!-- 2. Month Popover Pill (ខែ ⌄) with Ticks -->
+        <div class="relative flex-1">
+          <button onclick="toggleMonthDropdown(event)" id="filter-btn-month" 
+                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn ${isMonthActive ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'} flex items-center justify-center gap-1">
+            <span id="month-pill-label">${monthLabel}</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
+          </button>
+
+          <!-- Month Selector Submenu (iOS List Style showing all 12 months without scroll) -->
+          <div id="month-dropdown-menu" 
+               class="hidden absolute top-full left-0 mt-1.5 w-40 bg-[#0B1528]/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 flex flex-col gap-0.5">
+            <!-- Rendered dynamically by renderMonthDropdownMenu() -->
+          </div>
+        </div>
+
+        <!-- 3. Year Popover Pill (ឆ្នាំ ⌄) with Ticks -->
+        <div class="relative flex-1">
+          <button onclick="toggleYearDropdown(event)" id="filter-btn-year" 
+                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn ${isYearActive ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'} flex items-center justify-center gap-1">
+            <span id="year-pill-label">${yearLabel}</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
+          </button>
+
+          <!-- Year Selector Submenu with Ticks -->
+          <div id="year-dropdown-menu" 
+               class="hidden absolute top-full left-0 mt-1.5 w-32 bg-[#0B1528]/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 flex flex-col gap-0.5">
+            <!-- Rendered dynamically by renderYearDropdownMenu() -->
+          </div>
+        </div>
+
+        <!-- 4. Custom Filter Button (ជ្រើសរើស) -->
+        <button onclick="setPeriodFilter('custom')" id="filter-btn-custom" 
+                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn ${isCustomActive ? 'accent-solid-btn shadow-md' : 'text-slate-400 hover:text-white'} flex items-center justify-center gap-0.5">
+          <span>${isEn ? 'Custom' : 'ជ្រើសរើស'}</span>
+          <i data-lucide="calendar" class="w-3 h-3 opacity-80"></i>
+        </button>
+      </div>
+
+      <!-- 2. Custom Date Picker In-Place Bar (Replaces filter pills in-place when active) -->
+      <div id="custom-date-container" class="${isCustomActive ? 'flex' : 'hidden'} items-center justify-between gap-1.5 bg-[#050B14] p-1 rounded-2xl border border-white/5 w-full relative z-40 text-xs">
+        <div class="flex items-center gap-1 flex-1 pl-1.5 min-w-0">
+          <span class="text-slate-400 text-[11px] font-medium shrink-0">ពី:</span>
+          <input type="date" id="custom-start-date" value="${appState.customStartDate || ''}" onchange="handleCustomDateInputChange()" 
+                 class="bg-white/10 rounded-xl px-2 py-1 text-white text-[11px] w-full focus:outline-none focus:ring-1 focus:ring-orange-500/50">
+        </div>
+        <div class="flex items-center gap-1 flex-1 min-w-0">
+          <span class="text-slate-400 text-[11px] font-medium shrink-0">ដល់:</span>
+          <input type="date" id="custom-end-date" value="${appState.customEndDate || ''}" onchange="handleCustomDateInputChange()" 
+                 class="bg-white/10 rounded-xl px-2 py-1 text-white text-[11px] w-full focus:outline-none focus:ring-1 focus:ring-orange-500/50">
+        </div>
+        <!-- Action Buttons: [✕ Cancel] + [យល់ព្រម Apply] -->
+        <div class="flex items-center gap-1 shrink-0">
+          <button id="custom-date-cancel-btn" type="button" onclick="cancelCustomDateFilter(event)" 
+                  class="w-7 h-7 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center text-xs font-bold transition shadow-sm"
+                  title="បោះបង់">
+            ✕
+          </button>
+          <button id="custom-date-submit-btn" type="button" onclick="applyCustomRangeFilter(event)" 
+                  class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-[11px] shrink-0 transition-all duration-150 active:scale-95 shadow-md shadow-orange-500/30">
+            យល់ព្រម
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function getDashboardViewHTML() {
   const d = DataService.data;
   if (!d) {
@@ -7981,6 +8052,7 @@ function getDashboardViewHTML() {
   const showTools = cv.tools !== false;
 
   const cardsInOrder = [
+    { key: 'filter', show: true, html: getStickyFilterBarHTML() },
     { key: 'banner', show: true, html: periodBanner },
     { key: 'performance', show: showPerformance, html: cardPerformance },
     { key: 'netCash', show: true, html: cardNetCash },
@@ -7992,6 +8064,7 @@ function getDashboardViewHTML() {
   const renderedCards = cardsInOrder.filter(c => c.show).map(c => c.html).join('');
   if (!renderedCards.trim()) {
     return `
+      ${getStickyFilterBarHTML()}
       ${periodBanner}
       <div class="ios-glass-card rounded-3xl p-6 border border-white/10 text-center py-12">
         <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 mx-auto mb-3">
@@ -20584,19 +20657,6 @@ function handleHeaderScrollToTop(e, targetId = null) {
     if (target.id === 'main-content') {
       const topH = document.getElementById('top-header');
       if (topH) topH.classList.remove('header-collapsed');
-      const filterB = document.getElementById('sticky-filter-bar');
-      if (filterB) {
-        if (appState.currentView === 'dashboard') {
-          filterB.classList.add('dashboard-active');
-          filterB.classList.remove('filter-hidden');
-        } else {
-          filterB.classList.remove('dashboard-active');
-          filterB.classList.add('filter-hidden', 'hidden');
-          filterB.style.display = 'none';
-        }
-      }
-      const analyticsH = document.getElementById('analytics-sticky-header');
-      if (analyticsH) analyticsH.classList.remove('filter-hidden');
       const studyH = document.getElementById('study-sticky-header');
       if (studyH) studyH.classList.remove('filter-hidden');
       const custH = document.getElementById('customer-view-header');
@@ -20899,7 +20959,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.26';
+const CURRENT_APP_VERSION = '67.27';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

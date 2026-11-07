@@ -1,5 +1,5 @@
 {
-  "version": "67.26",
-  "buildTime": "2026-11-07T23:55:00+07:00",
-  "notes": "v67.26: Unified Year bar spacing to flush top alignment; enabled Verified Blue Tick on Profile Drawer; scaled dock icons to 26px, shifted up, and equalized customer duo icon volume"
+  "version": "67.27",
+  "buildTime": "2026-11-08T00:15:00+07:00",
+  "notes": "v67.27: Removed opacity auto-hide and set Home Date Filter bar to scroll naturally with content (zero jitter, 100% smooth scroll)"
 }

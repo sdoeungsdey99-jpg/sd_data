@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.26">
+  <link rel="manifest" href="manifest.json?v=67.27">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -568,7 +568,6 @@
     #top-header,
     #customer-view-header,
     #profile-drawer-header,
-    #sticky-filter-bar,
     #study-sticky-header {
       background-color: #070D18 !important;
       backdrop-filter: none !important;
@@ -586,27 +585,18 @@
       transform: translateY(-8px) !important;
     }
     #sticky-filter-bar {
-      max-height: 80px;
-      transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1), transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1), padding 0.28s ease, margin 0.28s ease, border-color 0.28s ease;
+      width: 100%;
+      position: relative;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
       overflow: visible;
     }
-    #sticky-filter-bar.filter-hidden {
-      max-height: 0 !important;
-      opacity: 0 !important;
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
-      margin-top: 0 !important;
-      margin-bottom: 0 !important;
-      border-bottom: 0px solid transparent !important;
-      border-bottom-width: 0px !important;
-      pointer-events: none !important;
-      overflow: hidden !important;
-      transform: translateY(-8px) !important;
+    .light-theme #sticky-filter-bar {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
     }
-    #sticky-filter-bar:not(.dashboard-active),
-    #sticky-filter-bar.hidden,
-    #sticky-filter-bar[hidden],
-    body:has(#main-content.analytics-view-active) #sticky-filter-bar,
     #demo-mode-indicator-bar.hidden {
       display: none !important;
       max-height: 0 !important;
@@ -656,8 +646,6 @@
     body.light-theme #customer-view-header,
     html.light-theme #profile-drawer-header,
     body.light-theme #profile-drawer-header,
-    html.light-theme #sticky-filter-bar,
-    body.light-theme #sticky-filter-bar,
     html.light-theme #study-sticky-header,
     body.light-theme #study-sticky-header {
       background-color: #FFFFFF !important;
@@ -4863,94 +4851,6 @@
       </div>
     </div>
 
-    <!-- STICKY FLOATING FILTER PILLS BAR (Shown ONLY on Home / Dashboard) -->
-    <div id="sticky-filter-bar" class="dashboard-active sticky top-0 z-20 px-3 py-2 border-b border-white/5 flex flex-col gap-1.5 bg-[#070D18]">
-      <!-- iOS Subtle Backdrop Blur for Filter Popovers -->
-      <div id="filter-dropdown-backdrop" onclick="closeAllFilterDropdowns()" class="hidden fixed inset-0 z-30 bg-black/25 backdrop-blur-sm transition-opacity duration-200"></div>
-
-      <!-- 1. Normal Filter Pills Bar -->
-      <div id="filter-pills-bar" class="flex items-center gap-1 bg-[#050B14] p-1 rounded-2xl border border-white/5 w-full relative z-40">
-        
-        <!-- 1. Day Popover Pill (ថ្ងៃ ⌄) -> iPhone UI Mini Calendar Popover -->
-        <div class="relative flex-1">
-          <button onclick="toggleDayDropdown(event)" id="filter-btn-today" 
-                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn accent-solid-btn shadow-md flex items-center justify-center gap-1">
-            <span id="day-pill-label">ថ្ងៃទី</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
-          </button>
-
-          <!-- iPhone UI Mini Calendar Popover Container -->
-          <div id="day-dropdown-menu" 
-               class="hidden absolute top-full left-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-[#0C1425]/95 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl p-3.5 z-50 flex flex-col gap-2.5">
-            <!-- Rendered dynamically by renderMiniCalendar() in app.js -->
-          </div>
-        </div>
-
-        <!-- 2. Month Popover Pill (ខែ ⌄) with Ticks -->
-        <div class="relative flex-1">
-          <button onclick="toggleMonthDropdown(event)" id="filter-btn-month" 
-                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white flex items-center justify-center gap-1">
-            <span id="month-pill-label">ខែ</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
-          </button>
-
-          <!-- Month Selector Submenu (iOS List Style showing all 12 months without scroll) -->
-          <div id="month-dropdown-menu" 
-               class="hidden absolute top-full left-0 mt-1.5 w-40 bg-[#0B1528]/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 flex flex-col gap-0.5">
-            <!-- Rendered dynamically by renderMonthDropdownMenu() -->
-          </div>
-        </div>
-
-        <!-- 3. Year Popover Pill (ឆ្នាំ ⌄) with Ticks -->
-        <div class="relative flex-1">
-          <button onclick="toggleYearDropdown(event)" id="filter-btn-year" 
-                  class="w-full py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white flex items-center justify-center gap-1">
-            <span id="year-pill-label">ឆ្នាំ</span>
-            <i data-lucide="chevron-down" class="w-3 h-3 opacity-80"></i>
-          </button>
-
-          <!-- Year Selector Submenu with Ticks -->
-          <div id="year-dropdown-menu" 
-               class="hidden absolute top-full left-0 mt-1.5 w-32 bg-[#0B1528]/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-1 z-50 flex flex-col gap-0.5">
-            <!-- Rendered dynamically by renderYearDropdownMenu() -->
-          </div>
-        </div>
-
-        <!-- 4. Custom Filter Button (ជ្រើសរើស) -->
-        <button onclick="setPeriodFilter('custom')" id="filter-btn-custom" 
-                class="flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold text-center transition dock-btn text-slate-400 hover:text-white flex items-center justify-center gap-0.5">
-          <span>ជ្រើសរើស</span>
-          <i data-lucide="calendar" class="w-3 h-3 opacity-80"></i>
-        </button>
-      </div>
-
-      <!-- 2. Custom Date Picker In-Place Bar (Replaces filter pills in-place when active) -->
-      <div id="custom-date-container" class="hidden flex items-center justify-between gap-1.5 bg-[#050B14] p-1 rounded-2xl border border-white/5 w-full relative z-40 text-xs">
-        <div class="flex items-center gap-1 flex-1 pl-1.5 min-w-0">
-          <span class="text-slate-400 text-[11px] font-medium shrink-0">ពី:</span>
-          <input type="date" id="custom-start-date" onchange="handleCustomDateInputChange()" 
-                 class="bg-white/10 rounded-xl px-2 py-1 text-white text-[11px] w-full focus:outline-none focus:ring-1 focus:ring-orange-500/50">
-        </div>
-        <div class="flex items-center gap-1 flex-1 min-w-0">
-          <span class="text-slate-400 text-[11px] font-medium shrink-0">ដល់:</span>
-          <input type="date" id="custom-end-date" onchange="handleCustomDateInputChange()" 
-                 class="bg-white/10 rounded-xl px-2 py-1 text-white text-[11px] w-full focus:outline-none focus:ring-1 focus:ring-orange-500/50">
-        </div>
-        <!-- Action Buttons: [✕ Cancel] + [យល់ព្រម Apply] -->
-        <div class="flex items-center gap-1 shrink-0">
-          <button id="custom-date-cancel-btn" type="button" onclick="cancelCustomDateFilter(event)" 
-                  class="w-7 h-7 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center text-xs font-bold transition shadow-sm"
-                  title="បោះបង់">
-            ✕
-          </button>
-          <button id="custom-date-submit-btn" type="button" onclick="applyCustomRangeFilter(event)" 
-                  class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-[11px] shrink-0 transition-all duration-150 active:scale-95 shadow-md shadow-orange-500/30">
-            យល់ព្រម
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- MAIN SCROLLABLE CONTENT BODY (With Pull-to-Refresh Container) -->
     <div id="pull-refresh-indicator" class="h-0 overflow-hidden flex items-center justify-center text-xs text-orange-400 transition-all duration-200 shrink-0 select-none pointer-events-none z-20">
       <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 font-medium text-[11px] shadow-sm">
@@ -8525,6 +8425,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.26"></script>
+  <script src="app.js?v=67.27"></script>
 </body>
 </html>
