@@ -1,5 +1,5 @@
 {
-  "version": "67.16",
-  "buildTime": "2026-11-07T21:47:00+07:00",
-  "notes": "Frameless full customer icon without box, stationary header title without drawer trigger"
+  "version": "67.17",
+  "buildTime": "2026-11-07T21:49:00+07:00",
+  "notes": "Removed 'ទាញទិន្នន័យជោគជ័យ' toast notification completely for quiet, seamless data refresh"
 }

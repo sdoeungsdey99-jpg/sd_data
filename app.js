@@ -1506,9 +1506,6 @@ async function manualReload(force = false) {
   if (typeof renderCurrentView === 'function') {
     renderCurrentView();
   }
-  if (force && typeof showToastNotification === 'function') {
-    showToastNotification('ទាញទិន្នន័យជោគជ័យ ✓');
-  }
   if (appState.currentView === 'learning') {
     const main = document.getElementById('main-content');
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
@@ -20870,7 +20867,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.16';
+const CURRENT_APP_VERSION = '67.17';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
