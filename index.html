@@ -543,6 +543,8 @@
     #customer-view-header {
       background-color: #070D18 !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      transition: opacity 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+      will-change: opacity;
     }
     #top-header {
       padding-top: max(env(safe-area-inset-top, 0px), 14px) !important;
