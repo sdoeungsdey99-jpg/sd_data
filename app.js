@@ -8064,22 +8064,28 @@ function getDashboardViewHTML() {
   const renderedCards = cardsInOrder.filter(c => c.show).map(c => c.html).join('');
   if (!renderedCards.trim()) {
     return `
-      ${getStickyFilterBarHTML()}
-      ${periodBanner}
-      <div class="ios-glass-card rounded-3xl p-6 border border-white/10 text-center py-12">
-        <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 mx-auto mb-3">
-          <i data-lucide="eye-off" class="w-6 h-6"></i>
+      <div id="dashboard-view-container" class="w-full p-3 space-y-2.5 pb-28">
+        ${getStickyFilterBarHTML()}
+        ${periodBanner}
+        <div class="ios-glass-card rounded-3xl p-6 border border-white/10 text-center py-12">
+          <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 mx-auto mb-3">
+            <i data-lucide="eye-off" class="w-6 h-6"></i>
+          </div>
+          <p class="text-sm font-bold text-white mb-1">កាតទាំងអស់ត្រូវបានលាក់</p>
+          <p class="text-xs text-slate-400 mb-4">កាតគ្មានទិន្នន័យត្រូវបានលាក់ស្វ័យប្រវត្តិ ឬអ្នកបានបិទកាត</p>
+          <button onclick="switchView('settings'); setTimeout(() => toggleSettingsItem('cardPreferences'), 100);" 
+                  class="px-4 py-2 rounded-xl accent-solid-btn font-bold text-xs shadow-lg transition active:scale-95">
+            ${isKm ? 'ការរៀបចំកាតទិន្នន័យ' : 'Card Preferences'}
+          </button>
         </div>
-        <p class="text-sm font-bold text-white mb-1">កាតទាំងអស់ត្រូវបានលាក់</p>
-        <p class="text-xs text-slate-400 mb-4">កាតគ្មានទិន្នន័យត្រូវបានលាក់ស្វ័យប្រវត្តិ ឬអ្នកបានបិទកាត</p>
-        <button onclick="switchView('settings'); setTimeout(() => toggleSettingsItem('cardPreferences'), 100);" 
-                class="px-4 py-2 rounded-xl accent-solid-btn font-bold text-xs shadow-lg transition active:scale-95">
-          ${isKm ? 'ការរៀបចំកាតទិន្នន័យ' : 'Card Preferences'}
-        </button>
       </div>
     `;
   }
-  return renderedCards;
+  return `
+    <div id="dashboard-view-container" class="w-full p-3 space-y-2.5 pb-28">
+      ${renderedCards}
+    </div>
+  `;
 }
 
 // ==========================================
@@ -9249,10 +9255,11 @@ function getAnalyticsViewHTML() {
     }
 
     return `
-      <!-- Combined Year (Bar 2) & Month (Bar 3) Block (Scrolls naturally) -->
-      ${analyticsYearMonthBlockHtml}
+      <div id="analytics-view-container" class="w-full p-3 space-y-2.5 pb-28">
+        <!-- Combined Year (Bar 2) & Month (Bar 3) Block (Scrolls naturally) -->
+        ${analyticsYearMonthBlockHtml}
 
-      <!-- Month Hero Card -->
+        <!-- Month Hero Card -->
         <div onclick="cycleAnalyticsPerspective(event)" 
              title="ចុចកន្លែងទំនេរដើម្បីឆ្លាស់ទិដ្ឋភាព (ទិដ្ឋភាពរួម • អាជីវកម្ម • ចំណាយផ្ទាល់ខ្លួន)"
              class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 relative overflow-hidden cursor-pointer select-none">
@@ -9294,6 +9301,7 @@ function getAnalyticsViewHTML() {
 
         <!-- Detail Breakdown List -->
         ${detailListHtml}
+      </div>
     `;
   }
 
@@ -9806,10 +9814,11 @@ function getAnalyticsViewHTML() {
   }
 
   return `
-    <!-- Combined Year (Bar 2) & Month (Bar 3) Block (Scrolls naturally) -->
-    ${analyticsYearMonthBlockHtml}
+    <div id="analytics-view-container" class="w-full p-3 space-y-2.5 pb-28">
+      <!-- Combined Year (Bar 2) & Month (Bar 3) Block (Scrolls naturally) -->
+      ${analyticsYearMonthBlockHtml}
 
-    <!-- Year Hero Card -->
+      <!-- Year Hero Card -->
       <div onclick="cycleAnalyticsPerspective(event)" 
            title="ចុចកន្លែងទំនេរដើម្បីឆ្លាស់ទិដ្ឋភាព (ទិដ្ឋភាពរួម • អាជីវកម្ម • ចំណាយផ្ទាល់ខ្លួន)"
            class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 relative overflow-hidden cursor-pointer select-none">
@@ -9847,6 +9856,7 @@ function getAnalyticsViewHTML() {
 
       <!-- Annual Breakdown Table (Minimizable) -->
       ${annualTableHtml}
+    </div>
   `;
 }
 
@@ -10299,7 +10309,7 @@ function getLearningViewHTML() {
   return `
     <div class="w-full pb-28 sm:pb-32" id="study-container">
       <!-- Top Sticky Segmented Tab Bar (Auto-hide on scroll like front filter bar, locks against Profile Bar) -->
-      <div id="study-sticky-header" class="sticky top-0 z-30 w-full px-3.5 py-1.5 transition-colors">
+      <div id="study-sticky-header" class="sticky top-0 z-30 w-full px-3 py-1.5 transition-colors">
         <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
           <button onclick="setStudyTab('sales_reset')" 
                   class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${currentTab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
@@ -10320,7 +10330,7 @@ function getLearningViewHTML() {
       </div>
 
       <!-- Tab Content Area -->
-      <div id="study-tab-content-area" class="px-3.5 pt-1 space-y-2.5">
+      <div id="study-tab-content-area" class="p-3 pt-1 space-y-2.5">
         ${currentTab === 'sales_reset' ? renderSalesResetContent() : ''}
         ${currentTab === 'quotes' ? renderSalesQuotesContent() : ''}
         ${currentTab === 'english' ? renderEnglishWordsContent() : ''}
@@ -10337,7 +10347,7 @@ function setStudyTab(tab) {
   const container = document.getElementById('study-container');
   if (container) {
     container.innerHTML = `
-      <div id="study-sticky-header" class="sticky top-0 z-30 w-full px-3.5 py-1.5 transition-colors">
+      <div id="study-sticky-header" class="sticky top-0 z-30 w-full px-3 py-1.5 transition-colors">
         <div class="flex items-center p-1 rounded-2xl bg-[#091122]/90 border border-white/10 shadow-lg shadow-black/40 select-none">
           <button onclick="setStudyTab('sales_reset')" 
                   class="flex-1 py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === 'sales_reset' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
@@ -13247,7 +13257,7 @@ function getSettingsViewHTML() {
   const prof = getProfileData();
 
   return `
-    <div class="space-y-4 pb-8 relative">
+    <div id="settings-view-container" class="w-full p-3 space-y-3 pb-28 relative">
       
       <!-- Animated Khmer Apsara Motif with Twinkling Stars Behind (ផ្កាយក្រោយទេវតា និង Animation ទាំងទេវតា និងផ្កាយ) -->
       <div class="absolute -top-3 right-0 w-28 h-32 pointer-events-none select-none overflow-hidden z-0 flex items-start justify-end">
@@ -20959,7 +20969,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.27';
+const CURRENT_APP_VERSION = '67.28';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -25276,7 +25286,7 @@ function getProfileViewHTML() {
   ].filter(item => p.privacy[item.key] !== false && item.val && String(item.val).trim() !== '');
 
   return `
-    <div class="space-y-3.5 pb-10 relative">
+    <div id="profile-view-container" class="w-full p-3 space-y-2.5 pb-28 relative">
 
       <!-- ======================================================== -->
       <!-- ZONE 1: CENTERED PROFILE HERO (ឈ្មោះ និង ID នៅពីក្រោម)   -->

@@ -1,5 +1,5 @@
 {
-  "version": "67.27",
-  "buildTime": "2026-11-08T00:15:00+07:00",
-  "notes": "v67.27: Removed opacity auto-hide and set Home Date Filter bar to scroll naturally with content (zero jitter, 100% smooth scroll)"
+  "version": "67.28",
+  "buildTime": "2026-11-08T00:30:00+07:00",
+  "notes": "v67.28: Standardized all views and drawers to Customer View full-width layout with unified p-3 margins and edge-to-edge alignment"
 }

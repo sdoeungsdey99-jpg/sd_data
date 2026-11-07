@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.27">
+  <link rel="manifest" href="manifest.json?v=67.28">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -555,14 +555,11 @@
       scroll-behavior: auto !important;
       padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 16px)) !important;
     }
-    #main-content.learning-view-active,
-    #main-content.customer-view-active {
-      padding-left: 0 !important;
-      padding-right: 0 !important;
-      padding-top: 0 !important;
+    #main-content {
+      padding: 0 !important;
+      margin: 0 !important;
     }
-    #main-content.learning-view-active > :not([hidden]) ~ :not([hidden]),
-    #main-content.customer-view-active > :not([hidden]) ~ :not([hidden]) {
+    #main-content > :not([hidden]) ~ :not([hidden]) {
       margin-top: 0 !important;
     }
     #top-header,
@@ -4862,7 +4859,7 @@
       </span>
     </div>
 
-    <main class="flex-1 overflow-y-auto px-3.5 pt-2.5 pb-28 space-y-3.5 no-scrollbar dashboard-view-active" id="main-content">
+    <main class="flex-1 overflow-y-auto no-scrollbar p-0" id="main-content">
       <!-- Dynamic render by app.js -->
     </main>
   </div>
@@ -5931,7 +5928,7 @@
       </div>
 
       <!-- Drawer Scrollable Content: Focused on Dashboard Functions (No 2 buttons under profile!) -->
-      <div id="profile-drawer-content" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3 pb-28">
+      <div id="profile-drawer-content" class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2.5 pb-28">
         <!-- Injected dynamically via renderProfileDrawerContent() -->
       </div>
     </div>
@@ -8425,6 +8422,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.27"></script>
+  <script src="app.js?v=67.28"></script>
 </body>
 </html>
