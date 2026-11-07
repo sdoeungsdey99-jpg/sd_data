@@ -2260,36 +2260,8 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // Customer View Header: Fluid Dynamic Opacity Scroll Fade
-    if (isMain && appState.currentView === 'customer') {
-      const custHeader = document.getElementById('customer-view-header');
-      if (custHeader) {
-        if (currentScrollTop <= 15) {
-          custHeader.style.opacity = '1';
-          custHeader.style.pointerEvents = 'auto';
-        } else if (diff > 0) {
-          // Scrolling down into content -> Fade out (fast scroll drops to 0 immediately)
-          if (diff > 25) {
-            custHeader.style.opacity = '0';
-            custHeader.style.pointerEvents = 'none';
-          } else {
-            const curOp = parseFloat(custHeader.style.opacity !== '' ? custHeader.style.opacity : '1');
-            const targetOp = Math.max(0, curOp - (diff / 35));
-            custHeader.style.opacity = targetOp.toFixed(2);
-            if (targetOp <= 0.05) custHeader.style.pointerEvents = 'none';
-          }
-        } else if (diff < 0) {
-          // Scrolling up towards top -> Fade in gradually (សន្សឹមៗ)
-          const curOp = parseFloat(custHeader.style.opacity !== '' ? custHeader.style.opacity : '0');
-          const targetOp = Math.min(1, curOp + (Math.abs(diff) / 25));
-          custHeader.style.opacity = targetOp.toFixed(2);
-          if (targetOp > 0.08) custHeader.style.pointerEvents = 'auto';
-        }
-      }
-    }
-
-    // 1. Scrolling content down (finger dragging up, reading down) -> Smoothly hide Header, Sub-bar & Dock (Standardized threshold)
-    if (diff > 25 && currentScrollTop > 60) {
+    // 1. Scrolling content down (finger dragging up, reading down) -> Smoothly hide Header, Sub-bar & Dock (Standardized threshold matching All Customers list)
+    if (diff > 14 && currentScrollTop > 60) {
       setDockVisible(false);
       const topHeader = document.getElementById('top-header');
       if (topHeader && !topHeader.classList.contains('header-collapsed')) {
@@ -2313,8 +2285,8 @@ function hookScrollableForDock(el, isMain = false) {
         }
       }
     }
-    // 2. Actively scrolling content up (finger dragging down) OR near top -> Smoothly restore Header, Sub-bar & Dock
-    else if (diff < -20 || currentScrollTop <= 15) {
+    // 2. Actively scrolling content up (finger dragging down) OR near top -> Smoothly restore Header, Sub-bar & Dock (Matching All Customers list)
+    else if (diff < -12 || currentScrollTop <= 20) {
       if (!isDialogModalOpen()) {
         setDockVisible(true);
         const topHeader = document.getElementById('top-header');
@@ -2360,79 +2332,12 @@ function hookScrollableForDock(el, isMain = false) {
   }, { passive: true });
 }
 
-// Damped, comfortable reading scroll speed for Dashboard, Learning & Customer views
-function setupScrollDamping(container) {
-  if (!container || container._scrollDamped) return;
-  container._scrollDamped = true;
-
-  // 1. Wheel / Trackpad damping (Mouse & Mac trackpad: calibrated ~48% steady speed)
-  container.addEventListener('wheel', (e) => {
-    if (appState.currentView === 'dashboard' || appState.currentView === 'learning' || appState.currentView === 'customer') {
-      // Allow unaffected scrolling inside open sub-modals, dropdowns, inputs
-      if (e.target.closest('#all-customers-modal, #sales-modal, #new-order-modal, [role="dialog"], .dropdown-menu, select, textarea')) return;
-      e.preventDefault();
-      container.scrollTop += e.deltaY * 0.48;
-    }
-  }, { passive: false });
-
-  // 2. Mobile Touch momentum damping
-  let isTouching = false;
-  let touchStartY = 0;
-  let touchLastY = 0;
-  let touchTime = 0;
-  let touchVelocity = 0;
-  let momentumRaf = null;
-
-  container.addEventListener('touchstart', (e) => {
-    if (appState.currentView === 'dashboard' || appState.currentView === 'learning' || appState.currentView === 'customer') {
-      if (e.target.closest('#all-customers-modal, #sales-modal, #new-order-modal, [role="dialog"], .dropdown-menu, select, textarea')) return;
-      if (momentumRaf) cancelAnimationFrame(momentumRaf);
-      isTouching = true;
-      touchStartY = e.touches[0].clientY;
-      touchLastY = touchStartY;
-      touchTime = performance.now();
-      touchVelocity = 0;
-    }
-  }, { passive: true });
-
-  container.addEventListener('touchmove', (e) => {
-    if (!isTouching) return;
-    const currentY = e.touches[0].clientY;
-    const now = performance.now();
-    const dt = now - touchTime || 16;
-    const dy = currentY - touchLastY;
-    touchVelocity = (0.7 * (dy / dt)) + (0.3 * touchVelocity);
-    touchLastY = currentY;
-    touchTime = now;
-  }, { passive: true });
-
-  container.addEventListener('touchend', () => {
-    if (!isTouching) return;
-    isTouching = false;
-    if (Math.abs(touchVelocity) > 0.15) {
-      let v = touchVelocity * 14;
-      const maxV = 20; // Cap top velocity so it never flies uncontrollably past cards
-      if (v > maxV) v = maxV;
-      if (v < -maxV) v = -maxV;
-
-      function step() {
-        if (Math.abs(v) < 0.3) return;
-        container.scrollTop -= v;
-        v *= 0.92; // Smooth 0.92 friction deceleration
-        momentumRaf = requestAnimationFrame(step);
-      }
-      momentumRaf = requestAnimationFrame(step);
-    }
-  }, { passive: true });
-}
-
 function setupSmartDockScroll() {
   setDockVisible(true);
 
   const main = document.getElementById('main-content');
   if (main) {
     hookScrollableForDock(main, true);
-    setupScrollDamping(main);
   }
 
   const scrollableIds = [
@@ -9884,10 +9789,9 @@ let expandedCustomerViewKey = null;
 function getCustomerViewHTML() {
   return `
     <div class="w-full pb-28 sm:pb-32" id="customer-view-container">
-      <!-- Sticky Customer Top Header Bar (With Fluid Dynamic Opacity Scroll Fade, No Back Button) -->
+      <!-- Sticky Customer Top Header Bar (Pinned, identical to Customer List) -->
       <div id="customer-view-header" 
-           class="sticky top-0 z-30 w-full p-3 border-b border-white/10 bg-[#070D18]/95 backdrop-blur-xl shrink-0 select-none transition-opacity duration-200"
-           style="opacity: 1; pointer-events: auto;">
+           class="sticky top-0 z-30 w-full p-3 border-b border-white/10 bg-[#070D18]/95 backdrop-blur-xl shrink-0 select-none shadow-md shadow-black/20">
         
         <!-- Header Bar: Title & Controls -->
         <div id="customer-view-header-bar" class="flex items-center justify-between gap-2">
@@ -20521,22 +20425,12 @@ function handleCustomerTabClick(e) {
     if (navigator.vibrate) navigator.vibrate([15, 50, 15]);
     const main = document.getElementById('main-content');
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
-    const custHeader = document.getElementById('customer-view-header');
-    if (custHeader) {
-      custHeader.style.opacity = '1';
-      custHeader.style.pointerEvents = 'auto';
-    }
     setDockVisible(true);
     manualReload();
   } else {
-    // 👆 SINGLE TAP: Smooth scroll to top & restore header & dock
+    // 👆 SINGLE TAP: Smooth scroll to top & restore dock
     const main = document.getElementById('main-content');
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
-    const custHeader = document.getElementById('customer-view-header');
-    if (custHeader) {
-      custHeader.style.opacity = '1';
-      custHeader.style.pointerEvents = 'auto';
-    }
     setDockVisible(true);
     if (navigator.vibrate) navigator.vibrate(10);
   }
