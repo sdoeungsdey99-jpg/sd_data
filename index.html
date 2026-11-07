@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.23">
+  <link rel="manifest" href="manifest.json?v=67.25">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -259,28 +259,28 @@
     }
 
     .state-a-front {
-      transform: translate3d(-2.8px, 1.8px, 0) scale(1.06);
+      transform: translate3d(-2px, 1px, 0) scale(1);
       z-index: 20;
       opacity: 1.0;
       filter: none !important;
       -webkit-filter: none !important;
     }
     .state-a-back {
-      transform: translate3d(3.2px, 1.2px, 0) scale(0.92);
+      transform: translate3d(2.6px, 0.4px, 0) scale(0.96);
       z-index: 10;
       opacity: 0.65;
       filter: none !important;
       -webkit-filter: none !important;
     }
     .state-b-front {
-      transform: translate3d(-2.8px, 1.8px, 0) scale(1.06);
+      transform: translate3d(-2px, 1px, 0) scale(1);
       z-index: 20;
       opacity: 1.0;
       filter: none !important;
       -webkit-filter: none !important;
     }
     .state-b-back {
-      transform: translate3d(3.2px, 1.2px, 0) scale(0.92);
+      transform: translate3d(2.6px, 0.4px, 0) scale(0.96);
       z-index: 10;
       opacity: 0.65;
       filter: none !important;
@@ -555,14 +555,12 @@
       scroll-behavior: auto !important;
       padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 16px)) !important;
     }
-    #main-content.analytics-view-active,
     #main-content.learning-view-active,
     #main-content.customer-view-active {
       padding-left: 0 !important;
       padding-right: 0 !important;
       padding-top: 0 !important;
     }
-    #main-content.analytics-view-active > :not([hidden]) ~ :not([hidden]),
     #main-content.learning-view-active > :not([hidden]) ~ :not([hidden]),
     #main-content.customer-view-active > :not([hidden]) ~ :not([hidden]) {
       margin-top: 0 !important;
@@ -571,8 +569,7 @@
     #customer-view-header,
     #profile-drawer-header,
     #sticky-filter-bar,
-    #study-sticky-header,
-    #analytics-sticky-header {
+    #study-sticky-header {
       background-color: #070D18 !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -606,23 +603,9 @@
       overflow: hidden !important;
       transform: translateY(-8px) !important;
     }
-    #top-header.analytics-header-touching {
-      border-bottom: none !important;
-      padding-bottom: 8px !important;
-      height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
-      min-height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
-      max-height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
-      box-shadow: none !important;
-    }
-    html.light-theme #top-header.analytics-header-touching,
-    body.light-theme #top-header.analytics-header-touching {
-      border-bottom: none !important;
-      box-shadow: none !important;
-    }
     #sticky-filter-bar:not(.dashboard-active),
     #sticky-filter-bar.hidden,
     #sticky-filter-bar[hidden],
-    #top-header.analytics-header-touching ~ #sticky-filter-bar,
     body:has(#main-content.analytics-view-active) #sticky-filter-bar,
     #demo-mode-indicator-bar.hidden {
       display: none !important;
@@ -640,7 +623,6 @@
       transform: none !important;
     }
     #pull-refresh-indicator:not([style*="height: 36px"]),
-    #top-header.analytics-header-touching ~ #pull-refresh-indicator,
     body:has(#main-content.analytics-view-active) #pull-refresh-indicator {
       display: none !important;
       max-height: 0 !important;
@@ -677,9 +659,7 @@
     html.light-theme #sticky-filter-bar,
     body.light-theme #sticky-filter-bar,
     html.light-theme #study-sticky-header,
-    body.light-theme #study-sticky-header,
-    html.light-theme #analytics-sticky-header,
-    body.light-theme #analytics-sticky-header {
+    body.light-theme #study-sticky-header {
       background-color: #FFFFFF !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -3170,16 +3150,9 @@
 
     /* 13.4. ផ្ទាំងវិភាគ (Analytics View) */
     .light-theme #analytics-sticky-header {
-      background-color: #FFFFFF !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      border-bottom: 1px solid #E2E8F0 !important;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
-    }
-    .light-theme #analytics-sticky-header.analytics-header-locked {
-      background-color: #FFFFFF !important;
-      border-bottom: 1px solid #E2E8F0 !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
     }
     .light-theme #analytics-sticky-header span {
       color: #0F172A !important;
@@ -4354,32 +4327,16 @@
     }
 
     #analytics-sticky-header {
-      position: -webkit-sticky !important;
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 40 !important;
-      background-color: #070D18 !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      border-top: none !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-      box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45);
-      padding-top: 4px !important;
-      padding-bottom: 8px !important;
-      margin-top: 0 !important;
-      -webkit-transform: translate3d(0, 0, 0) !important;
-      transform: translate3d(0, 0, 0) !important;
-      -webkit-backface-visibility: hidden !important;
-      backface-visibility: hidden !important;
-      isolation: isolate !important;
+      width: 100%;
+      position: relative;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
     }
     .light-theme #analytics-sticky-header {
-      background-color: #FFFFFF !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      border-top: none !important;
-      border-bottom: 1px solid #E2E8F0 !important;
-      box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06);
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
     }
     /* Analytics Expenses Donut Chart Light Theme overrides */
     .light-theme #analytics-donut-chart-view {
@@ -5034,7 +4991,7 @@
           </svg>
 
           <!-- Clean House SVG -->
-          <svg class="w-5 h-5 relative z-10 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-[22px] h-[22px] relative z-10 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 7.5V3.5h3v2.2" />
             <path d="M2.5 10.5L12 3l9.5 7.5" />
             <path d="M4.8 9.5V21h4.8v-6h4.8v6h4.8V9.5" />
@@ -5047,7 +5004,7 @@
       <button onclick="handleAnalyticsClick(event)" id="dock-btn-analytics" 
               class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition">
         <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0">
-          <svg class="w-5 h-5 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-[22px] h-[22px] text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <!-- L-axis (Left vertical & Bottom horizontal) -->
             <path d="M2.5 2.5v16.5a2 2 0 0 0 2 2h17" stroke-width="2.3" />
             <!-- 4 Static Bars (Calm, no jitter) -->
@@ -5085,14 +5042,14 @@
         <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0 gpu-layer">
           <!-- Person 1 (Front initially) -->
           <div id="dock-person-1" class="gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-front">
-            <svg class="w-5 h-5 text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
+            <svg class="w-[22px] h-[22px] text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="12" cy="7" r="4.2" class="person-shape"/>
               <path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5" class="person-shape"/>
             </svg>
           </div>
           <!-- Person 2 (Back initially) -->
           <div id="dock-person-2" class="gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-back">
-            <svg class="w-5 h-5 text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
+            <svg class="w-[22px] h-[22px] text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="12" cy="7" r="4.2" class="person-shape"/>
               <path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5" class="person-shape"/>
             </svg>
@@ -5105,7 +5062,7 @@
       <button onclick="switchView('settings')" id="dock-btn-settings" 
               class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition">
         <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0">
-          <svg class="w-5 h-5 gear-spin text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-[22px] h-[22px] gear-spin text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
             <circle cx="12" cy="12" r="3" />
           </svg>
@@ -8568,6 +8525,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.23"></script>
+  <script src="app.js?v=67.25"></script>
 </body>
 </html>

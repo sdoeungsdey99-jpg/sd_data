@@ -2255,21 +2255,6 @@ function hookScrollableForDock(el, isMain = false) {
       }
     }
 
-    // Analytics Sticky Header: Locked style when scrolled
-    if (isMain && appState.currentView === 'analytics') {
-      const analyticsHeader = document.getElementById('analytics-sticky-header');
-      if (analyticsHeader) {
-        if (currentScrollTop > 10) {
-          if (!analyticsHeader.classList.contains('analytics-header-locked')) {
-            analyticsHeader.classList.add('analytics-header-locked');
-          }
-        } else if (currentScrollTop <= 2) {
-          if (analyticsHeader.classList.contains('analytics-header-locked')) {
-            analyticsHeader.classList.remove('analytics-header-locked');
-          }
-        }
-      }
-    }
 
     // Home Dashboard: Reduce Date Bar (#sticky-filter-bar) opacity to 0 when scrolling down, restore when scrolling up
     if (isMain && appState.currentView === 'dashboard') {
@@ -2866,11 +2851,6 @@ function switchView(viewName, shouldReload = false) {
     } else {
       topHeader.classList.remove('hidden');
     }
-    if (viewName === 'analytics') {
-      topHeader.classList.add('analytics-header-touching');
-    } else {
-      topHeader.classList.remove('analytics-header-touching');
-    }
   }
 
   // Profile block & Back button in Header
@@ -3445,11 +3425,6 @@ function renderCurrentView() {
       filterBar.classList.add('hidden', 'filter-hidden');
       filterBar.style.display = 'none';
     }
-  }
-
-  const topHeader = document.getElementById('top-header');
-  if (topHeader) {
-    topHeader.classList.toggle('analytics-header-touching', appState.currentView === 'analytics');
   }
 
   // Update Dynamic Dock Labels based on Language
@@ -8299,9 +8274,11 @@ function getAnalyticsViewHTML() {
     activeTabIcon = 'receipt';
   }
 
-  // 1. Slim Sticky Header: ONLY Year Selector & Perspective Dropdown (Locks against Profile Bar)
-  const stickyYearHeaderHtml = `
-    <div id="analytics-sticky-header" class="sticky top-0 z-40 w-full px-3.5 pt-1.5 pb-2 border-b border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-colors">
+  // Bar 2 (Year Selector) & Bar 3 (Month Selector) Joined Together (Scrolls naturally with content)
+  const khmerMonthNames = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const analyticsYearMonthBlockHtml = `
+    <div id="analytics-sticky-header" class="w-full space-y-2 select-none">
+      <!-- Bar 2: Year Selector & Perspective Dropdown -->
       <div class="flex items-center justify-between gap-2">
         <!-- Year Selector -->
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
@@ -8352,29 +8329,26 @@ function getAnalyticsViewHTML() {
           </div>
         </div>
       </div>
-    </div>
-  `;
 
-  // 2. Unlocked Month Tabs Row (Scrolls with page content)
-  const khmerMonthNames = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
-  const monthTabsUnlockedHtml = `
-    <div id="analytics-month-tabs" class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none no-scrollbar" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
-      <button onclick="setAnalyticsMonth('all')" id="btn-month-all" 
-              class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
-        ✨ ពេញ ១ ឆ្នាំ
-      </button>
-      ${displayMonths.map(m => {
-        const parts = m.split('-');
-        const isSelected = activeMonth === m;
-        const mIdx = parseInt(parts[1], 10) - 1;
-        const kmName = khmerMonthNames[mIdx] || parts[1];
-        return `
-          <button onclick="setAnalyticsMonth('${m}')" id="btn-month-${m}" 
-                  class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
-            ខែ ${parts[1]} (${kmName})
-          </button>
-        `;
-      }).join('')}
+      <!-- Bar 3: Month Tabs Row -->
+      <div id="analytics-month-tabs" class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none no-scrollbar" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
+        <button onclick="setAnalyticsMonth('all')" id="btn-month-all" 
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+          ✨ ពេញ ១ ឆ្នាំ
+        </button>
+        ${displayMonths.map(m => {
+          const parts = m.split('-');
+          const isSelected = activeMonth === m;
+          const mIdx = parseInt(parts[1], 10) - 1;
+          const kmName = khmerMonthNames[mIdx] || parts[1];
+          return `
+            <button onclick="setAnalyticsMonth('${m}')" id="btn-month-${m}" 
+                    class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
+              ខែ ${parts[1]} (${kmName})
+            </button>
+          `;
+        }).join('')}
+      </div>
     </div>
   `;
 
@@ -9202,10 +9176,9 @@ function getAnalyticsViewHTML() {
     }
 
     return `
-      ${stickyYearHeaderHtml}
       <div class="space-y-3.5 px-3.5 pt-2.5 pb-6">
-        <!-- Unlocked Month Tabs (Scrolls away with content) -->
-        ${monthTabsUnlockedHtml}
+        <!-- Combined Year (Bar 2) & Month (Bar 3) Block (Scrolls naturally) -->
+        ${analyticsYearMonthBlockHtml}
 
         <!-- Month Hero Card -->
         <div onclick="cycleAnalyticsPerspective(event)" 
@@ -9762,10 +9735,9 @@ function getAnalyticsViewHTML() {
   }
 
   return `
-    ${stickyYearHeaderHtml}
     <div class="space-y-3.5 px-3.5 pt-2.5 pb-6">
-      <!-- Unlocked Month Tabs (Scrolls away with content) -->
-      ${monthTabsUnlockedHtml}
+      <!-- Combined Year (Bar 2) & Month (Bar 3) Block (Scrolls naturally) -->
+      ${analyticsYearMonthBlockHtml}
 
       <!-- Year Hero Card -->
       <div onclick="cycleAnalyticsPerspective(event)" 
@@ -20931,7 +20903,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.23';
+const CURRENT_APP_VERSION = '67.25';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

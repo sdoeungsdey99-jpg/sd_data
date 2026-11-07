@@ -1,5 +1,5 @@
 {
-  "version": "67.23",
-  "buildTime": "2026-11-07T23:12:00+07:00",
-  "notes": "Strict multi-device fix (iPhone & MacBook): eliminated ghost date bar with :not(.dashboard-active) and protected tap-to-scroll to guarantee 100% seamless flush Analytics header"
+  "version": "67.25",
+  "buildTime": "2026-11-07T23:45:00+07:00",
+  "notes": "v67.25: Joined Year bar & Month bar together in Analytics so they scroll up and down together naturally; enlarged dock icons to 22px equal rest scale"
 }
