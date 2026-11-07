@@ -1017,6 +1017,9 @@ function initApp() {
         }
       }
       checkOnlineOfflineStatus();
+      if (typeof checkAppVersionUpdate === 'function') {
+        checkAppVersionUpdate();
+      }
     }
   });
 
@@ -1026,8 +1029,19 @@ function initApp() {
         window.DataService.fetchData(true);
       }
       checkOnlineOfflineStatus();
+      if (typeof checkAppVersionUpdate === 'function') {
+        checkAppVersionUpdate();
+      }
     }
   });
+
+  // iOS PWA Standalone Auto-Update Detection
+  setTimeout(() => {
+    if (typeof checkAppVersionUpdate === 'function') checkAppVersionUpdate();
+  }, 2500);
+  setInterval(() => {
+    if (typeof checkAppVersionUpdate === 'function') checkAppVersionUpdate();
+  }, 15 * 60 * 1000);
 
   // Purge any legacy leftover demo notifications
   try {
@@ -20820,6 +20834,47 @@ function showToastNotification(msg) {
     toast.classList.add('opacity-0', '-translate-y-2');
     setTimeout(() => { toast.remove(); }, 300);
   }, 1800);
+}
+
+// ==========================================
+// iOS PWA Standalone Auto-Update Detection
+// ==========================================
+const CURRENT_APP_VERSION = '67.10';
+let isUpdateToastShown = false;
+
+async function checkAppVersionUpdate() {
+  if (!navigator.onLine) return;
+  try {
+    const res = await fetch('version.json?_t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const info = await res.json();
+    if (info && info.version && info.version !== CURRENT_APP_VERSION && !isUpdateToastShown) {
+      isUpdateToastShown = true;
+      showUpdateAvailableToast(info.version);
+    }
+  } catch (_) {}
+}
+
+function showUpdateAvailableToast(newVer) {
+  const existing = document.getElementById('pwa-update-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'pwa-update-toast';
+  toast.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 w-[90%] max-w-sm px-4 py-3 rounded-2xl bg-[#0F1B2E] border border-amber-500/50 text-white shadow-2xl z-[9999] flex items-center justify-between gap-3 animate-fade-in select-none';
+  toast.innerHTML = `
+    <div class="flex items-center gap-2.5 min-w-0">
+      <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping shrink-0"></span>
+      <div class="min-w-0">
+        <p class="text-xs font-bold text-amber-300 leading-tight">មានកំណែថ្មី v${newVer}</p>
+        <p class="text-[10.5px] text-slate-300 truncate">ចុចដើម្បី Refresh យកកំណែចុងក្រោយ</p>
+      </div>
+    </div>
+    <button onclick="window.location.reload(true)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shrink-0 active:scale-95 transition shadow-md shadow-amber-500/20">
+      Refresh ➔
+    </button>
+  `;
+  document.body.appendChild(toast);
 }
 
 // =========================================================
