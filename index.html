@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.21">
+  <link rel="manifest" href="manifest.json?v=67.22">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -606,8 +606,24 @@
       overflow: hidden !important;
       transform: translateY(-8px) !important;
     }
+    #top-header.analytics-header-touching {
+      border-bottom: none !important;
+      padding-bottom: 2px !important;
+      height: calc(3.45rem + max(env(safe-area-inset-top, 0px), 14px)) !important;
+      min-height: calc(3.45rem + max(env(safe-area-inset-top, 0px), 14px)) !important;
+      max-height: calc(3.45rem + max(env(safe-area-inset-top, 0px), 14px)) !important;
+      box-shadow: none !important;
+    }
+    html.light-theme #top-header.analytics-header-touching,
+    body.light-theme #top-header.analytics-header-touching {
+      border-bottom: none !important;
+      box-shadow: none !important;
+    }
     #sticky-filter-bar.hidden,
     #sticky-filter-bar[hidden],
+    #sticky-filter-bar.filter-hidden,
+    #top-header.analytics-header-touching ~ #sticky-filter-bar,
+    body:has(#main-content.analytics-view-active) #sticky-filter-bar,
     #demo-mode-indicator-bar.hidden {
       display: none !important;
       max-height: 0 !important;
@@ -621,6 +637,18 @@
       pointer-events: none !important;
       overflow: hidden !important;
       visibility: hidden !important;
+      transform: none !important;
+    }
+    #top-header.analytics-header-touching ~ #pull-refresh-indicator,
+    body:has(#main-content.analytics-view-active) #pull-refresh-indicator {
+      display: none !important;
+      max-height: 0 !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      overflow: hidden !important;
     }
     #top-header,
     #customer-view-header,
@@ -4332,8 +4360,12 @@
       background-color: #070D18 !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
+      border-top: none !important;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
       box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45);
+      padding-top: 4px !important;
+      padding-bottom: 8px !important;
+      margin-top: 0 !important;
       -webkit-transform: translate3d(0, 0, 0) !important;
       transform: translate3d(0, 0, 0) !important;
       -webkit-backface-visibility: hidden !important;
@@ -4344,6 +4376,7 @@
       background-color: #FFFFFF !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
+      border-top: none !important;
       border-bottom: 1px solid #E2E8F0 !important;
       box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06);
     }
@@ -8534,6 +8567,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.21"></script>
+  <script src="app.js?v=67.22"></script>
 </body>
 </html>

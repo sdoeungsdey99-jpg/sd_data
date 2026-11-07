@@ -2864,6 +2864,11 @@ function switchView(viewName, shouldReload = false) {
     } else {
       topHeader.classList.remove('hidden');
     }
+    if (viewName === 'analytics') {
+      topHeader.classList.add('analytics-header-touching');
+    } else {
+      topHeader.classList.remove('analytics-header-touching');
+    }
   }
 
   // Profile block & Back button in Header
@@ -3436,6 +3441,11 @@ function renderCurrentView() {
       filterBar.classList.add('hidden', 'filter-hidden');
       filterBar.style.display = 'none';
     }
+  }
+
+  const topHeader = document.getElementById('top-header');
+  if (topHeader) {
+    topHeader.classList.toggle('analytics-header-touching', appState.currentView === 'analytics');
   }
 
   // Update Dynamic Dock Labels based on Language
@@ -8287,7 +8297,7 @@ function getAnalyticsViewHTML() {
 
   // 1. Slim Sticky Header: ONLY Year Selector & Perspective Dropdown (Locks against Profile Bar)
   const stickyYearHeaderHtml = `
-    <div id="analytics-sticky-header" class="sticky top-0 z-40 w-full px-3.5 pt-2 pb-2 border-b border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-colors">
+    <div id="analytics-sticky-header" class="sticky top-0 z-40 w-full px-3.5 pt-1.5 pb-2 border-b border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-colors">
       <div class="flex items-center justify-between gap-2">
         <!-- Year Selector -->
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
@@ -20908,7 +20918,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.21';
+const CURRENT_APP_VERSION = '67.22';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

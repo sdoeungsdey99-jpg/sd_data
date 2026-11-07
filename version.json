@@ -1,5 +1,5 @@
 {
-  "version": "67.21",
-  "buildTime": "2026-11-07T22:48:00+07:00",
-  "notes": "Fixed Analytics view gap: eliminated ghost sticky-filter-bar in non-dashboard views for 100% flush header connection"
+  "version": "67.22",
+  "buildTime": "2026-11-07T23:02:00+07:00",
+  "notes": "MacBook & Desktop UI perfection: seamlessly joined Analytics Year bar with Profile header (removed border split, zero gap, flush alignment)"
 }
