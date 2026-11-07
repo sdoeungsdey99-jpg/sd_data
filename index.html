@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.14">
+  <link rel="manifest" href="manifest.json?v=67.15">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -647,6 +647,7 @@
     html.light-theme #drawer-motto-bar,
     body.light-theme #drawer-motto-bar {
       background-color: #F8FAFC !important;
+      border-bottom: 1px solid #E2E8F0 !important;
     }
     html.light-theme #drawer-motto-text,
     body.light-theme #drawer-motto-text {
@@ -4913,8 +4914,14 @@
     </div>
 
     <!-- MAIN SCROLLABLE CONTENT BODY (With Pull-to-Refresh Container) -->
-    <div id="pull-refresh-indicator" class="h-0 overflow-hidden flex items-center justify-center text-xs text-orange-400 transition-all duration-200">
-      <i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-1"></i> កំពុងទាញទិន្នន័យ...
+    <div id="pull-refresh-indicator" class="h-0 overflow-hidden flex items-center justify-center text-xs text-orange-400 transition-all duration-200 shrink-0 select-none pointer-events-none z-20">
+      <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 font-medium text-[11px] shadow-sm">
+        <svg class="w-3.5 h-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>កំពុងទាញទិន្នន័យ...</span>
+      </span>
     </div>
 
     <main class="flex-1 overflow-y-auto px-3.5 pt-2.5 pb-28 space-y-3.5 no-scrollbar dashboard-view-active" id="main-content">
@@ -5972,10 +5979,10 @@
         </div>
       </div>
 
-      <!-- Frameless Executive Sales Motto Slide Bar (Clean, no extra border, single top line from header) -->
+      <!-- Frameless Executive Sales Motto Slide Bar (With bottom divider line to clearly separate from content) -->
       <div id="drawer-motto-bar" onclick="nextDrawerMotto(event)" 
            title="ចុចដើម្បីប្តូរស្លោកបន្ទាប់"
-           class="px-4 py-2.5 bg-[#070D18] flex items-center gap-2 cursor-pointer select-none group shrink-0">
+           class="px-4 py-2.5 bg-[#070D18] border-b border-white/10 flex items-center gap-2 cursor-pointer select-none group shrink-0">
         <span class="text-amber-400 text-xs shrink-0 select-none">✨</span>
         <div class="relative h-4.5 flex-1 overflow-hidden" id="drawer-motto-container">
           <p id="drawer-motto-text" 
@@ -8480,6 +8487,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.14"></script>
+  <script src="app.js?v=67.15"></script>
 </body>
 </html>

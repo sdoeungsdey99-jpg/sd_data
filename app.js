@@ -1486,7 +1486,7 @@ async function manualReload(force = false) {
 
   const indicator = document.getElementById('pull-refresh-indicator');
   if (indicator) {
-    indicator.style.height = '35px';
+    indicator.style.height = '36px';
     setTimeout(() => {
       indicator.style.height = '0px';
     }, 800);
@@ -20858,7 +20858,8 @@ function showToastNotification(msg) {
 
   const toast = document.createElement('div');
   toast.id = 'app-active-toast';
-  toast.className = 'fixed top-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-slate-900/95 border border-emerald-500/60 text-emerald-400 font-bold text-xs rounded-full shadow-2xl backdrop-blur-xl z-[9999] flex items-center gap-2 shadow-emerald-500/20 animate-fade-in pointer-events-none select-none transition-all duration-300';
+  toast.className = 'fixed left-1/2 -translate-x-1/2 px-4 py-2 bg-slate-900/95 border border-emerald-500/60 text-emerald-400 font-bold text-xs rounded-full shadow-2xl backdrop-blur-xl z-[9999] flex items-center gap-2 shadow-emerald-500/20 animate-fade-in pointer-events-none select-none transition-all duration-300';
+  toast.style.top = 'calc(max(env(safe-area-inset-top, 0px), 14px) + 3.75rem + 10px)';
   toast.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>${msg}</span>`;
   document.body.appendChild(toast);
   setTimeout(() => {
@@ -20870,7 +20871,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.14';
+const CURRENT_APP_VERSION = '67.15';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
