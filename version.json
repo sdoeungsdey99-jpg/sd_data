@@ -1,5 +1,5 @@
 {
-  "version": "67.25",
-  "buildTime": "2026-11-07T23:45:00+07:00",
-  "notes": "v67.25: Joined Year bar & Month bar together in Analytics so they scroll up and down together naturally; enlarged dock icons to 22px equal rest scale"
+  "version": "67.26",
+  "buildTime": "2026-11-07T23:55:00+07:00",
+  "notes": "v67.26: Unified Year bar spacing to flush top alignment; enabled Verified Blue Tick on Profile Drawer; scaled dock icons to 26px, shifted up, and equalized customer duo icon volume"
 }

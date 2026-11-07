@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.25">
+  <link rel="manifest" href="manifest.json?v=67.26">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -259,28 +259,28 @@
     }
 
     .state-a-front {
-      transform: translate3d(-2px, 1px, 0) scale(1);
+      transform: translate3d(-2.5px, 0.8px, 0) scale(1.14);
       z-index: 20;
       opacity: 1.0;
       filter: none !important;
       -webkit-filter: none !important;
     }
     .state-a-back {
-      transform: translate3d(2.6px, 0.4px, 0) scale(0.96);
+      transform: translate3d(3px, 0.2px, 0) scale(1.04);
       z-index: 10;
       opacity: 0.65;
       filter: none !important;
       -webkit-filter: none !important;
     }
     .state-b-front {
-      transform: translate3d(-2px, 1px, 0) scale(1);
+      transform: translate3d(-2.5px, 0.8px, 0) scale(1.14);
       z-index: 20;
       opacity: 1.0;
       filter: none !important;
       -webkit-filter: none !important;
     }
     .state-b-back {
-      transform: translate3d(2.6px, 0.4px, 0) scale(0.96);
+      transform: translate3d(3px, 0.2px, 0) scale(1.04);
       z-index: 10;
       opacity: 0.65;
       filter: none !important;
@@ -1074,7 +1074,7 @@
       color: #94A3B8;
       height: 100%;
       justify-content: flex-end !important;
-      padding-bottom: 7px !important;
+      padding-bottom: 9px !important;
       padding-top: 0 !important;
     }
     #bottom-dock .dock-btn:hover {
@@ -4976,7 +4976,7 @@
       <!-- 1. Home (Classic House with Micro Celestial Sparkle/Sun/Moon Glow) -->
       <button onclick="handleHomeClick(event)" id="dock-btn-dashboard" 
               class="dock-btn active-tab flex-1 flex flex-col items-center justify-center py-1 rounded-full transition relative">
-        <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0">
+        <div class="w-8 h-8 mb-1 relative flex items-center justify-center shrink-0">
           <!-- Mode 1: ✨ Micro Diamond Sparkle (Default) -->
           <svg id="home-celestial-sparkle" class="absolute -top-0.5 right-0.5 w-2.5 h-2.5 text-amber-300 sparkle-sun-micro pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"/>
@@ -4991,7 +4991,7 @@
           </svg>
 
           <!-- Clean House SVG -->
-          <svg class="w-[22px] h-[22px] relative z-10 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-[26px] h-[26px] relative z-10 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 7.5V3.5h3v2.2" />
             <path d="M2.5 10.5L12 3l9.5 7.5" />
             <path d="M4.8 9.5V21h4.8v-6h4.8v6h4.8V9.5" />
@@ -5003,8 +5003,8 @@
       <!-- 2. Analytics (L-axis + 4 Static Bars + Upward Growth Arrow Continuous Loop) -->
       <button onclick="handleAnalyticsClick(event)" id="dock-btn-analytics" 
               class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition">
-        <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0">
-          <svg class="w-[22px] h-[22px] text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <div class="w-8 h-8 mb-1 relative flex items-center justify-center shrink-0">
+          <svg class="w-[26px] h-[26px] text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <!-- L-axis (Left vertical & Bottom horizontal) -->
             <path d="M2.5 2.5v16.5a2 2 0 0 0 2 2h17" stroke-width="2.3" />
             <!-- 4 Static Bars (Calm, no jitter) -->
@@ -5039,17 +5039,17 @@
       <!-- 4. Customer Duo (On-Click Step-by-Step 3D Swap Micro-Animation) -->
       <button onclick="handleCustomerTabClick(event)" id="dock-btn-customer" 
               class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition cursor-pointer select-none outline-none">
-        <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0 gpu-layer">
+        <div class="w-8 h-8 mb-1 relative flex items-center justify-center shrink-0 gpu-layer">
           <!-- Person 1 (Front initially) -->
           <div id="dock-person-1" class="gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-front">
-            <svg class="w-[22px] h-[22px] text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
+            <svg class="w-[26px] h-[26px] text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="12" cy="7" r="4.2" class="person-shape"/>
               <path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5" class="person-shape"/>
             </svg>
           </div>
           <!-- Person 2 (Back initially) -->
           <div id="dock-person-2" class="gpu-layer absolute inset-0 flex items-center justify-center pointer-events-none state-a-back">
-            <svg class="w-[22px] h-[22px] text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
+            <svg class="w-[26px] h-[26px] text-current person-cutout" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="12" cy="7" r="4.2" class="person-shape"/>
               <path d="M4 20c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5" class="person-shape"/>
             </svg>
@@ -5061,8 +5061,8 @@
       <!-- 5. Settings (Gear ⚙️ with Spin Animation) -->
       <button onclick="switchView('settings')" id="dock-btn-settings" 
               class="dock-btn flex-1 flex flex-col items-center justify-center py-1 rounded-full transition">
-        <div class="w-7 h-7 mb-0.5 relative flex items-center justify-center shrink-0">
-          <svg class="w-[22px] h-[22px] gear-spin text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <div class="w-8 h-8 mb-1 relative flex items-center justify-center shrink-0">
+          <svg class="w-[26px] h-[26px] gear-spin text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
             <circle cx="12" cy="12" r="3" />
           </svg>
@@ -8525,6 +8525,6 @@
   </div>
 
   <script src="dataService.js?v=11.3"></script>
-  <script src="app.js?v=67.25"></script>
+  <script src="app.js?v=67.26"></script>
 </body>
 </html>

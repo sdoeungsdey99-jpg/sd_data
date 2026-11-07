@@ -9176,11 +9176,10 @@ function getAnalyticsViewHTML() {
     }
 
     return `
-      <div class="space-y-3.5 px-3.5 pt-2.5 pb-6">
-        <!-- Combined Year (Bar 2) & Month (Bar 3) Block (Scrolls naturally) -->
-        ${analyticsYearMonthBlockHtml}
+      <!-- Combined Year (Bar 2) & Month (Bar 3) Block (Scrolls naturally) -->
+      ${analyticsYearMonthBlockHtml}
 
-        <!-- Month Hero Card -->
+      <!-- Month Hero Card -->
         <div onclick="cycleAnalyticsPerspective(event)" 
              title="ចុចកន្លែងទំនេរដើម្បីឆ្លាស់ទិដ្ឋភាព (ទិដ្ឋភាពរួម • អាជីវកម្ម • ចំណាយផ្ទាល់ខ្លួន)"
              class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 relative overflow-hidden cursor-pointer select-none">
@@ -9222,7 +9221,6 @@ function getAnalyticsViewHTML() {
 
         <!-- Detail Breakdown List -->
         ${detailListHtml}
-      </div>
     `;
   }
 
@@ -9735,11 +9733,10 @@ function getAnalyticsViewHTML() {
   }
 
   return `
-    <div class="space-y-3.5 px-3.5 pt-2.5 pb-6">
-      <!-- Combined Year (Bar 2) & Month (Bar 3) Block (Scrolls naturally) -->
-      ${analyticsYearMonthBlockHtml}
+    <!-- Combined Year (Bar 2) & Month (Bar 3) Block (Scrolls naturally) -->
+    ${analyticsYearMonthBlockHtml}
 
-      <!-- Year Hero Card -->
+    <!-- Year Hero Card -->
       <div onclick="cycleAnalyticsPerspective(event)" 
            title="ចុចកន្លែងទំនេរដើម្បីឆ្លាស់ទិដ្ឋភាព (ទិដ្ឋភាពរួម • អាជីវកម្ម • ចំណាយផ្ទាល់ខ្លួន)"
            class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10 relative overflow-hidden cursor-pointer select-none">
@@ -9777,7 +9774,6 @@ function getAnalyticsViewHTML() {
 
       <!-- Annual Breakdown Table (Minimizable) -->
       ${annualTableHtml}
-    </div>
   `;
 }
 
@@ -20903,7 +20899,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.25';
+const CURRENT_APP_VERSION = '67.26';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -20996,29 +20992,34 @@ function syncHeaderProfileUI() {
   const nameEl = document.getElementById('header-profile-name');
   const subEl = document.getElementById('header-profile-sub');
   const badgeEl = document.getElementById('header-profile-badge');
+  const drawerBadgeEl = document.getElementById('drawer-prof-badge');
   const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
 
   if (avatarEl) avatarEl.src = isMaster ? (p.avatar || 'profile.png') : (p.avatar || 'bostar-logo.png');
   if (nameEl) nameEl.textContent = isMaster ? (p.name || 'ស្តី ស្តើង') : (p.name || 'BostarGroup');
   if (subEl) subEl.textContent = isMaster ? (p.subtitle || 'SDEY SDOEUNG') : (p.subtitle || 'Bostar Sales & Finance');
-  if (badgeEl) {
-    const profName = String(p.name || '').trim();
-    const isBechNora = profName.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora'));
-    const isSdeySdoeung = isMaster || profName.includes('ស្តី ស្តើង') || (p.subtitle && p.subtitle.toLowerCase().includes('sdey sdoeung'));
 
+  const profName = String(p.name || '').trim();
+  const isBechNora = profName.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora'));
+  const isSdeySdoeung = isMaster || profName.includes('ស្តី ស្តើង') || (p.subtitle && p.subtitle.toLowerCase().includes('sdey sdoeung'));
+
+  const updateBadge = (el) => {
+    if (!el) return;
     if (isBechNora) {
-      badgeEl.classList.remove('hidden');
-      badgeEl.src = 'gold-tick.svg';
-      badgeEl.title = 'Director Verified 🌟';
+      el.classList.remove('hidden');
+      el.src = 'gold-tick.svg';
+      el.title = 'Director Verified 🌟';
     } else if (isSdeySdoeung) {
-      badgeEl.classList.remove('hidden');
-      badgeEl.src = 'blue-tick.png';
-      badgeEl.title = 'Master Admin Verified 🌟';
+      el.classList.remove('hidden');
+      el.src = 'blue-tick.png';
+      el.title = 'Master Admin Verified 🌟';
     } else {
-      // គោលការណ៍កិត្តិយសខ្ពស់បំផុត៖ គ្មាន Tick សម្រាប់សមាជិកទូទៅឡើយ (មានត្រឹមតែ ២ រូបប៉ុណ្ណោះ៖ ស្តី ស្តើង & ប៊ិច នោរ៉ា)
-      badgeEl.classList.add('hidden');
+      el.classList.add('hidden');
     }
-  }
+  };
+
+  updateBadge(badgeEl);
+  updateBadge(drawerBadgeEl);
 
   const demoBar = document.getElementById('demo-mode-indicator-bar');
   if (demoBar) {
@@ -24875,9 +24876,28 @@ function renderProfileDrawerContent() {
   const drawerAvatar = document.getElementById('drawer-prof-avatar');
   const drawerName = document.getElementById('drawer-prof-name');
   const drawerId = document.getElementById('drawer-prof-id');
+  const drawerBadge = document.getElementById('drawer-prof-badge');
   if (drawerAvatar) drawerAvatar.src = p.avatar || 'profile.png';
   if (drawerName) drawerName.textContent = p.name || 'ស្តី ស្តើង';
   if (drawerId) drawerId.textContent = 'ID: ' + String(p.memberId || 'BG-001').replace(/^(ID:\s*)+/i, '').trim();
+
+  if (drawerBadge) {
+    const profName = String(p.name || '').trim();
+    const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
+    const isBechNora = profName.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora'));
+    const isSdeySdoeung = isMaster || profName.includes('ស្តី ស្តើង') || (p.subtitle && p.subtitle.toLowerCase().includes('sdey sdoeung'));
+    if (isBechNora) {
+      drawerBadge.classList.remove('hidden');
+      drawerBadge.src = 'gold-tick.svg';
+      drawerBadge.title = 'Director Verified 🌟';
+    } else if (isSdeySdoeung) {
+      drawerBadge.classList.remove('hidden');
+      drawerBadge.src = 'blue-tick.png';
+      drawerBadge.title = 'Master Admin Verified 🌟';
+    } else {
+      drawerBadge.classList.add('hidden');
+    }
+  }
 
   const infoItems = [
     { key: 'showGender', icon: 'user-check', color: 'text-amber-400', label: 'ភេទ', val: (p.gender === 'female' ? 'ស្រី' : 'ប្រុស') },
