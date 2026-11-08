@@ -2393,18 +2393,14 @@ function toggleProfitNetBoost() {
 // Native App Launcher & iOS Search Engine
 // ==========================================
 function launchNativeOrWeb(nativeScheme, webUrl) {
-  const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (isIos && nativeScheme) {
-    const start = Date.now();
+  if (!webUrl && !nativeScheme) return;
+  if (webUrl) {
+    const w = window.open(webUrl, '_blank', 'noopener,noreferrer');
+    if (!w) {
+      window.location.href = webUrl;
+    }
+  } else if (nativeScheme) {
     window.location.href = nativeScheme;
-    setTimeout(() => {
-      // If user did not leave the browser (native app not installed), fallback to web
-      if (Date.now() - start < 1600 && document.visibilityState === 'visible') {
-        window.open(webUrl, '_blank');
-      }
-    }, 1100);
-  } else {
-    window.open(webUrl, '_blank');
   }
 }
 
@@ -7979,8 +7975,8 @@ function getDashboardViewHTML() {
 
 
   const cardTools = `
-    <!-- AI & TOOLS SECTION (Clean iPhone Home Screen Style - iOS Standard Header) -->
-    <div class="ios-glass-card rounded-3xl p-4 border border-white/10">
+    <!-- AI & TOOLS SECTION (Clean iPhone Home Screen Style - Scaled for iPhone 16/17 Pro) -->
+    <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-white/10">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/30 shrink-0">
@@ -7998,38 +7994,38 @@ function getDashboardViewHTML() {
         </span>
       </div>
 
-      <!-- Pure iPhone Springboard Icon Grid (Spacious & Clean with Native App Schemes) -->
-      <div class="flex items-center justify-around px-2">
+      <!-- Pure iPhone Springboard Icon Grid (64px Icons for iPhone 16/17 Pro Standard) -->
+      <div class="flex items-center justify-between sm:justify-around px-1.5 sm:px-3">
         <!-- 1. ChatGPT -->
         <button onclick="launchNativeOrWeb('chatgpt://', 'https://chatgpt.com')" 
-                class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center cursor-pointer">
+                class="flex flex-col items-center gap-1.5 active:scale-95 transition group text-center cursor-pointer">
           <img src="chatgpt-ios.png" alt="ChatGPT" 
-               class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
-          <span class="text-[11px] text-slate-200 font-medium tracking-tight">ChatGPT</span>
+               class="w-16 h-16 rounded-[16px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
+          <span class="text-xs font-semibold text-slate-200 tracking-tight mt-0.5">ChatGPT</span>
         </button>
 
         <!-- 2. Claude -->
         <button onclick="launchNativeOrWeb('claude://', 'https://claude.ai')" 
-                class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center cursor-pointer">
+                class="flex flex-col items-center gap-1.5 active:scale-95 transition group text-center cursor-pointer">
           <img src="claude-ios.png" alt="Claude" 
-               class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
-          <span class="text-[11px] text-slate-200 font-medium tracking-tight">Claude</span>
+               class="w-16 h-16 rounded-[16px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
+          <span class="text-xs font-semibold text-slate-200 tracking-tight mt-0.5">Claude</span>
         </button>
 
-        <!-- 3. Gemini (Native Google/Gemini App Launcher with Web Fallback) -->
-        <button onclick="launchNativeOrWeb('googleapp://', 'https://gemini.google.com')" 
-                class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center cursor-pointer">
+        <!-- 3. Gemini -->
+        <button onclick="launchNativeOrWeb('gemini://', 'https://gemini.google.com')" 
+                class="flex flex-col items-center gap-1.5 active:scale-95 transition group text-center cursor-pointer">
           <img src="gemini-ios.png" alt="Gemini" 
-               class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
-          <span class="text-[11px] text-slate-200 font-medium tracking-tight">Gemini</span>
+               class="w-16 h-16 rounded-[16px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
+          <span class="text-xs font-semibold text-slate-200 tracking-tight mt-0.5">Gemini</span>
         </button>
 
         <!-- 4. Google Translate -->
         <button onclick="launchNativeOrWeb('googletranslate://', 'https://translate.google.com/?sl=en&tl=km')" 
-                class="flex flex-col items-center gap-1.5 active:scale-90 transition group text-center cursor-pointer">
+                class="flex flex-col items-center gap-1.5 active:scale-95 transition group text-center cursor-pointer">
           <img src="translate-ios.png" alt="Google Translate" 
-               class="w-14 h-14 rounded-[14px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
-          <span class="text-[11px] text-slate-200 font-medium tracking-tight">Translate</span>
+               class="w-16 h-16 rounded-[16px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
+          <span class="text-xs font-semibold text-slate-200 tracking-tight mt-0.5">Translate</span>
         </button>
       </div>
     </div>
@@ -10160,8 +10156,7 @@ function getCustomerViewCardHTML(c, idx, isEn) {
             ${sortedOrders.map(o => {
               const currentStatus = getLiveOrderStatus(o);
               return `
-                <div onclick="openOrderActions('${o.recordId || ''}', '${o.orderId || ''}', ${o.rowIndex !== undefined ? o.rowIndex : 'null'}, '${o.date || ''}', '${o.phone || ''}')" 
-                     class="p-2 rounded-xl bg-black/40 border border-white/5 hover:border-white/20 transition flex flex-col gap-1 cursor-pointer">
+                <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 transition select-none">
                   <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-1.5 min-w-0">
                       <span class="font-mono text-[10px] text-slate-400">${o.date || '—'}</span>
@@ -24814,7 +24809,7 @@ let BOSTAR_TEAM_SELLERS = [
   { no: 27, km: 'ផាត់ ណាវី', en: 'Phat Navy', leader: 'លោក ហ៊ួរ យ៉ារិទ្ធ' },
   { no: 28, km: 'សុស ស្រីពេជ្រ', en: 'Sos Sreypech', leader: 'លោក ប៊ិច ឧត្តម' },
   { no: 29, km: 'ទូច ស្រីណែត', en: 'Touch Sreynet', leader: 'លោក ស្រឿន លាងហាក់' },
-  { no: 30, km: 'សុីម វត្តី', en: 'Sim Vottey', leader: 'ពុធ ធារ៉ា' },
+  { no: 30, km: 'ស៊ីម វត្តី', en: 'Sim Vottey', leader: 'ពុធ ធារ៉ា' },
   { no: 31, km: 'ភឿន កញ្ញា', en: 'Phoeun Kanya', leader: 'លោក ស្រឿន លាងហាក់' },
   { no: 32, km: 'ជុំ ចាន់ រិទ្ធ', en: 'Chum Chanrith', leader: 'ពុធ ធារ៉ា' },
   { no: 33, km: 'ឆេង រ៉ាស៊ុង', en: 'Chheng Rasung', leader: 'លោក ស្ដី ស្ដើង' },
@@ -24856,7 +24851,7 @@ function normalizeSellerName(name) {
   if (!name) return '';
   return name.toString().trim()
     .replace(/^(លោក|អ្នកគ្រូ|កញ្ញា|បង)\s+/g, '')
-    .replace(/សុី/g, 'ស៊ី')
+    .replace(/សុ[ីឹ]/g, 'ស៊ី')
     .replace(/ស្តី/g, 'ស្ដី')
     .replace(/ស្តើង/g, 'ស្ដើង')
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
