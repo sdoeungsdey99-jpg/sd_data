@@ -10144,32 +10144,48 @@ function getCustomerViewCardHTML(c, idx, isEn) {
 
       <!-- Expanded Orders List -->
       ${isExpanded ? `
-        <div class="mt-2 pt-2 border-t border-white/10 space-y-2 animate-fade-in">
-          <div class="flex items-center justify-between text-[11px] font-bold text-slate-300 px-1">
-            <span>ប្រវត្តិការកុម្ម៉ង់ (${c.orders.length} ដង)</span>
-            <button onclick="event.stopPropagation(); openNewOrderForCustomer('${encodeURIComponent(c.name)}', '${encodeURIComponent(c.phone || '')}', '${encodeURIComponent(c.location || '')}')" 
-                    class="px-2 py-0.5 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 text-[10px] font-medium border border-orange-500/30 transition flex items-center gap-1">
-              <i data-lucide="plus" class="w-3 h-3"></i> កុម្ម៉ង់ថ្មី
-            </button>
+        <div class="mt-2 pt-2 border-t border-white/10 space-y-1.5 animate-fade-in">
+          <div class="flex items-center justify-between text-[10px]">
+            <span class="text-slate-400 font-semibold">ប្រវត្តិទិញទាំងអស់ (${sortedOrders.length} ប្រតិបត្តិការ)</span>
+            ${c.phone && c.phone !== '—' ? `
+              <div class="flex items-center gap-1.5">
+                <a href="tel:${c.phone.replace(/\s+/g, '')}" onclick="event.stopPropagation()" 
+                   class="px-2 py-0.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold flex items-center gap-1 active:scale-95 transition">
+                  📞 ហៅទូរសព្ទ
+                </a>
+                <button onclick="event.stopPropagation(); fallbackCopyText('${c.phone}')" 
+                        class="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/15 text-slate-200 font-bold active:scale-95 transition">
+                  ចម្លងលេខ
+                </button>
+              </div>
+            ` : ''}
           </div>
-          <div class="space-y-1.5 max-h-72 overflow-y-auto no-scrollbar pr-0.5">
+          <div class="space-y-1.5 max-h-56 overflow-y-auto no-scrollbar">
             ${sortedOrders.map(o => {
-              const currentStatus = getLiveOrderStatus(o);
+              const currentStatus = String(o.codStatus || 'មិនទាន់ទូទាត់').trim();
+
               return `
-                <div class="p-2 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 transition select-none">
+                <div class="p-2 px-2.5 rounded-xl bg-black/35 border border-white/5 flex flex-col gap-1 transition select-none">
+                  <!-- Line 1: Date & Products on Left | USD/THB amounts on Right -->
                   <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-1.5 min-w-0">
-                      <span class="font-mono text-[10px] text-slate-400">${o.date || '—'}</span>
-                      <span class="font-mono font-bold text-xs text-white">${o.orderId || o.recordId || '#'}</span>
+                    <div class="flex items-center gap-1.5 min-w-0 pr-1 truncate">
+                      <span class="font-mono text-white font-bold text-[11px] shrink-0">${o.date || '—'}</span>
+                      <span class="text-slate-300 font-medium text-[10.5px] truncate">(${getOrderProductSummary(o)})</span>
                     </div>
-                    <div class="text-right shrink-0">
-                      <span class="font-mono font-bold text-xs text-emerald-400">${formatUSD(o.total || 0)}</span>
-                      ${o.totalThaiBaht > 0 ? `<span class="font-mono text-[9px] text-slate-400 block">${formatInt(o.totalThaiBaht)} ฿</span>` : ''}
+                    <div class="font-mono text-right shrink-0 whitespace-nowrap text-xs">
+                      ${(o.thaiBaht > 0) 
+                        ? `<span class="text-slate-300 text-[10.5px]">${formatInt(o.thaiBaht)} ฿</span><span class="text-slate-500 mx-1">•</span>` 
+                        : (o.riel > 0 ? `<span class="text-slate-300 text-[10.5px]">${formatInt(o.riel)} ៛</span><span class="text-slate-500 mx-1">•</span>` : '')
+                      }
+                      <span class="text-emerald-400 font-bold">${formatUSD(o.totalAmount || o.total || 0)}</span>
                     </div>
                   </div>
-                  <div class="flex items-center justify-between gap-2 text-[10px] text-slate-400">
-                    <div class="flex items-center gap-2 truncate">
-                      <span class="font-mono text-orange-400 font-semibold">${formatInt(o.boxes || 0)} ប្រអប់</span>
+
+                  <!-- Line 2: Box qty, Seller/Delivery on Left | Static COD Status Badge on Right (View-Only) -->
+                  <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
+                    <div class="flex items-center gap-1.5 text-slate-400 truncate min-w-0">
+                      <span class="font-mono text-orange-400 font-bold shrink-0">${o.totalBoxQty || o.boxes || 1} ប្រអប់</span>
+                      ${o.deliveryMethod ? `<span>•</span><span class="truncate max-w-[80px] sm:max-w-[120px]">${o.deliveryMethod}</span>` : ''}
                       ${o.seller ? `<span>•</span><span class="truncate max-w-[80px] sm:max-w-[120px]">👤 ${o.seller}</span>` : ''}
                     </div>
                     <span class="text-[10px] font-semibold py-0.5 px-2 rounded-lg border shrink-0 ${getCodStatusBadgeClass(currentStatus)}">
