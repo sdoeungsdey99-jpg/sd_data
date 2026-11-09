@@ -4358,6 +4358,16 @@ function relockExecutiveCard(event) {
   }
 }
 
+function toggleTeamSalesCardExpanded(event) {
+  if (event && typeof event.stopPropagation === 'function') {
+    event.stopPropagation();
+  }
+  const current = sessionStorage.getItem('sd_team_sales_card_expanded') === 'true';
+  sessionStorage.setItem('sd_team_sales_card_expanded', current ? 'false' : 'true');
+  renderCurrentView();
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
 function relockExecutiveHierarchyModal(event) {
   if (event) event.stopPropagation();
   sessionStorage.removeItem('sd_exec_unlocked');
@@ -6512,7 +6522,7 @@ function renderExecutiveHierarchyModalContent() {
               <i data-lucide="shield" class="w-3.5 h-3.5 text-sky-400"></i>
               <span>តារាង LEADERS (១២ រូប)</span>
             </span>
-            <span class="text-[10px] text-sky-400">ចុចលើ Leader ដើម្បីមើលកូនក្រុម ❯</span>
+            <span class="text-[10px] text-sky-400">ចុចលើ កាត ដើម្បីមើលសមាជិក ❯</span>
           </div>
 
           <div class="space-y-2">
@@ -6761,7 +6771,7 @@ function renderExecutiveHierarchyModalContent() {
               <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
               <span>តារាង MANAGERS (៦ ក្រុម)</span>
             </span>
-            <span class="text-[10px] text-amber-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម ❯</span>
+            <span class="text-[10px] text-amber-400">ចុចលើ កាត ដើម្បីមើលសមាជិក ❯</span>
           </div>
 
           <div class="space-y-2">
@@ -7454,7 +7464,7 @@ function getDashboardViewHTML() {
     const isBioEnabled = (localStorage.getItem('sd_exec_biometric_enabled') === 'true');
     cardTeamSales = `
       <!-- CARD E: VIP EXECUTIVE VAULT (LOCKED STATE) -->
-      <div class="ios-glass-card rounded-3xl p-5 border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[#0C1425]/90 to-[#0A0F1D]/90 shadow-2xl relative overflow-hidden group cursor-pointer active:scale-[0.99] transition"
+      <div class="ios-glass-card rounded-3xl p-4 border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[#0C1425]/90 to-[#0A0F1D]/90 shadow-2xl relative overflow-hidden group cursor-pointer active:scale-[0.99] transition"
            onclick="handleLockedExecutiveCardClick(event)">
         <!-- Ambient Decorative Glows -->
         <div class="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -7462,7 +7472,7 @@ function getDashboardViewHTML() {
 
         <div class="flex items-center justify-between mb-3 relative z-10">
           <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-inner shrink-0">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-inner shrink-0">
               <i data-lucide="crown" class="w-4 h-4"></i>
             </div>
             <div>
@@ -7570,6 +7580,7 @@ function getDashboardViewHTML() {
     const selectedL = selectedLdrName ? sortedLeaders.find(l => l.km === selectedLdrName) : null;
     const activeLeader = selectedL || sortedLeaders.find(l => l.km && (l.km.includes('ស្ដី ស្ដើង') || l.km.includes('ស្តី ស្តើង') || l.km.includes('ស្តី ស្នឹង'))) || sortedLeaders[0];
 
+    const isTeamSalesExpanded = (sessionStorage.getItem('sd_team_sales_card_expanded') === 'true');
     let homeHierarchyBodyHtml = '';
 
     // ==========================================
@@ -7647,17 +7658,21 @@ function getDashboardViewHTML() {
 
         homeHierarchyBodyHtml = `
           <div class="space-y-2 relative z-10">
-            <div class="flex items-center justify-between px-1">
+            <div onclick="toggleTeamSalesCardExpanded(event)" 
+                 class="flex items-center justify-between px-1 cursor-pointer select-none py-1 rounded-lg hover:bg-white/5 active:scale-[0.99] transition"
+                 title="ចុចដើម្បីពង្រីក ឬបង្រួម">
               <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
                 <i data-lucide="shield" class="w-3.5 h-3.5 text-sky-400"></i>
                 <span>តារាង LEADERS (១២ រូប)</span>
               </span>
-              <span class="text-[10px] text-sky-400">ចុចលើ Leader ដើម្បីមើលកូនក្រុម ❯</span>
+              <span class="text-[10px] text-sky-400">ចុចលើ កាត ដើម្បីមើលសមាជិក ❯</span>
             </div>
 
-            <div class="space-y-2">
-              ${leadersCardsHtml}
-            </div>
+            ${isTeamSalesExpanded ? `
+              <div class="space-y-2 animate-fade-in">
+                ${leadersCardsHtml}
+              </div>
+            ` : ''}
           </div>
         `;
       } else {
@@ -7785,17 +7800,21 @@ function getDashboardViewHTML() {
 
       homeHierarchyBodyHtml = `
         <div class="space-y-2 relative z-10">
-          <div class="flex items-center justify-between px-1">
+          <div onclick="toggleTeamSalesCardExpanded(event)" 
+               class="flex items-center justify-between px-1 cursor-pointer select-none py-1 rounded-lg hover:bg-white/5 active:scale-[0.99] transition"
+               title="ចុចដើម្បីពង្រីក ឬបង្រួម">
             <span class="text-[11px] font-bold uppercase text-emerald-400 flex items-center gap-1.5 tracking-wider">
               <i data-lucide="users" class="w-3.5 h-3.5"></i>
               <span>តារាងសមាជិកក្រុម (${sortedMembers.length} នាក់)</span>
             </span>
-            <span class="text-[10px] text-slate-400 font-sans">តម្លាភាព និងរួមគ្នាលូតលាស់</span>
+            <span class="text-[10px] text-emerald-400">ចុចលើ កាត ដើម្បីមើលសមាជិក ❯</span>
           </div>
 
-          <div class="space-y-1.5 max-h-80 overflow-y-auto no-scrollbar pr-1">
-            ${membersCardsHtml}
-          </div>
+          ${isTeamSalesExpanded ? `
+            <div class="space-y-1.5 max-h-80 overflow-y-auto no-scrollbar pr-1 animate-fade-in">
+              ${membersCardsHtml}
+            </div>
+          ` : ''}
         </div>
       `;
     }
@@ -7876,17 +7895,21 @@ function getDashboardViewHTML() {
 
         homeHierarchyBodyHtml = `
           <div class="space-y-2 relative z-10">
-            <div class="flex items-center justify-between px-1">
+            <div onclick="toggleTeamSalesCardExpanded(event)" 
+                 class="flex items-center justify-between px-1 cursor-pointer select-none py-1 rounded-lg hover:bg-white/5 active:scale-[0.99] transition"
+                 title="ចុចដើម្បីពង្រីក ឬបង្រួម">
               <span class="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5 tracking-wider">
                 <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
                 <span>តារាង MANAGERS (៦ ក្រុម)</span>
               </span>
-              <span class="text-[10px] text-amber-400">ចុចលើ Manager ដើម្បីមើលកូនក្រុម ❯</span>
+              <span class="text-[10px] text-amber-400">ចុចលើ កាត ដើម្បីមើលសមាជិក ❯</span>
             </div>
 
-            <div class="space-y-2">
-              ${managersCardsHtml}
-            </div>
+            ${isTeamSalesExpanded ? `
+              <div class="space-y-2 animate-fade-in">
+                ${managersCardsHtml}
+              </div>
+            ` : ''}
           </div>
         `;
       } else {
@@ -7899,13 +7922,14 @@ function getDashboardViewHTML() {
 
     cardTeamSales = `
       <!-- CARD E: VIP EXECUTIVE COMMAND CENTER (UNLOCKED STATE) -->
-      <div class="ios-glass-card rounded-3xl p-4 sm:p-5 border border-amber-500/30 bg-[#0C1425]/95 shadow-2xl relative overflow-hidden space-y-4">
+      <div class="ios-glass-card rounded-3xl p-4 border border-amber-500/30 bg-[#0C1425]/95 shadow-2xl relative overflow-hidden space-y-3">
         <div class="absolute -right-12 -top-12 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <!-- Card Header with Re-Lock & Fullscreen Button -->
-        <div class="flex items-center justify-between pb-3 border-b border-white/10 relative z-10">
+        <div onclick="toggleTeamSalesCardExpanded(event)" 
+             class="flex items-center justify-between pb-3 border-b border-white/10 relative z-10 cursor-pointer select-none">
           <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-inner shrink-0">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-inner shrink-0">
               <i data-lucide="crown" class="w-4 h-4"></i>
             </div>
             <div>
@@ -7917,7 +7941,7 @@ function getDashboardViewHTML() {
           </div>
 
           <div class="flex items-center gap-1.5">
-            <button type="button" onclick="openExecutiveHierarchyModal()" 
+            <button type="button" onclick="event.stopPropagation(); openExecutiveHierarchyModal()" 
                     class="px-2.5 py-1 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 flex items-center gap-1 text-amber-300 text-[10px] font-semibold active:scale-95 transition" title="បើកផ្ទាំងពេញអេក្រង់">
               <i data-lucide="maximize-2" class="w-3 h-3 text-amber-400"></i>
               <span class="hidden sm:inline">ពេញអេក្រង់</span>
@@ -9884,6 +9908,24 @@ function saveFollowUpStorage(data) {
   } catch (e) {}
 }
 
+function getCustomerDialPhone(c) {
+  if (!c) return '';
+  const raw = (typeof c === 'string') ? c : (c.phone || '');
+  if (!raw || raw === '—') return '';
+  const clean = String(raw).trim().replace(/\s+/g, '').replace(/[-–—]/g, '');
+  const isThai = (typeof c === 'object') && (
+    (c.totalThaiBaht > 0) ||
+    (c.location && (c.location.includes('ថៃ') || c.location.toLowerCase().includes('thai')))
+  );
+  if (isThai) {
+    if (clean.startsWith('+66')) return clean;
+    if (clean.startsWith('66')) return '+' + clean;
+    if (clean.startsWith('0')) return '+66' + clean.slice(1);
+    return '+66' + clean;
+  }
+  return clean;
+}
+
 function getCustomerFollowUpInfo(c) {
   if (!c) {
     return { day: 1, milestone: null, hasHeartbeat: false, isDone: false, isDismissed: false };
@@ -10394,7 +10436,7 @@ function getCustomerViewCardHTML(c, idx, isEn) {
             ${c.phone && c.phone !== '—' ? `
               <div class="flex items-center gap-2 shrink-0 select-none">
                 <!-- Vector Call 📞 Button with identical twin frame -->
-                <a href="tel:${c.phone.replace(/\s+/g, '')}" onclick="event.stopPropagation()" 
+                <a href="tel:${getCustomerDialPhone(c)}" onclick="event.stopPropagation()" 
                    title="ហៅទូរសព្ទ (${c.phone})"
                    class="w-5 h-5 rounded-md border bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-all active:scale-90 shadow-sm">
                   <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -26706,7 +26748,7 @@ function renderAllCustomersList() {
               ${c.phone && c.phone !== '—' ? `
                 <div class="flex items-center gap-2 shrink-0 select-none">
                   <!-- Vector Call 📞 Button with identical twin frame -->
-                  <a href="tel:${c.phone.replace(/\s+/g, '')}" onclick="event.stopPropagation()" 
+                  <a href="tel:${getCustomerDialPhone(c)}" onclick="event.stopPropagation()" 
                      title="ហៅទូរសព្ទ (${c.phone})"
                      class="w-5 h-5 rounded-md border bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-all active:scale-90 shadow-sm">
                     <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
