@@ -1,5 +1,5 @@
 {
-  "version": "67.36",
-  "buildTime": "2026-11-09T16:45:00+07:00",
-  "notes": "v67.36: Smart fallback to latest recorded date in Daily Report, dynamic November calendar matrix, 1 Check-In / 1 Check-Out rule enforcement, and PWA cache-busting"
+  "version": "67.37",
+  "buildTime": "2026-11-09T22:15:00+07:00",
+  "notes": "v67.37: Sales Structure default current month, tap-anywhere card expand on Home Screen, and exact 16px top alignment fix"
 }

@@ -4368,6 +4368,16 @@ function toggleTeamSalesCardExpanded(event) {
   if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
 }
 
+function handleTeamSalesCardContainerClick(event) {
+  if (!event) return;
+  const target = event.target;
+  if (target && target.closest && target.closest('button, a, input, select, [onclick*="openExecutiveHierarchyModal"], [onclick*="openExecutiveSecurityModal"], [onclick*="selectExecutive"], [onclick*="toggleManagerRoster"]')) {
+    return;
+  }
+  toggleTeamSalesCardExpanded(event);
+}
+window.handleTeamSalesCardContainerClick = handleTeamSalesCardContainerClick;
+
 function relockExecutiveHierarchyModal(event) {
   if (event) event.stopPropagation();
   sessionStorage.removeItem('sd_exec_unlocked');
@@ -4812,6 +4822,10 @@ function toggleExecDirectorExpanded() {
 
 function handleDirectorClick(event) {
   if (event) event.stopPropagation();
+  const isExpanded = sessionStorage.getItem('sd_team_sales_card_expanded') === 'true';
+  if (!isExpanded) {
+    sessionStorage.setItem('sd_team_sales_card_expanded', 'true');
+  }
   const currentRole = sessionStorage.getItem('sd_exec_role') || 'manager';
   if (currentRole === 'leader') {
     // In Tab Leader: stay in Leader view and reset selected leader to show all 12 leaders!
@@ -5054,9 +5068,17 @@ function openExecutiveHierarchyModal() {
 
   closeAllExecDropdowns();
 
-  // Default to full 1-year view ('all') if user hasn't explicitly set another period
+  // Default to current month (ខែបច្ចុប្បន្ន) when entering if user hasn't explicitly set another period
   if (!execHierarchyFilterState.userInteracted) {
-    execHierarchyFilterState.mode = 'all';
+    const now = new Date();
+    const currentIsoDay = getLocalIsoDate(now);
+    const currentIsoMonth = currentIsoDay.slice(0, 7);
+    const [cYear, cMonth] = currentIsoMonth.split('-');
+    execHierarchyFilterState.mode = 'month';
+    execHierarchyFilterState.selectedMonth = currentIsoMonth;
+    execHierarchyFilterState.selectedYear = cYear;
+    execHierarchyFilterState.calYear = parseInt(cYear, 10);
+    execHierarchyFilterState.calMonth = parseInt(cMonth, 10);
   }
 
   renderExecutiveHierarchyDateFilterBar();
@@ -7922,12 +7944,13 @@ function getDashboardViewHTML() {
 
     cardTeamSales = `
       <!-- CARD E: VIP EXECUTIVE COMMAND CENTER (UNLOCKED STATE) -->
-      <div class="ios-glass-card rounded-3xl p-4 border border-amber-500/30 bg-[#0C1425]/95 shadow-2xl relative overflow-hidden space-y-3">
+      <div onclick="handleTeamSalesCardContainerClick(event)"
+           class="ios-glass-card rounded-3xl p-4 border border-amber-500/30 bg-[#0C1425]/95 shadow-2xl relative overflow-hidden space-y-3 cursor-pointer">
         <div class="absolute -right-12 -top-12 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <!-- Card Header with Re-Lock & Fullscreen Button -->
         <div onclick="toggleTeamSalesCardExpanded(event)" 
-             class="flex items-center justify-between pb-3 border-b border-white/10 relative z-10 cursor-pointer select-none">
+             class="!mt-0 flex items-center justify-between pb-3 border-b border-white/10 relative z-10 cursor-pointer select-none">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-inner shrink-0">
               <i data-lucide="crown" class="w-4 h-4"></i>
@@ -7946,7 +7969,7 @@ function getDashboardViewHTML() {
               <i data-lucide="maximize-2" class="w-3 h-3 text-amber-400"></i>
               <span class="hidden sm:inline">ពេញអេក្រង់</span>
             </button>
-            <button type="button" onclick="openExecutiveSecurityModal(event)" 
+            <button type="button" onclick="event.stopPropagation(); openExecutiveSecurityModal(event)" 
                     class="w-7 h-7 rounded-full bg-rose-500/10 hover:bg-rose-500/20 active:scale-90 border border-rose-500/30 text-rose-400 flex items-center justify-center transition shrink-0" 
                     title="សុវត្ថិភាព និងចាក់សោរ">
               <i data-lucide="lock" class="w-3.5 h-3.5"></i>
@@ -21339,7 +21362,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.36';
+const CURRENT_APP_VERSION = '67.37';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
