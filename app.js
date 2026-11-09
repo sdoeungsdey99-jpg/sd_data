@@ -8004,12 +8004,13 @@ function getDashboardViewHTML() {
           <span class="text-xs font-semibold text-slate-200 tracking-tight mt-0.5">ChatGPT</span>
         </button>
 
-        <!-- 2. Claude -->
-        <button onclick="launchNativeOrWeb('claude://', 'https://claude.ai')" 
-                class="flex flex-col items-center gap-1.5 active:scale-95 transition group text-center cursor-pointer">
-          <img src="claude-ios.png" alt="Claude" 
+        <!-- 2. ចរិយា (Bostar AI Assistant @chakriya_Assistant_bot) -->
+        <button onclick="launchNativeOrWeb('tg://resolve?domain=chakriya_Assistant_bot', 'https://t.me/chakriya_Assistant_bot')" 
+                class="flex flex-col items-center gap-1.5 active:scale-95 transition group text-center cursor-pointer"
+                title="ជំនួយការ AI ចរិយា">
+          <img src="chakriya-ios.jpg" alt="ចរិយា" 
                class="w-16 h-16 rounded-[16px] object-cover shadow-xl shadow-black/50 group-hover:scale-105 transition border border-white/10">
-          <span class="text-xs font-semibold text-slate-200 tracking-tight mt-0.5">Claude</span>
+          <span class="text-xs font-semibold text-slate-200 tracking-tight mt-0.5">ចរិយា</span>
         </button>
 
         <!-- 3. Gemini -->
@@ -9862,6 +9863,201 @@ function getAnalyticsViewHTML() {
 let customerViewScopeMode = 'personal'; // 'personal' or 'all'
 let customerViewSortMode = 'latest'; // 'latest', 'top', 'name'
 let expandedCustomerViewKey = null;
+let customerViewHeartbeatFilterActive = false;
+
+// ------------------------------------------
+// Smart Health Follow-up System (3-7-15 Day Formula)
+// ------------------------------------------
+const FOLLOWUP_STORAGE_KEY = 'bostar_customer_followup_status_v1';
+
+function getFollowUpStorage() {
+  try {
+    return JSON.parse(localStorage.getItem(FOLLOWUP_STORAGE_KEY) || '{}');
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveFollowUpStorage(data) {
+  try {
+    localStorage.setItem(FOLLOWUP_STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {}
+}
+
+function getCustomerFollowUpInfo(c) {
+  if (!c) {
+    return { day: 1, milestone: null, hasHeartbeat: false, isDone: false, isDismissed: false };
+  }
+
+  let iso = c.lastIsoDate;
+  if (!iso && c.orders && c.orders.length > 0) {
+    iso = c.orders[0].isoDate;
+  }
+
+  let diffDays = 1;
+  if (iso && typeof iso === 'string') {
+    const parts = iso.split('-');
+    if (parts.length >= 3) {
+      const orderDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      orderDate.setHours(0, 0, 0, 0);
+      const diffTime = today.getTime() - orderDate.getTime();
+      diffDays = Math.max(1, Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1);
+    }
+  }
+
+  // Milestone check: Day 3, Day 7, Day 15 (and 15+)
+  let milestone = null;
+  if (diffDays === 3) milestone = 3;
+  else if (diffDays === 7) milestone = 7;
+  else if (diffDays >= 15) milestone = 15;
+
+  const store = getFollowUpStorage();
+  const cData = store[c.key] || {};
+
+  const isDone = Boolean(milestone && Array.isArray(cData.doneMilestones) && cData.doneMilestones.includes(milestone));
+  const isDismissed = Boolean(milestone && Array.isArray(cData.dismissedMilestones) && cData.dismissedMilestones.includes(milestone));
+
+  // Active heartbeat only on milestone days when not dismissed
+  const hasHeartbeat = Boolean(milestone && !isDismissed);
+
+  return {
+    day: diffDays,
+    milestone,
+    hasHeartbeat,
+    isDone,
+    isDismissed
+  };
+}
+
+function renderFollowUpVolumeBar(c) {
+  const fInfo = getCustomerFollowUpInfo(c);
+  const day = fInfo.day;
+  const milestone = fInfo.milestone;
+  const hasHeartbeat = fInfo.hasHeartbeat;
+  const isDone = fInfo.isDone;
+
+  let dotsHTML = '';
+  // 15 days scale using iOS Page Dots style (● ● ● ○ ○ ○)
+  for (let i = 1; i <= 15; i++) {
+    const isPastOrCurrent = (i <= day);
+    const isCurrentMilestone = (milestone && i === milestone);
+    const shouldGlow = (isCurrentMilestone && hasHeartbeat && !isDone);
+
+    let dotColor = 'bg-emerald-400 text-emerald-400';
+    if (i >= 8) {
+      dotColor = 'bg-rose-400 text-rose-400';
+    } else if (i >= 4) {
+      dotColor = 'bg-amber-400 text-amber-400';
+    }
+
+    if (isPastOrCurrent) {
+      if (shouldGlow) {
+        // Active milestone dot: Calm soft breathing glow (No jump, no heart emoji)
+        dotsHTML += `<span class="inline-block w-[4px] h-[4px] rounded-full ${dotColor} animate-soft-glow ring-2 ring-current/30 shadow-sm" title="ថ្ងៃទី ${i} (ត្រូវតាមដាន)"></span>`;
+      } else {
+        // Solid micro dot (●)
+        dotsHTML += `<span class="inline-block w-[3.5px] h-[3.5px] rounded-full ${dotColor} ${i === day ? 'opacity-100' : 'opacity-70'}" title="ថ្ងៃទី ${i}"></span>`;
+      }
+    } else {
+      // Future day: subtle hollow / outline dot (○)
+      dotsHTML += `<span class="inline-block w-[3px] h-[3px] rounded-full border border-white/25 bg-transparent opacity-40" title="ថ្ងៃទី ${i}"></span>`;
+    }
+  }
+
+  let labelHTML = '';
+  if (hasHeartbeat && !isDone) {
+    const stageText = (day === 3 ? 'សួរសុខទុក្ខ' : (day === 7 ? 'តាមដានអាការៈ' : 'រំលឹកកុម្ម៉ង់បន្ត'));
+    const colorClass = (day === 3 ? 'text-emerald-400' : (day === 7 ? 'text-amber-400' : 'text-rose-400'));
+    labelHTML = `<span class="text-[9.5px] font-semibold ${colorClass} truncate">ថ្ងៃទី ${day} (${stageText})</span>`;
+  } else if (isDone) {
+    labelHTML = `<span class="text-[9px] font-medium text-emerald-400 truncate">✓ ថ្ងៃទី ${day} (បានសួររួច)</span>`;
+  } else {
+    labelHTML = `<span class="text-[9px] font-mono text-slate-400 truncate">ថ្ងៃទី ${day}${day > 15 ? '+' : ''}</span>`;
+  }
+
+  return `
+    <div class="flex items-center gap-1.5 min-w-0 select-none">
+      <div class="flex items-center gap-[2.5px] h-[10px] shrink-0">
+        ${dotsHTML}
+      </div>
+      <div class="truncate min-w-0">
+        ${labelHTML}
+      </div>
+    </div>
+  `;
+}
+
+function toggleCustomerFollowUpDone(encodedKey, milestone) {
+  const key = decodeURIComponent(encodedKey);
+  const targetMilestone = Number(milestone) || 1;
+  const store = getFollowUpStorage();
+  if (!store[key]) store[key] = { doneMilestones: [], dismissedMilestones: [] };
+  if (!Array.isArray(store[key].doneMilestones)) store[key].doneMilestones = [];
+
+  const idx = store[key].doneMilestones.indexOf(targetMilestone);
+  if (idx >= 0) {
+    store[key].doneMilestones.splice(idx, 1);
+  } else {
+    store[key].doneMilestones.push(targetMilestone);
+    if (typeof showToast === 'function') {
+      showToast(`កត់ត្រាថាបានសួរសុខទុក្ខរួចរាល់ (Day ${targetMilestone}) ✅`);
+    }
+  }
+  saveFollowUpStorage(store);
+  renderCustomerViewList(true);
+}
+
+function dismissCustomerFollowUp(encodedKey, milestone) {
+  const key = decodeURIComponent(encodedKey);
+  const targetMilestone = Number(milestone) || 1;
+  const store = getFollowUpStorage();
+  if (!store[key]) store[key] = { doneMilestones: [], dismissedMilestones: [] };
+  if (!Array.isArray(store[key].dismissedMilestones)) store[key].dismissedMilestones = [];
+
+  if (!store[key].dismissedMilestones.includes(targetMilestone)) {
+    store[key].dismissedMilestones.push(targetMilestone);
+  }
+  saveFollowUpStorage(store);
+  if (typeof showToast === 'function') {
+    showToast(`បានបិទការរំលឹកសម្រាប់ Day ${targetMilestone} (នឹងរំលឹកឡើងវិញនៅវគ្គបន្ទាប់)`);
+  }
+  renderCustomerViewList(true);
+}
+
+function copyCustomerPhoneWithFeedback(btn, phone) {
+  if (!phone || phone === '—') return;
+  fallbackCopyText(phone);
+  if (!btn) return;
+
+  const originalHTML = btn.innerHTML;
+  const originalClass = btn.className;
+  btn.innerHTML = `
+    <svg class="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  `;
+  btn.className = 'w-5 h-5 rounded-md border bg-emerald-500/20 border-emerald-500/30 text-emerald-400 flex items-center justify-center transition-all shadow-sm';
+  
+  setTimeout(() => {
+    btn.innerHTML = originalHTML;
+    btn.className = originalClass;
+  }, 1200);
+}
+
+function toggleCustomerViewFollowupFilter() {
+  customerViewHeartbeatFilterActive = !customerViewHeartbeatFilterActive;
+  const btn = document.getElementById('btn-customer-view-followup-toggle');
+  if (btn) {
+    if (customerViewHeartbeatFilterActive) {
+      btn.className = 'relative w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 ring-2 ring-amber-500/30 active:scale-95 flex items-center justify-center transition shadow-sm shrink-0';
+    } else {
+      btn.className = 'relative w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0';
+    }
+  }
+  renderCustomerViewList();
+}
 
 function getCustomerViewHTML() {
   const p = (typeof getProfileData === 'function') ? getProfileData() : {};
@@ -9898,13 +10094,21 @@ function getCustomerViewHTML() {
               </div>
             </div>
 
-            <!-- Action Buttons Group (Search Button + Sort Dropdown Trigger) -->
+            <!-- Action Buttons Group (Search Button + Follow-up ! Filter + Sort Dropdown Trigger) -->
             <div class="flex items-center gap-1.5 shrink-0">
               <!-- Search Toggle Button -->
               <button id="btn-customer-view-search-toggle" onclick="toggleCustomerViewSearch()" 
                       class="w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
                       title="ស្វែងរកអតិថិជន">
                 <i data-lucide="search" class="w-4 h-4 text-orange-400"></i>
+              </button>
+
+              <!-- Follow-up Alert ! Filter Button -->
+              <button id="btn-customer-view-followup-toggle" onclick="toggleCustomerViewFollowupFilter()" 
+                      class="relative w-9 h-9 rounded-xl ${customerViewHeartbeatFilterActive ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 ring-2 ring-amber-500/30' : 'bg-[#0F1B2E] text-slate-200'} hover:bg-[#16253D] active:scale-95 border border-white/10 flex items-center justify-center transition shadow-sm shrink-0"
+                      title="អតិថិជនត្រូវតាមដាន និង សួរសុខទុក្ខ">
+                <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400"></i>
+                <span id="customer-view-followup-badge" class="hidden absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center border border-[#070D18] shadow"></span>
               </button>
 
               <!-- Sort Option Dropdown Trigger (3 lines / Menu icon) -->
@@ -10114,31 +10318,49 @@ function getCustomerViewCardHTML(c, idx, isEn) {
   const isExpanded = (expandedCustomerViewKey === c.key);
   const encodedKey = encodeURIComponent(c.key);
   const sortedOrders = isExpanded ? [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || '')) : [];
+  const fInfo = getCustomerFollowUpInfo(c);
 
   return `
     <div class="ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
-      <div onclick="toggleCustomerViewOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-2.5 cursor-pointer select-none">
-        <!-- Left Column: No. + Date + Name + Count; Phone + Location -->
-        <div class="min-w-0 flex-1 space-y-0.5">
-          <div class="flex items-center gap-1.5 min-w-0">
+      <div onclick="toggleCustomerViewOrderHistory('${encodedKey}')" class="flex items-stretch justify-between gap-2.5 cursor-pointer select-none">
+        <!-- Left Column: 3-Row Layout (Explicitly Row-Locked with Right Column) -->
+        <div class="min-w-0 flex-1 flex flex-col justify-between py-0.5">
+          <!-- Row 1 (Left): Date + Name + Count (Locked to $ Total) -->
+          <div class="flex items-center gap-1.5 min-w-0 h-[18px]">
             <span class="font-mono font-bold text-[11px] text-orange-400 shrink-0">${idx + 1}.</span>
             <span class="font-mono text-[10px] text-slate-400 shrink-0 whitespace-nowrap">${c.lastDate || '—'}</span>
             <h4 class="font-bold text-xs text-white truncate min-w-0">${c.name}</h4>
             <span class="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-mono text-slate-300 shrink-0 whitespace-nowrap">${c.totalOrders} ${isEn ? 'orders' : 'ដង'}</span>
           </div>
-          <div class="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0">
+          <!-- Row 2 (Left): Phone + Location (Locked to ฿/៛/---) -->
+          <div class="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0 h-4">
             <span class="font-mono font-semibold text-slate-300 shrink-0 whitespace-nowrap">📞 ${c.phone || '—'}</span>
             <span class="text-slate-500 shrink-0">•</span>
             <span class="truncate min-w-0">📍 ${c.location || '—'}</span>
           </div>
+          <!-- Row 3 (Left): Micro Dots Follow-up Bar (Locked to Box count) -->
+          <div class="h-4 flex items-center min-w-0">
+            ${renderFollowUpVolumeBar(c)}
+          </div>
         </div>
-        <!-- Right Column: Amount on top line, Box quantity on bottom line -->
-        <div class="text-right shrink-0 min-w-[70px]">
-          <div class="font-mono font-bold text-xs text-emerald-400 leading-tight">${formatUSD(c.totalSpent)}</div>
-          ${c.totalThaiBaht > 0 
-            ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalThaiBaht)} ฿</div>` 
-            : (c.totalRiel > 0 ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalRiel)} ៛</div>` : '')}
-          <div class="font-mono text-[10px] text-orange-400 font-semibold leading-tight mt-0.5">${formatInt(c.totalBoxes)} ${isEn ? 'boxes' : 'ប្រអប់'}</div>
+        <!-- Right Column: 3 Rows (Locked to Match Left Baselines 1-to-1) -->
+        <div class="text-right shrink-0 min-w-[70px] flex flex-col justify-between py-0.5">
+          <!-- Row 1 (Right): $ Total Spent (Exact 18px matching Left Row 1) -->
+          <div class="font-mono font-bold text-xs text-emerald-400 h-[18px] flex items-center justify-end leading-none">
+            ${formatUSD(c.totalSpent)}
+          </div>
+          <!-- Row 2 (Right): Baht/Riel/--- (Exact 16px matching Left Row 2) -->
+          <div class="h-4 flex items-center justify-end leading-none">
+            ${c.totalThaiBaht > 0 
+              ? `<span class="font-mono text-[9.5px] text-slate-300 font-medium leading-none">${formatInt(c.totalThaiBaht)} ฿</span>` 
+              : (c.totalRiel > 0 
+                  ? `<span class="font-mono text-[9.5px] text-slate-300 font-medium leading-none">${formatInt(c.totalRiel)} ៛</span>` 
+                  : `<span class="font-mono text-[9.5px] text-slate-500/50 font-normal leading-none tracking-wider">---</span>`)}
+          </div>
+          <!-- Row 3 (Right): Box quantity (Exact 16px matching Left Row 3) -->
+          <div class="font-mono text-[10px] text-orange-400 font-semibold h-4 flex items-center justify-end leading-none">
+            ${formatInt(c.totalBoxes)} ${isEn ? 'boxes' : 'ប្រអប់'}
+          </div>
         </div>
       </div>
 
@@ -10146,16 +10368,47 @@ function getCustomerViewCardHTML(c, idx, isEn) {
       ${isExpanded ? `
         <div class="mt-2 pt-2 border-t border-white/10 space-y-1.5 animate-fade-in">
           <div class="flex items-center justify-between text-[10px]">
-            <span class="text-slate-400 font-semibold">ប្រវត្តិទិញទាំងអស់ (${sortedOrders.length} ប្រតិបត្តិការ)</span>
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="text-slate-400 font-semibold truncate">ប្រវត្តិទិញទាំងអស់ (${sortedOrders.length} ប្រតិបត្តិការ)</span>
+              <!-- Follow-up Twin Vector Action Buttons: [ ✓ ] [ ✕ ] -->
+              <div class="flex items-center gap-2 shrink-0 ml-1.5 select-none">
+                <!-- Twin 1: Vector Checkmark ✓ -->
+                <button onclick="event.stopPropagation(); toggleCustomerFollowUpDone('${encodedKey}', ${fInfo.milestone || fInfo.day})" 
+                        title="${fInfo.isDone ? 'បានសួរសុខទុក្ខរួចរាល់ (ចុចដើម្បីដោះធីក)' : 'ចុចដើម្បីកត់ត្រាថាបានសួរសុខទុក្ខ'}"
+                        class="w-5 h-5 rounded-md border flex items-center justify-center transition-all active:scale-90 ${fInfo.isDone ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-sm' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}">
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </button>
+                <!-- Twin 2: Vector Cross ✕ -->
+                <button onclick="event.stopPropagation(); dismissCustomerFollowUp('${encodedKey}', ${fInfo.milestone || fInfo.day})" 
+                        title="រំលង/បិទការរំលឹកថ្ងៃនេះ រហូតដល់ថ្ងៃ Follow up បន្ទាប់"
+                        class="w-5 h-5 rounded-md border bg-white/5 border-white/10 text-slate-400 hover:text-rose-300 hover:bg-rose-500/15 hover:border-rose-500/30 flex items-center justify-center transition-all active:scale-90">
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
             ${c.phone && c.phone !== '—' ? `
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-2 shrink-0 select-none">
+                <!-- Vector Call 📞 Button with identical twin frame -->
                 <a href="tel:${c.phone.replace(/\s+/g, '')}" onclick="event.stopPropagation()" 
-                   class="px-2 py-0.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold flex items-center gap-1 active:scale-95 transition">
-                  📞 ហៅទូរសព្ទ
+                   title="ហៅទូរសព្ទ (${c.phone})"
+                   class="w-5 h-5 rounded-md border bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-all active:scale-90 shadow-sm">
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                  </svg>
                 </a>
-                <button onclick="event.stopPropagation(); fallbackCopyText('${c.phone}')" 
-                        class="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/15 text-slate-200 font-bold active:scale-95 transition">
-                  ចម្លងលេខ
+                <!-- Vector Copy ⧉ Button with identical twin frame and feedback -->
+                <button onclick="event.stopPropagation(); copyCustomerPhoneWithFeedback(this, '${c.phone}')" 
+                        title="ចម្លងលេខទូរសព្ទ (${c.phone})"
+                        class="w-5 h-5 rounded-md border bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/15 flex items-center justify-center transition-all active:scale-90">
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
                 </button>
               </div>
             ` : ''}
@@ -10212,6 +10465,23 @@ function renderCustomerViewBatch(isAppend = false, countOverride = null) {
   const batch = currentCustomerViewList.slice(startIdx, targetCount);
 
   if (batch.length === 0 && !isAppend) {
+    if (customerViewHeartbeatFilterActive) {
+      listEl.innerHTML = `
+        <div class="text-center py-12 px-4 space-y-2.5 select-none">
+          <div class="w-12 h-12 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto text-xl shadow-lg">
+            ✓
+          </div>
+          <p class="text-xs font-bold text-white">អស្ចារ្យណាស់! គ្មានអតិថិជនត្រូវតាមដានទេ</p>
+          <p class="text-[11px] text-slate-400 max-w-xs mx-auto leading-relaxed">រាល់អតិថិជនដល់កំណត់ថ្ងៃទី ៣, ៧ និង ១៥ នឹងលោតចង្វាក់បេះដូង និងបង្ហាញនៅទីនេះដោយស្វ័យប្រវត្តិ</p>
+          <button onclick="toggleCustomerViewFollowupFilter()" class="mt-2 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 text-xs text-slate-200 font-semibold transition">
+            ត្រឡប់ទៅបញ្ជីអតិថិជនទាំងអស់
+          </button>
+        </div>`;
+      customerViewRenderedCount = 0;
+      if (window.lucide) window.lucide.createIcons();
+      return;
+    }
+
     listEl.innerHTML = (customerViewScopeMode === 'all'
       ? `<div class="text-center py-12 px-4 space-y-2">
            <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center mx-auto text-amber-400">
@@ -10251,8 +10521,37 @@ function renderCustomerViewList(preserveCount = false) {
   
   const prevScope = allCustomersScopeMode;
   allCustomersScopeMode = customerViewScopeMode;
-  let customers = getAllUniqueCustomers();
+  let rawCustomers = getAllUniqueCustomers();
   allCustomersScopeMode = prevScope;
+
+  // Calculate and update Follow-up ℹ️ badge count (Due customers with active heartbeat)
+  const allDueCount = rawCustomers.filter(c => getCustomerFollowUpInfo(c).hasHeartbeat).length;
+  const badgeEl = document.getElementById('customer-view-followup-badge');
+  if (badgeEl) {
+    if (allDueCount > 0) {
+      badgeEl.textContent = allDueCount;
+      badgeEl.classList.remove('hidden');
+    } else {
+      badgeEl.classList.add('hidden');
+    }
+  }
+
+  // Update button active style
+  const followupBtn = document.getElementById('btn-customer-view-followup-toggle');
+  if (followupBtn) {
+    if (customerViewHeartbeatFilterActive) {
+      followupBtn.className = 'relative w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-300 ring-2 ring-rose-500/30 active:scale-95 flex items-center justify-center transition shadow-sm shrink-0';
+    } else {
+      followupBtn.className = 'relative w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0';
+    }
+  }
+
+  let customers = rawCustomers;
+
+  // Heartbeat Follow-up Filter Mode
+  if (customerViewHeartbeatFilterActive) {
+    customers = customers.filter(c => getCustomerFollowUpInfo(c).hasHeartbeat);
+  }
 
   if (q) {
     customers = customers.filter(c =>
@@ -10279,7 +10578,17 @@ function renderCustomerViewList(preserveCount = false) {
   const countDisplay = isEn ? `(${customers.length} Cust)` : `(${customers.length} នាក់)`;
   
   if (heading) {
-    if (customerViewScopeMode === 'all') {
+    if (customerViewHeartbeatFilterActive) {
+      heading.innerHTML = `
+        <div class="flex items-center gap-1.5">
+          <h1 class="font-bold text-[15.5px] text-white leading-tight brand-title truncate">តាមដានសុខភាព</h1>
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[10px] font-medium leading-none border border-rose-500/30">៣-៧-១៥ ថ្ងៃ</span>
+        </div>
+        <p class="text-[11.5px] text-sky-300 font-semibold leading-tight truncate mt-0.5">
+          អតិថិជនត្រូវតាមដាន និង សួរសុខទុក្ខ: <span class="font-mono text-white font-bold">${customers.length} នាក់</span>
+        </p>
+      `;
+    } else if (customerViewScopeMode === 'all') {
       heading.innerHTML = `
         <div class="flex items-center gap-1.5">
           <h1 class="font-bold text-[15.5px] text-white leading-tight brand-title truncate">${isEn ? 'All Customers' : 'អតិថិជនទាំងអស់'}</h1>
@@ -26319,36 +26628,50 @@ function renderAllCustomersList() {
     const isExpanded = (expandedCustomerKey === c.key) || (urlParams.get('expand_cust') === '1' && idx === 0);
     const encodedKey = encodeURIComponent(c.key);
     const sortedOrders = [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
+    const fInfo = getCustomerFollowUpInfo(c);
 
     return `
       <div class="ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
-        <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-center justify-between gap-2.5 cursor-pointer select-none">
-          <!-- Left Column: Compact No. + Two-Line Flow (Line 1: Date + Name + Count; Line 2: Phone + Location) -->
-          <div class="min-w-0 flex-1 space-y-0.5">
-            <!-- Line 1: No. + Date + Customer Name + Orders Count -->
-            <div class="flex items-center gap-1.5 min-w-0">
+        <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-stretch justify-between gap-2.5 cursor-pointer select-none">
+          <!-- Left Column: 3-Row Layout (Explicitly Row-Locked with Right Column) -->
+          <div class="min-w-0 flex-1 flex flex-col justify-between py-0.5">
+            <!-- Row 1 (Left): Date + Name + Count (Locked to $ Total) -->
+            <div class="flex items-center gap-1.5 min-w-0 h-[18px]">
               <span class="font-mono font-bold text-[11px] text-orange-400 shrink-0">${idx + 1}.</span>
               <span class="font-mono text-[10px] text-slate-400 shrink-0 whitespace-nowrap">${c.lastDate || '—'}</span>
               <h4 class="font-bold text-xs text-white truncate min-w-0">${c.name}</h4>
               <span class="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-mono text-slate-300 shrink-0 whitespace-nowrap">${c.totalOrders} ${isEn ? 'orders' : 'ដង'}</span>
             </div>
 
-            <!-- Line 2: Phone + Location -->
-            <div class="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0">
+            <!-- Row 2 (Left): Phone + Location (Locked to ฿/៛/---) -->
+            <div class="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0 h-4">
               <span class="font-mono font-semibold text-slate-300 shrink-0 whitespace-nowrap">📞 ${c.phone || '—'}</span>
               <span class="text-slate-500 shrink-0">•</span>
               <span class="truncate min-w-0">📍 ${c.location || '—'}</span>
             </div>
+
+            <!-- Row 3 (Left): Micro Dots Follow-up Bar (Locked to Box count) -->
+            <div class="h-4 flex items-center min-w-0">
+              ${renderFollowUpVolumeBar(c)}
+            </div>
           </div>
 
-          <!-- Right Column: Amount on top line, Box quantity on bottom line (Ensures complete digit visibility) -->
-          <div class="text-right shrink-0 min-w-[70px]">
-            <div class="font-mono font-bold text-xs text-emerald-400 leading-tight">${formatUSD(c.totalSpent)}</div>
-            ${c.totalThaiBaht > 0 
-              ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalThaiBaht)} ฿</div>` 
-              : (c.totalRiel > 0 ? `<div class="font-mono text-[9.5px] text-slate-300 font-medium leading-tight mt-0.5">${formatInt(c.totalRiel)} ៛</div>` : '')
-            }
-            <div class="text-[10px] font-mono font-bold text-orange-400 leading-tight mt-0.5">
+          <!-- Right Column: 3 Rows (Mathematically Locked to Match Left Baselines) -->
+          <div class="text-right shrink-0 min-w-[70px] flex flex-col justify-between py-0.5">
+            <!-- Row 1 (Right): $ Total Spent (Exact 18px matching Left Row 1) -->
+            <div class="font-mono font-bold text-xs text-emerald-400 h-[18px] flex items-center justify-end leading-none">
+              ${formatUSD(c.totalSpent)}
+            </div>
+            <!-- Row 2 (Right): Baht/Riel/--- (Exact 16px matching Left Row 2) -->
+            <div class="h-4 flex items-center justify-end leading-none">
+              ${c.totalThaiBaht > 0 
+                ? `<span class="font-mono text-[9.5px] text-slate-300 font-medium leading-none">${formatInt(c.totalThaiBaht)} ฿</span>` 
+                : (c.totalRiel > 0 
+                    ? `<span class="font-mono text-[9.5px] text-slate-300 font-medium leading-none">${formatInt(c.totalRiel)} ៛</span>` 
+                    : `<span class="font-mono text-[9.5px] text-slate-500/50 font-normal leading-none tracking-wider">---</span>`)}
+            </div>
+            <!-- Row 3 (Right): Box quantity (Exact 16px matching Left Row 3) -->
+            <div class="font-mono text-[10px] text-orange-400 font-semibold h-4 flex items-center justify-end leading-none">
               ${c.totalBoxes} ${isEn ? 'Boxes' : 'ប្រអប់'}
             </div>
           </div>
@@ -26357,16 +26680,47 @@ function renderAllCustomersList() {
         ${isExpanded ? `
           <div class="mt-2 pt-2 border-t border-white/10 space-y-1.5">
             <div class="flex items-center justify-between text-[10px]">
-              <span class="text-slate-400 font-semibold">ប្រវត្តិទិញទាំងអស់ (${sortedOrders.length} ប្រតិបត្តិការ)</span>
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-slate-400 font-semibold truncate">ប្រវត្តិទិញទាំងអស់ (${sortedOrders.length} ប្រតិបត្តិការ)</span>
+                <!-- Follow-up Twin Vector Action Buttons: [ ✓ ] [ ✕ ] -->
+                <div class="flex items-center gap-2 shrink-0 ml-1.5 select-none">
+                  <!-- Twin 1: Vector Checkmark ✓ -->
+                  <button onclick="event.stopPropagation(); toggleCustomerFollowUpDone('${encodedKey}', ${fInfo.milestone || fInfo.day})" 
+                          title="${fInfo.isDone ? 'បានសួរសុខទុក្ខរួចរាល់ (ចុចដើម្បីដោះធីក)' : 'ចុចដើម្បីកត់ត្រាថាបានសួរសុខទុក្ខ'}"
+                          class="w-5 h-5 rounded-md border flex items-center justify-center transition-all active:scale-90 ${fInfo.isDone ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-sm' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </button>
+                  <!-- Twin 2: Vector Cross ✕ -->
+                  <button onclick="event.stopPropagation(); dismissCustomerFollowUp('${encodedKey}', ${fInfo.milestone || fInfo.day})" 
+                          title="រំលង/បិទការរំលឹកថ្ងៃនេះ រហូតដល់ថ្ងៃ Follow up បន្ទាប់"
+                          class="w-5 h-5 rounded-md border bg-white/5 border-white/10 text-slate-400 hover:text-rose-300 hover:bg-rose-500/15 hover:border-rose-500/30 flex items-center justify-center transition-all active:scale-90">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
               ${c.phone && c.phone !== '—' ? `
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-2 shrink-0 select-none">
+                  <!-- Vector Call 📞 Button with identical twin frame -->
                   <a href="tel:${c.phone.replace(/\s+/g, '')}" onclick="event.stopPropagation()" 
-                     class="px-2 py-0.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold">
-                    📞 ហៅទូរសព្ទ
+                     title="ហៅទូរសព្ទ (${c.phone})"
+                     class="w-5 h-5 rounded-md border bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-all active:scale-90 shadow-sm">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
                   </a>
-                  <button onclick="event.stopPropagation(); fallbackCopyText('${c.phone}')" 
-                          class="px-2 py-0.5 rounded-lg bg-white/10 text-slate-200 font-bold">
-                    ចម្លងលេខ
+                  <!-- Vector Copy ⧉ Button with identical twin frame and feedback -->
+                  <button onclick="event.stopPropagation(); copyCustomerPhoneWithFeedback(this, '${c.phone}')" 
+                          title="ចម្លងលេខទូរសព្ទ (${c.phone})"
+                          class="w-5 h-5 rounded-md border bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/15 flex items-center justify-center transition-all active:scale-90">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
                   </button>
                 </div>
               ` : ''}

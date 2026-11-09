@@ -1225,6 +1225,21 @@
       animation: expenseRowHighlight 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
+    /* Smart Health Follow-up Soft Breathing Glow (Calm, Non-flashy iOS Dots) */
+    @keyframes followUpSoftGlow {
+      0%, 100% {
+        opacity: 0.75;
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+      }
+      50% {
+        opacity: 1;
+        box-shadow: 0 0 5px 1.5px currentColor;
+      }
+    }
+    .animate-soft-glow {
+      animation: followUpSoftGlow 2.2s ease-in-out infinite;
+    }
+
     /* Light Mode Overrides (Crisp, High-Contrast iOS Style - Specially Refined for Settings & Dashboard) */
     .light-theme {
       background-color: #F8FAFC !important;
