@@ -135,21 +135,21 @@ function parseDailyReportTabDate(dateRaw) {
   if (!dateRaw) return { ddmmyyyy: '', isoDate: '' };
   const s = String(dateRaw).trim();
 
-  // Match M/D/YYYY or MM/DD/YYYY with optional time (Google Sheets export standard for Tab Report)
-  const slashMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  // Match standard DD/MM/YYYY or D/M/YYYY
+  const slashMatch = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
   if (slashMatch) {
     let p1 = parseInt(slashMatch[1], 10);
     let p2 = parseInt(slashMatch[2], 10);
     const yr = slashMatch[3];
 
-    // In Google Sheet Tab Report, date columns export as MM/DD/YYYY
-    let mo = String(p1).padStart(2, '0');
-    let dy = String(p2).padStart(2, '0');
+    // Standard DD/MM/YYYY
+    let dy = String(p1).padStart(2, '0');
+    let mo = String(p2).padStart(2, '0');
 
-    // Safety: if p1 > 12, then it must be day-first (DD/MM/YYYY)
-    if (p1 > 12 && p2 <= 12) {
-      dy = String(p1).padStart(2, '0');
-      mo = String(p2).padStart(2, '0');
+    // Safety fallback: if p2 > 12 and p1 <= 12, then it was inverted as MM/DD/YYYY
+    if (p2 > 12 && p1 <= 12) {
+      mo = String(p1).padStart(2, '0');
+      dy = String(p2).padStart(2, '0');
     }
 
     const ddmmyyyy = `${dy}/${mo}/${yr}`;

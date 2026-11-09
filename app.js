@@ -24691,7 +24691,22 @@ function renderAttendanceContent() {
 
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
-  const records = data.records || [];
+  const curYear = now.getFullYear();
+  const curMonth = now.getMonth();
+  const daysInCurrentMonth = new Date(curYear, curMonth + 1, 0).getDate();
+  const firstDayOfWeek = new Date(curYear, curMonth, 1).getDay(); // 0 is Sunday, 1 is Monday
+  const dayOffset = (firstDayOfWeek === 0) ? 6 : (firstDayOfWeek - 1);
+
+  const records = (data.records || []).filter(r => {
+    if (!r.date) return false;
+    const parts = r.date.split('/');
+    if (parts.length === 3) {
+      const recMonth = parseInt(parts[1], 10) - 1;
+      const recYear = parseInt(parts[2], 10);
+      return recMonth === curMonth && recYear === curYear;
+    }
+    return false;
+  });
   const presentCount = records.filter(r => r.status === 'present').length + (data.todayStatus !== 'not_checked' && !data.todayLate && data.todayStatus !== 'leave' ? 1 : 0);
   const lateCount = records.filter(r => r.status === 'late').length + (data.todayLate ? 1 : 0);
   const leaveCount = records.filter(r => r.status === 'leave').length + (data.todayStatus === 'leave' ? 1 : 0);
@@ -24763,15 +24778,16 @@ function renderAttendanceContent() {
   }
 
   let calendarDaysHTML = '';
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < dayOffset; i++) {
     calendarDaysHTML += `<div class="h-8 rounded-lg bg-white/[0.02] border border-transparent"></div>`;
   }
   const actualToday = now.getDate();
-  for (let d = 1; d <= 31; d++) {
+  for (let d = 1; d <= daysInCurrentMonth; d++) {
     const isToday = d === actualToday;
     const isPast = d < actualToday;
-    const isSunday = (d + 2) % 7 === 0;
-    const isSaturday = (d + 2) % 7 === 6;
+    const dayDate = new Date(curYear, curMonth, d);
+    const isSunday = dayDate.getDay() === 0;
+    const isSaturday = dayDate.getDay() === 6;
     const rec = records.find(r => r.day === d);
 
     let cellClass = 'h-8 rounded-lg flex flex-col items-center justify-center text-[10px] font-mono border transition ';
@@ -24993,7 +25009,7 @@ function renderAttendanceContent() {
           </div>
           <div>
             <h4 class="text-xs font-bold text-white leading-tight">${isEn ? 'Monthly Matrix' : 'ប្រតិទិនវត្តមានប្រចាំខែ'}</h4>
-            <p class="text-[9.5px] text-slate-400 mt-0.5">តុលា ២០២៦ (October 2026)</p>
+            <p class="text-[9.5px] text-slate-400 mt-0.5">${monthName} ${yearNum === 2026 ? '២០២៦' : yearNum} (${now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })})</p>
           </div>
         </div>
 
@@ -31787,6 +31803,16 @@ function openDailyReportModal(fromDrawer = false) {
       window._drawerCloseTimer = null;
     }
     pagesReportState.currentTab = 'view';
+    // If today has no entries recorded yet (e.g. before 9:00 PM), auto-resolve to the latest recorded date
+    const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
+    const entries = Array.isArray(d.dailyReportEntries) ? d.dailyReportEntries : [];
+    const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
+    if (!entries.some(e => e.isoDate === todayIso)) {
+      const dates = entries.map(e => e.isoDate).filter(Boolean).sort();
+      if (dates.length > 0) {
+        pagesReportState.selectedDate = dates[dates.length - 1];
+      }
+    }
   } else {
     pagesReportState.currentTab = 'entry';
   }
