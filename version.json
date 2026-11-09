@@ -1,5 +1,5 @@
 {
-  "version": "67.30",
-  "buildTime": "2026-11-08T01:10:00+07:00",
-  "notes": "v67.30: Standardized Top Header in Home and Analytics to px-3 (12px), perfectly aligning left Profile avatar and right action icons with edge-to-edge cards below"
+  "version": "67.36",
+  "buildTime": "2026-11-09T16:45:00+07:00",
+  "notes": "v67.36: Smart fallback to latest recorded date in Daily Report, dynamic November calendar matrix, 1 Check-In / 1 Check-Out rule enforcement, and PWA cache-busting"
 }

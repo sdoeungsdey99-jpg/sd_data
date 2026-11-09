@@ -21339,7 +21339,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.30';
+const CURRENT_APP_VERSION = '67.36';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -24543,11 +24543,11 @@ async function handleAttendanceAction(action) {
 
   if (action === 'in') {
     if (data.todayStatus === 'checked_in') {
-      showToastNotification('⚠️ អ្នកបានចុះវត្តមានចូលធ្វើការរួចហើយសម្រាប់ថ្ងៃនេះ!');
+      showToastNotification('⚠️ អ្នកបានចុះវត្តមានចូលធ្វើការរួចហើយសម្រាប់ថ្ងៃនេះ (អនុញ្ញាត Check In ១ ដងក្នុងមួយថ្ងៃ)!');
       return;
     }
     if (data.todayStatus === 'checked_out') {
-      showToastNotification('⚠️ អ្នកបានបញ្ចប់ការងារ និងចុះវត្តមានចេញរួចហើយសម្រាប់ថ្ងៃនេះ (កំណត់ត្រឹម ២ ដងក្នុងមួយថ្ងៃ)!');
+      showToastNotification('⚠️ អ្នកបានបញ្ចប់ការងារ និងចុះវត្តមានចេញរួចហើយសម្រាប់ថ្ងៃនេះ (អនុញ្ញាត Check In ១ ដង និង Check Out ១ ដងក្នុងមួយថ្ងៃប៉ុណ្ណោះ)!');
       return;
     }
     showToastNotification('កំពុងផ្ទៀងផ្ទាត់ Wi-Fi & ទីតាំងការិយាល័យ... ⏳');
@@ -24561,7 +24561,7 @@ async function handleAttendanceAction(action) {
     return;
   } else if (action === 'out') {
     if (data.todayStatus === 'checked_out') {
-      showToastNotification('⚠️ អ្នកបានចុះវត្តមានចេញពីធ្វើការរួចហើយសម្រាប់ថ្ងៃនេះ!');
+      showToastNotification('⚠️ អ្នកបានចុះវត្តមានចេញពីធ្វើការរួចហើយសម្រាប់ថ្ងៃនេះ (អនុញ្ញាត Check Out ១ ដងក្នុងមួយថ្ងៃ)!');
       return;
     }
     if (data.todayStatus !== 'checked_in') {
@@ -24607,6 +24607,9 @@ async function handleAttendanceAction(action) {
 
 function resetTodayAttendance(e) {
   if (e && e.stopPropagation) e.stopPropagation();
+  if (typeof confirm === 'function' && !confirm('តើបងពិតជាចង់កំណត់វត្តមានថ្ងៃនេះឡើងវិញមែនទេ? (សម្រាប់ករណីកែតម្រូវ/Admin ប៉ុណ្ណោះ)')) {
+    return;
+  }
   const data = getAttendanceData();
   data.todayStatus = 'not_checked';
   data.checkInTime = null;
@@ -25819,7 +25822,7 @@ function getProfileViewHTML() {
           ` : ''}
 
           <!-- 5. របាយការណ៍ប្រចាំថ្ងៃ (Daily Sales Report) -->
-          <div onclick="openDailyReportModal()" 
+          <div onclick="openDailyReportModal(true)" 
                class="ios-glass-card rounded-2xl p-3.5 border border-white/10 cursor-pointer active:scale-95 transition flex flex-col justify-between hover:border-emerald-500/40">
             <div class="flex items-center justify-between mb-2">
               <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
@@ -30738,37 +30741,48 @@ const pagesReportState = {
   selectedMember: 'self', // 'self' | 'all' | specific seller name
   subView: 'pages',   // 'pages' | 'members' (for week & month)
   searchQuery: '',
-  hasInitializedMember: false
+  hasInitializedMember: false,
+  userExplicitDate: false
 };
 
 function getPagesReportCurrentIsoDate() {
-  if (pagesReportState.selectedDate) return pagesReportState.selectedDate;
   const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
-  const entries = Array.isArray(d.dailyReportEntries) ? d.dailyReportEntries : [];
+  const allEntries = Array.isArray(d.dailyReportEntries) ? d.dailyReportEntries : [];
   const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
-  
-  // If there are reports for today, default to today
-  if (entries.some(e => e.isoDate === todayIso)) {
+
+  // If user explicitly picked a specific date via picker or stepper, honor it
+  if (pagesReportState.userExplicitDate && pagesReportState.selectedDate) {
+    return pagesReportState.selectedDate;
+  }
+
+  // If today has recorded entries, prioritize today
+  if (allEntries.some(e => e.isoDate === todayIso)) {
     pagesReportState.selectedDate = todayIso;
     return todayIso;
   }
-  
-  // Otherwise resolve to the latest date that has recorded entries
-  if (entries.length > 0) {
-    const dates = entries.map(e => e.isoDate).filter(Boolean).sort();
+
+  // If selectedDate is already set and HAS entries, keep it
+  if (pagesReportState.selectedDate && allEntries.some(e => e.isoDate === pagesReportState.selectedDate)) {
+    return pagesReportState.selectedDate;
+  }
+
+  // Otherwise, automatically resolve to the latest date that actually has recorded data!
+  if (allEntries.length > 0) {
+    const dates = allEntries.map(e => e.isoDate).filter(Boolean).sort();
     if (dates.length > 0) {
       const latest = dates[dates.length - 1];
       pagesReportState.selectedDate = latest;
       return latest;
     }
   }
-  
+
   pagesReportState.selectedDate = todayIso;
   return todayIso;
 }
 
 function setPagesReportSpecificDate(isoDate) {
   if (!isoDate) return;
+  pagesReportState.userExplicitDate = true;
   pagesReportState.selectedDate = isoDate;
   pagesReportState.timeFilter = 'day';
   renderDailyReportModal();
@@ -31027,6 +31041,7 @@ function setPagesReportMember(member) {
 }
 
 function stepPagesReportDate(delta) {
+  pagesReportState.userExplicitDate = true;
   const current = new Date(getPagesReportCurrentIsoDate());
   if (pagesReportState.timeFilter === 'day') {
     current.setDate(current.getDate() + delta);
@@ -31040,6 +31055,7 @@ function stepPagesReportDate(delta) {
 }
 
 function resetPagesReportDateToToday() {
+  pagesReportState.userExplicitDate = true;
   pagesReportState.selectedDate = getLocalIsoDate(new Date());
   renderDailyReportModal();
 }
@@ -31052,7 +31068,7 @@ async function refreshDailyReportData() {
   }
   showToastNotification('កំពុងទាញទិន្នន័យ... ⏳');
   if (window.DataService && typeof window.DataService.fetchData === 'function') {
-    await window.DataService.fetchData(false);
+    await window.DataService.fetchData(true);
   }
   renderDailyReportModal();
   showToastNotification('ទិន្នន័យរបាយការណ៍ Pages ត្រូវបាន Update រួចរាល់! ✅');
@@ -31083,7 +31099,20 @@ function renderPagesReportViewContent() {
   const isEn = appState.language === 'en';
   const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
   const allEntries = Array.isArray(d.dailyReportEntries) ? d.dailyReportEntries : [];
-  const entries = filterDailyReportEntriesForCurrentUser(allEntries);
+  let entries = filterDailyReportEntriesForCurrentUser(allEntries);
+
+  // Time Label
+  let targetIso = getPagesReportCurrentIsoDate();
+
+  // Smart fallback: if entries for day filter is 0, user hasn't explicitly chosen a date, but allEntries has data
+  if (pagesReportState.timeFilter === 'day' && !pagesReportState.userExplicitDate && entries.length === 0 && allEntries.length > 0) {
+    const dates = allEntries.map(e => e.isoDate).filter(Boolean).sort();
+    if (dates.length > 0) {
+      targetIso = dates[dates.length - 1];
+      pagesReportState.selectedDate = targetIso;
+      entries = filterDailyReportEntriesForCurrentUser(allEntries);
+    }
+  }
 
   const userRole = getPagesReportUserRole();
   const managedMembers = getManagedMembersForCurrentUser();
@@ -31099,12 +31128,11 @@ function renderPagesReportViewContent() {
   const buyOldB = entries.reduce((sum, e) => sum + (e.buyOldB || 0), 0);
   const buyFollowB = entries.reduce((sum, e) => sum + (e.buyFollowB || 0), 0);
 
-  // Time Label
-  const targetIso = getPagesReportCurrentIsoDate();
-  const targetDate = new Date(targetIso);
-  const dd = String(targetDate.getDate()).padStart(2, '0');
-  const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
-  const yyyy = targetDate.getFullYear();
+  const isoParts = (targetIso || '').split('-');
+  const yyyy = isoParts[0] || '2026';
+  const mm = isoParts[1] || '11';
+  const dd = isoParts[2] || '08';
+  const targetDate = new Date(parseInt(yyyy, 10), parseInt(mm, 10) - 1, parseInt(dd, 10));
 
   let timeDisplayLabel = `${dd}/${mm}/${yyyy}`;
   if (pagesReportState.timeFilter === 'week') {
@@ -31787,10 +31815,12 @@ function openDailyReportModal(fromDrawer = false) {
   if (!modal) return;
   closeAllModals();
 
-  // Dynamically resolve date if not set
-  if (!pagesReportState.selectedDate) {
-    getPagesReportCurrentIsoDate();
-  }
+  // Reset explicit date flag so modal always resolves to the latest recorded reports
+  pagesReportState.userExplicitDate = false;
+  pagesReportState.selectedDate = '';
+
+  // Default to 'view' (Pages Report) so user immediately sees the report
+  pagesReportState.currentTab = 'view';
 
   // Set persistent flags AFTER closeAllModals so closeAllModals does not wipe them
   window._dailyReportFromDrawer = !!fromDrawer;
@@ -31802,20 +31832,10 @@ function openDailyReportModal(fromDrawer = false) {
       clearTimeout(window._drawerCloseTimer);
       window._drawerCloseTimer = null;
     }
-    pagesReportState.currentTab = 'view';
-    // If today has no entries recorded yet (e.g. before 9:00 PM), auto-resolve to the latest recorded date
-    const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
-    const entries = Array.isArray(d.dailyReportEntries) ? d.dailyReportEntries : [];
-    const todayIso = typeof getLocalIsoDate === 'function' ? getLocalIsoDate(new Date()) : new Date().toISOString().slice(0, 10);
-    if (!entries.some(e => e.isoDate === todayIso)) {
-      const dates = entries.map(e => e.isoDate).filter(Boolean).sort();
-      if (dates.length > 0) {
-        pagesReportState.selectedDate = dates[dates.length - 1];
-      }
-    }
-  } else {
-    pagesReportState.currentTab = 'entry';
   }
+
+  // Auto-resolve date
+  getPagesReportCurrentIsoDate();
 
   document.body.classList.add('report-modal-open');
 
