@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.38">
+  <link rel="manifest" href="manifest.json?v=67.39">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -662,6 +662,15 @@
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
     }
+    #customer-view-header #btn-customer-view-followup-toggle.followup-filter-active {
+      background-color: rgba(244, 63, 94, 0.2) !important;
+      border-color: rgba(244, 63, 94, 0.5) !important;
+      box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.3) !important;
+    }
+    #customer-view-header #btn-customer-view-followup-toggle.followup-filter-active svg {
+      color: #FDA4AF !important;
+      stroke: #FDA4AF !important;
+    }
     html.light-theme #top-header button,
     body.light-theme #top-header button,
     html.light-theme #customer-view-header button,
@@ -674,6 +683,28 @@
       box-shadow: none !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
+    }
+    html.light-theme #customer-view-header #btn-customer-view-followup-toggle svg,
+    body.light-theme #customer-view-header #btn-customer-view-followup-toggle svg {
+      color: #D97706 !important;
+      stroke: #D97706 !important;
+    }
+    html.light-theme #customer-view-header #btn-customer-view-followup-toggle.followup-filter-active,
+    body.light-theme #customer-view-header #btn-customer-view-followup-toggle.followup-filter-active {
+      background-color: #FFE4E6 !important;
+      border-color: #FB7185 !important;
+      box-shadow: 0 0 0 2px rgba(251, 113, 133, 0.25) !important;
+    }
+    html.light-theme #customer-view-header #btn-customer-view-followup-toggle.followup-filter-active svg,
+    body.light-theme #customer-view-header #btn-customer-view-followup-toggle.followup-filter-active svg {
+      color: #E11D48 !important;
+      stroke: #E11D48 !important;
+    }
+    html.light-theme #customer-view-followup-badge,
+    body.light-theme #customer-view-followup-badge {
+      background-color: #E11D48 !important;
+      color: #FFFFFF !important;
+      border-color: #FFFFFF !important;
     }
     html.light-theme #top-header [data-lucide="bell"],
     body.light-theme #top-header [data-lucide="bell"],
@@ -694,6 +725,17 @@
     html.light-theme #customer-view-title-heading h1,
     body.light-theme #customer-view-title-heading h1 {
       color: #0F172A !important;
+    }
+    html.light-theme #customer-view-title-heading .followup-days-pill,
+    body.light-theme #customer-view-title-heading .followup-days-pill {
+      background-color: #FFE4E6 !important;
+      color: #BE123C !important;
+      border-color: #FDA4AF !important;
+      font-weight: 700 !important;
+    }
+    html.light-theme #customer-view-title-heading .followup-subtitle,
+    body.light-theme #customer-view-title-heading .followup-subtitle {
+      color: #0369A1 !important;
     }
     html.light-theme #customer-header-title-block [data-lucide="users"],
     body.light-theme #customer-header-title-block [data-lucide="users"] {
@@ -8438,7 +8480,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.38"></script>
-  <script src="app.js?v=67.38"></script>
+  <script src="dataService.js?v=67.39"></script>
+  <script src="app.js?v=67.39"></script>
 </body>
 </html>

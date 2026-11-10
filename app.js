@@ -10116,7 +10116,7 @@ function toggleCustomerViewFollowupFilter() {
   const btn = document.getElementById('btn-customer-view-followup-toggle');
   if (btn) {
     if (customerViewHeartbeatFilterActive) {
-      btn.className = 'relative w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 ring-2 ring-amber-500/30 active:scale-95 flex items-center justify-center transition shadow-sm shrink-0';
+      btn.className = 'relative w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-300 ring-2 ring-rose-500/30 active:scale-95 flex items-center justify-center transition shadow-sm shrink-0 followup-filter-active';
     } else {
       btn.className = 'relative w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0';
     }
@@ -10170,7 +10170,7 @@ function getCustomerViewHTML() {
 
               <!-- Follow-up Alert ! Filter Button -->
               <button id="btn-customer-view-followup-toggle" onclick="toggleCustomerViewFollowupFilter()" 
-                      class="relative w-9 h-9 rounded-xl ${customerViewHeartbeatFilterActive ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 ring-2 ring-amber-500/30' : 'bg-[#0F1B2E] text-slate-200'} hover:bg-[#16253D] active:scale-95 border border-white/10 flex items-center justify-center transition shadow-sm shrink-0"
+                      class="relative w-9 h-9 rounded-xl ${customerViewHeartbeatFilterActive ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 ring-2 ring-rose-500/30 followup-filter-active' : 'bg-[#0F1B2E] text-slate-200'} hover:bg-[#16253D] active:scale-95 border border-white/10 flex items-center justify-center transition shadow-sm shrink-0"
                       title="អតិថិជនត្រូវតាមដាន និង សួរសុខទុក្ខ">
                 <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400"></i>
                 <span id="customer-view-followup-badge" class="hidden absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center border border-[#070D18] shadow"></span>
@@ -10605,7 +10605,7 @@ function renderCustomerViewList(preserveCount = false) {
   const followupBtn = document.getElementById('btn-customer-view-followup-toggle');
   if (followupBtn) {
     if (customerViewHeartbeatFilterActive) {
-      followupBtn.className = 'relative w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-300 ring-2 ring-rose-500/30 active:scale-95 flex items-center justify-center transition shadow-sm shrink-0';
+      followupBtn.className = 'relative w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-300 ring-2 ring-rose-500/30 active:scale-95 flex items-center justify-center transition shadow-sm shrink-0 followup-filter-active';
     } else {
       followupBtn.className = 'relative w-9 h-9 rounded-xl bg-[#0F1B2E] hover:bg-[#16253D] active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0';
     }
@@ -10647,9 +10647,9 @@ function renderCustomerViewList(preserveCount = false) {
       heading.innerHTML = `
         <div class="flex items-center gap-1.5">
           <h1 class="font-bold text-[15.5px] text-white leading-tight brand-title truncate">តាមដានសុខភាព</h1>
-          <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[10px] font-medium leading-none border border-rose-500/30">៣-៧-១៥ ថ្ងៃ</span>
+          <span class="followup-days-pill inline-flex items-center px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[10px] font-medium leading-none border border-rose-500/30">៣-៧-១៥ ថ្ងៃ</span>
         </div>
-        <p class="text-[11.5px] text-sky-300 font-semibold leading-tight truncate mt-0.5">
+        <p class="followup-subtitle text-[11.5px] text-sky-300 font-semibold leading-tight truncate mt-0.5">
           អតិថិជនត្រូវតាមដាន និង សួរសុខទុក្ខ: <span class="font-mono text-white font-bold">${customers.length} នាក់</span>
         </p>
       `;
@@ -14208,12 +14208,12 @@ function openPersonalSalesModal() {
       <div class="ios-glass-card rounded-2xl p-3 border border-white/10 shadow-md shadow-black/25 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
         <!-- Row 1: Left: Phone (in front) + Customer Name | Right: Total Amount -->
         <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-1.5 flex-wrap min-w-0">
-            ${formattedPhone ? `<span class="font-mono text-slate-300 text-[11px] whitespace-nowrap">📞 ${formattedPhone}</span><span class="text-slate-500 text-xs">•</span>` : ''}
-            <span class="font-bold text-xs text-white truncate max-w-[150px] sm:max-w-[220px]" title="${escapeHtml(item.customer || '')}">${escapeHtml(item.customer || 'អតិថិជន')}</span>
-            ${item.note && item.note.includes('[SG Pro]') ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/25 text-purple-300 font-bold border border-purple-500/40">SG Pro</span>' : ''}
+          <div class="flex items-center gap-1.5 min-w-0">
+            ${formattedPhone ? `<span class="font-mono font-bold text-white text-xs shrink-0 whitespace-nowrap">📞 ${formattedPhone}</span><span class="text-slate-500 text-xs shrink-0">•</span>` : ''}
+            <span class="font-bold text-xs text-white truncate min-w-0" title="${escapeHtml(item.customer || '')}">${escapeHtml(item.customer || 'អតិថិជន')}</span>
+            ${item.note && item.note.includes('[SG Pro]') ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/25 text-purple-300 font-bold border border-purple-500/40 shrink-0">SG Pro</span>' : ''}
           </div>
-          <span class="font-mono text-emerald-400 font-bold text-xs sm:text-sm whitespace-nowrap">${formatUSD(item.totalAmount)}</span>
+          <span class="font-mono text-emerald-400 font-bold text-xs sm:text-sm whitespace-nowrap shrink-0">${formatUSD(item.totalAmount)}</span>
         </div>
 
         <!-- Row 2: Left: Location | Right: COD Status Badge (replacing phone) -->
@@ -15135,8 +15135,8 @@ function renderCodSummary() {
         <!-- Bottom Row: Seller, Plain Phone (NO highlight!), Box qty on Left | Status Badge on Right (View & Report) -->
         <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
           <div class="flex items-center gap-1.5 text-slate-400 truncate min-w-0">
-            <span class="truncate max-w-[75px] sm:max-w-[120px]">👤 ${escapeHtml(item.seller || (isEn ? 'Seller' : 'អ្នកលក់'))}</span>
-            ${formattedPhone ? `<span>•</span><span class="font-mono text-slate-300 whitespace-nowrap">📞 ${formattedPhone}</span>` : ''}
+            <span class="truncate max-w-[68px] sm:max-w-[120px]">👤 ${escapeHtml(item.seller || (isEn ? 'Seller' : 'អ្នកលក់'))}</span>
+            ${formattedPhone ? `<span>•</span><span class="font-mono font-bold text-[11px] text-white whitespace-nowrap shrink-0">📞 ${formattedPhone}</span>` : ''}
             <span>•</span>
             <span class="font-mono text-slate-300 whitespace-nowrap shrink-0">${item.qtyBoxes}</span>
           </div>
@@ -15413,10 +15413,10 @@ function renderThaiCodPhoneHtml(rawPhone, fallbackDigits = '') {
   const digits = String(rawPhone || '').replace(/\D/g, '');
   if (!digits || digits.length < 4) {
     if (rawPhone) {
-      return `<span class="font-mono text-slate-300">${rawPhone}</span>`;
+      return `<span class="font-mono font-bold text-[11px] text-white">${rawPhone}</span>`;
     }
     if (fallbackDigits && fallbackDigits !== '—') {
-      return `<span class="font-mono font-bold text-orange-400 bg-orange-500/20 border border-orange-500/30 px-1 py-0.5 rounded tracking-wide">${fallbackDigits}</span>`;
+      return `<span class="font-mono font-bold text-[11px] text-white border-b-[1.5px] border-orange-400 pb-[1px] tracking-wide">${fallbackDigits}</span>`;
     }
     return '';
   }
@@ -15432,7 +15432,7 @@ function renderThaiCodPhoneHtml(rawPhone, fallbackDigits = '') {
     formattedPrefix = `${prefixDigits} `;
   }
 
-  return `<span class="font-mono text-slate-400">${formattedPrefix}</span><span class="font-mono font-bold text-orange-400 bg-orange-500/20 border border-orange-500/30 px-1 py-0.5 rounded tracking-wide" title="លេខកន្ទុយ ៤ ខ្ទង់">${last4}</span>`;
+  return `<span class="font-mono font-bold text-[11px] text-white">${formattedPrefix}</span><span class="font-mono font-bold text-[11px] text-white border-b-[1.5px] border-orange-400 pb-[1px] tracking-wide" title="លេខកន្ទុយ ៤ ខ្ទង់">${last4}</span>`;
 }
 
 function renderThaiCodOrders() {
@@ -15592,8 +15592,8 @@ function renderThaiCodOrders() {
         <!-- Bottom Row: Seller, Phone (with highlighted tail), Box qty on Left | Status Badge on Right (View & Report) -->
         <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10.5px]">
           <div class="flex items-center gap-1 text-slate-400 truncate min-w-0">
-            <span class="truncate max-w-[70px] sm:max-w-[110px]">👤 ${escapeHtml(o.seller || (isEn ? 'Seller' : 'អ្នកលក់'))}</span>
-            ${phoneHtml ? `<span>•</span><span>📞 ${phoneHtml}</span>` : ''}
+            <span class="truncate max-w-[68px] sm:max-w-[110px]">👤 ${escapeHtml(o.seller || (isEn ? 'Seller' : 'អ្នកលក់'))}</span>
+            ${phoneHtml ? `<span>•</span><span class="text-[11px] whitespace-nowrap shrink-0">📞 ${phoneHtml}</span>` : ''}
             <span>•</span>
             <span class="font-mono text-slate-300 whitespace-nowrap shrink-0">${boxQty} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>
           </div>
@@ -21362,7 +21362,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.38';
+const CURRENT_APP_VERSION = '67.39';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

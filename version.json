@@ -1,5 +1,5 @@
 {
-  "version": "67.38",
-  "buildTime": "2026-11-10T11:25:00+07:00",
-  "notes": "v67.38: Customer directory phone enlarged to 12px white bold, baseline dots alignment, 2px row spacing, 8px outer padding, and 28px thumb-friendly action buttons"
+  "version": "67.39",
+  "buildTime": "2026-11-10T12:33:00+07:00",
+  "notes": "v67.39: Improved phone readability across Personal Sales (12px bold white), Receivables (11px bold white), and Thai COD (11px bold white with orange 4-digit underline), plus Light Mode fixes for Follow-up Alert (!) button, badge, and header labels"
 }
