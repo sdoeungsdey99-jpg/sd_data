@@ -1,5 +1,5 @@
 {
-  "version": "67.37",
-  "buildTime": "2026-11-09T22:15:00+07:00",
-  "notes": "v67.37: Sales Structure default current month, tap-anywhere card expand on Home Screen, and exact 16px top alignment fix"
+  "version": "67.38",
+  "buildTime": "2026-11-10T11:25:00+07:00",
+  "notes": "v67.38: Customer directory phone enlarged to 12px white bold, baseline dots alignment, 2px row spacing, 8px outer padding, and 28px thumb-friendly action buttons"
 }

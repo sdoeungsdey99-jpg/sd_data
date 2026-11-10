@@ -10043,11 +10043,11 @@ function renderFollowUpVolumeBar(c) {
   }
 
   return `
-    <div class="flex items-center gap-1.5 min-w-0 select-none">
-      <div class="flex items-center gap-[2.5px] h-[10px] shrink-0">
+    <div class="flex items-end gap-1.5 min-w-0 select-none pb-[1.5px]">
+      <div class="flex items-center gap-[2.5px] h-[10px] shrink-0 mb-[1px]">
         ${dotsHTML}
       </div>
-      <div class="truncate min-w-0">
+      <div class="truncate min-w-0 leading-none">
         ${labelHTML}
       </div>
     </div>
@@ -10386,10 +10386,10 @@ function getCustomerViewCardHTML(c, idx, isEn) {
   const fInfo = getCustomerFollowUpInfo(c);
 
   return `
-    <div class="ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
+    <div class="ios-glass-card rounded-2xl py-2 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
       <div onclick="toggleCustomerViewOrderHistory('${encodedKey}')" class="flex items-stretch justify-between gap-2.5 cursor-pointer select-none">
         <!-- Left Column: 3-Row Layout (Explicitly Row-Locked with Right Column) -->
-        <div class="min-w-0 flex-1 flex flex-col justify-between py-0.5">
+        <div class="min-w-0 flex-1 flex flex-col justify-between gap-[2px]">
           <!-- Row 1 (Left): Date + Name + Count (Locked to $ Total) -->
           <div class="flex items-center gap-1.5 min-w-0 h-[18px]">
             <span class="font-mono font-bold text-[11px] text-orange-400 shrink-0">${idx + 1}.</span>
@@ -10399,7 +10399,7 @@ function getCustomerViewCardHTML(c, idx, isEn) {
           </div>
           <!-- Row 2 (Left): Phone + Location (Locked to ฿/៛/---) -->
           <div class="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0 h-4">
-            <span class="font-mono font-semibold text-slate-300 shrink-0 whitespace-nowrap">📞 ${c.phone || '—'}</span>
+            <span class="font-mono font-bold text-xs text-white shrink-0 whitespace-nowrap">📞 ${c.phone || '—'}</span>
             <span class="text-slate-500 shrink-0">•</span>
             <span class="truncate min-w-0">📍 ${c.location || '—'}</span>
           </div>
@@ -10409,7 +10409,7 @@ function getCustomerViewCardHTML(c, idx, isEn) {
           </div>
         </div>
         <!-- Right Column: 3 Rows (Locked to Match Left Baselines 1-to-1) -->
-        <div class="text-right shrink-0 min-w-[70px] flex flex-col justify-between py-0.5">
+        <div class="text-right shrink-0 min-w-[70px] flex flex-col justify-between gap-[2px]">
           <!-- Row 1 (Right): $ Total Spent (Exact 18px matching Left Row 1) -->
           <div class="font-mono font-bold text-xs text-emerald-400 h-[18px] flex items-center justify-end leading-none">
             ${formatUSD(c.totalSpent)}
@@ -10440,16 +10440,16 @@ function getCustomerViewCardHTML(c, idx, isEn) {
                 <!-- Twin 1: Vector Checkmark ✓ -->
                 <button onclick="event.stopPropagation(); toggleCustomerFollowUpDone('${encodedKey}', ${fInfo.milestone || fInfo.day})" 
                         title="${fInfo.isDone ? 'បានសួរសុខទុក្ខរួចរាល់ (ចុចដើម្បីដោះធីក)' : 'ចុចដើម្បីកត់ត្រាថាបានសួរសុខទុក្ខ'}"
-                        class="w-5 h-5 rounded-md border flex items-center justify-center transition-all active:scale-90 ${fInfo.isDone ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-sm' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}">
-                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        class="w-7 h-7 rounded-xl border flex items-center justify-center transition-all active:scale-90 ${fInfo.isDone ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-sm' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </button>
                 <!-- Twin 2: Vector Cross ✕ -->
                 <button onclick="event.stopPropagation(); dismissCustomerFollowUp('${encodedKey}', ${fInfo.milestone || fInfo.day})" 
                         title="រំលង/បិទការរំលឹកថ្ងៃនេះ រហូតដល់ថ្ងៃ Follow up បន្ទាប់"
-                        class="w-5 h-5 rounded-md border bg-white/5 border-white/10 text-slate-400 hover:text-rose-300 hover:bg-rose-500/15 hover:border-rose-500/30 flex items-center justify-center transition-all active:scale-90">
-                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        class="w-7 h-7 rounded-xl border bg-white/5 border-white/10 text-slate-400 hover:text-rose-300 hover:bg-rose-500/15 hover:border-rose-500/30 flex items-center justify-center transition-all active:scale-90">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                   </svg>
@@ -10461,16 +10461,16 @@ function getCustomerViewCardHTML(c, idx, isEn) {
                 <!-- Vector Call 📞 Button with identical twin frame -->
                 <a href="tel:${getCustomerDialPhone(c)}" onclick="event.stopPropagation()" 
                    title="ហៅទូរសព្ទ (${c.phone})"
-                   class="w-5 h-5 rounded-md border bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-all active:scale-90 shadow-sm">
-                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                   class="w-7 h-7 rounded-xl border bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-all active:scale-90 shadow-sm">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                   </svg>
                 </a>
                 <!-- Vector Copy ⧉ Button with identical twin frame and feedback -->
                 <button onclick="event.stopPropagation(); copyCustomerPhoneWithFeedback(this, '${c.phone}')" 
                         title="ចម្លងលេខទូរសព្ទ (${c.phone})"
-                        class="w-5 h-5 rounded-md border bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/15 flex items-center justify-center transition-all active:scale-90">
-                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        class="w-7 h-7 rounded-xl border bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/15 flex items-center justify-center transition-all active:scale-90">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                   </svg>
@@ -21362,7 +21362,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.37';
+const CURRENT_APP_VERSION = '67.38';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -26715,10 +26715,10 @@ function renderAllCustomersList() {
     const fInfo = getCustomerFollowUpInfo(c);
 
     return `
-      <div class="ios-glass-card rounded-2xl p-2.5 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
+      <div class="ios-glass-card rounded-2xl py-2 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
         <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-stretch justify-between gap-2.5 cursor-pointer select-none">
           <!-- Left Column: 3-Row Layout (Explicitly Row-Locked with Right Column) -->
-          <div class="min-w-0 flex-1 flex flex-col justify-between py-0.5">
+          <div class="min-w-0 flex-1 flex flex-col justify-between gap-[2px]">
             <!-- Row 1 (Left): Date + Name + Count (Locked to $ Total) -->
             <div class="flex items-center gap-1.5 min-w-0 h-[18px]">
               <span class="font-mono font-bold text-[11px] text-orange-400 shrink-0">${idx + 1}.</span>
@@ -26729,7 +26729,7 @@ function renderAllCustomersList() {
 
             <!-- Row 2 (Left): Phone + Location (Locked to ฿/៛/---) -->
             <div class="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0 h-4">
-              <span class="font-mono font-semibold text-slate-300 shrink-0 whitespace-nowrap">📞 ${c.phone || '—'}</span>
+              <span class="font-mono font-bold text-xs text-white shrink-0 whitespace-nowrap">📞 ${c.phone || '—'}</span>
               <span class="text-slate-500 shrink-0">•</span>
               <span class="truncate min-w-0">📍 ${c.location || '—'}</span>
             </div>
@@ -26741,7 +26741,7 @@ function renderAllCustomersList() {
           </div>
 
           <!-- Right Column: 3 Rows (Mathematically Locked to Match Left Baselines) -->
-          <div class="text-right shrink-0 min-w-[70px] flex flex-col justify-between py-0.5">
+          <div class="text-right shrink-0 min-w-[70px] flex flex-col justify-between gap-[2px]">
             <!-- Row 1 (Right): $ Total Spent (Exact 18px matching Left Row 1) -->
             <div class="font-mono font-bold text-xs text-emerald-400 h-[18px] flex items-center justify-end leading-none">
               ${formatUSD(c.totalSpent)}
@@ -26771,16 +26771,16 @@ function renderAllCustomersList() {
                   <!-- Twin 1: Vector Checkmark ✓ -->
                   <button onclick="event.stopPropagation(); toggleCustomerFollowUpDone('${encodedKey}', ${fInfo.milestone || fInfo.day})" 
                           title="${fInfo.isDone ? 'បានសួរសុខទុក្ខរួចរាល់ (ចុចដើម្បីដោះធីក)' : 'ចុចដើម្បីកត់ត្រាថាបានសួរសុខទុក្ខ'}"
-                          class="w-5 h-5 rounded-md border flex items-center justify-center transition-all active:scale-90 ${fInfo.isDone ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-sm' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}">
-                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          class="w-7 h-7 rounded-xl border flex items-center justify-center transition-all active:scale-90 ${fInfo.isDone ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-sm' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                   </button>
                   <!-- Twin 2: Vector Cross ✕ -->
                   <button onclick="event.stopPropagation(); dismissCustomerFollowUp('${encodedKey}', ${fInfo.milestone || fInfo.day})" 
                           title="រំលង/បិទការរំលឹកថ្ងៃនេះ រហូតដល់ថ្ងៃ Follow up បន្ទាប់"
-                          class="w-5 h-5 rounded-md border bg-white/5 border-white/10 text-slate-400 hover:text-rose-300 hover:bg-rose-500/15 hover:border-rose-500/30 flex items-center justify-center transition-all active:scale-90">
-                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          class="w-7 h-7 rounded-xl border bg-white/5 border-white/10 text-slate-400 hover:text-rose-300 hover:bg-rose-500/15 hover:border-rose-500/30 flex items-center justify-center transition-all active:scale-90">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
                       <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -26792,16 +26792,16 @@ function renderAllCustomersList() {
                   <!-- Vector Call 📞 Button with identical twin frame -->
                   <a href="tel:${getCustomerDialPhone(c)}" onclick="event.stopPropagation()" 
                      title="ហៅទូរសព្ទ (${c.phone})"
-                     class="w-5 h-5 rounded-md border bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-all active:scale-90 shadow-sm">
-                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                     class="w-7 h-7 rounded-xl border bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-all active:scale-90 shadow-sm">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                     </svg>
                   </a>
                   <!-- Vector Copy ⧉ Button with identical twin frame and feedback -->
                   <button onclick="event.stopPropagation(); copyCustomerPhoneWithFeedback(this, '${c.phone}')" 
                           title="ចម្លងលេខទូរសព្ទ (${c.phone})"
-                          class="w-5 h-5 rounded-md border bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/15 flex items-center justify-center transition-all active:scale-90">
-                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          class="w-7 h-7 rounded-xl border bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/15 flex items-center justify-center transition-all active:scale-90">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
