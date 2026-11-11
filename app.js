@@ -21398,7 +21398,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.42';
+const CURRENT_APP_VERSION = '67.43';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -36907,35 +36907,44 @@ function getYesterdayRewardDateInfo() {
 }
 
 function calculateSellerYesterdayRealBoxes(sellerName) {
+  const normFn = (typeof normalizeSellerName === 'function')
+    ? normalizeSellerName
+    : (v) => String(v || '').trim().toLowerCase();
+  const targetNorm = normFn(sellerName);
+  if (!targetNorm) return 0;
+
+  const targetCanonical = (typeof findBostarSeller === 'function') ? findBostarSeller(sellerName) : null;
+  const targetCanonicalNorm = (targetCanonical && targetCanonical.km) ? normFn(targetCanonical.km) : '';
+
   const yesterday = getYesterdayRewardDateInfo();
-  let totalBoxes = 0;
-  
   const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
   const bostarSales = Array.isArray(d.bostarTrackSales) ? d.bostarTrackSales : [];
-  const personalSales = Array.isArray(d.personalSales) ? d.personalSales : [];
 
-  const targetNorm = typeof normalizeSellerName === 'function' ? normalizeSellerName(sellerName) : String(sellerName || '').trim().toLowerCase();
-
-  for (const s of bostarSales) {
+  let totalBoxes = 0;
+  for (let i = 0; i < bostarSales.length; i++) {
+    const s = bostarSales[i];
     if (!s) continue;
     const sDate = String(s.date || '').trim();
     const sIso = String(s.isoDate || '').trim();
-    if (sDate === yesterday.ddmmyyyy || sIso === yesterday.isoDate) {
-      const sNorm = typeof normalizeSellerName === 'function' ? normalizeSellerName(s.seller) : String(s.seller || '').trim().toLowerCase();
-      if (!targetNorm || sNorm === targetNorm || sNorm.includes(targetNorm) || targetNorm.includes(sNorm)) {
-        totalBoxes += (Number(s.totalBoxQty) || 0);
+    if (sDate !== yesterday.ddmmyyyy && sIso !== yesterday.isoDate) continue;
+
+    const sNorm = normFn(s.seller);
+    if (!sNorm) continue;
+
+    let isMatch = (sNorm === targetNorm);
+    if (!isMatch && targetCanonicalNorm) {
+      if (sNorm === targetCanonicalNorm) {
+        isMatch = true;
+      } else if (typeof findBostarSeller === 'function') {
+        const sCanonical = findBostarSeller(s.seller);
+        if (sCanonical && sCanonical.km && normFn(sCanonical.km) === targetCanonicalNorm) {
+          isMatch = true;
+        }
       }
     }
-  }
 
-  if (totalBoxes === 0) {
-    for (const s of personalSales) {
-      if (!s) continue;
-      const sDate = String(s.date || '').trim();
-      const sIso = String(s.isoDate || '').trim();
-      if (sDate === yesterday.ddmmyyyy || sIso === yesterday.isoDate) {
-        totalBoxes += (Number(s.totalBoxQty) || 0);
-      }
+    if (isMatch) {
+      totalBoxes += (Number(s.totalBoxQty) || 0);
     }
   }
 

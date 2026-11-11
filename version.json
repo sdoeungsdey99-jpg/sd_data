@@ -1,5 +1,5 @@
 {
-  "version": "67.42",
-  "buildTime": "2026-11-11T23:30:00+07:00",
-  "notes": "v67.42: Standardize Seller Reward modal with full Dock navigation/auto-hide support, clean z-50 header-only standard without bottom-dock collision, strict Copy button lock until full reward quota is selected (for all users & Admin demo), and full Light Theme contrast parity"
+  "version": "67.43",
+  "buildTime": "2026-11-11T23:47:00+07:00",
+  "notes": "v67.43: Seller Reward real sales strictly pull from Master Data (bostarTrackSales) only with strict exact/canonical seller matching (removed personalSales fallback and loose substring/empty-seller matching)"
 }
