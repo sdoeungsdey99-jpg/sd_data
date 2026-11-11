@@ -1,5 +1,5 @@
 {
-  "version": "67.41",
-  "buildTime": "2026-11-11T23:18:00+07:00",
-  "notes": "v67.41: Seller Reward 5 Get 1 role security & Admin-only Team Demo (real yesterday boxes for all users, no test button/dropdown for non-admins; Master Admin shows own profile name initially and unlocks Top 5 last-2-months sellers + 5/10/15/20 box presets after clicking Test Card)"
+  "version": "67.42",
+  "buildTime": "2026-11-11T23:30:00+07:00",
+  "notes": "v67.42: Standardize Seller Reward modal with full Dock navigation/auto-hide support, clean z-50 header-only standard without bottom-dock collision, strict Copy button lock until full reward quota is selected (for all users & Admin demo), and full Light Theme contrast parity"
 }

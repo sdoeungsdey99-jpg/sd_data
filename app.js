@@ -2716,12 +2716,14 @@ function closeAllModals() {
     'attendance-certificate-modal',
     'attendance-documents-modal',
     'member-daily-breakdown-modal',
-    'member-daily-action-sheet-modal'
+    'member-daily-action-sheet-modal',
+    'seller-reward-modal'
   ];
   modals.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
+  document.body.classList.remove('overflow-hidden');
   if (typeof closeMemberDailyContextMenu === 'function') closeMemberDailyContextMenu();
   const drawerPanel = document.getElementById('profile-drawer-panel');
   if (drawerPanel) {
@@ -20802,7 +20804,7 @@ function handleHomeClick(e) {
   const tutorialModal = document.getElementById('tutorial-modal');
   const isTutorialOpen = tutorialModal && !tutorialModal.classList.contains('hidden');
 
-  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #edit-bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #executive-hierarchy-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #change-pin-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden), #member-daily-breakdown-modal:not(.hidden)');
+  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #edit-bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #executive-hierarchy-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #change-pin-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden), #member-daily-breakdown-modal:not(.hidden), #seller-reward-modal:not(.hidden)');
 
   // Case 1: If Profile Drawer or any Modal is open ➔ Single tap smoothly dismisses it to reveal dashboard instantly (ZERO network reload)
   if (isDrawerOpen || openModal || isHonorsOpen || isTutorialOpen) {
@@ -21396,7 +21398,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.41';
+const CURRENT_APP_VERSION = '67.42';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -33370,6 +33372,10 @@ window.updateTelegramAppsAssistantUI = updateTelegramAppsAssistantUI;
 
 function openNewOrderModal(mode = 'dock') {
   currentOrderEntryMode = mode || 'dock';
+  if (currentOrderEntryMode === 'dock') {
+    if (typeof closeProfileDrawer === 'function') closeProfileDrawer();
+    if (typeof closeAllModals === 'function') closeAllModals();
+  }
   hasCopiedOrderTelegram = false;
   const modal = document.getElementById('new-order-modal');
   if (!modal) return;
@@ -37076,8 +37082,15 @@ function openSellerRewardModal(sellerOverride = null) {
   const modal = document.getElementById('seller-reward-modal');
   if (modal) {
     modal.classList.remove('hidden');
-    document.body.classList.add('overflow-hidden');
   }
+  const modalBody = document.getElementById('seller-reward-modal-body');
+  if (modalBody) {
+    modalBody.scrollTop = 0;
+    if (typeof hookScrollableForDock === 'function') {
+      hookScrollableForDock(modalBody, false);
+    }
+  }
+  if (typeof setDockVisible === 'function') setDockVisible(true);
 
   if (window.lucide && typeof lucide.createIcons === 'function') {
     lucide.createIcons();
@@ -37088,10 +37101,15 @@ function closeSellerRewardModal() {
   const modal = document.getElementById('seller-reward-modal');
   if (modal) {
     modal.classList.add('hidden');
-    document.body.classList.remove('overflow-hidden');
   }
+  document.body.classList.remove('overflow-hidden');
+  const modalBody = document.getElementById('seller-reward-modal-body');
+  if (modalBody) modalBody.scrollTop = 0;
   const banner = document.getElementById('seller-reward-copy-banner');
   if (banner) banner.classList.add('hidden');
+  if (typeof isDialogModalOpen === 'function' && !isDialogModalOpen() && typeof setDockVisible === 'function') {
+    setDockVisible(true);
+  }
 }
 
 function activateSellerRewardAdminDemo(sampleBoxes = 15) {
@@ -37371,11 +37389,11 @@ function updateSellerRewardUI() {
   }
 
   // Copy button permission & lock logic:
-  // When eligible <= 0, copying is strictly disabled; when eligible > 0, members must pick full quota, while admins can copy anytime.
+  // Locked strictly until eligible > 0 AND full eligible reward quota is selected.
   const eligible = sellerRewardState.eligibleReward;
   const isEligible = eligible > 0;
   const isComplete = (totalSelected === eligible && isEligible);
-  const canCopy = isEligible && (isAdmin || isComplete);
+  const canCopy = isEligible && isComplete;
 
   const btnCopy = document.getElementById('btn-copy-seller-reward');
   const btnCopyText = document.getElementById('btn-copy-seller-reward-text');
@@ -37409,9 +37427,8 @@ async function copySellerRewardTelegramText() {
   const totalSelected = getTotalSelectedRewardBoxes();
   const eligible = sellerRewardState.eligibleReward;
   const isEligible = eligible > 0;
-  const isAdmin = isSellerRewardAdmin();
   const isComplete = (totalSelected === eligible && isEligible);
-  const canCopy = isEligible && (isAdmin || isComplete);
+  const canCopy = isEligible && isComplete;
 
   if (!canCopy) {
     if (navigator.vibrate) try { navigator.vibrate([40, 40, 40]); } catch (_) {}

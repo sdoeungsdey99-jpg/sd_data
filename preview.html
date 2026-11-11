@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.41">
+  <link rel="manifest" href="manifest.json?v=67.42">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -1475,10 +1475,45 @@
       color: #0F172A !important;
       box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05) !important;
     }
-    .light-theme #btn-copy-seller-reward {
+    .light-theme #btn-copy-seller-reward:not(:disabled) {
       background: linear-gradient(to right, #F59E0B, #EA580C) !important;
       color: #FFFFFF !important;
       box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+    }
+    .light-theme #btn-copy-seller-reward:disabled {
+      background: #E2E8F0 !important;
+      color: #64748B !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: none !important;
+      opacity: 0.8 !important;
+    }
+    .light-theme #seller-reward-admin-demo-bar {
+      background-color: #FFFBEB !important;
+      border-color: #FDE68A !important;
+    }
+    .light-theme #seller-reward-admin-demo-bar .text-amber-300 {
+      color: #B45309 !important;
+    }
+    .light-theme #seller-reward-admin-demo-bar button[onclick="exitSellerRewardAdminDemo()"] {
+      background-color: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      color: #475569 !important;
+    }
+    .light-theme #seller-reward-ineligible-box {
+      background-color: #FFF1F2 !important;
+      border-color: #FECDD3 !important;
+    }
+    .light-theme #seller-reward-ineligible-box .text-rose-300,
+    .light-theme #seller-reward-ineligible-box .text-rose-400 {
+      color: #BE123C !important;
+    }
+    .light-theme #seller-reward-ineligible-text {
+      color: #334155 !important;
+    }
+    .light-theme #seller-reward-admin-test-btn {
+      background-color: #FEF3C7 !important;
+      border-color: #FCD34D !important;
+      color: #B45309 !important;
     }
     .light-theme #seller-reward-copy-banner {
       background-color: #ECFDF5 !important;
@@ -8286,13 +8321,13 @@
   <!-- ======================================================== -->
   <!-- SELLER REWARD MODAL (រង្វាន់អ្នកលក់ប្រចាំថ្ងៃ - Sell 5 get 1) -->
   <!-- ======================================================== -->
-  <div id="seller-reward-modal" class="fixed inset-0 z-[70] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300">
+  <div id="seller-reward-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300">
     <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
       
       <!-- Top Modal Header -->
-      <div class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 select-none">
+      <div onclick="handleHeaderScrollToTop(event, 'seller-reward-modal-body')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
         <div class="flex items-center gap-2.5 min-w-0">
-          <button type="button" onclick="closeSellerRewardModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+          <button type="button" onclick="event.stopPropagation(); closeSellerRewardModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-amber-400"></i>
           </button>
           <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0 shadow-sm">
@@ -8303,9 +8338,6 @@
             <p class="text-[11px] text-amber-300/80 mt-0.5 truncate">កម្មវិធីលើកទឹកចិត្តលក់ប្រចាំថ្ងៃ (៥ ថែម ១)</p>
           </div>
         </div>
-        <button type="button" onclick="closeSellerRewardModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 transition">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
       </div>
 
       <!-- Scrollable Modal Body -->
@@ -8483,21 +8515,10 @@
 
       </div>
 
-      <!-- Modal Bottom Actions (Fixed Bar) -->
-      <div class="p-3 bg-[#0B1528]/95 border-t border-white/10 backdrop-blur-xl shrink-0 flex items-center justify-between">
-        <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
-          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400"></i>
-          <span>កម្មវិធីរង្វាន់ប្រចាំថ្ងៃ (៥ ថែម ១)</span>
-        </span>
-        <button type="button" onclick="closeSellerRewardModal()" class="py-2.5 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-xs active:scale-95 transition border border-white/10">
-          បិទ
-        </button>
-      </div>
-
     </div>
   </div>
 
-  <script src="dataService.js?v=67.41"></script>
-  <script src="app.js?v=67.41"></script>
+  <script src="dataService.js?v=67.42"></script>
+  <script src="app.js?v=67.42"></script>
 </body>
 </html>
