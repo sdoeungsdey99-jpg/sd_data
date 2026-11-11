@@ -5680,6 +5680,56 @@ function getMemberBostarTrackSetsAndDaily(memberName, d, monthOverride = null) {
   };
 }
 
+// Active App Pioneer Members awarded Verified Blue Tick with animation identically
+const BOSTAR_PIONEER_VERIFIED_MEMBERS = [
+  'ឆេង វ៉ាស៊ឹង',
+  'ឆេង វ៉ាន់ស៊ុង',
+  'ឆេង រ៉ាស៊ុង',
+  'ម៉ាន់ សុគន្ធលីហ្សា',
+  'រន ស្រីនិច',
+  'វន ស្រីនិច',
+  'វ៉ន ស្រីនិច',
+  'ជន់ ច័ន្ទវិច្ឆិកា',
+  'Chheng Rasung',
+  'Chheng Vasoeung',
+  'Mann Sokunlyza',
+  'Von Sreynich',
+  'Vorn Sreynich',
+  'Ron Sreynich',
+  'Chon Chanvichika'
+];
+
+function isPioneerVerifiedMember(name) {
+  if (!name) return false;
+  const s = String(name).trim();
+  const lower = s.toLowerCase();
+  if (s.includes('ឆេង វ៉ាស៊ឹង') || s.includes('ឆេង រ៉ាស៊ុង') || s.includes('ឆេង វ៉ាន់ស៊ុង') || lower.includes('rasung') || lower.includes('vasoeung')) return true;
+  if (s.includes('សុគន្ធលីហ្សា') || lower.includes('sokunlyza')) return true;
+  if (s.includes('ស្រីនិច') && (s.includes('វន') || s.includes('វ៉ន') || s.includes('រន') || lower.includes('sreynich') || lower.includes('vorn') || lower.includes('von') || lower.includes('ron'))) return true;
+  if (s.includes('វិច្ឆិកា') && (s.includes('ជន់') || s.includes('ច័ន្ទ') || lower.includes('chanvichika'))) return true;
+  return BOSTAR_PIONEER_VERIFIED_MEMBERS.some(m => s.includes(m) || lower.includes(m.toLowerCase()));
+}
+window.isPioneerVerifiedMember = isPioneerVerifiedMember;
+
+function getMemberTickBadgeHTML(kmName, enName = '', sizeClass = 'w-3.5 h-3.5', extraClass = '') {
+  const km = String(kmName || '').trim();
+  const en = String(enName || '').trim();
+  const isBechNora = km.includes('ប៊ិច នោរ៉ា') || en.toLowerCase().includes('bech nora');
+  if (isBechNora) {
+    return `<img src="gold-tick.png?v=39.6" alt="Director Verified" class="${sizeClass} object-contain shrink-0 verified-tick-gold-animated ${extraClass}" title="Director Verified 🌟">`;
+  }
+  const isPioneer = isPioneerVerifiedMember(km) || isPioneerVerifiedMember(en);
+  const isSdoeung = km.includes('ស្ដី ស្ដើង') || km.includes('ស្តី ស្តើង') || km.includes('ស្តី ស្នឹង') || en.toLowerCase().includes('sdey sdoeung');
+  if (isPioneer) {
+    return `<img src="blue-tick.png" alt="Verified" class="${sizeClass} object-contain shrink-0 verified-tick-animated ${extraClass}" title="សមាជិកសកម្មលើកម្មវិធី (Active Member) ✓">`;
+  }
+  if (isSdoeung) {
+    return `<img src="blue-tick.png" alt="Verified" class="${sizeClass} object-contain shrink-0 verified-tick-animated ${extraClass}" title="Verified Leader ✓">`;
+  }
+  return '';
+}
+window.getMemberTickBadgeHTML = getMemberTickBadgeHTML;
+
 function renderExecutiveLeaderTeamTargetCard(selectedL, d, targetMonth = null) {
   if (!selectedL) return '';
   const now = new Date();
@@ -5747,11 +5797,7 @@ function renderExecutiveLeaderTeamTargetCard(selectedL, d, targetMonth = null) {
       <!-- Member Rows (Flat & Open Layout with Set 1 to Set 6 Complete) -->
       <div class="space-y-1.5">
         ${rosterData.map(item => {
-          const isMemBechNora = (item.mem.km && (item.mem.km.includes('ប៊ិច នោរ៉ា') || (item.mem.en && item.mem.en.toLowerCase().includes('bech nora'))));
-          const isMemSdoeung = (item.mem.km && (item.mem.km.includes('ស្ដី ស្ដើង') || item.mem.km.includes('ស្តី ស្តើង') || item.mem.km.includes('ស្តី ស្នឹង')));
-          const tickBadge = isMemBechNora 
-            ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' 
-            : (isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : '');
+          const tickBadge = getMemberTickBadgeHTML(item.mem.km, item.mem.en);
           const pctNum = parseFloat(item.percentage) || 0;
           const safeName = item.mem.km.replace(/'/g, "\\'");
           const hasTarget = item.target && item.target > 0;
@@ -5857,11 +5903,7 @@ function openMemberDailyBreakdownModal(memberName, monthOverride = null) {
   const modal = document.getElementById('member-daily-breakdown-modal');
   if (!container || !modal) return;
 
-  const isMemBechNora = (memberName.includes('ប៊ិច នោរ៉ា') || memberName.toLowerCase().includes('bech nora'));
-  const isMemSdoeung = (memberName.includes('ស្ដី ស្ដើង') || memberName.includes('ស្តី ស្តើង') || memberName.includes('ស្តី ស្នឹង'));
-  const modalTickBadge = isMemBechNora 
-    ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' 
-    : (isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : '');
+  const modalTickBadge = getMemberTickBadgeHTML(memberName);
 
   const safeName = memberName.replace(/'/g, "\\'");
   const currentFilter = window.memberDailyFilterMode || 'all';
@@ -6239,8 +6281,7 @@ function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isC
             <div class="min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="font-bold text-sm text-white">${selectedM.km}</span>
-                ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                ${getMemberTickBadgeHTML(selectedM.km, selectedM.en)}
                 <span class="text-[11px] text-slate-400 font-mono">(${selectedM.en})</span>
               </div>
               <!-- Read-only Target from Google Sheet -->
@@ -6303,8 +6344,7 @@ function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isC
                     <div>
                       <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="font-bold ${isSelectedSub ? 'text-sky-300' : 'text-slate-200 group-hover:text-sky-300'} transition">${tl.km}</span>
-                        ${isTlBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                        ${isTlSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                        ${getMemberTickBadgeHTML(tl.km, tl.en)}
                       </div>
                       <span class="text-[9.5px] text-slate-400 font-mono block">${tl.en || tl.role || 'Leader'}</span>
                     </div>
@@ -6360,8 +6400,7 @@ function renderManagerDrilldownLayout(selectedM, d, contextRole = 'manager', isC
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span class="font-bold text-xs text-white group-hover:text-emerald-300 transition truncate">${mem.km}</span>
-                      ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                      ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      ${getMemberTickBadgeHTML(mem.km, mem.en)}
                       <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
                     </div>
                     <div class="text-[10px] text-slate-400 mt-0.5">
@@ -6498,8 +6537,7 @@ function renderExecutiveHierarchyModalContent() {
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold text-xs text-white group-hover:text-sky-300 transition leading-tight">${l.km}</span>
-                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    ${getMemberTickBadgeHTML(l.km, l.en)}
                     <span class="text-[10px] text-slate-400 font-mono">(${l.en})</span>
                   </div>
                   <!-- Read-only Target from Google Sheet -->
@@ -6585,8 +6623,7 @@ function renderExecutiveHierarchyModalContent() {
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span class="font-bold text-sm text-white">${selectedL.km}</span>
-                      ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                      ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      ${getMemberTickBadgeHTML(selectedL.km, selectedL.en)}
                       <span class="text-[11px] text-slate-400 font-mono">(${selectedL.en})</span>
                     </div>
                     <!-- Read-only Target from Google Sheet -->
@@ -6663,8 +6700,7 @@ function renderExecutiveHierarchyModalContent() {
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="font-bold text-xs text-white group-hover:text-emerald-300 transition truncate">${mem.km}</span>
-                  ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                  ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                  ${getMemberTickBadgeHTML(mem.km, mem.en)}
                   <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
                 </div>
                 <div class="text-[10px] text-slate-400 mt-0.5">
@@ -6750,8 +6786,7 @@ function renderExecutiveHierarchyModalContent() {
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
-                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    ${getMemberTickBadgeHTML(m.km, m.en)}
                     <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                   </div>
                   <!-- Target Pill: Read-Only from Sheet with percentage & progress bar -->
@@ -7254,17 +7289,24 @@ function getDashboardViewHTML() {
     <!-- UNIFIED SALES & EXPENSES PERFORMANCE CARD -->
     <div class="ios-glass-card rounded-3xl p-4 border border-white/10 relative overflow-hidden">
       
-      <!-- Top Card Header: Title (Clean iOS Standard without emojis) -->
-      <div class="flex items-center gap-2.5 mb-3">
-        <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
-          <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+      <!-- Top Card Header: Title with Seller Reward Button -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0">
+            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs uppercase text-white leading-tight">
+              សង្ខេបការលក់ & ចំណាយ
+            </h3>
+            <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Sales & Expense Performance</p>
+          </div>
         </div>
-        <div>
-          <h3 class="font-bold text-xs uppercase text-white leading-tight">
-            សង្ខេបការលក់ & ចំណាយ
-          </h3>
-          <p class="text-[10px] text-slate-400 font-mono leading-tight mt-0.5 card-subtitle">Sales & Expense Performance</p>
-        </div>
+        <button type="button" onclick="event.stopPropagation(); openSellerRewardModal();" class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-sm">
+          <span>🎁</span>
+          <span>រើសរង្វាន់</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 opacity-70"></i>
+        </button>
       </div>
 
       <!-- 4 Mini Grid Boxes (2x2 layout) -->
@@ -7637,8 +7679,7 @@ function getDashboardViewHTML() {
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span class="font-bold text-xs text-white group-hover:text-sky-300 transition leading-tight">${l.km}</span>
-                      ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                      ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      ${getMemberTickBadgeHTML(l.km, l.en)}
                       <span class="text-[10px] text-slate-400 font-mono">(${l.en})</span>
                     </div>
                     <!-- Read-only Target from Google Sheet -->
@@ -7723,8 +7764,7 @@ function getDashboardViewHTML() {
                     <div class="min-w-0">
                       <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="font-bold text-sm text-white">${selectedL.km}</span>
-                        ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                        ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                        ${getMemberTickBadgeHTML(selectedL.km, selectedL.en)}
                         <span class="text-[11px] text-slate-400 font-mono">(${selectedL.en})</span>
                       </div>
                       <!-- Read-only Target from Google Sheet -->
@@ -7794,8 +7834,7 @@ function getDashboardViewHTML() {
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold text-xs text-white group-hover:text-emerald-300 transition truncate">${mem.km}</span>
-                    ${isMemBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                    ${isMemSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    ${getMemberTickBadgeHTML(mem.km, mem.en)}
                     <span class="text-[10px] text-slate-400 font-mono">(${mem.en || mem.km})</span>
                   </div>
                   <div class="text-[10px] text-slate-400 mt-0.5">
@@ -7877,8 +7916,7 @@ function getDashboardViewHTML() {
                   <div class="min-w-0">
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span class="font-bold text-xs text-white group-hover:text-amber-300 transition leading-tight">${m.km}</span>
-                      ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                      ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                      ${getMemberTickBadgeHTML(m.km, m.en)}
                       <span class="text-[10px] text-slate-400 font-mono">(${m.en})</span>
                     </div>
                     <!-- Read-only Target from Google Sheet -->
@@ -13685,9 +13723,7 @@ function getSettingsViewHTML() {
         <div class="min-w-0 flex-1 overflow-visible">
           <div class="flex items-center gap-2 py-0.5 overflow-visible">
             <h1 class="font-black text-xl text-white leading-normal tracking-normal brand-title overflow-visible select-none group-hover:text-orange-400 transition">${prof.name || 'ស្តី ស្តើង'}</h1>
-            ${(prof.name && (prof.name.includes('ប៊ិច នោរ៉ា') || (prof.subtitle && prof.subtitle.toLowerCase().includes('bech nora'))))
-              ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;" title="Director Verified 🌟">'
-              : '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0 self-center" style="width: 16px; height: 16px;">'}
+            ${getMemberTickBadgeHTML(prof.name || 'ស្តី ស្តើង', prof.subtitle || '', 'w-4 h-4', 'self-center')}
           </div>
           <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mt-0.5">${prof.subtitle || 'SDEY SDOEUNG'}</p>
         </div>
@@ -16762,11 +16798,9 @@ function renderTeamSetsModalContent() {
   // 1. Title & Subtitle
   const titleEl = document.getElementById('team-sets-modal-title');
   if (titleEl) {
-    const isBechNoraLeader = leader.name && (leader.name.includes('ប៊ិច នោរ៉ា') || leader.name.toLowerCase().includes('bech nora'));
     titleEl.innerHTML = `
       <span>${leader.name}</span>
-      ${isBechNoraLeader ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain inline shrink-0" title="Director Verified 🌟">' : ''}
-      ${leader.name === 'ស្តី ស្តើង' ? '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain inline shrink-0">' : ''}
+      ${getMemberTickBadgeHTML(leader.name, '', 'w-4 h-4', 'inline')}
     `;
   }
 
@@ -21362,7 +21396,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.39';
+const CURRENT_APP_VERSION = '67.40';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -21464,18 +21498,22 @@ function syncHeaderProfileUI() {
 
   const profName = String(p.name || '').trim();
   const isBechNora = profName.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora'));
-  const isSdeySdoeung = isMaster || profName.includes('ស្តី ស្តើង') || (p.subtitle && p.subtitle.toLowerCase().includes('sdey sdoeung'));
+  const isSdeySdoeung = isMaster || profName.includes('ស្តី ស្តើង') || profName.includes('ស្ដី ស្ដើង') || (p.subtitle && p.subtitle.toLowerCase().includes('sdey sdoeung'));
+  const isPioneer = isPioneerVerifiedMember(profName) || (p.subtitle && isPioneerVerifiedMember(p.subtitle));
 
   const updateBadge = (el) => {
     if (!el) return;
+    el.classList.remove('verified-tick-animated', 'verified-tick-gold-animated');
     if (isBechNora) {
       el.classList.remove('hidden');
+      el.classList.add('verified-tick-gold-animated');
       el.src = 'gold-tick.svg';
       el.title = 'Director Verified 🌟';
-    } else if (isSdeySdoeung) {
+    } else if (isSdeySdoeung || isPioneer) {
       el.classList.remove('hidden');
+      el.classList.add('verified-tick-animated');
       el.src = 'blue-tick.png';
-      el.title = 'Master Admin Verified 🌟';
+      el.title = isPioneer ? 'សមាជិកសកម្មលើកម្មវិធី (Active Member) ✓' : 'Master Admin Verified 🌟';
     } else {
       el.classList.add('hidden');
     }
@@ -23741,6 +23779,7 @@ function renderAttendanceTop10Content() {
           <div class="min-w-0">
             <h4 class="text-xs font-bold text-white truncate flex items-center gap-1.5">
               <span>${item.name}</span>
+              ${getMemberTickBadgeHTML(item.name, item.en)}
               <span class="text-[9.5px] text-slate-400 font-mono">(${item.en})</span>
             </h4>
             <div class="flex items-center gap-1.5 mt-0.5">
@@ -25367,15 +25406,19 @@ function renderProfileDrawerContent() {
     const profName = String(p.name || '').trim();
     const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
     const isBechNora = profName.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora'));
-    const isSdeySdoeung = isMaster || profName.includes('ស្តី ស្តើង') || (p.subtitle && p.subtitle.toLowerCase().includes('sdey sdoeung'));
+    const isSdeySdoeung = isMaster || profName.includes('ស្តី ស្តើង') || profName.includes('ស្ដី ស្ដើង') || (p.subtitle && p.subtitle.toLowerCase().includes('sdey sdoeung'));
+    const isPioneer = isPioneerVerifiedMember(profName) || (p.subtitle && isPioneerVerifiedMember(p.subtitle));
+    drawerBadge.classList.remove('verified-tick-animated', 'verified-tick-gold-animated');
     if (isBechNora) {
       drawerBadge.classList.remove('hidden');
+      drawerBadge.classList.add('verified-tick-gold-animated');
       drawerBadge.src = 'gold-tick.svg';
       drawerBadge.title = 'Director Verified 🌟';
-    } else if (isSdeySdoeung) {
+    } else if (isSdeySdoeung || isPioneer) {
       drawerBadge.classList.remove('hidden');
+      drawerBadge.classList.add('verified-tick-animated');
       drawerBadge.src = 'blue-tick.png';
-      drawerBadge.title = 'Master Admin Verified 🌟';
+      drawerBadge.title = isPioneer ? 'សមាជិកសកម្មលើកម្មវិធី (Active Member) ✓' : 'Master Admin Verified 🌟';
     } else {
       drawerBadge.classList.add('hidden');
     }
@@ -25719,12 +25762,10 @@ function getProfileViewHTML() {
           </button>
         </div>
 
-        <!-- Centered Name + Verified Badge -->
+        <!-- Centered Name + Verified Badge (Only for the 6 verified users) -->
         <div class="flex items-center justify-center gap-1.5">
           <h2 class="text-lg font-black text-white leading-tight">${p.name}</h2>
-          ${(p.name && (p.name.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora'))))
-            ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-4 h-4 object-contain shrink-0" title="Director Verified 🌟">'
-            : '<img src="blue-tick.png" alt="Verified" class="w-4 h-4 object-contain shrink-0">'}
+          ${getMemberTickBadgeHTML(p.name, p.subtitle, 'w-4 h-4')}
         </div>
 
         <!-- Centered Member ID & Subtitle Below Name -->
@@ -28252,8 +28293,7 @@ function openProfileSubModal(type, fromDrawer = true) {
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 truncate">
                     <span class="text-xs font-bold text-white group-hover:text-orange-400 transition truncate">${seller.km}</span>
-                    ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-                    ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+                    ${getMemberTickBadgeHTML(seller.km, seller.en)}
                     <span class="text-[10px] text-slate-400 font-mono">(${seller.en})</span>
                   </div>
                   <span class="text-[10px] text-slate-400 font-mono">${stats.orders} កុម្ម៉ង់</span>
@@ -29112,6 +29152,8 @@ function renderTeamMembersList() {
     const stats = getSellerAggregatedStats(seller, sellerStats);
     const isBechNora = (seller.km && (seller.km.includes('ប៊ិច នោរ៉ា') || (seller.en && seller.en.toLowerCase().includes('bech nora'))));
     const isSdoeung = (seller.km && (seller.km.includes('ស្ដី ស្ដើង') || seller.km.includes('ស្តី ស្តើង')));
+    const isPioneer = isPioneerVerifiedMember(seller.km) || isPioneerVerifiedMember(seller.en);
+    const showBlueTick = isSdoeung || isPioneer;
 
     return `
       <div onclick="openTeamMemberDetail('${escapeHtml(seller.km)}')" 
@@ -29123,8 +29165,7 @@ function renderTeamMembersList() {
           <div class="min-w-0">
             <div class="flex items-center gap-1.5 truncate">
               <span class="text-xs sm:text-sm font-bold text-white group-hover:text-orange-400 transition truncate">${seller.km}</span>
-              ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-              ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+              ${getMemberTickBadgeHTML(seller.km, seller.en)}
               <span class="text-[10px] text-slate-400 font-mono">(${seller.en})</span>
             </div>
             <div class="flex items-center gap-2 mt-0.5">
@@ -29172,6 +29213,8 @@ function openTeamMemberDetail(sellerKmName) {
   const isSelf = isCurrentUserSeller(seller);
   const isBechNora = (seller.km && (seller.km.includes('ប៊ិច នោរ៉ា') || (seller.en && seller.en.toLowerCase().includes('bech nora'))));
   const isSdoeung = (seller.km && (seller.km.includes('ស្ដី ស្ដើង') || seller.km.includes('ស្តី ស្តើង')));
+  const isPioneer = isPioneerVerifiedMember(seller.km) || isPioneerVerifiedMember(seller.en);
+  const showBlueTick = isSdoeung || isPioneer;
 
   const modal = document.getElementById('team-members-modal');
   if (modal && modal.classList.contains('hidden')) {
@@ -29251,8 +29294,7 @@ function openTeamMemberDetail(sellerKmName) {
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5 flex-wrap">
             <h4 class="font-bold text-xs sm:text-sm text-white truncate">${seller.km}</h4>
-            ${isBechNora ? '<img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">' : ''}
-            ${isSdoeung ? '<img src="blue-tick.png" alt="Verified" class="w-3.5 h-3.5 object-contain shrink-0">' : ''}
+            ${getMemberTickBadgeHTML(seller.km, seller.en)}
             <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[8.5px] font-bold">${isSelf ? '👤 គណនីរបស់អ្នក' : 'ACTIVE'}</span>
           </div>
           <div class="flex items-center gap-2 text-[10px] text-slate-300 font-mono mt-0.5">
@@ -30414,6 +30456,7 @@ async function syncDailyReportToGoogleSheet(options = {}) {
 }
 
 async function copyDailyReportText() {
+  const report = getDailyReportData();
   const text = generateDailyReportText();
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -30430,6 +30473,13 @@ async function copyDailyReportText() {
 
   showToastNotification('កំពុងចម្លង & រក្សាទុកក្នុង Google Sheet... ⏳');
 
+  if (typeof showAchievementPopup === 'function') {
+    showAchievementPopup('daily_report', {
+      name: report.reporter,
+      boxes: report.totalBoxes
+    });
+  }
+
   // Seamless sync to Google Sheet
   const ok = await syncDailyReportToGoogleSheet({ source: 'copy' });
   if (ok) {
@@ -30440,6 +30490,7 @@ async function copyDailyReportText() {
 }
 
 async function shareDailyReportToTelegram() {
+  const report = getDailyReportData();
   const text = generateDailyReportText();
   
   // 1. Copy to clipboard silently
@@ -30448,6 +30499,13 @@ async function shareDailyReportToTelegram() {
       await navigator.clipboard.writeText(text);
     }
   } catch (_) {}
+
+  if (typeof showAchievementPopup === 'function') {
+    showAchievementPopup('daily_report', {
+      name: report.reporter,
+      boxes: report.totalBoxes
+    });
+  }
 
   // 2. Seamless background sync to Google Sheet (Deduplication prevents double entries)
   syncDailyReportToGoogleSheet({ source: 'telegram' });
@@ -31842,8 +31900,10 @@ function openDailyReportModal(fromDrawer = false) {
   pagesReportState.userExplicitDate = false;
   pagesReportState.selectedDate = '';
 
-  // Default to 'view' (Pages Report) so user immediately sees the report
-  pagesReportState.currentTab = 'view';
+  // Contextual initial tab based on entry trigger:
+  // - from Drawer -> 'view' (របាយការណ៍ Pages)
+  // - from Outside Header Button -> 'entry' (ចុះរបាយការណ៍)
+  pagesReportState.currentTab = fromDrawer ? 'view' : 'entry';
 
   // Set persistent flags AFTER closeAllModals so closeAllModals does not wipe them
   window._dailyReportFromDrawer = !!fromDrawer;
@@ -35076,6 +35136,11 @@ async function submitNewOrder() {
     clearOrderInput();
     closeNewOrderModal();
     if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
+    if (!isDockOrder && typeof showAchievementPopup === 'function') {
+      showAchievementPopup('telegram_order', {
+        name: newRecord.seller
+      });
+    }
   }
 
   if (btn) {
@@ -35963,6 +36028,11 @@ async function submitNewExpense() {
     closeNewExpenseModal();
     renderCurrentView();
 
+    if (typeof showAchievementPopup === 'function') {
+      const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+      showAchievementPopup('daily_expense', { name: p.name });
+    }
+
     const expModal = document.getElementById('expenses-modal');
     if (expModal && !expModal.classList.contains('hidden')) {
       if (typeof filterExpensesModalList === 'function') {
@@ -36123,6 +36193,11 @@ async function submitNewExpense() {
   // 4. Update UI live
   closeNewExpenseModal();
   renderCurrentView();
+
+  if (typeof showAchievementPopup === 'function') {
+    const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+    showAchievementPopup('daily_expense', { name: p.name });
+  }
 
   // If expenses drill-down modal is open, re-render it
   const expModal = document.getElementById('expenses-modal');
@@ -36797,13 +36872,802 @@ window.selectMiniCalDay = selectMiniCalDay;
 window.changeMiniCalMonth = changeMiniCalMonth;
 window.toggleOrderMiniCalendar = toggleOrderMiniCalendar;
 
+// ========================================================
+// SELLER REWARD (BONUS 5 GET 1) MODULE
+// ========================================================
+let sellerRewardState = {
+  mode: 'real',
+  sampleBoxes: 3,
+  sellerName: 'ឆេង រ៉ាស៊ុង',
+  dateStr: '',
+  soldBoxes: 3,
+  eligibleReward: 0,
+  selectedProducts: { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 }
+};
+
+function getYesterdayRewardDateInfo() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return {
+    ddmmyyyy: `${dd}/${mm}/${yyyy}`,
+    isoDate: `${yyyy}-${mm}-${dd}`,
+    displayDate: `${dd}/${mm}/${yyyy}`
+  };
+}
+
+function calculateSellerYesterdayRealBoxes(sellerName) {
+  const yesterday = getYesterdayRewardDateInfo();
+  let totalBoxes = 0;
+  
+  const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
+  const bostarSales = Array.isArray(d.bostarTrackSales) ? d.bostarTrackSales : [];
+  const personalSales = Array.isArray(d.personalSales) ? d.personalSales : [];
+
+  const targetNorm = typeof normalizeSellerName === 'function' ? normalizeSellerName(sellerName) : String(sellerName || '').trim().toLowerCase();
+
+  for (const s of bostarSales) {
+    if (!s) continue;
+    const sDate = String(s.date || '').trim();
+    const sIso = String(s.isoDate || '').trim();
+    if (sDate === yesterday.ddmmyyyy || sIso === yesterday.isoDate) {
+      const sNorm = typeof normalizeSellerName === 'function' ? normalizeSellerName(s.seller) : String(s.seller || '').trim().toLowerCase();
+      if (!targetNorm || sNorm === targetNorm || sNorm.includes(targetNorm) || targetNorm.includes(sNorm)) {
+        totalBoxes += (Number(s.totalBoxQty) || 0);
+      }
+    }
+  }
+
+  if (totalBoxes === 0) {
+    for (const s of personalSales) {
+      if (!s) continue;
+      const sDate = String(s.date || '').trim();
+      const sIso = String(s.isoDate || '').trim();
+      if (sDate === yesterday.ddmmyyyy || sIso === yesterday.isoDate) {
+        totalBoxes += (Number(s.totalBoxQty) || 0);
+      }
+    }
+  }
+
+  return totalBoxes;
+}
+
+function isSellerRewardAdmin() {
+  try {
+    if (typeof getPagesReportUserRole === 'function') {
+      const roleObj = getPagesReportUserRole();
+      if (roleObj && (roleObj.isExecutive || roleObj.role === 'director' || roleObj.role === 'manager' || roleObj.role === 'leader')) {
+        return true;
+      }
+    }
+  } catch (_) {}
+  return false;
+}
+
+function openSellerRewardModal(sellerOverride = null) {
+  const yesterday = getYesterdayRewardDateInfo();
+  sellerRewardState.dateStr = yesterday.displayDate;
+
+  let name = 'ឆេង រ៉ាស៊ុង';
+  try {
+    if (typeof getPagesReportUserRole === 'function') {
+      const roleObj = getPagesReportUserRole();
+      if (roleObj && roleObj.name && roleObj.name !== 'សមាជិក') {
+        name = roleObj.name;
+      }
+    }
+  } catch (_) {}
+
+  if (sellerOverride) {
+    name = sellerOverride;
+  }
+  sellerRewardState.sellerName = name;
+
+  const realBoxes = calculateSellerYesterdayRealBoxes(name);
+
+  // Live preview for seller not reaching enough reward boxes (3 boxes sold, 0 eligible rewards)
+  sellerRewardState.soldBoxes = 3;
+  sellerRewardState.eligibleReward = 0;
+  sellerRewardState.selectedProducts = { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 };
+
+  setupSellerRewardMemberSwitcher();
+  updateSellerRewardUI();
+
+  const modal = document.getElementById('seller-reward-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+  }
+
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+}
+
+function closeSellerRewardModal() {
+  const modal = document.getElementById('seller-reward-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  }
+  const banner = document.getElementById('seller-reward-copy-banner');
+  if (banner) banner.classList.add('hidden');
+}
+
+function setSellerRewardSample(val) {
+  if (val === 'real') {
+    sellerRewardState.mode = 'real';
+    const realBoxes = calculateSellerYesterdayRealBoxes(sellerRewardState.sellerName);
+    sellerRewardState.soldBoxes = realBoxes;
+    sellerRewardState.eligibleReward = Math.floor(realBoxes / 5);
+  } else {
+    sellerRewardState.mode = 'sample';
+    const boxes = parseInt(val, 10) || 15;
+    sellerRewardState.sampleBoxes = boxes;
+    sellerRewardState.soldBoxes = boxes;
+    sellerRewardState.eligibleReward = Math.floor(boxes / 5);
+  }
+
+  const totalSel = getTotalSelectedRewardBoxes();
+  if (totalSel > sellerRewardState.eligibleReward) {
+    clearAllSellerRewardSelections();
+  }
+
+  updateSellerRewardUI();
+}
+
+function setupSellerRewardMemberSwitcher() {
+  const sel = document.getElementById('seller-reward-member-select');
+  const nameDisp = document.getElementById('seller-reward-name-disp');
+  if (!sel || !nameDisp) return;
+
+  try {
+    let members = [];
+    if (typeof getManagedMembersForCurrentUser === 'function') {
+      members = getManagedMembersForCurrentUser();
+    }
+    if (Array.isArray(members) && members.length > 1) {
+      sel.innerHTML = members.map(m => `<option value="${escapeHtml(m)}" ${m === sellerRewardState.sellerName ? 'selected' : ''}>👤 ${escapeHtml(m)}</option>`).join('');
+      sel.classList.remove('hidden');
+      nameDisp.classList.add('hidden');
+    } else {
+      sel.classList.add('hidden');
+      nameDisp.classList.remove('hidden');
+    }
+  } catch (_) {
+    sel.classList.add('hidden');
+    nameDisp.classList.remove('hidden');
+  }
+}
+
+function onSellerRewardMemberChange(val) {
+  if (!val) return;
+  sellerRewardState.sellerName = val;
+  if (sellerRewardState.mode === 'real') {
+    const realBoxes = calculateSellerYesterdayRealBoxes(val);
+    sellerRewardState.soldBoxes = realBoxes;
+    sellerRewardState.eligibleReward = Math.floor(realBoxes / 5);
+  }
+  updateSellerRewardUI();
+}
+
+function getTotalSelectedRewardBoxes() {
+  const p = sellerRewardState.selectedProducts;
+  return (p.kn || 0) + (p.pdo || 0) + (p.yl || 0) + (p.ylp || 0) + (p.sgp || 0);
+}
+
+function selectSellerRewardProductQty(prod, qty) {
+  const maxAllowed = sellerRewardState.eligibleReward;
+  if (maxAllowed <= 0) return;
+
+  const current = sellerRewardState.selectedProducts[prod] || 0;
+  if (current === qty) {
+    sellerRewardState.selectedProducts[prod] = 0;
+  } else {
+    const totalWithoutThis = getTotalSelectedRewardBoxes() - current;
+    if (totalWithoutThis + qty > maxAllowed) {
+      if (navigator.vibrate) try { navigator.vibrate([30, 30, 30]); } catch (_) {}
+      return;
+    }
+    sellerRewardState.selectedProducts[prod] = qty;
+  }
+
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+  updateSellerRewardUI();
+}
+
+function clearAllSellerRewardSelections() {
+  sellerRewardState.selectedProducts = { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 };
+  updateSellerRewardUI();
+}
+
+function renderSellerRewardCircles() {
+  const maxAllowed = sellerRewardState.eligibleReward;
+  const currentTotal = getTotalSelectedRewardBoxes();
+  const prods = ['kn', 'pdo', 'yl', 'ylp', 'sgp'];
+
+  prods.forEach(prod => {
+    const container = document.getElementById(`reward-circles-${prod}`);
+    if (!container) return;
+
+    const currentVal = sellerRewardState.selectedProducts[prod] || 0;
+    let html = '';
+
+    for (let num = 1; num <= 5; num++) {
+      const isSelected = (currentVal === num);
+      const totalWithoutThis = currentTotal - currentVal;
+      const isAllowed = (totalWithoutThis + num <= maxAllowed);
+
+      let btnCls = '';
+      if (isSelected) {
+        btnCls = 'w-6 h-6 rounded-full border border-amber-400 bg-gradient-to-br from-amber-400 to-orange-500 text-black font-black flex items-center justify-center text-[11px] shadow-sm shadow-amber-500/50 scale-105 active:scale-95 transition';
+      } else if (!isAllowed) {
+        btnCls = 'w-6 h-6 rounded-full border border-white/5 bg-white/[0.02] text-slate-600 cursor-not-allowed flex items-center justify-center text-[10px] opacity-40 pointer-events-none select-none';
+      } else {
+        btnCls = 'w-6 h-6 rounded-full border border-white/15 bg-white/5 text-slate-400 hover:text-white hover:border-amber-400/40 hover:bg-white/10 active:scale-90 flex items-center justify-center text-[10px] font-bold transition select-none';
+      }
+
+      html += `<button type="button" onclick="selectSellerRewardProductQty('${prod}', ${num})" class="${btnCls}" title="រង្វាន់ ${num} ប្រអប់">${num}</button>`;
+    }
+    container.innerHTML = html;
+  });
+}
+
+function generateSellerRewardTelegramText() {
+  if (sellerRewardState.eligibleReward <= 0) {
+    return `👤អ្នកលក់៖ ${sellerRewardState.sellerName}
+✍️ចំនួនលក់៖ ${sellerRewardState.soldBoxes}ប្រអប់
+✍️ថ្ងៃលក់៖ ${sellerRewardState.dateStr}
+✍️យក៖ (មិនទាន់គ្រប់លក្ខខណ្ឌបើករង្វាន់)`;
+  }
+
+  const p = sellerRewardState.selectedProducts;
+  const parts = [];
+  if (p.kn > 0) parts.push(`Kidney Pro ${p.kn}`);
+  if (p.pdo > 0) parts.push(`Pro D.O ${p.pdo}`);
+  if (p.yl > 0) parts.push(`Yong Liang ${p.yl}`);
+  if (p.ylp > 0) parts.push(`Yong Liang Plus ${p.ylp}`);
+  if (p.sgp > 0) parts.push(`S.G Pro ${p.sgp}`);
+
+  const rewardText = parts.length > 0 ? parts.join(' + ') : '(មិនទាន់ជ្រើសរើស)';
+
+  return `👤អ្នកលក់៖ ${sellerRewardState.sellerName}
+✍️ចំនួនលក់៖ ${sellerRewardState.soldBoxes}ប្រអប់
+✍️ថ្ងៃលក់៖ ${sellerRewardState.dateStr}
+✍️យក៖ ${rewardText}`;
+}
+
+function updateSellerRewardUI() {
+  const nameDisp = document.getElementById('seller-reward-name-disp');
+  if (nameDisp) nameDisp.innerText = sellerRewardState.sellerName;
+
+  const dateDisp = document.getElementById('seller-reward-date-disp');
+  if (dateDisp) dateDisp.innerText = sellerRewardState.dateStr;
+
+  const boxesDisp = document.getElementById('seller-reward-boxes-disp');
+  if (boxesDisp) boxesDisp.innerText = sellerRewardState.soldBoxes;
+
+  const eligibleCount = document.getElementById('seller-reward-eligible-count');
+  if (eligibleCount) eligibleCount.innerText = sellerRewardState.eligibleReward;
+
+  const maxDisp = document.getElementById('seller-reward-max-disp');
+  if (maxDisp) maxDisp.innerText = sellerRewardState.eligibleReward;
+
+  const isLight = document.documentElement.classList.contains('light-theme') || (document.body && document.body.classList.contains('light-theme'));
+
+  const modeBadge = document.getElementById('seller-reward-mode-badge');
+  if (modeBadge) {
+    if (sellerRewardState.mode === 'sample') {
+      modeBadge.className = isLight
+        ? 'px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800 font-mono text-[10px] font-bold border border-amber-300'
+        : 'px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/30';
+      modeBadge.innerText = 'គំរូតេស្ត (Sample)';
+    } else {
+      modeBadge.className = isLight
+        ? 'px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold border border-emerald-300'
+        : 'px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold border border-emerald-500/30';
+      modeBadge.innerText = 'ទិន្នន័យជាក់ស្តែង (Real)';
+    }
+  }
+
+  const b15 = document.getElementById('btn-reward-sample-15');
+  const b10 = document.getElementById('btn-reward-sample-10');
+  const b20 = document.getElementById('btn-reward-sample-20');
+  const bReal = document.getElementById('btn-reward-sample-real');
+
+  const activeBtnCls = isLight
+    ? 'py-1.5 px-1 rounded-xl bg-amber-500 text-white font-bold text-center transition active:scale-95 text-[11px] shadow-sm'
+    : 'py-1.5 px-1 rounded-xl bg-amber-500 text-black font-bold text-center transition active:scale-95 text-[11px] shadow-sm';
+  const inactiveBtnCls = isLight
+    ? 'py-1.5 px-1 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-center transition active:scale-95 text-[11px]'
+    : 'py-1.5 px-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 font-bold text-center transition active:scale-95 text-[11px]';
+
+  if (b15) b15.className = (sellerRewardState.mode === 'sample' && sellerRewardState.sampleBoxes === 15) ? activeBtnCls : inactiveBtnCls;
+  if (b10) b10.className = (sellerRewardState.mode === 'sample' && sellerRewardState.sampleBoxes === 10) ? activeBtnCls : inactiveBtnCls;
+  if (b20) b20.className = (sellerRewardState.mode === 'sample' && sellerRewardState.sampleBoxes === 20) ? activeBtnCls : inactiveBtnCls;
+  if (bReal) {
+    if (sellerRewardState.mode === 'real') {
+      bReal.className = isLight
+        ? 'py-1.5 px-1 rounded-xl bg-emerald-600 text-white font-bold text-center transition active:scale-95 text-[10.5px] shadow-sm'
+        : 'py-1.5 px-1 rounded-xl bg-emerald-500 text-black font-bold text-center transition active:scale-95 text-[10.5px] shadow-sm';
+    } else {
+      bReal.className = isLight
+        ? 'py-1.5 px-1 rounded-xl bg-white hover:bg-slate-50 text-slate-500 border border-slate-200 font-bold text-center transition active:scale-95 text-[10.5px]'
+        : 'py-1.5 px-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 border border-white/10 font-bold text-center transition active:scale-95 text-[10.5px]';
+    }
+  }
+
+  const ineligBox = document.getElementById('seller-reward-ineligible-box');
+  const ineligText = document.getElementById('seller-reward-ineligible-text');
+  const prodCard = document.getElementById('seller-reward-product-card');
+
+  if (sellerRewardState.eligibleReward <= 0) {
+    if (ineligBox) ineligBox.classList.remove('hidden');
+    if (prodCard) prodCard.classList.add('hidden');
+    if (ineligText) {
+      const needed = 5 - (sellerRewardState.soldBoxes % 5);
+      ineligText.innerText = `លក់បាន ${sellerRewardState.soldBoxes} ប្រអប់ (ខ្វះ ${needed} ប្រអប់ទៀត ដើម្បីទទួលបានរង្វាន់ ១ ប្រអប់)។`;
+    }
+  } else {
+    if (ineligBox) ineligBox.classList.add('hidden');
+    if (prodCard) prodCard.classList.remove('hidden');
+  }
+
+  const totalSelected = getTotalSelectedRewardBoxes();
+  const quotaBadge = document.getElementById('seller-reward-quota-badge');
+  if (quotaBadge) {
+    if (totalSelected > 0) {
+      quotaBadge.className = 'px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold font-mono text-[10px] transition-all shadow-sm';
+      quotaBadge.innerText = `រើស: ${totalSelected}/${sellerRewardState.eligibleReward} ប្រអប់ ✓`;
+    } else {
+      quotaBadge.className = 'px-2 py-0.5 rounded-lg bg-white/5 text-slate-400 border border-white/10 font-bold font-mono text-[10px] transition-all';
+      quotaBadge.innerText = `សិទ្ធិថែម: 0/${sellerRewardState.eligibleReward} ប្រអប់`;
+    }
+  }
+
+  renderSellerRewardCircles();
+
+  const preview = document.getElementById('seller-reward-preview-text');
+  if (preview) {
+    preview.innerText = generateSellerRewardTelegramText();
+  }
+
+  // Copy button permission & lock logic:
+  // When eligible <= 0, copying is strictly disabled; when eligible > 0, members must pick full quota, while admins can copy anytime.
+  const eligible = sellerRewardState.eligibleReward;
+  const isEligible = eligible > 0;
+  const isAdmin = isSellerRewardAdmin();
+  const isComplete = (totalSelected === eligible && isEligible);
+  const canCopy = isEligible && (isAdmin || isComplete);
+
+  const btnCopy = document.getElementById('btn-copy-seller-reward');
+  const btnCopyText = document.getElementById('btn-copy-seller-reward-text');
+  
+  if (btnCopy) {
+    if (canCopy) {
+      btnCopy.disabled = false;
+      btnCopy.className = 'w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:opacity-95 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition cursor-pointer select-none';
+      if (btnCopyText) btnCopyText.innerText = 'ចម្លងព័ត៌មានរង្វាន់ (Copy Text)';
+    } else {
+      btnCopy.disabled = true;
+      btnCopy.className = isLight
+        ? 'w-full py-3 px-4 rounded-xl bg-slate-200 text-slate-500 font-bold text-xs flex items-center justify-center gap-2 border border-slate-300 opacity-70 cursor-not-allowed select-none'
+        : 'w-full py-3 px-4 rounded-xl bg-white/5 text-slate-500 font-bold text-xs flex items-center justify-center gap-2 border border-white/10 opacity-60 cursor-not-allowed select-none';
+      
+      const needed = eligible - totalSelected;
+      if (btnCopyText) {
+        if (eligible <= 0) {
+          btnCopyText.innerText = '🔒 មិនទាន់គ្រប់លក្ខខណ្ឌបើករង្វាន់';
+        } else if (totalSelected === 0) {
+          btnCopyText.innerText = `🔒 សូមរើសរង្វាន់ឱ្យគ្រប់ ${eligible} ប្រអប់ជាមុនសិន`;
+        } else {
+          btnCopyText.innerText = `🔒 សូមរើសឱ្យគ្រប់ ${eligible} ប្រអប់ (នៅខ្វះ ${needed} ទៀត)`;
+        }
+      }
+    }
+  }
+}
+
+async function copySellerRewardTelegramText() {
+  const totalSelected = getTotalSelectedRewardBoxes();
+  const eligible = sellerRewardState.eligibleReward;
+  const isEligible = eligible > 0;
+  const isAdmin = isSellerRewardAdmin();
+  const isComplete = (totalSelected === eligible && isEligible);
+  const canCopy = isEligible && (isAdmin || isComplete);
+
+  if (!canCopy) {
+    if (navigator.vibrate) try { navigator.vibrate([40, 40, 40]); } catch (_) {}
+    return;
+  }
+
+  const text = generateSellerRewardTelegramText();
+  let success = false;
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      success = true;
+    } else {
+      throw new Error('Clipboard API unavailable');
+    }
+  } catch (_) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      success = document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (e) {
+      console.error('Failed to copy', e);
+    }
+  }
+
+  if (navigator.vibrate) try { navigator.vibrate([15, 50, 15]); } catch (_) {}
+
+  const banner = document.getElementById('seller-reward-copy-banner');
+  if (banner) {
+    banner.classList.remove('hidden');
+    setTimeout(() => { banner.classList.add('hidden'); }, 4000);
+  }
+
+  const btn = document.getElementById('btn-copy-seller-reward');
+  if (btn) {
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4 stroke-[2.5] text-emerald-950"></i><span>បានចម្លងរួចរាល់! ✓</span>`;
+    btn.classList.add('bg-emerald-400');
+    if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+    setTimeout(() => {
+      btn.innerHTML = origHtml;
+      btn.classList.remove('bg-emerald-400');
+      if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+    }, 2500);
+  }
+}
+
+window.openSellerRewardModal = openSellerRewardModal;
+window.closeSellerRewardModal = closeSellerRewardModal;
+window.setSellerRewardSample = setSellerRewardSample;
+window.onSellerRewardMemberChange = onSellerRewardMemberChange;
+window.selectSellerRewardProductQty = selectSellerRewardProductQty;
+window.clearAllSellerRewardSelections = clearAllSellerRewardSelections;
+window.copySellerRewardTelegramText = copySellerRewardTelegramText;
+
+// ========================================================
+// iOS ACHIEVEMENT CARD / CELEBRATION POPUP (GOLD & EMERALD)
+// ========================================================
+function resolveAchievementMemberName(preferredName) {
+  const clean = (val) => String(val || '').trim();
+  const isGeneric = (val) => !val || val === 'ទាំងអស់' || val === 'All' || val === 'សមាជិក Bostar' || val === 'ជ្រើសរើសឈ្មោះបុគ្គលិក';
+
+  const c1 = clean(preferredName);
+  if (!isGeneric(c1)) return c1;
+
+  try {
+    const repStaff = clean(document.getElementById('rep-field-staff')?.value || localStorage.getItem('sd_report_staff'));
+    if (!isGeneric(repStaff)) return repStaff;
+  } catch (_) {}
+
+  try {
+    const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+    const pName = clean(p?.name);
+    if (!isGeneric(pName)) return pName;
+  } catch (_) {}
+
+  return 'សមាជិក Bostar';
+}
+
+function closeAchievementPopup() {
+  const modal = document.getElementById('achievement-celebration-modal');
+  if (!modal) return;
+  modal.classList.add('opacity-0', 'pointer-events-none');
+  const card = document.getElementById('achievement-celebration-card');
+  if (card) {
+    card.style.transform = 'scale(0.94) translateY(8px)';
+  }
+  if (navigator.vibrate) {
+    try { navigator.vibrate(15); } catch (_) {}
+  }
+  setTimeout(() => {
+    if (modal && modal.classList.contains('opacity-0')) {
+      modal.classList.add('hidden');
+    }
+  }, 180);
+}
+
+function showAchievementPopup(type = 'daily_report', data = {}) {
+  const isLight = document.documentElement.classList.contains('light-theme') || document.body.classList.contains('light-theme') || document.documentElement.classList.contains('light-mode') || document.body.classList.contains('light-mode');
+  const memberName = resolveAchievementMemberName(data.name);
+  const boxes = Math.max(0, Number(data.boxes ?? 0) || 0);
+
+  let badgeLabel = '✨ ការលើកទឹកចិត្តប្រចាំថ្ងៃ';
+  let emojiIcon = '🌟';
+  let mainMessageHtml = '';
+  let bonusBannerHtml = '';
+
+  const nameHighlightClass = isLight
+    ? 'text-emerald-700 font-extrabold underline decoration-amber-400/80 decoration-2 underline-offset-4'
+    : 'text-amber-300 font-extrabold';
+  const boxHighlightClass = isLight
+    ? 'inline-flex items-center px-2 py-0.5 mx-0.5 rounded-lg bg-amber-100 text-amber-800 border border-amber-300 font-extrabold'
+    : 'inline-flex items-center px-2 py-0.5 mx-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/40 font-extrabold';
+
+  if (type === 'daily_report') {
+    if (boxes > 0) {
+      badgeLabel = '🕘 របាយការណ៍លក់ប្រចាំថ្ងៃ • ការលើកទឹកចិត្ត';
+      emojiIcon = '🌟';
+      mainMessageHtml = `«🌟 អស្ចារ្យណាស់ <span class="${nameHighlightClass}">${memberName}</span>! អរគុណសម្រាប់ការខិតខំប្រឹងប្រែងពេញមួយថ្ងៃនេះ! ថ្ងៃនេះអ្នកលក់បាន <span class="${boxHighlightClass}">${boxes} ប្រអប់</span> — រាល់ការព្យាយាមរបស់អ្នកគឺជាមោទនភាពរបស់ក្រុមយើង!»`;
+
+      if (boxes >= 5) {
+        bonusBannerHtml = `
+          <div class="mt-3.5 p-3 rounded-2xl flex items-center gap-2.5 text-left transition-all"
+               style="${isLight
+                 ? 'background: linear-gradient(135deg, #FEF3C7 0%, #ECFDF5 100%); border: 1.5px solid #F59E0B; box-shadow: 0 6px 16px rgba(245, 158, 11, 0.14);'
+                 : 'background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(16, 185, 129, 0.16) 100%); border: 1px solid rgba(251, 191, 36, 0.45); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);'}">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-lg"
+                 style="${isLight
+                   ? 'background: linear-gradient(135deg, #F59E0B, #10B981); color: #fff;'
+                   : 'background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(16, 185, 129, 0.3)); border: 1px solid rgba(251, 191, 36, 0.5);'}">
+              🎁
+            </div>
+            <div class="text-[12.5px] leading-[1.6] font-extrabold ${isLight ? 'text-amber-900' : 'text-amber-200'}">
+              🎁 កុំភ្លេចចូលបើករង្វាន់ ៥ ថែម ១ នៅទំព័រដើមថ្ងៃស្អែកណា!
+            </div>
+          </div>
+        `;
+      }
+    } else {
+      badgeLabel = '🕘 របាយការណ៍លក់ប្រចាំថ្ងៃ • កម្លាំងចិត្ត';
+      emojiIcon = '💪';
+      mainMessageHtml = `«💪 កុំបាក់ទឹកចិត្តណា <span class="${nameHighlightClass}">${memberName}</span>! ការលក់មានថ្ងៃឡើងថ្ងៃចុះ តែឱ្យតែអ្នកនៅតែតស៊ូតបឆាត និងតាមដានភ្ញៀវចាស់ ថ្ងៃស្អែកលទ្ធផលល្អនឹងមកដល់ជាក់ជាមិនខាន! សម្រាកឱ្យស្រួលណា!»`;
+    }
+  } else if (type === 'telegram_order') {
+    badgeLabel = '📋 កត់ត្រាការលក់ពី Telegram • ការសរសើរ';
+    emojiIcon = '👏';
+    mainMessageHtml = `«👏 សូមសរសើរដោយស្មោះ <span class="${nameHighlightClass}">${memberName}</span>! អ្នកជាសមាជិកសម័យថ្មីដ៏វៃឆ្លាត ដែលចេះប្រើមុខងារកត់ត្រាពី Telegram ជួយឱ្យដឹងប្រាក់ចំណេញ តាមដានលុយ COD និងរំលឹកសួរសុខទុក្ខភ្ញៀវ (៣-៧-១៥ ថ្ងៃ) ដោយស្វ័យប្រវត្តិ!»`;
+  } else if (type === 'daily_expense') {
+    badgeLabel = '💸 ចំណាយប្រចាំថ្ងៃ • វិន័យហិរញ្ញវត្ថុ';
+    emojiIcon = '🛡️';
+    mainMessageHtml = `«🛡️ វិន័យល្អឥតខ្ចោះ <span class="${nameHighlightClass}">${memberName}</span>! ការកត់ត្រាចំណាយទៀងទាត់ គឺជាទម្លាប់របស់បុគ្គលជោគជ័យ និងអ្នកគ្រប់គ្រងហិរញ្ញវត្ថុដ៏ឆ្នើម។»`;
+  }
+
+  let modal = document.getElementById('achievement-celebration-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'achievement-celebration-modal';
+    document.body.appendChild(modal);
+  }
+
+  const cardBgStyle = isLight
+    ? 'background: linear-gradient(160deg, #FFFFFF 0%, #F0FDF4 52%, #FFFBEB 100%); border: 1.5px solid rgba(245, 158, 11, 0.55); box-shadow: 0 25px 60px -12px rgba(16, 185, 129, 0.25), 0 0 0 1px rgba(245, 158, 11, 0.2);'
+    : 'background: linear-gradient(160deg, rgba(13, 33, 28, 0.98) 0%, rgba(9, 16, 22, 0.99) 52%, rgba(36, 26, 10, 0.98) 100%); border: 1.5px solid rgba(245, 158, 11, 0.48); box-shadow: 0 28px 65px -10px rgba(0, 0, 0, 0.88), 0 0 40px rgba(16, 185, 129, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);';
+
+  const messageBoxStyle = isLight
+    ? 'background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(16, 185, 129, 0.25); box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);'
+    : 'background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);';
+
+  modal.className = 'fixed inset-0 z-[130] flex flex-col items-center justify-center p-5 bg-black/70 backdrop-blur-md transition-opacity duration-200 opacity-100';
+  modal.setAttribute('onclick', 'closeAchievementPopup()');
+
+  modal.innerHTML = `
+    <div id="achievement-celebration-card"
+         onclick="event.stopPropagation()"
+         class="relative w-full max-w-[360px] rounded-[28px] p-5 text-center overflow-hidden transition-all duration-200"
+         style="${cardBgStyle}; transform: scale(1) translateY(0);">
+      
+      <!-- Top Gold & Emerald Ambient Shimmer -->
+      <div class="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 w-56 h-32 rounded-full blur-2xl opacity-60"
+           style="background: radial-gradient(circle, rgba(245, 158, 11, 0.55) 0%, rgba(16, 185, 129, 0.45) 60%, transparent 100%);"></div>
+
+      <!-- Top Gold Accent Line -->
+      <div class="pointer-events-none absolute top-0 left-8 right-8 h-[2px] rounded-full"
+           style="background: linear-gradient(90deg, transparent, #F59E0B, #10B981, #F59E0B, transparent);"></div>
+
+      <!-- Floating Luxury Medallion Icon -->
+      <div class="relative mx-auto mb-3 w-16 h-16 rounded-2xl flex items-center justify-center text-[32px] select-none"
+           style="${isLight
+             ? 'background: linear-gradient(135deg, #FEF3C7 0%, #D1FAE5 100%); border: 2px solid #F59E0B; box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.35);'
+             : 'background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(16, 185, 129, 0.25) 100%); border: 1.5px solid rgba(251, 191, 36, 0.65); box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);'}">
+        <span>${emojiIcon}</span>
+      </div>
+
+      <!-- Category Pill Badge -->
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold tracking-wide mb-3.5"
+           style="${isLight
+             ? 'background: linear-gradient(90deg, #ECFDF5, #FEF3C7); color: #065F46; border: 1px solid rgba(16, 185, 129, 0.35);'
+             : 'background: linear-gradient(90deg, rgba(16, 185, 129, 0.18), rgba(245, 158, 11, 0.18)); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.35);'}">
+        <span>${badgeLabel}</span>
+      </div>
+
+      <!-- Main Khmer Message Box -->
+      <div class="rounded-2xl p-4 text-[14px] leading-[1.85] font-semibold ${isLight ? 'text-slate-800' : 'text-slate-100'}"
+           style="${messageBoxStyle}">
+        ${mainMessageHtml}
+      </div>
+
+      ${bonusBannerHtml}
+
+      <!-- Primary Dismiss Button: យល់ព្រម ✨ -->
+      <button type="button"
+              onclick="closeAchievementPopup()"
+              class="mt-4 w-full py-3.5 px-5 rounded-2xl font-extrabold text-[15px] text-slate-950 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer select-none"
+              style="background: linear-gradient(135deg, #FBBF24 0%, #10B981 55%, #F59E0B 100%); box-shadow: 0 10px 24px -6px rgba(16, 185, 129, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45);">
+        <span>យល់ព្រម ✨</span>
+      </button>
+    </div>
+  `;
+
+  if (navigator.vibrate) {
+    try { navigator.vibrate([25, 40, 25]); } catch (_) {}
+  }
+}
+
+window.showAchievementPopup = showAchievementPopup;
+window.closeAchievementPopup = closeAchievementPopup;
+
+// ========================================================
+// ONE-TIME VIP HONOR POPUP FOR THE 4 PIONEER MEMBERS
+// ========================================================
+function getPioneerHonorSeenKey(memberName) {
+  const clean = String(memberName || '').trim().toLowerCase().replace(/\s+/g, '_');
+  return 'sd_pioneer_vip_honor_seen_v1_' + (clean || 'member');
+}
+
+function closePioneerVipHonorPopup() {
+  const modal = document.getElementById('pioneer-vip-honor-modal');
+  if (!modal) return;
+  modal.classList.add('opacity-0', 'pointer-events-none');
+  const card = document.getElementById('pioneer-vip-honor-card');
+  if (card) {
+    card.style.transform = 'scale(0.94) translateY(8px)';
+  }
+  if (navigator.vibrate) {
+    try { navigator.vibrate(15); } catch (_) {}
+  }
+  setTimeout(() => {
+    if (modal && modal.classList.contains('opacity-0')) {
+      modal.classList.add('hidden');
+    }
+  }, 180);
+}
+
+function showPioneerVipHonorPopup(nameOverride = null, isPreviewOnly = false) {
+  const isLight = document.documentElement.classList.contains('light-theme') || document.body.classList.contains('light-theme') || document.documentElement.classList.contains('light-mode') || document.body.classList.contains('light-mode');
+  const rawName = nameOverride || resolveAchievementMemberName();
+  const memberName = String(rawName || '').trim() || 'សមាជិក Bostar';
+
+  if (!isPreviewOnly) {
+    try {
+      localStorage.setItem(getPioneerHonorSeenKey(memberName), '1');
+    } catch (_) {}
+    if (typeof addAppNotification === 'function') {
+      try {
+        addAppNotification({
+          type: 'honor',
+          title: '🎖️ សូមអបអរសាទរ សមាជិកគំរូប្រចាំ Bostar!',
+          content: `សួស្ដី ${memberName}! បងសង្កេតឃើញថា ${memberName} ជាមនុស្សចូលចិត្តអភិវឌ្ឍខ្លួន និងប្រើប្រាស់ Bostar App បានល្អមុនគេ!`,
+          tag: 'VIP Blue Tick ✓',
+          color: 'sky',
+          icon: 'award'
+        });
+      } catch (_) {}
+    }
+  }
+
+  let modal = document.getElementById('pioneer-vip-honor-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'pioneer-vip-honor-modal';
+    document.body.appendChild(modal);
+  }
+
+  const cardBgStyle = isLight
+    ? 'background: linear-gradient(160deg, #FFFFFF 0%, #F0F9FF 52%, #FFFBEB 100%); border: 1.5px solid rgba(14, 165, 233, 0.45); box-shadow: 0 25px 60px -12px rgba(14, 165, 233, 0.22), 0 0 0 1px rgba(245, 158, 11, 0.18);'
+    : 'background: linear-gradient(160deg, rgba(11, 25, 44, 0.98) 0%, rgba(9, 16, 28, 0.99) 55%, rgba(36, 26, 10, 0.98) 100%); border: 1.5px solid rgba(56, 189, 248, 0.45); box-shadow: 0 28px 65px -10px rgba(0, 0, 0, 0.9), 0 0 42px rgba(56, 189, 248, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);';
+
+  const messageBoxStyle = isLight
+    ? 'background: rgba(255, 255, 255, 0.88); border: 1px solid rgba(14, 165, 233, 0.25); box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);'
+    : 'background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);';
+
+  const nameHighlightClass = isLight
+    ? 'text-sky-700 font-extrabold underline decoration-amber-400/80 decoration-2 underline-offset-4'
+    : 'text-amber-300 font-extrabold';
+
+  modal.className = 'fixed inset-0 z-[135] flex flex-col items-center justify-center p-5 bg-black/70 backdrop-blur-md transition-opacity duration-200 opacity-100';
+  modal.setAttribute('onclick', 'closePioneerVipHonorPopup()');
+
+  modal.innerHTML = `
+    <div id="pioneer-vip-honor-card"
+         onclick="event.stopPropagation()"
+         class="relative w-full max-w-[360px] rounded-[28px] p-5 text-center overflow-hidden transition-all duration-200"
+         style="${cardBgStyle}; transform: scale(1) translateY(0);">
+
+      <!-- Top Sky & Gold Ambient Shimmer -->
+      <div class="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 w-56 h-32 rounded-full blur-2xl opacity-60"
+           style="background: radial-gradient(circle, rgba(56, 189, 248, 0.5) 0%, rgba(245, 158, 11, 0.4) 60%, transparent 100%);"></div>
+
+      <!-- Top Accent Line -->
+      <div class="pointer-events-none absolute top-0 left-8 right-8 h-[2px] rounded-full"
+           style="background: linear-gradient(90deg, transparent, #38BDF8, #F59E0B, #38BDF8, transparent);"></div>
+
+      <!-- Animated Blue Tick Medallion -->
+      <div class="relative mx-auto mb-3 w-16 h-16 rounded-2xl flex items-center justify-center select-none"
+           style="${isLight
+             ? 'background: linear-gradient(135deg, #E0F2FE 0%, #FEF3C7 100%); border: 2px solid #38BDF8; box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.28);'
+             : 'background: linear-gradient(135deg, rgba(56, 189, 248, 0.22) 0%, rgba(245, 158, 11, 0.2) 100%); border: 1.5px solid rgba(56, 189, 248, 0.6); box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.3), inset 0 1px 0 rgba(255,255,255,0.25);'}">
+        <img src="blue-tick.png" alt="Verified" class="w-9 h-9 object-contain verified-tick-animated">
+      </div>
+
+      <!-- Approved Header Pill -->
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold tracking-wide mb-3.5"
+           style="${isLight
+             ? 'background: linear-gradient(90deg, #E0F2FE, #FEF3C7); color: #0369A1; border: 1px solid rgba(14, 165, 233, 0.35);'
+             : 'background: linear-gradient(90deg, rgba(56, 189, 248, 0.18), rgba(245, 158, 11, 0.18)); color: #7DD3FC; border: 1px solid rgba(56, 189, 248, 0.35);'}">
+        <span>🎖️ សូមអបអរសាទរ សមាជិកគំរូប្រចាំ Bostar!</span>
+      </div>
+
+      <!-- Approved Exact Message (Only this wording) -->
+      <div class="rounded-2xl p-4 text-[14.5px] leading-[1.9] font-semibold ${isLight ? 'text-slate-800' : 'text-slate-100'}"
+           style="${messageBoxStyle}">
+        «សួស្ដី <span class="${nameHighlightClass}">${memberName}</span>! បងសង្កេតឃើញថា <span class="${nameHighlightClass}">${memberName}</span> ជាមនុស្សចូលចិត្តអភិវឌ្ឍខ្លួន និងប្រើប្រាស់ Bostar App បានល្អមុនគេ!»
+      </div>
+
+      <!-- Single Dismiss Button -->
+      <button type="button"
+              onclick="closePioneerVipHonorPopup()"
+              class="mt-4 w-full py-3.5 px-5 rounded-2xl font-extrabold text-[15px] text-white flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer select-none"
+              style="background: linear-gradient(135deg, #0284C7 0%, #0EA5E9 50%, #F59E0B 100%); box-shadow: 0 10px 24px -6px rgba(14, 165, 233, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);">
+        <span>ទទួលយកកិត្តិយស ✨</span>
+      </button>
+    </div>
+  `;
+
+  if (navigator.vibrate) {
+    try { navigator.vibrate([25, 40, 25]); } catch (_) {}
+  }
+}
+
+function maybeShowPioneerOneTimeHonorPopup() {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
+  const gate = document.getElementById('onboarding-gate');
+  if (gate && !gate.classList.contains('hidden')) return;
+
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const profName = String(p?.name || localStorage.getItem('sd_verified_seller_km') || localStorage.getItem('sd_user_name') || '').trim();
+  if (!profName || typeof isPioneerVerifiedMember !== 'function' || !isPioneerVerifiedMember(profName)) return;
+
+  // Never show to Bech Nora or Sdey Sdoeung
+  if (profName.includes('ប៊ិច នោរ៉ា') || profName.includes('ស្ដី ស្ដើង') || profName.includes('ស្តី ស្តើង')) return;
+
+  try {
+    const key = getPioneerHonorSeenKey(profName);
+    if (localStorage.getItem(key) === '1') return;
+  } catch (_) {}
+
+  showPioneerVipHonorPopup(profName, false);
+}
+
+window.showPioneerVipHonorPopup = showPioneerVipHonorPopup;
+window.closePioneerVipHonorPopup = closePioneerVipHonorPopup;
+window.maybeShowPioneerOneTimeHonorPopup = maybeShowPioneerOneTimeHonorPopup;
+
 // Universal DOM Loading Safeguard:
 // Placed at the very end of app.js so all 31,000+ lines are fully parsed before initApp runs!
 if (typeof document !== 'undefined') {
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
+    document.addEventListener('DOMContentLoaded', () => {
+      initApp();
+      setTimeout(maybeShowPioneerOneTimeHonorPopup, 1000);
+    });
   } else {
     initApp();
+    setTimeout(maybeShowPioneerOneTimeHonorPopup, 1000);
   }
 }
 

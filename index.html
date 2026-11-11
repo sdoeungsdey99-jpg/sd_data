@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.39">
+  <link rel="manifest" href="manifest.json?v=67.40">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -213,6 +213,38 @@
     }
     .chart-arrow-loop {
       animation: arrowGlideContinuousLoop 1.8s infinite ease-in-out;
+    }
+
+    /* ✨ Subtle Animated Verified Active Member Tick (No Glow) */
+    @keyframes verifiedTickPulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.12);
+      }
+    }
+    @keyframes verifiedGoldTickPulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.12);
+      }
+    }
+    .verified-tick-animated {
+      display: inline-block !important;
+      animation: verifiedTickPulse 2.4s ease-in-out infinite !important;
+      vertical-align: middle;
+      transform-origin: center center;
+      will-change: transform;
+    }
+    .verified-tick-gold-animated {
+      display: inline-block !important;
+      animation: verifiedGoldTickPulse 2.4s ease-in-out infinite !important;
+      vertical-align: middle;
+      transform-origin: center center;
+      will-change: transform;
     }
 
     /* 🌐 Study A ⇄ 文 Diagonal Corner Swap Animation (No 'អ', Only A and 文 Swapping Positions) */
@@ -1656,6 +1688,131 @@
     .light-theme #edit-order-modal .bg-black\/30 {
       background-color: #F1F5F9 !important;
       border-color: #E2E8F0 !important;
+    }
+
+    /* Seller Reward Modal - Light Theme Standard */
+    .light-theme #seller-reward-modal,
+    .light-theme #seller-reward-modal > div,
+    .light-theme #seller-reward-modal-body {
+      background-color: #F8FAFC !important;
+      color: #0F172A !important;
+    }
+    .light-theme #seller-reward-modal .bg-\[\#0B1528\]\/95,
+    .light-theme #seller-reward-modal [class*="bg-[#0B1528]"],
+    .light-theme #seller-reward-modal [class*="bg-[#070D18]"] {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #seller-reward-modal .border-t {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #seller-reward-modal h3 {
+      color: #0F172A !important;
+    }
+    .light-theme #seller-reward-modal .text-amber-300\/80 {
+      color: #D97706 !important;
+    }
+    .light-theme #seller-reward-modal .bg-black\/30,
+    .light-theme #seller-reward-modal .bg-black\/40 {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+    }
+    .light-theme #seller-reward-modal .border-b.border-white\/5 {
+      border-color: #F1F5F9 !important;
+    }
+    .light-theme #seller-reward-modal .text-slate-400 {
+      color: #64748B !important;
+    }
+    .light-theme #seller-reward-modal .text-white {
+      color: #0F172A !important;
+    }
+    .light-theme #seller-reward-modal .bg-white\/5 {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+      color: #0F172A !important;
+    }
+    .light-theme #seller-reward-modal select {
+      background-color: #FFFFFF !important;
+      border-color: #CBD5E1 !important;
+      color: #0F172A !important;
+    }
+    .light-theme #seller-reward-modal [class*="from-amber-500/10"] {
+      background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%) !important;
+      border-color: #FDE68A !important;
+    }
+    .light-theme #seller-reward-modal [class*="from-amber-500/10"] span.text-amber-300 {
+      color: #B45309 !important;
+    }
+    .light-theme #seller-reward-mode-badge {
+      background-color: #FEF3C7 !important;
+      border-color: #FCD34D !important;
+      color: #B45309 !important;
+    }
+    .light-theme #seller-reward-eligible-badge {
+      background-color: #FEF3C7 !important;
+      border-color: #FCD34D !important;
+      color: #B45309 !important;
+    }
+    .light-theme #seller-reward-quota-badge {
+      background-color: #FEF3C7 !important;
+      border-color: #FCD34D !important;
+      color: #B45309 !important;
+    }
+    .light-theme #seller-reward-modal [class*="bg-emerald-500/10"] {
+      background-color: #ECFDF5 !important;
+      border-color: #A7F3D0 !important;
+      color: #059669 !important;
+    }
+    .light-theme [id^="reward-circles-"] button:not([class*="from-amber-400"]) {
+      background-color: #FFFFFF !important;
+      border-color: #CBD5E1 !important;
+      color: #475569 !important;
+    }
+    .light-theme [id^="reward-circles-"] button:not([class*="from-amber-400"]):hover {
+      border-color: #F59E0B !important;
+      background-color: #FEF3C7 !important;
+      color: #B45309 !important;
+    }
+    .light-theme [id^="reward-circles-"] button.cursor-not-allowed {
+      background-color: #F1F5F9 !important;
+      border-color: #E2E8F0 !important;
+      color: #CBD5E1 !important;
+      opacity: 0.45 !important;
+    }
+    .light-theme [id^="reward-circles-"] button[class*="from-amber-400"] {
+      background: linear-gradient(135deg, #F59E0B, #EA580C) !important;
+      border-color: #D97706 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4) !important;
+    }
+    .light-theme #seller-reward-preview-card {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    }
+    .light-theme #seller-reward-preview-title {
+      color: #0F172A !important;
+    }
+    .light-theme #seller-reward-preview-subtitle {
+      color: #64748B !important;
+    }
+    .light-theme #seller-reward-preview-text {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+      color: #0F172A !important;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    }
+    .light-theme #btn-copy-seller-reward {
+      background: linear-gradient(to right, #F59E0B, #EA580C) !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+    }
+    .light-theme #seller-reward-copy-banner {
+      background-color: #ECFDF5 !important;
+      border-color: #A7F3D0 !important;
+      color: #065F46 !important;
     }
 
     /* High-Contrast Readable Numbers & Accents in Light Theme */
@@ -8480,7 +8637,203 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.39"></script>
-  <script src="app.js?v=67.39"></script>
+  <!-- ======================================================== -->
+  <!-- SELLER REWARD MODAL (រង្វាន់អ្នកលក់ប្រចាំថ្ងៃ - Sell 5 get 1) -->
+  <!-- ======================================================== -->
+  <div id="seller-reward-modal" class="fixed inset-0 z-[70] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300">
+    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
+      
+      <!-- Top Modal Header -->
+      <div class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 select-none">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button type="button" onclick="closeSellerRewardModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-amber-400"></i>
+          </button>
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0 shadow-sm">
+            <i data-lucide="gift" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0 truncate">
+            <h3 class="font-bold text-sm text-white leading-tight truncate">រង្វាន់អ្នកលក់ (Seller Bonus)</h3>
+            <p class="text-[11px] text-amber-300/80 mt-0.5 truncate">កម្មវិធីលើកទឹកចិត្តលក់ប្រចាំថ្ងៃ (៥ ថែម ១)</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeSellerRewardModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Scrollable Modal Body -->
+      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-3" id="seller-reward-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
+
+        <!-- Info Card: Rows 1 to 3 -->
+        <div class="p-3.5 rounded-2xl bg-black/30 border border-white/10 space-y-2.5 text-xs">
+          
+          <!-- Row 1: Seller Name -->
+          <div class="flex items-center justify-between pb-2 border-b border-white/5">
+            <span class="text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="user" class="w-3.5 h-3.5 text-blue-400"></i>
+              <span>អ្នកលក់:</span>
+            </span>
+            <div class="flex items-center gap-1.5">
+              <span id="seller-reward-name-disp" class="text-white font-bold text-xs truncate max-w-[180px]">ឆេង រ៉ាស៊ុង</span>
+              <select id="seller-reward-member-select" onchange="onSellerRewardMemberChange(this.value)" class="hidden text-xs bg-slate-800 text-white rounded-lg px-2 py-1 border border-white/10 focus:outline-none focus:border-amber-500/50">
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 2: Date Locked Strictly to Yesterday -->
+          <div class="flex items-center justify-between pb-2 border-b border-white/5">
+            <span class="text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>ថ្ងៃលក់ចេញ:</span>
+            </span>
+            <div class="flex items-center gap-1.5">
+              <span id="seller-reward-date-disp" class="text-white font-mono font-bold text-xs">10/11/2026</span>
+              <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono border border-emerald-500/20">ម្សិលមិញ</span>
+            </div>
+          </div>
+
+          <!-- Row 3: Actual Sales & Reward Eligibility -->
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="package" class="w-3.5 h-3.5 text-orange-400"></i>
+              <span>លក់ជាក់ស្តែង:</span>
+            </span>
+            <div class="flex items-center gap-2">
+              <span class="text-white font-mono font-bold text-xs"><span id="seller-reward-boxes-disp">3</span> ប្រអប់</span>
+              <span class="text-slate-500">➔</span>
+              <span id="seller-reward-eligible-badge" class="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold font-mono text-[11px]">
+                សិទ្ធិរង្វាន់: <span id="seller-reward-eligible-count">0</span> ប្រអប់
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Ineligible Warning Notice (Visible only if eligibleReward === 0) -->
+        <div id="seller-reward-ineligible-box" class="hidden p-3 rounded-2xl bg-rose-500/10 border border-rose-500/25 space-y-2">
+          <div class="flex items-start gap-2.5">
+            <div class="w-7 h-7 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30">
+              <i data-lucide="alert-circle" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1 text-xs">
+              <p class="font-bold text-rose-300">មិនទាន់គ្រប់លក្ខខណ្ឌបើករង្វាន់ទេ</p>
+              <p id="seller-reward-ineligible-text" class="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
+                លក់បាន 0 ប្រអប់ (ត្រូវការយ៉ាងតិច 5 ប្រអប់ដើម្បីទទួលបានរង្វាន់ 1 ប្រអប់)។
+              </p>
+            </div>
+          </div>
+          <button type="button" onclick="setSellerRewardSample(15)" class="w-full py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition">
+            <span>🧪 ចុចទីនេះដើម្បីតេស្តជាមួយគំរូ 15 ប្រអប់ (រង្វាន់ 3)</span>
+          </button>
+        </div>
+
+        <!-- Row 4: Product Selection Card (Identical to User Image) -->
+        <div id="seller-reward-product-card" class="p-3 rounded-2xl bg-black/30 border border-white/10 space-y-2 text-xs transition-all duration-300 font-kantumruy">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-white flex items-center gap-1.5">
+              <i data-lucide="gift" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>ប្រអប់ថែមជូនអ្នកលក់ (Bonus):</span>
+            </span>
+            <span id="seller-reward-quota-badge" class="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold font-mono text-[10px] transition-all">
+              សិទ្ធិថែម: 0/3 ប្រអប់
+            </span>
+          </div>
+
+          <div class="space-y-1.5 pt-0.5 transition-all">
+            <div class="text-[10px] text-slate-400 flex items-center justify-between px-0.5 pb-0.5">
+              <span>រើសមុខទំនិញថែម (សិទ្ធិអតិបរមា: <span id="seller-reward-max-disp" class="text-amber-400 font-bold font-mono">3</span> ប្រអប់):</span>
+              <button type="button" onclick="clearAllSellerRewardSelections()" class="text-slate-400 hover:text-rose-400 text-[10px] transition underline underline-offset-2">លុបការជ្រើសរើស</button>
+            </div>
+
+            <!-- Product 1: Kidney Pro -->
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border border-white/5 bg-white/5">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full bg-[#3B82F6] shrink-0"></span>
+                <span class="text-xs text-white font-medium truncate">Kidney Pro</span>
+              </div>
+              <div class="flex items-center gap-1.5 font-mono" id="reward-circles-kn"></div>
+            </div>
+
+            <!-- Product 2: Pro D.O -->
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border border-white/5 bg-white/5">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full bg-[#8B5CF6] shrink-0"></span>
+                <span class="text-xs text-white font-medium truncate">Pro D.O</span>
+              </div>
+              <div class="flex items-center gap-1.5 font-mono" id="reward-circles-pdo"></div>
+            </div>
+
+            <!-- Product 3: Yong Liang -->
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border border-white/5 bg-white/5">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full bg-[#E05626] shrink-0"></span>
+                <span class="text-xs text-white font-medium truncate">Yong Liang</span>
+              </div>
+              <div class="flex items-center gap-1.5 font-mono" id="reward-circles-yl"></div>
+            </div>
+
+            <!-- Product 4: Yong Liang Plus -->
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border border-white/5 bg-white/5">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full bg-[#22C55E] shrink-0"></span>
+                <span class="text-xs text-white font-medium truncate">Yong Liang Plus</span>
+              </div>
+              <div class="flex items-center gap-1.5 font-mono" id="reward-circles-ylp"></div>
+            </div>
+
+            <!-- Product 5: S.G Pro -->
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border border-white/5 bg-white/5">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full bg-[#06B6D4] shrink-0"></span>
+                <span class="text-xs text-white font-medium truncate">S.G Pro</span>
+              </div>
+              <div class="flex items-center gap-1.5 font-mono" id="reward-circles-sgp"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message Live Preview & Copy Card -->
+        <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2.5" id="seller-reward-preview-card">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5" id="seller-reward-preview-title">
+              <i data-lucide="send" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>ទម្រង់ផ្ញើចេញ (Preview):</span>
+            </span>
+            <span class="text-[10px] text-slate-400" id="seller-reward-preview-subtitle">ស្តង់ដា ៤ ជួរ</span>
+          </div>
+          <pre id="seller-reward-preview-text" class="p-3 rounded-xl bg-[#080E1C] border border-white/5 text-amber-200/95 font-mono text-[11.5px] leading-relaxed whitespace-pre-wrap select-all shadow-inner"></pre>
+
+          <!-- Copy Button Directly Underneath Preview -->
+          <button type="button" id="btn-copy-seller-reward" onclick="copySellerRewardTelegramText()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:opacity-95 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition cursor-pointer select-none">
+            <i data-lucide="copy" class="w-4 h-4 stroke-[2.5]"></i>
+            <span id="btn-copy-seller-reward-text">ចម្លងព័ត៌មានរង្វាន់ (Copy Text)</span>
+          </button>
+        </div>
+
+        <!-- Copy Feedback Banner (Hidden by default, shown upon copying) -->
+        <div id="seller-reward-copy-banner" class="hidden p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-fade-in">
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+          <span>បានចម្លងរួចរាល់! អាចយកទៅបិទភ្ជាប់ (Paste) ផ្ញើចេញបាន។</span>
+        </div>
+
+      </div>
+
+      <!-- Modal Bottom Actions (Fixed Bar) -->
+      <div class="p-3 bg-[#0B1528]/95 border-t border-white/10 backdrop-blur-xl shrink-0 flex items-center justify-between">
+        <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>កម្មវិធីរង្វាន់ប្រចាំថ្ងៃ (៥ ថែម ១)</span>
+        </span>
+        <button type="button" onclick="closeSellerRewardModal()" class="py-2.5 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-xs active:scale-95 transition border border-white/10">
+          បិទ
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="dataService.js?v=67.40"></script>
+  <script src="app.js?v=67.40"></script>
 </body>
 </html>
