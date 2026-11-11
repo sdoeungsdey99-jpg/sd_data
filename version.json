@@ -1,5 +1,5 @@
 {
-  "version": "67.40",
-  "buildTime": "2026-11-11T22:10:00+07:00",
-  "notes": "v67.40: Seller Reward 5 Get 1 system, Daily Report contextual tab routing, iOS Achievement Celebration cards (Daily Report, Telegram Order, Daily Expense), Blue Tick animation for the 4 active Pioneer members (6 verified total), and one-time Pioneer VIP Honor greeting"
+  "version": "67.41",
+  "buildTime": "2026-11-11T23:18:00+07:00",
+  "notes": "v67.41: Seller Reward 5 Get 1 role security & Admin-only Team Demo (real yesterday boxes for all users, no test button/dropdown for non-admins; Master Admin shows own profile name initially and unlocks Top 5 last-2-months sellers + 5/10/15/20 box presets after clicking Test Card)"
 }

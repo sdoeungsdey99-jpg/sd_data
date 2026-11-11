@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.40">
+  <link rel="manifest" href="manifest.json?v=67.41">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -8700,7 +8700,7 @@
               <span>លក់ជាក់ស្តែង:</span>
             </span>
             <div class="flex items-center gap-2">
-              <span class="text-white font-mono font-bold text-xs"><span id="seller-reward-boxes-disp">3</span> ប្រអប់</span>
+              <span class="text-white font-mono font-bold text-xs"><span id="seller-reward-boxes-disp">0</span> ប្រអប់</span>
               <span class="text-slate-500">➔</span>
               <span id="seller-reward-eligible-badge" class="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold font-mono text-[11px]">
                 សិទ្ធិរង្វាន់: <span id="seller-reward-eligible-count">0</span> ប្រអប់
@@ -8708,6 +8708,24 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- Admin-Only Demo Controls (Shown ONLY to Master Admin after clicking Test Card) -->
+        <div id="seller-reward-admin-demo-bar" class="hidden p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+              <span>🧪 មុខងារតេស្តបង្ហាញក្រុមការងារ</span>
+            </span>
+            <button type="button" onclick="exitSellerRewardAdminDemo()" class="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white text-[10px] font-bold transition active:scale-95">
+              បិទតេស្ត
+            </button>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" id="btn-reward-sample-5" onclick="setSellerRewardSample(5)" class="py-1.5 px-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 font-bold text-center transition active:scale-95 text-[11px]">5 ប្រអប់</button>
+            <button type="button" id="btn-reward-sample-10" onclick="setSellerRewardSample(10)" class="py-1.5 px-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 font-bold text-center transition active:scale-95 text-[11px]">10 ប្រអប់</button>
+            <button type="button" id="btn-reward-sample-15" onclick="setSellerRewardSample(15)" class="py-1.5 px-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 font-bold text-center transition active:scale-95 text-[11px]">15 ប្រអប់</button>
+            <button type="button" id="btn-reward-sample-20" onclick="setSellerRewardSample(20)" class="py-1.5 px-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 font-bold text-center transition active:scale-95 text-[11px]">20 ប្រអប់</button>
+          </div>
         </div>
 
         <!-- Ineligible Warning Notice (Visible only if eligibleReward === 0) -->
@@ -8723,8 +8741,8 @@
               </p>
             </div>
           </div>
-          <button type="button" onclick="setSellerRewardSample(15)" class="w-full py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition">
-            <span>🧪 ចុចទីនេះដើម្បីតេស្តជាមួយគំរូ 15 ប្រអប់ (រង្វាន់ 3)</span>
+          <button type="button" id="seller-reward-admin-test-btn" onclick="activateSellerRewardAdminDemo(15)" class="hidden w-full py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition">
+            <span>🧪 ចុចទីនេះដើម្បីតេស្តបង្ហាញក្រុមការងារ (Admin)</span>
           </button>
         </div>
 
@@ -8833,7 +8851,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.40"></script>
-  <script src="app.js?v=67.40"></script>
+  <script src="dataService.js?v=67.41"></script>
+  <script src="app.js?v=67.41"></script>
 </body>
 </html>

@@ -21396,7 +21396,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.40';
+const CURRENT_APP_VERSION = '67.41';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -36877,10 +36877,12 @@ window.toggleOrderMiniCalendar = toggleOrderMiniCalendar;
 // ========================================================
 let sellerRewardState = {
   mode: 'real',
-  sampleBoxes: 3,
-  sellerName: 'ឆេង រ៉ាស៊ុង',
+  adminDemoActive: false,
+  sampleBoxes: 15,
+  baseSellerName: 'សមាជិក',
+  sellerName: 'សមាជិក',
   dateStr: '',
-  soldBoxes: 3,
+  soldBoxes: 0,
   eligibleReward: 0,
   selectedProducts: { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 }
 };
@@ -36935,41 +36937,137 @@ function calculateSellerYesterdayRealBoxes(sellerName) {
 }
 
 function isSellerRewardAdmin() {
+  return (typeof isMasterAdminUser === 'function') ? isMasterAdminUser() : false;
+}
+
+function getSellerRewardInitialName() {
+  const isAdmin = isSellerRewardAdmin();
+  let profileName = '';
   try {
-    if (typeof getPagesReportUserRole === 'function') {
-      const roleObj = getPagesReportUserRole();
-      if (roleObj && (roleObj.isExecutive || roleObj.role === 'director' || roleObj.role === 'manager' || roleObj.role === 'leader')) {
-        return true;
+    if (typeof getProfileData === 'function') {
+      const p = getProfileData();
+      const candidate = (p && p.name) ? String(p.name).trim() : '';
+      if (candidate && candidate !== 'សមាជិក Bostar' && candidate !== 'សមាជិក' && candidate !== 'Guest' && candidate !== 'ភ្ញៀវ (Guest)') {
+        profileName = candidate;
       }
     }
   } catch (_) {}
-  return false;
+
+  if (isAdmin) {
+    return profileName || 'ស្តី ស្តើង';
+  }
+  if (profileName) return profileName;
+
+  try {
+    if (typeof getPagesReportUserRole === 'function') {
+      const roleObj = getPagesReportUserRole();
+      if (roleObj && roleObj.name && roleObj.name !== 'សមាជិក') {
+        return String(roleObj.name).trim();
+      }
+    }
+  } catch (_) {}
+
+  try {
+    const lastSeller = (localStorage.getItem('sd_last_seller') || '').trim();
+    if (lastSeller) return lastSeller;
+  } catch (_) {}
+
+  return 'សមាជិក';
+}
+
+function getSellerRewardRecordYearMonth(s) {
+  if (!s) return '';
+  const iso = String(s.isoDate || '').trim();
+  if (/^\d{4}-\d{2}/.test(iso)) return iso.slice(0, 7);
+  const ddmmyyyy = String(s.date || '').trim();
+  const m = ddmmyyyy.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return `${m[3]}-${m[2].padStart(2, '0')}`;
+  return '';
+}
+
+function getTop5MasterSellersLastTwoMonths() {
+  const d = (window.DataService && window.DataService.data) ? window.DataService.data : {};
+  const bostarSales = Array.isArray(d.bostarTrackSales) ? d.bostarTrackSales : [];
+  if (bostarSales.length === 0) return [];
+
+  const now = new Date();
+  const curYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevYM = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+  const adminNorm = (typeof normalizeSellerName === 'function') ? normalizeSellerName('ស្តី ស្តើង') : 'ស្ដី ស្ដើង';
+
+  const aggregateByAllowedMonths = (allowedSet) => {
+    const totals = new Map();
+    for (let i = 0; i < bostarSales.length; i++) {
+      const s = bostarSales[i];
+      if (!s || !s.seller) continue;
+      const ym = getSellerRewardRecordYearMonth(s);
+      if (!ym || !allowedSet.has(ym)) continue;
+
+      const rawSeller = String(s.seller).trim();
+      if (!rawSeller || rawSeller === 'មិនស្គាល់' || rawSeller.toLowerCase() === 'unknown' || rawSeller.toLowerCase() === 'admin') continue;
+
+      const norm = (typeof normalizeSellerName === 'function')
+        ? normalizeSellerName(rawSeller)
+        : rawSeller.toLowerCase();
+      if (!norm || norm === adminNorm) continue;
+
+      const qty = Number(s.totalBoxQty) || 0;
+      if (qty <= 0) continue;
+
+      let entry = totals.get(norm);
+      if (!entry) {
+        let displayName = rawSeller.replace(/^(លោក|អ្នកគ្រូ|កញ្ញា|បង)\s+/g, '').trim();
+        if (typeof findBostarSeller === 'function') {
+          const matched = findBostarSeller(rawSeller);
+          if (matched && matched.km) displayName = matched.km;
+        }
+        entry = { name: displayName, boxes: 0 };
+        totals.set(norm, entry);
+      }
+      entry.boxes += qty;
+    }
+    return totals;
+  };
+
+  let totals = aggregateByAllowedMonths(new Set([curYM, prevYM]));
+
+  // Fallback only if current/previous calendar months have no rows in cached snapshot
+  if (totals.size === 0) {
+    const months = new Set();
+    for (let i = 0; i < bostarSales.length; i++) {
+      const ym = getSellerRewardRecordYearMonth(bostarSales[i]);
+      if (ym) months.add(ym);
+    }
+    const latestTwo = Array.from(months).sort().slice(-2);
+    if (latestTwo.length > 0) {
+      totals = aggregateByAllowedMonths(new Set(latestTwo));
+    }
+  }
+
+  return Array.from(totals.values())
+    .sort((a, b) => b.boxes - a.boxes)
+    .slice(0, 5)
+    .map(item => item.name);
 }
 
 function openSellerRewardModal(sellerOverride = null) {
   const yesterday = getYesterdayRewardDateInfo();
   sellerRewardState.dateStr = yesterday.displayDate;
 
-  let name = 'ឆេង រ៉ាស៊ុង';
-  try {
-    if (typeof getPagesReportUserRole === 'function') {
-      const roleObj = getPagesReportUserRole();
-      if (roleObj && roleObj.name && roleObj.name !== 'សមាជិក') {
-        name = roleObj.name;
-      }
-    }
-  } catch (_) {}
-
-  if (sellerOverride) {
+  let name = getSellerRewardInitialName();
+  if (sellerOverride && isSellerRewardAdmin()) {
     name = sellerOverride;
   }
+
+  sellerRewardState.baseSellerName = name;
   sellerRewardState.sellerName = name;
+  sellerRewardState.mode = 'real';
+  sellerRewardState.adminDemoActive = false;
 
   const realBoxes = calculateSellerYesterdayRealBoxes(name);
-
-  // Live preview for seller not reaching enough reward boxes (3 boxes sold, 0 eligible rewards)
-  sellerRewardState.soldBoxes = 3;
-  sellerRewardState.eligibleReward = 0;
+  sellerRewardState.soldBoxes = realBoxes;
+  sellerRewardState.eligibleReward = Math.floor(realBoxes / 5);
   sellerRewardState.selectedProducts = { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 };
 
   setupSellerRewardMemberSwitcher();
@@ -36996,6 +37094,27 @@ function closeSellerRewardModal() {
   if (banner) banner.classList.add('hidden');
 }
 
+function activateSellerRewardAdminDemo(sampleBoxes = 15) {
+  if (!isSellerRewardAdmin()) return;
+  sellerRewardState.adminDemoActive = true;
+
+  const top5 = getTop5MasterSellersLastTwoMonths();
+  if (top5.length > 0 && sellerRewardState.sellerName === sellerRewardState.baseSellerName) {
+    sellerRewardState.sellerName = top5[0];
+  }
+
+  setupSellerRewardMemberSwitcher(top5);
+  setSellerRewardSample(sampleBoxes);
+}
+
+function exitSellerRewardAdminDemo() {
+  sellerRewardState.adminDemoActive = false;
+  sellerRewardState.sellerName = sellerRewardState.baseSellerName || getSellerRewardInitialName();
+  sellerRewardState.selectedProducts = { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 };
+  setupSellerRewardMemberSwitcher([]);
+  setSellerRewardSample('real');
+}
+
 function setSellerRewardSample(val) {
   if (val === 'real') {
     sellerRewardState.mode = 'real';
@@ -37003,6 +37122,8 @@ function setSellerRewardSample(val) {
     sellerRewardState.soldBoxes = realBoxes;
     sellerRewardState.eligibleReward = Math.floor(realBoxes / 5);
   } else {
+    if (!isSellerRewardAdmin()) return;
+    sellerRewardState.adminDemoActive = true;
     sellerRewardState.mode = 'sample';
     const boxes = parseInt(val, 10) || 15;
     sellerRewardState.sampleBoxes = boxes;
@@ -37012,27 +37133,32 @@ function setSellerRewardSample(val) {
 
   const totalSel = getTotalSelectedRewardBoxes();
   if (totalSel > sellerRewardState.eligibleReward) {
-    clearAllSellerRewardSelections();
+    sellerRewardState.selectedProducts = { kn: 0, pdo: 0, yl: 0, ylp: 0, sgp: 0 };
   }
 
   updateSellerRewardUI();
 }
 
-function setupSellerRewardMemberSwitcher() {
+function setupSellerRewardMemberSwitcher(precomputedTop5 = null) {
   const sel = document.getElementById('seller-reward-member-select');
   const nameDisp = document.getElementById('seller-reward-name-disp');
   if (!sel || !nameDisp) return;
 
+  if (!isSellerRewardAdmin() || !sellerRewardState.adminDemoActive) {
+    sel.innerHTML = '';
+    sel.classList.add('hidden');
+    nameDisp.classList.remove('hidden');
+    return;
+  }
+
   try {
-    let members = [];
-    if (typeof getManagedMembersForCurrentUser === 'function') {
-      members = getManagedMembersForCurrentUser();
-    }
-    if (Array.isArray(members) && members.length > 1) {
+    const members = Array.isArray(precomputedTop5) ? precomputedTop5 : getTop5MasterSellersLastTwoMonths();
+    if (Array.isArray(members) && members.length > 0) {
       sel.innerHTML = members.map(m => `<option value="${escapeHtml(m)}" ${m === sellerRewardState.sellerName ? 'selected' : ''}>👤 ${escapeHtml(m)}</option>`).join('');
       sel.classList.remove('hidden');
       nameDisp.classList.add('hidden');
     } else {
+      sel.innerHTML = '';
       sel.classList.add('hidden');
       nameDisp.classList.remove('hidden');
     }
@@ -37043,7 +37169,7 @@ function setupSellerRewardMemberSwitcher() {
 }
 
 function onSellerRewardMemberChange(val) {
-  if (!val) return;
+  if (!val || !isSellerRewardAdmin()) return;
   sellerRewardState.sellerName = val;
   if (sellerRewardState.mode === 'real') {
     const realBoxes = calculateSellerYesterdayRealBoxes(val);
@@ -37172,10 +37298,30 @@ function updateSellerRewardUI() {
     }
   }
 
-  const b15 = document.getElementById('btn-reward-sample-15');
+  const isAdmin = isSellerRewardAdmin();
+
+  const adminDemoBar = document.getElementById('seller-reward-admin-demo-bar');
+  if (adminDemoBar) {
+    if (isAdmin && sellerRewardState.adminDemoActive) {
+      adminDemoBar.classList.remove('hidden');
+    } else {
+      adminDemoBar.classList.add('hidden');
+    }
+  }
+
+  const adminTestBtn = document.getElementById('seller-reward-admin-test-btn');
+  if (adminTestBtn) {
+    if (isAdmin) {
+      adminTestBtn.classList.remove('hidden');
+    } else {
+      adminTestBtn.classList.add('hidden');
+    }
+  }
+
+  const b5 = document.getElementById('btn-reward-sample-5');
   const b10 = document.getElementById('btn-reward-sample-10');
+  const b15 = document.getElementById('btn-reward-sample-15');
   const b20 = document.getElementById('btn-reward-sample-20');
-  const bReal = document.getElementById('btn-reward-sample-real');
 
   const activeBtnCls = isLight
     ? 'py-1.5 px-1 rounded-xl bg-amber-500 text-white font-bold text-center transition active:scale-95 text-[11px] shadow-sm'
@@ -37184,20 +37330,10 @@ function updateSellerRewardUI() {
     ? 'py-1.5 px-1 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-center transition active:scale-95 text-[11px]'
     : 'py-1.5 px-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 font-bold text-center transition active:scale-95 text-[11px]';
 
-  if (b15) b15.className = (sellerRewardState.mode === 'sample' && sellerRewardState.sampleBoxes === 15) ? activeBtnCls : inactiveBtnCls;
+  if (b5) b5.className = (sellerRewardState.mode === 'sample' && sellerRewardState.sampleBoxes === 5) ? activeBtnCls : inactiveBtnCls;
   if (b10) b10.className = (sellerRewardState.mode === 'sample' && sellerRewardState.sampleBoxes === 10) ? activeBtnCls : inactiveBtnCls;
+  if (b15) b15.className = (sellerRewardState.mode === 'sample' && sellerRewardState.sampleBoxes === 15) ? activeBtnCls : inactiveBtnCls;
   if (b20) b20.className = (sellerRewardState.mode === 'sample' && sellerRewardState.sampleBoxes === 20) ? activeBtnCls : inactiveBtnCls;
-  if (bReal) {
-    if (sellerRewardState.mode === 'real') {
-      bReal.className = isLight
-        ? 'py-1.5 px-1 rounded-xl bg-emerald-600 text-white font-bold text-center transition active:scale-95 text-[10.5px] shadow-sm'
-        : 'py-1.5 px-1 rounded-xl bg-emerald-500 text-black font-bold text-center transition active:scale-95 text-[10.5px] shadow-sm';
-    } else {
-      bReal.className = isLight
-        ? 'py-1.5 px-1 rounded-xl bg-white hover:bg-slate-50 text-slate-500 border border-slate-200 font-bold text-center transition active:scale-95 text-[10.5px]'
-        : 'py-1.5 px-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 border border-white/10 font-bold text-center transition active:scale-95 text-[10.5px]';
-    }
-  }
 
   const ineligBox = document.getElementById('seller-reward-ineligible-box');
   const ineligText = document.getElementById('seller-reward-ineligible-text');
@@ -37238,7 +37374,6 @@ function updateSellerRewardUI() {
   // When eligible <= 0, copying is strictly disabled; when eligible > 0, members must pick full quota, while admins can copy anytime.
   const eligible = sellerRewardState.eligibleReward;
   const isEligible = eligible > 0;
-  const isAdmin = isSellerRewardAdmin();
   const isComplete = (totalSelected === eligible && isEligible);
   const canCopy = isEligible && (isAdmin || isComplete);
 
@@ -37333,6 +37468,8 @@ async function copySellerRewardTelegramText() {
 
 window.openSellerRewardModal = openSellerRewardModal;
 window.closeSellerRewardModal = closeSellerRewardModal;
+window.activateSellerRewardAdminDemo = activateSellerRewardAdminDemo;
+window.exitSellerRewardAdminDemo = exitSellerRewardAdminDemo;
 window.setSellerRewardSample = setSellerRewardSample;
 window.onSellerRewardMemberChange = onSellerRewardMemberChange;
 window.selectSellerRewardProductQty = selectSellerRewardProductQty;
