@@ -1,5 +1,5 @@
 {
-  "version": "67.43",
-  "buildTime": "2026-11-11T23:47:00+07:00",
-  "notes": "v67.43: Seller Reward real sales strictly pull from Master Data (bostarTrackSales) only with strict exact/canonical seller matching (removed personalSales fallback and loose substring/empty-seller matching)"
+  "version": "67.44",
+  "buildTime": "2026-11-12T13:10:00+07:00",
+  "notes": "v67.44: Standardize Seller Reward modal (max-w-md, Swipe-to-Back, clean Dock hide), eliminate end-of-scroll jitter in Customer & Expenses lists, strip Google Sheet wording and extra emojis from success toasts/notifications, and upgrade Celebration Card with 5s countdown, progress bar, tap-to-pause, and Notification Bell replay"
 }

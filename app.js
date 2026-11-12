@@ -1754,11 +1754,16 @@ function handleBackNavigation() {
   // 1e. Close any other open modal if visible
   const openModals = [
     'master-customer-auth-modal', 'edit-order-modal', 'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
-    'cod-modal', 'bank-modal', 'edit-bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal'
+    'cod-modal', 'bank-modal', 'edit-bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal', 'seller-reward-modal'
   ];
   for (const id of openModals) {
     const el = document.getElementById(id);
     if (el && !el.classList.contains('hidden')) {
+      if (id === 'seller-reward-modal' && typeof closeSellerRewardModal === 'function') {
+        closeSellerRewardModal();
+        if (navigator.vibrate) navigator.vibrate(15);
+        return true;
+      }
       el.classList.add('hidden');
       if (id === 'sales-modal') {
         const det = document.getElementById('sales-detail-view');
@@ -1810,7 +1815,7 @@ function isAnyDrilldownModalOpen() {
     'executive-hierarchy-modal', 'member-daily-breakdown-modal', 'daily-report-modal', 'honors-modal', 'tutorial-modal',
     'attendance-leave-modal', 'attendance-manager-modal', 'attendance-top10-modal', 'attendance-certificate-modal', 'attendance-documents-modal',
     'profile-sub-modal', 'edit-profile-modal',
-    'about-modal', 'change-pin-modal', 'shortcut-modal', 'edit-bank-modal', 'profile-settings-search-modal'
+    'about-modal', 'change-pin-modal', 'shortcut-modal', 'edit-bank-modal', 'profile-settings-search-modal', 'seller-reward-modal'
   ];
   for (const id of modalIds) {
     const el = document.getElementById(id);
@@ -2162,6 +2167,7 @@ function isDialogModalOpen() {
     'about-modal',
     'global-search-modal',
     'profile-settings-search-modal',
+    'seller-reward-modal',
     'expense-action-sheet',
     'expense-delete-modal'
   ];
@@ -2205,10 +2211,45 @@ function setDockVisible(visible) {
       dock.classList.add('dock-hidden');
     }
     if (dockBlur) {
+      // Fade opacity smoothly without toggling display:none mid-scroll (prevents Safari blur layer jitter)
+      dockBlur.style.display = '';
       dockBlur.classList.add('opacity-0', 'dock-hidden');
-      dockBlur.style.display = 'none';
     }
   }
+}
+
+/**
+ * Attach smooth Dock auto-hide scroll behavior to full-list modals while ignoring
+ * Safari/iOS end-of-scroll rubber-band bounce at the top or bottom edge.
+ */
+function attachSmoothModalDockScroll(listEl) {
+  if (!listEl || listEl._smoothModalDockHooked) return;
+  listEl._smoothModalDockHooked = true;
+
+  let lastScrollTop = Math.max(0, listEl.scrollTop || 0);
+
+  listEl.addEventListener('scroll', () => {
+    const currentScrollTop = listEl.scrollTop;
+    if (currentScrollTop < 0) return;
+
+    const diff = currentScrollTop - lastScrollTop;
+    const maxScroll = Math.max(0, listEl.scrollHeight - listEl.clientHeight);
+    const isAtBottomBounce = maxScroll > 60 && currentScrollTop >= maxScroll - 16;
+
+    // Ignore abnormal layout-resize jumps (greater than 120px)
+    if (Math.abs(diff) > 120) {
+      lastScrollTop = currentScrollTop;
+      return;
+    }
+
+    if (diff > 14 && currentScrollTop > 60) {
+      setDockVisible(false);
+    } else if ((diff < -12 && !isAtBottomBounce) || currentScrollTop <= 20) {
+      setDockVisible(true);
+    }
+
+    lastScrollTop = currentScrollTop;
+  }, { passive: true });
 }
 
 // Smart Dock & Sticky Filter Bar iOS Auto-Hide:
@@ -10390,7 +10431,7 @@ async function setCustomerViewScope(mode) {
     updateCustomerViewScopeUI();
     renderCustomerViewList();
     if (typeof showToastNotification === 'function') {
-      showToastNotification('ត្រឡប់មកកាន់អតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួន 📄');
+      showToastNotification('ត្រឡប់មកកាន់អតិថិជនផ្ទាល់ខ្លួន 📄');
     }
     return;
   }
@@ -15913,7 +15954,7 @@ function openEditBankAccountModal(no) {
 
   const brand = getBankBrandInfo(acc.name);
   if (titleEl) titleEl.textContent = acc.name || 'កែប្រែសមតុល្យ';
-  if (subEl) subEl.textContent = `គណនីធនាគារ #${acc.no || '—'} • សមកាលកម្មទៅ Google Sheet ផ្ទាល់`;
+  if (subEl) subEl.textContent = `គណនីធនាគារ #${acc.no || '—'} • រក្សាទុកដោយស្វ័យប្រវត្តិ`;
 
   if (brandPill) {
     brandPill.className = `inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-bold border shrink-0 shadow-sm transition-all ${brand.pillClass}`;
@@ -16020,10 +16061,10 @@ async function submitEditBankAccount() {
         })
       });
     }
-    showToastNotification(`បានកែប្រែសមតុល្យ ${newName} ទៅកាន់ Google Sheet ជោគជ័យ! ✅`);
+    showToastNotification(`បានកែប្រែសមតុល្យ ${newName} ជោគជ័យ! ✅`);
   } catch (err) {
     console.warn('Bank account sync warning:', err);
-    showToastNotification(`បានរក្សាទុកក្នុង App (រង់ចាំ Sync ទៅ Sheet) ⚠️`);
+    showToastNotification(`បានរក្សាទុកក្នុង App (រង់ចាំ Sync) ⚠️`);
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -16256,7 +16297,7 @@ function resetQuickBoostToSheet() {
   closeQuickBoostModal();
   const sheetVal = getSheetBoostForMonth(quickBoostActiveYear, quickBoostActiveMonth);
   if (typeof showToastNotification === 'function') {
-    showToastNotification(`🔄 បានត្រឡប់ទៅប្រើទិន្នន័យ Google Sheet ($${sheetVal.toFixed(2)}) វិញ`);
+    showToastNotification(`🔄 បានត្រឡប់ទៅប្រើទិន្នន័យដើម ($${sheetVal.toFixed(2)}) វិញ`);
   }
   if (typeof renderCurrentView === 'function') renderCurrentView();
   const boostModal = document.getElementById('boost-modal');
@@ -16556,7 +16597,7 @@ function resetInlineMonthBoost(monthNum) {
 
   const sheetVal = getSheetBoostForMonth(activeBoostYear, monthNum);
   if (typeof showToastNotification === 'function') {
-    showToastNotification(`🔄 បានត្រឡប់ទៅប្រើទិន្នន័យ Google Sheet ($${sheetVal.toFixed(2)})`);
+    showToastNotification(`🔄 បានត្រឡប់ទៅប្រើទិន្នន័យដើម ($${sheetVal.toFixed(2)})`);
   }
   if (typeof renderCurrentView === 'function') renderCurrentView();
 }
@@ -17528,30 +17569,7 @@ function setupExpensesScroll() {
   const listEl = document.getElementById('expenses-modal-list');
   if (!listEl || expensesScrollInitialized) return;
   expensesScrollInitialized = true;
-
-  let lastScrollTop = listEl.scrollTop || 0;
-
-  listEl.addEventListener('scroll', () => {
-    const currentScrollTop = listEl.scrollTop;
-    const diff = currentScrollTop - lastScrollTop;
-
-    // Ignore abnormal layout-resize jumps (greater than 120px)
-    if (Math.abs(diff) > 120) {
-      lastScrollTop = currentScrollTop;
-      return;
-    }
-
-    // 1. Scrolling down deeply (finger dragging up, intentional scroll) -> Hide Dock smoothly
-    if (diff > 14 && currentScrollTop > 60) {
-      setDockVisible(false);
-    }
-    // 2. Scrolling back up towards top (finger dragging down, intentional scroll) OR near top -> Show Dock smoothly
-    else if (diff < -12 || currentScrollTop <= 20) {
-      setDockVisible(true);
-    }
-
-    lastScrollTop = currentScrollTop;
-  }, { passive: true });
+  attachSmoothModalDockScroll(listEl);
 }
 
 function openExpensesModal(mode = false, fromDrawer = false) {
@@ -18162,7 +18180,7 @@ function openExpenseDeleteModal(expOrIdx) {
   const msgEl = document.getElementById('expense-delete-msg');
   if (msgEl) {
     const safeDesc = typeof escapeHtml === 'function' ? escapeHtml(exp.description || exp.category) : (exp.description || exp.category);
-    msgEl.innerHTML = `តើបងពិតជាចង់លុបចំណាយ <strong>«${safeDesc}»</strong> ចំនួន <strong class="text-rose-400 font-mono">${formatUSD(exp.amount || 0)}</strong> នេះចេញពី Google Sheet មែនទេ?`;
+    msgEl.innerHTML = `តើបងពិតជាចង់លុបចំណាយ <strong>«${safeDesc}»</strong> ចំនួន <strong class="text-rose-400 font-mono">${formatUSD(exp.amount || 0)}</strong> នេះចេញពីប្រព័ន្ធមែនទេ?`;
   }
   if (modal) modal.classList.remove('hidden');
   setDockVisible(false);
@@ -20107,12 +20125,13 @@ function addAppNotification(item) {
     id: item.id || `notif-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
     type: item.type || 'system',
     title: item.title || 'ការជូនដំណឹងថ្មី',
-    content: item.content || '',
+    content: item.content || item.message || '',
     time: item.time || now.toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit' }),
     date: item.date || now.toLocaleDateString('km-KH', { day: '2-digit', month: 'short' }),
     tag: item.tag || 'ថ្មី',
     color: item.color || 'orange',
     icon: item.icon || (item.type === 'order' ? 'package' : item.type === 'expense' ? 'receipt' : item.type === 'sync' ? 'refresh-cw' : 'bell'),
+    popupMeta: item.popupMeta || null,
     isRead: false
   };
   list.unshift(newNotif);
@@ -20250,11 +20269,11 @@ async function syncOfflineQueue() {
 
   const totalSynced = syncedOrders + syncedExpenses;
   if (totalSynced > 0) {
-    showToastNotification(`🔄 បានធ្វើសមកាលកម្ម ${totalSynced} កំណត់ត្រា (Offline ➔ Sheets) ជោគជ័យ!`);
+    showToastNotification(`🔄 បានធ្វើសមកាលកម្ម ${totalSynced} កំណត់ត្រា (Offline Sync) ជោគជ័យ!`);
     addAppNotification({
       type: 'sync',
       title: '🔄 សមកាលកម្ម Offline ជោគជ័យ',
-      content: `បានបញ្ជូន ${totalSynced} កំណត់ត្រា (${syncedOrders} កុម្ម៉ង់, ${syncedExpenses} ចំណាយ) ចូលទៅក្នុង Google Sheet រួចរាល់។`,
+      content: `បានបញ្ជូន ${totalSynced} កំណត់ត្រា (${syncedOrders} កុម្ម៉ង់, ${syncedExpenses} ចំណាយ) រួចរាល់ជោគជ័យ។`,
       tag: 'Auto-Synced ✓',
       color: 'emerald',
       icon: 'refresh-cw'
@@ -20604,6 +20623,15 @@ function renderNotificationsFeed(d) {
                 </div>
               </div>
               <p class="text-[11px] text-slate-300 leading-relaxed pl-9">${item.content}</p>
+              ${item.popupMeta && item.popupMeta.type ? `
+                <div class="pl-9 pt-0.5">
+                  <button type="button"
+                          onclick="replayAchievementPopupFromNotif('${item.id}')"
+                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/35 text-amber-300 text-[10.5px] font-bold active:scale-95 transition cursor-pointer">
+                    <span>✨ មើលកាតអបអរឡើងវិញ</span>
+                  </button>
+                </div>
+              ` : ''}
             </div>
           `;
         }).join('')}
@@ -21398,7 +21426,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.43';
+const CURRENT_APP_VERSION = '67.44';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -26289,30 +26317,7 @@ function setupAllCustomersScroll() {
   const listEl = document.getElementById('all-customers-list');
   if (!listEl || allCustScrollInitialized) return;
   allCustScrollInitialized = true;
-
-  let lastScrollTop = listEl.scrollTop || 0;
-
-  listEl.addEventListener('scroll', () => {
-    const currentScrollTop = listEl.scrollTop;
-    const diff = currentScrollTop - lastScrollTop;
-
-    // Ignore abnormal layout-resize jumps (greater than 120px)
-    if (Math.abs(diff) > 120) {
-      lastScrollTop = currentScrollTop;
-      return;
-    }
-
-    // 1. Scrolling down deeply (finger dragging up, intentional scroll) -> Hide Dock smoothly
-    if (diff > 14 && currentScrollTop > 60) {
-      setDockVisible(false);
-    }
-    // 2. Scrolling back up towards top (finger dragging down, intentional scroll) OR near top -> Show Dock smoothly
-    else if (diff < -12 || currentScrollTop <= 20) {
-      setDockVisible(true);
-    }
-
-    lastScrollTop = currentScrollTop;
-  }, { passive: true });
+  attachSmoothModalDockScroll(listEl);
 }
 
 function openAllCustomersModal(fromDrawer = false) {
@@ -26473,7 +26478,7 @@ async function setCustomersScope(mode) {
     updateCustomersScopeUI();
     renderAllCustomersList();
     if (typeof showToastNotification === 'function') {
-      showToastNotification('ត្រឡប់មកកាន់អតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួន 📄');
+      showToastNotification('ត្រឡប់មកកាន់អតិថិជនផ្ទាល់ខ្លួន 📄');
     }
     return;
   }
@@ -30443,7 +30448,15 @@ async function syncDailyReportToGoogleSheet(options = {}) {
         addAppNotification({
           type: 'success',
           title: 'រក្សាទុករបាយការណ៍ជោគជ័យ ✅',
-          message: `ទិន្នន័យរបាយការណ៍ ${report.page} ត្រូវបានបញ្ចូលក្នុង Google Sheet រួចរាល់!`,
+          content: `ទិន្នន័យរបាយការណ៍ ${report.page} ត្រូវបានរក្សាទុករួចរាល់!`,
+          tag: 'រក្សាទុករួចរាល់ ✓',
+          color: 'emerald',
+          icon: 'clipboard-check',
+          popupMeta: {
+            type: 'daily_report',
+            name: report.reporter,
+            boxes: report.totalBoxes
+          },
           time: new Date().toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit' })
         });
       }
@@ -30473,7 +30486,7 @@ async function copyDailyReportText() {
     }
   } catch (_) {}
 
-  showToastNotification('កំពុងចម្លង & រក្សាទុកក្នុង Google Sheet... ⏳');
+  showToastNotification('កំពុងចម្លង & រក្សាទុករបាយការណ៍... ⏳');
 
   if (typeof showAchievementPopup === 'function') {
     showAchievementPopup('daily_report', {
@@ -30485,7 +30498,7 @@ async function copyDailyReportText() {
   // Seamless sync to Google Sheet
   const ok = await syncDailyReportToGoogleSheet({ source: 'copy' });
   if (ok) {
-    showToastNotification('បានចម្លង & រក្សាទុកក្នុង Google Sheet ជោគជ័យ! 📋✅');
+    showToastNotification('បានចម្លង & រក្សាទុករបាយការណ៍ជោគជ័យ!');
   } else {
     showToastNotification('បានចម្លងរបាយការណ៍ជោគជ័យ! 📋');
   }
@@ -30512,10 +30525,10 @@ async function shareDailyReportToTelegram() {
   // 2. Seamless background sync to Google Sheet (Deduplication prevents double entries)
   syncDailyReportToGoogleSheet({ source: 'telegram' });
 
-  showToastNotification('កំពុងផ្ញើទៅ Telegram & Google Sheet... ⏳');
+  showToastNotification('កំពុងផ្ញើទៅ Telegram & រក្សាទុករបាយការណ៍... ⏳');
   const botSuccess = await sendDailyReportViaTelegramBot(text);
   if (botSuccess) {
-    showToastNotification('បានផ្ញើ & រក្សាទុកក្នុង Google Sheet ជោគជ័យ! 🚀✅');
+    showToastNotification('បានផ្ញើ & រក្សាទុករបាយការណ៍ជោគជ័យ!');
     if (navigator.vibrate) try { navigator.vibrate([40, 60, 40]); } catch(_) {}
   } else {
     const savedGroup = getReportTelegramGroupUrl();
@@ -35061,8 +35074,8 @@ async function submitNewOrder() {
   if (syncSuccess || companyFormSuccess) {
     const isKm = (appState && appState.language) !== 'en';
     let successMsg = (syncToCompany && companyFormSuccess) 
-      ? (isKm ? '✅ បានកត់ត្រាការលក់ និង Sync ចូល BostarTrack / Form ក្រុមហ៊ុនជោគជ័យ! 🚀' : '✅ Recorded and Synced to BostarTrack / Company Form successfully! 🚀')
-      : (isKm ? '✅ បានកត់ត្រាការលក់ចូល Google Sheet ជោគជ័យ! 🚀' : '✅ Recorded to Google Sheet successfully! 🚀');
+      ? (isKm ? '✅ បានកត់ត្រាការលក់ និងបញ្ជូនចូលប្រព័ន្ធក្រុមហ៊ុនជោគជ័យ! 🚀' : '✅ Recorded and Synced to Company System successfully! 🚀')
+      : (isKm ? '✅ បានកត់ត្រាការលក់ជោគជ័យ! 🚀' : '✅ Order recorded successfully! 🚀');
 
     if (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive) {
       successMsg = isKm ? '✅ បានបញ្ចូលទៅ Master Data ជោគជ័យ (Apps Assistant)! 🚀' : '✅ Saved to Master Data successfully (Apps Assistant)! 🚀';
@@ -35073,9 +35086,10 @@ async function submitNewOrder() {
         type: 'order',
         title: (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive ? 'Apps Assistant: ' : (syncToCompany ? 'កុម្ម៉ង់ 3-in-1: ' : 'កត់ត្រាការលក់: ')) + `${customer || 'អតិថិជន'} (${orderId || newRecord.recordId})`,
         content: `${newRecord.product} | ${totalBoxes} ប្រអប់ | $${formatUSD(totalUsd).replace('$', '')} | Team: ${team} | ដឹក: ${delivery}`,
-        tag: (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive) ? 'Master Data ✓' : (syncToCompany ? 'BostarTrack & Sheet ✓' : 'Google Sheet ✓'),
+        tag: (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive) ? 'Master Data ✓' : (syncToCompany ? 'ក្រុមហ៊ុន & ផ្ទាល់ខ្លួន ✓' : 'រក្សាទុករួចរាល់ ✓'),
         color: isReward ? 'amber' : (isReturn ? 'sky' : 'orange'),
-        icon: isReward ? 'gift' : (isReturn ? 'rotate-ccw' : 'package')
+        icon: isReward ? 'gift' : (isReturn ? 'rotate-ccw' : 'package'),
+        popupMeta: !isDockOrder ? { type: 'telegram_order', name: newRecord.seller } : null
       });
     }
     showToastNotification(successMsg);
@@ -36162,14 +36176,16 @@ async function submitNewExpense() {
   }
 
   if (expSyncSuccess) {
+    const profName = (typeof getProfileData === 'function' ? getProfileData()?.name : '') || '';
     if (typeof addAppNotification === 'function') {
       addAppNotification({
         type: 'expense',
         title: `កត់ត្រាចំណាយ ${createdExpenses.length} មុខ`,
         content: `សរុប: $${totalAmountUsd.toFixed(2)} ${timeStr ? '(' + timeStr + ')' : ''}`,
-        tag: 'Google Sheet ✓',
+        tag: 'រក្សាទុករួចរាល់ ✓',
         color: 'rose',
-        icon: 'receipt'
+        icon: 'receipt',
+        popupMeta: { type: 'daily_expense', name: profName }
       });
     }
     if (createdExpenses.length === 1) {
@@ -36549,7 +36565,7 @@ function updateModalLanguage() {
   }
   if (orderSubtitle) {
     orderSubtitle.textContent = currentOrderEntryMode === 'telegram'
-      ? (isKm ? 'ចូល Google Sheet ផ្ទាល់ខ្លួន' : 'To Personal Google Sheet')
+      ? (isKm ? 'ទិន្នន័យផ្ទាល់ខ្លួន' : 'Personal Entry')
       : (isKm ? 'Sync ផ្ទាល់ខ្លួន & ក្រុមហ៊ុន' : 'Sync Personal & Company');
   }
   if (orderBtnClear) orderBtnClear.textContent = isKm ? 'សម្អាត' : 'Clear';
@@ -37095,9 +37111,6 @@ function openSellerRewardModal(sellerOverride = null) {
   const modalBody = document.getElementById('seller-reward-modal-body');
   if (modalBody) {
     modalBody.scrollTop = 0;
-    if (typeof hookScrollableForDock === 'function') {
-      hookScrollableForDock(modalBody, false);
-    }
   }
   if (typeof setDockVisible === 'function') setDockVisible(true);
 
@@ -37526,7 +37539,187 @@ function resolveAchievementMemberName(preferredName) {
   return 'សមាជិក Bostar';
 }
 
+const ACHIEVEMENT_AUTO_CLOSE_MS = 5000;
+let achievementAutoCloseTimer = null;
+let achievementCountdownInterval = null;
+let achievementPopupState = {
+  remainingMs: ACHIEVEMENT_AUTO_CLOSE_MS,
+  paused: false,
+  staticMode: false,
+  startedAt: 0,
+  lastTouchEndTs: 0,
+  touchDownX: 0,
+  touchDownY: 0,
+  wasRunningOnTouchStart: false
+};
+
+function clearAchievementPopupTimers() {
+  if (achievementAutoCloseTimer) {
+    clearTimeout(achievementAutoCloseTimer);
+    achievementAutoCloseTimer = null;
+  }
+  if (achievementCountdownInterval) {
+    clearInterval(achievementCountdownInterval);
+    achievementCountdownInterval = null;
+  }
+}
+
+function getAchievementRemainingMs() {
+  if (achievementPopupState.staticMode || achievementPopupState.paused || !achievementPopupState.startedAt) {
+    return achievementPopupState.remainingMs;
+  }
+  const elapsed = Date.now() - achievementPopupState.startedAt;
+  return Math.max(0, achievementPopupState.remainingMs - elapsed);
+}
+
+function renderAchievementCountdownUI() {
+  const labelEl = document.getElementById('achievement-approve-label');
+  const hintEl = document.getElementById('achievement-pause-hint');
+  const barEl = document.getElementById('achievement-progress-bar');
+  const st = achievementPopupState;
+  const remMs = getAchievementRemainingMs();
+
+  if (labelEl) {
+    if (st.staticMode || st.paused) {
+      labelEl.textContent = 'យល់ព្រម ✨';
+    } else {
+      const secs = Math.max(1, Math.ceil(remMs / 1000));
+      labelEl.textContent = `យល់ព្រម ✨ (${secs}s)`;
+    }
+  }
+
+  if (hintEl) {
+    if (st.staticMode) {
+      hintEl.textContent = '📌 កំពុងមើលឡើងវិញ • ចុច «យល់ព្រម» ដើម្បីបិទ';
+    } else if (st.paused) {
+      hintEl.textContent = '⏸ បានផ្អាកសម្រាប់អាន • ប៉ះកាតម្ដងទៀតដើម្បីបន្ត';
+    } else {
+      hintEl.textContent = '👆 ប៉ះលើកាតដើម្បីផ្អាកអានបន្ថែម';
+    }
+  }
+
+  if (barEl && (st.staticMode || st.paused)) {
+    barEl.style.transition = 'none';
+    const pct = st.staticMode ? 100 : Math.max(0, Math.min(100, (remMs / ACHIEVEMENT_AUTO_CLOSE_MS) * 100));
+    barEl.style.width = `${pct.toFixed(2)}%`;
+  }
+}
+
+function startAchievementCountdown() {
+  clearAchievementPopupTimers();
+  const st = achievementPopupState;
+  if (st.staticMode || st.paused) {
+    renderAchievementCountdownUI();
+    return;
+  }
+  if (st.remainingMs <= 0) {
+    closeAchievementPopup();
+    return;
+  }
+
+  st.startedAt = Date.now();
+  renderAchievementCountdownUI();
+
+  const barEl = document.getElementById('achievement-progress-bar');
+  if (barEl) {
+    const startPct = Math.max(0, Math.min(100, (st.remainingMs / ACHIEVEMENT_AUTO_CLOSE_MS) * 100));
+    barEl.style.transition = 'none';
+    barEl.style.width = `${startPct.toFixed(2)}%`;
+    // Force layout flush so the CSS linear transition animates cleanly from startPct to 0%
+    void barEl.offsetWidth;
+    barEl.style.transition = `width ${st.remainingMs}ms linear`;
+    barEl.style.width = '0%';
+  }
+
+  achievementAutoCloseTimer = setTimeout(() => {
+    closeAchievementPopup();
+  }, st.remainingMs);
+
+  achievementCountdownInterval = setInterval(() => {
+    renderAchievementCountdownUI();
+  }, 200);
+}
+
+function pauseAchievementCountdown(lockPaused = true) {
+  const st = achievementPopupState;
+  if (st.staticMode) return;
+  st.remainingMs = getAchievementRemainingMs();
+  st.startedAt = 0;
+  if (lockPaused) st.paused = true;
+  clearAchievementPopupTimers();
+  renderAchievementCountdownUI();
+}
+
+function toggleAchievementPopupPause(event) {
+  if (event) {
+    if (event.target && event.target.closest('button, a')) return;
+    event.stopPropagation();
+  }
+  const st = achievementPopupState;
+  if (st.staticMode) return;
+  // Ignore synthetic click right after a touch tap handled in touchend
+  if (Date.now() - st.lastTouchEndTs < 450) return;
+
+  if (st.paused) {
+    st.paused = false;
+    startAchievementCountdown();
+  } else {
+    pauseAchievementCountdown(true);
+  }
+  if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+}
+
+function handleAchievementCardTouchStart(event) {
+  if (!event || !event.touches || event.touches.length !== 1) return;
+  if (event.target && event.target.closest('button, a')) return;
+  const st = achievementPopupState;
+  if (st.staticMode) return;
+
+  st.touchDownX = event.touches[0].clientX;
+  st.touchDownY = event.touches[0].clientY;
+  st.wasRunningOnTouchStart = !st.paused;
+
+  // Freeze countdown immediately while user's finger is touching the card
+  if (st.wasRunningOnTouchStart) {
+    st.remainingMs = getAchievementRemainingMs();
+    st.startedAt = 0;
+    clearAchievementPopupTimers();
+    const barEl = document.getElementById('achievement-progress-bar');
+    if (barEl) {
+      barEl.style.transition = 'none';
+      barEl.style.width = `${Math.max(0, Math.min(100, (st.remainingMs / ACHIEVEMENT_AUTO_CLOSE_MS) * 100)).toFixed(2)}%`;
+    }
+  }
+}
+
+function handleAchievementCardTouchEnd(event) {
+  if (!event || !event.changedTouches || event.changedTouches.length !== 1) return;
+  if (event.target && event.target.closest('button, a')) return;
+  const st = achievementPopupState;
+  if (st.staticMode) return;
+
+  const dx = Math.abs(event.changedTouches[0].clientX - st.touchDownX);
+  const dy = Math.abs(event.changedTouches[0].clientY - st.touchDownY);
+  st.lastTouchEndTs = Date.now();
+
+  if (dx < 14 && dy < 14) {
+    if (st.wasRunningOnTouchStart) {
+      pauseAchievementCountdown(true);
+    } else {
+      st.paused = false;
+      startAchievementCountdown();
+    }
+    if (navigator.vibrate) try { navigator.vibrate(10); } catch (_) {}
+  } else if (st.wasRunningOnTouchStart && !st.paused) {
+    startAchievementCountdown();
+  }
+}
+
 function closeAchievementPopup() {
+  clearAchievementPopupTimers();
+  achievementPopupState.startedAt = 0;
+  achievementPopupState.paused = false;
+
   const modal = document.getElementById('achievement-celebration-modal');
   if (!modal) return;
   modal.classList.add('opacity-0', 'pointer-events-none');
@@ -37545,6 +37738,19 @@ function closeAchievementPopup() {
 }
 
 function showAchievementPopup(type = 'daily_report', data = {}) {
+  clearAchievementPopupTimers();
+  const isFromHistory = !!(data && data.fromHistory);
+  achievementPopupState = {
+    remainingMs: ACHIEVEMENT_AUTO_CLOSE_MS,
+    paused: false,
+    staticMode: isFromHistory,
+    startedAt: 0,
+    lastTouchEndTs: 0,
+    touchDownX: 0,
+    touchDownY: 0,
+    wasRunningOnTouchStart: false
+  };
+
   const isLight = document.documentElement.classList.contains('light-theme') || document.body.classList.contains('light-theme') || document.documentElement.classList.contains('light-mode') || document.body.classList.contains('light-mode');
   const memberName = resolveAchievementMemberName(data.name);
   const boxes = Math.max(0, Number(data.boxes ?? 0) || 0);
@@ -37620,8 +37826,10 @@ function showAchievementPopup(type = 'daily_report', data = {}) {
 
   modal.innerHTML = `
     <div id="achievement-celebration-card"
-         onclick="event.stopPropagation()"
-         class="relative w-full max-w-[360px] rounded-[28px] p-5 text-center overflow-hidden transition-all duration-200"
+         onclick="toggleAchievementPopupPause(event)"
+         ontouchstart="handleAchievementCardTouchStart(event)"
+         ontouchend="handleAchievementCardTouchEnd(event)"
+         class="relative w-full max-w-[360px] rounded-[28px] p-5 text-center overflow-hidden transition-all duration-200 cursor-pointer"
          style="${cardBgStyle}; transform: scale(1) translateY(0);">
       
       <!-- Top Gold & Emerald Ambient Shimmer -->
@@ -37656,23 +37864,54 @@ function showAchievementPopup(type = 'daily_report', data = {}) {
 
       ${bonusBannerHtml}
 
-      <!-- Primary Dismiss Button: យល់ព្រម ✨ -->
+      <!-- Primary Dismiss Button: យល់ព្រម ✨ (with live 5s countdown) -->
       <button type="button"
-              onclick="closeAchievementPopup()"
+              onclick="event.stopPropagation(); closeAchievementPopup()"
               class="mt-4 w-full py-3.5 px-5 rounded-2xl font-extrabold text-[15px] text-slate-950 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer select-none"
               style="background: linear-gradient(135deg, #FBBF24 0%, #10B981 55%, #F59E0B 100%); box-shadow: 0 10px 24px -6px rgba(16, 185, 129, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45);">
-        <span>យល់ព្រម ✨</span>
+        <span id="achievement-approve-label">${isFromHistory ? 'យល់ព្រម ✨' : 'យល់ព្រម ✨ (5s)'}</span>
       </button>
+
+      <!-- Touch-to-Pause Hint + Thin Running Auto-Close Progress Bar -->
+      <p id="achievement-pause-hint" class="mt-2 text-[10.5px] font-semibold select-none ${isLight ? 'text-slate-500' : 'text-slate-400'}">
+        ${isFromHistory ? '📌 កំពុងមើលឡើងវិញ • ចុច «យល់ព្រម» ដើម្បីបិទ' : '👆 ប៉ះលើកាតដើម្បីផ្អាកអានបន្ថែម'}
+      </p>
+      <div class="mt-2 h-[3px] w-full rounded-full overflow-hidden ${isLight ? 'bg-slate-200/80' : 'bg-white/10'} ${isFromHistory ? 'hidden' : ''}">
+        <div id="achievement-progress-bar"
+             class="h-full rounded-full"
+             style="width: 100%; background: linear-gradient(90deg, #FBBF24, #10B981);"></div>
+      </div>
     </div>
   `;
+
+  if (!isFromHistory) {
+    startAchievementCountdown();
+  } else {
+    renderAchievementCountdownUI();
+  }
 
   if (navigator.vibrate) {
     try { navigator.vibrate([25, 40, 25]); } catch (_) {}
   }
 }
 
+function replayAchievementPopupFromNotif(notifId) {
+  const list = typeof getStoredNotifications === 'function' ? getStoredNotifications() : [];
+  const item = list.find(n => n.id === notifId);
+  if (!item || !item.popupMeta || !item.popupMeta.type) return;
+  showAchievementPopup(item.popupMeta.type, {
+    name: item.popupMeta.name,
+    boxes: item.popupMeta.boxes,
+    fromHistory: true
+  });
+}
+
 window.showAchievementPopup = showAchievementPopup;
 window.closeAchievementPopup = closeAchievementPopup;
+window.toggleAchievementPopupPause = toggleAchievementPopupPause;
+window.handleAchievementCardTouchStart = handleAchievementCardTouchStart;
+window.handleAchievementCardTouchEnd = handleAchievementCardTouchEnd;
+window.replayAchievementPopupFromNotif = replayAchievementPopupFromNotif;
 
 // ========================================================
 // ONE-TIME VIP HONOR POPUP FOR THE 4 PIONEER MEMBERS

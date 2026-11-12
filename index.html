@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.43">
+  <link rel="manifest" href="manifest.json?v=67.44">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -4452,9 +4452,13 @@
       opacity: 0 !important;
       pointer-events: none !important;
     }
-    /* When dock is hidden or opacity-0, suppress the blur backdrop completely */
+    /* When dock is hidden or opacity-0 during scroll, fade opacity smoothly without tearing down compositor layer; force display:none only on hard hide (.!hidden) */
     #dock-blur-backdrop.opacity-0,
-    #dock-blur-backdrop.dock-hidden,
+    #dock-blur-backdrop.dock-hidden {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
     #dock-blur-backdrop.\!hidden {
       display: none !important;
       opacity: 0 !important;
@@ -4462,6 +4466,17 @@
       pointer-events: none !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
+    }
+    /* Eliminate Safari/WebKit end-of-scroll backdrop-blur tile jitter on long lists */
+    #all-customers-list .ios-glass-card,
+    #expenses-modal-list .ios-glass-card {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      transition: transform 0.16s ease-out, border-color 0.16s ease-out !important;
+    }
+    body:not(.light-theme) #all-customers-list .ios-glass-card,
+    body:not(.light-theme) #expenses-modal-list .ios-glass-card {
+      background: linear-gradient(135deg, rgba(20, 36, 61, 0.96) 0%, rgba(10, 20, 36, 0.98) 100%);
     }
     /* Complete Dock & Blur Backdrop Suppression when Daily Report is open */
     body.report-modal-open #bottom-dock,
@@ -5424,7 +5439,7 @@
       <!-- Backdrop Blur Overlay for Context Menu -->
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
-      <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528] shrink-0 cursor-pointer shadow-md shadow-black/20">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeExpensesModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5498,7 +5513,7 @@
       <div id="expenses-dropdown-backdrop" onclick="closeAllExpensesDropdowns()" class="hidden absolute inset-0 z-30 bg-black/60 backdrop-blur-sm transition-opacity duration-200"></div>
 
       <!-- Date Filter Bar (Pills matching Image 3 with relative z-40) -->
-      <div id="expenses-modal-date-filter-bar" class="relative z-40 px-3 py-2 border-b border-white/10 bg-[#050B14]/85 backdrop-blur-md shrink-0">
+      <div id="expenses-modal-date-filter-bar" class="relative z-40 px-3 py-2 border-b border-white/10 bg-[#050B14] shrink-0">
         <div class="flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/5 w-full relative">
           
           <!-- 1. Day Popover Pill (ថ្ងៃ ⌄) -> Opens Mini Calendar -->
@@ -5840,7 +5855,7 @@
             <h3 id="edit-bank-title" class="font-bold text-sm sm:text-base text-white truncate flex-1">កែប្រែសមតុល្យ</h3>
             <span id="edit-bank-curr-badge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">USD</span>
           </div>
-          <p id="edit-bank-sub" class="text-[11px] text-slate-400 truncate">គណនីធនាគារ • សមកាលកម្មទៅ Google Sheet ផ្ទាល់</p>
+          <p id="edit-bank-sub" class="text-[11px] text-slate-400 truncate">គណនីធនាគារ • រក្សាទុកដោយស្វ័យប្រវត្តិ</p>
         </div>
         <button type="button" onclick="closeEditBankModal()" 
                 class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center shrink-0 border border-white/10 active:scale-95 transition" 
@@ -6191,7 +6206,7 @@
   <div id="all-customers-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy">
     <div class="w-full max-w-md mx-auto flex flex-col h-full overflow-hidden">
       <!-- Top Bar -->
-      <div onclick="handleHeaderScrollToTop(event, 'all-customers-list')" class="relative z-30 p-3 border-b border-white/10 bg-[#0B1528]/95 backdrop-blur-xl shrink-0 space-y-2 shadow-md shadow-black/20 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'all-customers-list')" class="relative z-30 p-3 border-b border-white/10 bg-[#0B1528] shrink-0 space-y-2 shadow-md shadow-black/20 cursor-pointer">
         <!-- Morphing Header: Default Bar vs Search Expanded Bar -->
         <div id="all-customers-header-bar" class="flex items-center justify-between gap-2">
           <!-- Minimalist Back Button (32x32) -->
@@ -6319,7 +6334,7 @@
       </div>
 
       <!-- Scrollable Full-Screen Customer Cards List (Matching COD Receivables Table container) -->
-      <div id="all-customers-list" class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-1.5 pb-28">
+      <div id="all-customers-list" class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-1.5 pb-28" style="-webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; overscroll-behavior-x: none; touch-action: pan-y;">
         <!-- Injected dynamically -->
       </div>
     </div>
@@ -8658,7 +8673,7 @@
       </div>
       <h3 class="font-bold text-base text-white mb-1">លុបប្រតិបត្តិការចំណាយ?</h3>
       <p id="expense-delete-msg" class="text-xs text-slate-400 mb-5 leading-relaxed">
-        តើបងពិតជាចង់លុបចំណាយនេះចេញពី Google Sheet មែនទេ?
+        តើបងពិតជាចង់លុបចំណាយនេះចេញពីប្រព័ន្ធមែនទេ?
       </p>
       <div class="flex items-center gap-2.5">
         <button type="button" onclick="closeExpenseDeleteModal()" class="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold text-xs active:scale-95 transition">
@@ -8676,10 +8691,10 @@
   <!-- SELLER REWARD MODAL (រង្វាន់អ្នកលក់ប្រចាំថ្ងៃ - Sell 5 get 1) -->
   <!-- ======================================================== -->
   <div id="seller-reward-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy transition-all duration-300">
-    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
+    <div class="w-full max-w-md mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
       
       <!-- Top Modal Header -->
-      <div onclick="handleHeaderScrollToTop(event, 'seller-reward-modal-body')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none">
+      <div onclick="handleHeaderScrollToTop(event, 'seller-reward-modal-body')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none shadow-md shadow-black/20">
         <div class="flex items-center gap-2.5 min-w-0">
           <button type="button" onclick="event.stopPropagation(); closeSellerRewardModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-amber-400"></i>
@@ -8695,7 +8710,7 @@
       </div>
 
       <!-- Scrollable Modal Body -->
-      <div class="p-3.5 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-3" id="seller-reward-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
+      <div class="p-3.5 pb-8 overflow-y-auto flex-1 no-scrollbar space-y-3" id="seller-reward-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
 
         <!-- Info Card: Rows 1 to 3 -->
         <div class="p-3.5 rounded-2xl bg-black/30 border border-white/10 space-y-2.5 text-xs">
@@ -8872,7 +8887,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.43"></script>
-  <script src="app.js?v=67.43"></script>
+  <script src="dataService.js?v=67.44"></script>
+  <script src="app.js?v=67.44"></script>
 </body>
 </html>
