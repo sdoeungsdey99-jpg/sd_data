@@ -1753,12 +1753,32 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'master-customer-auth-modal', 'edit-order-modal', 'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
+    'quick-boost-modal', 'thai-cod-schedule-modal', 'master-customer-auth-modal', 'edit-order-modal', 'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal', 'boost-modal',
     'cod-modal', 'bank-modal', 'edit-bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal', 'seller-reward-modal'
   ];
   for (const id of openModals) {
     const el = document.getElementById(id);
     if (el && !el.classList.contains('hidden')) {
+      if (id === 'quick-boost-modal' && typeof closeQuickBoostModal === 'function') {
+        closeQuickBoostModal();
+        if (navigator.vibrate) navigator.vibrate(15);
+        return true;
+      }
+      if (id === 'thai-cod-schedule-modal' && typeof closeThaiCodScheduleModal === 'function') {
+        closeThaiCodScheduleModal();
+        if (navigator.vibrate) navigator.vibrate(15);
+        return true;
+      }
+      if (id === 'master-customer-auth-modal' && typeof closeMasterCustomerAuthModal === 'function') {
+        closeMasterCustomerAuthModal();
+        if (navigator.vibrate) navigator.vibrate(15);
+        return true;
+      }
+      if (id === 'boost-modal' && typeof closeBoostModal === 'function') {
+        closeBoostModal();
+        if (navigator.vibrate) navigator.vibrate(15);
+        return true;
+      }
       if (id === 'seller-reward-modal' && typeof closeSellerRewardModal === 'function') {
         closeSellerRewardModal();
         if (navigator.vibrate) navigator.vibrate(15);
@@ -1810,8 +1830,8 @@ function handleBackNavigation() {
 function isAnyDrilldownModalOpen() {
   const modalIds = [
     'master-customer-auth-modal', 'edit-order-modal', 'team-members-modal', 'new-order-modal', 'new-expense-modal',
-    'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal',
-    'cod-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
+    'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal', 'boost-modal', 'quick-boost-modal',
+    'cod-modal', 'thai-cod-schedule-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
     'executive-hierarchy-modal', 'member-daily-breakdown-modal', 'daily-report-modal', 'honors-modal', 'tutorial-modal',
     'attendance-leave-modal', 'attendance-manager-modal', 'attendance-top10-modal', 'attendance-certificate-modal', 'attendance-documents-modal',
     'profile-sub-modal', 'edit-profile-modal',
@@ -2168,6 +2188,9 @@ function isDialogModalOpen() {
     'global-search-modal',
     'profile-settings-search-modal',
     'seller-reward-modal',
+    'quick-boost-modal',
+    'thai-cod-schedule-modal',
+    'master-customer-auth-modal',
     'expense-action-sheet',
     'expense-delete-modal'
   ];
@@ -2728,11 +2751,15 @@ function closeAllModals() {
     'sales-modal',
     'payables-modal',
     'expenses-modal',
+    'boost-modal',
+    'quick-boost-modal',
     'cod-modal',
+    'thai-cod-schedule-modal',
     'bank-modal',
     'team-sets-modal',
     'notif-modal',
     'all-customers-modal',
+    'master-customer-auth-modal',
     'team-members-modal',
     'executive-hierarchy-modal',
     'profile-drawer-modal',
@@ -2764,6 +2791,8 @@ function closeAllModals() {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
+  if (typeof closeBoostYearDropdown === 'function') closeBoostYearDropdown();
+  if (typeof inlineEditingMonth !== 'undefined') inlineEditingMonth = null;
   document.body.classList.remove('overflow-hidden');
   if (typeof closeMemberDailyContextMenu === 'function') closeMemberDailyContextMenu();
   const drawerPanel = document.getElementById('profile-drawer-panel');
@@ -14881,12 +14910,16 @@ function openThaiCodScheduleModal() {
   }
 
   modal.classList.remove('hidden');
+  if (typeof setDockVisible === 'function') setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
 }
 
 function closeThaiCodScheduleModal() {
   const modal = document.getElementById('thai-cod-schedule-modal');
   if (modal) modal.classList.add('hidden');
+  if (typeof setDockVisible === 'function' && (typeof isDialogModalOpen !== 'function' || !isDialogModalOpen())) {
+    setDockVisible(true);
+  }
 }
 
 const COD_STATUS_OPTIONS = [
@@ -16261,12 +16294,16 @@ function openQuickBoostEditModal(targetYear = null, targetMonth = null) {
   }
 
   modal.classList.remove('hidden');
+  if (typeof setDockVisible === 'function') setDockVisible(false);
   if (window.lucide) window.lucide.createIcons();
 }
 
 function closeQuickBoostModal() {
   const modal = document.getElementById('quick-boost-modal');
   if (modal) modal.classList.add('hidden');
+  if (typeof setDockVisible === 'function' && (typeof isDialogModalOpen !== 'function' || !isDialogModalOpen())) {
+    setDockVisible(true);
+  }
 }
 
 function saveQuickBoostModal() {
@@ -16320,16 +16357,27 @@ function openBoostModal(year = null) {
 
   modal.classList.remove('hidden');
   if (window.lucide) window.lucide.createIcons();
-  setDockVisible(true);
   const listEl = document.getElementById('boost-modal-list');
-  if (listEl && typeof hookScrollableForDock === 'function') hookScrollableForDock(listEl, false);
+  if (listEl) {
+    listEl.scrollTop = 0;
+    if (typeof attachSmoothModalDockScroll === 'function') {
+      attachSmoothModalDockScroll(listEl);
+    } else if (typeof hookScrollableForDock === 'function') {
+      hookScrollableForDock(listEl, false);
+    }
+  }
+  setDockVisible(true);
 }
 
 function closeBoostModal() {
   const modal = document.getElementById('boost-modal');
   if (modal) modal.classList.add('hidden');
+  closeQuickBoostModal();
   closeBoostYearDropdown();
   inlineEditingMonth = null;
+  if (typeof setDockVisible === 'function' && (typeof isDialogModalOpen !== 'function' || !isDialogModalOpen())) {
+    setDockVisible(true);
+  }
 }
 
 function toggleBoostYearDropdown(event) {
@@ -17565,12 +17613,22 @@ function applyExpensesFilterAndRender() {
 }
 
 let expensesScrollInitialized = false;
+const EXPENSES_MODAL_CHUNK_SIZE = 40;
+let currentExpensesModalListItems = [];
+let expensesModalRenderedCount = 0;
 
 function setupExpensesScroll() {
   const listEl = document.getElementById('expenses-modal-list');
   if (!listEl || expensesScrollInitialized) return;
   expensesScrollInitialized = true;
   attachSmoothModalDockScroll(listEl);
+  listEl.addEventListener('scroll', () => {
+    if (expensesFilterState.viewTab !== 'list') return;
+    const scrollBottom = listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight;
+    if (scrollBottom < 380 && expensesModalRenderedCount < currentExpensesModalListItems.length) {
+      renderExpensesModalBatch(true);
+    }
+  }, { passive: true });
 }
 
 function openExpensesModal(mode = false, fromDrawer = false) {
@@ -18274,6 +18332,50 @@ async function executeDeleteExpense() {
   }
 }
 
+function getExpenseModalRowHTML(item, idx) {
+  return `
+      <div class="p-2.5 px-3 rounded-2xl ios-glass-card border border-white/10 hover:border-rose-500/30 flex flex-col gap-1.5 transition select-none shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 min-w-0 pr-2">
+            <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+              ${idx + 1}
+            </span>
+            <span class="font-bold text-xs text-white truncate">${item.description || item.category}</span>
+          </div>
+          <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(item.amount)}</span>
+        </div>
+        <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
+          <div class="flex items-center gap-2">
+            <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
+            ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
+          </div>
+          <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
+        </div>
+      </div>
+    `;
+}
+
+function renderExpensesModalBatch(isAppend = false) {
+  const listEl = document.getElementById('expenses-modal-list');
+  if (!listEl) return;
+
+  const startIdx = isAppend ? expensesModalRenderedCount : 0;
+  const targetCount = isAppend
+    ? Math.min(expensesModalRenderedCount + EXPENSES_MODAL_CHUNK_SIZE, currentExpensesModalListItems.length)
+    : Math.min(EXPENSES_MODAL_CHUNK_SIZE, currentExpensesModalListItems.length);
+  const batch = currentExpensesModalListItems.slice(startIdx, targetCount);
+  if (batch.length === 0 && isAppend) return;
+
+  const html = batch.map((item, i) => getExpenseModalRowHTML(item, startIdx + i)).join('');
+  if (isAppend) {
+    listEl.insertAdjacentHTML('beforeend', html);
+  } else {
+    listEl.innerHTML = html;
+  }
+  expensesModalRenderedCount = targetCount;
+  if (window.lucide) window.lucide.createIcons();
+}
+
 function renderExpensesModalRows(items) {
   const listEl = document.getElementById('expenses-modal-list');
   const footer = document.getElementById('expenses-modal-footer');
@@ -18299,6 +18401,8 @@ function renderExpensesModalRows(items) {
   }
 
   if (items.length === 0) {
+    currentExpensesModalListItems = [];
+    expensesModalRenderedCount = 0;
     listEl.innerHTML = `
       <div class="flex flex-col items-center justify-center py-16 text-center space-y-3">
         <div class="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500">
@@ -18319,27 +18423,9 @@ function renderExpensesModalRows(items) {
   }
 
   if (expensesFilterState.viewTab === 'list') {
-    listEl.innerHTML = items.map((item, idx) => `
-      <div class="p-2.5 px-3 rounded-2xl ios-glass-card border border-white/10 hover:border-rose-500/30 flex flex-col gap-1.5 transition select-none shadow-sm">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 min-w-0 pr-2">
-            <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-              ${idx + 1}
-            </span>
-            <span class="font-bold text-xs text-white truncate">${item.description || item.category}</span>
-          </div>
-          <span class="font-mono text-rose-400 font-bold text-xs shrink-0 whitespace-nowrap">${formatUSD(item.amount)}</span>
-        </div>
-        <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
-          <div class="flex items-center gap-2">
-            <span>កាលបរិច្ឆេទ: <strong class="text-white">${item.date}</strong></span>
-            ${item.time ? `<span class="text-amber-300 font-mono">⏰ ${item.time}</span>` : ''}
-          </div>
-          <span>ប្រភេទ: <strong class="text-slate-300">${item.category || 'ទូទៅ'}</strong></span>
-        </div>
-      </div>
-    `).join('');
-    if (window.lucide) window.lucide.createIcons();
+    currentExpensesModalListItems = items;
+    expensesModalRenderedCount = 0;
+    renderExpensesModalBatch(false);
     return;
   }
 
@@ -20860,12 +20946,13 @@ function handleHomeClick(e) {
   const tutorialModal = document.getElementById('tutorial-modal');
   const isTutorialOpen = tutorialModal && !tutorialModal.classList.contains('hidden');
 
-  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #cod-modal:not(.hidden), #bank-modal:not(.hidden), #edit-bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #team-members-modal:not(.hidden), #executive-hierarchy-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #global-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #change-pin-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden), #member-daily-breakdown-modal:not(.hidden), #seller-reward-modal:not(.hidden)');
+  const openModal = document.querySelector('#sales-modal:not(.hidden), #expenses-modal:not(.hidden), #boost-modal:not(.hidden), #quick-boost-modal:not(.hidden), #cod-modal:not(.hidden), #thai-cod-schedule-modal:not(.hidden), #bank-modal:not(.hidden), #edit-bank-modal:not(.hidden), #payables-modal:not(.hidden), #team-sets-modal:not(.hidden), #all-customers-modal:not(.hidden), #master-customer-auth-modal:not(.hidden), #team-members-modal:not(.hidden), #executive-hierarchy-modal:not(.hidden), #new-order-modal:not(.hidden), #new-expense-modal:not(.hidden), #edit-order-modal:not(.hidden), #global-search-modal:not(.hidden), #profile-settings-search-modal:not(.hidden), #honors-modal:not(.hidden), #tutorial-modal:not(.hidden), #daily-report-modal:not(.hidden), #notif-modal:not(.hidden), #edit-profile-modal:not(.hidden), #profile-sub-modal:not(.hidden), #change-pin-modal:not(.hidden), #about-modal:not(.hidden), #shortcut-modal:not(.hidden), #attendance-modal:not(.hidden), #attendance-leave-modal:not(.hidden), #attendance-manager-modal:not(.hidden), #attendance-top10-modal:not(.hidden), #attendance-certificate-modal:not(.hidden), #attendance-documents-modal:not(.hidden), #member-daily-breakdown-modal:not(.hidden), #seller-reward-modal:not(.hidden)');
 
   // Case 1: If Profile Drawer or any Modal is open ➔ Single tap smoothly dismisses it to reveal dashboard instantly (ZERO network reload)
   if (isDrawerOpen || openModal || isHonorsOpen || isTutorialOpen) {
     closeProfileDrawer();
     closeAllModals();
+    setDockVisible(true);
     const dock = document.getElementById('bottom-dock');
     if (dock) {
       dock.classList.remove('dock-hidden');
@@ -21454,7 +21541,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.45';
+const CURRENT_APP_VERSION = '67.46';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -26340,12 +26427,21 @@ function saveProfileData() {
 let allCustomersSortMode = 'latest';
 let expandedCustomerKey = null;
 let allCustScrollInitialized = false;
+const ALL_CUSTOMERS_CHUNK_SIZE = 40;
+let currentAllCustomersList = [];
+let allCustomersRenderedCount = 0;
 
 function setupAllCustomersScroll() {
   const listEl = document.getElementById('all-customers-list');
   if (!listEl || allCustScrollInitialized) return;
   allCustScrollInitialized = true;
   attachSmoothModalDockScroll(listEl);
+  listEl.addEventListener('scroll', () => {
+    const scrollBottom = listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight;
+    if (scrollBottom < 380 && allCustomersRenderedCount < currentAllCustomersList.length) {
+      renderAllCustomersBatch(true);
+    }
+  }, { passive: true });
 }
 
 function openAllCustomersModal(fromDrawer = false) {
@@ -26595,6 +26691,7 @@ function openMasterCustomerAuthModal(seller) {
 
   if (modal) {
     modal.classList.remove('hidden');
+    if (typeof setDockVisible === 'function') setDockVisible(false);
     setTimeout(() => input?.focus(), 150);
   }
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -26606,6 +26703,9 @@ function closeMasterCustomerAuthModal() {
   const modal = document.getElementById('master-customer-auth-modal');
   if (modal) modal.classList.add('hidden');
   pendingMasterAuthSeller = null;
+  if (typeof setDockVisible === 'function' && (typeof isDialogModalOpen !== 'function' || !isDialogModalOpen())) {
+    setDockVisible(true);
+  }
 }
 
 async function submitMasterCustomerAuthCode() {
@@ -26700,7 +26800,7 @@ async function loadAndActivateMasterCustomers(seller) {
 function toggleCustomerOrderHistory(encodedKey) {
   const key = decodeURIComponent(encodedKey);
   expandedCustomerKey = (expandedCustomerKey === key) ? null : key;
-  renderAllCustomersList();
+  renderAllCustomersList(true);
 }
 
 function getOrderProductSummary(o) {
@@ -26715,82 +26815,13 @@ function getOrderProductSummary(o) {
   return parts.join(', ') || (o.product || 'ទំនិញ');
 }
 
-function renderAllCustomersList() {
-  const listEl = document.getElementById('all-customers-list');
-  const countBadge = document.getElementById('all-customers-count-badge');
-  const summaryEl = document.getElementById('all-customers-summary');
-  if (!listEl) return;
+function getAllCustomerCardHTML(c, idx, expandFirstFromUrl, isEn) {
+  const isExpanded = (expandedCustomerKey === c.key) || (expandFirstFromUrl && idx === 0);
+  const encodedKey = encodeURIComponent(c.key);
+  const sortedOrders = [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
+  const fInfo = getCustomerFollowUpInfo(c);
 
-  const q = (document.getElementById('all-customers-search-input')?.value || '').trim().toLowerCase();
-  let customers = getAllUniqueCustomers();
-
-  if (q) {
-    customers = customers.filter(c =>
-      c.name.toLowerCase().includes(q) ||
-      c.phone.toLowerCase().includes(q) ||
-      c.location.toLowerCase().includes(q) ||
-      c.seller.toLowerCase().includes(q)
-    );
-  }
-
-  if (allCustomersSortMode === 'top') {
-    customers.sort((a, b) => (b.totalBoxes - a.totalBoxes) || (b.totalSpent - a.totalSpent));
-  } else if (allCustomersSortMode === 'name') {
-    customers.sort((a, b) => a.name.localeCompare(b.name, 'km'));
-  } else {
-    // Latest (31 ➔ 01 / 12 ➔ 01)
-    customers.sort((a, b) => (b.lastIsoDate || '').localeCompare(a.lastIsoDate || ''));
-  }
-
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('expand_cust') === '1' && !expandedCustomerKey && customers.length > 0) {
-    expandedCustomerKey = customers[0].key;
-  }
-
-  const isEn = appState.language === 'en';
-  const heading = document.getElementById('all-customers-title-heading');
-  const countText = document.getElementById('all-customers-count-text');
-  const countDisplay = isEn ? `(${customers.length} Cust)` : `(${customers.length} នាក់)`;
-  
-  if (heading) {
-    if (allCustomersScopeMode === 'all') {
-      heading.innerHTML = `<span>អតិថិជនទាំងអស់</span> <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-amber-500/20 text-amber-300 text-[10.5px] font-medium leading-normal border border-amber-500/30">Master</span> <span id="all-customers-count-text" class="text-amber-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
-    } else {
-      heading.innerHTML = `<span>បញ្ជីអតិថិជន</span> <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-blue-500/20 text-blue-300 text-[10.5px] font-medium leading-normal border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span> <span id="all-customers-count-text" class="text-blue-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
-    }
-  } else if (countText) {
-    countText.textContent = countDisplay;
-  }
-  if (countBadge) countBadge.textContent = `${customers.length} នាក់`;
-
-  const totalOrdersSum = customers.reduce((acc, c) => acc + c.totalOrders, 0);
-  const totalBoxesSum = customers.reduce((acc, c) => acc + c.totalBoxes, 0);
-  const totalSpentSum = customers.reduce((acc, c) => acc + c.totalSpent, 0);
-
-  if (summaryEl) {
-    summaryEl.innerHTML = `
-      <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 shadow-sm">
-        <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Orders' : 'សរុបការកុម្ម៉ង់'}</span>
-        <span class="font-mono font-bold text-xs text-white">${formatInt(totalOrdersSum)} ${isEn ? 'times' : 'ដង'}</span>
-      </div>
-      <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 shadow-sm">
-        <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Boxes' : 'សរុបប្រអប់'}</span>
-        <span class="font-mono font-bold text-xs text-orange-400">${formatInt(totalBoxesSum)} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>
-      </div>
-      <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 shadow-sm">
-        <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Revenue' : 'ទឹកប្រាក់សរុប'}</span>
-        <span class="font-mono font-bold text-xs text-emerald-400">${formatUSD(totalSpentSum)}</span>
-      </div>
-    `;
-  }
-
-  listEl.innerHTML = customers.map((c, idx) => {
-    const isExpanded = (expandedCustomerKey === c.key) || (urlParams.get('expand_cust') === '1' && idx === 0);
-    const encodedKey = encodeURIComponent(c.key);
-    const sortedOrders = [...c.orders].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || ''));
-    const fInfo = getCustomerFollowUpInfo(c);
-
-    return `
+  return `
       <div class="ios-glass-card rounded-2xl py-2 px-3 border border-white/10 hover:border-orange-500/30 hover:bg-white/5 transition flex flex-col gap-1.5 select-none">
         <div onclick="toggleCustomerOrderHistory('${encodedKey}')" class="flex items-stretch justify-between gap-2.5 cursor-pointer select-none">
           <!-- Left Column: 3-Row Layout (Explicitly Row-Locked with Right Column) -->
@@ -26925,22 +26956,127 @@ function renderAllCustomersList() {
         ` : ''}
       </div>
     `;
-  }).join('') || (allCustomersScopeMode === 'all'
-    ? `<div class="text-center py-12 px-4 space-y-2">
-         <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center mx-auto text-amber-400">
-           <i data-lucide="database" class="w-5 h-5"></i>
-         </div>
-         <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនចាស់ក្នុង Master Data នៅឡើយទេ</p>
-         <p class="text-[11px] text-slate-500">អ្នកអាចប្តូរទៅកាន់ "Sheet ផ្ទាល់ខ្លួន" ដើម្បីពិនិត្យមើលទិន្នន័យបច្ចុប្បន្ន</p>
-       </div>`
-    : `<div class="text-center py-12 px-4 space-y-2">
-         <div class="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center mx-auto text-blue-400">
-           <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
-         </div>
-         <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួននៅឡើយទេ</p>
-         <p class="text-[11px] text-slate-500">រាល់ការកត់ត្រាការលក់ថ្មី អតិថិជននឹងបង្ហាញនៅទីនេះដោយស្វ័យប្រវត្តិ</p>
-       </div>`);
+}
+
+function renderAllCustomersBatch(isAppend = false, countOverride = null) {
+  const listEl = document.getElementById('all-customers-list');
+  if (!listEl) return;
+
+  const isEn = appState.language === 'en';
+  const expandFirstFromUrl = new URLSearchParams(window.location.search).get('expand_cust') === '1';
+  const startIdx = isAppend ? allCustomersRenderedCount : 0;
+  const targetCount = countOverride || (isAppend
+    ? Math.min(allCustomersRenderedCount + ALL_CUSTOMERS_CHUNK_SIZE, currentAllCustomersList.length)
+    : Math.min(ALL_CUSTOMERS_CHUNK_SIZE, currentAllCustomersList.length));
+  const batch = currentAllCustomersList.slice(startIdx, targetCount);
+
+  if (batch.length === 0 && !isAppend) {
+    listEl.innerHTML = (allCustomersScopeMode === 'all'
+      ? `<div class="text-center py-12 px-4 space-y-2">
+           <div class="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center mx-auto text-amber-400">
+             <i data-lucide="database" class="w-5 h-5"></i>
+           </div>
+           <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនចាស់ក្នុង Master Data នៅឡើយទេ</p>
+           <p class="text-[11px] text-slate-500">អ្នកអាចប្តូរទៅកាន់ "Sheet ផ្ទាល់ខ្លួន" ដើម្បីពិនិត្យមើលទិន្នន័យបច្ចុប្បន្ន</p>
+         </div>`
+      : `<div class="text-center py-12 px-4 space-y-2">
+           <div class="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center mx-auto text-blue-400">
+             <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+           </div>
+           <p class="text-xs font-semibold text-slate-300">មិនទាន់មានទិន្នន័យអតិថិជនក្នុង Sheet ផ្ទាល់ខ្លួននៅឡើយទេ</p>
+           <p class="text-[11px] text-slate-500">រាល់ការកត់ត្រាការលក់ថ្មី អតិថិជននឹងបង្ហាញនៅទីនេះដោយស្វ័យប្រវត្តិ</p>
+         </div>`);
+    allCustomersRenderedCount = 0;
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  if (batch.length === 0 && isAppend) return;
+
+  const html = batch.map((c, i) => getAllCustomerCardHTML(c, startIdx + i, expandFirstFromUrl, isEn)).join('');
+  if (isAppend) {
+    listEl.insertAdjacentHTML('beforeend', html);
+  } else {
+    listEl.innerHTML = html;
+  }
+  allCustomersRenderedCount = targetCount;
   if (window.lucide) window.lucide.createIcons();
+}
+
+function renderAllCustomersList(preserveCount = false) {
+  const listEl = document.getElementById('all-customers-list');
+  const countBadge = document.getElementById('all-customers-count-badge');
+  const summaryEl = document.getElementById('all-customers-summary');
+  if (!listEl) return;
+
+  const q = (document.getElementById('all-customers-search-input')?.value || '').trim().toLowerCase();
+  let customers = getAllUniqueCustomers();
+
+  if (q) {
+    customers = customers.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.phone.toLowerCase().includes(q) ||
+      c.location.toLowerCase().includes(q) ||
+      c.seller.toLowerCase().includes(q)
+    );
+  }
+
+  if (allCustomersSortMode === 'top') {
+    customers.sort((a, b) => (b.totalBoxes - a.totalBoxes) || (b.totalSpent - a.totalSpent));
+  } else if (allCustomersSortMode === 'name') {
+    customers.sort((a, b) => a.name.localeCompare(b.name, 'km'));
+  } else {
+    // Latest (31 ➔ 01 / 12 ➔ 01)
+    customers.sort((a, b) => (b.lastIsoDate || '').localeCompare(a.lastIsoDate || ''));
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('expand_cust') === '1' && !expandedCustomerKey && customers.length > 0) {
+    expandedCustomerKey = customers[0].key;
+  }
+
+  const isEn = appState.language === 'en';
+  const heading = document.getElementById('all-customers-title-heading');
+  const countText = document.getElementById('all-customers-count-text');
+  const countDisplay = isEn ? `(${customers.length} Cust)` : `(${customers.length} នាក់)`;
+  
+  if (heading) {
+    if (allCustomersScopeMode === 'all') {
+      heading.innerHTML = `<span>អតិថិជនទាំងអស់</span> <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-amber-500/20 text-amber-300 text-[10.5px] font-medium leading-normal border border-amber-500/30">Master</span> <span id="all-customers-count-text" class="text-amber-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+    } else {
+      heading.innerHTML = `<span>បញ្ជីអតិថិជន</span> <span class="inline-flex items-center px-2 pt-0.5 pb-1 rounded-lg bg-blue-500/20 text-blue-300 text-[10.5px] font-medium leading-normal border border-blue-500/30">Sheet ផ្ទាល់ខ្លួន</span> <span id="all-customers-count-text" class="text-blue-400 font-mono text-[11px] font-semibold">${countDisplay}</span>`;
+    }
+  } else if (countText) {
+    countText.textContent = countDisplay;
+  }
+  if (countBadge) countBadge.textContent = `${customers.length} នាក់`;
+
+  const totalOrdersSum = customers.reduce((acc, c) => acc + c.totalOrders, 0);
+  const totalBoxesSum = customers.reduce((acc, c) => acc + c.totalBoxes, 0);
+  const totalSpentSum = customers.reduce((acc, c) => acc + c.totalSpent, 0);
+
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 shadow-sm">
+        <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Orders' : 'សរុបការកុម្ម៉ង់'}</span>
+        <span class="font-mono font-bold text-xs text-white">${formatInt(totalOrdersSum)} ${isEn ? 'times' : 'ដង'}</span>
+      </div>
+      <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 shadow-sm">
+        <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Boxes' : 'សរុបប្រអប់'}</span>
+        <span class="font-mono font-bold text-xs text-orange-400">${formatInt(totalBoxesSum)} ${isEn ? 'Boxes' : 'ប្រអប់'}</span>
+      </div>
+      <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 shadow-sm">
+        <span class="text-[10px] text-slate-400 block">${isEn ? 'Total Revenue' : 'ទឹកប្រាក់សរុប'}</span>
+        <span class="font-mono font-bold text-xs text-emerald-400">${formatUSD(totalSpentSum)}</span>
+      </div>
+    `;
+  }
+
+  currentAllCustomersList = customers;
+  const initialCount = preserveCount && allCustomersRenderedCount > 0
+    ? Math.min(allCustomersRenderedCount, customers.length)
+    : Math.min(ALL_CUSTOMERS_CHUNK_SIZE, customers.length);
+  renderAllCustomersBatch(false, initialCount);
 }
 
 // =========================================================
