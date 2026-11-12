@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.44">
+  <link rel="manifest" href="manifest.json?v=67.45">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -8694,7 +8694,7 @@
     <div class="w-full max-w-md mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
       
       <!-- Top Modal Header -->
-      <div onclick="handleHeaderScrollToTop(event, 'seller-reward-modal-body')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none shadow-md shadow-black/20">
+      <div onclick="handleHeaderScrollToTop(event, 'seller-reward-modal-body')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer select-none shadow-md shadow-black/20" style="padding-top: max(env(safe-area-inset-top, 0px), 12px);">
         <div class="flex items-center gap-2.5 min-w-0">
           <button type="button" onclick="event.stopPropagation(); closeSellerRewardModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-amber-400"></i>
@@ -8710,7 +8710,7 @@
       </div>
 
       <!-- Scrollable Modal Body -->
-      <div class="p-3.5 pb-8 overflow-y-auto flex-1 no-scrollbar space-y-3" id="seller-reward-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;">
+      <div class="p-3.5 overflow-y-auto flex-1 no-scrollbar space-y-3" id="seller-reward-modal-body" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));">
 
         <!-- Info Card: Rows 1 to 3 -->
         <div class="p-3.5 rounded-2xl bg-black/30 border border-white/10 space-y-2.5 text-xs">
@@ -8876,18 +8876,12 @@
           </button>
         </div>
 
-        <!-- Copy Feedback Banner (Hidden by default, shown upon copying) -->
-        <div id="seller-reward-copy-banner" class="hidden p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-fade-in">
-          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
-          <span>បានចម្លងរួចរាល់! អាចយកទៅបិទភ្ជាប់ (Paste) ផ្ញើចេញបាន។</span>
-        </div>
-
       </div>
 
     </div>
   </div>
 
-  <script src="dataService.js?v=67.44"></script>
-  <script src="app.js?v=67.44"></script>
+  <script src="dataService.js?v=67.45"></script>
+  <script src="app.js?v=67.45"></script>
 </body>
 </html>

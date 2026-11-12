@@ -15029,16 +15029,16 @@ async function handleTab1CodStatusChange(idx, newStatus) {
   // 2. Dispatch to Webhook
   try {
     const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function' ? getAppsScriptWebhookUrl() : null) || (typeof DEFAULT_APPS_SCRIPT_URL !== 'undefined' ? DEFAULT_APPS_SCRIPT_URL : '');
-    const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
+    const safeSheetId = (typeof getSafeWebhookSheetId === 'function') ? getSafeWebhookSheetId() : '';
 
-    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http') && safeSheetId) {
       fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'update_cod_status',
-          sheetId: activeSheetId,
+          sheetId: safeSheetId,
           data: {
             recordId: item.recordId || '',
             orderId: item.orderId || item.no || '',
@@ -15735,14 +15735,15 @@ function handleCodStatusChange(recordId, orderId, newStatus, rowIndex, date, pho
   // 2. Sync to Google Sheet via Google Apps Script Web App
   try {
     const appsScriptUrl = (typeof DEFAULT_APPS_SCRIPT_URL !== 'undefined') ? DEFAULT_APPS_SCRIPT_URL : '';
-    if (appsScriptUrl) {
+    const safeSheetId = (typeof getSafeWebhookSheetId === 'function') ? getSafeWebhookSheetId() : '';
+    if (appsScriptUrl && safeSheetId) {
       fetch(appsScriptUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'update_cod_status',
-          sheetId: (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '',
+          sheetId: safeSheetId,
           data: {
             recordId: match?.recordId || recordId || '',
             orderId: match?.orderId || orderId || '',
@@ -16040,17 +16041,17 @@ async function submitEditBankAccount() {
 
   // 2. Dispatch to Google Apps Script Webhook
   const webhookUrl = (typeof getAppsScriptWebhookUrl === 'function' ? getAppsScriptWebhookUrl() : null) || (typeof DEFAULT_APPS_SCRIPT_URL !== 'undefined' ? DEFAULT_APPS_SCRIPT_URL : '');
-  const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
+  const safeSheetId = (typeof getSafeWebhookSheetId === 'function') ? getSafeWebhookSheetId() : '';
 
   try {
-    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http') && safeSheetId) {
       await fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'update_bank_balance',
-          sheetId: activeSheetId,
+          sheetId: safeSheetId,
           data: {
             accountNo: no,
             accountName: origName,
@@ -18230,17 +18231,17 @@ async function executeDeleteExpense() {
 
   // 3. Dispatch to Webhook
   const webhookUrl = getAppsScriptWebhookUrl();
-  const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
+  const safeSheetId = (typeof getSafeWebhookSheetId === 'function') ? getSafeWebhookSheetId() : '';
 
   try {
-    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http') && safeSheetId) {
       await fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'delete_expense',
-          sheetId: activeSheetId,
+          sheetId: safeSheetId,
           data: {
             rowIndex: exp.rowIndex,
             description: exp.description,
@@ -20226,12 +20227,36 @@ async function syncOfflineQueue() {
   let syncedOrders = 0;
   const remainingOrders = [];
   for (const order of queue.orders) {
+    const entryMode = order._entryMode || (order.syncToBostarTrack ? 'dock' : 'telegram');
+    const allowBostar = (entryMode === 'dock' || Boolean(order._syncToBostarTrack ?? order.syncToBostarTrack));
+    const fallbackPersonalId = (typeof getSafeWebhookSheetId === 'function') ? getSafeWebhookSheetId(null, false) : '';
+    const candidateSheetId = order._targetSheetId || fallbackPersonalId;
+    const targetSheetId = (typeof getSafeWebhookSheetId === 'function')
+      ? getSafeWebhookSheetId(candidateSheetId, allowBostar)
+      : candidateSheetId;
+
+    // ហាមដាច់ខាតមិនបាញ់ Order ទៅ Webhook ដោយគ្មាន sheetId ឬឆ្លងចូល Sheet Admin / BostarTrack ខុសច្បាប់ឡើយ
+    if (!targetSheetId) {
+      console.warn('Dropping unsafe offline order sync due to missing or unauthorized sheetId:', order);
+      continue;
+    }
+
+    const cleanOrder = { ...order };
+    delete cleanOrder._targetSheetId;
+    delete cleanOrder._entryMode;
+    delete cleanOrder._syncToBostarTrack;
+
     try {
       await fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'add_order', data: order })
+        body: JSON.stringify({
+          action: 'add_order',
+          sheetId: targetSheetId,
+          syncToBostarTrack: Boolean(order._syncToBostarTrack ?? order.syncToBostarTrack),
+          data: cleanOrder
+        })
       });
       syncedOrders++;
     } catch (err) {
@@ -20244,9 +20269,12 @@ async function syncOfflineQueue() {
   const remainingExpenses = [];
   const currentActiveSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
   for (const exp of queue.expenses) {
-    const targetSheetId = exp.sheetId || currentActiveSheetId;
-    if (!targetSheetId || targetSheetId.length < 15 || targetSheetId === BOSTAR_TRACK_ATTENDANCE_SHEET_ID) {
-      console.warn('Skipping offline expense sync due to missing or invalid personal sheet ID:', exp);
+    const rawTarget = exp.sheetId || currentActiveSheetId;
+    const targetSheetId = (typeof getSafeWebhookSheetId === 'function')
+      ? getSafeWebhookSheetId(rawTarget, false)
+      : rawTarget;
+    if (!targetSheetId) {
+      console.warn('Skipping offline expense sync due to missing or unauthorized personal sheet ID:', exp);
       continue;
     }
     try {
@@ -21426,7 +21454,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.44';
+const CURRENT_APP_VERSION = '67.45';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -27199,14 +27227,15 @@ async function submitEditSalesOrder() {
 
   try {
     const webhookUrl = getAppsScriptWebhookUrl();
-    if (webhookUrl) {
+    const safeSheetId = (typeof getSafeWebhookSheetId === 'function') ? getSafeWebhookSheetId() : '';
+    if (webhookUrl && safeSheetId) {
       fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'update_order',
-          sheetId: (typeof DataService !== 'undefined' && DataService.getActiveSheetId) ? DataService.getActiveSheetId() : '',
+          sheetId: safeSheetId,
           syncToBostarTrack: true,
           data: payloadData
         })
@@ -27540,9 +27569,22 @@ async function submitMemberLogin() {
   }
 
   const TEMPLATE_SHEET_REF = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
+  const MASTER_ADMIN_SHEET_REF = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+  const BOSTAR_MASTER_SHEET_REF = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+  const verifiedSellerNameCheck = matchedSeller.km || name;
+  const isAllowedMasterAccount = (code === 'MASTER-01' || code === 'SD-01') ||
+                                 (verifiedSellerNameCheck && (verifiedSellerNameCheck.includes('ស្ដី') || verifiedSellerNameCheck.includes('ស្តី')));
   if (cleanId === TEMPLATE_SHEET_REF) {
     if (statusBox) {
       statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5 leading-snug"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>នេះជា Sheet គំរូដើម! សូមចុច "Make a copy" (ចម្លងទុកក្នុង Google Drive ផ្ទាល់ខ្លួន) រួចយក Link នៃ Sheet ថ្មីរបស់អ្នកមកភ្ជាប់។</span></span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    urlInput?.focus();
+    return;
+  }
+  if (cleanId === BOSTAR_MASTER_SHEET_REF || (cleanId === MASTER_ADMIN_SHEET_REF && !isAllowedMasterAccount)) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5 leading-snug"><i data-lucide="shield-alert" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>ហាមដាច់ខាត! នេះជា Google Sheet របស់ប្រព័ន្ធ ឬម្ចាស់ប្រព័ន្ធ។ សូមភ្ជាប់ Link Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នកវិញ។</span></span>';
       if (window.lucide) window.lucide.createIcons();
     }
     urlInput?.focus();
@@ -27665,9 +27707,19 @@ async function submitNewAccount() {
   }
 
   const TEMPLATE_SHEET_REF = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
+  const MASTER_ADMIN_SHEET_REF = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+  const BOSTAR_MASTER_SHEET_REF = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
   if (cleanId === TEMPLATE_SHEET_REF) {
     if (statusBox) {
       statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5 leading-snug"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>នេះជា Sheet គំរូដើម! សូមចុច "Make a copy" (ចម្លងទុកក្នុង Google Drive ផ្ទាល់ខ្លួន) រួចយក Link នៃ Sheet ថ្មីរបស់អ្នកមកភ្ជាប់។</span></span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    urlInput?.focus();
+    return;
+  }
+  if (cleanId === MASTER_ADMIN_SHEET_REF || cleanId === BOSTAR_MASTER_SHEET_REF) {
+    if (statusBox) {
+      statusBox.innerHTML = '<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5 leading-snug"><i data-lucide="shield-alert" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>ហាមដាច់ខាត! នេះជា Google Sheet របស់ប្រព័ន្ធ ឬម្ចាស់ប្រព័ន្ធ។ សូមភ្ជាប់ Link Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នកវិញ។</span></span>';
       if (window.lucide) window.lucide.createIcons();
     }
     urlInput?.focus();
@@ -32193,6 +32245,22 @@ try {
   localStorage.setItem('sd_apps_script_url', DEFAULT_APPS_SCRIPT_URL);
 } catch (_) {}
 
+function getSafeWebhookSheetId(candidateId = null, allowBostarTrack = false) {
+  const ADMIN_MASTER_ID = '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU';
+  const BOSTAR_MASTER_ID = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
+  const TEMPLATE_ID = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
+  const raw = (candidateId !== null && candidateId !== undefined)
+    ? String(candidateId).trim()
+    : ((typeof DataService !== 'undefined' && typeof DataService.getActiveSheetId === 'function')
+        ? String(DataService.getActiveSheetId() || '').trim()
+        : '');
+  if (!raw || raw === 'DEMO_MODE' || raw.length < 16 || raw === TEMPLATE_ID) return '';
+  const isAdmin = (typeof isMasterAdminUser === 'function') && isMasterAdminUser();
+  if (raw === ADMIN_MASTER_ID && !isAdmin) return '';
+  if (raw === BOSTAR_MASTER_ID && !allowBostarTrack) return '';
+  return raw;
+}
+
 const COMPANY_GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd_hP30dqB-F5gCV44AuxcftgmoDjo5zzkN-NSMiK-1rDEqPQ/formResponse';
 
 function onSellerNameChange(val) {
@@ -34851,6 +34919,23 @@ async function submitNewOrder() {
     }
   }
 
+  // ពិនិត្យសុវត្ថិភាព Sheet មុនរក្សាទុក៖ បើជា Telegram Mode (ក្រៅពី Apps Assistant) ត្រូវមាន Google Sheet ផ្ទាល់ខ្លួនជាដាច់ខាត
+  const isDockOrderPrecheck = (currentOrderEntryMode === 'dock');
+  const isAssistantPrecheck = (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive);
+  const precheckPersonalSheetId = (typeof getSafeWebhookSheetId === 'function')
+    ? getSafeWebhookSheetId(
+        ((typeof isMasterAdminUser === 'function') && isMasterAdminUser())
+          ? '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU'
+          : ((typeof DataService !== 'undefined' && DataService.getCustomSheetId) ? DataService.getCustomSheetId() : ''),
+        false
+      )
+    : '';
+  if (!isDockOrderPrecheck && !isAssistantPrecheck && !precheckPersonalSheetId) {
+    alert('⚠️ មិនអាចកត់ត្រាពី Telegram បានទេ! សូមភ្ជាប់ Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នកជាមុនសិន ក្នុងទំព័រ Profile / Settings (Master Data ទទួលតែពីការកុម្ម៉ង់ថ្មីប៉ុណ្ណោះ)។');
+    if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
+    return;
+  }
+
   const btn = document.getElementById('btn-submit-order');
   if (btn) {
     btn.disabled = true;
@@ -34989,43 +35074,45 @@ async function submitNewOrder() {
 
   const syncTasks = [];
 
-  // កំណត់ស្ថានភាព Sheet ផ្ទាល់ខ្លួនរបស់អ្នកលក់
+  // កំណត់ស្ថានភាព Sheet ផ្ទាល់ខ្លួនរបស់អ្នកលក់ (Strictly isolated)
   const isMasterAdmin = (typeof isMasterAdminUser === 'function') && isMasterAdminUser();
   const customSheetId = (typeof DataService !== 'undefined' && DataService.getCustomSheetId) ? DataService.getCustomSheetId() : '';
   const bostarMasterDataSheetId = '1yTLq_EepGZfxv_lR8cmTeWWVULgP6ADUkB6uZX2eNA4';
-  const templateSheetId = '1a7aqCSKWRGKuBiV8BoaNlJFT9Uarfx9ijoV5hLH-Beg';
-  const hasPersonalSheet = (isMasterAdmin) || (customSheetId && customSheetId.length > 15 && customSheetId !== bostarMasterDataSheetId && customSheetId !== templateSheetId);
-  const personalSheetId = isMasterAdmin ? '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU' : customSheetId;
+  const rawPersonalSheetId = isMasterAdmin ? '1Qu70irzkvKyYN49eoquTModvm33WT5ZEyTTjUFoEbWU' : customSheetId;
+  const personalSheetId = (typeof getSafeWebhookSheetId === 'function') ? getSafeWebhookSheetId(rawPersonalSheetId, false) : '';
+  const hasPersonalSheet = Boolean(personalSheetId);
+
+  let orderPayload = null;
+  if (isAssistantEntry) {
+    // លើកលែងពិសេសសម្រាប់ Admin ដោយប្រើ Apps Assistant -> ចូល Master Data
+    orderPayload = {
+      action: 'add_order',
+      sheetId: bostarMasterDataSheetId,
+      syncToBostarTrack: true,
+      data: newRecord
+    };
+  } else if (hasPersonalSheet) {
+    // សមាជិកដែលមាន Sheet ផ្ទាល់ខ្លួន៖
+    // - Dock Order (កុម្ម៉ង់ថ្មី) -> ចូល Sheet ផ្ទាល់ខ្លួន + BostarTrack
+    // - Telegram Mode -> ចូលតែ Sheet ផ្ទាល់ខ្លួនប៉ុណ្ណោះ (ហាមចូល BostarTrack)
+    orderPayload = {
+      action: 'add_order',
+      sheetId: personalSheetId,
+      syncToBostarTrack: isDockOrder,
+      data: newRecord
+    };
+  } else if (isDockOrder) {
+    // សមាជិកគ្មាន Sheet ផ្ទាល់ខ្លួន + កុម្ម៉ង់ថ្មី (Dock Order) -> ចូលតែ Master Data (BostarTrack) ប៉ុណ្ណោះ ហាមចូល Sheet Admin!
+    orderPayload = {
+      action: 'add_order',
+      sheetId: bostarMasterDataSheetId,
+      syncToBostarTrack: false,
+      data: newRecord
+    };
+  }
 
   // 3A. Webhook Sync (ទិសទី ២: Master Data និង ទិសទី ៣: Sheet ផ្ទាល់ខ្លួន)
-  if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
-    let orderPayload = null;
-    if (isAssistantEntry) {
-      orderPayload = {
-        action: 'add_order',
-        sheetId: bostarMasterDataSheetId,
-        syncToBostarTrack: true,
-        data: newRecord
-      };
-    } else if (hasPersonalSheet) {
-      // សមាជិកដែលមាន Sheet ផ្ទាល់ខ្លួន៖ បញ្ចូលទាំងក្នុង Sheet ផ្ទាល់ខ្លួន និង Master Data (3-in-1 ពេញលេញ)
-      orderPayload = {
-        action: 'add_order',
-        sheetId: personalSheetId,
-        syncToBostarTrack: isDockOrder,
-        data: newRecord
-      };
-    } else {
-      // សមាជិកថ្មីដែលគ្មាន Sheet ផ្ទាល់ខ្លួន៖ ផ្អាក (Skip) ទិសទី ៣ ដោយស្វ័យប្រវត្តិ!
-      // បាញ់ត្រង់ចូលតែ Master Data ប៉ុណ្ណោះ ដាច់ខាតមិនឱ្យធ្លាក់ចូល Sheet របស់ Admin ឡើយ!
-      orderPayload = {
-        action: 'add_order',
-        sheetId: bostarMasterDataSheetId,
-        syncToBostarTrack: false,
-        data: newRecord
-      };
-    }
-
+  if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http') && orderPayload && orderPayload.sheetId) {
     syncTasks.push(
       fetch(webhookUrl, {
         method: 'POST',
@@ -35094,9 +35181,14 @@ async function submitNewOrder() {
     }
     showToastNotification(successMsg);
   } else {
-    if (!isAssistantEntry) {
+    if (!isAssistantEntry && orderPayload && orderPayload.sheetId) {
       if (typeof queueOfflineOrder === 'function') {
-        queueOfflineOrder(newRecord);
+        queueOfflineOrder({
+          ...newRecord,
+          _targetSheetId: orderPayload.sheetId,
+          _entryMode: isDockOrder ? 'dock' : 'telegram',
+          _syncToBostarTrack: Boolean(orderPayload.syncToBostarTrack)
+        });
       }
     }
     if (typeof addAppNotification === 'function') {
@@ -36014,9 +36106,9 @@ async function submitNewExpense() {
 
     // 2. Dispatch to Webhook
     const webhookUrl = getAppsScriptWebhookUrl();
-    const activeSheetId = (DataService && typeof DataService.getActiveSheetId === 'function') ? DataService.getActiveSheetId() : '';
+    const safeSheetId = (typeof getSafeWebhookSheetId === 'function') ? getSafeWebhookSheetId() : '';
 
-    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+    if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http') && safeSheetId) {
       try {
         await fetch(webhookUrl, {
           method: 'POST',
@@ -36024,7 +36116,7 @@ async function submitNewExpense() {
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             action: 'update_expense',
-            sheetId: activeSheetId,
+            sheetId: safeSheetId,
             data: {
               rowIndex: editRowIndex,
               origDesc: origDesc,
@@ -37112,7 +37204,7 @@ function openSellerRewardModal(sellerOverride = null) {
   if (modalBody) {
     modalBody.scrollTop = 0;
   }
-  if (typeof setDockVisible === 'function') setDockVisible(true);
+  if (typeof setDockVisible === 'function') setDockVisible(false);
 
   if (window.lucide && typeof lucide.createIcons === 'function') {
     lucide.createIcons();
@@ -37127,8 +37219,6 @@ function closeSellerRewardModal() {
   document.body.classList.remove('overflow-hidden');
   const modalBody = document.getElementById('seller-reward-modal-body');
   if (modalBody) modalBody.scrollTop = 0;
-  const banner = document.getElementById('seller-reward-copy-banner');
-  if (banner) banner.classList.add('hidden');
   if (typeof isDialogModalOpen === 'function' && !isDialogModalOpen() && typeof setDockVisible === 'function') {
     setDockVisible(true);
   }
@@ -37485,16 +37575,10 @@ async function copySellerRewardTelegramText() {
 
   if (navigator.vibrate) try { navigator.vibrate([15, 50, 15]); } catch (_) {}
 
-  const banner = document.getElementById('seller-reward-copy-banner');
-  if (banner) {
-    banner.classList.remove('hidden');
-    setTimeout(() => { banner.classList.add('hidden'); }, 4000);
-  }
-
   const btn = document.getElementById('btn-copy-seller-reward');
   if (btn) {
     const origHtml = btn.innerHTML;
-    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4 stroke-[2.5] text-emerald-950"></i><span>បានចម្លងរួចរាល់! ✓</span>`;
+    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4 stroke-[2.5] text-emerald-950"></i><span>បានចម្លងរួចរាល់!</span>`;
     btn.classList.add('bg-emerald-400');
     if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
     setTimeout(() => {

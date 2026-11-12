@@ -26,36 +26,37 @@ function getActiveSheetId() {
       return 'DEMO_MODE';
     }
 
-    // 1. ពិនិត្យ Custom Sheet ID ដែលសមាជិកបានភ្ជាប់ដោយផ្ទាល់ខ្លួន
-    const custom = (typeof localStorage !== 'undefined') ? localStorage.getItem('sd_custom_sheet_id') : null;
-    if (custom && custom.trim() === TEMPLATE_SHEET_ID) {
-      try { localStorage.removeItem('sd_custom_sheet_id'); } catch (_) {}
-    }
-    const hasValidCustom = custom && custom.trim().length > 15 && custom.trim() !== TEAM_HIERARCHY_SHEET_ID && custom.trim() !== TEMPLATE_SHEET_ID;
+    const isMasterAdminAuthed = (typeof localStorage !== 'undefined' && localStorage.getItem('sd_master_admin_authenticated') === 'true');
 
-    // 2. ការពារសមាជិកដែលមាន Sheet រួចហើយ មិនឱ្យ URL ?sheet= មកសង្កត់ជាន់ (Overwrite) ដាច់ខាត
+    // 1. ពិនិត្យ Custom Sheet ID ដែលសមាជិកបានភ្ជាប់ដោយផ្ទាល់ខ្លួន
+    let custom = (typeof localStorage !== 'undefined') ? localStorage.getItem('sd_custom_sheet_id') : null;
+    if (custom && (custom.trim() === TEMPLATE_SHEET_ID || custom.trim() === TEAM_HIERARCHY_SHEET_ID || (custom.trim() === MASTER_SDOEUNG_SHEET_ID && !isMasterAdminAuthed))) {
+      try { localStorage.removeItem('sd_custom_sheet_id'); } catch (_) {}
+      custom = null;
+    }
+    const hasValidCustom = Boolean(custom && custom.trim().length > 15 && custom.trim() !== TEAM_HIERARCHY_SHEET_ID && custom.trim() !== TEMPLATE_SHEET_ID && (custom.trim() !== MASTER_SDOEUNG_SHEET_ID || isMasterAdminAuthed));
+
+    // 2. ការពារសមាជិកដែលមាន Sheet រួចហើយ មិនឱ្យ URL ?sheet= មកសង្កត់ជាន់ (Overwrite) និងហាមភ្ជាប់ Sheet របស់ Admin ឬ Template ដាច់ខាត
     if (typeof window !== 'undefined' && window.location && window.location.search) {
       const urlParams = new URLSearchParams(window.location.search);
       const urlSheet = urlParams.get('sheet') || urlParams.get('sheet_id');
       if (urlSheet && urlSheet.trim().length > 15) {
         const cleanUrlSheet = extractSheetId(urlSheet.trim()) || urlSheet.trim();
-        // ហាមដាច់ខាតមិនកំណត់ Template Sheet ចូល LocalStorage
-        if (cleanUrlSheet !== TEMPLATE_SHEET_ID && !hasValidCustom) {
+        const isBlockedMasterUrl = (cleanUrlSheet === MASTER_SDOEUNG_SHEET_ID && !isMasterAdminAuthed);
+        if (cleanUrlSheet !== TEMPLATE_SHEET_ID && cleanUrlSheet !== TEAM_HIERARCHY_SHEET_ID && !isBlockedMasterUrl && !hasValidCustom) {
           localStorage.setItem('sd_custom_sheet_id', cleanUrlSheet);
           return cleanUrlSheet;
         }
       }
     }
 
-    if (custom && custom.trim() === TEAM_HIERARCHY_SHEET_ID) {
-      localStorage.removeItem('sd_custom_sheet_id');
-    } else if (hasValidCustom) {
+    if (hasValidCustom) {
       return custom.trim();
     }
 
     // 3. សុវត្ថិភាពខ្ពស់បំផុត៖ ផ្តល់សិទ្ធិ Master Admin Sheet (1Qu70...) លុះត្រាតែមានការផ្ទៀងផ្ទាត់ផ្លូវការជាក់ស្តែងប៉ុណ្ណោះ
     // ហាមដាច់ខាតកុំស្មានតាមឈ្មោះ sd_last_seller ដែលធ្វើឱ្យច្រឡំគណនីឆ្លងគ្នា!
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('sd_master_admin_authenticated') === 'true') {
+    if (isMasterAdminAuthed) {
       return MASTER_SDOEUNG_SHEET_ID;
     }
   } catch (_) {}
@@ -1973,7 +1974,14 @@ window.DataService = {
   getCustomSheetId() {
     try {
       if (this.isDemoMode()) return '';
-      return localStorage.getItem('sd_custom_sheet_id') || '';
+      const raw = (localStorage.getItem('sd_custom_sheet_id') || '').trim();
+      if (!raw) return '';
+      const isMasterAdminAuthed = localStorage.getItem('sd_master_admin_authenticated') === 'true';
+      if (raw === TEMPLATE_SHEET_ID || raw === TEAM_HIERARCHY_SHEET_ID || (raw === MASTER_SDOEUNG_SHEET_ID && !isMasterAdminAuthed)) {
+        try { localStorage.removeItem('sd_custom_sheet_id'); } catch (_) {}
+        return '';
+      }
+      return raw;
     } catch (_) {
       return '';
     }
@@ -1986,6 +1994,10 @@ window.DataService = {
     }
     if (cleanId === TEMPLATE_SHEET_ID) {
       throw new Error('នេះជា Sheet គំរូដើម! សូមចុច "Make a copy" (ចម្លង Sheet នេះទុកក្នុង Google Drive ផ្ទាល់ខ្លួនរបស់អ្នកសិន) រួចយក ID ឬ Link នៃ Sheet ថ្មីនោះមកភ្ជាប់។');
+    }
+    const isMasterAdminAuthed = (typeof localStorage !== 'undefined' && localStorage.getItem('sd_master_admin_authenticated') === 'true');
+    if (cleanId === TEAM_HIERARCHY_SHEET_ID || (cleanId === MASTER_SDOEUNG_SHEET_ID && !isMasterAdminAuthed)) {
+      throw new Error('ហាមដាច់ខាតមិនអនុញ្ញាតឱ្យភ្ជាប់ Google Sheet របស់ប្រព័ន្ធ ឬម្ចាស់ប្រព័ន្ធឡើយ! សូមប្រើ Link Google Sheet ផ្ទាល់ខ្លួនរបស់អ្នក។');
     }
     try {
       localStorage.removeItem('sd_local_orders');
