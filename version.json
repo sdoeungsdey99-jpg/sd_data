@@ -1,5 +1,5 @@
 {
-  "version": "67.46",
-  "buildTime": "2026-11-12T14:50:00+07:00",
-  "notes": "v67.46: Fix Boost & Plan modal Dock navigation, back/swipe gestures, and Quick Boost/Thai COD/Master Auth dialog Dock visibility; fix Attendance Leave/Manager/Top10 Home Dock dismissal; add 40-item lazy batch rendering to All Customers & Expenses modals"
+  "version": "67.48",
+  "buildTime": "2026-11-13T23:20:00+07:00",
+  "notes": "v67.48: Floating 3-step order sync animation in free space, Method 3 parallel background sync with 4s timeout guard & offline fallback; new BOSTAR GROUP executive showcase card with official golden crest & motto «Bostar Group រីកចម្រើនជាមួយគ្នា»"
 }

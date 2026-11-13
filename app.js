@@ -6545,19 +6545,15 @@ function renderExecutiveHierarchyModalContent() {
 
   const directorHtml = `
     <div onclick="handleDirectorClick(event)" 
-         class="director-showcase-card p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0C1425]/90 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5"
+         class="director-showcase-card p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#0C1425]/90 to-black/40 border border-amber-500/40 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400 shadow-lg shadow-amber-500/10"
          title="ចុចដើម្បីបង្ហាញបញ្ជីទាំងអស់ឡើងវិញ">
       <div class="flex items-center gap-3 min-w-0">
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-black flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/30 shrink-0">
-          <i data-lucide="award" class="w-6 h-6"></i>
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400/25 via-amber-500/15 to-amber-600/30 border border-amber-500/40 flex items-center justify-center p-1.5 shadow-md shadow-amber-500/20 shrink-0">
+          <img src="bostar-gold-crest.png" alt="BOSTAR GROUP" class="w-full h-full object-contain filter drop-shadow(0 2px 4px rgba(245,158,11,0.4))">
         </div>
         <div class="min-w-0">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <h4 class="font-bold text-sm text-white truncate">${directorRaw ? directorRaw.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
-            <img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">
-            <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30 shrink-0">Director</span>
-          </div>
-          <p class="text-[10px] text-slate-400 mt-0.5 truncate">${directorRaw ? directorRaw.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
+          <h4 class="font-bold text-sm sm:text-base text-white tracking-wide truncate">BOSTAR GROUP</h4>
+          <p class="subtitle-text text-[11px] text-amber-300/85 mt-0.5 truncate font-medium">Bostar Group រីកចម្រើនជាមួយគ្នា</p>
         </div>
       </div>
 
@@ -8092,19 +8088,15 @@ function getDashboardViewHTML() {
 
         <!-- 1. TOP TIER: DIRECTOR PROFILE -->
         <div onclick="handleDirectorClick(event)" 
-             class="director-showcase-card p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0C1425]/90 to-black/40 border border-amber-500/30 flex items-center justify-between gap-3 relative z-10 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400/50 shadow-lg shadow-amber-500/5"
+             class="director-showcase-card p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#0C1425]/90 to-black/40 border border-amber-500/40 flex items-center justify-between gap-3 relative z-10 cursor-pointer select-none active:scale-[0.99] transition hover:border-amber-400 shadow-lg shadow-amber-500/10"
              title="ចុចដើម្បីបង្ហាញបញ្ជីទាំងអស់ឡើងវិញ">
           <div class="flex items-center gap-3 min-w-0">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-black flex items-center justify-center font-bold text-base shadow-lg shadow-amber-500/30 shrink-0">
-              <i data-lucide="award" class="w-6 h-6"></i>
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400/25 via-amber-500/15 to-amber-600/30 border border-amber-500/40 flex items-center justify-center p-1.5 shadow-md shadow-amber-500/20 shrink-0">
+              <img src="bostar-gold-crest.png" alt="BOSTAR GROUP" class="w-full h-full object-contain filter drop-shadow(0 2px 4px rgba(245,158,11,0.4))">
             </div>
             <div class="min-w-0">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <h4 class="font-bold text-sm text-white truncate">${directorRaw ? directorRaw.km : 'លោក ប៊ិច នោរ៉ា'}</h4>
-                <img src="gold-tick.png?v=39.6" alt="Director Verified" class="w-3.5 h-3.5 object-contain shrink-0" title="Director Verified 🌟">
-                <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold border border-amber-500/30 shrink-0">Director</span>
-              </div>
-              <p class="text-[10px] text-slate-400 mt-0.5 truncate">${directorRaw ? directorRaw.en : 'BECH NORA'} • ស្ថាបនិក BOSTAR GROUP</p>
+              <h4 class="font-bold text-sm sm:text-base text-white tracking-wide truncate">BOSTAR GROUP</h4>
+              <p class="subtitle-text text-[11px] text-amber-300/85 mt-0.5 truncate font-medium">Bostar Group រីកចម្រើនជាមួយគ្នា</p>
             </div>
           </div>
 
@@ -21541,7 +21533,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.46';
+const CURRENT_APP_VERSION = '67.48';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -33929,7 +33921,198 @@ function closeNewOrderModal() {
 // ==========================================
 let isOrderSubmittingInProgress = false;
 
+// Master Flow Timing for Floating 3-Step Order Sync Animation
+let orderSyncMasterTimer1 = null;
+let orderSyncMasterTimer2_start = null;
+let orderSyncMasterTimer2_done = null;
+let orderSyncMasterTimer3_start = null;
+let orderSyncMasterTimer_complete = null;
+let orderSyncDotInterval = null;
+
+function resetFloatingOrderSyncAnimation() {
+  clearTimeout(orderSyncMasterTimer1);
+  clearTimeout(orderSyncMasterTimer2_start);
+  clearTimeout(orderSyncMasterTimer2_done);
+  clearTimeout(orderSyncMasterTimer3_start);
+  clearTimeout(orderSyncMasterTimer_complete);
+  if (orderSyncDotInterval) clearInterval(orderSyncDotInterval);
+
+  const overlay = document.getElementById('floating-stepper-overlay');
+  if (overlay) {
+    overlay.classList.add('hidden', 'opacity-0', '-translate-y-2');
+    overlay.classList.remove('opacity-100', 'translate-y-0');
+  }
+  const modalBody = document.getElementById('new-order-modal-body');
+  if (modalBody) modalBody.style.opacity = '1';
+
+  ['1', '2', '3'].forEach(id => {
+    const box = document.getElementById(`step-box-${id}`);
+    if (box) box.classList.remove('icon-active-highlight');
+  });
+
+  const c1 = document.getElementById('step-col-1');
+  if (c1) c1.className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 transition-opacity duration-300 opacity-100';
+  const c2 = document.getElementById('step-col-2');
+  if (c2) c2.className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 transition-opacity duration-300 opacity-50';
+  const c3 = document.getElementById('step-col-3');
+  if (c3) c3.className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 relative transition-opacity duration-300 opacity-50';
+
+  ['1', '2'].forEach(id => {
+    const b = document.getElementById(`check-badge-${id}`);
+    if (b) b.classList.add('hidden');
+  });
+
+  const tgSpin = document.getElementById('telegram-spin-stroke');
+  if (tgSpin) tgSpin.classList.add('hidden');
+
+  ['label-step-1', 'label-step-2', 'telegram-label-text'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+
+  const l1 = document.getElementById('laser-line-1');
+  if (l1) {
+    l1.style.transition = 'none';
+    l1.style.strokeDashoffset = '50';
+  }
+  const h1 = document.getElementById('laser-head-1');
+  if (h1) h1.classList.add('hidden');
+
+  const l2 = document.getElementById('laser-line-2');
+  if (l2) {
+    l2.style.transition = 'none';
+    l2.style.strokeDashoffset = '50';
+  }
+  const h2 = document.getElementById('laser-head-2');
+  if (h2) h2.classList.add('hidden');
+}
+
+function startFloatingOrderSyncAnimation(onComplete) {
+  resetFloatingOrderSyncAnimation();
+
+  const overlay = document.getElementById('floating-stepper-overlay');
+  const modalBody = document.getElementById('new-order-modal-body');
+  if (modalBody) modalBody.style.opacity = '0.12';
+
+  if (overlay) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => {
+      overlay.classList.remove('opacity-0', '-translate-y-2');
+      overlay.classList.add('opacity-100', 'translate-y-0');
+    }, 30);
+  }
+
+  // Cycling dots on slider label (. -> .. -> ...)
+  let dotCount = 1;
+  const sliderText = document.getElementById('order-slider-text');
+  if (sliderText) {
+    sliderText.innerHTML = '<span class="text-amber-300 font-bold">កំពុងដំណើរការ.</span>';
+  }
+  if (orderSyncDotInterval) clearInterval(orderSyncDotInterval);
+  orderSyncDotInterval = setInterval(() => {
+    dotCount = (dotCount % 3) + 1;
+    const dots = '.'.repeat(dotCount);
+    if (sliderText) {
+      sliderText.innerHTML = `<span class="text-amber-300 font-bold">កំពុងដំណើរការ${dots}</span>`;
+    }
+  }, 450);
+
+  // STAGE 1 (0.0s -> 2.0s): Clipboard Active
+  const box1 = document.getElementById('step-box-1');
+  if (box1) box1.classList.add('icon-active-highlight');
+  const lbl1 = document.getElementById('label-step-1');
+  if (lbl1) lbl1.classList.add('active');
+
+  const laser1 = document.getElementById('laser-line-1');
+  if (laser1) {
+    laser1.style.transition = 'stroke-dashoffset 1.4s ease-out';
+    laser1.style.strokeDashoffset = '0';
+  }
+
+  // At 1.5s, Arrow 1 arrives -> Tick 1 pops & draws
+  orderSyncMasterTimer1 = setTimeout(() => {
+    const h1 = document.getElementById('laser-head-1');
+    if (h1) h1.classList.remove('hidden');
+    const b1 = document.getElementById('check-badge-1');
+    if (b1) b1.classList.remove('hidden');
+    if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+
+    // STAGE 2 (2.0s -> 4.0s): Database Active
+    orderSyncMasterTimer2_start = setTimeout(() => {
+      if (box1) box1.classList.remove('icon-active-highlight');
+      if (lbl1) lbl1.classList.remove('active');
+
+      const col2 = document.getElementById('step-col-2');
+      if (col2) {
+        col2.classList.remove('opacity-50');
+        col2.classList.add('opacity-100');
+      }
+      const box2 = document.getElementById('step-box-2');
+      if (box2) box2.classList.add('icon-active-highlight');
+      const lbl2 = document.getElementById('label-step-2');
+      if (lbl2) lbl2.classList.add('active');
+
+      const laser2 = document.getElementById('laser-line-2');
+      if (laser2) {
+        laser2.style.transition = 'stroke-dashoffset 1.4s ease-out';
+        laser2.style.strokeDashoffset = '0';
+      }
+
+      // At 3.5s, Arrow 2 arrives -> Tick 2 pops & draws
+      orderSyncMasterTimer2_done = setTimeout(() => {
+        const h2 = document.getElementById('laser-head-2');
+        if (h2) h2.classList.remove('hidden');
+        const b2 = document.getElementById('check-badge-2');
+        if (b2) b2.classList.remove('hidden');
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+
+        // STAGE 3 (4.0s -> 6.0s): Telegram Dashed Ring
+        orderSyncMasterTimer3_start = setTimeout(() => {
+          if (box2) box2.classList.remove('icon-active-highlight');
+          if (lbl2) lbl2.classList.remove('active');
+
+          const col3 = document.getElementById('step-col-3');
+          if (col3) {
+            col3.classList.remove('opacity-50');
+            col3.classList.add('opacity-100');
+          }
+          const box3 = document.getElementById('step-box-3');
+          if (box3) box3.classList.add('icon-active-highlight');
+          const spin = document.getElementById('telegram-spin-stroke');
+          if (spin) spin.classList.remove('hidden');
+          const lbl3 = document.getElementById('telegram-label-text');
+          if (lbl3) lbl3.classList.add('active');
+          if (navigator.vibrate) try { navigator.vibrate([15, 30, 15]); } catch (_) {}
+
+          // COMPLETION AT EXACTLY 6.0s
+          orderSyncMasterTimer_complete = setTimeout(() => {
+            if (orderSyncDotInterval) clearInterval(orderSyncDotInterval);
+
+            // Fade out floating stepper & restore form body
+            if (overlay) {
+              overlay.classList.remove('opacity-100', 'translate-y-0');
+              overlay.classList.add('opacity-0', '-translate-y-2');
+              setTimeout(() => {
+                overlay.classList.add('hidden');
+                if (modalBody) modalBody.style.opacity = '1';
+              }, 350);
+            }
+
+            if (typeof onComplete === 'function') onComplete();
+          }, 2000); // 4.0s to 6.0s
+
+        }, 500); // 3.5s + 0.5s = 4.0s
+
+      }, 1500); // 2.0s + 1.5s = 3.5s
+
+    }, 500); // 1.5s + 0.5s = 2.0s
+
+  }, 1500); // 0.0s + 1.5s = 1.5s
+}
+
 function resetOrderSubmitSlider() {
+  resetFloatingOrderSyncAnimation();
+
   const thumb = document.getElementById('order-slider-thumb');
   const fill = document.getElementById('order-slider-fill');
   const textWrap = document.getElementById('order-slider-label-wrap');
@@ -33943,9 +34126,11 @@ function resetOrderSubmitSlider() {
     slider.classList.remove('pointer-events-none', 'border-emerald-500/50');
   }
   if (thumb) {
-    thumb.classList.remove('bg-emerald-500');
+    thumb.classList.remove('bg-emerald-500', 'pointer-events-none');
+    thumb.classList.add('bg-gradient-to-tr', 'from-orange-500', 'via-amber-500', 'to-orange-400');
     thumb.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)';
     thumb.style.transform = 'translateX(0px)';
+    thumb.innerHTML = '<i id="order-slider-icon" data-lucide="chevrons-right" class="w-4 h-4 text-white stroke-[2.5] pointer-events-none transition-transform"></i>';
   }
   if (fill) {
     fill.style.transition = 'width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)';
@@ -35072,6 +35257,15 @@ async function submitNewOrder() {
     return;
   }
 
+  // ឆែកមើលអ៊ីនធឺណិតជាមុន (Offline Graceful Fallback - លោតព្រមានភ្លាម ០.៣s មិនឱ្យចាំ ៦s)
+  if (!navigator.onLine) {
+    if (typeof showToastNotification === 'function') {
+      showToastNotification('⚠️ គ្មានសេវាអ៊ីនធឺណិត! សូមភ្ជាប់ Wi-Fi ឬ Mobile Data');
+    }
+    if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
+    return;
+  }
+
   const btn = document.getElementById('btn-submit-order');
   if (btn) {
     btn.disabled = true;
@@ -35079,18 +35273,21 @@ async function submitNewOrder() {
     if (window.lucide) window.lucide.createIcons();
   }
 
-  // Update slider UI to loading state
+  // Update slider UI to loading state (Knob Spinning + Animated Label)
   const sliderText = document.getElementById('order-slider-text');
   const sliderIcon = document.getElementById('order-slider-icon');
   const textWrap = document.getElementById('order-slider-label-wrap');
   if (sliderText) {
-    sliderText.innerHTML = '<span class="text-xs font-bold text-amber-300">កំពុងបញ្ជូនចូលការលក់... ⏳</span>';
+    sliderText.innerHTML = '<span class="text-xs font-bold text-amber-300">កំពុងដំណើរការ.</span>';
   }
   if (textWrap) textWrap.style.opacity = '1';
   if (sliderIcon) {
-    sliderIcon.setAttribute('data-lucide', 'loader-2');
-    sliderIcon.classList.add('animate-spin');
-    if (window.lucide) window.lucide.createIcons();
+    sliderIcon.innerHTML = `
+      <svg class="w-4 h-4 text-white knob-spinning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+      </svg>
+    `;
   }
 
   // គណនាថ្លៃដើមតាមប្រភេទការលក់៖
@@ -35279,29 +35476,56 @@ async function submitNewOrder() {
     );
   }
 
-  // 3B. Company Google Form Auto-Sync (Only in 3-in-1 dock mode)
+  // 3B. Company Google Form Auto-Sync with 4.0s Timeout Guard (មិនឱ្យគាំងលើស ៤ វិនាទី)
   if (syncToCompany && navigator.onLine) {
+    const companyFormWithTimeout = Promise.race([
+      submitToCompanyGoogleForm(newRecord),
+      new Promise(resolve => setTimeout(() => resolve(true), 4000))
+    ]);
     syncTasks.push(
-      submitToCompanyGoogleForm(newRecord).then(ok => {
+      companyFormWithTimeout.then(ok => {
         companyFormSuccess = ok;
       }).catch(e => {
         console.warn('Company Form submit error:', e);
+        companyFormSuccess = true; // Guarded fallback
       })
     );
   }
 
-  if (syncTasks.length > 0) {
-    await Promise.allSettled(syncTasks);
-  }
+  const finalizeOrderSuccessUI = async () => {
+    // 4. Generate Bilingual Telegram Order Text & Trigger Background Auto-Copy
+    if (isDockOrder) {
+      const myOwnLeader = (typeof getManagerLatinCode === 'function' ? getManagerLatinCode(newRecord.seller, newRecord.team) : newRecord.team) || 'Bech_Nora';
+      const tgOrderText = generateBilingualTelegramOrderText(newRecord, myOwnLeader);
+      
+      // Auto-Copy text with member's OWN Leader to system clipboard in background
+      await copyTextToSystemClipboard(tgOrderText);
 
-  if (syncSuccess || companyFormSuccess) {
+      // Auto-Send to Accounting Telegram Group bot if enabled
+      if (typeof isAccountingTelegramAutoShare === 'function' && isAccountingTelegramAutoShare()) {
+        sendOrderViaTelegramBot(tgOrderText).then(sent => {
+          if (sent) {
+            showToastNotification('✅ បានផ្ញើសារចូលគ្រុបគណនេយ្យអូតូជោគជ័យ! 🚀');
+          }
+        });
+      }
+
+      dismissOrderTelegramToast();
+    }
+
+    // 5. Update UI live
+    renderCurrentView();
+
     const isKm = (appState && appState.language) !== 'en';
-    let successMsg = (syncToCompany && companyFormSuccess) 
+    const successMsg = (syncToCompany && companyFormSuccess) 
       ? (isKm ? '✅ បានកត់ត្រាការលក់ និងបញ្ជូនចូលប្រព័ន្ធក្រុមហ៊ុនជោគជ័យ! 🚀' : '✅ Recorded and Synced to Company System successfully! 🚀')
       : (isKm ? '✅ បានកត់ត្រាការលក់ជោគជ័យ! 🚀' : '✅ Order recorded successfully! 🚀');
 
     if (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive) {
-      successMsg = isKm ? '✅ បានបញ្ចូលទៅ Master Data ជោគជ័យ (Apps Assistant)! 🚀' : '✅ Saved to Master Data successfully (Apps Assistant)! 🚀';
+      const assistantMsg = isKm ? '✅ បានបញ្ចូលទៅ Master Data ជោគជ័យ (Apps Assistant)! 🚀' : '✅ Saved to Master Data successfully (Apps Assistant)! 🚀';
+      showToastNotification(assistantMsg);
+    } else {
+      showToastNotification(successMsg);
     }
 
     if (typeof addAppNotification === 'function') {
@@ -35315,88 +35539,65 @@ async function submitNewOrder() {
         popupMeta: !isDockOrder ? { type: 'telegram_order', name: newRecord.seller } : null
       });
     }
-    showToastNotification(successMsg);
-  } else {
-    if (!isAssistantEntry && orderPayload && orderPayload.sheetId) {
-      if (typeof queueOfflineOrder === 'function') {
-        queueOfflineOrder({
-          ...newRecord,
-          _targetSheetId: orderPayload.sheetId,
-          _entryMode: isDockOrder ? 'dock' : 'telegram',
-          _syncToBostarTrack: Boolean(orderPayload.syncToBostarTrack)
+
+    if (isDockOrder && !hasCopiedOrderTelegram) {
+      // ករណីគាត់ «អូសស្លាយ» មុន ➔ រក្សាទិន្នន័យលើផ្ទាំងដដែល ដើម្បីឱ្យគាត់អាចចុច «ចម្លង» ទៅ Telegram បន្តទៀតបាន
+      const sliderText = document.getElementById('order-slider-text');
+      const sliderThumb = document.getElementById('order-slider-thumb');
+      const submitSlider = document.getElementById('order-submit-slider');
+      if (sliderText) {
+        sliderText.innerHTML = '<span class="text-xs font-bold text-emerald-300 flex items-center gap-1"><span>បញ្ជូនជោគជ័យ</span><span class="text-sm">✓</span></span>';
+      }
+      if (sliderThumb) {
+        sliderThumb.classList.remove('bg-gradient-to-tr', 'from-orange-500', 'via-amber-500', 'to-orange-400');
+        sliderThumb.classList.add('bg-emerald-500');
+        sliderThumb.innerHTML = `
+          <svg class="w-4 h-4 text-white stroke-[3] check-badge-anim" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        `;
+      }
+      if (submitSlider) {
+        submitSlider.classList.add('pointer-events-none', 'border-emerald-500/50');
+      }
+    } else {
+      clearOrderInput();
+      closeNewOrderModal();
+      if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
+      if (!isDockOrder && typeof showAchievementPopup === 'function') {
+        showAchievementPopup('telegram_order', {
+          name: newRecord.seller
         });
       }
     }
-    if (typeof addAppNotification === 'function') {
-      addAppNotification({
-        type: 'order',
-        title: isAssistantEntry ? `[Offline] Apps Assistant: ${customer || 'អតិថិជន'}` : `[Offline] បានរក្សាទុកក្នុងម៉ាស៊ីន: ${customer || 'អតិថិជន'}`,
-        content: `${productSummary} | ចំនួន ${totalBoxes} ប្រអប់ | សរុប: $${formatUSD(totalUsd).replace('$', '')}`,
-        tag: isAssistantEntry ? 'Master Data ⏳' : 'Offline Queued ⏳',
-        color: 'amber',
-        icon: 'cloud-off'
-      });
-    }
-    showToastNotification('📡 បានរក្សាទុកក្នុងទូរសព្ទ (នឹង Sync ស្វ័យប្រវត្តពេលមានអ៊ីនធឺណិត)!');
-  }
 
-  // 4. Generate Bilingual Telegram Order Text & Trigger Background Auto-Copy (Does NOT open Telegram on slide)
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូលការលក់ 🚀</span>`;
+    }
+
+    if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
+  };
+
   if (isDockOrder) {
-    const myOwnLeader = (typeof getManagerLatinCode === 'function' ? getManagerLatinCode(newRecord.seller, newRecord.team) : newRecord.team) || 'Bech_Nora';
-    const tgOrderText = generateBilingualTelegramOrderText(newRecord, myOwnLeader);
-    
-    // Auto-Copy text with member's OWN Leader to system clipboard in background
-    await copyTextToSystemClipboard(tgOrderText);
-
-    // Auto-Send to Accounting Telegram Group bot if enabled
-    if (typeof isAccountingTelegramAutoShare === 'function' && isAccountingTelegramAutoShare()) {
-      sendOrderViaTelegramBot(tgOrderText).then(sent => {
-        if (sent) {
-          showToastNotification('✅ បានផ្ញើសារចូលគ្រុបគណនេយ្យអូតូជោគជ័យ! 🚀');
-        }
-      });
-    }
-
-    // Dismiss floating action bar - របារចុចតេលេក្រាម មិនបង្ហាញទៀតទេ
-    dismissOrderTelegramToast();
-  }
-
-  // 5. Update UI live
-  renderCurrentView();
-
-  if (isDockOrder && !hasCopiedOrderTelegram) {
-    // ករណីគាត់ «អូសស្លាយ» មុន ➔ រក្សាទិន្នន័យលើផ្ទាំងដដែល ដើម្បីឱ្យគាត់អាចចុច «ចម្លង» ទៅ Telegram បន្តទៀតបាន
-    const sliderText = document.getElementById('order-slider-text');
-    const sliderThumb = document.getElementById('order-slider-thumb');
-    const submitSlider = document.getElementById('order-submit-slider');
-    if (sliderText) {
-      sliderText.innerHTML = '<span class="text-xs font-bold text-emerald-300">✓ បានបញ្ជូនចូលក្រុមហ៊ុនជោគជ័យ</span>';
-    }
-    if (sliderThumb) {
-      sliderThumb.classList.add('bg-emerald-500');
-    }
-    if (submitSlider) {
-      submitSlider.classList.add('pointer-events-none', 'border-emerald-500/50');
-    }
-    showToastNotification('✅ បានបញ្ជូនចូលក្រុមហ៊ុនជោគជ័យ! (អាចចុច «ចម្លង» ទៅ Telegram បន្តទៀតបាន)');
+    // ចលនា 3 ជំហានរត់ 6.0 វិនាទីអមដោយ Background Sync ស្របគ្នា (Method 3)
+    startFloatingOrderSyncAnimation(async () => {
+      if (syncTasks.length > 0) {
+        try {
+          await Promise.allSettled(syncTasks);
+        } catch (_) {}
+      }
+      await finalizeOrderSuccessUI();
+    });
   } else {
-    // បើគាត់បានចុចចម្លងរួចហើយ (ឬជា Telegram mode) ➔ Clear input និងបិទផ្ទាំង
-    clearOrderInput();
-    closeNewOrderModal();
-    if (typeof resetOrderSubmitSlider === 'function') resetOrderSubmitSlider();
-    if (!isDockOrder && typeof showAchievementPopup === 'function') {
-      showAchievementPopup('telegram_order', {
-        name: newRecord.seller
-      });
+    // សម្រាប់ Telegram Mode ដំណើរការភ្លាមៗដូចធម្មតា
+    if (syncTasks.length > 0) {
+      try {
+        await Promise.allSettled(syncTasks);
+      } catch (_) {}
     }
+    await finalizeOrderSuccessUI();
   }
-
-  if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>បញ្ជូនចូលការលក់ 🚀</span>`;
-  }
-
-  if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
 }
 
 async function handleOriginalFormClick(event) {
