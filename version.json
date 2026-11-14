@@ -1,5 +1,5 @@
 {
-  "version": "67.48",
-  "buildTime": "2026-11-13T23:20:00+07:00",
-  "notes": "v67.48: Floating 3-step order sync animation in free space, Method 3 parallel background sync with 4s timeout guard & offline fallback; new BOSTAR GROUP executive showcase card with official golden crest & motto «Bostar Group រីកចម្រើនជាមួយគ្នា»"
+  "version": "67.49",
+  "buildTime": "2026-11-14T09:40:00+07:00",
+  "notes": "v67.49: Center floating 3-step order sync animation in viewport with scale/opacity transitions; fix Telegram label typo; enable slider touchstart across full track; prevent duplicate order collision"
 }

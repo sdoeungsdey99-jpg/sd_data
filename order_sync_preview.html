@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="km" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Live Test: SD Dashboard - Highlight Effect Animation Flow</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,300..700;1,300..700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Kantumruy Pro', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Refined, Standardized Breathing Highlight Effect (ស្រមោលរំលេចស្ដង់ដា ទន់ភ្លឺស្រាល មិនរីកធំពេក) */
+    @keyframes activeBreathingPulse {
+      0%, 100% {
+        transform: scale(1.0);
+        filter: drop-shadow(0 2px 8px rgba(56, 189, 248, 0.4));
+      }
+      50% {
+        transform: scale(1.04);
+        filter: drop-shadow(0 3px 12px rgba(56, 189, 248, 0.7));
+      }
+    }
+    .icon-active-highlight {
+      animation: activeBreathingPulse 1.1s ease-in-out infinite;
+    }
+
+    /* Light Mode Breathing Highlight (ស្ដង់ដា ទន់ភ្លឺស្រាល មិនរីកធំពេក) */
+    @keyframes activeBreathingPulseLight {
+      0%, 100% {
+        transform: scale(1.0);
+        filter: drop-shadow(0 2px 6px rgba(2, 132, 199, 0.3));
+      }
+      50% {
+        transform: scale(1.04);
+        filter: drop-shadow(0 3px 10px rgba(2, 132, 199, 0.55));
+      }
+    }
+    html:not(.dark) .icon-active-highlight,
+    html.light-theme .icon-active-highlight {
+      animation: activeBreathingPulseLight 1.1s ease-in-out infinite;
+    }
+
+    /* Checkmark Badge Pop Animation */
+    @keyframes checkBadgePop {
+      0% { transform: scale(0.15); opacity: 0; }
+      60% { transform: scale(1.18); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .check-badge-anim {
+      animation: checkBadgePop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* Checkmark Draw Animation (គូសសញ្ញាធីក ✓ ជាក់ស្តែង) */
+    @keyframes drawCheckmark {
+      0% { stroke-dashoffset: 20; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .tick-draw {
+      stroke-dasharray: 20;
+      stroke-dashoffset: 20;
+      animation: drawCheckmark 0.35s ease-out 0.08s forwards;
+    }
+
+    /* Rotating Dashed Stroke around Telegram (Dashed Ring ដូចរូបគំរូរបស់បង ១០០%) */
+    @keyframes strokeRotateSvg {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .telegram-dashed-stroke {
+      transform-origin: 24px 24px;
+      animation: strokeRotateSvg 2.2s linear infinite;
+    }
+
+    /* Laser beam flow transitions */
+    .laser-beam-transition {
+      transition: stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Spinner animation for the slider knob */
+    @keyframes spinKnob {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .knob-spinning {
+      animation: spinKnob 0.85s linear infinite;
+    }
+
+    /* Floating container smooth transition */
+    .floating-stepper {
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    /* Slider track sheen */
+    .slider-shimmer {
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: shimmer 2.2s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* ======================================================== */
+    /* COMPREHENSIVE LIGHT MODE THEME OVERRIDES                 */
+    /* ======================================================== */
+    html:not(.dark) body, html.light-theme body {
+      background-color: #F1F5F9 !important;
+      color: #0F172A !important;
+    }
+    html:not(.dark) header h1, html.light-theme header h1 {
+      color: #0F172A !important;
+    }
+    html:not(.dark) header button, html.light-theme header button {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      color: #334155 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    html:not(.dark) main, html.light-theme main {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.08) !important;
+    }
+    html:not(.dark) .modal-top-bar, html.light-theme .modal-top-bar {
+      background-color: rgba(255, 255, 255, 0.96) !important;
+      border-color: #E2E8F0 !important;
+    }
+    html:not(.dark) .modal-title-text, html.light-theme .modal-title-text {
+      color: #0F172A !important;
+    }
+    html:not(.dark) .modal-sub-text, html.light-theme .modal-sub-text {
+      color: #64748B !important;
+    }
+    html:not(.dark) .modal-back-btn, html.light-theme .modal-back-btn {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+      color: #334155 !important;
+    }
+    html:not(.dark) .form-card-box, html.light-theme .form-card-box {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+    }
+    html:not(.dark) .form-card-box .text-slate-400, html.light-theme .form-card-box .text-slate-400 {
+      color: #64748B !important;
+    }
+    html:not(.dark) .form-card-box .text-slate-200, html.light-theme .form-card-box .text-slate-200 {
+      color: #0F172A !important;
+    }
+    html:not(.dark) .form-card-box .border-white\/5, html.light-theme .form-card-box .border-white\/5 {
+      border-color: #E2E8F0 !important;
+    }
+
+    /* Stepper Labels: Standardized Khmer Typography */
+    .stepper-label-text {
+      color: #E2E8F0;
+    }
+    .stepper-label-text.active {
+      color: #38BDF8 !important;
+    }
+    html:not(.dark) .stepper-label-text, html.light-theme .stepper-label-text {
+      color: #0F172A !important;
+      text-shadow: none !important;
+      filter: none !important;
+    }
+    html:not(.dark) .stepper-label-text.active, html.light-theme .stepper-label-text.active {
+      color: #0284C7 !important;
+    }
+
+    /* Clipboard SVG in Light Mode */
+    html:not(.dark) #clipboard-rect-bg, html.light-theme #clipboard-rect-bg {
+      fill: #FFFFFF !important;
+      stroke: #334155 !important;
+    }
+    html:not(.dark) #clipboard-clip-bg, html.light-theme #clipboard-clip-bg {
+      fill: #E2E8F0 !important;
+      stroke: #475569 !important;
+    }
+    html:not(.dark) .arrow-base-line, html.light-theme .arrow-base-line {
+      stroke: #334155 !important;
+    }
+    html:not(.dark) .arrow-base-head, html.light-theme .arrow-base-head {
+      stroke: #334155 !important;
+    }
+    html:not(.dark) #telegram-spin-stroke, html.light-theme #telegram-spin-stroke {
+      stroke: #0284C7 !important;
+    }
+
+    /* 100% Free-Floating Stepper (គ្មានកាត/គ្មានស៊ុម ទាំង Dark និង Light Mode រក្សានៅលំហរ) */
+    #floating-stepper-overlay,
+    html:not(.dark) #floating-stepper-overlay, 
+    html.light-theme #floating-stepper-overlay {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+
+    /* Light Mode Slider Track & Buttons */
+    html:not(.dark) #order-slider-container, html.light-theme #order-slider-container {
+      background: #F1F5F9 !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+    }
+    html:not(.dark) #slider-label, html.light-theme #slider-label {
+      color: #334155 !important;
+    }
+    html:not(.dark) #btn-order-copy-tg-capsule, html.light-theme #btn-order-copy-tg-capsule {
+      background: #F8FAFC !important;
+      border-color: #CBD5E1 !important;
+      color: #0284C7 !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+    }
+    html:not(.dark) #btn-order-copy-tg-capsule:hover, html.light-theme #btn-order-copy-tg-capsule:hover {
+      background: #F1F5F9 !important;
+      border-color: #94A3B8 !important;
+      color: #0369A1 !important;
+    }
+    html:not(.dark) #order-slider-hint, html.light-theme #order-slider-hint {
+      color: #64748B !important;
+    }
+    html:not(.dark) footer, html.light-theme footer {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+    }
+    html:not(.dark) footer li, html.light-theme footer li {
+      color: #475569 !important;
+    }
+
+    /* Light Mode Slider Track & Buttons */
+    html:not(.dark) #order-slider-container, html.light-theme #order-slider-container {
+      background: #F1F5F9 !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+    }
+    html:not(.dark) #slider-label, html.light-theme #slider-label {
+      color: #334155 !important;
+    }
+    html:not(.dark) #btn-order-copy-tg-capsule, html.light-theme #btn-order-copy-tg-capsule {
+      background: #F8FAFC !important;
+      border-color: #CBD5E1 !important;
+      color: #0284C7 !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+    }
+    html:not(.dark) #btn-order-copy-tg-capsule:hover, html.light-theme #btn-order-copy-tg-capsule:hover {
+      background: #F1F5F9 !important;
+      border-color: #94A3B8 !important;
+      color: #0369A1 !important;
+    }
+    html:not(.dark) #order-slider-hint, html.light-theme #order-slider-hint {
+      color: #64748B !important;
+    }
+    html:not(.dark) footer, html.light-theme footer {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+    }
+    html:not(.dark) footer li, html.light-theme footer li {
+      color: #475569 !important;
+    }
+  </style>
+</head>
+<body class="bg-[#050914] text-slate-100 min-h-screen flex flex-col items-center justify-start p-3 sm:p-5 transition-colors duration-300">
+
+  <!-- Top Showcase Bar -->
+  <header class="w-full max-w-md mx-auto mb-3 flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 font-mono">LIVE PREVIEW</span>
+        <span class="text-[11px] text-slate-400 font-mono">v67.47-highlight-effect</span>
+      </div>
+      <h1 class="text-base sm:text-lg font-bold text-white mt-0.5">ផ្ទាំងកត់ត្រាការកុម្ម៉ង់ (Highlight Effect)</h1>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex items-center gap-2">
+      <a href="bostar_group_card_preview.html" class="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-[11px] font-bold text-amber-300 flex items-center gap-1 active:scale-95 transition" title="មើលកាត BOSTAR GROUP ថ្មី">
+        <span>🌟 កាត BOSTAR GROUP</span>
+      </a>
+      <button onclick="toggleTheme()" class="w-9 h-9 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-300 active:scale-95 transition" title="ប្តូរពណ៌ Theme">
+        <i data-lucide="sun-moon" class="w-4 h-4"></i>
+      </button>
+      <button onclick="resetOrderModal()" class="w-9 h-9 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-300 active:scale-95 transition" title="ចាប់ផ្តើមឡើងវិញ (Reset)">
+        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Phone Screen Mockup: Exact Replica of #new-order-modal -->
+  <main class="w-full max-w-md bg-[#070D18] border border-white/15 rounded-[36px] shadow-2xl p-4 sm:p-5 flex flex-col relative overflow-hidden transition-all duration-300 font-kantumruy">
+
+    <!-- FORM BODY WRAPPER (Opacity dims during submit to emphasize floating stepper) -->
+    <div id="form-body-wrapper" class="space-y-3 transition-opacity duration-300">
+
+      <!-- Top Header of the Real Order Modal -->
+      <div class="modal-top-bar pb-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 -mx-4 -mt-4 px-4 pt-3.5 mb-1 transition-colors">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button type="button" class="modal-back-btn w-8 h-8 rounded-xl bg-white/5 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition-colors" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
+          <div class="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 shrink-0 shadow-sm font-bold text-xs">
+            📦
+          </div>
+          <div class="min-w-0 truncate">
+            <h3 class="modal-title-text font-bold text-sm text-white leading-tight truncate transition-colors">កត់ត្រាការកុម្ម៉ង់ថ្មី</h3>
+            <p class="modal-sub-text text-[11px] text-slate-400 mt-0.5 truncate transition-colors">បញ្ចូលទិន្នន័យទៅក្នុងបញ្ជីផ្លូវការ</p>
+          </div>
+        </div>
+        
+        <!-- Button ទម្រង់ដើម (Untouched) -->
+        <button type="button" class="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/40 text-[11px] font-bold text-orange-400 shrink-0">
+          ទម្រង់ដើម
+        </button>
+      </div>
+
+      <!-- Authentic Form Fields (Sample Replica) -->
+      <div class="form-card-box p-3 rounded-2xl bg-black/40 border border-white/10 space-y-2 text-xs transition-colors">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400">សេវាដឹកជញ្ជូន:</span>
+          <span class="font-semibold text-slate-200 flex items-center gap-1">
+            <i data-lucide="truck" class="w-3.5 h-3.5 text-orange-400"></i>
+            VET (COD)
+          </span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400">ស្ថានភាព:</span>
+          <span class="font-semibold text-sky-400 flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+            បានដាក់ការកុម្ម៉ង់
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+          <div>
+            <span class="text-slate-400 block text-[10.5px]">ថ្លៃដើមស្តុក:</span>
+            <span class="font-mono font-bold text-rose-400">$48.00</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10.5px]">ថ្លៃដឹកជញ្ជូន ($):</span>
+            <span class="font-mono font-bold text-amber-400">$3.00</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+          <div>
+            <span class="text-slate-400 block text-[10.5px]">តម្លៃសរុប ($):</span>
+            <span class="font-mono font-bold text-emerald-400 text-sm">$81.74</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10.5px]">ប្រាក់ចំណេញ:</span>
+            <span class="font-mono font-bold text-emerald-400 text-sm">$30.74</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- FLOATING 3-STEP ANIMATION (100% FLOATING IN OPEN SPACE)   -->
+    <!-- Standardized Compact Scale - Perfectly Balanced & Crisp   -->
+    <!-- ======================================================== -->
+    <div id="floating-stepper-overlay" 
+         class="hidden absolute inset-x-2 top-28 z-30 flex flex-col items-center justify-center p-1 select-none floating-stepper opacity-0 transform -translate-y-2 pointer-events-none">
+      
+      <!-- Stepper Track: Perfectly balanced, identical heights & vertical baselines -->
+      <div class="w-full flex items-start justify-between relative px-0.5 sm:px-1">
+
+        <!-- ─── 1. CLIPBOARD (Sheet ផ្ទាល់ខ្លួន: 0.0s ➔ 2.0s) ─── -->
+        <div class="flex flex-col items-center text-center w-20 sm:w-22 shrink-0 transition-opacity duration-300" id="step-col-1">
+          <div id="step-box-1" class="relative w-10 h-10 flex items-center justify-center transition-all duration-300">
+            
+            <!-- Standardized Clean Clipboard SVG -->
+            <svg class="w-8 h-9 transition-all duration-300" viewBox="0 0 40 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect id="clipboard-rect-bg" x="5" y="6" width="30" height="36" rx="5" stroke="#64748B" stroke-width="2.2" fill="#0B1322"/>
+              <path id="clipboard-clip-bg" d="M12 4C12 2.89543 12.8954 2 14 2H26C27.1046 2 28 2.89543 28 4V7H12V4Z" fill="#475569" stroke="#64748B" stroke-width="1.5"/>
+              <circle cx="20" cy="4.5" r="1.5" fill="#94A3B8"/>
+              <path d="M10 16L13.5 19.5L19 14" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="22" y1="17" x2="30" y2="17" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+              <path d="M10 25L13.5 28.5L19 23" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="22" y1="26" x2="30" y2="26" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+              <line x1="10" y1="34" x2="30" y2="34" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+
+            <!-- Standardized Blue Tick Badge (✓) -->
+            <div id="check-badge-1" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#0284C7] border-[1.5px] border-white flex items-center justify-center shadow-md shadow-sky-500/50 check-badge-anim">
+              <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none">
+                <path id="tick-path-1" class="tick-draw" d="M2.5 6L4.8 8.5L9.5 3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <span id="label-step-1" class="stepper-label-text text-[11px] font-semibold mt-1.5 leading-tight transition-colors">
+            Sheet ផ្ទាល់ខ្លួន
+          </span>
+        </div>
+
+        <!-- ─── ARROW 1 ───> ─── -->
+        <div class="flex-1 pt-4 px-1 flex items-center justify-center relative">
+          <svg class="w-full h-3.5 overflow-visible" viewBox="0 0 50 14" preserveAspectRatio="none">
+            <line class="arrow-base-line" x1="2" y1="7" x2="44" y2="7" stroke="#334155" stroke-width="1.8" stroke-linecap="round"/>
+            <path class="arrow-base-head" d="M38 3L45 7L38 11" stroke="#334155" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            
+            <!-- Active laser flow line -->
+            <line id="laser-line-1" class="laser-beam-transition" x1="2" y1="7" x2="44" y2="7" stroke="#0284C7" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="50" stroke-dashoffset="50"/>
+            <path id="laser-head-1" class="hidden" d="M38 3L45 7L38 11" stroke="#0284C7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <!-- ─── 2. DATABASE (Sheet ក្រុមហ៊ុន: 2.0s ➔ 4.0s) ─── -->
+        <div class="flex flex-col items-center text-center w-20 sm:w-22 shrink-0 transition-opacity duration-300 opacity-50" id="step-col-2">
+          <div id="step-box-2" class="relative w-10 h-10 flex items-center justify-center transition-all duration-300">
+            
+            <!-- Standardized Database Cylinder SVG -->
+            <svg class="w-8 h-8 transition-all duration-300" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="18" cy="10" rx="14" ry="5.5" fill="#38BDF8"/>
+              <path d="M4 10V20C4 23 10.268 25.5 18 25.5C25.732 25.5 32 23 32 20V10" fill="#0284C7"/>
+              <ellipse cx="18" cy="20" rx="14" ry="5" fill="#38BDF8" fill-opacity="0.35"/>
+              <path d="M4 20V30C4 33 10.268 35.5 18 35.5C25.732 35.5 32 33 32 30V20" fill="#1E40AF"/>
+              <path d="M32 15H39V17" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="40" cy="17" r="2.5" fill="#38BDF8"/>
+              <path d="M32 27H39V29" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="40" cy="29" r="2.5" fill="#38BDF8"/>
+            </svg>
+
+            <!-- Standardized Blue Tick Badge (✓) -->
+            <div id="check-badge-2" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#0284C7] border-[1.5px] border-white flex items-center justify-center shadow-md shadow-sky-500/50 check-badge-anim">
+              <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none">
+                <path id="tick-path-2" class="tick-draw" d="M2.5 6L4.8 8.5L9.5 3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <span id="label-step-2" class="stepper-label-text text-[11px] font-semibold mt-1.5 leading-tight transition-colors">
+            Sheet ក្រុមហ៊ុន
+          </span>
+        </div>
+
+        <!-- ─── ARROW 2 ───> ─── -->
+        <div class="flex-1 pt-4 px-1 flex items-center justify-center relative">
+          <svg class="w-full h-3.5 overflow-visible" viewBox="0 0 50 14" preserveAspectRatio="none">
+            <line class="arrow-base-line" x1="2" y1="7" x2="44" y2="7" stroke="#334155" stroke-width="1.8" stroke-linecap="round"/>
+            <path class="arrow-base-head" d="M38 3L45 7L38 11" stroke="#334155" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Active laser flow line -->
+            <line id="laser-line-2" class="laser-beam-transition" x1="2" y1="7" x2="44" y2="7" stroke="#0284C7" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="50" stroke-dashoffset="50"/>
+            <path id="laser-head-2" class="hidden" d="M38 3L45 7L38 11" stroke="#0284C7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <!-- ─── 3. TELEGRAM (ពិនិត្យ Telegram: 4.0s ➔ 6.0s) ─── -->
+        <div class="flex flex-col items-center text-center w-20 sm:w-22 shrink-0 relative transition-opacity duration-300 opacity-50" id="step-col-3">
+          
+          <div id="step-box-3" class="relative w-10 h-10 flex items-center justify-center transition-all duration-300">
+            
+            <!-- Standardized SVG: Dashed Ring + Telegram Logo -->
+            <svg class="w-10 h-10 overflow-visible transition-all duration-300" viewBox="0 0 48 48">
+              <!-- Crisp Dashed Stroke Ring: stroke-dasharray="6 4" -->
+              <circle id="telegram-spin-stroke" 
+                      class="hidden telegram-dashed-stroke" 
+                      cx="24" cy="24" r="22.5" 
+                      fill="none" 
+                      stroke="#38BDF8" 
+                      stroke-width="1.8" 
+                      stroke-linecap="round" 
+                      stroke-dasharray="6 4"/>
+
+              <!-- Telegram Circle (cx=24, cy=24, r=19.5) -->
+              <circle cx="24" cy="24" r="19.5" fill="#229ED9"/>
+
+              <!-- Telegram White Paper Airplane -->
+              <path d="M33 13.5L12.5 21.4C11.1 21.9 11.1 22.8 12.3 23.1L17.5 24.8L29.7 17.1C30.3 16.6 30.8 17 30.4 17.3L20.5 26.2L20.1 32C20.7 32 21 31.7 21.3 31.3L24.3 28.4L30.3 32.8C31.4 33.5 32.1 33.1 32.5 31.9L36.3 15C36.7 13.2 35.5 12.5 33 13.5Z" fill="white"/>
+            </svg>
+          </div>
+
+          <span id="telegram-label-text" class="stepper-label-text text-[11px] font-semibold mt-1.5 leading-tight transition-colors">
+            ពិនិត្យ Telegram
+          </span>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- OFFLINE TOAST NOTIFICATION -->
+    <div id="offline-toast" class="hidden absolute top-4 inset-x-6 z-50 p-3 rounded-2xl bg-rose-950/95 border border-rose-500/50 text-rose-200 text-xs font-bold flex items-center gap-2 shadow-2xl animate-bounce">
+      <i data-lucide="wifi-off" class="w-4 h-4 text-rose-400 shrink-0"></i>
+      <span>គ្មានសេវាអ៊ីនធឺណិត! សូមភ្ជាប់ Wi-Fi ឬ Mobile Data</span>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- ORIGINAL AUTHENTIC BOTTOM ACTION ROW                     -->
+    <!-- Slider + Capsule [ 📋 ចម្លង ]                            -->
+    <!-- Cycling Dots: កំពុងដំណើរការ. ➔ .. ➔ ...                 -->
+    <!-- ======================================================== -->
+    <div class="pt-3">
+      
+      <div class="flex items-center gap-2">
+        
+        <!-- Authentic Slider Track -->
+        <div id="order-slider-container" class="relative flex-1 h-12 rounded-full bg-gradient-to-r from-black/80 via-black/60 to-black/80 border border-white/20 p-1 flex items-center overflow-hidden shadow-inner select-none cursor-pointer">
+          
+          <!-- Background Shimmer -->
+          <div class="absolute inset-0 slider-shimmer pointer-events-none opacity-40"></div>
+
+          <!-- Center Text -->
+          <div id="slider-label" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-200 pointer-events-none transition-opacity">
+            <span>អូសដើម្បីបញ្ជូន</span>
+            <span class="ml-1 text-orange-400 font-mono text-xs animate-pulse">❯❯</span>
+          </div>
+
+          <!-- Slider Thumb (Orange Pill Knob) -->
+          <div id="slider-thumb" 
+               onmousedown="startDrag(event)" 
+               ontouchstart="startDrag(event)"
+               class="relative z-20 w-10 h-10 rounded-full bg-gradient-to-tr from-orange-500 via-amber-500 to-orange-400 text-white shadow-[0_3px_12px_rgba(249,115,22,0.5)] flex items-center justify-center cursor-grab active:cursor-grabbing border-2 border-white/40 transition-transform select-none">
+            <div id="slider-knob-icon-wrapper" class="flex items-center justify-center">
+              <i id="slider-knob-icon" data-lucide="chevrons-right" class="w-4 h-4 text-white stroke-[2.5]"></i>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Authentic Right Capsule: Button [ 📋 ចម្លង ] (Never change label) -->
+        <button type="button" 
+                id="btn-order-copy-tg-capsule" 
+                onclick="copyOrderTelegramText()" 
+                class="h-12 px-4 rounded-full bg-gradient-to-b from-[#152542] to-[#0D1829] hover:from-[#1A3056] hover:to-[#101F38] active:scale-95 border border-white/20 hover:border-orange-500/50 text-slate-200 hover:text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition shrink-0 select-none"
+                title="ចម្លង">
+          <i data-lucide="copy" class="w-3.5 h-3.5 text-orange-400"></i>
+          <span id="btn-copy-label" class="tracking-wide">ចម្លង</span>
+        </button>
+
+      </div>
+
+      <!-- Authentic Guidance Hint Centered Under Slider (Untouched) -->
+      <p id="order-slider-hint" class="text-[10px] sm:text-[10.5px] text-slate-400 text-center mt-2.5 flex items-center justify-center gap-1.5 leading-tight transition-colors">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+        <span>អូសបញ្ជូនទៅក្រុមហ៊ុន | ចុច «ចម្លង» ទៅ Telegram (Leader ផ្ទាល់ខ្លួន)</span>
+      </p>
+
+      <!-- Testing Action Buttons: Normal 6s vs Offline Simulation -->
+      <div class="mt-3 flex items-center justify-center gap-2">
+        <button onclick="triggerAutoSlide(true)" class="py-1 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-bold text-amber-400 border border-white/10 transition active:scale-95 flex items-center gap-1">
+          <i data-lucide="play" class="w-3 h-3"></i>
+          <span>តេស្តស្វ័យប្រវត្ត (Highlight Effect)</span>
+        </button>
+        <button onclick="triggerOfflineTest()" class="py-1 px-2.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-[11px] font-bold text-rose-300 border border-rose-500/30 transition active:scale-95 flex items-center gap-1" title="សាកល្បងករណីគ្មានអ៊ីនធឺណិត">
+          <i data-lucide="wifi-off" class="w-3 h-3 text-rose-400"></i>
+          <span>តេស្តពេល Offline</span>
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Summary of Implementation -->
+  <footer class="w-full max-w-md mx-auto mt-3 p-3.5 rounded-2xl bg-white/5 border border-white/10 text-xs text-slate-300 space-y-1.5">
+    <div class="flex items-center justify-between text-emerald-400 font-bold">
+      <span class="flex items-center gap-1.5">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+        Highlight Shadow Effect (ស្រមោលរំលេចពេលដំណើរការ)៖
+      </span>
+      <span class="text-[10px] font-mono text-sky-400">Interactive</span>
+    </div>
+    <ul class="list-disc pl-4 space-y-1 text-[11px] text-slate-300">
+      <li><strong>ពេលកំពុងដំណើរការ (Active State)៖</strong> Icon ណាដែលកំពុងរត់ គឺមាន <strong>ស្រមោលទន់រំលេច (Soft Ambient Glow) + ដកដង្ហើមស្រាលៗ (Breathing Scale 1.08)</strong> មុនពេល Tick គូសឡើង!</li>
+      <li><strong>Icon មិនទាន់ដល់វេន៖</strong> ស្ថិតក្នុងសភាពស្រាល (Opacity 60%) ជួយឱ្យភ្នែកអ្នកប្រើប្រាស់ផ្តោតចំគោលដៅ 1 ➔ 2 ➔ 3 ច្បាស់ក្រឡែត។</li>
+      <li><strong>ពេលបញ្ចប់៖</strong> Icon ទាំងអស់ភ្លឺស្មើគ្នា ១០០% ហើយរលាយបាត់ទៅវិញដោយរលូន។</li>
+    </ul>
+  </footer>
+
+  <script>
+    if (window.lucide) lucide.createIcons();
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      if (!isDark) {
+        document.documentElement.classList.add('light-theme');
+      } else {
+        document.documentElement.classList.remove('light-theme');
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Interactive Slider Logic
+    let isDragging = false;
+    let startX = 0;
+    let currentX = 0;
+    const thumb = document.getElementById('slider-thumb');
+    const container = document.getElementById('order-slider-container');
+
+    function startDrag(e) {
+      if (thumb.classList.contains('pointer-events-none')) return;
+      isDragging = true;
+      startX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('touchmove', onDrag, { passive: false });
+      document.addEventListener('mouseup', endDrag);
+      document.addEventListener('touchend', endDrag);
+    }
+
+    function onDrag(e) {
+      if (!isDragging) return;
+      if (e.cancelable) e.preventDefault();
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      const maxDrag = container.clientWidth - thumb.clientWidth - 8;
+      let delta = clientX - startX;
+      if (delta < 0) delta = 0;
+      if (delta > maxDrag) delta = maxDrag;
+      currentX = delta;
+      thumb.style.transform = `translateX(${delta}px)`;
+
+      if (delta >= maxDrag * 0.92) {
+        endDrag();
+        executeOrderFlow(true);
+      }
+    }
+
+    function endDrag() {
+      if (!isDragging) return;
+      isDragging = false;
+      document.removeEventListener('mousemove', onDrag);
+      document.removeEventListener('touchmove', onDrag);
+      document.removeEventListener('mouseup', endDrag);
+      document.removeEventListener('touchend', endDrag);
+
+      const maxDrag = container.clientWidth - thumb.clientWidth - 8;
+      if (currentX < maxDrag * 0.92) {
+        thumb.style.transform = 'translateX(0px)';
+        currentX = 0;
+      }
+    }
+
+    function triggerAutoSlide(isOnline = true) {
+      const maxDrag = container.clientWidth - thumb.clientWidth - 8;
+      thumb.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      thumb.style.transform = `translateX(${maxDrag}px)`;
+      setTimeout(() => {
+        thumb.style.transition = '';
+        executeOrderFlow(isOnline);
+      }, 350);
+    }
+
+    function triggerOfflineTest() {
+      triggerAutoSlide(false);
+    }
+
+    // Master Flow Timing with Synchronized Highlight Shadow Effect
+    let masterTimer1 = null;
+    let masterTimer2_start = null;
+    let masterTimer2_done = null;
+    let masterTimer3_start = null;
+    let masterTimer_complete = null;
+    let dotInterval = null;
+    let dotCount = 0;
+
+    function executeOrderFlow(isOnline = true) {
+      // Offline Graceful Fallback Check
+      if (!isOnline) {
+        const offlineToast = document.getElementById('offline-toast');
+        offlineToast.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+
+        // Snap slider back
+        setTimeout(() => {
+          thumb.style.transition = 'transform 0.3s ease-out';
+          thumb.style.transform = 'translateX(0px)';
+          currentX = 0;
+          setTimeout(() => {
+            thumb.style.transition = '';
+            offlineToast.classList.add('hidden');
+          }, 2500);
+        }, 400);
+        return;
+      }
+
+      // 1. Lock thumb and set to spinning state
+      thumb.classList.add('pointer-events-none');
+      document.getElementById('slider-knob-icon-wrapper').innerHTML = `
+        <svg class="w-4 h-4 text-white knob-spinning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+          <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+        </svg>
+      `;
+
+      // 2. Cycling dots animation (. -> .. -> ...) on slider text
+      dotCount = 1;
+      const sliderLabel = document.getElementById('slider-label');
+      sliderLabel.innerHTML = '<span class="text-amber-300 font-bold">កំពុងដំណើរការ.</span>';
+      
+      if (dotInterval) clearInterval(dotInterval);
+      dotInterval = setInterval(() => {
+        dotCount = (dotCount % 3) + 1;
+        const dots = '.'.repeat(dotCount);
+        sliderLabel.innerHTML = `<span class="text-amber-300 font-bold">កំពុងដំណើរការ${dots}</span>`;
+      }, 450);
+
+      // 3. Dim the background form and reveal the floating stepper
+      document.getElementById('form-body-wrapper').style.opacity = '0.12';
+      const overlay = document.getElementById('floating-stepper-overlay');
+      overlay.classList.remove('hidden');
+      setTimeout(() => {
+        overlay.classList.remove('opacity-0', '-translate-y-2');
+        overlay.classList.add('opacity-100', 'translate-y-0');
+      }, 30);
+
+      // Reset initial opacities
+      document.getElementById('step-col-1').className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 transition-opacity duration-300 opacity-100';
+      document.getElementById('step-col-2').className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 transition-opacity duration-300 opacity-50';
+      document.getElementById('step-col-3').className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 relative transition-opacity duration-300 opacity-50';
+
+      // ═════════════════════════════════════════════════════════════
+      // ─── STAGE 1 (0.0s ➔ 2.0s): CLIPBOARD ACTIVE HIGHLIGHT ───────
+      // ═════════════════════════════════════════════════════════════
+      const box1 = document.getElementById('step-box-1');
+      box1.classList.add('icon-active-highlight');
+      const lbl1 = document.getElementById('label-step-1');
+      lbl1.classList.add('active');
+
+      const laser1 = document.getElementById('laser-line-1');
+      laser1.style.transition = 'stroke-dashoffset 1.4s ease-out';
+      laser1.style.strokeDashoffset = '0';
+
+      // At 1.5s, Arrow 1 arrives -> Tick 1 pops & draws!
+      masterTimer1 = setTimeout(() => {
+        document.getElementById('laser-head-1').classList.remove('hidden');
+        const b1 = document.getElementById('check-badge-1');
+        b1.classList.remove('hidden');
+        if (navigator.vibrate) navigator.vibrate(15);
+
+        // ═════════════════════════════════════════════════════════════
+        // ─── STAGE 2 (2.0s ➔ 4.0s): DATABASE ACTIVE HIGHLIGHT ────────
+        // ═════════════════════════════════════════════════════════════
+        masterTimer2_start = setTimeout(() => {
+          // Step 1 settles down
+          box1.classList.remove('icon-active-highlight');
+          lbl1.classList.remove('active');
+
+          // Step 2 activates with Highlight Shadow!
+          document.getElementById('step-col-2').classList.remove('opacity-50');
+          document.getElementById('step-col-2').classList.add('opacity-100');
+          const box2 = document.getElementById('step-box-2');
+          box2.classList.add('icon-active-highlight');
+          const lbl2 = document.getElementById('label-step-2');
+          lbl2.classList.add('active');
+
+          const laser2 = document.getElementById('laser-line-2');
+          laser2.style.transition = 'stroke-dashoffset 1.4s ease-out';
+          laser2.style.strokeDashoffset = '0';
+
+          // At 3.5s, Arrow 2 arrives -> Tick 2 pops & draws!
+          masterTimer2_done = setTimeout(() => {
+            document.getElementById('laser-head-2').classList.remove('hidden');
+            const b2 = document.getElementById('check-badge-2');
+            b2.classList.remove('hidden');
+            if (navigator.vibrate) navigator.vibrate(15);
+
+            // ═════════════════════════════════════════════════════════════
+            // ─── STAGE 3 (4.0s ➔ 6.0s): TELEGRAM ACTIVE HIGHLIGHT ────────
+            // ═════════════════════════════════════════════════════════════
+            masterTimer3_start = setTimeout(() => {
+              // Step 2 settles down
+              box2.classList.remove('icon-active-highlight');
+              lbl2.classList.remove('active');
+
+              // Step 3 activates with Highlight Shadow + Dashed Stroke!
+              document.getElementById('step-col-3').classList.remove('opacity-50');
+              document.getElementById('step-col-3').classList.add('opacity-100');
+              const box3 = document.getElementById('step-box-3');
+              box3.classList.add('icon-active-highlight');
+              document.getElementById('telegram-spin-stroke').classList.remove('hidden');
+              const lbl3 = document.getElementById('telegram-label-text');
+              lbl3.classList.add('active');
+              if (navigator.vibrate) navigator.vibrate([15, 30, 15]);
+
+              // ─── COMPLETION AT EXACTLY 6.0s ───
+              masterTimer_complete = setTimeout(() => {
+                if (dotInterval) clearInterval(dotInterval);
+
+                // Auto copy Telegram text in background
+                copyOrderTelegramText(false);
+
+                // Fade out floating stepper and restore form opacity
+                overlay.classList.remove('opacity-100', 'translate-y-0');
+                overlay.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => {
+                  overlay.classList.add('hidden');
+                  document.getElementById('form-body-wrapper').style.opacity = '1';
+                }, 350);
+
+                // Knob stops spinning -> turns into green Tick Icon
+                thumb.classList.remove('bg-gradient-to-tr', 'from-orange-500', 'via-amber-500', 'to-orange-400');
+                thumb.classList.add('bg-emerald-500');
+                document.getElementById('slider-knob-icon-wrapper').innerHTML = `
+                  <svg class="w-4 h-4 text-white stroke-[3] check-badge-anim" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                `;
+
+                // Slider text: "បញ្ជូនជោគជ័យ ✓"
+                sliderLabel.innerHTML = '<span class="text-emerald-400 font-bold flex items-center gap-1"><span>បញ្ជូនជោគជ័យ</span><span class="text-sm">✓</span></span>';
+
+                // Button [ ចម្លង ] stays with exact label "ចម្លង"
+                document.getElementById('btn-copy-label').textContent = 'ចម្លង';
+
+              }, 2000); // 4.0s to 6.0s
+
+            }, 500); // 3.5s + 0.5s = 4.0s
+
+          }, 1500); // 2.0s + 1.5s = 3.5s
+
+        }, 500); // 1.5s + 0.5s = 2.0s
+
+      }, 1500); // 0.0s + 1.5s = 1.5s
+    }
+
+    function copyOrderTelegramText(showToast = true) {
+      const sampleText = `📦 ការកុម្ម៉ង់ថ្មី (3-in-1)\n- អ្នកលក់: ជុន ថាវី\n- អតិថិជន: Nath (065 020 8365)\n- ទំនិញ: 2 ប្រអប់ (YL: 1, YLP: 1)\n- សរុប: $3,000.00\n✓ បានបញ្ជូនចូល Form ក្រុមហ៊ុន & Sheet ផ្ទាល់ខ្លួនជោគជ័យ!`;
+      navigator.clipboard?.writeText(sampleText).catch(() => {});
+      
+      if (showToast) {
+        const btn = document.getElementById('btn-order-copy-tg-capsule');
+        btn.classList.add('ring-2', 'ring-emerald-400');
+        setTimeout(() => {
+          btn.classList.remove('ring-2', 'ring-emerald-400');
+        }, 1500);
+      }
+    }
+
+    function resetOrderModal() {
+      clearTimeout(masterTimer1);
+      clearTimeout(masterTimer2_start);
+      clearTimeout(masterTimer2_done);
+      clearTimeout(masterTimer3_start);
+      clearTimeout(masterTimer_complete);
+      if (dotInterval) clearInterval(dotInterval);
+
+      thumb.classList.remove('pointer-events-none', 'bg-emerald-500');
+      thumb.classList.add('bg-gradient-to-tr', 'from-orange-500', 'via-amber-500', 'to-orange-400');
+      thumb.style.transform = 'translateX(0px)';
+      currentX = 0;
+
+      document.getElementById('slider-knob-icon-wrapper').innerHTML = '<i id="slider-knob-icon" data-lucide="chevrons-right" class="w-4 h-4 text-white stroke-[2.5]"></i>';
+      document.getElementById('slider-label').innerHTML = '<span>អូសដើម្បីបញ្ជូន</span><span class="ml-1 text-orange-400 font-mono text-xs animate-pulse">❯❯</span>';
+
+      const overlay = document.getElementById('floating-stepper-overlay');
+      overlay.classList.add('hidden', 'opacity-0', '-translate-y-2');
+      overlay.classList.remove('opacity-100', 'translate-y-0');
+      document.getElementById('form-body-wrapper').style.opacity = '1';
+      document.getElementById('offline-toast').classList.add('hidden');
+
+      // Reset Highlights
+      ['1', '2', '3'].forEach(id => {
+        document.getElementById(`step-box-${id}`).classList.remove('icon-active-highlight');
+      });
+      document.getElementById('step-col-1').className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 transition-opacity duration-300 opacity-100';
+      document.getElementById('step-col-2').className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 transition-opacity duration-300 opacity-50';
+      document.getElementById('step-col-3').className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 relative transition-opacity duration-300 opacity-50';
+
+      ['1', '2'].forEach(id => {
+        const b = document.getElementById(`check-badge-${id}`);
+        b.classList.add('hidden');
+      });
+
+      // Reset Telegram Dashed Stroke & Labels
+      document.getElementById('telegram-spin-stroke').classList.add('hidden');
+      ['label-step-1', 'label-step-2', 'telegram-label-text'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+
+      // Reset Lasers
+      const l1 = document.getElementById('laser-line-1');
+      l1.style.transition = 'none';
+      l1.style.strokeDashoffset = '50';
+      document.getElementById('laser-head-1').classList.add('hidden');
+
+      const l2 = document.getElementById('laser-line-2');
+      l2.style.transition = 'none';
+      l2.style.strokeDashoffset = '50';
+      document.getElementById('laser-head-2').classList.add('hidden');
+
+      document.getElementById('btn-copy-label').textContent = 'ចម្លង';
+
+      if (window.lucide) lucide.createIcons();
+    }
+  </script>
+</body>
+</html>

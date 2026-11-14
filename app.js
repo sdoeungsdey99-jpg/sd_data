@@ -21533,7 +21533,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.48';
+const CURRENT_APP_VERSION = '67.49';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -33939,11 +33939,14 @@ function resetFloatingOrderSyncAnimation() {
 
   const overlay = document.getElementById('floating-stepper-overlay');
   if (overlay) {
-    overlay.classList.add('hidden', 'opacity-0', '-translate-y-2');
-    overlay.classList.remove('opacity-100', 'translate-y-0');
+    overlay.classList.add('hidden', 'opacity-0', 'scale-95');
+    overlay.classList.remove('opacity-100', 'scale-100');
   }
   const modalBody = document.getElementById('new-order-modal-body');
-  if (modalBody) modalBody.style.opacity = '1';
+  if (modalBody) {
+    modalBody.style.opacity = '1';
+    modalBody.style.pointerEvents = 'auto';
+  }
 
   ['1', '2', '3'].forEach(id => {
     const box = document.getElementById(`step-box-${id}`);
@@ -33992,13 +33995,17 @@ function startFloatingOrderSyncAnimation(onComplete) {
 
   const overlay = document.getElementById('floating-stepper-overlay');
   const modalBody = document.getElementById('new-order-modal-body');
-  if (modalBody) modalBody.style.opacity = '0.12';
+  if (modalBody) {
+    modalBody.style.transition = 'opacity 0.35s ease';
+    modalBody.style.opacity = '0.04';
+    modalBody.style.pointerEvents = 'none';
+  }
 
   if (overlay) {
     overlay.classList.remove('hidden');
     setTimeout(() => {
-      overlay.classList.remove('opacity-0', '-translate-y-2');
-      overlay.classList.add('opacity-100', 'translate-y-0');
+      overlay.classList.remove('opacity-0', 'scale-95');
+      overlay.classList.add('opacity-100', 'scale-100');
     }, 30);
   }
 
@@ -34090,11 +34097,14 @@ function startFloatingOrderSyncAnimation(onComplete) {
 
             // Fade out floating stepper & restore form body
             if (overlay) {
-              overlay.classList.remove('opacity-100', 'translate-y-0');
-              overlay.classList.add('opacity-0', '-translate-y-2');
+              overlay.classList.remove('opacity-100', 'scale-100');
+              overlay.classList.add('opacity-0', 'scale-95');
               setTimeout(() => {
                 overlay.classList.add('hidden');
-                if (modalBody) modalBody.style.opacity = '1';
+                if (modalBody) {
+                  modalBody.style.opacity = '1';
+                  modalBody.style.pointerEvents = 'auto';
+                }
               }, 350);
             }
 
@@ -34243,13 +34253,15 @@ function initOrderSubmitSlider() {
   };
 
   // Touch Events (Mobile)
-  thumb.addEventListener('touchstart', (e) => {
+  const handleTouchStart = (e) => {
     if (e.touches && e.touches.length === 1) {
       if (onDragStart(e.touches[0].clientX)) {
         e.stopPropagation();
       }
     }
-  }, { passive: false });
+  };
+  thumb.addEventListener('touchstart', handleTouchStart, { passive: false });
+  slider.addEventListener('touchstart', handleTouchStart, { passive: false });
 
   window.addEventListener('touchmove', (e) => {
     if (isDragging && e.touches && e.touches.length === 1) {
@@ -34262,13 +34274,15 @@ function initOrderSubmitSlider() {
   window.addEventListener('touchcancel', onDragEnd, { passive: true });
 
   // Mouse Events (Desktop)
-  thumb.addEventListener('mousedown', (e) => {
+  const handleMouseDown = (e) => {
     if (e.button === 0) {
       if (onDragStart(e.clientX)) {
         e.preventDefault();
       }
     }
-  });
+  };
+  thumb.addEventListener('mousedown', handleMouseDown);
+  slider.addEventListener('mousedown', handleMouseDown);
 
   window.addEventListener('mousemove', (e) => {
     if (isDragging) {

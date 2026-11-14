@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.48">
+  <link rel="manifest" href="manifest.json?v=67.49">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -7866,9 +7866,9 @@
         </div>
       </div>
 
-      <!-- FLOATING 3-STEP ORDER SYNC ANIMATION (100% FLOATING IN OPEN SPACE) -->
+      <!-- FLOATING 3-STEP ORDER SYNC ANIMATION (100% FLOATING IN OPEN SPACE - VIEWPORT CENTERED) -->
       <div id="floating-stepper-overlay" 
-           class="hidden absolute inset-x-3 top-28 sm:top-32 z-30 flex flex-col items-center justify-center p-1 select-none floating-stepper opacity-0 transform -translate-y-2 pointer-events-none">
+           class="hidden fixed inset-x-4 top-1/2 -translate-y-1/2 z-[80] max-w-lg mx-auto flex flex-col items-center justify-center p-3 select-none floating-stepper opacity-0 scale-95 pointer-events-none transition-all duration-300">
         
         <!-- Stepper Track: Perfectly balanced, identical heights & vertical baselines -->
         <div class="w-full flex items-start justify-between relative px-0.5 sm:px-1">
@@ -7981,7 +7981,7 @@
             </div>
 
             <span id="telegram-label-text" class="stepper-label-text text-[11px] font-semibold mt-1.5 leading-tight transition-colors">
-              ពិនិត្យ telegarm
+              ពិនិត្យ Telegram
             </span>
           </div>
 
@@ -9116,7 +9116,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.48"></script>
-  <script src="app.js?v=67.48"></script>
+  <script src="dataService.js?v=67.49"></script>
+  <script src="app.js?v=67.49"></script>
 </body>
 </html>
