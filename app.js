@@ -35413,11 +35413,12 @@ async function submitNewOrder() {
   }
 
   // 3. យុទ្ធសាស្ត្រ 3 in 1: បញ្ជូនចូល Google Form ក្រុមហ៊ុន (ទិសទី ១), Master Data (ទិសទី ២), និង Sheet ផ្ទាល់ខ្លួន (ទិសទី ៣)
+  const isDemoMode = (typeof DataService !== 'undefined' && DataService.isDemoMode && DataService.isDemoMode()) || (localStorage.getItem('sd_demo_mode') === 'true');
   const isDockOrder = (currentOrderEntryMode === 'dock');
   const syncToCompany = isDockOrder && (document.getElementById('order-field-sync-company-form')?.checked !== false);
   const webhookUrl = getAppsScriptWebhookUrl();
-  let syncSuccess = false;
-  let companyFormSuccess = false;
+  let syncSuccess = isDemoMode ? true : false;
+  let companyFormSuccess = isDemoMode ? true : false;
 
   const syncTasks = [];
 
@@ -35459,7 +35460,8 @@ async function submitNewOrder() {
   }
 
   // 3A. Webhook Sync (ទិសទី ២: Master Data និង ទិសទី ៣: Sheet ផ្ទាល់ខ្លួន)
-  if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http') && orderPayload && orderPayload.sheetId) {
+  // 🛡️ DEMO SAFETY GUARD: ក្នុង Demo Mode មិនបាញ់ចូល Master Sheet ឬ Personal Sheet ពិតប្រាកដឡើយ!
+  if (!isDemoMode && navigator.onLine && webhookUrl && webhookUrl.startsWith('http') && orderPayload && orderPayload.sheetId) {
     syncTasks.push(
       fetch(webhookUrl, {
         method: 'POST',
@@ -35491,7 +35493,8 @@ async function submitNewOrder() {
   }
 
   // 3B. Company Google Form Auto-Sync with 4.0s Timeout Guard (មិនឱ្យគាំងលើស ៤ វិនាទី)
-  if (syncToCompany && navigator.onLine) {
+  // 🛡️ DEMO SAFETY GUARD: ក្នុង Demo Mode មិនបាញ់ចូល Google Form ក្រុមហ៊ុនឡើយ (Simulation Only 100%)!
+  if (!isDemoMode && syncToCompany && navigator.onLine) {
     const companyFormWithTimeout = Promise.race([
       submitToCompanyGoogleForm(newRecord),
       new Promise(resolve => setTimeout(() => resolve(true), 4000))
@@ -35515,8 +35518,8 @@ async function submitNewOrder() {
       // Auto-Copy text with member's OWN Leader to system clipboard in background
       await copyTextToSystemClipboard(tgOrderText);
 
-      // Auto-Send to Accounting Telegram Group bot if enabled
-      if (typeof isAccountingTelegramAutoShare === 'function' && isAccountingTelegramAutoShare()) {
+      // Auto-Send to Accounting Telegram Group bot if enabled (Blocked in Demo Mode)
+      if (!isDemoMode && typeof isAccountingTelegramAutoShare === 'function' && isAccountingTelegramAutoShare()) {
         sendOrderViaTelegramBot(tgOrderText).then(sent => {
           if (sent) {
             showToastNotification('✅ បានផ្ញើសារចូលគ្រុបគណនេយ្យអូតូជោគជ័យ! 🚀');
