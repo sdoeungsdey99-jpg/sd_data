@@ -20,6 +20,25 @@ window.refreshAllLucideIcons = function() {
   }
 };
 
+// ==========================================
+// UNIVERSAL DEMO MODE HELPER
+// ==========================================
+function checkIsDemoMode() {
+  try {
+    return (typeof DataService !== 'undefined' && typeof DataService.isDemoMode === 'function' && DataService.isDemoMode()) ||
+           (typeof localStorage !== 'undefined' && localStorage.getItem('sd_demo_mode') === 'true');
+  } catch (_) {
+    return false;
+  }
+}
+window.checkIsDemoMode = checkIsDemoMode;
+try {
+  Object.defineProperty(window, 'isDemoMode', {
+    get: checkIsDemoMode,
+    configurable: true
+  });
+} catch (_) {}
+
 const translations = {
   km: {
     appTitle: 'SD Data',
@@ -21567,7 +21586,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.50';
+const CURRENT_APP_VERSION = '67.51';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -33927,7 +33946,8 @@ function openNewOrderModal(mode = 'dock') {
   setOrderType('standard');
 
   // 🛡️ DEMO AUTO-PREFILL: ក្នុង Demo Mode បំពេញគំរូស្វ័យប្រវត្តិ (1 ប្រអប់ KidneyPro + លេខទូរសព្ទគំរូ) ដើម្បីឱ្យគាត់អាចអូសស្លាយតេស្តចលនាបានភ្លាមៗ!
-  if (isDemoMode) {
+  const isDemo = checkIsDemoMode();
+  if (isDemo) {
     currentOrderProducts.kn = 1;
     updateProductQtyDisplay();
     updateBonusCardState();
@@ -34364,7 +34384,8 @@ function initOrderSubmitSlider() {
     let phone = (document.getElementById('order-field-phone')?.value || '').trim().replace(/[\s\-\.]/g, '');
 
     // 🛡️ IN DEMO MODE: Auto-populate if empty so user can always test the slider smoothly!
-    if (isDemoMode && (totalBoxes === 0 || phone.length < 8)) {
+    const isDemo = checkIsDemoMode();
+    if (isDemo && (totalBoxes === 0 || phone.length < 8)) {
       if (totalBoxes === 0) {
         currentOrderProducts.kn = 1;
         totalBoxes = 1;
@@ -36795,6 +36816,7 @@ async function submitNewExpense() {
 
   // 3. Send to Google Apps Script Webhook (Parallel sync with fast 1.8s timeout guard)
   let expSyncSuccess = false;
+  const isDemoMode = checkIsDemoMode();
   if (!isDemoMode && navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
     try {
       const expSyncTasks = createdExpenses.map(exp => 
