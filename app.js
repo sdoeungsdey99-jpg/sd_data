@@ -10348,23 +10348,31 @@ function getCustomerViewHTML() {
             </div>
           </div>
 
-          <!-- Floating iOS Capsule Search Bar (Clear inside, Circular ✕ outside) -->
-          <div id="customer-view-search-bar" class="hidden flex items-center gap-2 flex-1 min-w-0">
-            <div class="flex-1 min-w-0 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-white shadow-lg focus-within:border-orange-500/60 focus-within:bg-white/15 transition-all">
-              <i data-lucide="search" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+          <!-- Floating iOS Capsule Search Bar matching Profile Settings Search in Profile Drawer -->
+          <div id="customer-view-search-bar" class="hidden w-full flex items-center gap-3 min-w-0 animate-fade-in py-0.5">
+            <div class="flex-1 min-w-0 flex items-center gap-2.5 px-4 h-10 rounded-full bg-white/10 border border-white/15 text-white shadow-xl focus-within:border-orange-500/60 focus-within:bg-white/15 transition-all">
+              <svg class="w-4 h-4 text-orange-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+              </svg>
               <input type="text" id="customer-view-search-input" 
-                     oninput="renderCustomerViewList()"
+                     oninput="onCustomerViewSearchInput()"
                      placeholder="ស្វែងរកឈ្មោះ, ទូរសព្ទ..." 
-                     class="w-full bg-transparent text-xs text-white placeholder-slate-400 focus:outline-none min-w-0 font-medium">
-              <button onclick="clearCustomerViewSearchInput()" 
+                     class="w-full bg-transparent text-sm text-white placeholder-slate-400 focus:outline-none min-w-0 font-medium">
+              <button type="button" id="customer-view-clear-btn" onclick="clearCustomerViewSearchInput()" 
                       title="សម្អាត"
-                      class="text-slate-400 hover:text-white w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[10px] transition shrink-0">✕</button>
+                      class="hidden w-5 h-5 rounded-full bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-xs shrink-0 active:scale-95 transition">
+                ✕
+              </button>
             </div>
-            <!-- Independent Circular ✕ Button outside -->
-            <button onclick="clearAndHideCustomerViewSearch()" 
-                    class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white flex items-center justify-center shrink-0 border border-white/15 shadow-md transition-all"
+            <!-- Independent Circular ✕ Button matching Profile Settings Search (w-10 h-10) -->
+            <button type="button" onclick="clearAndHideCustomerViewSearch()" 
+                    class="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white flex items-center justify-center shrink-0 border border-white/15 shadow-xl transition-all"
                     title="បិទ (Close)">
-              <i data-lucide="x" class="w-4 h-4"></i>
+              <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
             </button>
           </div>
         </div>
@@ -10382,24 +10390,43 @@ function toggleCustomerViewSearch() {
   const normalNav = document.getElementById('customer-view-normal-nav');
   const searchBar = document.getElementById('customer-view-search-bar');
   const input = document.getElementById('customer-view-search-input');
+  const clearBtn = document.getElementById('customer-view-clear-btn');
   if (!searchBar || !input) return;
 
   if (searchBar.classList.contains('hidden')) {
     if (normalNav) normalNav.classList.add('hidden');
     searchBar.classList.remove('hidden');
+    if (clearBtn) clearBtn.classList.add('hidden');
+    // Direct synchronous focus triggers mobile keyboard immediately
+    input.focus();
     if (window.lucide) window.lucide.createIcons();
-    setTimeout(() => input.focus(), 60);
   } else {
     clearAndHideCustomerViewSearch();
   }
 }
 
+function onCustomerViewSearchInput() {
+  const input = document.getElementById('customer-view-search-input');
+  const clearBtn = document.getElementById('customer-view-clear-btn');
+  const val = input ? input.value : '';
+  if (clearBtn) {
+    if (val.trim().length > 0) {
+      clearBtn.classList.remove('hidden');
+    } else {
+      clearBtn.classList.add('hidden');
+    }
+  }
+  renderCustomerViewList();
+}
+
 function clearCustomerViewSearchInput() {
   const input = document.getElementById('customer-view-search-input');
+  const clearBtn = document.getElementById('customer-view-clear-btn');
   if (input) {
     input.value = '';
     input.focus();
   }
+  if (clearBtn) clearBtn.classList.add('hidden');
   renderCustomerViewList();
 }
 
@@ -10407,11 +10434,18 @@ function clearAndHideCustomerViewSearch() {
   const normalNav = document.getElementById('customer-view-normal-nav');
   const searchBar = document.getElementById('customer-view-search-bar');
   const input = document.getElementById('customer-view-search-input');
+  const clearBtn = document.getElementById('customer-view-clear-btn');
   if (input) input.value = '';
+  if (clearBtn) clearBtn.classList.add('hidden');
   if (searchBar) searchBar.classList.add('hidden');
   if (normalNav) normalNav.classList.remove('hidden');
   renderCustomerViewList();
 }
+
+window.toggleCustomerViewSearch = toggleCustomerViewSearch;
+window.onCustomerViewSearchInput = onCustomerViewSearchInput;
+window.clearCustomerViewSearchInput = clearCustomerViewSearchInput;
+window.clearAndHideCustomerViewSearch = clearAndHideCustomerViewSearch;
 
 function toggleCustomerViewSortMenu(event) {
   if (event) event.stopPropagation();
@@ -21533,7 +21567,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.49';
+const CURRENT_APP_VERSION = '67.50';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {
@@ -26446,7 +26480,12 @@ function openAllCustomersModal(fromDrawer = false) {
   const normalNav = document.getElementById('all-customers-normal-nav');
   const searchBar = document.getElementById('all-customers-search-bar');
   const summaryEl = document.getElementById('all-customers-summary');
-  if (summaryEl) summaryEl.classList.remove('summary-collapsed');
+  const topHeader = document.getElementById('all-customers-top-header-container');
+  if (summaryEl) summaryEl.classList.remove('summary-collapsed', 'hidden');
+  if (topHeader) {
+    topHeader.classList.add('space-y-2');
+    topHeader.classList.remove('pb-2.5');
+  }
   if (searchInput) searchInput.value = '';
   if (normalNav) normalNav.classList.remove('hidden');
   if (searchBar) searchBar.classList.add('hidden');
@@ -26464,35 +26503,81 @@ function openAllCustomersModal(fromDrawer = false) {
 function toggleCustomersSearch() {
   const normalNav = document.getElementById('all-customers-normal-nav');
   const searchBar = document.getElementById('all-customers-search-bar');
+  const backBtn = document.getElementById('all-customers-back-btn');
   const input = document.getElementById('all-customers-search-input');
+  const clearBtn = document.getElementById('all-customers-clear-btn');
+  const summaryEl = document.getElementById('all-customers-summary');
+  const topHeader = document.getElementById('all-customers-top-header-container');
   if (!searchBar || !input) return;
 
   if (searchBar.classList.contains('hidden')) {
     if (normalNav) normalNav.classList.add('hidden');
+    if (backBtn) backBtn.classList.add('hidden');
     searchBar.classList.remove('hidden');
+    if (clearBtn) clearBtn.classList.add('hidden');
+
+    // 💡 CHOICE A: Hide Summary Strip during search so Customer List moves directly under the search bar
+    if (summaryEl) summaryEl.classList.add('hidden');
+    if (topHeader) {
+      topHeader.classList.remove('space-y-2');
+      topHeader.classList.add('pb-2.5');
+    }
+
+    // Direct synchronous focus preserves user touch gesture context on iOS Safari & Android mobile
+    input.focus();
     if (window.lucide) window.lucide.createIcons();
-    setTimeout(() => input.focus(), 60);
   } else {
     clearAndHideCustomerSearch();
   }
 }
 
+function onCustomerSearchInput() {
+  const input = document.getElementById('all-customers-search-input');
+  const clearBtn = document.getElementById('all-customers-clear-btn');
+  const val = input ? input.value : '';
+  if (clearBtn) {
+    if (val.trim().length > 0) {
+      clearBtn.classList.remove('hidden');
+    } else {
+      clearBtn.classList.add('hidden');
+    }
+  }
+  renderAllCustomersList();
+}
+
 function clearCustomerSearchInput() {
   const input = document.getElementById('all-customers-search-input');
+  const clearBtn = document.getElementById('all-customers-clear-btn');
   if (input) {
     input.value = '';
     input.focus();
   }
+  if (clearBtn) clearBtn.classList.add('hidden');
   renderAllCustomersList();
 }
 
 function clearAndHideCustomerSearch() {
   const normalNav = document.getElementById('all-customers-normal-nav');
   const searchBar = document.getElementById('all-customers-search-bar');
+  const backBtn = document.getElementById('all-customers-back-btn');
   const input = document.getElementById('all-customers-search-input');
+  const clearBtn = document.getElementById('all-customers-clear-btn');
+  const summaryEl = document.getElementById('all-customers-summary');
+  const topHeader = document.getElementById('all-customers-top-header-container');
+
   if (input) input.value = '';
+  if (clearBtn) clearBtn.classList.add('hidden');
   if (searchBar) searchBar.classList.add('hidden');
   if (normalNav) normalNav.classList.remove('hidden');
+  if (backBtn) backBtn.classList.remove('hidden');
+
+  // Restore Summary Strip and default header spacing
+  if (summaryEl) summaryEl.classList.remove('hidden');
+  if (topHeader) {
+    topHeader.classList.add('space-y-2');
+    topHeader.classList.remove('pb-2.5');
+  }
+
   renderAllCustomersList();
 }
 
@@ -32349,6 +32434,7 @@ function toggleCardVisibility(cardKey) {
 }
 
 window.toggleCardVisibility = toggleCardVisibility;
+window.onCustomerSearchInput = onCustomerSearchInput;
 window.clearCustomerSearchInput = clearCustomerSearchInput;
 window.openProfileSettingsSearch = openProfileSettingsSearch;
 window.closeProfileSettingsSearch = closeProfileSettingsSearch;
@@ -33839,6 +33925,20 @@ function openNewOrderModal(mode = 'dock') {
   updateProductQtyDisplay();
   updateBonusCardState();
   setOrderType('standard');
+
+  // 🛡️ DEMO AUTO-PREFILL: ក្នុង Demo Mode បំពេញគំរូស្វ័យប្រវត្តិ (1 ប្រអប់ KidneyPro + លេខទូរសព្ទគំរូ) ដើម្បីឱ្យគាត់អាចអូសស្លាយតេស្តចលនាបានភ្លាមៗ!
+  if (isDemoMode) {
+    currentOrderProducts.kn = 1;
+    updateProductQtyDisplay();
+    updateBonusCardState();
+    const custInput = document.getElementById('order-field-customer');
+    if (custInput && !custInput.value) custInput.value = 'សុខ សំណាង (Demo)';
+    const phoneInput = document.getElementById('order-field-phone');
+    if (phoneInput && !phoneInput.value) phoneInput.value = '012 345 678';
+    const locInput = document.getElementById('order-field-location');
+    if (locInput && !locInput.value) locInput.value = 'រាជធានីភ្នំពេញ';
+    calculateOrderFinancials();
+  }
   
   // Default currency based on delivery carrier (THB strictly for Thai, KHR for Cambodian carriers)
   const deliverySel = document.getElementById('order-field-delivery');
@@ -33922,20 +34022,25 @@ function closeNewOrderModal() {
 let isOrderSubmittingInProgress = false;
 
 // Master Flow Timing for Floating 3-Step Order Sync Animation
-let orderSyncMasterTimer1 = null;
-let orderSyncMasterTimer2_start = null;
-let orderSyncMasterTimer2_done = null;
-let orderSyncMasterTimer3_start = null;
-let orderSyncMasterTimer_complete = null;
+// Continuous Sync Loop State & Timers
+let orderSyncLoopActive = false;
+let orderSyncLoopTimers = [];
 let orderSyncDotInterval = null;
 
+function clearAllOrderSyncLoopTimers() {
+  if (orderSyncLoopTimers && orderSyncLoopTimers.length > 0) {
+    orderSyncLoopTimers.forEach(t => clearTimeout(t));
+    orderSyncLoopTimers = [];
+  }
+  if (orderSyncDotInterval) {
+    clearInterval(orderSyncDotInterval);
+    orderSyncDotInterval = null;
+  }
+}
+
 function resetFloatingOrderSyncAnimation() {
-  clearTimeout(orderSyncMasterTimer1);
-  clearTimeout(orderSyncMasterTimer2_start);
-  clearTimeout(orderSyncMasterTimer2_done);
-  clearTimeout(orderSyncMasterTimer3_start);
-  clearTimeout(orderSyncMasterTimer_complete);
-  if (orderSyncDotInterval) clearInterval(orderSyncDotInterval);
+  orderSyncLoopActive = false;
+  clearAllOrderSyncLoopTimers();
 
   const overlay = document.getElementById('floating-stepper-overlay');
   if (overlay) {
@@ -33951,6 +34056,8 @@ function resetFloatingOrderSyncAnimation() {
   ['1', '2', '3'].forEach(id => {
     const box = document.getElementById(`step-box-${id}`);
     if (box) box.classList.remove('icon-active-highlight');
+    const badge = document.getElementById(`check-badge-${id}`);
+    if (badge) badge.classList.add('hidden');
   });
 
   const c1 = document.getElementById('step-col-1');
@@ -33959,11 +34066,6 @@ function resetFloatingOrderSyncAnimation() {
   if (c2) c2.className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 transition-opacity duration-300 opacity-50';
   const c3 = document.getElementById('step-col-3');
   if (c3) c3.className = 'flex flex-col items-center text-center w-20 sm:w-22 shrink-0 relative transition-opacity duration-300 opacity-50';
-
-  ['1', '2'].forEach(id => {
-    const b = document.getElementById(`check-badge-${id}`);
-    if (b) b.classList.add('hidden');
-  });
 
   const tgSpin = document.getElementById('telegram-spin-stroke');
   if (tgSpin) tgSpin.classList.add('hidden');
@@ -33990,8 +34092,9 @@ function resetFloatingOrderSyncAnimation() {
   if (h2) h2.classList.add('hidden');
 }
 
-function startFloatingOrderSyncAnimation(onComplete) {
+function startFloatingOrderSyncAnimation() {
   resetFloatingOrderSyncAnimation();
+  orderSyncLoopActive = true;
 
   const overlay = document.getElementById('floating-stepper-overlay');
   const modalBody = document.getElementById('new-order-modal-body');
@@ -34022,102 +34125,168 @@ function startFloatingOrderSyncAnimation(onComplete) {
     if (sliderText) {
       sliderText.innerHTML = `<span class="text-amber-300 font-bold">កំពុងដំណើរការ${dots}</span>`;
     }
-  }, 450);
+  }, 400);
 
-  // STAGE 1 (0.0s -> 2.0s): Clipboard Active
+  // Kick off first cycle of continuous loop
+  runOrderSyncLoopCycle(0);
+}
+
+function runOrderSyncLoopCycle(cycleCount = 0) {
+  if (!orderSyncLoopActive) return;
+
   const box1 = document.getElementById('step-box-1');
-  if (box1) box1.classList.add('icon-active-highlight');
   const lbl1 = document.getElementById('label-step-1');
-  if (lbl1) lbl1.classList.add('active');
-
   const laser1 = document.getElementById('laser-line-1');
+  const head1 = document.getElementById('laser-head-1');
+  const b1 = document.getElementById('check-badge-1');
+
+  const col2 = document.getElementById('step-col-2');
+  const box2 = document.getElementById('step-box-2');
+  const lbl2 = document.getElementById('label-step-2');
+  const laser2 = document.getElementById('laser-line-2');
+  const head2 = document.getElementById('laser-head-2');
+  const b2 = document.getElementById('check-badge-2');
+
+  const col3 = document.getElementById('step-col-3');
+  const box3 = document.getElementById('step-box-3');
+  const spin3 = document.getElementById('telegram-spin-stroke');
+  const lbl3 = document.getElementById('telegram-label-text');
+
+  // PHASE 1: Step 1 (Sheet ផ្ទាល់ខ្លួន) Active
+  if (box1) box1.classList.add('icon-active-highlight');
+  if (lbl1) lbl1.classList.add('active');
+  if (box2) box2.classList.remove('icon-active-highlight');
+  if (lbl2) lbl2.classList.remove('active');
+  if (box3) box3.classList.remove('icon-active-highlight');
+  if (lbl3) lbl3.classList.remove('active');
+  if (spin3) spin3.classList.add('hidden');
+
   if (laser1) {
-    laser1.style.transition = 'stroke-dashoffset 1.4s ease-out';
+    laser1.style.transition = 'none';
+    laser1.style.strokeDashoffset = '50';
+    void laser1.offsetWidth; // Force reflow
+    laser1.style.transition = 'stroke-dashoffset 0.75s cubic-bezier(0.2, 0.8, 0.2, 1)';
     laser1.style.strokeDashoffset = '0';
   }
 
-  // At 1.5s, Arrow 1 arrives -> Tick 1 pops & draws
-  orderSyncMasterTimer1 = setTimeout(() => {
-    const h1 = document.getElementById('laser-head-1');
-    if (h1) h1.classList.remove('hidden');
-    const b1 = document.getElementById('check-badge-1');
+  // PHASE 2 (at 800ms): Laser 1 arrives at Step 2 -> Step 2 (Sheet ក្រុមហ៊ុន) Active
+  const t1 = setTimeout(() => {
+    if (!orderSyncLoopActive) return;
+
+    if (box1) box1.classList.remove('icon-active-highlight');
+    if (head1) head1.classList.remove('hidden');
     if (b1) b1.classList.remove('hidden');
-    if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
 
-    // STAGE 2 (2.0s -> 4.0s): Database Active
-    orderSyncMasterTimer2_start = setTimeout(() => {
-      if (box1) box1.classList.remove('icon-active-highlight');
-      if (lbl1) lbl1.classList.remove('active');
+    if (col2) { col2.classList.remove('opacity-50'); col2.classList.add('opacity-100'); }
+    if (box2) box2.classList.add('icon-active-highlight');
+    if (lbl2) lbl2.classList.add('active');
 
-      const col2 = document.getElementById('step-col-2');
-      if (col2) {
-        col2.classList.remove('opacity-50');
-        col2.classList.add('opacity-100');
-      }
-      const box2 = document.getElementById('step-box-2');
-      if (box2) box2.classList.add('icon-active-highlight');
-      const lbl2 = document.getElementById('label-step-2');
-      if (lbl2) lbl2.classList.add('active');
+    if (laser2) {
+      laser2.style.transition = 'none';
+      laser2.style.strokeDashoffset = '50';
+      void laser2.offsetWidth; // Force reflow
+      laser2.style.transition = 'stroke-dashoffset 0.75s cubic-bezier(0.2, 0.8, 0.2, 1)';
+      laser2.style.strokeDashoffset = '0';
+    }
 
-      const laser2 = document.getElementById('laser-line-2');
-      if (laser2) {
-        laser2.style.transition = 'stroke-dashoffset 1.4s ease-out';
-        laser2.style.strokeDashoffset = '0';
-      }
+    // PHASE 3 (at 1600ms): Laser 2 arrives at Step 3 -> Step 3 (Telegram) Active
+    const t2 = setTimeout(() => {
+      if (!orderSyncLoopActive) return;
 
-      // At 3.5s, Arrow 2 arrives -> Tick 2 pops & draws
-      orderSyncMasterTimer2_done = setTimeout(() => {
-        const h2 = document.getElementById('laser-head-2');
-        if (h2) h2.classList.remove('hidden');
-        const b2 = document.getElementById('check-badge-2');
-        if (b2) b2.classList.remove('hidden');
-        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+      if (box2) box2.classList.remove('icon-active-highlight');
+      if (head2) head2.classList.remove('hidden');
+      if (b2) b2.classList.remove('hidden');
 
-        // STAGE 3 (4.0s -> 6.0s): Telegram Dashed Ring
-        orderSyncMasterTimer3_start = setTimeout(() => {
-          if (box2) box2.classList.remove('icon-active-highlight');
-          if (lbl2) lbl2.classList.remove('active');
+      if (col3) { col3.classList.remove('opacity-50'); col3.classList.add('opacity-100'); }
+      if (box3) box3.classList.add('icon-active-highlight');
+      if (spin3) spin3.classList.remove('hidden');
+      if (lbl3) lbl3.classList.add('active');
 
-          const col3 = document.getElementById('step-col-3');
-          if (col3) {
-            col3.classList.remove('opacity-50');
-            col3.classList.add('opacity-100');
-          }
-          const box3 = document.getElementById('step-box-3');
-          if (box3) box3.classList.add('icon-active-highlight');
-          const spin = document.getElementById('telegram-spin-stroke');
-          if (spin) spin.classList.remove('hidden');
-          const lbl3 = document.getElementById('telegram-label-text');
-          if (lbl3) lbl3.classList.add('active');
-          if (navigator.vibrate) try { navigator.vibrate([15, 30, 15]); } catch (_) {}
+      // PHASE 4 (at 2400ms): If still syncing, loop smoothly back to Phase 1!
+      const t3 = setTimeout(() => {
+        if (!orderSyncLoopActive) return;
+        runOrderSyncLoopCycle(cycleCount + 1);
+      }, 800);
+      orderSyncLoopTimers.push(t3);
 
-          // COMPLETION AT EXACTLY 6.0s
-          orderSyncMasterTimer_complete = setTimeout(() => {
-            if (orderSyncDotInterval) clearInterval(orderSyncDotInterval);
+    }, 800);
+    orderSyncLoopTimers.push(t2);
 
-            // Fade out floating stepper & restore form body
-            if (overlay) {
-              overlay.classList.remove('opacity-100', 'scale-100');
-              overlay.classList.add('opacity-0', 'scale-95');
-              setTimeout(() => {
-                overlay.classList.add('hidden');
-                if (modalBody) {
-                  modalBody.style.opacity = '1';
-                  modalBody.style.pointerEvents = 'auto';
-                }
-              }, 350);
-            }
+  }, 800);
+  orderSyncLoopTimers.push(t1);
+}
 
-            if (typeof onComplete === 'function') onComplete();
-          }, 2000); // 4.0s to 6.0s
+function finishFloatingOrderSyncAnimation(onComplete) {
+  orderSyncLoopActive = false;
+  clearAllOrderSyncLoopTimers();
 
-        }, 500); // 3.5s + 0.5s = 4.0s
+  const overlay = document.getElementById('floating-stepper-overlay');
+  const modalBody = document.getElementById('new-order-modal-body');
 
-      }, 1500); // 2.0s + 1.5s = 3.5s
+  // Activate all 3 check badges
+  ['1', '2', '3'].forEach(id => {
+    const badge = document.getElementById(`check-badge-${id}`);
+    if (badge) badge.classList.remove('hidden');
+    const col = document.getElementById(`step-col-${id}`);
+    if (col) { col.classList.remove('opacity-50'); col.classList.add('opacity-100'); }
+  });
 
-    }, 500); // 1.5s + 0.5s = 2.0s
+  const h1 = document.getElementById('laser-head-1');
+  if (h1) h1.classList.remove('hidden');
+  const h2 = document.getElementById('laser-head-2');
+  if (h2) h2.classList.remove('hidden');
 
-  }, 1500); // 0.0s + 1.5s = 1.5s
+  const l1 = document.getElementById('laser-line-1');
+  if (l1) { l1.style.transition = 'none'; l1.style.strokeDashoffset = '0'; }
+  const l2 = document.getElementById('laser-line-2');
+  if (l2) { l2.style.transition = 'none'; l2.style.strokeDashoffset = '0'; }
+
+  const tgSpin = document.getElementById('telegram-spin-stroke');
+  if (tgSpin) tgSpin.classList.add('hidden');
+
+  ['label-step-1', 'label-step-2', 'telegram-label-text'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+  });
+
+  // Snap bottom slider to emerald green immediately
+  const sliderText = document.getElementById('order-slider-text');
+  const sliderThumb = document.getElementById('order-slider-thumb');
+  const submitSlider = document.getElementById('order-submit-slider');
+  if (sliderText) {
+    sliderText.innerHTML = '<span class="text-xs font-bold text-emerald-300 flex items-center gap-1"><span>បញ្ជូនជោគជ័យ</span><span class="text-sm">✓</span></span>';
+  }
+  if (sliderThumb) {
+    sliderThumb.classList.remove('bg-gradient-to-tr', 'from-orange-500', 'via-amber-500', 'to-orange-400');
+    sliderThumb.classList.add('bg-emerald-500');
+    sliderThumb.innerHTML = `
+      <svg class="w-4 h-4 text-white stroke-[3] check-badge-anim" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    `;
+  }
+  if (submitSlider) {
+    submitSlider.classList.add('pointer-events-none', 'border-emerald-500/50');
+  }
+
+  if (navigator.vibrate) try { navigator.vibrate([30, 50, 30]); } catch (_) {}
+
+  // Hold for 700ms so member sees all 3 ticks completed, then fade overlay cleanly
+  setTimeout(() => {
+    if (overlay) {
+      overlay.classList.remove('opacity-100', 'scale-100');
+      overlay.classList.add('opacity-0', 'scale-95');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        if (modalBody) {
+          modalBody.style.opacity = '1';
+          modalBody.style.pointerEvents = 'auto';
+        }
+      }, 300);
+    }
+
+    if (typeof onComplete === 'function') onComplete();
+  }, 700);
 }
 
 function resetOrderSubmitSlider() {
@@ -34188,11 +34357,29 @@ function initOrderSubmitSlider() {
   const onDragStart = (clientX) => {
     if (isOrderSubmittingInProgress) return false;
 
-    const totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
-                       (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
-                       (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
-                       (currentOrderProducts.free || 0);
-    const phone = (document.getElementById('order-field-phone')?.value || '').trim().replace(/[\s\-\.]/g, '');
+    let totalBoxes = (currentOrderProducts.yl || 0) + (currentOrderProducts.ylp || 0) + 
+                     (currentOrderProducts.kn || 0) + (currentOrderProducts.pdo || 0) + 
+                     (currentOrderProducts.emmi || 0) + (currentOrderProducts.sgp || 0) + 
+                     (currentOrderProducts.free || 0);
+    let phone = (document.getElementById('order-field-phone')?.value || '').trim().replace(/[\s\-\.]/g, '');
+
+    // 🛡️ IN DEMO MODE: Auto-populate if empty so user can always test the slider smoothly!
+    if (isDemoMode && (totalBoxes === 0 || phone.length < 8)) {
+      if (totalBoxes === 0) {
+        currentOrderProducts.kn = 1;
+        totalBoxes = 1;
+        updateProductQtyDisplay();
+      }
+      const phoneInput = document.getElementById('order-field-phone');
+      if (phoneInput && phone.length < 8) {
+        phoneInput.value = '012 345 678';
+        phone = '012345678';
+      }
+      const custInput = document.getElementById('order-field-customer');
+      if (custInput && !custInput.value) custInput.value = 'សុខ សំណាង (Demo)';
+      calculateOrderFinancials();
+      checkOrderSubmitValidation();
+    }
     
     if (totalBoxes === 0 || phone.length < 8) {
       if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch (_) {}
@@ -35534,13 +35721,10 @@ async function submitNewOrder() {
     renderCurrentView();
 
     const isKm = (appState && appState.language) !== 'en';
-    const successMsg = (syncToCompany && companyFormSuccess) 
-      ? (isKm ? '✅ បានកត់ត្រាការលក់ និងបញ្ជូនចូលប្រព័ន្ធក្រុមហ៊ុនជោគជ័យ! 🚀' : '✅ Recorded and Synced to Company System successfully! 🚀')
-      : (isKm ? '✅ បានកត់ត្រាការលក់ជោគជ័យ! 🚀' : '✅ Order recorded successfully! 🚀');
+    const successMsg = isKm ? '✅ បញ្ជូនជោគជ័យ!' : '✅ Success!';
 
     if (currentOrderEntryMode === 'telegram' && isTelegramAppsAssistantActive) {
-      const assistantMsg = isKm ? '✅ បានបញ្ចូលទៅ Master Data ជោគជ័យ (Apps Assistant)! 🚀' : '✅ Saved to Master Data successfully (Apps Assistant)! 🚀';
-      showToastNotification(assistantMsg);
+      showToastNotification(isKm ? '✅ បញ្ជូនជោគជ័យ!' : '✅ Success!');
     } else {
       showToastNotification(successMsg);
     }
@@ -35597,14 +35781,25 @@ async function submitNewOrder() {
   };
 
   if (isDockOrder) {
-    // ចលនា 3 ជំហានរត់ 6.0 វិនាទីអមដោយ Background Sync ស្របគ្នា (Method 3)
-    startFloatingOrderSyncAnimation(async () => {
-      if (syncTasks.length > 0) {
-        try {
-          await Promise.allSettled(syncTasks);
-        } catch (_) {}
-      }
-      await finalizeOrderSuccessUI();
+    // 1. ចាប់ផ្ដើមចលនា Loop Animation ស៊ីចង្វាក់គ្នា (Sheet ផ្ទាល់ខ្លួន ➔ Sheet ក្រុមហ៊ុន ➔ ពិនិត្យ Telegram)
+    startFloatingOrderSyncAnimation();
+
+    // 2. Minimum Duration: រត់យ៉ាងហោច ១ វដ្តពេញ (~2.4s) ដើម្បីឱ្យសមាជិកឃើញចលនាហូរត្រឹមត្រូវ
+    // 3. Safety Fallback: កំណត់អតិបរមា ១០ វិនាទី ដាច់ខាតមិនឱ្យស្លាយគាំងលើសពីនេះឡើយ ទោះជាសេវាធ្លាក់ក៏ដោយ
+    const minWait = new Promise(resolve => setTimeout(resolve, 2400));
+    const safetyTimeout = new Promise(resolve => setTimeout(resolve, 10000));
+
+    const syncPromise = (syncTasks.length > 0)
+      ? Promise.allSettled(syncTasks)
+      : Promise.resolve();
+
+    Promise.race([
+      Promise.all([syncPromise, minWait]),
+      safetyTimeout
+    ]).then(() => {
+      finishFloatingOrderSyncAnimation(async () => {
+        await finalizeOrderSuccessUI();
+      });
     });
   } else {
     // សម្រាប់ Telegram Mode ដំណើរការភ្លាមៗដូចធម្មតា
@@ -36598,12 +36793,12 @@ async function submitNewExpense() {
     } catch (_) {}
   }
 
-  // 3. Send to Google Apps Script Webhook
+  // 3. Send to Google Apps Script Webhook (Parallel sync with fast 1.8s timeout guard)
   let expSyncSuccess = false;
-  if (navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
+  if (!isDemoMode && navigator.onLine && webhookUrl && webhookUrl.startsWith('http')) {
     try {
-      for (const exp of createdExpenses) {
-        await fetch(webhookUrl, {
+      const expSyncTasks = createdExpenses.map(exp => 
+        fetch(webhookUrl, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -36612,13 +36807,20 @@ async function submitNewExpense() {
             sheetId: activeSheetId,
             data: exp
           })
-        });
-      }
+        })
+      );
+      await Promise.race([
+        Promise.all(expSyncTasks),
+        new Promise(resolve => setTimeout(resolve, 1800))
+      ]);
       expSyncSuccess = true;
     } catch (e) {
       console.warn('Expense Webhook POST error (fallback to local & offline queue):', e);
       expSyncSuccess = false;
     }
+  } else if (isDemoMode) {
+    // 🛡️ DEMO SAFETY GUARD: Simulation only in Demo Mode
+    expSyncSuccess = true;
   }
 
   if (expSyncSuccess) {

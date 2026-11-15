@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.49">
+  <link rel="manifest" href="manifest.json?v=67.50">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -4719,12 +4719,21 @@
     .light-theme #telegram-spin-stroke {
       stroke: #0284C7 !important;
     }
-    #floating-stepper-overlay,
+    #floating-stepper-overlay {
+      background: rgba(10, 19, 34, 0.94) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(56, 189, 248, 0.15) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border-radius: 28px !important;
+    }
     .light-theme #floating-stepper-overlay {
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-      backdrop-filter: none !important;
+      background: rgba(255, 255, 255, 0.96) !important;
+      border: 1px solid rgba(226, 232, 240, 0.9) !important;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border-radius: 28px !important;
     }
   </style>
 </head>
@@ -6318,11 +6327,11 @@
   <div id="all-customers-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy">
     <div class="w-full max-w-md mx-auto flex flex-col h-full overflow-hidden">
       <!-- Top Bar -->
-      <div onclick="handleHeaderScrollToTop(event, 'all-customers-list')" class="relative z-30 p-3 border-b border-white/10 bg-[#0B1528] shrink-0 space-y-2 shadow-md shadow-black/20 cursor-pointer">
+      <div id="all-customers-top-header-container" onclick="handleHeaderScrollToTop(event, 'all-customers-list')" class="relative z-30 p-3 border-b border-white/10 bg-[#0B1528] shrink-0 space-y-2 shadow-md shadow-black/20 cursor-pointer transition-all duration-200">
         <!-- Morphing Header: Default Bar vs Search Expanded Bar -->
         <div id="all-customers-header-bar" class="flex items-center justify-between gap-2">
           <!-- Minimalist Back Button (32x32) -->
-          <button onclick="closeAllCustomersModal()" 
+          <button id="all-customers-back-btn" onclick="closeAllCustomersModal()" 
                   class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition"
                   title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -6341,7 +6350,7 @@
 
             <!-- Action Buttons Group (Search Button + Sort Dropdown Trigger) -->
             <div class="flex items-center gap-1.5 shrink-0">
-              <!-- Search Toggle Button -->
+              <!-- Search Toggle Button (Direct Synchronous Focus) -->
               <button id="btn-cust-search-toggle" onclick="toggleCustomersSearch()" 
                       class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center transition shadow-sm shrink-0"
                       title="ស្វែងរកអតិថិជន">
@@ -6418,23 +6427,31 @@
             </div>
           </div>
 
-          <!-- Floating iOS Capsule Search Bar (Clear inside, Circular ✕ outside) -->
-          <div id="all-customers-search-bar" class="hidden flex items-center gap-2 flex-1 min-w-0">
-            <div class="flex-1 min-w-0 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-white shadow-lg focus-within:border-orange-500/60 focus-within:bg-white/15 transition-all">
-              <i data-lucide="search" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+          <!-- Full-Width Search Bar matching Profile Settings Search in Profile Drawer -->
+          <div id="all-customers-search-bar" class="hidden w-full flex items-center gap-3 min-w-0 animate-fade-in py-0.5">
+            <div class="flex-1 min-w-0 flex items-center gap-2.5 px-4 h-10 rounded-full bg-white/10 border border-white/15 text-white shadow-xl focus-within:border-orange-500/60 focus-within:bg-white/15 transition-all">
+              <svg class="w-4 h-4 text-orange-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+              </svg>
               <input type="text" id="all-customers-search-input" 
-                     oninput="renderAllCustomersList()"
+                     oninput="onCustomerSearchInput()"
                      placeholder="ស្វែងរកឈ្មោះ, ទូរសព្ទ..." 
-                     class="w-full bg-transparent text-xs text-white placeholder-slate-400 focus:outline-none min-w-0 font-medium">
-              <button onclick="clearCustomerSearchInput()" 
+                     class="w-full bg-transparent text-sm text-white placeholder-slate-400 focus:outline-none min-w-0 font-medium">
+              <button type="button" id="all-customers-clear-btn" onclick="clearCustomerSearchInput()" 
                       title="សម្អាត"
-                      class="text-slate-400 hover:text-white w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[10px] transition shrink-0">✕</button>
+                      class="hidden w-5 h-5 rounded-full bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-xs shrink-0 active:scale-95 transition">
+                ✕
+              </button>
             </div>
-            <!-- Independent Circular ✕ Button outside -->
-            <button onclick="clearAndHideCustomerSearch()" 
-                    class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white flex items-center justify-center shrink-0 border border-white/15 shadow-md transition-all"
+            <!-- Independent Circular ✕ Button matching Profile Settings Search (w-10 h-10) -->
+            <button type="button" onclick="clearAndHideCustomerSearch()" 
+                    class="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white flex items-center justify-center shrink-0 border border-white/15 shadow-xl transition-all"
                     title="បិទ (Close)">
-              <i data-lucide="x" class="w-4 h-4"></i>
+              <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
             </button>
           </div>
         </div>
@@ -7978,6 +7995,13 @@
                 <!-- Telegram White Paper Airplane -->
                 <path d="M33 13.5L12.5 21.4C11.1 21.9 11.1 22.8 12.3 23.1L17.5 24.8L29.7 17.1C30.3 16.6 30.8 17 30.4 17.3L20.5 26.2L20.1 32C20.7 32 21 31.7 21.3 31.3L24.3 28.4L30.3 32.8C31.4 33.5 32.1 33.1 32.5 31.9L36.3 15C36.7 13.2 35.5 12.5 33 13.5Z" fill="white"/>
               </svg>
+
+              <!-- Standardized Blue Tick Badge (✓) -->
+              <div id="check-badge-3" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#0284C7] border-[1.5px] border-white flex items-center justify-center shadow-md shadow-sky-500/50 check-badge-anim">
+                <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none">
+                  <path id="tick-path-3" class="tick-draw" d="M2.5 6L4.8 8.5L9.5 3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
             </div>
 
             <span id="telegram-label-text" class="stepper-label-text text-[11px] font-semibold mt-1.5 leading-tight transition-colors">
@@ -9116,7 +9140,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.49"></script>
-  <script src="app.js?v=67.49"></script>
+  <script src="dataService.js?v=67.50"></script>
+  <script src="app.js?v=67.50"></script>
 </body>
 </html>

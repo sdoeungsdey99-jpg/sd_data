@@ -1,5 +1,5 @@
 {
-  "version": "67.49",
-  "buildTime": "2026-11-14T09:40:00+07:00",
-  "notes": "v67.49: Center floating 3-step order sync animation in viewport with scale/opacity transitions; fix Telegram label typo; enable slider touchstart across full track; prevent duplicate order collision"
+  "version": "67.50",
+  "buildTime": "2026-11-15T23:05:00+07:00",
+  "notes": "v67.50: Shorten order success toast to «បញ្ជូនជោគជ័យ!»; Synchronous keyboard auto-focus on customer search; Full-width 40px search bar matching Profile Drawer; Instant Quick Expense open & responsive achievement feedback; Continuous synced order loop animation with glass card overlay; Auto-prefill sample demo order for instant demo testing"
 }
