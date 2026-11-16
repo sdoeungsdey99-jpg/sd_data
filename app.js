@@ -33872,7 +33872,7 @@ function openNewOrderModal(mode = 'dock') {
       const isThai = currentDeliv.toLowerCase().includes('thai') || currentOrderCurrency === 'THB';
       if (isThai) {
         sellerPhoneInput.value = '';
-        sellerPhoneInput.placeholder = '(មិនត្រូវការសម្រាប់ថៃ)';
+        sellerPhoneInput.placeholder = '0** *** ***';
       } else {
         const savedPhone = profile.phone || localStorage.getItem('sd_last_seller_phone') || '';
         sellerPhoneInput.value = savedPhone ? formatKhmerPhone(savedPhone) : '';
@@ -33897,7 +33897,7 @@ function openNewOrderModal(mode = 'dock') {
       const isThai = currentDeliv.toLowerCase().includes('thai') || currentOrderCurrency === 'THB';
       if (isThai) {
         sellerPhoneInput.value = '';
-        sellerPhoneInput.placeholder = '(មិនត្រូវការសម្រាប់ថៃ)';
+        sellerPhoneInput.placeholder = '0** *** ***';
       } else {
         sellerPhoneInput.value = savedSellerPhone ? formatKhmerPhone(savedSellerPhone) : '';
         sellerPhoneInput.placeholder = '0** *** ***';
@@ -34664,7 +34664,7 @@ function clearOrderInput() {
       sellerPhoneInput.classList.remove('opacity-80', 'bg-white/5', 'cursor-not-allowed');
       if (isThai) {
         sellerPhoneInput.value = '';
-        sellerPhoneInput.placeholder = '(មិនត្រូវការសម្រាប់ថៃ)';
+        sellerPhoneInput.placeholder = '0** *** ***';
       } else {
         const savedPhone = prof.phone || localStorage.getItem('sd_last_seller_phone') || '';
         sellerPhoneInput.value = savedPhone ? formatKhmerPhone(savedPhone) : '';
@@ -34680,7 +34680,7 @@ function clearOrderInput() {
     }
     if (sellerPhoneInput) {
       sellerPhoneInput.value = '';
-      sellerPhoneInput.placeholder = isThai ? '(មិនត្រូវការសម្រាប់ថៃ)' : '0** *** ***';
+      sellerPhoneInput.placeholder = '0** *** ***';
       sellerPhoneInput.readOnly = false;
       sellerPhoneInput.classList.remove('opacity-80', 'bg-white/5', 'cursor-not-allowed');
     }
@@ -37043,11 +37043,7 @@ function syncOrderSellerPhoneUI() {
   }
 
   if (sellerPhoneInput) {
-    if (isThai && !sellerPhoneInput.value) {
-      sellerPhoneInput.placeholder = '(មិនត្រូវការសម្រាប់ថៃ)';
-    } else if (!isThai && !sellerPhoneInput.value) {
-      sellerPhoneInput.placeholder = '0** *** ***';
-    }
+    sellerPhoneInput.placeholder = '0** *** ***';
 
     if (clearBtn) {
       if (sellerPhoneInput.value && sellerPhoneInput.value.trim().length > 0) {
@@ -37084,7 +37080,7 @@ function updateDeliveryShippingDefault() {
     setOrderCurrency('THB');
     if (sellerPhoneInput) {
       sellerPhoneInput.value = '';
-      sellerPhoneInput.placeholder = '(មិនត្រូវការសម្រាប់ថៃ)';
+      sellerPhoneInput.placeholder = '0** *** ***';
     }
   } else {
     if (val === 'VET (COD)') {
@@ -38908,6 +38904,27 @@ function saveBostarGiftState(state) {
   } catch (_) {}
 }
 
+function checkIsCampaignPeriod() {
+  const now = new Date();
+  return now >= new Date('2026-11-20T00:00:00+07:00') && now <= new Date('2026-11-30T23:59:59+07:00');
+}
+
+function getBostarGiftAllTimeOrdersCount() {
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const sellerName = String(p?.name || localStorage.getItem('sd_verified_seller_km') || localStorage.getItem('sd_user_name') || '').trim().toLowerCase();
+  const sellerPhone = String(p?.phone || localStorage.getItem('sd_last_seller_phone') || '').trim().replace(/[\s\-\.]/g, '');
+  const orders = (DataService && DataService.data && Array.isArray(DataService.data.orders)) ? DataService.data.orders : [];
+  if (!sellerName && !sellerPhone) return orders.length;
+
+  const filtered = orders.filter(o => {
+    if (!o) return false;
+    const oSeller = String(o.seller || o.sellerName || '').trim().toLowerCase();
+    const oPhone = String(o.sellerPhone || '').trim().replace(/[\s\-\.]/g, '');
+    return (sellerName && oSeller === sellerName) || (sellerPhone && oPhone === sellerPhone);
+  });
+  return filtered.length > 0 ? filtered.length : orders.length;
+}
+
 function getBostarGiftCurrentSellerName() {
   const p = (typeof getProfileData === 'function') ? getProfileData() : {};
   return String(p?.name || localStorage.getItem('sd_verified_seller_km') || localStorage.getItem('sd_user_name') || 'សមាជិក').trim();
@@ -38989,44 +39006,42 @@ function renderBostarGiftUI() {
   const rawOrders = getBostarGiftRawOrdersCount();
   const activePoints = getBostarGiftActivePoints();
 
-  // 1. Demo Mode Toolbar Visibility
-  const demoToolbar = document.getElementById('bostargift-demo-toolbar');
-  if (demoToolbar) {
-    if (isDemo || state.useDemoSimulation) {
-      demoToolbar.classList.remove('hidden');
-    } else {
-      demoToolbar.classList.add('hidden');
-    }
-  }
-
-  // 2. Global Pool Quota
-  const claimed = state.claimedCups || 0;
-  const maxQuota = (claimed >= 10) ? 15 : 10;
-  const remaining = Math.max(0, maxQuota - claimed);
-
-  const quotaCountEl = document.getElementById('bostargift-quota-count');
-  const quotaMaxEl = document.getElementById('bostargift-quota-max');
-  const poolStatusEl = document.getElementById('bostargift-pool-status');
-  if (quotaCountEl) quotaCountEl.textContent = remaining;
-  if (quotaMaxEl) quotaMaxEl.textContent = maxQuota;
-  if (poolStatusEl) {
-    if (claimed >= 10 && maxQuota === 15) {
-      poolStatusEl.textContent = '🔥 អស់ ១០ កែវហើយ! ក្រុមហ៊ុនពង្រីកដល់ ១៥ កែវ!';
-      poolStatusEl.className = 'text-orange-400 font-bold';
-    } else if (remaining === 0) {
-      poolStatusEl.textContent = '⚠️ រង្វាន់ក្នុងស្តុកត្រូវបានបើកអស់ហើយ!';
-      poolStatusEl.className = 'text-rose-400 font-bold';
-    } else {
-      poolStatusEl.textContent = 'បើកអស់មុន ៣០ នឹងថែមដល់ ១៥ កែវ!';
-      poolStatusEl.className = 'text-amber-300 font-medium';
-    }
-  }
-
   // 3. Personal Points & Header
   const nameEl = document.getElementById('bostargift-member-name');
   const pointsValEl = document.getElementById('bostargift-points-val');
   if (nameEl) nameEl.textContent = sellerName;
   if (pointsValEl) pointsValEl.textContent = activePoints;
+
+  // Breakdown: All-Time Orders vs Campaign Orders
+  const allTimeOrders = getBostarGiftAllTimeOrdersCount();
+  const allTimeEl = document.getElementById('bostargift-alltime-orders');
+  const campaignOrdersEl = document.getElementById('bostargift-campaign-orders');
+  if (allTimeEl) allTimeEl.textContent = allTimeOrders;
+  if (campaignOrdersEl) campaignOrdersEl.textContent = rawOrders;
+
+  const isCampaign = checkIsCampaignPeriod();
+  const statusLine = document.getElementById('bostargift-campaign-status-line');
+  if (statusLine) {
+    if (isCampaign) {
+      statusLine.textContent = '🚀 យុទ្ធនាការផ្លូវការ (២០-៣០ វិច្ឆិកា) — គិតការកុម្ម៉ង់ជាក់ស្តែង';
+      statusLine.className = 'text-[10px] text-emerald-300 font-medium truncate';
+    } else {
+      statusLine.textContent = '🎮 បង្វិលលេងសេរី (យុទ្ធនាការផ្លូវការ ២០-៣០ វិច្ឆិកា)';
+      statusLine.className = 'text-[10px] text-amber-300 font-medium truncate';
+    }
+  }
+
+  // Header Badge (Demo / Practice vs Official)
+  const headerBadge = document.getElementById('bostargift-header-badge');
+  if (headerBadge) {
+    if (isCampaign) {
+      headerBadge.textContent = '🚀 ផ្លូវការ';
+      headerBadge.className = 'px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-300';
+    } else {
+      headerBadge.textContent = '🎮 Demo';
+      headerBadge.className = 'px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-bold text-amber-300';
+    }
+  }
 
   // Avatar initial
   const avatarEl = document.getElementById('bostargift-member-avatar');
@@ -39151,31 +39166,35 @@ function renderBostarGiftUI() {
       spinBtn.disabled = true;
       spinBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-amber-500/50 text-black cursor-not-allowed opacity-80';
       spinText.textContent = 'កំពុងបង្វិល...';
-    } else if (remaining <= 0) {
-      spinBtn.disabled = true;
-      spinBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-slate-700/50 text-slate-400 border border-white/5 cursor-not-allowed';
-      spinText.textContent = '⚠️ រង្វាន់ក្នុងស្តុកត្រូវបានបើកអស់ហើយ';
-      spinHint.textContent = 'សូមរង់ចាំយុទ្ធនាការបន្ទាប់ ឬពិនិត្យប័ណ្ណរង្វាន់របស់អ្នកខាងក្រោម។';
-    } else if (state.personalWon) {
-      spinBtn.disabled = true;
-      spinBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-not-allowed';
-      spinText.textContent = '✓ អ្នកបានបង្វិលឈ្នះរួចហើយ!';
-      spinHint.textContent = 'អ្នកអាចប្រឹងបន្តទៅ ១០ និង ២០ កុម្ម៉ង់ ដើម្បីទទួលបានរង្វាន់បន្ថែមស្វ័យប្រវត្តិ!';
-    } else if (state.personalSpun) {
-      spinBtn.disabled = true;
-      spinBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-blue-500/20 text-blue-300 border border-blue-500/30 cursor-not-allowed';
-      spinText.textContent = '⏳ បានបង្វិលរួចហើយ (រក្សា ៥ ពិន្ទុ)';
-      spinHint.textContent = `អ្នកនៅសល់ ${activePoints} ពិន្ទុដដែល — ប្រឹងបន្ត ${Math.max(0, 10 - rawOrders)} កុម្ម៉ង់ទៀតដើម្បីដល់ ១០ កុម្ម៉ង់ ធានាថានឹងបាន ១ កែវស្វ័យប្រវត្តិ!`;
-    } else if (rawOrders >= 5) {
+    } else if (isCampaign) {
+      // Official Campaign Mode (Nov 20-30): Strictly enforce orders!
+      if (state.personalWon) {
+        spinBtn.disabled = true;
+        spinBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-not-allowed';
+        spinText.textContent = '✓ អ្នកបានបង្វិលឈ្នះរួចហើយ!';
+        spinHint.textContent = 'អ្នកអាចប្រឹងបន្តទៅ ១០ និង ២០ កុម្ម៉ង់ ដើម្បីទទួលបានរង្វាន់បន្ថែមស្វ័យប្រវត្តិ!';
+      } else if (state.personalSpun) {
+        spinBtn.disabled = true;
+        spinBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-blue-500/20 text-blue-300 border border-blue-500/30 cursor-not-allowed';
+        spinText.textContent = '⏳ បានបង្វិលរួចហើយ (រក្សា ៥ ពិន្ទុ)';
+        spinHint.textContent = `អ្នកនៅសល់ ${activePoints} ពិន្ទុដដែល — ប្រឹងបន្ត ${Math.max(0, 10 - rawOrders)} កុម្ម៉ង់ទៀតដើម្បីដល់ ១០ កុម្ម៉ង់ ធានាថានឹងបាន ១ កែវស្វ័យប្រវត្តិ!`;
+      } else if (activePoints >= 5) {
+        spinBtn.disabled = false;
+        spinBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:opacity-95 text-black shadow-lg shadow-orange-500/30 active:scale-95 transition cursor-pointer select-none';
+        spinText.textContent = '🎲 បង្វិលផ្សងសំណាងផ្លូវការ (៥ ពិន្ទុ)';
+        spinHint.textContent = '*បើឈ្នះ ទទួលបានកូដរង្វាន់ផ្លូវការ BG-**** | បើមិនឈ្នះ រក្សា ៥ ពិន្ទុដដែលសម្រាប់ប្រឹងបន្តទៅ ១០';
+      } else {
+        spinBtn.disabled = true;
+        spinBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-slate-800 text-slate-400 border border-white/5 cursor-not-allowed';
+        spinText.textContent = `🔒 ខ្វះ ${5 - activePoints} កុម្ម៉ង់ទៀតដើម្បីបង្វិល`;
+        spinHint.textContent = 'យុទ្ធនាការផ្លូវការ៖ ត្រូវមានយ៉ាងហោចណាស់ ៥ កុម្ម៉ង់ជាក់ស្តែងក្នុងចន្លោះ ២០-៣០ វិច្ឆិកា ដើម្បីបង្វិលយករង្វាន់!';
+      }
+    } else {
+      // Pre-Launch Open Mode (Before Nov 20): Open to everyone freely!
       spinBtn.disabled = false;
       spinBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:opacity-95 text-black shadow-lg shadow-orange-500/30 active:scale-95 transition cursor-pointer select-none';
-      spinText.textContent = '🎲 បង្វិលផ្សងសំណាង (Spin Now!)';
-      spinHint.textContent = '*បើបង្វិលបានរង្វាន់ គឺអស់ពិន្ទុ | បើមិនបានរង្វាន់ សល់ ៥ ពិន្ទុដដែលសម្រាប់ប្រឹងបន្តទៅ ១០';
-    } else {
-      spinBtn.disabled = true;
-      spinBtn.className = 'w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-slate-800 text-slate-400 border border-white/5 cursor-not-allowed';
-      spinText.textContent = `🔒 ខ្វះ ${5 - rawOrders} កុម្ម៉ង់ទៀតដើម្បីបង្វិល`;
-      spinHint.textContent = 'ធ្វើការកុម្ម៉ង់ឱ្យគ្រប់ ៥ លើក ដើម្បីទទួលបានសិទ្ធិបង្វិលកង់យករង្វាន់!';
+      spinText.textContent = '🎲 បង្វិលផ្សងសំណាង (សាកល្បងសេរី)';
+      spinHint.textContent = '*បង្វិលលេងសាកល្បងសេរី! យុទ្ធនាការផ្លូវការ (មានកូដពិសេស BG-****) ចាប់ផ្ដើមថ្ងៃ ២០-៣០ វិច្ឆិកា';
     }
   }
 
@@ -39268,27 +39287,26 @@ function drawBostarGiftWheel(currentAngle) {
 function spinBostarGiftWheel() {
   if (bostargiftIsSpinning) return;
 
-  const state = getBostarGiftState();
+  const isCampaign = checkIsCampaignPeriod();
   const rawOrders = getBostarGiftRawOrdersCount();
-  const claimed = state.claimedCups || 0;
-  const maxQuota = (claimed >= 10) ? 15 : 10;
-  const remaining = Math.max(0, maxQuota - claimed);
+  const activePoints = getBostarGiftActivePoints();
+  const state = getBostarGiftState();
+  const sellerName = getBostarGiftCurrentSellerName();
 
-  if (remaining <= 0) {
-    showToastNotification('⚠️ រង្វាន់ក្នុងស្តុកត្រូវបានបើកអស់ហើយ!');
-    return;
-  }
-  if (state.personalWon) {
-    showToastNotification('អ្នកបានបង្វិលឈ្នះរួចហើយ! 🥤');
-    return;
-  }
-  if (state.personalSpun) {
-    showToastNotification('អ្នកបានបង្វិលរួចហើយ! សូមប្រឹងបន្តទៅ ១០ កុម្ម៉ង់! 💪');
-    return;
-  }
-  if (rawOrders < 5) {
-    showToastNotification(`ត្រូវការយ៉ាងហោចណាស់ ៥ កុម្ម៉ង់ដើម្បីបង្វិល! (បច្ចុប្បន្ន៖ ${rawOrders}) ✍️`);
-    return;
+  // If in Official Campaign Period (Nov 20 to 30):
+  if (isCampaign) {
+    if (state.personalWon) {
+      showToastNotification('អ្នកបានបង្វិលឈ្នះរួចហើយ! 🥤');
+      return;
+    }
+    if (state.personalSpun) {
+      showToastNotification('អ្នកបានបង្វិលរួចហើយ! សូមប្រឹងបន្តទៅ ១០ កុម្ម៉ង់! 💪');
+      return;
+    }
+    if (activePoints < 5) {
+      showToastNotification(`⚠️ ដល់ថ្ងៃទី ២០-៣០ វិច្ឆិកាហើយ មិនមានសិទ្ធិលេងសេរីទៀតទេ! ត្រូវមានយ៉ាងហោចណាស់ ៥ កុម្ម៉ង់ជាក់ស្តែងក្នុងយុទ្ធនាការដើម្បីបង្វិល! (បច្ចុប្បន្ន៖ ${activePoints} ពិន្ទុ) 💪`);
+      return;
+    }
   }
 
   bostargiftIsSpinning = true;
@@ -39350,46 +39368,88 @@ function spinBostarGiftWheel() {
 }
 
 function onBostarGiftSpinComplete(isWin, sliceIndex) {
+  const isCampaign = checkIsCampaignPeriod();
+  const activePoints = getBostarGiftActivePoints();
   const state = getBostarGiftState();
   const sellerName = getBostarGiftCurrentSellerName();
 
   if (isWin) {
-    // 1. Mark won & deduct points
-    state.personalSpun = true;
-    state.personalWon = true;
-    state.pointsDeducted = (state.pointsDeducted || 0) + 5;
-    state.claimedCups = (state.claimedCups || 0) + 1;
+    const isQualifyingOfficialWin = isCampaign && (activePoints >= 5);
 
-    // 2. Generate Digital Voucher Ticket
-    const newVoucher = createBostarGiftVoucherRecord('ភេសជ្ជៈ ១ ឯកតា (១ កែវ)', 'បង្វិលឈ្នះ ៥ កុម្ម៉ង់', 'spin');
-    state.myVouchers = state.myVouchers || [];
-    state.myVouchers.unshift(newVoucher);
+    if (isQualifyingOfficialWin) {
+      // 1. Official Campaign Win!
+      state.personalSpun = true;
+      state.personalWon = true;
+      state.pointsDeducted = (state.pointsDeducted || 0) + 5;
+      state.claimedCups = (state.claimedCups || 0) + 1;
 
-    saveBostarGiftState(state);
-    renderBostarGiftUI();
+      const randomDigits = Math.floor(1000 + Math.random() * 9000);
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    // 3. Launch Confetti celebration!
-    if (typeof launchBirthdayConfetti === 'function') {
-      launchBirthdayConfetti();
+      const newVoucher = {
+        id: `vouch_${Date.now()}_${randomDigits}`,
+        code: `BG-${randomDigits}`,
+        rewardTitle: 'ភេសជ្ជៈ ១ ឯកតា (១ កែវ)',
+        typeLabel: 'បង្វិលឈ្នះ ៥ កុម្ម៉ង់ (ផ្លូវការ)',
+        type: 'spin',
+        isPractice: false,
+        winner: sellerName,
+        date: `${day}/${month}/${year} ${time}`,
+        timestamp: Date.now()
+      };
+      state.myVouchers = state.myVouchers || [];
+      state.myVouchers.unshift(newVoucher);
+
+      saveBostarGiftState(state);
+      renderBostarGiftUI();
+
+      if (typeof launchBirthdayConfetti === 'function') {
+        launchBirthdayConfetti();
+      }
+
+      setTimeout(() => {
+        openBostarGiftVoucherModal(newVoucher.id);
+      }, 600);
+    } else {
+      // 2. Practice / Open for Everyone Win (Before Nov 20 or without qualifying orders)
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const practiceVoucher = {
+        id: `practice_${Date.now()}`,
+        code: '(មិនទាន់មានកូដពិសេស)',
+        rewardTitle: 'ភេសជ្ជៈ ១ កែវ',
+        typeLabel: 'បង្វិលសាកល្បង (មិនទាន់មានកូដពិសេស)',
+        type: 'practice',
+        isPractice: true,
+        winner: sellerName,
+        date: `${day}/${month}/${year} ${time}`,
+        timestamp: Date.now()
+      };
+
+      renderBostarGiftUI();
+
+      if (typeof launchBirthdayConfetti === 'function') {
+        launchBirthdayConfetti();
+      }
+
+      setTimeout(() => {
+        openBostarGiftVoucherModal(practiceVoucher.id, practiceVoucher);
+      }, 600);
     }
-
-    // 4. Open Voucher Ticket Modal
-    setTimeout(() => {
-      openBostarGiftVoucherModal(newVoucher.id);
-    }, 600);
   } else {
-    // 1. Mark spun, but keep 5 points!
-    state.personalSpun = true;
-    state.personalWon = false;
-    // Points NOT deducted!
-
-    saveBostarGiftState(state);
+    // Landed on miss
     renderBostarGiftUI();
-
-    // 2. Show encouraging feedback toast/modal
     const curOrders = getBostarGiftRawOrdersCount();
     const remainingTo10 = Math.max(0, 10 - curOrders);
-    alert(`🎯 មិនអីទេលោកបង ${sellerName}!\n\nអ្នកនៅសល់ ៥ ពិន្ទុដដែល — សូមប្រឹងបន្ត ${remainingTo10} កុម្ម៉ង់ទៀតដើម្បីដល់ ១០ កុម្ម៉ង់ នោះនឹងទទួលបានភេសជ្ជៈ ១ កែវ ១០០% ដោយស្វ័យប្រវត្តិ! 💪✨`);
+    alert(`🎯 មិនអីទេលោកបង ${sellerName}!\n\nសូមសាកល្បងម្ដងទៀត ឬប្រឹងប្រែងលក់ឱ្យបាន ១០ កុម្ម៉ង់ក្នុងយុទ្ធនាការ (២០-៣០ វិច្ឆិកា) ដើម្បីទទួលបានភេសជ្ជៈ ១ កែវ ១០០% ដោយស្វ័យប្រវត្តិ! 💪✨`);
   }
 }
 
@@ -39452,8 +39512,13 @@ function createBostarGiftVoucherRecord(rewardTitle, typeLabel, type) {
   const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const dateFormatted = `${day}/${month}/${year} ${time}`;
 
-  const randomDigits = Math.floor(100 + Math.random() * 900);
-  const code = `VST-NOV-${randomDigits}`;
+  const state = getBostarGiftState();
+  const isDemo = (typeof checkIsDemoMode === 'function') ? checkIsDemoMode() : false;
+  const isBeforeCampaign = new Date() < new Date('2026-11-20T00:00:00+07:00');
+  const isPractice = isDemo || state.useDemoSimulation || isBeforeCampaign;
+
+  const randomDigits = Math.floor(1000 + Math.random() * 9000);
+  const code = isPractice ? `DEMO-${randomDigits}` : `BG-${randomDigits}`;
 
   return {
     id: `vouch_${Date.now()}_${randomDigits}`,
@@ -39461,6 +39526,7 @@ function createBostarGiftVoucherRecord(rewardTitle, typeLabel, type) {
     rewardTitle: rewardTitle,
     typeLabel: typeLabel,
     type: type,
+    isPractice: isPractice,
     winner: getBostarGiftCurrentSellerName(),
     date: dateFormatted,
     timestamp: Date.now()
@@ -39518,10 +39584,10 @@ function renderBostarGiftVouchers() {
 
 let activeViewingVoucher = null;
 
-function openBostarGiftVoucherModal(voucherId) {
+function openBostarGiftVoucherModal(voucherId, overrideVoucher) {
   const state = getBostarGiftState();
   const vouchers = state.myVouchers || [];
-  const v = vouchers.find(item => item.id === voucherId) || vouchers[0];
+  const v = overrideVoucher || vouchers.find(item => item.id === voucherId) || vouchers[0];
   if (!v) return;
 
   activeViewingVoucher = v;
@@ -39529,12 +39595,17 @@ function openBostarGiftVoucherModal(voucherId) {
   const modal = document.getElementById('bostargift-voucher-modal');
   if (!modal) return;
 
+  const subHeadingEl = document.getElementById('voucher-ticket-sub-heading');
   const codeEl = document.getElementById('voucher-ticket-code');
   const titleEl = document.getElementById('voucher-ticket-reward-title');
   const winnerEl = document.getElementById('voucher-ticket-winner');
   const dateEl = document.getElementById('voucher-ticket-date');
   const typeEl = document.getElementById('voucher-ticket-type-label');
   const iconEl = document.getElementById('voucher-ticket-icon');
+  const statusBadge = document.getElementById('voucher-ticket-status-badge');
+  const instructionText = document.getElementById('voucher-ticket-instruction-text');
+  const actionBtn = document.getElementById('btn-voucher-telegram-action');
+  const actionBtnText = document.getElementById('btn-voucher-telegram-action-text');
 
   if (codeEl) codeEl.textContent = v.code;
   if (titleEl) titleEl.textContent = v.rewardTitle;
@@ -39542,6 +39613,42 @@ function openBostarGiftVoucherModal(voucherId) {
   if (dateEl) dateEl.textContent = v.date;
   if (typeEl) typeEl.textContent = v.typeLabel;
   if (iconEl) iconEl.textContent = v.type === 'tier20' ? '👥' : '🥤';
+
+  const isPractice = v.isPractice || (v.code && (v.code.startsWith('DEMO') || v.code.includes('មិនទាន់')));
+
+  if (isPractice) {
+    if (subHeadingEl) subHeadingEl.textContent = 'BOSTAR GIFT · សាកល្បងលេង';
+    if (statusBadge) {
+      statusBadge.innerHTML = '<span>🎮</span> សាកល្បង';
+      statusBadge.className = 'px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 inline-flex items-center gap-1';
+    }
+    if (instructionText) {
+      instructionText.innerHTML = `
+        <span class="block font-bold text-amber-300 mb-1">🎉 អបអរសាទរ! អ្នកបង្វិលត្រូវភេសជ្ជៈ ១ កែវ!</span>
+        <span>ប៉ុន្តែដោយសារអ្នកមិនទាន់សម្រេចគ្រប់ ៥ ឬ ១០ កុម្ម៉ង់ក្នុងយុទ្ធនាការ ដូច្នេះមិនទាន់មាន «កូដពិសេសផ្លូវការ» សម្រាប់បើកយកភេសជ្ជៈឡើយ។</span><br>
+        <span class="block mt-1 text-slate-300 font-medium">💪 សូមប្រឹងប្រែងលក់ឱ្យបាន ៥ ឬ ១០ កុម្ម៉ង់ (២០-៣០ វិច្ឆិកា) ដើម្បីដោះសោកូដរង្វាន់ផ្លូវការ!</span>
+      `;
+    }
+    if (actionBtnText) actionBtnText.textContent = 'យល់ព្រម (ត្រៀមប្រឹងលក់!)';
+    if (actionBtn) {
+      actionBtn.onclick = () => closeBostarGiftVoucherModal();
+      actionBtn.className = 'flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 text-black font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-orange-500/20 active:scale-95 transition';
+    }
+  } else {
+    if (subHeadingEl) subHeadingEl.textContent = 'BOSTAR GROUP OFFICIAL VOUCHER';
+    if (statusBadge) {
+      statusBadge.innerHTML = '<span>✓</span> VERIFIED';
+      statusBadge.className = 'px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 inline-flex items-center gap-1';
+    }
+    if (instructionText) {
+      instructionText.textContent = 'ផ្ញើជូន Admin តាម Telegram ដើម្បីត្រៀមទទួលរង្វាន់ដើមខែ និងជាសំបុត្រមានសិទ្ធិទទួលភេសជ្ជៈពីហាង/ដៃគូសហការ។';
+    }
+    if (actionBtnText) actionBtnText.textContent = 'ផ្ញើទៅ Telegram Admin';
+    if (actionBtn) {
+      actionBtn.onclick = () => shareBostarGiftVoucherTelegram();
+      actionBtn.className = 'flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-sky-500/20 active:scale-95 transition';
+    }
+  }
 
   modal.classList.remove('hidden');
   if (window.lucide) window.lucide.createIcons();
@@ -39555,14 +39662,18 @@ function closeBostarGiftVoucherModal() {
 function shareBostarGiftVoucherTelegram() {
   if (!activeViewingVoucher) return;
   const v = activeViewingVoucher;
-  const text = `🎉 [BOSTARGIFT OFFICIAL VOUCHER]\n\n` +
+  const isPractice = v.isPractice || (v.code && v.code.startsWith('DEMO'));
+  const header = isPractice ? '🎮 [BOSTARGIFT DEMO PRACTICE VOUCHER]' : '🎉 [BOSTARGIFT OFFICIAL VOUCHER]';
+  const statusLine = isPractice ? '⚠️ ស្ថានភាព៖ សាកល្បងលេង Demo (មិនទាន់ផ្លូវការ)' : '✅ ស្ថានភាព៖ បញ្ជាក់ត្រឹមត្រូវ (Verified)';
+
+  const text = `${header}\n\n` +
                `🎫 លេខកូដប័ណ្ណ៖ ${v.code}\n` +
                `👤 ម្ចាស់រង្វាន់៖ ${v.winner}\n` +
                `🥤 រង្វាន់៖ ${v.rewardTitle}\n` +
                `🎯 ប្រភេទ៖ ${v.typeLabel}\n` +
                `📅 កាលបរិច្ឆេទ៖ ${v.date}\n` +
-               `✅ ស្ថានភាព៖ បញ្ជាក់ត្រឹមត្រូវ (Verified)\n\n` +
-               `📸 ខ្ញុំបាន Screenshot រក្សាទុកប័ណ្ណនេះរួចហើយ ដើម្បីត្រៀមទទួលរង្វាន់ដើមខែ!`;
+               `${statusLine}\n\n` +
+               (isPractice ? '🎮 នេះជាការបង្វិលសាកល្បងលេងប៉ុណ្ណោះ។ យុទ្ធនាការផ្លូវការចាប់ផ្ដើមថ្ងៃទី ២០-៣០ វិច្ឆិកា ២០២៦!' : '📸 ខ្ញុំបាន Screenshot រក្សាទុកប័ណ្ណនេះរួចហើយ ដើម្បីត្រៀមទទួលរង្វាន់ដើមខែ!');
 
   const encoded = encodeURIComponent(text);
   const tgUrl = `tg://msg?text=${encoded}`;
