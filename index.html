@@ -1850,6 +1850,45 @@
       color: #065F46 !important;
     }
 
+    /* BostarGift Modal - Light Theme Standard */
+    .light-theme #bostargift-modal,
+    .light-theme #bostargift-modal > div,
+    .light-theme #bostargift-modal-body {
+      background-color: #F8FAFC !important;
+      color: #0F172A !important;
+    }
+    .light-theme #bostargift-modal .bg-\[\#0B1528\]\/95,
+    .light-theme #bostargift-modal [class*="bg-[#0B1528]"],
+    .light-theme #bostargift-modal [class*="bg-[#070D18]"] {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+    }
+    .light-theme #bostargift-modal h3,
+    .light-theme #bostargift-modal h4 {
+      color: #0F172A !important;
+    }
+    .light-theme #bostargift-modal .bg-black\/30,
+    .light-theme #bostargift-modal .bg-black\/40 {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+    }
+    .light-theme #bostargift-modal .text-slate-400 {
+      color: #64748B !important;
+    }
+    .light-theme #bostargift-modal .text-white {
+      color: #0F172A !important;
+    }
+    .light-theme #bostargift-modal .bg-white\/5 {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+      color: #0F172A !important;
+    }
+    .light-theme #bostargift-demo-toolbar {
+      background-color: #FFFBEB !important;
+      border-color: #FDE68A !important;
+    }
+
     /* High-Contrast Readable Numbers & Accents in Light Theme */
     .light-theme #hero-val-khr,
     .light-theme .text-amber-400 {
@@ -8189,8 +8228,21 @@
               </datalist>
             </div>
             <div>
-              <label id="order-label-seller-phone" class="block text-[11px] text-slate-400 mb-1 font-semibold truncate">លេខអ្នកលក់ / ទូរសព្ទ:</label>
-              <input type="tel" id="order-field-seller-phone" placeholder="0** *** ***" class="w-full bg-black/50 border border-white/10 rounded-xl p-2 text-white font-mono focus:outline-none focus:border-orange-500 text-xs">
+              <div class="flex items-center justify-between mb-1">
+                <label id="order-label-seller-phone" class="block text-[11px] text-slate-400 font-semibold truncate">
+                  <span id="order-label-seller-phone-text">លេខអ្នកលក់:</span> <span id="order-seller-phone-required-badge" class="text-orange-400 text-[10px] font-bold">* (ទាមទារ)</span>
+                </label>
+              </div>
+              <div class="relative flex items-center">
+                <input type="tel" id="order-field-seller-phone" placeholder="0** *** ***" 
+                       class="w-full bg-black/50 border border-white/10 rounded-xl py-2 pl-2.5 pr-8 text-white font-mono focus:outline-none focus:border-orange-500 text-xs">
+                <!-- 1-Tap Clear Button [✕] inside placeholder / field -->
+                <button type="button" id="btn-clear-seller-phone" onclick="clearOrderSellerPhone()" 
+                        class="hidden absolute right-2 w-5 h-5 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer select-none"
+                        title="សម្អាតលេខ (Clear)">
+                  ✕
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -9135,6 +9187,334 @@
           </button>
         </div>
 
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- BOSTARGIFT APPS-IN-APP MODAL (LUCKY WHEEL & REWARDS)    -->
+  <!-- ======================================================== -->
+  <div id="bostargift-modal" class="fixed inset-0 z-[96] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy select-none transition-all duration-300">
+    <div class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl relative">
+      
+      <!-- Top Modal Header -->
+      <div class="p-3 sm:p-3.5 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 select-none">
+        <div class="flex items-center gap-2.5">
+          <img src="bostargift-ios.png" alt="BostarGift" class="w-9 h-9 rounded-xl object-cover border border-amber-400/30 shadow-md">
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h3 class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400">
+                BostarGift
+              </h3>
+              <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Apps in App
+              </span>
+            </div>
+            <p class="text-[10.5px] text-slate-400 font-mono">យុទ្ធនាការចុងខែ ១១ (20-30 វិច្ឆិកា)</p>
+          </div>
+        </div>
+
+        <button type="button" onclick="closeBostarGiftModal()" 
+                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center transition border border-white/10"
+                title="បិទ (Close)">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Scrollable Modal Body -->
+      <div id="bostargift-modal-body" class="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-3.5 overscroll-contain">
+        
+        <!-- Demo Mode Simulator Helper (Visible when in Demo or Admin test mode) -->
+        <div id="bostargift-demo-toolbar" class="hidden p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-1.5">
+          <div class="flex items-center justify-between text-[11px] font-bold text-amber-300">
+            <span class="flex items-center gap-1">
+              <i data-lucide="flask-conical" class="w-3.5 h-3.5"></i>
+              <span>របៀបសាកល្បង Demo (Simulation)</span>
+            </span>
+            <span class="text-[10px] text-amber-400/80">មិនប៉ះពាល់ទិន្នន័យពិត</span>
+          </div>
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            <button onclick="simulateBostarGiftAction('add1')" class="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] text-white border border-white/10 shrink-0 active:scale-95">
+              +1 កុម្ម៉ង់
+            </button>
+            <button onclick="simulateBostarGiftAction('set5')" class="px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-[10px] text-amber-300 border border-amber-500/30 shrink-0 active:scale-95 font-bold">
+              ⚡ 5 កុម្ម៉ង់ (បង្វិល)
+            </button>
+            <button onclick="simulateBostarGiftAction('set10')" class="px-2 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-[10px] text-emerald-300 border border-emerald-500/30 shrink-0 active:scale-95 font-bold">
+              🥤 10 កុម្ម៉ង់ (1 កែវ)
+            </button>
+            <button onclick="simulateBostarGiftAction('set20')" class="px-2 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-[10px] text-purple-300 border border-purple-500/30 shrink-0 active:scale-95 font-bold">
+              👥 20 កុម្ម៉ង់ (4 កែវ)
+            </button>
+            <button onclick="simulateBostarGiftAction('reset')" class="px-2 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-[10px] text-rose-300 border border-rose-500/30 shrink-0 active:scale-95">
+              🔄 Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Live Global Pool Quota & Countdown Card -->
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/30 p-3.5 shadow-lg shadow-black/20">
+          <div class="flex items-center justify-between mb-2">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/25 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+              <span>យុទ្ធនាការចុងខែ ១១</span>
+            </span>
+            <span class="text-[10px] text-slate-300 font-mono">📅 20 - 30 វិច្ឆិកា</span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[11px] text-slate-300">រង្វាន់ភេសជ្ជៈនៅសល់ក្នុងស្តុក៖</p>
+              <div class="flex items-baseline gap-1 mt-0.5">
+                <span id="bostargift-quota-count" class="text-3xl font-black text-amber-400 font-mono">10</span>
+                <span class="text-xs text-slate-400 font-mono">/ <span id="bostargift-quota-max">10</span> កែវ</span>
+              </div>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex flex-col items-center justify-center text-amber-400 shadow-inner">
+              <span class="text-2xl">🥤</span>
+              <span class="text-[8.5px] font-bold text-amber-300 uppercase tracking-tighter mt-0.5">Pool</span>
+            </div>
+          </div>
+
+          <div class="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-300">
+            <span>សមាជិកចូលរួមសរុប៖ <b>56 នាក់</b></span>
+            <span id="bostargift-pool-status" class="text-amber-300 font-medium">បើកអស់មុន ៣០ នឹងថែមដល់ ១៥ កែវ!</span>
+          </div>
+        </div>
+
+        <!-- 2. Personal Progress & Points Card -->
+        <div class="p-3.5 rounded-2xl bg-[#0F1B2E]/90 border border-white/10 space-y-3 shadow-md">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-300 text-xs font-bold" id="bostargift-member-avatar">
+                👤
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white leading-tight" id="bostargift-member-name">សមាជិក</h4>
+                <p class="text-[10px] text-slate-400">ពិន្ទុពីការកុម្ម៉ង់ (១ កុម្ម៉ង់ = ១ ពិន្ទុ)</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-xl font-black text-amber-400 font-mono" id="bostargift-points-val">0</span>
+              <span class="text-[10px] text-slate-400 block -mt-0.5">ពិន្ទុសន្សំ</span>
+            </div>
+          </div>
+
+          <!-- Progress Bar & Milestones -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-[10px] text-slate-300">
+              <span>ដំណើរការទៅរកគោលដៅ៖</span>
+              <span id="bostargift-progress-text" class="font-mono text-amber-300 font-bold">0 / 5</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden relative">
+              <div id="bostargift-progress-bar" class="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- 3 Milestone Checkpoints (5, 10, 20) -->
+          <div class="grid grid-cols-3 gap-2 pt-1 text-center">
+            <!-- Tier 1: 5 Orders -->
+            <div id="tier-card-5" class="p-2 rounded-xl border border-white/10 bg-white/5 space-y-0.5 transition">
+              <span class="text-[10px] font-bold block text-slate-300">៥ កុម្ម៉ង់</span>
+              <span class="text-xs block">🎲</span>
+              <span class="text-[9px] text-slate-400 block leading-tight">បង្វិលកង់ ១ ដង</span>
+              <span id="tier-badge-5" class="text-[8.5px] px-1 py-0.2 rounded-full bg-white/10 text-slate-300 font-bold block mt-1">ខ្វះ 5</span>
+            </div>
+
+            <!-- Tier 2: 10 Orders -->
+            <div id="tier-card-10" class="p-2 rounded-xl border border-white/10 bg-white/5 space-y-0.5 transition">
+              <span class="text-[10px] font-bold block text-slate-300">១០ កុម្ម៉ង់</span>
+              <span class="text-xs block">🥤</span>
+              <span class="text-[9px] text-slate-400 block leading-tight">បាន ១ កែវ</span>
+              <span id="tier-badge-10" class="text-[8.5px] px-1 py-0.2 rounded-full bg-white/10 text-slate-300 font-bold block mt-1">ស្វ័យប្រវត្ត</span>
+            </div>
+
+            <!-- Tier 3: 20 Orders -->
+            <div id="tier-card-20" class="p-2 rounded-xl border border-white/10 bg-white/5 space-y-0.5 transition">
+              <span class="text-[10px] font-bold block text-slate-300">២០ កុម្ម៉ង់</span>
+              <span class="text-xs block">👥</span>
+              <span class="text-[9px] text-slate-400 block leading-tight">បាន ៤ កែវ</span>
+              <span id="tier-badge-20" class="text-[8.5px] px-1 py-0.2 rounded-full bg-white/10 text-slate-300 font-bold block mt-1">ចែករំលែកក្រុម</span>
+            </div>
+          </div>
+
+          <!-- Automatic Claim Action Buttons (Shown when 10 or 20 reached and not yet claimed) -->
+          <div id="bostargift-auto-claim-area" class="hidden space-y-2 pt-1">
+            <button type="button" id="btn-claim-tier-10" onclick="claimBostarGiftAutoReward(10)" 
+                    class="hidden w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition">
+              <i data-lucide="award" class="w-4 h-4"></i>
+              <span>🎉 សម្រេច ១០ កុម្ម៉ង់៖ ចុចបើកភេសជ្ជៈ ១ កែវភ្លាមៗ!</span>
+            </button>
+            <button type="button" id="btn-claim-tier-20" onclick="claimBostarGiftAutoReward(20)" 
+                    class="hidden w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 active:scale-95 transition">
+              <i data-lucide="trophy" class="w-4 h-4"></i>
+              <span>👑 សម្រេច ២០ កុម្ម៉ង់៖ ចុចបើកភេសជ្ជៈ ៤ កែវ (Mega Share)!</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Interactive Lucky Spin Wheel Card -->
+        <div class="p-4 rounded-2xl bg-[#0F1B2E]/90 border border-white/10 space-y-3.5 shadow-lg relative overflow-hidden">
+          <div class="text-center space-y-0.5">
+            <h4 class="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 flex items-center justify-center gap-1.5">
+              <span>🎡</span>
+              <span>កង់បង្វិលយករង្វាន់</span>
+              <span>✨</span>
+            </h4>
+            <p class="text-[11px] text-slate-400" id="bostargift-wheel-desc">
+              កុម្ម៉ង់គ្រប់ ៥ លើក បានសិទ្ធិបង្វិល ១ ដង
+            </p>
+          </div>
+
+          <!-- Canvas Wheel Stage -->
+          <div class="relative w-[280px] h-[280px] sm:w-[300px] sm:h-[300px] mx-auto select-none flex items-center justify-center">
+            <!-- Golden Top Pointer Needle -->
+            <div class="absolute -top-1 left-1/2 -translate-x-1/2 z-20 pointer-events-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path d="M16 26L8 8H24L16 26Z" fill="#EF4444" stroke="#FBBF24" stroke-width="2.5" stroke-linejoin="round"/>
+                <circle cx="16" cy="10" r="3" fill="#FBBF24"/>
+              </svg>
+            </div>
+
+            <!-- Canvas Wheel -->
+            <canvas id="bostargift-canvas" width="300" height="300" class="w-[280px] h-[280px] sm:w-[300px] sm:h-[300px] rounded-full shadow-[0_0_25px_rgba(245,158,11,0.25)]"></canvas>
+
+            <!-- Center Wheel Golden Hub Cap -->
+            <div class="absolute w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-600 border-2 border-white/80 shadow-xl flex items-center justify-center pointer-events-none">
+              <span class="text-lg">🎁</span>
+            </div>
+          </div>
+
+          <!-- Spin Action Button -->
+          <div class="pt-1">
+            <button type="button" id="btn-bostargift-spin" onclick="spinBostarGiftWheel()" 
+                    class="w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xl active:scale-95 transition cursor-pointer select-none">
+              <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+              <span id="btn-bostargift-spin-text">បង្វិលផ្សងសំណាង</span>
+            </button>
+            <p id="bostargift-spin-hint" class="text-center text-[10.5px] text-slate-400 mt-2 leading-relaxed">
+              *បើបង្វិលបានរង្វាន់ គឺអស់ពិន្ទុ | បើមិនបានរង្វាន់ សល់ ៥ ពិន្ទុដដែលសម្រាប់ប្រឹងបន្តទៅ ១០
+            </p>
+          </div>
+        </div>
+
+        <!-- 4. My Vouchers / ប័ណ្ណរង្វាន់របស់ខ្ញុំ -->
+        <div class="p-3.5 rounded-2xl bg-[#0F1B2E]/90 border border-white/10 space-y-2.5 shadow-md">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="ticket" class="w-4 h-4 text-amber-400"></i>
+              <span>ប័ណ្ណរង្វាន់របស់ខ្ញុំ</span>
+            </span>
+            <span id="bostargift-vouchers-count" class="text-[10px] text-amber-300 font-mono font-bold bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
+              0 ប័ណ្ណ
+            </span>
+          </div>
+
+          <!-- Voucher Cards List Container -->
+          <div id="bostargift-vouchers-list" class="space-y-2">
+            <!-- Injected dynamically by renderBostarGiftVouchers() -->
+          </div>
+        </div>
+
+        <!-- 5. Campaign Rules Card (Official Bostar Gift Rules) -->
+        <div class="p-3.5 rounded-2xl bg-black/30 border border-white/5 space-y-2 text-[11px] text-slate-400 leading-relaxed">
+          <h5 class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+            <i data-lucide="info" class="w-3.5 h-3.5"></i>
+            <span>ច្បាប់ និងលក្ខខណ្ឌយុទ្ធនាការ</span>
+          </h5>
+          <ul class="list-disc list-inside space-y-1 text-slate-300 pl-1 text-[10.5px]">
+            <li><b>០១ កុម្ម៉ង់ = ១ ពិន្ទុ</b> (គិតចាប់ពីថ្ងៃទី ២០ ដល់ ៣០ វិច្ឆិកា ២០២៦)។</li>
+            <li><b>០៥ កុម្ម៉ង់៖</b> បានសិទ្ធិបង្វិលកង់ ១ ដង (បើឈ្នះអស់ពិន្ទុ | បើមិនឈ្នះ សល់ ៥ ពិន្ទុដដែលសម្រាប់ប្រឹងបន្ត)។</li>
+            <li><b>១០ កុម្ម៉ង់៖</b> ទទួលបានភេសជ្ជៈ ១ កែវ ដោយស្វ័យប្រវត្តិ។</li>
+            <li><b>២០ កុម្ម៉ង់៖</b> ទទួលបានភេសជ្ជៈ ៤ កែវ សម្រាប់ចែករំលែកក្រុមការងារ។</li>
+            <li>កូតាក្នុងស្តុកសរុបមានកំណត់ត្រឹម <b>១០ កែវ</b> (ពង្រីកដល់ ១៥ កែវ បើអស់មុនថ្ងៃ ៣០)។</li>
+            <li>សូម <b>Screenshot</b> ប័ណ្ណរង្វាន់ផ្ញើជូន Admin តាម Telegram ដើម្បីត្រៀមទទួលរង្វាន់ដើមខែ និងជាសំបុត្រមានសិទ្ធិទទួលភេសជ្ជៈពីហាង/ដៃគូសហការ។</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- DIGITAL VOUCHER TICKET MODAL (SCREENSHOT / SAVE POPUP)   -->
+  <!-- ======================================================== -->
+  <div id="bostargift-voucher-modal" class="fixed inset-0 z-[97] bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3.5 sm:p-4 font-kantumruy select-none transition-all duration-300">
+    <div class="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-amber-400/40 bg-gradient-to-b from-[#1A1325] via-[#0E1528] to-[#0A0E1A] relative animate-scale-up">
+      
+      <!-- Top Decorative Ribbon -->
+      <div class="h-2 w-full bg-gradient-to-r from-amber-400 via-orange-500 to-amber-300"></div>
+
+      <!-- Ticket Card Header -->
+      <div class="p-4 pb-2 text-center relative border-b border-white/10">
+        <button type="button" onclick="closeBostarGiftVoucherModal()" 
+                class="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center transition"
+                title="បិទ">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shadow-lg shadow-amber-500/20 mb-2">
+          <span class="text-2xl" id="voucher-ticket-icon">🥤</span>
+        </div>
+        <h4 class="text-xs uppercase tracking-widest text-amber-400 font-mono font-bold">BOSTAR GROUP OFFICIAL VOUCHER</h4>
+        <h3 class="text-base font-black text-white mt-0.5" id="voucher-ticket-reward-title">ភេសជ្ជៈ ១ ឯកតា</h3>
+      </div>
+
+      <!-- Ticket Body Details -->
+      <div class="p-4 space-y-3 bg-[#080E1C]/80">
+        <!-- Ticket ID & Verified Seal -->
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/10">
+          <div>
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-mono">លេខកូដប័ណ្ណ (Ticket ID)</span>
+            <span class="text-sm font-black font-mono text-amber-300" id="voucher-ticket-code">VST-NOV-001</span>
+          </div>
+          <div class="text-right">
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 inline-flex items-center gap-1">
+              <span>✓</span> VERIFIED
+            </span>
+          </div>
+        </div>
+
+        <!-- Winner Info -->
+        <div class="space-y-1.5 text-xs">
+          <div class="flex items-center justify-between text-slate-300">
+            <span class="text-[11px] text-slate-400">ម្ចាស់រង្វាន់ (Winner):</span>
+            <span class="font-bold text-white" id="voucher-ticket-winner">ឈ្មោះសមាជិក</span>
+          </div>
+          <div class="flex items-center justify-between text-slate-300">
+            <span class="text-[11px] text-slate-400">កាលបរិច្ឆេទឈ្នះ:</span>
+            <span class="font-mono text-[11px] text-slate-200" id="voucher-ticket-date">16/11/2026</span>
+          </div>
+          <div class="flex items-center justify-between text-slate-300">
+            <span class="text-[11px] text-slate-400">ប្រភេទសិទ្ធិ:</span>
+            <span class="text-[11px] text-amber-300 font-medium" id="voucher-ticket-type-label">បង្វិលឈ្នះ ៥ កុម្ម៉ង់</span>
+          </div>
+        </div>
+
+        <!-- Instruction Alert Box -->
+        <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 space-y-1 text-center">
+          <p class="text-[11px] font-bold text-amber-300 flex items-center justify-center gap-1">
+            <span>📸</span>
+            <span>សូម Screenshot ឬ រក្សាទុកកាតនេះ</span>
+          </p>
+          <p class="text-[10px] text-amber-200/90 leading-relaxed font-kantumruy">
+            ផ្ញើជូន Admin តាម Telegram ដើម្បីត្រៀមទទួលរង្វាន់ដើមខែ និងជាសំបុត្រមានសិទ្ធិទទួលភេសជ្ជៈពីហាង/ដៃគូសហការ។
+          </p>
+        </div>
+      </div>
+
+      <!-- Ticket Actions Footer -->
+      <div class="p-3 bg-[#0A1020] border-t border-white/10 flex items-center gap-2">
+        <button type="button" onclick="shareBostarGiftVoucherTelegram()" 
+                class="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-sky-500/20 active:scale-95 transition">
+          <i data-lucide="send" class="w-3.5 h-3.5"></i>
+          <span>ផ្ញើទៅ Telegram Admin</span>
+        </button>
+        <button type="button" onclick="closeBostarGiftVoucherModal()" 
+                class="py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-slate-300 hover:text-white font-medium text-xs transition border border-white/10">
+          បិទ
+        </button>
       </div>
 
     </div>

@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1035"/>
+      <stop offset="50%" stop-color="#12182D"/>
+      <stop offset="100%" stop-color="#080C16"/>
+    </linearGradient>
+
+    <!-- Gold Foil Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE27A"/>
+      <stop offset="25%" stop-color="#D4AF37"/>
+      <stop offset="50%" stop-color="#FFF3A8"/>
+      <stop offset="75%" stop-color="#AA771C"/>
+      <stop offset="100%" stop-color="#FDF0A6"/>
+    </linearGradient>
+
+    <!-- Crimson Ribbon Gradient -->
+    <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF4B6B"/>
+      <stop offset="50%" stop-color="#E11D48"/>
+      <stop offset="100%" stop-color="#9F1239"/>
+    </linearGradient>
+
+    <!-- Wheel Rim Gradient -->
+    <linearGradient id="wheelRim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="50%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+
+    <!-- Inner Glow Filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- iOS Squircle Base -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGrad)"/>
+
+  <!-- Subtle Ambient Glow -->
+  <circle cx="256" cy="256" r="180" fill="#F59E0B" opacity="0.12" filter="url(#glow)"/>
+  <circle cx="256" cy="220" r="120" fill="#E11D48" opacity="0.15" filter="url(#glow)"/>
+
+  <!-- Outer Golden Gear/Wheel Teeth Background -->
+  <g transform="translate(256, 240)">
+    <!-- Rotating Ring -->
+    <circle r="156" fill="none" stroke="url(#goldGrad)" stroke-width="6" opacity="0.4" stroke-dasharray="14 10"/>
+    
+    <!-- 8 Wheel Spoke Segments -->
+    <circle r="144" fill="#0E1726" stroke="url(#goldGrad)" stroke-width="8"/>
+    
+    <!-- Slices -->
+    <path d="M 0 0 L 0 -144 A 144 144 0 0 1 101.8 -101.8 Z" fill="#E11D48" opacity="0.85"/>
+    <path d="M 0 0 L 101.8 -101.8 A 144 144 0 0 1 144 0 Z" fill="#1E293B" opacity="0.9"/>
+    <path d="M 0 0 L 144 0 A 144 144 0 0 1 101.8 101.8 Z" fill="#D97706" opacity="0.85"/>
+    <path d="M 0 0 L 101.8 101.8 A 144 144 0 0 1 0 144 Z" fill="#1E293B" opacity="0.9"/>
+    <path d="M 0 0 L 0 144 A 144 144 0 0 1 -101.8 101.8 Z" fill="#E11D48" opacity="0.85"/>
+    <path d="M 0 0 L -101.8 101.8 A 144 144 0 0 1 -144 0 Z" fill="#1E293B" opacity="0.9"/>
+    <path d="M 0 0 L -144 0 A 144 144 0 0 1 -101.8 -101.8 Z" fill="#D97706" opacity="0.85"/>
+    <path d="M 0 0 L -101.8 -101.8 A 144 144 0 0 1 0 -144 Z" fill="#1E293B" opacity="0.9"/>
+
+    <!-- Wheel Divider Lines -->
+    <line x1="0" y1="-144" x2="0" y2="144" stroke="url(#goldGrad)" stroke-width="3"/>
+    <line x1="-144" y1="0" x2="144" y2="0" stroke="url(#goldGrad)" stroke-width="3"/>
+    <line x1="-101.8" y1="-101.8" x2="101.8" y2="101.8" stroke="url(#goldGrad)" stroke-width="3"/>
+    <line x1="-101.8" y1="101.8" x2="101.8" y2="-101.8" stroke="url(#goldGrad)" stroke-width="3"/>
+
+    <!-- Center Rim -->
+    <circle r="46" fill="#0A0F1D" stroke="url(#goldGrad)" stroke-width="6"/>
+  </g>
+
+  <!-- 3D Luxury Gift Box in Front Center -->
+  <g transform="translate(256, 270)">
+    <!-- Box Shadow -->
+    <ellipse cx="0" cy="95" rx="90" ry="22" fill="#000" opacity="0.5" filter="url(#glow)"/>
+
+    <!-- Box Base -->
+    <rect x="-70" y="-10" width="140" height="100" rx="14" fill="#0B132B" stroke="url(#goldGrad)" stroke-width="4"/>
+    
+    <!-- Vertical Ribbon -->
+    <rect x="-18" y="-10" width="36" height="100" fill="url(#ribbonGrad)"/>
+    <!-- Gold Trim on Ribbon -->
+    <line x1="-18" y1="-10" x2="-18" y2="90" stroke="url(#goldGrad)" stroke-width="2"/>
+    <line x1="18" y1="-10" x2="18" y2="90" stroke="url(#goldGrad)" stroke-width="2"/>
+
+    <!-- Box Lid -->
+    <rect x="-82" y="-35" width="164" height="32" rx="10" fill="#151E36" stroke="url(#goldGrad)" stroke-width="4"/>
+    <rect x="-18" y="-35" width="36" height="32" fill="url(#ribbonGrad)"/>
+    <line x1="-18" y1="-35" x2="-18" y2="-3" stroke="url(#goldGrad)" stroke-width="2"/>
+    <line x1="18" y1="-35" x2="18" y2="-3" stroke="url(#goldGrad)" stroke-width="2"/>
+
+    <!-- 3D Golden Ribbon Bow on Top -->
+    <!-- Left Loop -->
+    <path d="M 0 -35 C -35 -85 -85 -55 -40 -35 Z" fill="url(#goldGrad)" stroke="#AA771C" stroke-width="2.5"/>
+    <path d="M 0 -35 C -25 -70 -65 -50 -35 -35 Z" fill="#FFF3A8" opacity="0.6"/>
+    <!-- Right Loop -->
+    <path d="M 0 -35 C 35 -85 85 -55 40 -35 Z" fill="url(#goldGrad)" stroke="#AA771C" stroke-width="2.5"/>
+    <path d="M 0 -35 C 25 -70 65 -50 35 -35 Z" fill="#FFF3A8" opacity="0.6"/>
+    <!-- Center Knot -->
+    <circle cx="0" cy="-35" r="14" fill="url(#ribbonGrad)" stroke="url(#goldGrad)" stroke-width="3"/>
+  </g>
+
+  <!-- Golden Stars & Sparkles -->
+  <!-- Top Left Star -->
+  <path d="M 90 120 Q 110 120 110 100 Q 110 120 130 120 Q 110 120 110 140 Q 110 120 90 120 Z" fill="url(#goldGrad)"/>
+  <!-- Top Right Star -->
+  <path d="M 380 90 Q 400 90 400 70 Q 400 90 420 90 Q 400 90 400 110 Q 400 90 380 90 Z" fill="url(#goldGrad)"/>
+  <!-- Small Star -->
+  <path d="M 410 360 Q 420 360 420 350 Q 420 360 430 360 Q 420 360 420 370 Q 420 360 410 360 Z" fill="#FFE27A"/>
+
+  <!-- Top Center Wheel Pointer Arrow -->
+  <polygon points="256,118 244,92 268,92" fill="#E11D48" stroke="url(#goldGrad)" stroke-width="3"/>
+
+  <!-- App Title Banner at Bottom "GIFT" -->
+  <g transform="translate(256, 442)">
+    <rect x="-85" y="-18" width="170" height="34" rx="17" fill="#0A0F1D" stroke="url(#goldGrad)" stroke-width="2.5"/>
+    <text x="0" y="5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="900" fill="url(#goldGrad)" text-anchor="middle" letter-spacing="3">BOSTAR</text>
+  </g>
+</svg>
