@@ -1736,6 +1736,11 @@ function handleBackNavigation() {
     if (navigator.vibrate) navigator.vibrate(15);
     return true;
   }
+  if (!document.getElementById('bostargift-modal')?.classList?.contains('hidden')) {
+    if (typeof closeBostarGiftModal === 'function') closeBostarGiftModal();
+    if (navigator.vibrate) navigator.vibrate(15);
+    return true;
+  }
   if (!document.getElementById('tutorial-modal')?.classList?.contains('hidden')) {
     closeTutorialModal();
     if (navigator.vibrate) navigator.vibrate(15);
@@ -1772,7 +1777,7 @@ function handleBackNavigation() {
 
   // 1e. Close any other open modal if visible
   const openModals = [
-    'quick-boost-modal', 'thai-cod-schedule-modal', 'master-customer-auth-modal', 'edit-order-modal', 'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal', 'boost-modal',
+    'bostargift-modal', 'quick-boost-modal', 'thai-cod-schedule-modal', 'master-customer-auth-modal', 'edit-order-modal', 'birthday-celebration-modal', 'tutorial-modal', 'honors-modal', 'team-members-modal', 'all-customers-modal', 'attendance-modal', 'new-order-modal', 'new-expense-modal', 'global-search-modal', 'profile-settings-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal', 'boost-modal',
     'cod-modal', 'bank-modal', 'edit-bank-modal', 'team-sets-modal', 'notif-modal', 'about-modal', 'change-pin-modal', 'shortcut-modal', 'seller-reward-modal'
   ];
   for (const id of openModals) {
@@ -1848,7 +1853,7 @@ function handleBackNavigation() {
 
 function isAnyDrilldownModalOpen() {
   const modalIds = [
-    'master-customer-auth-modal', 'edit-order-modal', 'team-members-modal', 'new-order-modal', 'new-expense-modal',
+    'bostargift-modal', 'master-customer-auth-modal', 'edit-order-modal', 'team-members-modal', 'new-order-modal', 'new-expense-modal',
     'global-search-modal', 'sales-modal', 'payables-modal', 'expenses-modal', 'boost-modal', 'quick-boost-modal',
     'cod-modal', 'thai-cod-schedule-modal', 'bank-modal', 'team-sets-modal', 'notif-modal', 'all-customers-modal', 'attendance-modal',
     'executive-hierarchy-modal', 'member-daily-breakdown-modal', 'daily-report-modal', 'honors-modal', 'tutorial-modal',
@@ -1904,6 +1909,8 @@ function setupSwipeToBack() {
     const isSubModalOpen = isProfileSubModalOpen();
     const honorsEl = document.getElementById('honors-modal');
     const isHonorsOpen = honorsEl && !honorsEl.classList.contains('hidden');
+    const bostargiftEl = document.getElementById('bostargift-modal');
+    const isBostarGiftOpen = bostargiftEl && !bostargiftEl.classList.contains('hidden');
     const reportEl = document.getElementById('daily-report-modal');
     const isReportOpen = reportEl && !reportEl.classList.contains('hidden');
     const dailyBreakdownEl = document.getElementById('member-daily-breakdown-modal');
@@ -1930,6 +1937,10 @@ function setupSwipeToBack() {
       // Edge-swipe Left-to-Right from screen left edge (<= 80px) on Honors Modal
       isPotentialSwipe = true;
       swipeOrigin = 'honors-modal';
+    } else if (isBostarGiftOpen && touchStartX <= 80) {
+      // Edge-swipe Left-to-Right from screen left edge (<= 80px) on BostarGift Modal
+      isPotentialSwipe = true;
+      swipeOrigin = 'bostargift-modal';
     } else if (isSubModalOpen) {
       // 1. Touching anywhere when a profile submodal is open (Books & Notes, Customers, Attendance, QR...)
       isPotentialSwipe = true;
@@ -2019,6 +2030,16 @@ function setupSwipeToBack() {
       }
     }
 
+    // Case 0-BG: Edge-swipe Left-to-Right on BostarGift Modal -> Return
+    if (swipeOrigin === 'bostargift-modal') {
+      if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
+        if (typeof closeBostarGiftModal === 'function') closeBostarGiftModal();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        isPotentialSwipe = false;
+        return;
+      }
+    }
+
     // Case 1: Left-to-right swipe (deltaX >= 55px) -> Back / Return 1 Step
     if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
       if (isSubModalOpen || swipeOrigin === 'profile-submodal') {
@@ -2077,6 +2098,8 @@ function setupSwipeToBack() {
     const isSubModalOpen = isProfileSubModalOpen();
     const honorsEl = document.getElementById('honors-modal');
     const isHonorsOpen = honorsEl && !honorsEl.classList.contains('hidden');
+    const bostargiftEl = document.getElementById('bostargift-modal');
+    const isBostarGiftOpen = bostargiftEl && !bostargiftEl.classList.contains('hidden');
     const reportEl = document.getElementById('daily-report-modal');
     const isReportOpen = reportEl && !reportEl.classList.contains('hidden');
     const dailyBreakdownEl = document.getElementById('member-daily-breakdown-modal');
@@ -2111,6 +2134,11 @@ function setupSwipeToBack() {
       mouseStartY = e.clientY;
       isMouseDown = true;
       mouseOrigin = 'honors-modal';
+    } else if (isBostarGiftOpen && e.clientX <= 80) {
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      isMouseDown = true;
+      mouseOrigin = 'bostargift-modal';
     } else if (isSubModalOpen) {
       mouseStartX = e.clientX;
       mouseStartY = e.clientY;
@@ -2159,6 +2187,15 @@ function setupSwipeToBack() {
       }
     }
 
+    if (mouseOrigin === 'bostargift-modal') {
+      if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
+        if (typeof closeBostarGiftModal === 'function') closeBostarGiftModal();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        isMouseDown = false;
+        return;
+      }
+    }
+
     if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
       if (isSubModalOpen || mouseOrigin === 'profile-submodal') {
         handleBackNavigation();
@@ -2186,6 +2223,7 @@ function setupSwipeToBack() {
 
 function isDialogModalOpen() {
   const ids = [
+    'bostargift-modal',
     'daily-report-modal',
     'honors-modal',
     'executive-hierarchy-modal',
@@ -32673,8 +32711,17 @@ async function submitToCompanyGoogleForm(orderData) {
     if (bYLP > 0) params.append('entry.1526819650', String(bYLP));
     if (bSGP > 0) params.append('entry.1318429125', String(bSGP));
 
-    // 7. Price (clean number string)
-    params.append('entry.615821671', String(orderData.price || ''));
+    // 7. Price (clean number string: គោរពតម្លៃអ្នកលក់ មិនលុបតម្លៃចោលឡើយ)
+    let companyFormPrice = '';
+    const isThai = (orderData.deliveryMethod && (orderData.deliveryMethod.toLowerCase().includes('thai') || orderData.deliveryMethod.includes('ថៃ'))) || (orderData.currency === 'THB') || Boolean(orderData.thaiBaht);
+    if (isThai) {
+      companyFormPrice = orderData.thaiBaht || orderData.price || orderData.priceRaw || '';
+    } else {
+      companyFormPrice = (orderData.totalAmount !== undefined && orderData.totalAmount !== null && orderData.totalAmount !== '')
+        ? String(orderData.totalAmount)
+        : (orderData.price || orderData.priceRaw || '');
+    }
+    params.append('entry.615821671', String(companyFormPrice));
 
     // 8. Receiver No (Phone)
     params.append('entry.1618786820', orderData.phone || '');
@@ -32682,8 +32729,9 @@ async function submitToCompanyGoogleForm(orderData) {
     // 9. Customer (Recipient Name)
     params.append('entry.485783433', orderData.customer || '');
 
-    // 10. Address
-    params.append('entry.1844490282', orderData.location || '');
+    // 10. Address (Required field with fallback dash to prevent 400 rejection)
+    const locClean = (orderData.location || '').trim();
+    params.append('entry.1844490282', locClean || '-');
 
     // 11. Delivery (exact enum value)
     let delivVal = 'VET(COD)';
@@ -34550,11 +34598,13 @@ function checkOrderSubmitValidation() {
                      (currentOrderProducts.free || 0);
   const phone = (document.getElementById('order-field-phone')?.value || '').trim().replace(/[\s\-\.]/g, '');
   const sellerPhone = (document.getElementById('order-field-seller-phone')?.value || '').trim().replace(/[\s\-\.]/g, '');
+  const location = (document.getElementById('order-field-location')?.value || '').trim();
   const deliv = (document.getElementById('order-field-delivery')?.value || '').trim();
   const isThai = deliv.toLowerCase().includes('thai') || currentOrderCurrency === 'THB';
 
   const isSellerPhoneValid = isThai || (sellerPhone.length >= 8);
-  const isReady = (totalBoxes > 0 && phone.length >= 8 && isSellerPhoneValid);
+  const isLocationValid = location.length > 0;
+  const isReady = (totalBoxes > 0 && phone.length >= 8 && isSellerPhoneValid && isLocationValid);
   const btn = document.getElementById('btn-submit-order');
   const slider = document.getElementById('order-submit-slider');
   const hint = document.getElementById('order-slider-hint');
@@ -34580,7 +34630,9 @@ function checkOrderSubmitValidation() {
       slider.classList.add('opacity-40', 'cursor-not-allowed', 'grayscale');
       slider.classList.remove('border-orange-500/40');
       if (hint) {
-        if (!isThai && sellerPhone.length < 8 && totalBoxes > 0 && phone.length >= 8) {
+        if (!isLocationValid && totalBoxes > 0 && phone.length >= 8 && isSellerPhoneValid) {
+          hint.innerHTML = '<i data-lucide="alert-circle" class="w-3 h-3 text-orange-400 shrink-0"></i><span class="text-orange-300 font-medium">សូមបញ្ចូលទីតាំង ឬខេត្ត/ក្រុង</span>';
+        } else if (!isThai && sellerPhone.length < 8 && totalBoxes > 0 && phone.length >= 8) {
           hint.innerHTML = '<i data-lucide="alert-circle" class="w-3 h-3 text-orange-400 shrink-0"></i><span class="text-orange-300 font-medium">សូមបញ្ចូលលេខអ្នកលក់ (ទាមទារសម្រាប់ដឹកនៅកម្ពុជា)</span>';
         } else {
           hint.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-orange-400 shrink-0"></i><span>អូសបញ្ជូនទៅក្រុមហ៊ុន | ចុច «ចម្លង» ទៅ Telegram (Leader ផ្ទាល់ខ្លួន)</span>';
@@ -35455,7 +35507,11 @@ async function submitNewOrder() {
   const defaultSeller = activeProf.name || 'សមាជិក Bostar';
   const seller = getVal('order-field-seller') || defaultSeller;
   const phone = getVal('order-field-phone');
-  const location = getVal('order-field-location');
+  const location = (getVal('order-field-location') || '').trim();
+  if (!location) {
+    showToastNotification('⚠️ សូមបញ្ចូលទីតាំង ឬខេត្ត/ក្រុង មុននឹងបញ្ជូនកុម្ម៉ង់!');
+    return;
+  }
   const customer = getVal('order-field-customer');
   const delivery = getVal('order-field-delivery') || 'VET (COD)';
   const codStatus = getVal('order-field-cod-status') || 'បានដាក់ការកុម្ម៉ង់';
@@ -35647,6 +35703,7 @@ async function submitNewOrder() {
     bonusSGP: currentOrderBonusProducts.sgp || 0,
     totalBoxQty: totalBoxes + totalBonusQty,
     product: isReward ? `លក់រង្វាន់ (${totalBoxes})` : (isReturn ? `លក់អីវ៉ាន់ត្រឡប់ (${totalBoxes})` : productSummary),
+    priceRaw: priceRaw,
     price: priceValue,
     thaiBaht: thaiBaht,
     currency: currentOrderCurrency,
@@ -37383,7 +37440,16 @@ function updateModalLanguage() {
   if (orderCustSection) orderCustSection.innerHTML = `<i data-lucide="user" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'ព័ត៌មានអតិថិជន:' : 'Customer Information:'}</span>`;
   if (orderCustName) orderCustName.textContent = isKm ? 'ឈ្មោះអតិថិជន:' : 'Customer Name:';
   if (orderCustPhone) orderCustPhone.innerHTML = `${isKm ? 'លេខទូរសព្ទអ្នកទទួល:' : 'Receiver Phone:'} <span class="text-rose-400">*</span>`;
-  if (orderLocation) orderLocation.textContent = isKm ? 'អាសយដ្ឋានដឹកជញ្ជូន:' : 'Delivery Address:';
+  const orderLabelLocationText = document.getElementById('order-label-location-text');
+  const orderLocationRequiredBadge = document.getElementById('order-location-required-badge');
+  if (orderLabelLocationText) {
+    orderLabelLocationText.textContent = isKm ? 'អាសយដ្ឋានដឹកជញ្ជូន:' : 'Delivery Address:';
+  } else if (orderLocation) {
+    orderLocation.textContent = isKm ? 'អាសយដ្ឋានដឹកជញ្ជូន:' : 'Delivery Address:';
+  }
+  if (orderLocationRequiredBadge) {
+    orderLocationRequiredBadge.textContent = isKm ? '* (ទាមទារ)' : '* (Required)';
+  }
   if (orderProducts) orderProducts.innerHTML = `<i data-lucide="boxes" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'មុខទំនិញ & ចំនួនប្រអប់:' : 'Products & Quantity:'}</span>`;
   if (orderDelivSection) orderDelivSection.innerHTML = `<i data-lucide="truck" class="w-3.5 h-3.5 text-orange-400"></i><span>${isKm ? 'សេវាដឹកជញ្ជូន & ទឹកប្រាក់:' : 'Delivery & Financials:'}</span>`;
   if (orderDelivLabel) orderDelivLabel.textContent = isKm ? 'ក្រុមហ៊ុនដឹកជញ្ជូន:' : 'Shipping Carrier:';
