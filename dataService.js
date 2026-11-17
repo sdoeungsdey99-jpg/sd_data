@@ -423,7 +423,8 @@ async function fetchGoogleSheetGViz(param, sheetNameFallback, overrideSheetId = 
     const timer = setTimeout(() => controller.abort(), 12000);
     response = await fetch(url, { 
       signal: controller.signal,
-      cache: 'no-store'
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
     });
     clearTimeout(timer);
   } catch (e) {
@@ -434,7 +435,8 @@ async function fetchGoogleSheetGViz(param, sheetNameFallback, overrideSheetId = 
       try {
         response = await fetch(retryUrl, { 
           signal: controller.signal,
-          cache: 'no-store'
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
         });
       } catch (_) {}
       clearTimeout(timer);
@@ -467,7 +469,8 @@ async function fetchGoogleSheetCSV(param, sheetNameFallback, overrideSheetId = n
     const timer = setTimeout(() => controller.abort(), 12000);
     response = await fetch(gvizUrl, { 
       signal: controller.signal,
-      cache: 'no-store'
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
     });
     clearTimeout(timer);
   } catch (e) {
@@ -478,7 +481,8 @@ async function fetchGoogleSheetCSV(param, sheetNameFallback, overrideSheetId = n
       try {
         response = await fetch(fallbackUrl, { 
           signal: controller.signal,
-          cache: 'no-store'
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
         });
       } catch (_) {}
       clearTimeout(timer);

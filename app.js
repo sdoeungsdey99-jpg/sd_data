@@ -15986,9 +15986,7 @@ function openBankModal() {
     const safeName = typeof escapeHtml === 'function' ? escapeHtml(acc.name) : acc.name;
     const brand = getBankBrandInfo(acc.name);
     return `
-      <div onclick="openEditBankAccountModal(${acc.no || 0})"
-           title="ចុចដើម្បីកែប្រែសមតុល្យគណនីនេះទៅ Google Sheet"
-           class="flex items-center justify-between p-3 rounded-2xl bg-black/25 border border-white/5 hover:border-blue-500/30 active:scale-[0.99] transition text-xs cursor-pointer group select-none shadow-sm">
+      <div class="flex items-center justify-between p-3 rounded-2xl bg-black/25 border border-white/5 text-xs select-none shadow-sm cursor-default">
         <div class="flex items-center gap-3 min-w-0">
           <div class="w-9 h-9 rounded-xl ${brand.iconBoxClass} border flex items-center justify-center shrink-0 transition shadow-sm">
             <i data-lucide="${brand.icon}" class="w-4 h-4"></i>
@@ -21726,16 +21724,39 @@ function syncHeaderProfileUI() {
   const subEl = document.getElementById('header-profile-sub');
   const badgeEl = document.getElementById('header-profile-badge');
   const drawerBadgeEl = document.getElementById('drawer-prof-badge');
-  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet());
-
-  if (avatarEl) avatarEl.src = isMaster ? (p.avatar || 'profile.png') : (p.avatar || 'bostar-logo.png');
-  if (nameEl) nameEl.textContent = isMaster ? (p.name || 'ស្តី ស្តើង') : (p.name || 'BostarGroup');
-  if (subEl) subEl.textContent = isMaster ? (p.subtitle || 'SDEY SDOEUNG') : (p.subtitle || 'Bostar Sales & Finance');
-
   const profName = String(p.name || '').trim();
+  const isMaster = (window.DataService && typeof window.DataService.isMasterSheet === 'function' && window.DataService.isMasterSheet()) ||
+                   (localStorage.getItem('sd_master_admin_authenticated') === 'true') ||
+                   profName.includes('ស្តី ស្តើង') || profName.includes('ស្ដី ស្ដើង');
   const isBechNora = profName.includes('ប៊ិច នោរ៉ា') || (p.subtitle && p.subtitle.toLowerCase().includes('bech nora'));
   const isSdeySdoeung = isMaster || profName.includes('ស្តី ស្តើង') || profName.includes('ស្ដី ស្ដើង') || (p.subtitle && p.subtitle.toLowerCase().includes('sdey sdoeung'));
   const isPioneer = isPioneerVerifiedMember(profName) || (p.subtitle && isPioneerVerifiedMember(p.subtitle));
+
+  if (avatarEl) {
+    if (isSdeySdoeung) {
+      avatarEl.src = (p.avatar && p.avatar !== 'bostar-logo.png') ? p.avatar : 'profile.png';
+    } else {
+      avatarEl.src = p.avatar || 'bostar-logo.png';
+    }
+  }
+  if (nameEl) nameEl.textContent = isSdeySdoeung ? (p.name || 'ស្តី ស្តើង') : (p.name || 'BostarGroup');
+  if (subEl) {
+    if (isSdeySdoeung) {
+      subEl.textContent = (p.subtitle && !p.subtitle.includes('• BostarGroup')) ? p.subtitle : 'SDEY SDOEUNG';
+    } else {
+      subEl.textContent = p.subtitle || 'Bostar Sales & Finance';
+    }
+  }
+
+  // Auto-heal local storage profile if Sdey Sdoeung was assigned fallback bostar-logo
+  if (isSdeySdoeung && (p.avatar === 'bostar-logo.png' || !p.avatar || (p.subtitle && p.subtitle.includes('• BostarGroup')))) {
+    try {
+      p.avatar = 'profile.png';
+      if (!p.subtitle || p.subtitle.includes('• BostarGroup')) p.subtitle = 'SDEY SDOEUNG';
+      if (!p.work || p.work === 'សមាជិកក្រុម BostarGroup') p.work = 'CEO & Founder BostarGroup';
+      localStorage.setItem('sd_profile_data', JSON.stringify(p));
+    } catch (_) {}
+  }
 
   const updateBadge = (el) => {
     if (!el) return;
@@ -27903,7 +27924,29 @@ async function submitMemberLogin() {
       localStorage.removeItem('sd_master_admin_authenticated');
     }
 
-    const memberProfile = {
+    const memberProfile = isSDMaster ? {
+      name: 'ស្តី ស្តើង',
+      memberId: code || 'MASTER-01',
+      subtitle: 'SDEY SDOEUNG',
+      avatar: 'profile.png',
+      work: 'CEO & Founder BostarGroup',
+      study: 'Bostar Leadership',
+      live: 'រាជធានីភ្នំពេញ',
+      from: 'ព្រះរាជាណាចក្រកម្ពុជា',
+      status: 'សកម្មក្នុងការងារ',
+      sheetId: cleanId,
+      customSheetUrl: url,
+      birthday: '',
+      phone: '096 852 5136',
+      email: 'sdeysdoeung@bostargroup.com',
+      bio: 'ប្រព័ន្ធគ្រប់គ្រងការលក់ និងហិរញ្ញវត្ថុ BostarGroup',
+      privacy: {
+        showSales: true,
+        showExpenses: true,
+        showProfit: true,
+        showPhone: true
+      }
+    } : {
       name: verifiedSellerKm,
       memberId: code,
       subtitle: `${verifiedSellerKm} • BostarGroup`,

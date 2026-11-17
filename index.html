@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.51">
+  <link rel="manifest" href="manifest.json?v=67.52">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -655,13 +655,13 @@
     #top-header,
     #customer-view-header,
     #profile-drawer-header {
-      padding-top: max(env(safe-area-inset-top, 0px), 14px) !important;
+      padding-top: max(calc(env(safe-area-inset-top, 0px) + 6px), 20px) !important;
       padding-bottom: 10px !important;
       padding-left: 0.75rem !important;
       padding-right: 0.75rem !important;
-      height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
-      min-height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
-      max-height: calc(3.75rem + max(env(safe-area-inset-top, 0px), 14px) + 2px) !important;
+      height: calc(3.75rem + max(calc(env(safe-area-inset-top, 0px) + 6px), 20px) + 2px) !important;
+      min-height: calc(3.75rem + max(calc(env(safe-area-inset-top, 0px) + 6px), 20px) + 2px) !important;
+      max-height: calc(3.75rem + max(calc(env(safe-area-inset-top, 0px) + 6px), 20px) + 2px) !important;
       box-sizing: border-box !important;
     }
     .universal-pull-refresh-indicator {
@@ -5989,7 +5989,7 @@
       <div id="bank-modal-footer" class="px-3 py-2 border-b border-white/10 bg-black/40 flex items-center justify-between text-xs shrink-0">
         <!-- Injected dynamically -->
       </div>
-      <div class="p-3 pb-28 overflow-y-auto flex-1 no-scrollbar space-y-1.5" id="bank-modal-list">
+      <div class="p-3 pb-36 overflow-y-auto flex-1 no-scrollbar space-y-1.5" id="bank-modal-list">
         <!-- Populated dynamically -->
       </div>
     </div>
@@ -9479,7 +9479,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.51"></script>
-  <script src="app.js?v=67.51"></script>
+  <script src="dataService.js?v=67.52"></script>
+  <script src="app.js?v=67.52"></script>
 </body>
 </html>
