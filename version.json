@@ -1,5 +1,5 @@
 {
-  "version": "67.55",
-  "buildTime": "2026-11-18T07:54:00+07:00",
-  "notes": "v67.55: Restore grounded viewport architecture to match Image 2, eliminate fixed body WebKit offset bug, and restore natural bottom dock"
+  "version": "67.56",
+  "buildTime": "2026-11-18T08:48:00+07:00",
+  "notes": "v67.56: Telegram Standard Dock Grounding - perfect bottom 12-14px placement matching Telegram iOS tab bar, 100dvh viewport anchoring, and login canvas reflow reset"
 }

@@ -481,6 +481,12 @@ if (typeof window !== 'undefined') {
       if (document.body && document.body.scrollTop !== 0) {
         document.body.scrollTop = 0;
       }
+      // Trick mobile WebKit into recalculating canvas dimensions after keyboard dismissal
+      if (document.body) {
+        document.body.style.minHeight = '100.05%';
+        void document.body.offsetHeight;
+        document.body.style.minHeight = '';
+      }
     } catch (_) {}
   };
 
@@ -21659,7 +21665,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.55';
+const CURRENT_APP_VERSION = '67.56';
 let isUpdateToastShown = false;
 
 function isVersionNewer(remoteVer, currentVer) {
@@ -28040,6 +28046,10 @@ async function submitMemberLogin() {
     localStorage.setItem('sd_profile_data', JSON.stringify(memberProfile));
     localStorage.setItem('sd_onboarding_completed', 'true');
 
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+
     syncHeaderProfileUI();
     checkOnboardingGate();
     try {
@@ -28049,15 +28059,11 @@ async function submitMemberLogin() {
     } catch (_) {}
 
     showToastNotification(`🎉 ស្វាគមន៍ការចូលប្រើប្រាស់ ${verifiedSellerKm}!`);
-    await DataService.fetchData(false);
-    if (typeof DataService.startAutoReload === 'function') {
-      DataService.startAutoReload(2);
-    }
-    renderCurrentView();
-    try {
-      window.scrollTo(0, 0);
-      document.body.scrollTop = 0;
-    } catch (_) {}
+
+    // Clean refresh to reset WebKit standalone layout canvas to 100% full screen
+    setTimeout(() => {
+      window.location.replace(window.location.pathname + window.location.search);
+    }, 150);
   } catch (err) {
     if (statusBox) {
       statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>${err.message || 'មិនអាចភ្ជាប់បានទេ សូមពិនិត្យសិទ្ធិចែករំលែក Google Sheet'}</span></span>`;
@@ -28170,15 +28176,16 @@ async function submitNewAccount() {
     localStorage.setItem('sd_profile_data', JSON.stringify(memberProfile));
     localStorage.setItem('sd_onboarding_completed', 'true');
 
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
     syncHeaderProfileUI();
     checkOnboardingGate();
 
     showToastNotification(`🎉 បង្កើតគណនីជោគជ័យ! សូមស្វាគមន៍ ${name}`);
-    await DataService.fetchData(false);
-    if (typeof DataService.startAutoReload === 'function') {
-      DataService.startAutoReload(2);
-    }
-    renderCurrentView();
+    setTimeout(() => {
+      window.location.replace(window.location.pathname + window.location.search);
+    }, 150);
   } catch (err) {
     if (statusBox) {
       statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>${err.message || 'មិនអាចភ្ជាប់បានទេ សូមពិនិត្យសិទ្ធិចែករំលែក Google Sheet'}</span></span>`;
