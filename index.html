@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.52">
+  <link rel="manifest" href="manifest.json?v=67.53">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -490,17 +490,23 @@
       animation: cosmicHaloBreath 4.5s ease-in-out infinite;
     }
 
-    /* Strict Anti-Drift & Touch Target Precision Alignment: Dynamic Viewport (No fixed body desync) */
+    /* Strict Anti-Drift Lock: Permanent Native Viewport Lock (Prevents any window drift, rubber-banding, or floating dock desync) */
     html, body {
-      overflow-x: hidden !important;
-      width: 100%;
-      height: 100%;
-      height: 100dvh;
-      min-height: 100%;
-      margin: 0;
-      padding: 0;
-      overscroll-behavior-x: none !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      overscroll-behavior: none !important;
       -webkit-overflow-scrolling: touch;
+    }
+    .modal-header-safe {
+      padding-top: max(env(safe-area-inset-top, 0px), 12px) !important;
     }
     #app-container {
       overflow-x: hidden !important;
@@ -555,20 +561,18 @@
     }
     html {
       height: 100%;
-      height: 100dvh;
       background-color: #070D18;
-      overscroll-behavior-y: none;
+      overscroll-behavior: none;
       -webkit-text-size-adjust: 100%;
     }
     html.light-theme {
       background-color: #FFFFFF !important;
     }
     body {
-      min-height: 100%;
-      min-height: 100dvh;
-      height: 100dvh;
+      width: 100%;
+      height: 100%;
       background-color: #070D18;
-      overscroll-behavior-y: none;
+      overscroll-behavior: none;
       -webkit-user-select: none;
       user-select: none;
     }
@@ -4479,8 +4483,13 @@
     }
     /* Bottom Dock iOS Auto-Hide & Smooth Slide/Spring */
     #bottom-dock {
+      bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
       transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease !important;
       will-change: transform, opacity;
+    }
+    #dock-blur-backdrop {
+      bottom: 0 !important;
+      height: calc(7rem + env(safe-area-inset-bottom, 0px)) !important;
     }
     #bottom-dock.dock-hidden {
       transform: translateY(6.5rem) !important;
@@ -5401,7 +5410,7 @@
       <!-- Backdrop Blur Overlay for Context Menu -->
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
-      <div onclick="handleHeaderScrollToTop(event, 'sales-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer shadow-md shadow-black/20">
+      <div onclick="handleHeaderScrollToTop(event, 'sales-modal-list')" class="modal-header-safe relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer shadow-md shadow-black/20">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeSalesModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5450,7 +5459,7 @@
       <!-- Backdrop Blur Overlay for Context Menu -->
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
-      <div onclick="handleHeaderScrollToTop(event, 'payables-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'payables-modal-list')" class="modal-header-safe relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closePayablesModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5500,7 +5509,7 @@
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
       <!-- Header -->
-      <div onclick="handleHeaderScrollToTop(event, 'boost-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'boost-modal-list')" class="modal-header-safe relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeBoostModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-rose-400"></i>
@@ -5595,7 +5604,7 @@
       <!-- Backdrop Blur Overlay for Context Menu -->
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
-      <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528] shrink-0 cursor-pointer shadow-md shadow-black/20">
+      <div onclick="handleHeaderScrollToTop(event, 'expenses-modal-list')" class="modal-header-safe relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528] shrink-0 cursor-pointer shadow-md shadow-black/20">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeExpensesModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5787,7 +5796,7 @@
       </div>
 
       <!-- Header matching iOS Standard -->
-      <div onclick="handleHeaderScrollToTop(event)" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event)" class="modal-header-safe relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeCodModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -5950,7 +5959,7 @@
       <!-- Backdrop Blur Overlay for Context Menu -->
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
-      <div onclick="handleHeaderScrollToTop(event, 'bank-modal-list')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'bank-modal-list')" class="modal-header-safe relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeBankModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -6083,7 +6092,7 @@
       <div onclick="closeAllModalContextMenus()" class="modal-context-backdrop hidden absolute inset-0 z-40 bg-black/50 backdrop-blur-sm transition-all duration-200"></div>
 
       <!-- Header matching iOS Standard -->
-      <div onclick="handleHeaderScrollToTop(event, 'team-sets-modal-table-container')" class="relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'team-sets-modal-table-container')" class="modal-header-safe relative z-50 p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="closeTeamSetsModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -6137,7 +6146,7 @@
   <!-- Notification Bottom Sheet Modal (លាតពេញឆ្វេងទៅស្តាំ ១០០% + ប៉ះផ្ទៃទំនេរបិទ) -->
   <div id="notif-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden transition-all duration-300">
     <div id="notif-modal-card" class="w-full max-w-lg mx-auto flex flex-col h-full overflow-hidden shadow-2xl animate-fade-in">
-      <div onclick="handleHeaderScrollToTop(event, 'notif-feed-list')" class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
+      <div onclick="handleHeaderScrollToTop(event, 'notif-feed-list')" class="modal-header-safe p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 cursor-pointer">
         <div class="flex items-center gap-2.5 min-w-0">
           <button onclick="toggleNotificationsModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
             <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
@@ -6362,7 +6371,7 @@
   <div id="all-customers-modal" class="fixed inset-0 z-50 bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy">
     <div class="w-full max-w-md mx-auto flex flex-col h-full overflow-hidden">
       <!-- Top Bar -->
-      <div id="all-customers-top-header-container" onclick="handleHeaderScrollToTop(event, 'all-customers-list')" class="relative z-30 p-3 border-b border-white/10 bg-[#0B1528] shrink-0 space-y-2 shadow-md shadow-black/20 cursor-pointer transition-all duration-200">
+      <div id="all-customers-top-header-container" onclick="handleHeaderScrollToTop(event, 'all-customers-list')" class="modal-header-safe relative z-30 p-3 border-b border-white/10 bg-[#0B1528] shrink-0 space-y-2 shadow-md shadow-black/20 cursor-pointer transition-all duration-200">
         <!-- Morphing Header: Default Bar vs Search Expanded Bar -->
         <div id="all-customers-header-bar" class="flex items-center justify-between gap-2">
           <!-- Minimalist Back Button (32x32) -->
@@ -9479,7 +9488,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.52"></script>
-  <script src="app.js?v=67.52"></script>
+  <script src="dataService.js?v=67.53"></script>
+  <script src="app.js?v=67.53"></script>
 </body>
 </html>

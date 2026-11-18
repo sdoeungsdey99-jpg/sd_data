@@ -473,6 +473,11 @@ if (typeof window !== 'undefined') {
   window.addEventListener('resize', () => {
     window.scrollTo(0, 0);
   });
+  window.addEventListener('scroll', () => {
+    if (window.scrollY !== 0 || window.scrollX !== 0) {
+      window.scrollTo(0, 0);
+    }
+  }, { passive: true });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       applyScreenOrientationLock();
@@ -14641,8 +14646,8 @@ function renderPayablesList() {
 
   // Separate stock item vs non-stock items
   let stockItem = rawPayables.find(p => p.isStock || (p.title && (p.title.includes('ស្តុក') || p.title.toLowerCase().includes('stock'))));
-  // Filter out any payable item with amount <= 0 (Moto $0, Boost Ads $0, etc.)
-  const nonStockItems = rawPayables.filter(p => p !== stockItem && (cleanNumber(p.amount) > 0));
+  // Filter out any payable item with amount <= 0 AND exclude all stock items to prevent duplicate stock rows
+  const nonStockItems = rawPayables.filter(p => !p.isStock && p.title && !p.title.includes('ស្តុក') && !p.title.toLowerCase().includes('stock') && (cleanNumber(p.amount) > 0));
 
   if (!stockItem) {
     stockItem = { title: 'ថ្លៃទំនិញចូលស្តុក (Stock)', noteTag: '⚡ Auto', amount: stockData.stockCost, isStock: true };
@@ -21462,7 +21467,7 @@ function getModalShareText(modalType) {
 
     const rawPayables = (d.bank && d.bank.payables) ? [...d.bank.payables] : [];
     const stockItem = rawPayables.find(p => p.isStock || (p.title && (p.title.includes('ស្តុក') || p.title.toLowerCase().includes('stock'))));
-    const nonStockItems = rawPayables.filter(p => p !== stockItem && (cleanNumber(p.amount) > 0));
+    const nonStockItems = rawPayables.filter(p => !p.isStock && p.title && !p.title.includes('ស្តុក') && !p.title.toLowerCase().includes('stock') && (cleanNumber(p.amount) > 0));
 
     const totalPayables = nonStockItems.reduce((sum, p) => sum + (cleanNumber(p.amount) || 0), 0) + stockData.stockCost;
     const activeCount = nonStockItems.length + 1;
@@ -21630,7 +21635,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.51';
+const CURRENT_APP_VERSION = '67.53';
 let isUpdateToastShown = false;
 
 async function checkAppVersionUpdate() {

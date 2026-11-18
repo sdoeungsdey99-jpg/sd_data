@@ -1200,8 +1200,21 @@ window.DataService = {
 
         // Bank Accounts (Before reaching COD section)
         if (!inCodSection) {
-          const name = String(r[1] || '').trim();
-          if (!isNaN(noInt) && noInt >= 1 && noInt <= 10 && name && !name.startsWith('សរុប')) {
+          const rawName = String(r[1] || '').trim();
+          if (!isNaN(noInt) && noInt >= 1 && noInt <= 10 && !rawName.startsWith('សរុប')) {
+            const defaultBankNames = [
+              'ABA Main (USD)',
+              'ABA (KHR)',
+              'ABA Boosting',
+              'ABA Stock',
+              'ABA Saving កូនរៀន',
+              'ABA Reserve / Safety',
+              'ACLEDA (USD)',
+              'ACLEDA (KHR)',
+              'កាបូបក្រៅ (USD)',
+              'កាបូបក្រៅ (KHR)'
+            ];
+            const name = rawName || defaultBankNames[noInt - 1] || `គណនីធនាគារ #${noInt}`;
             const usdVal = cleanNumber(r[2]);
             const khrVal = cleanNumber(r[3]);
             accounts.push({ no: noInt, name, usd: usdVal, khr: khrVal, rawRowIndex: i + 1 });
