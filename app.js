@@ -8655,24 +8655,35 @@ function getAnalyticsViewHTML() {
         </div>
       </div>
 
-      <!-- Bar 3: Month Tabs Row -->
-      <div id="analytics-month-tabs" class="w-full flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none no-scrollbar" style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
-        <button onclick="setAnalyticsMonth('all')" id="btn-month-all" 
-                class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
-          ✨ ពេញ ១ ឆ្នាំ
-        </button>
-        ${displayMonths.map(m => {
-          const parts = m.split('-');
-          const isSelected = activeMonth === m;
-          const mIdx = parseInt(parts[1], 10) - 1;
-          const kmName = khmerMonthNames[mIdx] || parts[1];
-          return `
-            <button onclick="setAnalyticsMonth('${m}')" id="btn-month-${m}" 
-                    class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'analytics-month-active bg-orange-500 text-white shadow-md' : 'bg-white/5 text-slate-300 hover:bg-white/10'}">
-              ខែ ${parts[1]} (${kmName})
-            </button>
-          `;
-        }).join('')}
+      <!-- Bar 3: Month Tabs Row (Telegram Continuous Capsule Track + Left "ខែ" Label) -->
+      <div class="w-full flex items-center gap-2 select-none">
+        <!-- Left Static Label: "ខែ" (Clean Text, No Icon) -->
+        <div id="analytics-month-label" class="shrink-0 flex items-center justify-center h-8 px-3 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-slate-300 shadow-sm transition-colors">
+          ខែ
+        </div>
+
+        <!-- Unified Telegram Continuous Capsule Track -->
+        <div id="analytics-month-tabs" 
+             class="flex-1 flex items-center gap-1 p-1 rounded-full bg-black/40 border border-white/10 backdrop-blur-xl overflow-x-auto no-scrollbar shadow-inner transition-colors" 
+             style="-webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;">
+          
+          <button onclick="setAnalyticsMonth('all')" id="btn-month-all" 
+                  class="shrink-0 px-3.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition active:scale-95 ${activeMonth === 'all' ? 'analytics-month-active bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
+            ទាំងអស់
+          </button>
+          ${displayMonths.map(m => {
+            const parts = m.split('-');
+            const isSelected = activeMonth === m;
+            const mIdx = parseInt(parts[1], 10) - 1;
+            const kmName = khmerMonthNames[mIdx] || parts[1];
+            return `
+              <button onclick="setAnalyticsMonth('${m}')" id="btn-month-${m}" 
+                      class="shrink-0 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition active:scale-95 ${isSelected ? 'analytics-month-active bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30' : 'text-slate-400 hover:text-white'}">
+                ${kmName}
+              </button>
+            `;
+          }).join('')}
+        </div>
       </div>
     </div>
   `;
@@ -21665,7 +21676,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.58';
+const CURRENT_APP_VERSION = '67.59';
 let isUpdateToastShown = false;
 
 function isVersionNewer(remoteVer, currentVer) {

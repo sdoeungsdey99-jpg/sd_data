@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.58">
+  <link rel="manifest" href="manifest.json?v=67.59">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -3478,10 +3478,29 @@
       color: #EA580C !important;
       font-weight: 700 !important;
     }
-    .light-theme #analytics-month-tabs button:not(.analytics-month-active) {
+    .light-theme #analytics-month-label {
       background-color: #F1F5F9 !important;
-      color: #475569 !important;
+      color: #334155 !important;
       border: 1px solid #E2E8F0 !important;
+    }
+    .light-theme #analytics-month-tabs {
+      background-color: #F1F5F9 !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+    .light-theme #analytics-month-tabs button:not(.analytics-month-active) {
+      background-color: transparent !important;
+      color: #475569 !important;
+      border: none !important;
+    }
+    .light-theme #analytics-month-tabs button:not(.analytics-month-active):hover {
+      background-color: rgba(226, 232, 240, 0.7) !important;
+      color: #0F172A !important;
+    }
+    .light-theme #analytics-month-tabs button.analytics-month-active {
+      background-color: #F97316 !important;
+      color: #FFFFFF !important;
+      font-weight: 700 !important;
+      box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3) !important;
     }
     .light-theme #main-content .bg-black\/35,
     .light-theme #main-content .bg-black\/25 {
@@ -9508,7 +9527,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.58"></script>
-  <script src="app.js?v=67.58"></script>
+  <script src="dataService.js?v=67.59"></script>
+  <script src="app.js?v=67.59"></script>
 </body>
 </html>

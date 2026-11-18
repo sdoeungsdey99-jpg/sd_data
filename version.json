@@ -1,5 +1,5 @@
 {
-  "version": "67.58",
-  "buildTime": "2026-11-18T13:20:00+07:00",
-  "notes": "v67.58: Instant live GViz Bostar Order ID lookup (<2KB), multi-source validation with personalSales & session history to eliminate #B*** duplicate alerts permanently"
+  "version": "67.59",
+  "buildTime": "2026-11-18T15:00:00+07:00",
+  "notes": "v67.59: Adopt Telegram-style continuous capsule month tabs with clean 'ខែ' label and streamlined 'ទាំងអស់' & month names (Option A)"
 }
