@@ -1,5 +1,5 @@
 {
-  "version": "67.54",
-  "buildTime": "2026-11-18T07:44:00+07:00",
-  "notes": "v67.54: Ground bottom dock to bottom: 12px, add VisualViewport anti-drift guard, and remove excessive safe-area gap"
+  "version": "67.55",
+  "buildTime": "2026-11-18T07:54:00+07:00",
+  "notes": "v67.55: Restore grounded viewport architecture to match Image 2, eliminate fixed body WebKit offset bug, and restore natural bottom dock"
 }
