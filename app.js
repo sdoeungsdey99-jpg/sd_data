@@ -28042,6 +28042,11 @@ async function submitMemberLogin() {
 
     syncHeaderProfileUI();
     checkOnboardingGate();
+    try {
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+    } catch (_) {}
 
     showToastNotification(`🎉 ស្វាគមន៍ការចូលប្រើប្រាស់ ${verifiedSellerKm}!`);
     await DataService.fetchData(false);
@@ -28049,6 +28054,10 @@ async function submitMemberLogin() {
       DataService.startAutoReload(2);
     }
     renderCurrentView();
+    try {
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+    } catch (_) {}
   } catch (err) {
     if (statusBox) {
       statusBox.innerHTML = `<span class="text-rose-400 text-xs font-semibold flex items-start gap-1.5"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i> <span>${err.message || 'មិនអាចភ្ជាប់បានទេ សូមពិនិត្យសិទ្ធិចែករំលែក Google Sheet'}</span></span>`;
