@@ -21638,13 +21638,51 @@ function showToastNotification(msg) {
 const CURRENT_APP_VERSION = '67.53';
 let isUpdateToastShown = false;
 
+function isVersionNewer(remoteVer, currentVer) {
+  if (!remoteVer || !currentVer) return false;
+  const parse = v => String(v).split('.').map(n => parseInt(n, 10) || 0);
+  const r = parse(remoteVer);
+  const c = parse(currentVer);
+  for (let i = 0; i < Math.max(r.length, c.length); i++) {
+    const rv = r[i] || 0;
+    const cv = c[i] || 0;
+    if (rv > cv) return true;
+    if (rv < cv) return false;
+  }
+  return false;
+}
+
+window.applyAppUpdate = function() {
+  const btn = document.querySelector('#pwa-update-toast button');
+  if (btn) {
+    btn.innerHTML = 'កំពុង Refresh...';
+  }
+  const performReload = () => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('_v', Date.now());
+      window.location.replace(url.href);
+    } catch (_) {
+      window.location.reload();
+    }
+  };
+
+  if (typeof caches !== 'undefined' && caches.keys) {
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
+      .then(performReload)
+      .catch(performReload);
+  } else {
+    performReload();
+  }
+};
+
 async function checkAppVersionUpdate() {
   if (!navigator.onLine) return;
   try {
     const res = await fetch('version.json?_t=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) return;
     const info = await res.json();
-    if (info && info.version && info.version !== CURRENT_APP_VERSION && !isUpdateToastShown) {
+    if (info && info.version && isVersionNewer(info.version, CURRENT_APP_VERSION) && !isUpdateToastShown) {
       isUpdateToastShown = true;
       showUpdateAvailableToast(info.version);
     }
@@ -21666,7 +21704,7 @@ function showUpdateAvailableToast(newVer) {
         <p class="text-[10.5px] text-slate-300 truncate">ចុចដើម្បី Refresh យកកំណែចុងក្រោយ</p>
       </div>
     </div>
-    <button onclick="window.location.reload(true)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shrink-0 active:scale-95 transition shadow-md shadow-amber-500/20">
+    <button onclick="applyAppUpdate()" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shrink-0 active:scale-95 transition shadow-md shadow-amber-500/20">
       Refresh ➔
     </button>
   `;

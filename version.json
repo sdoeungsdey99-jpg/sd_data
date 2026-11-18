@@ -1,5 +1,5 @@
 {
-  "version": "67.51",
-  "buildTime": "2026-11-15T23:25:00+07:00",
-  "notes": "v67.51: Fix checkIsDemoMode reference to ensure openNewOrderModal and Telegram mode open reliably; update Customer View search bar to match Profile Drawer"
+  "version": "67.53",
+  "buildTime": "2026-11-18T07:30:00+07:00",
+  "notes": "v67.53: Permanent iOS standalone PWA viewport anti-drift lock, payables stock deduplication, and bank modal safe-area"
 }
