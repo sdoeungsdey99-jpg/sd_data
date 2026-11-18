@@ -1,5 +1,5 @@
 {
-  "version": "67.56",
-  "buildTime": "2026-11-18T08:48:00+07:00",
-  "notes": "v67.56: Telegram Standard Dock Grounding - perfect bottom 12-14px placement matching Telegram iOS tab bar, 100dvh viewport anchoring, and login canvas reflow reset"
+  "version": "67.57",
+  "buildTime": "2026-11-18T10:11:00+07:00",
+  "notes": "v67.57: Complete Grounding of Root Shell, Telegram Dock (12px), and all 44 Modals with -webkit-fill-available, removal of black-translucent offset bug"
 }
