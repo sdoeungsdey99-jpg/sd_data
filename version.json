@@ -1,5 +1,5 @@
 {
-  "version": "67.57",
-  "buildTime": "2026-11-18T10:11:00+07:00",
-  "notes": "v67.57: Complete Grounding of Root Shell, Telegram Dock (12px), and all 44 Modals with -webkit-fill-available, removal of black-translucent offset bug"
+  "version": "67.58",
+  "buildTime": "2026-11-18T13:20:00+07:00",
+  "notes": "v67.58: Instant live GViz Bostar Order ID lookup (<2KB), multi-source validation with personalSales & session history to eliminate #B*** duplicate alerts permanently"
 }

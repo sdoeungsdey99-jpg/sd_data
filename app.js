@@ -21665,7 +21665,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.57';
+const CURRENT_APP_VERSION = '67.58';
 let isUpdateToastShown = false;
 
 function isVersionNewer(remoteVer, currentVer) {
@@ -34098,8 +34098,8 @@ function openNewOrderModal(mode = 'dock') {
       orderIdInput.placeholder = '#B001';
       orderIdInput.value = 'កំពុងទាញលេខ...';
       if (window.DataService && typeof window.DataService.getNextBostarOrderId === 'function') {
-        window.DataService.getNextBostarOrderId().then(nextId => {
-          if (currentOrderEntryMode === 'dock' && orderIdInput && (!orderIdInput.value || orderIdInput.value === 'កំពុងទាញលេខ...')) {
+        window.DataService.getNextBostarOrderId(true).then(nextId => {
+          if (currentOrderEntryMode === 'dock' && orderIdInput) {
             orderIdInput.value = nextId;
           }
         }).catch(() => {
@@ -34790,8 +34790,8 @@ function clearOrderInput() {
       idInput.placeholder = '#B001';
       idInput.value = 'កំពុងទាញលេខ...';
       if (window.DataService && typeof window.DataService.getNextBostarOrderId === 'function') {
-        window.DataService.getNextBostarOrderId().then(nextId => {
-          if (currentOrderEntryMode === 'dock' && idInput && (!idInput.value || idInput.value === 'កំពុងទាញលេខ...')) {
+        window.DataService.getNextBostarOrderId(true).then(nextId => {
+          if (currentOrderEntryMode === 'dock' && idInput) {
             idInput.value = nextId;
           }
         }).catch(() => {
@@ -35967,6 +35967,11 @@ async function submitNewOrder() {
   }
 
   const finalizeOrderSuccessUI = async () => {
+    // 🛡️ Memorize newly submitted order ID immediately to prevent any collision
+    if (window.DataService && typeof window.DataService.recordSubmittedBostarOrderId === 'function' && orderId) {
+      window.DataService.recordSubmittedBostarOrderId(orderId);
+    }
+
     // 4. Generate Bilingual Telegram Order Text & Trigger Background Auto-Copy
     if (isDockOrder) {
       const myOwnLeader = (typeof getManagerLatinCode === 'function' ? getManagerLatinCode(newRecord.seller, newRecord.team) : newRecord.team) || 'Bech_Nora';
