@@ -1,5 +1,5 @@
 {
-  "version": "67.53",
-  "buildTime": "2026-11-18T07:30:00+07:00",
-  "notes": "v67.53: Permanent iOS standalone PWA viewport anti-drift lock, payables stock deduplication, and bank modal safe-area"
+  "version": "67.54",
+  "buildTime": "2026-11-18T07:44:00+07:00",
+  "notes": "v67.54: Ground bottom dock to bottom: 12px, add VisualViewport anti-drift guard, and remove excessive safe-area gap"
 }

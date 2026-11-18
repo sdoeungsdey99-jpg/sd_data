@@ -470,14 +470,38 @@ if (typeof window !== 'undefined') {
       }
     }, 40);
   });
-  window.addEventListener('resize', () => {
-    window.scrollTo(0, 0);
-  });
-  window.addEventListener('scroll', () => {
-    if (window.scrollY !== 0 || window.scrollX !== 0) {
-      window.scrollTo(0, 0);
+  const resetViewportDrift = () => {
+    try {
+      if (window.scrollY !== 0 || window.scrollX !== 0) {
+        window.scrollTo(0, 0);
+      }
+      if (document.documentElement && document.documentElement.scrollTop !== 0) {
+        document.documentElement.scrollTop = 0;
+      }
+      if (document.body && document.body.scrollTop !== 0) {
+        document.body.scrollTop = 0;
+      }
+    } catch (_) {}
+  };
+
+  window.addEventListener('resize', resetViewportDrift);
+  window.addEventListener('scroll', resetViewportDrift, { passive: true });
+  document.addEventListener('focusout', (e) => {
+    if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+      setTimeout(resetViewportDrift, 50);
+      setTimeout(resetViewportDrift, 200);
     }
   }, { passive: true });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      setTimeout(resetViewportDrift, 50);
+    }, { passive: true });
+    window.visualViewport.addEventListener('scroll', resetViewportDrift, { passive: true });
+  }
+
+  window.addEventListener('pageshow', resetViewportDrift, { passive: true });
+  window.addEventListener('focus', resetViewportDrift, { passive: true });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       applyScreenOrientationLock();
@@ -21635,7 +21659,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.53';
+const CURRENT_APP_VERSION = '67.54';
 let isUpdateToastShown = false;
 
 function isVersionNewer(remoteVer, currentVer) {

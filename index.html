@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.53">
+  <link rel="manifest" href="manifest.json?v=67.54">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -4483,13 +4483,13 @@
     }
     /* Bottom Dock iOS Auto-Hide & Smooth Slide/Spring */
     #bottom-dock {
-      bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+      bottom: 12px !important;
       transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease !important;
       will-change: transform, opacity;
     }
     #dock-blur-backdrop {
       bottom: 0 !important;
-      height: calc(7rem + env(safe-area-inset-bottom, 0px)) !important;
+      height: 5.5rem !important;
     }
     #bottom-dock.dock-hidden {
       transform: translateY(6.5rem) !important;
@@ -9488,7 +9488,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.53"></script>
-  <script src="app.js?v=67.53"></script>
+  <script src="dataService.js?v=67.54"></script>
+  <script src="app.js?v=67.54"></script>
 </body>
 </html>
