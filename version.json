@@ -1,5 +1,5 @@
 {
-  "version": "67.59",
-  "buildTime": "2026-11-18T15:00:00+07:00",
-  "notes": "v67.59: Adopt Telegram-style continuous capsule month tabs with clean 'ខែ' label and streamlined 'ទាំងអស់' & month names (Option A)"
+  "version": "67.60",
+  "buildTime": "2026-11-19T23:00:00+07:00",
+  "notes": "v67.60: Connect BostarGift order counting strictly to Master Data (#B***) and direct voucher redemption to Assistant Coach Chheng Rasung (@Chheng_Rasung)"
 }

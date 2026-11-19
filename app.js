@@ -21676,7 +21676,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.59';
+const CURRENT_APP_VERSION = '67.60';
 let isUpdateToastShown = false;
 
 function isVersionNewer(remoteVer, currentVer) {
@@ -39117,20 +39117,42 @@ function checkIsCampaignPeriod() {
   return now >= new Date('2026-11-20T00:00:00+07:00') && now <= new Date('2026-11-30T23:59:59+07:00');
 }
 
-function getBostarGiftAllTimeOrdersCount() {
-  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
-  const sellerName = String(p?.name || localStorage.getItem('sd_verified_seller_km') || localStorage.getItem('sd_user_name') || '').trim().toLowerCase();
-  const sellerPhone = String(p?.phone || localStorage.getItem('sd_last_seller_phone') || '').trim().replace(/[\s\-\.]/g, '');
-  const orders = (DataService && DataService.data && Array.isArray(DataService.data.orders)) ? DataService.data.orders : [];
-  if (!sellerName && !sellerPhone) return orders.length;
+function getBostarGiftMasterOrdersList() {
+  if (DataService && Array.isArray(DataService.masterDataSalesCache) && DataService.masterDataSalesCache.length > 0) {
+    return DataService.masterDataSalesCache;
+  }
+  if (DataService && DataService.data && Array.isArray(DataService.data.allSales) && DataService.data.allSales.length > 0) {
+    return DataService.data.allSales;
+  }
+  if (DataService && DataService.data && Array.isArray(DataService.data.bostarTrackSales) && DataService.data.bostarTrackSales.length > 0) {
+    return DataService.data.bostarTrackSales;
+  }
+  return [];
+}
 
-  const filtered = orders.filter(o => {
+function getBostarGiftAllTimeOrdersCount() {
+  const isDemo = (typeof checkIsDemoMode === 'function') ? checkIsDemoMode() : false;
+  const state = getBostarGiftState();
+  if (isDemo || state.useDemoSimulation) {
+    return Math.max(state.demoOrdersCount || 5, 28);
+  }
+
+  const allMaster = getBostarGiftMasterOrdersList();
+  const sellerName = getBostarGiftCurrentSellerName();
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const sellerPhone = String(p?.phone || localStorage.getItem('sd_last_seller_phone') || '').trim().replace(/[\s\-\.]/g, '');
+  const normSeller = (typeof normalizeSellerName === 'function') ? normalizeSellerName(sellerName) : sellerName.toLowerCase();
+
+  if (!normSeller || normSeller === 'សមាជិក') return allMaster.length;
+
+  const filtered = allMaster.filter(o => {
     if (!o) return false;
-    const oSeller = String(o.seller || o.sellerName || '').trim().toLowerCase();
-    const oPhone = String(o.sellerPhone || '').trim().replace(/[\s\-\.]/g, '');
-    return (sellerName && oSeller === sellerName) || (sellerPhone && oPhone === sellerPhone);
+    const oSeller = (typeof normalizeSellerName === 'function') ? normalizeSellerName(o.seller) : String(o.seller || '').toLowerCase().trim();
+    const oPhone = String(o.phone || '').trim().replace(/[\s\-\.]/g, '');
+    return (normSeller && (oSeller === normSeller || oSeller.includes(normSeller) || normSeller.includes(oSeller))) ||
+           (sellerPhone && oPhone && (oPhone === sellerPhone || oPhone.endsWith(sellerPhone) || sellerPhone.endsWith(oPhone)));
   });
-  return filtered.length > 0 ? filtered.length : orders.length;
+  return filtered.length > 0 ? filtered.length : allMaster.length;
 }
 
 function getBostarGiftCurrentSellerName() {
@@ -39145,13 +39167,33 @@ function getBostarGiftRawOrdersCount() {
     return state.demoOrdersCount !== undefined ? state.demoOrdersCount : 5;
   }
 
-  // Real Mode Order Counting:
-  const orders = (DataService && DataService.data && Array.isArray(DataService.data.orders)) ? DataService.data.orders : [];
-  
+  // Real Mode: Count ONLY from Master Data (BostarApps Law - avoids personal returns / reward sales)
+  const allMasterSales = getBostarGiftMasterOrdersList();
+  const sellerName = getBostarGiftCurrentSellerName();
+  const p = (typeof getProfileData === 'function') ? getProfileData() : {};
+  const sellerPhone = String(p?.phone || localStorage.getItem('sd_last_seller_phone') || '').trim().replace(/[\s\-\.]/g, '');
+  const normSeller = (typeof normalizeSellerName === 'function') ? normalizeSellerName(sellerName) : sellerName.toLowerCase();
+
   // Campaign Date Scope: 2026-11-20 to 2026-11-30
-  const campaignOrders = orders.filter(o => {
+  const campaignOrders = allMasterSales.filter(o => {
     if (!o || !o.orderDate) return false;
-    // Standard format DD/MM/YYYY
+
+    // Filter by Seller (BostarApps Law)
+    if (normSeller && normSeller !== 'សមាជិក') {
+      const oSeller = (typeof normalizeSellerName === 'function') ? normalizeSellerName(o.seller) : String(o.seller || '').toLowerCase().trim();
+      const oPhone = String(o.phone || '').trim().replace(/[\s\-\.]/g, '');
+      const isMatch = (normSeller && (oSeller === normSeller || oSeller.includes(normSeller) || normSeller.includes(oSeller))) ||
+                      (sellerPhone && oPhone && (oPhone === sellerPhone || oPhone.endsWith(sellerPhone) || sellerPhone.endsWith(oPhone)));
+      if (!isMatch) return false;
+    }
+
+    // Must be valid order: exclude returns / refunds / cancelled
+    const oid = String(o.orderId || '').trim().toLowerCase();
+    const note = String(o.note || '').trim().toLowerCase();
+    if (oid.includes('return') || oid.includes('refund') || oid.includes('cancel')) return false;
+    if (note.includes('return') || note.includes('ត្រឡប់') || note.includes('រង្វាន់')) return false;
+
+    // Standard format DD/MM/YYYY or YYYY-MM-DD
     const parts = String(o.orderDate).trim().split(/[\/\-]/);
     if (parts.length === 3) {
       let d = parseInt(parts[0], 10);
@@ -39167,8 +39209,8 @@ function getBostarGiftRawOrdersCount() {
     return false;
   });
 
-  // If before Nov 20 or testing in local: allow demoOrdersCount if set
-  if (campaignOrders.length === 0 && state.demoOrdersCount !== undefined) {
+  // If before Nov 20 or testing in local without campaign orders yet: allow demoOrdersCount if set
+  if (campaignOrders.length === 0 && state.demoOrdersCount !== undefined && !checkIsCampaignPeriod()) {
     return state.demoOrdersCount;
   }
 
@@ -39190,7 +39232,7 @@ function getBostarGiftDynamicWinRate() {
   return 0.30;                  // កែវទី 6 ឡើងទៅ 30%
 }
 
-function openBostarGiftModal() {
+async function openBostarGiftModal() {
   const modal = document.getElementById('bostargift-modal');
   if (!modal) return;
   modal.classList.remove('hidden');
@@ -39200,6 +39242,14 @@ function openBostarGiftModal() {
   initBostarGiftWheelCanvas();
 
   if (window.lucide) window.lucide.createIcons();
+
+  // Pre-load / Refresh Master Data Sales silently in background to keep count live & accurate
+  if (window.DataService && typeof window.DataService.getMasterDataSales === 'function') {
+    try {
+      await window.DataService.getMasterDataSales();
+      renderBostarGiftUI();
+    } catch (_) {}
+  }
 }
 
 function closeBostarGiftModal() {
@@ -39849,9 +39899,9 @@ function openBostarGiftVoucherModal(voucherId, overrideVoucher) {
       statusBadge.className = 'px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 inline-flex items-center gap-1';
     }
     if (instructionText) {
-      instructionText.textContent = 'ផ្ញើជូន Admin តាម Telegram ដើម្បីត្រៀមទទួលរង្វាន់ដើមខែ និងជាសំបុត្រមានសិទ្ធិទទួលភេសជ្ជៈពីហាង/ដៃគូសហការ។';
+      instructionText.textContent = 'ផ្ញើជូនលោកគ្រូ ឆេង រ៉ាស៊ុង តាម Telegram ដើម្បីកត់ត្រា និងរៀបចំជូនភេសជ្ជៈ។';
     }
-    if (actionBtnText) actionBtnText.textContent = 'ផ្ញើទៅ Telegram Admin';
+    if (actionBtnText) actionBtnText.textContent = 'ផ្ញើជូនលោកគ្រូ ឆេង រ៉ាស៊ុង 🥤';
     if (actionBtn) {
       actionBtn.onclick = () => shareBostarGiftVoucherTelegram();
       actionBtn.className = 'flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-sky-500/20 active:scale-95 transition';
@@ -39870,22 +39920,43 @@ function closeBostarGiftVoucherModal() {
 function shareBostarGiftVoucherTelegram() {
   if (!activeViewingVoucher) return;
   const v = activeViewingVoucher;
-  const isPractice = v.isPractice || (v.code && v.code.startsWith('DEMO'));
-  const header = isPractice ? '🎮 [BOSTARGIFT DEMO PRACTICE VOUCHER]' : '🎉 [BOSTARGIFT OFFICIAL VOUCHER]';
-  const statusLine = isPractice ? '⚠️ ស្ថានភាព៖ សាកល្បងលេង Demo (មិនទាន់ផ្លូវការ)' : '✅ ស្ថានភាព៖ បញ្ជាក់ត្រឹមត្រូវ (Verified)';
+  const isPractice = v.isPractice || (v.code && (v.code.startsWith('DEMO') || v.code.includes('មិនទាន់')));
+  const tgAssistantUsername = 'Chheng_Rasung'; // លោកគ្រូ ឆេង រ៉ាស៊ុង
 
-  const text = `${header}\n\n` +
-               `🎫 លេខកូដប័ណ្ណ៖ ${v.code}\n` +
-               `👤 ម្ចាស់រង្វាន់៖ ${v.winner}\n` +
-               `🥤 រង្វាន់៖ ${v.rewardTitle}\n` +
-               `🎯 ប្រភេទ៖ ${v.typeLabel}\n` +
-               `📅 កាលបរិច្ឆេទ៖ ${v.date}\n` +
-               `${statusLine}\n\n` +
-               (isPractice ? '🎮 នេះជាការបង្វិលសាកល្បងលេងប៉ុណ្ណោះ។ យុទ្ធនាការផ្លូវការចាប់ផ្ដើមថ្ងៃទី ២០-៣០ វិច្ឆិកា ២០២៦!' : '📸 ខ្ញុំបាន Screenshot រក្សាទុកប័ណ្ណនេះរួចហើយ ដើម្បីត្រៀមទទួលរង្វាន់ដើមខែ!');
+  let text = '';
+  if (isPractice) {
+    text = `🎮 [BOSTARGIFT DEMO PRACTICE VOUCHER]\n\n` +
+           `ជំរាបសួរលោកគ្រូ ឆេង រ៉ាស៊ុង!\n` +
+           `ខ្ញុំឈ្មោះ ${v.winner} បានសាកល្បងបង្វិលកង់ BostarGift (Demo)។\n\n` +
+           `🎫 លេខកូដប័ណ្ណ៖ ${v.code}\n` +
+           `🥤 រង្វាន់៖ ${v.rewardTitle}\n` +
+           `🎯 ប្រភេទ៖ ${v.typeLabel}\n` +
+           `📅 កាលបរិច្ឆេទ៖ ${v.date}\n` +
+           `⚠️ ស្ថានភាព៖ សាកល្បងលេង Demo (មិនទាន់ផ្លូវការ)\n\n` +
+           `🎮 នេះជាការបង្វិលសាកល្បងលេងប៉ុណ្ណោះ។ យុទ្ធនាការផ្លូវការចាប់ផ្ដើមថ្ងៃទី ២០-៣០ វិច្ឆិកា ២០២៦!`;
+  } else {
+    // Official Winning Voucher Text (Clean Khmer, NO visible username in message text)
+    const isTeamShare = (v.type === 'tier20');
+    const rewardEmoji = isTeamShare ? '👥🥤' : '🥤';
+    const goalTitle = isTeamShare ? 'សម្រេច ២០ កុម្ម៉ង់ (Mega Team Share)' : (v.type === 'tier10' ? 'សម្រេច ១០ កុម្ម៉ង់ស្វ័យប្រវត្តិ' : 'បង្វិលកង់ផ្សងសំណាង (សម្រេច ៥ កុម្ម៉ង់)');
+
+    text = `🎉 [BOSTARGIFT] ស្នើសុំបើករង្វាន់ភេសជ្ជៈ! ${rewardEmoji}✨\n\n` +
+           `ជំរាបសួរលោកគ្រូ ឆេង រ៉ាស៊ុង!\n` +
+           `ខ្ញុំឈ្មោះ ${v.winner} បានចូលរួមយុទ្ធនាការ BostarGift (២០-៣០ វិច្ឆិកា) ហើយបានសម្រេចរង្វាន់ភេសជ្ជៈដោយជោគជ័យ!\n\n` +
+           `📋 ព័ត៌មានប័ណ្ណរង្វាន់ផ្លូវការ៖\n` +
+           `• លេខកូដប័ណ្ណ៖ ${v.code}\n` +
+           `• ម្ចាស់រង្វាន់៖ ${v.winner}\n` +
+           `• រង្វាន់ឈ្នះ៖ ${v.rewardTitle} ${rewardEmoji}\n` +
+           `• ប្រភេទ៖ ${v.typeLabel || goalTitle}\n` +
+           `• កាលបរិច្ឆេទ៖ ${v.date}\n` +
+           `• ស្ថានភាព៖ ✅ បញ្ជាក់ត្រឹមត្រូវ (Verified)\n\n` +
+           `📸 ខ្ញុំបាន Screenshot រក្សាទុកប័ណ្ណនេះក្នុងទូរស័ព្ទរួចរាល់ហើយ。\n` +
+           `សូមលោកគ្រូជួយកត់ត្រា និងរៀបចំជូនខ្ញុំផងណា៎! អរគុណច្រើន! 🙏💖`;
+  }
 
   const encoded = encodeURIComponent(text);
-  const tgUrl = `tg://msg?text=${encoded}`;
-  const webUrl = `https://t.me/share/url?url=&text=${encoded}`;
+  const tgUrl = `tg://resolve?domain=${tgAssistantUsername}&text=${encoded}`;
+  const webUrl = `https://t.me/${tgAssistantUsername}?text=${encoded}`;
 
   if (typeof launchNativeOrWeb === 'function') {
     launchNativeOrWeb(tgUrl, webUrl);
