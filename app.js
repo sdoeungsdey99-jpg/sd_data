@@ -21676,7 +21676,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.61';
+const CURRENT_APP_VERSION = '67.62';
 let isUpdateToastShown = false;
 
 function isVersionNewer(remoteVer, currentVer) {
@@ -39358,20 +39358,21 @@ function renderBostarGiftLeaderboard() {
   ranking.forEach((r, idx) => {
     const rankNum = idx + 1;
     let rankBadge = '';
-    let rowBorder = 'border-white/5 bg-white/5';
+    let rowBorder = 'border-white/10 bg-white/5';
+    let rowSpecial = '';
     if (rankNum === 1) {
-      rankBadge = '<span class="w-6 h-6 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-extrabold text-xs flex items-center justify-center shrink-0 shadow-md">🥇</span>';
+      rankBadge = '<span class="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-extrabold text-sm flex items-center justify-center shrink-0 shadow-md">🥇</span>';
       rowBorder = 'border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-white/5 to-transparent';
+      rowSpecial = 'lb-row-top1';
     } else if (rankNum === 2) {
-      rankBadge = '<span class="w-6 h-6 rounded-full bg-slate-300 text-slate-900 font-extrabold text-xs flex items-center justify-center shrink-0 shadow-md">🥈</span>';
+      rankBadge = '<span class="w-8 h-8 rounded-full bg-slate-300 text-slate-900 font-extrabold text-sm flex items-center justify-center shrink-0 shadow-md">🥈</span>';
     } else if (rankNum === 3) {
-      rankBadge = '<span class="w-6 h-6 rounded-full bg-amber-700 text-amber-100 font-extrabold text-xs flex items-center justify-center shrink-0 shadow-md">🥉</span>';
+      rankBadge = '<span class="w-8 h-8 rounded-full bg-amber-700 text-amber-100 font-extrabold text-sm flex items-center justify-center shrink-0 shadow-md">🥉</span>';
     } else {
-      rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">${rankNum}</span>`;
+      rankBadge = `<span class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 font-extrabold text-xs flex items-center justify-center shrink-0 lb-rank-num">${rankNum}</span>`;
     }
 
     const meTag = r.isMe ? '<span class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-bold text-[9px] border border-amber-500/30">ខ្ញុំ</span>' : '';
-    const initial = r.name.charAt(0) || 'B';
     const remainingTo5 = Math.max(0, 5 - r.count);
     let statusText = '';
     if (r.count >= 20) statusText = '👑 សម្រេច ២០ កុម្ម៉ង់ (៤ កែវ)';
@@ -39382,26 +39383,23 @@ function renderBostarGiftLeaderboard() {
     const ordersPreview = r.orderIds.join(', ');
 
     html += `
-      <div class="p-2.5 rounded-xl ${rowBorder} border flex items-center justify-between transition ${r.isMe ? 'ring-1 ring-amber-500/50' : ''}">
-        <div class="flex items-center gap-2.5 min-w-0">
+      <div class="p-3 rounded-2xl ${rowBorder} ${rowSpecial} ${r.isMe ? 'lb-row-me ring-1 ring-amber-500/50' : ''} border flex items-center justify-between transition lb-row shadow-sm">
+        <div class="flex items-center gap-3 min-w-0">
           ${rankBadge}
-          <div class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 text-xs font-bold shrink-0">
-            ${initial}
-          </div>
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <h5 class="text-xs font-bold text-white truncate">${escapeHtml(r.name)}</h5>
+              <h5 class="text-sm font-bold text-white member-name truncate">${escapeHtml(r.name)}</h5>
               ${meTag}
             </div>
-            <p class="text-[10px] text-slate-400 truncate">
-              ${ordersPreview ? `<span class="font-mono text-slate-300">${escapeHtml(ordersPreview)}</span> · ` : ''}
+            <p class="text-[11px] text-slate-400 member-sub truncate">
+              ${ordersPreview ? `<span class="font-mono text-slate-300 font-semibold">${escapeHtml(ordersPreview)}</span> · ` : ''}
               <span>${statusText}</span>
             </p>
           </div>
         </div>
         <div class="text-right shrink-0">
-          <div class="text-sm font-black text-amber-300 font-mono">${r.count} <span class="text-xs font-normal text-slate-400">កុម្ម៉ង់</span></div>
-          <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold">${r.count} ពិន្ទុ</span>
+          <div class="text-sm font-black text-amber-300 font-mono lb-points-val">${r.count} <span class="text-xs font-normal text-slate-400">កុម្ម៉ង់</span></div>
+          <span class="text-[9.5px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold lb-points-pill">${r.count} ពិន្ទុ</span>
         </div>
       </div>
     `;

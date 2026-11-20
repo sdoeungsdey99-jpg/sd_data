@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.61">
+  <link rel="manifest" href="manifest.json?v=67.62">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -1898,14 +1898,58 @@
       border-color: #E2E8F0 !important;
       color: #0F172A !important;
     }
-    .light-theme #bostargift-leaderboard-modal [class*="bg-[#0A1224]"] {
+    .light-theme #bostargift-leaderboard-modal {
+      background-color: #F8FAFC !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .lb-header,
+    .light-theme #bostargift-leaderboard-modal [class*="bg-[#0B1528]"] {
       background-color: #FFFFFF !important;
       border-color: #E2E8F0 !important;
     }
-    .light-theme #bostargift-leaderboard-modal [class*="bg-[#0E1A33]"],
-    .light-theme #bostargift-leaderboard-modal [class*="bg-[#0B1528]"] {
-      background-color: #F8FAFC !important;
+    .light-theme #bostargift-leaderboard-modal .lb-metrics-bar {
+      background-color: #FFFFFF !important;
       border-color: #E2E8F0 !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .lb-metric-card {
+      background-color: #F1F5F9 !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .lb-metric-card .label {
+      color: #64748B !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .lb-row {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .lb-row-me {
+      background-color: #FFFBEB !important;
+      border-color: #F59E0B !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .lb-row-top1 {
+      background-color: #FFFDF5 !important;
+      border-color: #F59E0B !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .member-name {
+      color: #0F172A !important;
+      font-weight: 700 !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .member-sub {
+      color: #475569 !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .lb-rank-num {
+      background-color: #E2E8F0 !important;
+      color: #1E293B !important;
+      font-weight: 800 !important;
+      border: 1px solid #CBD5E1 !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .lb-points-val {
+      color: #EA580C !important;
+    }
+    .light-theme #bostargift-leaderboard-modal .lb-points-pill {
+      background-color: #FFEDD5 !important;
+      color: #C2410C !important;
+      border: 1px solid #FED7AA !important;
     }
     .light-theme #bostargift-leaderboard-modal h3,
     .light-theme #bostargift-leaderboard-modal h5 {
@@ -1913,13 +1957,6 @@
     }
     .light-theme #bostargift-leaderboard-modal .text-white {
       color: #0F172A !important;
-    }
-    .light-theme #bostargift-leaderboard-modal .text-slate-400 {
-      color: #64748B !important;
-    }
-    .light-theme #bostargift-leaderboard-modal .bg-white\/5 {
-      background-color: #F8FAFC !important;
-      border-color: #E2E8F0 !important;
     }
 
     /* High-Contrast Readable Numbers & Accents in Light Theme */
@@ -9278,9 +9315,6 @@
           <div class="min-w-0 truncate">
             <div class="flex items-center gap-1.5">
               <h3 class="font-bold text-sm text-white leading-tight truncate">BostarGift</h3>
-              <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                Apps in App
-              </span>
             </div>
             <p class="text-[11px] text-slate-400 mt-0.5 truncate">យុទ្ធនាការចុងខែ ១១ (២០-៣០ វិច្ឆិកា)</p>
           </div>
@@ -9553,59 +9587,57 @@
     </div>
   </div>
 
-  <!-- BOSTARGIFT LEADERBOARD MODAL (ពិន្ទុសមាជិកទាំងអស់) -->
-  <div id="bostargift-leaderboard-modal" class="fixed inset-0 z-[98] bg-black/80 backdrop-blur-md hidden flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 font-kantumruy select-none transition-all duration-300">
-    <div class="w-full sm:max-w-md bg-[#0A1224] border-t sm:border border-white/15 rounded-t-[28px] sm:rounded-[28px] max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up">
-      
-      <!-- Leaderboard Header -->
-      <div class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-[#0E1A33]/90">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-sm shrink-0">
+  <!-- BOSTARGIFT LEADERBOARD MODAL (ពិន្ទុសមាជិកទាំងអស់ - Full-Screen Native Modal) -->
+  <div id="bostargift-leaderboard-modal" class="fixed inset-0 z-[98] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy select-none transition-all duration-300">
+    <!-- Top Modal Header (Universal Safe Area + Standard Navigation) -->
+    <div class="pt-[env(safe-area-inset-top,0px)] bg-[#0B1528] shrink-0 border-b border-white/10 lb-header">
+      <div class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 select-none">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button type="button" onclick="closeBostarGiftLeaderboardModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-orange-400"></i>
+          </button>
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0 shadow-md">
             <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
           </div>
-          <div>
-            <h3 class="font-bold text-sm text-white leading-tight">តារាងពិន្ទុសមាជិក (BostarGift)</h3>
-            <p class="text-[10px] text-amber-300 font-medium">យុទ្ធនាការ ២០-៣០ វិច្ឆិកា ២០២៦ · Master Data Live</p>
+          <div class="min-w-0">
+            <h3 class="font-bold text-sm text-white leading-tight truncate">តារាងពិន្ទុសមាជិក</h3>
+            <p class="text-[10.5px] text-amber-300 font-medium truncate mt-0.5">
+              យុទ្ធនាការ ២០-៣០ វិច្ឆិកា ២០២៦ · Master Data Live
+            </p>
           </div>
         </div>
-        <button type="button" onclick="closeBostarGiftLeaderboardModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center transition">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
 
-      <!-- Quick Metrics Bar -->
-      <div class="grid grid-cols-3 gap-2 p-3 bg-white/[0.02] border-b border-white/5 text-center shrink-0">
-        <div class="p-1.5 rounded-lg bg-white/5">
-          <div class="text-[9.5px] text-slate-400">កុម្ម៉ង់សរុបយុទ្ធនាការ</div>
-          <div class="text-xs font-bold font-mono text-emerald-400" id="bostargift-lb-total-orders">0 Orders</div>
-        </div>
-        <div class="p-1.5 rounded-lg bg-white/5">
-          <div class="text-[9.5px] text-slate-400">សមាជិកមានពិន្ទុ</div>
-          <div class="text-xs font-bold font-mono text-amber-400" id="bostargift-lb-total-members">0 នាក់</div>
-        </div>
-        <div class="p-1.5 rounded-lg bg-white/5">
-          <div class="text-[9.5px] text-slate-400">រង្វាន់សរុបក្នុង Pool</div>
-          <div class="text-xs font-bold font-mono text-sky-400">10-15 កែវ</div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span class="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 font-mono" id="bostargift-lb-badge-orders">
+            Live
+          </span>
         </div>
       </div>
+    </div>
 
-      <!-- Ranking List Body (Smooth momentum scroll) -->
-      <div id="bostargift-leaderboard-list" class="p-3 overflow-y-auto no-scrollbar space-y-2 flex-1" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
-        <!-- Injected dynamically by renderBostarGiftLeaderboard() -->
+    <!-- Quick Metrics Strip -->
+    <div class="grid grid-cols-3 gap-2 p-3 bg-white/[0.02] border-b border-white/5 text-center shrink-0 lb-metrics-bar">
+      <div class="p-2 rounded-xl bg-white/5 lb-metric-card">
+        <div class="text-[9.5px] text-slate-400 label font-medium">កុម្ម៉ង់សរុបថ្ងៃនេះ</div>
+        <div class="text-xs font-bold font-mono text-emerald-400" id="bostargift-lb-total-orders">0 Orders</div>
       </div>
-
-      <!-- Footer Actions -->
-      <div class="p-3 bg-[#0B1528] border-t border-white/10 flex items-center justify-between shrink-0">
-        <span class="text-[10px] text-slate-400">គិតតែ Order ជាក់ស្តែងក្នុង Master Data</span>
-        <button type="button" onclick="closeBostarGiftLeaderboardModal()" class="py-1.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-xs text-white font-medium transition">
-          បិទ
-        </button>
+      <div class="p-2 rounded-xl bg-white/5 lb-metric-card">
+        <div class="text-[9.5px] text-slate-400 label font-medium">សមាជិកមានពិន្ទុ</div>
+        <div class="text-xs font-bold font-mono text-amber-400" id="bostargift-lb-total-members">0 នាក់</div>
       </div>
+      <div class="p-2 rounded-xl bg-white/5 lb-metric-card">
+        <div class="text-[9.5px] text-slate-400 label font-medium">រង្វាន់សរុបក្នុង Pool</div>
+        <div class="text-xs font-bold font-mono text-sky-400">10-15 កែវ</div>
+      </div>
+    </div>
 
+    <!-- Ranking List Body (Edge-to-edge full screen scroll, NO bottom bar!) -->
+    <div id="bostargift-leaderboard-list" class="p-3.5 pb-28 overflow-y-auto no-scrollbar space-y-2 flex-1" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
+      <!-- Injected dynamically by renderBostarGiftLeaderboard() -->
     </div>
   </div>
 
-  <script src="dataService.js?v=67.61"></script>
-  <script src="app.js?v=67.61"></script>
+  <script src="dataService.js?v=67.62"></script>
+  <script src="app.js?v=67.62"></script>
 </body>
 </html>

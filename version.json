@@ -1,5 +1,5 @@
 {
-  "version": "67.61",
-  "buildTime": "2026-11-20T13:55:00+07:00",
-  "notes": "v67.61: Fix BostarGift date filtering (o.date || o.orderDate), force live Master Data sync, and introduce public interactive Leaderboard (ពិន្ទុសមាជិក)"
+  "version": "67.62",
+  "buildTime": "2026-11-20T14:22:00+07:00",
+  "notes": "v67.62: Fullscreen edge-to-edge BostarGift Leaderboard, removed all avatars, improved light/dark mode contrast, removed Apps in App badge and bottom bar"
 }
