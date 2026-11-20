@@ -47,7 +47,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="bostar-icon-512.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="shortcut icon" href="bostar-touch-icon-180.png">
-  <link rel="manifest" href="manifest.json?v=67.62">
+  <link rel="manifest" href="manifest.json?v=67.63">
   <meta name="screen-orientation" content="portrait">
   <meta name="x5-orientation" content="portrait">
 
@@ -9590,7 +9590,7 @@
   <!-- BOSTARGIFT LEADERBOARD MODAL (ពិន្ទុសមាជិកទាំងអស់ - Full-Screen Native Modal) -->
   <div id="bostargift-leaderboard-modal" class="fixed inset-0 z-[98] bg-[#070D18] hidden flex flex-col overflow-hidden font-kantumruy select-none transition-all duration-300">
     <!-- Top Modal Header (Universal Safe Area + Standard Navigation) -->
-    <div class="pt-[env(safe-area-inset-top,0px)] bg-[#0B1528] shrink-0 border-b border-white/10 lb-header">
+    <div onclick="handleHeaderScrollToTop(event, 'bostargift-leaderboard-list')" class="pt-[env(safe-area-inset-top,0px)] bg-[#0B1528] shrink-0 border-b border-white/10 lb-header cursor-pointer select-none">
       <div class="p-3 border-b border-white/10 flex items-center justify-between bg-[#0B1528]/95 backdrop-blur-xl shrink-0 select-none">
         <div class="flex items-center gap-2.5 min-w-0">
           <button type="button" onclick="closeBostarGiftLeaderboardModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-slate-200 flex items-center justify-center shrink-0 transition" title="ត្រឡប់">
@@ -9637,7 +9637,7 @@
     </div>
   </div>
 
-  <script src="dataService.js?v=67.62"></script>
-  <script src="app.js?v=67.62"></script>
+  <script src="dataService.js?v=67.63"></script>
+  <script src="app.js?v=67.63"></script>
 </body>
 </html>

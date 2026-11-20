@@ -1944,6 +1944,8 @@ function setupSwipeToBack() {
     const isSubModalOpen = isProfileSubModalOpen();
     const honorsEl = document.getElementById('honors-modal');
     const isHonorsOpen = honorsEl && !honorsEl.classList.contains('hidden');
+    const bostargiftLbEl = document.getElementById('bostargift-leaderboard-modal');
+    const isBostarGiftLbOpen = bostargiftLbEl && !bostargiftLbEl.classList.contains('hidden');
     const bostargiftEl = document.getElementById('bostargift-modal');
     const isBostarGiftOpen = bostargiftEl && !bostargiftEl.classList.contains('hidden');
     const reportEl = document.getElementById('daily-report-modal');
@@ -1972,6 +1974,10 @@ function setupSwipeToBack() {
       // Edge-swipe Left-to-Right from screen left edge (<= 80px) on Honors Modal
       isPotentialSwipe = true;
       swipeOrigin = 'honors-modal';
+    } else if (isBostarGiftLbOpen && touchStartX <= 80) {
+      // Edge-swipe Left-to-Right from screen left edge (<= 80px) on BostarGift Leaderboard Modal
+      isPotentialSwipe = true;
+      swipeOrigin = 'bostargift-leaderboard-modal';
     } else if (isBostarGiftOpen && touchStartX <= 80) {
       // Edge-swipe Left-to-Right from screen left edge (<= 80px) on BostarGift Modal
       isPotentialSwipe = true;
@@ -2059,6 +2065,16 @@ function setupSwipeToBack() {
     if (swipeOrigin === 'honors-modal') {
       if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
         closeHonorsModal();
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+        isPotentialSwipe = false;
+        return;
+      }
+    }
+
+    // Case 0-BGLB: Edge-swipe Left-to-Right on BostarGift Leaderboard Modal -> Return
+    if (swipeOrigin === 'bostargift-leaderboard-modal') {
+      if (deltaX >= 55 && deltaX > Math.abs(deltaY) * 1.2) {
+        if (typeof closeBostarGiftLeaderboardModal === 'function') closeBostarGiftLeaderboardModal();
         if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
         isPotentialSwipe = false;
         return;
@@ -2877,7 +2893,10 @@ function closeAllModals() {
     'attendance-documents-modal',
     'member-daily-breakdown-modal',
     'member-daily-action-sheet-modal',
-    'seller-reward-modal'
+    'seller-reward-modal',
+    'bostargift-modal',
+    'bostargift-leaderboard-modal',
+    'bostargift-voucher-modal'
   ];
   modals.forEach(id => {
     const el = document.getElementById(id);
@@ -21324,6 +21343,8 @@ function handleHeaderScrollToTop(e, targetId = null) {
 
     if (!target) {
       const modals = [
+        { modalId: 'bostargift-leaderboard-modal', listId: 'bostargift-leaderboard-list' },
+        { modalId: 'bostargift-modal', listId: 'bostargift-modal-body' },
         { modalId: 'edit-order-modal', listId: 'edit-order-modal-body' },
         { modalId: 'attendance-leave-modal', listId: 'attendance-leave-body' },
         { modalId: 'attendance-manager-modal', listId: 'attendance-manager-body' },
@@ -21676,7 +21697,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.62';
+const CURRENT_APP_VERSION = '67.63';
 let isUpdateToastShown = false;
 
 function isVersionNewer(remoteVer, currentVer) {
@@ -39142,6 +39163,12 @@ function getBostarGiftMasterOrdersList() {
   return list;
 }
 
+function isBostarOrderCode(orderId) {
+  if (!orderId) return false;
+  const clean = String(orderId).trim().toUpperCase().replace(/^#\s*/, '');
+  return clean.startsWith('B');
+}
+
 function getBostarGiftAllTimeOrdersCount() {
   const isDemo = (typeof checkIsDemoMode === 'function') ? checkIsDemoMode() : false;
   const state = getBostarGiftState();
@@ -39155,16 +39182,18 @@ function getBostarGiftAllTimeOrdersCount() {
   const sellerPhone = String(p?.phone || localStorage.getItem('sd_last_seller_phone') || '').trim().replace(/[\s\-\.]/g, '');
   const normSeller = (typeof normalizeSellerName === 'function') ? normalizeSellerName(sellerName) : sellerName.toLowerCase();
 
-  if (!normSeller || normSeller === 'សមាជិក') return allMaster.length;
+  if (!normSeller || normSeller === 'សមាជិក') return allMaster.filter(o => isBostarOrderCode(o?.orderId)).length;
 
   const filtered = allMaster.filter(o => {
     if (!o) return false;
+    // BostarApps Law: Strictly count only #B*** orders, exclude #4*** or other non-Bostar orders
+    if (!isBostarOrderCode(o.orderId)) return false;
     const oSeller = (typeof normalizeSellerName === 'function') ? normalizeSellerName(o.seller) : String(o.seller || '').toLowerCase().trim();
     const oPhone = String(o.phone || '').trim().replace(/[\s\-\.]/g, '');
     return (normSeller && (oSeller === normSeller || oSeller.includes(normSeller) || normSeller.includes(oSeller))) ||
            (sellerPhone && oPhone && (oPhone === sellerPhone || oPhone.endsWith(sellerPhone) || sellerPhone.endsWith(oPhone)));
   });
-  return filtered.length > 0 ? filtered.length : allMaster.length;
+  return filtered.length > 0 ? filtered.length : allMaster.filter(o => isBostarOrderCode(o?.orderId)).length;
 }
 
 function getBostarGiftCurrentSellerName() {
@@ -39205,6 +39234,9 @@ function getBostarGiftRawOrdersCount() {
     const note = String(o.note || '').trim().toLowerCase();
     if (oid.includes('return') || oid.includes('refund') || oid.includes('cancel')) return false;
     if (note.includes('return') || note.includes('ត្រឡប់') || note.includes('រង្វាន់')) return false;
+
+    // BostarApps Law: Strictly count only #B*** orders, exclude #4*** or other non-Bostar orders
+    if (!isBostarOrderCode(o.orderId)) return false;
 
     // Standard format DD/MM/YYYY or YYYY-MM-DD
     const parts = String(rawDate).trim().split(/[\/\-]/);
@@ -39249,12 +39281,14 @@ async function openBostarGiftModal() {
   const modal = document.getElementById('bostargift-modal');
   if (!modal) return;
   modal.classList.remove('hidden');
+  document.body.classList.add('overflow-hidden');
   if (appState && appState.fontFamily) modal.classList.add(appState.fontFamily);
 
   renderBostarGiftUI();
   initBostarGiftWheelCanvas();
 
   if (window.lucide) window.lucide.createIcons();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
 
   // Force-refresh live Master Data Sales so points update immediately
   if (window.DataService && typeof window.DataService.getMasterDataSales === 'function') {
@@ -39269,14 +39303,25 @@ function openBostarGiftLeaderboardModal() {
   const modal = document.getElementById('bostargift-leaderboard-modal');
   if (!modal) return;
   modal.classList.remove('hidden');
+  document.body.classList.add('overflow-hidden');
   if (appState && appState.fontFamily) modal.classList.add(appState.fontFamily);
   renderBostarGiftLeaderboard();
+  const listEl = document.getElementById('bostargift-leaderboard-list');
+  if (listEl) listEl.scrollTop = 0;
   if (window.lucide) window.lucide.createIcons();
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
 }
 
 function closeBostarGiftLeaderboardModal() {
   const modal = document.getElementById('bostargift-leaderboard-modal');
   if (modal) modal.classList.add('hidden');
+  const listEl = document.getElementById('bostargift-leaderboard-list');
+  if (listEl) listEl.scrollTop = 0;
+  const bostargiftModal = document.getElementById('bostargift-modal');
+  if (!bostargiftModal || bostargiftModal.classList.contains('hidden')) {
+    document.body.classList.remove('overflow-hidden');
+  }
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
 }
 
 function renderBostarGiftLeaderboard() {
@@ -39298,6 +39343,9 @@ function renderBostarGiftLeaderboard() {
     const note = String(o.note || '').trim().toLowerCase();
     if (oid.includes('return') || oid.includes('refund') || oid.includes('cancel')) return false;
     if (note.includes('return') || note.includes('ត្រឡប់') || note.includes('រង្វាន់')) return false;
+
+    // BostarApps Law: Strictly count only #B*** orders, exclude #4*** or other non-Bostar orders
+    if (!isBostarOrderCode(o.orderId)) return false;
 
     const parts = String(rawDate).trim().split(/[\/\-]/);
     if (parts.length === 3) {
@@ -39412,6 +39460,10 @@ function renderBostarGiftLeaderboard() {
 function closeBostarGiftModal() {
   const modal = document.getElementById('bostargift-modal');
   if (modal) modal.classList.add('hidden');
+  const lbModal = document.getElementById('bostargift-leaderboard-modal');
+  if (lbModal) lbModal.classList.add('hidden');
+  document.body.classList.remove('overflow-hidden');
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
 }
 
 function renderBostarGiftUI() {

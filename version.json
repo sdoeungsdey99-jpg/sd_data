@@ -1,5 +1,5 @@
 {
-  "version": "67.62",
-  "buildTime": "2026-11-20T14:22:00+07:00",
-  "notes": "v67.62: Fullscreen edge-to-edge BostarGift Leaderboard, removed all avatars, improved light/dark mode contrast, removed Apps in App badge and bottom bar"
+  "version": "67.63",
+  "buildTime": "2026-11-20T14:45:00+07:00",
+  "notes": "v67.63: Edge swipe to back, header tap scroll-to-top, closeAllModals integration, scroll lock, and strict #B*** order filtering (excluding #4***)"
 }
