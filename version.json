@@ -1,5 +1,5 @@
 {
-  "version": "67.60",
-  "buildTime": "2026-11-19T23:00:00+07:00",
-  "notes": "v67.60: Connect BostarGift order counting strictly to Master Data (#B***) and direct voucher redemption to Assistant Coach Chheng Rasung (@Chheng_Rasung)"
+  "version": "67.61",
+  "buildTime": "2026-11-20T13:55:00+07:00",
+  "notes": "v67.61: Fix BostarGift date filtering (o.date || o.orderDate), force live Master Data sync, and introduce public interactive Leaderboard (ពិន្ទុសមាជិក)"
 }

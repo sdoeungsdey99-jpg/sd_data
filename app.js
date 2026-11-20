@@ -21676,7 +21676,7 @@ function showToastNotification(msg) {
 // ==========================================
 // iOS PWA Standalone Auto-Update Detection
 // ==========================================
-const CURRENT_APP_VERSION = '67.60';
+const CURRENT_APP_VERSION = '67.61';
 let isUpdateToastShown = false;
 
 function isVersionNewer(remoteVer, currentVer) {
@@ -39118,16 +39118,28 @@ function checkIsCampaignPeriod() {
 }
 
 function getBostarGiftMasterOrdersList() {
+  const list = [];
   if (DataService && Array.isArray(DataService.masterDataSalesCache) && DataService.masterDataSalesCache.length > 0) {
-    return DataService.masterDataSalesCache;
+    list.push(...DataService.masterDataSalesCache);
+  } else if (DataService && DataService.data && Array.isArray(DataService.data.allSales) && DataService.data.allSales.length > 0) {
+    list.push(...DataService.data.allSales);
+  } else if (DataService && DataService.data && Array.isArray(DataService.data.bostarTrackSales) && DataService.data.bostarTrackSales.length > 0) {
+    list.push(...DataService.data.bostarTrackSales);
   }
-  if (DataService && DataService.data && Array.isArray(DataService.data.allSales) && DataService.data.allSales.length > 0) {
-    return DataService.data.allSales;
+
+  // Also seamlessly merge local personalSales from current session
+  if (DataService && DataService.data && Array.isArray(DataService.data.personalSales) && DataService.data.personalSales.length > 0) {
+    const existingOrderIds = new Set(list.map(o => String(o.orderId || '').trim().toLowerCase()).filter(Boolean));
+    DataService.data.personalSales.forEach(ps => {
+      const pOid = String(ps.orderId || '').trim().toLowerCase();
+      if (pOid && !existingOrderIds.has(pOid)) {
+        list.push(ps);
+        existingOrderIds.add(pOid);
+      }
+    });
   }
-  if (DataService && DataService.data && Array.isArray(DataService.data.bostarTrackSales) && DataService.data.bostarTrackSales.length > 0) {
-    return DataService.data.bostarTrackSales;
-  }
-  return [];
+
+  return list;
 }
 
 function getBostarGiftAllTimeOrdersCount() {
@@ -39176,7 +39188,8 @@ function getBostarGiftRawOrdersCount() {
 
   // Campaign Date Scope: 2026-11-20 to 2026-11-30
   const campaignOrders = allMasterSales.filter(o => {
-    if (!o || !o.orderDate) return false;
+    const rawDate = o ? (o.date || o.orderDate) : null;
+    if (!o || !rawDate) return false;
 
     // Filter by Seller (BostarApps Law)
     if (normSeller && normSeller !== 'សមាជិក') {
@@ -39194,7 +39207,7 @@ function getBostarGiftRawOrdersCount() {
     if (note.includes('return') || note.includes('ត្រឡប់') || note.includes('រង្វាន់')) return false;
 
     // Standard format DD/MM/YYYY or YYYY-MM-DD
-    const parts = String(o.orderDate).trim().split(/[\/\-]/);
+    const parts = String(rawDate).trim().split(/[\/\-]/);
     if (parts.length === 3) {
       let d = parseInt(parts[0], 10);
       let m = parseInt(parts[1], 10);
@@ -39243,13 +39256,159 @@ async function openBostarGiftModal() {
 
   if (window.lucide) window.lucide.createIcons();
 
-  // Pre-load / Refresh Master Data Sales silently in background to keep count live & accurate
+  // Force-refresh live Master Data Sales so points update immediately
   if (window.DataService && typeof window.DataService.getMasterDataSales === 'function') {
     try {
-      await window.DataService.getMasterDataSales();
+      await window.DataService.getMasterDataSales(true);
       renderBostarGiftUI();
     } catch (_) {}
   }
+}
+
+function openBostarGiftLeaderboardModal() {
+  const modal = document.getElementById('bostargift-leaderboard-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  if (appState && appState.fontFamily) modal.classList.add(appState.fontFamily);
+  renderBostarGiftLeaderboard();
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function closeBostarGiftLeaderboardModal() {
+  const modal = document.getElementById('bostargift-leaderboard-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function renderBostarGiftLeaderboard() {
+  const listEl = document.getElementById('bostargift-leaderboard-list');
+  const totalOrdersEl = document.getElementById('bostargift-lb-total-orders');
+  const totalMembersEl = document.getElementById('bostargift-lb-total-members');
+  if (!listEl) return;
+
+  const allSales = getBostarGiftMasterOrdersList();
+  const currentSeller = getBostarGiftCurrentSellerName();
+  const normCurrentSeller = (typeof normalizeSellerName === 'function') ? normalizeSellerName(currentSeller) : currentSeller.toLowerCase();
+
+  // Filter Campaign Orders (Nov 20 to Nov 30, 2026)
+  const campaignOrders = allSales.filter(o => {
+    const rawDate = o ? (o.date || o.orderDate) : null;
+    if (!o || !rawDate) return false;
+
+    const oid = String(o.orderId || '').trim().toLowerCase();
+    const note = String(o.note || '').trim().toLowerCase();
+    if (oid.includes('return') || oid.includes('refund') || oid.includes('cancel')) return false;
+    if (note.includes('return') || note.includes('ត្រឡប់') || note.includes('រង្វាន់')) return false;
+
+    const parts = String(rawDate).trim().split(/[\/\-]/);
+    if (parts.length === 3) {
+      let d = parseInt(parts[0], 10);
+      let m = parseInt(parts[1], 10);
+      let y = parseInt(parts[2], 10);
+      if (parts[0].length === 4) {
+        y = parseInt(parts[0], 10);
+        m = parseInt(parts[1], 10);
+        d = parseInt(parts[2], 10);
+      }
+      return y === 2026 && m === 11 && d >= 20 && d <= 30;
+    }
+    return false;
+  });
+
+  // Group by Seller
+  const sellerMap = new Map();
+  campaignOrders.forEach(o => {
+    const rawSeller = String(o.seller || 'សមាជិក').trim();
+    const normKey = (typeof normalizeSellerName === 'function') ? normalizeSellerName(rawSeller) : rawSeller.toLowerCase();
+    if (!sellerMap.has(normKey)) {
+      sellerMap.set(normKey, {
+        displayName: rawSeller,
+        ordersCount: 0,
+        orderIds: []
+      });
+    }
+    const item = sellerMap.get(normKey);
+    item.ordersCount += 1;
+    if (o.orderId && item.orderIds.length < 3) {
+      item.orderIds.push(o.orderId);
+    }
+  });
+
+  // Convert to sorted array
+  const ranking = Array.from(sellerMap.entries()).map(([k, val]) => ({
+    key: k,
+    name: val.displayName,
+    count: val.ordersCount,
+    orderIds: val.orderIds,
+    isMe: (normCurrentSeller && normCurrentSeller !== 'សមាជិក' && (k === normCurrentSeller || k.includes(normCurrentSeller) || normCurrentSeller.includes(k)))
+  })).sort((a, b) => b.count - a.count);
+
+  if (totalOrdersEl) totalOrdersEl.textContent = `${campaignOrders.length} Orders`;
+  if (totalMembersEl) totalMembersEl.textContent = `${ranking.length} នាក់`;
+
+  if (ranking.length === 0) {
+    listEl.innerHTML = `
+      <div class="p-6 text-center rounded-2xl bg-white/5 border border-white/5 text-xs text-slate-400">
+        មិនទាន់មានកុម្ម៉ង់ក្នុងយុទ្ធនាការនៅឡើយទេ — កុម្ម៉ង់ដំបូងគេដើម្បីឡើងលេខ ១! 🚀
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  ranking.forEach((r, idx) => {
+    const rankNum = idx + 1;
+    let rankBadge = '';
+    let rowBorder = 'border-white/5 bg-white/5';
+    if (rankNum === 1) {
+      rankBadge = '<span class="w-6 h-6 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-extrabold text-xs flex items-center justify-center shrink-0 shadow-md">🥇</span>';
+      rowBorder = 'border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-white/5 to-transparent';
+    } else if (rankNum === 2) {
+      rankBadge = '<span class="w-6 h-6 rounded-full bg-slate-300 text-slate-900 font-extrabold text-xs flex items-center justify-center shrink-0 shadow-md">🥈</span>';
+    } else if (rankNum === 3) {
+      rankBadge = '<span class="w-6 h-6 rounded-full bg-amber-700 text-amber-100 font-extrabold text-xs flex items-center justify-center shrink-0 shadow-md">🥉</span>';
+    } else {
+      rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0">${rankNum}</span>`;
+    }
+
+    const meTag = r.isMe ? '<span class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-bold text-[9px] border border-amber-500/30">ខ្ញុំ</span>' : '';
+    const initial = r.name.charAt(0) || 'B';
+    const remainingTo5 = Math.max(0, 5 - r.count);
+    let statusText = '';
+    if (r.count >= 20) statusText = '👑 សម្រេច ២០ កុម្ម៉ង់ (៤ កែវ)';
+    else if (r.count >= 10) statusText = '🥤 សម្រេច ១០ កុម្ម៉ង់ (១ កែវ)';
+    else if (r.count >= 5) statusText = '🎲 មានសិទ្ធិបង្វិលកង់!';
+    else statusText = `ខ្វះ ${remainingTo5} ទៀតបង្វិលកង់`;
+
+    const ordersPreview = r.orderIds.join(', ');
+
+    html += `
+      <div class="p-2.5 rounded-xl ${rowBorder} border flex items-center justify-between transition ${r.isMe ? 'ring-1 ring-amber-500/50' : ''}">
+        <div class="flex items-center gap-2.5 min-w-0">
+          ${rankBadge}
+          <div class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 text-xs font-bold shrink-0">
+            ${initial}
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h5 class="text-xs font-bold text-white truncate">${escapeHtml(r.name)}</h5>
+              ${meTag}
+            </div>
+            <p class="text-[10px] text-slate-400 truncate">
+              ${ordersPreview ? `<span class="font-mono text-slate-300">${escapeHtml(ordersPreview)}</span> · ` : ''}
+              <span>${statusText}</span>
+            </p>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-sm font-black text-amber-300 font-mono">${r.count} <span class="text-xs font-normal text-slate-400">កុម្ម៉ង់</span></div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold">${r.count} ពិន្ទុ</span>
+        </div>
+      </div>
+    `;
+  });
+
+  listEl.innerHTML = html;
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function closeBostarGiftModal() {
@@ -39999,6 +40158,9 @@ function simulateBostarGiftAction(action) {
 
 window.openBostarGiftModal = openBostarGiftModal;
 window.closeBostarGiftModal = closeBostarGiftModal;
+window.openBostarGiftLeaderboardModal = openBostarGiftLeaderboardModal;
+window.closeBostarGiftLeaderboardModal = closeBostarGiftLeaderboardModal;
+window.renderBostarGiftLeaderboard = renderBostarGiftLeaderboard;
 window.spinBostarGiftWheel = spinBostarGiftWheel;
 window.claimBostarGiftAutoReward = claimBostarGiftAutoReward;
 window.openBostarGiftVoucherModal = openBostarGiftVoucherModal;
